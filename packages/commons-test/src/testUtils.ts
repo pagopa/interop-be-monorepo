@@ -1,6 +1,9 @@
 /* eslint-disable fp/no-delete */
 import crypto from "crypto";
 import { fail } from "assert";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 import { generateMock } from "@anatine/zod-mock";
 import {
   Agreement,
@@ -71,8 +74,60 @@ import {
   DelegationKind,
   unsafeBrandId,
   UserId,
+  delegationState,
+  delegationKind,
+  EServiceTemplate,
+  EServiceTemplateId,
+  EServiceTemplateVersion,
+  EServiceTemplateVersionId,
+  eserviceTemplateVersionState,
+  agreementApprovalPolicy,
+  EServiceTemplateVersionState,
+  AgreementDocument,
+  DescriptorRejectionReason,
+  AgreementStamp,
+  ClientJWKKey,
+  ProducerJWKKey,
+  ProducerKeychainId,
+  WithMetadata,
+  CorrelationId,
+  AgreementV2,
+  VerifiedAttributeV2,
+  DeclaredAttributeV2,
+  CertifiedAttributeV2,
+  AgreementDocumentV2,
+  PurposeV2,
+  EserviceAttributes,
+  DPoPProof,
+  DPoPProofPayload,
+  DPoPProofHeader,
+  JWKKeyRS256,
+  JWKKeyES256,
+  Algorithm,
+  algorithm,
+  ClientKind,
+  NotificationConfig,
+  TenantNotificationConfig,
+  UserNotificationConfig,
 } from "pagopa-interop-models";
-import { AuthData, dateToSeconds } from "pagopa-interop-commons";
+import {
+  AppContext,
+  dateToSeconds,
+  genericLogger,
+  keyToClientJWKKey,
+  keyToProducerJWKKey,
+  InternalAuthData,
+  M2MAuthData,
+  MaintenanceAuthData,
+  systemRole,
+  UIAuthData,
+  UserRole,
+  userRole,
+  WithLogger,
+  UIClaims,
+  M2MAdminAuthData,
+  createJWK,
+} from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
 import { match } from "ts-pattern";
@@ -83,16 +138,18 @@ export function expectPastTimestamp(timestamp: bigint): boolean {
   );
 }
 
+export function randomSubArray<T>(array: T[]): T[] {
+  const count = Math.floor(Math.random() * array.length) + 1;
+  const start = Math.floor(Math.random() * (array.length - count + 1));
+  return array.slice(start, start + count);
+}
+
 export function randomArrayItem<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
 
 export function randomBoolean(): boolean {
   return Math.random() < 0.5;
-}
-
-export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export const getTenantCertifierFeatures = (
@@ -106,6 +163,7 @@ export const getTenantCertifierFeatures = (
           feature as TenantFeatureCertifier,
         ])
         .with("DelegatedProducer", () => acc)
+        .with("DelegatedConsumer", () => acc)
         .exhaustive(),
     []
   );
@@ -120,21 +178,13 @@ export const getTenantOneCertifierFeature = (
   return certifiedFeatures[0];
 };
 
-export const getRandomAuthData = (
-  organizationId: TenantId = generateId<TenantId>()
-): AuthData => ({
-  ...generateMock(AuthData),
-  userRoles: ["admin"],
-  organizationId,
-});
-
 export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
   certifiedAttributes: EServiceAttribute[][] = [],
   declaredAttributes: EServiceAttribute[][] = [],
   verifiedAttributes: EServiceAttribute[][] = []
 ): Descriptor => ({
-  ...generateMock(Descriptor),
+  ...getMockDescriptor(descriptorState.published),
   id: descriptorId,
   state: descriptorState.published,
   attributes: {
@@ -143,6 +193,9 @@ export const getMockDescriptorPublished = (
     verified: verifiedAttributes,
   },
   rejectionReasons: undefined,
+  voucherLifespan: 600,
+  dailyCallsPerConsumer: 10,
+  dailyCallsTotal: 10000,
 });
 
 export const getMockEServiceAttribute = (
@@ -158,8 +211,11 @@ export const getMockAgreementAttribute = (
   id: attributeId,
 });
 
-export const getMockEServiceAttributes = (num: number): EServiceAttribute[] =>
-  new Array(num).map(() => getMockEServiceAttribute());
+export const getMockEServiceAttributes = (): EserviceAttributes => ({
+  certified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+  declared: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+  verified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+});
 
 export const getMockEService = (
   eserviceId: EServiceId = generateId<EServiceId>(),
@@ -173,7 +229,6 @@ export const getMockEService = (
   producerId,
   technology: technology.rest,
   descriptors,
-  attributes: undefined,
   riskAnalysis: [],
   mode: "Deliver",
 });
@@ -227,6 +282,12 @@ export const getMockTenantMail = (
   address: generateMock(z.string().email()),
 });
 
+export const getMockAgreementStamp = (): AgreementStamp => ({
+  who: generateId(),
+  when: new Date(),
+  delegationId: generateId<DelegationId>(),
+});
+
 export const getMockAgreementStamps = (): AgreementStamps => {
   const stamps = generateMock(AgreementStamps);
   delete stamps.submission?.delegationId;
@@ -260,8 +321,6 @@ export const getMockAttribute = (
   kind,
   description: "attribute description",
   creationTime: new Date(),
-  code: undefined,
-  origin: undefined,
 });
 
 export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
@@ -281,12 +340,7 @@ export const getMockPurposeVersion = (
 ): PurposeVersion => ({
   id: generateId(),
   state: state || purposeVersionState.draft,
-  riskAnalysis: {
-    id: generateId(),
-    contentType: "json",
-    path: "path",
-    createdAt: new Date(),
-  },
+  riskAnalysis: getMockPurposeVersionDocument(),
   dailyCalls: 10,
   createdAt: new Date(),
   ...(state !== purposeVersionState.draft
@@ -312,7 +366,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   version: "1",
   docs: [],
   state: state || descriptorState.draft,
-  audience: [],
+  audience: ["pagopa.it"],
   voucherLifespan: 60,
   dailyCallsPerConsumer: 10,
   dailyCallsTotal: 1000,
@@ -324,7 +378,10 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
     verified: [],
     declared: [],
   },
-  rejectionReasons: undefined,
+  ...(state === descriptorState.archived ? { archivedAt: new Date() } : {}),
+  ...(state === descriptorState.suspended ? { suspendedAt: new Date() } : {}),
+  ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
+  ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
 });
 
 export const getMockDescriptorList = (length?: number): Descriptor[] => {
@@ -342,16 +399,40 @@ export const getMockDocument = (): Document => ({
   uploadDate: new Date(),
 });
 
-export const getMockClient = (): Client => ({
+export const getMockAgreementDocument = (): AgreementDocument => ({
   id: generateId(),
-  consumerId: generateId(),
-  name: "Test client",
-  purposes: [],
-  description: "Client description",
-  users: [],
-  kind: clientKind.consumer,
+  name: "fileName",
+  prettyName: "prettyName",
+  contentType: "json",
+  path: "filePath",
   createdAt: new Date(),
-  keys: [],
+});
+
+export const getMockClient = ({
+  consumerId = generateId<TenantId>(),
+  users = [],
+  kind = clientKind.consumer,
+  purposes = [],
+  keys = [],
+  adminId = undefined,
+}: {
+  consumerId?: TenantId;
+  users?: UserId[];
+  kind?: ClientKind;
+  purposes?: PurposeId[];
+  keys?: Key[];
+  adminId?: UserId;
+} = {}): Client => ({
+  id: generateId(),
+  consumerId,
+  name: "Test client",
+  purposes,
+  description: "Client description",
+  users,
+  kind,
+  createdAt: new Date(),
+  keys,
+  ...(adminId ? { adminId } : {}),
 });
 
 export const getMockProducerKeychain = (): ProducerKeychain => ({
@@ -375,10 +456,47 @@ export const getMockKey = (): Key => ({
   use: keyUse.sig,
 });
 
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+export const getMockClientJWKKey = (clientId?: ClientId): ClientJWKKey => {
+  const key = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+
+  const base64Key = Buffer.from(
+    key.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  return keyToClientJWKKey(
+    { ...getMockKey(), encodedPem: base64Key },
+    clientId || generateId()
+  );
+};
+
+export const getMockProducerJWKKey = (
+  producerKeychainId?: ProducerKeychainId
+): ProducerJWKKey => {
+  const key = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+
+  const base64Key = Buffer.from(
+    key.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  return keyToProducerJWKKey(
+    { ...getMockKey(), encodedPem: base64Key },
+    producerKeychainId || generateId()
+  );
+};
+
+export const getMockAuthData = (
+  organizationId?: TenantId,
+  userId?: UserId,
+  userRoles?: UserRole[]
+): UIAuthData => ({
+  systemRole: undefined,
   organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [],
+  userId: userId || generateId(),
+  userRoles: userRoles || [userRole.ADMIN_ROLE],
   externalId: {
     value: "123456",
     origin: "IPA",
@@ -394,8 +512,8 @@ export const getMockDelegation = ({
   eserviceId = generateId<EServiceId>(),
   state = "WaitingForApproval",
   submitterId = generateId<UserId>(),
-  activationContract = undefined,
-  revocationContract = undefined,
+  activationContract,
+  revocationContract,
 }: {
   kind: DelegationKind;
   id?: DelegationId;
@@ -415,10 +533,9 @@ export const getMockDelegation = ({
     delegateId,
     eserviceId,
     createdAt: creationTime,
-    submittedAt: creationTime,
     state,
-    activationContract,
-    revocationContract,
+    ...(activationContract ? { activationContract } : {}),
+    ...(revocationContract ? { revocationContract } : {}),
     kind,
     stamps: {
       submission: {
@@ -449,6 +566,7 @@ export const getMockTokenGenStatesConsumerClient = (
     ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
     : generateId<ClientId>();
   const purposeId = generateId<PurposeId>();
+  const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
   const descriptorId = generateId<DescriptorId>();
@@ -473,6 +591,7 @@ export const getMockTokenGenStatesConsumerClient = (
       descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
       descriptorVoucherLifespan: 60,
       updatedAt: new Date().toISOString(),
+      producerId,
       consumerId,
       agreementId,
       purposeVersionId,
@@ -520,6 +639,7 @@ export const getMockPlatformStatesAgreementEntry = (
   agreementId,
   agreementTimestamp: new Date().toISOString(),
   agreementDescriptorId: generateId<DescriptorId>(),
+  producerId: generateId(),
 });
 
 export const getMockTokenGenStatesApiClient = (
@@ -594,12 +714,12 @@ export const getMockClientAssertion = async (props?: {
   };
 
   const headers: jose.JWTHeaderParameters = {
-    alg: "RS256",
+    alg: algorithm.RS256,
     kid: "kid",
     ...props?.customHeader,
   };
 
-  const jws = await signClientAssertion({
+  const jws = await signJWT({
     payload: actualPayload,
     headers,
     keySet,
@@ -615,16 +735,82 @@ export const getMockClientAssertion = async (props?: {
   };
 };
 
-export const generateKeySet = (): {
+export const getMockDPoPProof = async (
+  props?: {
+    customPayload?: { [k: string]: unknown };
+    customHeader?: { [k: string]: unknown };
+  },
+  alg: Algorithm = algorithm.ES256
+): Promise<{
+  dpopProofJWS: string;
+  dpopProofJWT: DPoPProof;
+}> => {
+  const { keySet, publicKeyEncodedPem } = generateKeySet(alg);
+
+  const payload: DPoPProofPayload = {
+    htm: "POST",
+    htu: "test/authorization-server/token.oauth2",
+    iat: dateToSeconds(new Date()),
+    jti: generateId(),
+    ...props?.customPayload,
+  };
+
+  const cryptoJWK = createJWK({
+    pemKeyBase64: publicKeyEncodedPem,
+    strictCheck: alg === algorithm.RS256,
+  });
+
+  const jwk = match(alg)
+    .with(algorithm.ES256, () => JWKKeyES256.parse(cryptoJWK))
+    .with(algorithm.RS256, () => JWKKeyRS256.parse(cryptoJWK))
+    .exhaustive();
+
+  const header: DPoPProofHeader = {
+    typ: "dpop+jwt",
+    alg,
+    jwk,
+    ...props?.customHeader,
+  };
+
+  const dpopJWS = await signJWT({
+    payload,
+    headers: header,
+    keySet,
+  });
+
+  return {
+    dpopProofJWS: dpopJWS,
+    dpopProofJWT: {
+      payload,
+      header,
+    },
+  };
+};
+
+export const getMockDescriptorRejectionReason =
+  (): DescriptorRejectionReason => ({
+    rejectionReason: "Rejection Reason",
+    rejectedAt: new Date(),
+  });
+
+export const generateKeySet = (
+  alg: Algorithm = algorithm.RS256
+): {
   keySet: crypto.KeyPairKeyObjectResult;
   publicKeyEncodedPem: string;
 } => {
-  const keySet: crypto.KeyPairKeyObjectResult = crypto.generateKeyPairSync(
-    "rsa",
-    {
-      modulusLength: 2048,
-    }
-  );
+  const keySet: crypto.KeyPairKeyObjectResult = match(alg)
+    .with(algorithm.RS256, () =>
+      crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      })
+    )
+    .with(algorithm.ES256, () =>
+      crypto.generateKeyPairSync("ec", {
+        namedCurve: "P-256", // This is the curve for ES256
+      })
+    )
+    .exhaustive();
 
   const pemPublicKey = keySet.publicKey
     .export({
@@ -640,7 +826,7 @@ export const generateKeySet = (): {
   };
 };
 
-const signClientAssertion = async ({
+export const signJWT = async ({
   payload,
   headers,
   keySet,
@@ -659,3 +845,440 @@ const signClientAssertion = async ({
     .setProtectedHeader(headers)
     .sign(privateKey);
 };
+
+export const addSomeRandomDelegations = async <
+  T extends { eserviceId: EServiceId }
+>(
+  domainObject: T,
+  addOneDelegation: (delegation: Delegation) => Promise<void>
+): Promise<void> => {
+  const states = [delegationState.rejected, delegationState.revoked];
+  const kinds = [
+    delegationKind.delegatedProducer,
+    delegationKind.delegatedConsumer,
+  ];
+
+  for (const state of states) {
+    for (const kind of kinds) {
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: domainObject.eserviceId,
+          kind,
+          state,
+        })
+      );
+    }
+  }
+};
+
+export const getMockEServiceTemplateVersion = (
+  eserviceTemplateVersionId: EServiceTemplateVersionId = generateId<EServiceTemplateVersionId>(),
+  state: EServiceTemplateVersionState = eserviceTemplateVersionState.draft
+): EServiceTemplateVersion => ({
+  id: eserviceTemplateVersionId,
+  version: 1,
+  description: "eService template version description",
+  createdAt: new Date(),
+  attributes: {
+    certified: [],
+    declared: [],
+    verified: [],
+  },
+  docs: [],
+  state,
+  voucherLifespan: 60,
+  agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+});
+
+export const getMockEServiceTemplate = (
+  eserviceTemplateId: EServiceTemplateId = generateId<EServiceTemplateId>(),
+  creatorId: TenantId = generateId<TenantId>(),
+  versions: EServiceTemplateVersion[] = [getMockEServiceTemplateVersion()]
+): EServiceTemplate => ({
+  id: eserviceTemplateId,
+  creatorId,
+  name: "eService template name",
+  intendedTarget: "eService template intended target",
+  description: "eService template description",
+  createdAt: new Date(),
+  technology: technology.rest,
+  versions,
+  riskAnalysis: [],
+  mode: "Deliver",
+  isSignalHubEnabled: true,
+});
+
+export const getMockContext = ({
+  authData,
+  serviceName,
+  correlationId,
+}: {
+  authData?: UIAuthData;
+  serviceName?: string;
+  correlationId?: CorrelationId;
+}): WithLogger<AppContext<UIAuthData>> => ({
+  authData: authData || getMockAuthData(),
+  serviceName: serviceName || "test",
+  correlationId: correlationId || generateId(),
+  spanId: generateId(),
+  logger: genericLogger,
+  requestTimestamp: Date.now(),
+});
+
+export const sortBy =
+  <T>(getKey: (item: T) => string) =>
+  (a: T, b: T): number => {
+    const keyA = getKey(a);
+    const keyB = getKey(b);
+
+    if (keyA < keyB) {
+      return -1;
+    }
+    if (keyA > keyB) {
+      return 1;
+    }
+    return 0;
+  };
+
+export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
+  tenant: T
+): T => {
+  if (tenant === undefined) {
+    return tenant;
+  } else if ("data" in tenant && "metadata" in tenant) {
+    return {
+      ...tenant,
+      data: sortTenant(tenant.data),
+    };
+  } else {
+    return {
+      ...tenant,
+      attributes: [...tenant.attributes].sort(sortBy((att) => att.id)),
+      features: [...tenant.features].sort(sortBy((feature) => feature.type)),
+    };
+  }
+};
+
+export const sortAgreement = <
+  T extends Agreement | WithMetadata<Agreement> | undefined
+>(
+  agreement: T
+): T => {
+  if (!agreement) {
+    return agreement;
+  } else if ("data" in agreement) {
+    return {
+      ...agreement,
+      data: sortAgreement(agreement.data),
+    };
+  } else {
+    return {
+      ...agreement,
+      verifiedAttributes: agreement.verifiedAttributes
+        ? [...agreement.verifiedAttributes].sort(
+            sortBy<AgreementAttribute>((attr) => attr.id)
+          )
+        : [],
+      certifiedAttributes: agreement.certifiedAttributes
+        ? [...agreement.certifiedAttributes].sort(
+            sortBy<AgreementAttribute>((att) => att.id)
+          )
+        : [],
+      declaredAttributes: agreement.declaredAttributes
+        ? [...agreement.declaredAttributes].sort(
+            sortBy<AgreementAttribute>((att) => att.id)
+          )
+        : [],
+      consumerDocuments: agreement.consumerDocuments
+        ? [...agreement.consumerDocuments].sort(
+            sortBy<AgreementDocument>((doc) => doc.id)
+          )
+        : [],
+    };
+  }
+};
+
+export const sortPurpose = <
+  T extends Purpose | PurposeV2 | WithMetadata<Purpose> | undefined
+>(
+  purpose: T
+): T => {
+  if (!purpose) {
+    return purpose;
+  } else if ("data" in purpose) {
+    return {
+      ...purpose,
+      data: sortPurpose(purpose.data),
+    };
+  } else {
+    return {
+      ...purpose,
+      versions: [...purpose.versions].sort(sortBy((version) => version.id)),
+      ...(purpose.riskAnalysisForm
+        ? {
+            riskAnalysisForm: {
+              ...purpose.riskAnalysisForm,
+              singleAnswers: [...purpose.riskAnalysisForm.singleAnswers].sort(
+                sortBy((answer) => answer.key)
+              ),
+              multiAnswers: [...purpose.riskAnalysisForm.multiAnswers].sort(
+                sortBy((answer) => answer.key)
+              ),
+            },
+          }
+        : {}),
+    };
+  }
+};
+
+export const sortClient = <T extends Client | WithMetadata<Client> | undefined>(
+  client: T
+): T => {
+  if (!client) {
+    return client;
+  } else if ("data" in client) {
+    return {
+      ...client,
+      data: sortClient(client.data),
+    };
+  } else {
+    return {
+      ...client,
+      purposes: [...client.purposes].sort(),
+      users: [...client.users].sort(),
+      keys: [...client.keys].sort(sortBy((k) => k.createdAt.toISOString())),
+    };
+  }
+};
+
+export const sortProducerKeychain = <
+  T extends ProducerKeychain | WithMetadata<ProducerKeychain> | undefined
+>(
+  producerKeychain: T
+): T => {
+  if (!producerKeychain) {
+    return producerKeychain;
+  } else if ("data" in producerKeychain) {
+    return {
+      ...producerKeychain,
+      data: sortProducerKeychain(producerKeychain.data),
+    };
+  } else {
+    return {
+      ...producerKeychain,
+      eservices: [...producerKeychain.eservices].sort(),
+      users: [...producerKeychain.users].sort(),
+      keys: [...producerKeychain.keys].sort(
+        sortBy((k) => k.createdAt.toISOString())
+      ),
+    };
+  }
+};
+
+export const sortAgreementV2 = <T extends AgreementV2 | undefined>(
+  agreement: T
+): T => ({
+  ...agreement,
+  verifiedAttributes: agreement?.verifiedAttributes
+    ? [...agreement.verifiedAttributes].sort(
+        sortBy<VerifiedAttributeV2>((attr) => attr.id)
+      )
+    : [],
+  certifiedAttributes: agreement?.certifiedAttributes
+    ? [...agreement.certifiedAttributes].sort(
+        sortBy<CertifiedAttributeV2>((att) => att.id)
+      )
+    : [],
+  declaredAttributes: agreement?.declaredAttributes
+    ? [...agreement.declaredAttributes].sort(
+        sortBy<DeclaredAttributeV2>((att) => att.id)
+      )
+    : [],
+  consumerDocuments: agreement?.consumerDocuments
+    ? [...agreement.consumerDocuments].sort(
+        sortBy<AgreementDocumentV2>((doc) => doc.id)
+      )
+    : [],
+});
+
+export const sortAgreements = <
+  T extends Agreement | WithMetadata<Agreement> | undefined
+>(
+  agreements: T[]
+): T[] => agreements.map(sortAgreement);
+
+export const sortDescriptor = (descriptor: Descriptor): Descriptor => ({
+  ...descriptor,
+  // eslint-disable-next-line functional/immutable-data
+  docs: descriptor.docs.sort(sortBy((doc) => doc.id)),
+  attributes: {
+    certified: descriptor.attributes.certified.map((array) =>
+      // eslint-disable-next-line functional/immutable-data
+      array.sort(sortBy((attr) => attr.id))
+    ),
+    declared: descriptor.attributes.declared.map((array) =>
+      // eslint-disable-next-line functional/immutable-data
+      array.sort(sortBy((attr) => attr.id))
+    ),
+    verified: descriptor.attributes.verified.map((array) =>
+      // eslint-disable-next-line functional/immutable-data
+      array.sort(sortBy((attr) => attr.id))
+    ),
+  },
+});
+
+export const sortEService = <
+  T extends EService | WithMetadata<EService> | undefined
+>(
+  eservice: T
+): T => {
+  if (!eservice) {
+    return eservice;
+  } else if ("data" in eservice) {
+    return {
+      ...eservice,
+      data: sortEService(eservice.data),
+    };
+  } else {
+    return {
+      ...eservice,
+      descriptors: eservice.descriptors.map(sortDescriptor),
+    };
+  }
+};
+
+export const sortEServices = (eservices: EService[]): EService[] =>
+  eservices.map(sortEService);
+
+export const getMockContextInternal = ({
+  serviceName,
+}: {
+  serviceName?: string;
+}): WithLogger<AppContext<InternalAuthData>> => ({
+  authData: {
+    systemRole: systemRole.INTERNAL_ROLE,
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  logger: genericLogger,
+  spanId: generateId(),
+  requestTimestamp: Date.now(),
+});
+
+export const getMockContextMaintenance = ({
+  serviceName,
+}: {
+  serviceName?: string;
+}): WithLogger<AppContext<MaintenanceAuthData>> => ({
+  authData: {
+    systemRole: systemRole.MAINTENANCE_ROLE,
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  logger: genericLogger,
+  spanId: generateId(),
+  requestTimestamp: Date.now(),
+});
+
+export const getMockContextM2M = ({
+  organizationId,
+  serviceName,
+}: {
+  organizationId?: TenantId;
+  serviceName?: string;
+}): WithLogger<AppContext<M2MAuthData>> => ({
+  authData: {
+    systemRole: systemRole.M2M_ROLE,
+    organizationId: organizationId || generateId(),
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  spanId: generateId(),
+  logger: genericLogger,
+  requestTimestamp: Date.now(),
+});
+
+export const getMockContextM2MAdmin = ({
+  organizationId,
+  serviceName,
+}: {
+  organizationId?: TenantId;
+  serviceName?: string;
+}): WithLogger<AppContext<M2MAdminAuthData>> => ({
+  authData: {
+    systemRole: systemRole.M2M_ADMIN_ROLE,
+    organizationId: organizationId || generateId(),
+    clientId: generateId(),
+    userId: generateId(),
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  spanId: generateId(),
+  logger: genericLogger,
+  requestTimestamp: Date.now(),
+});
+
+export const getMockSessionClaims = (
+  roles: UserRole[] = [userRole.ADMIN_ROLE]
+): UIClaims => ({
+  uid: generateId(),
+  organization: {
+    id: generateId(),
+    name: "My Org",
+    roles: roles.map((r) => ({ role: r })),
+  },
+  name: "A generic user",
+  family_name: "Family name",
+  email: "randomEmailforTest@tester.com",
+  "user-roles": roles,
+  organizationId: generateId(),
+  selfcareId: generateId(),
+  externalId: {
+    origin: "Internals",
+    value: generateId(),
+  },
+});
+
+export const getMockWithMetadata = <T>(
+  data: T,
+  version?: number
+): WithMetadata<T> => ({
+  data,
+  metadata: { version: version ?? generateMock(z.number().int()) },
+});
+
+export const readFileContent = async (fileName: string): Promise<string> => {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `../test/resources/${fileName}`;
+
+  const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
+  return htmlTemplateBuffer.toString();
+};
+
+export function createDummyStub<T>(): T {
+  return {} as T;
+}
+
+export const getMockNotificationConfig = (): NotificationConfig => ({
+  newEServiceVersionPublished: generateMock(z.boolean()),
+});
+
+export const getMockTenantNotificationConfig =
+  (): TenantNotificationConfig => ({
+    id: generateId(),
+    tenantId: generateId(),
+    config: getMockNotificationConfig(),
+    createdAt: generateMock(z.coerce.date()),
+    updatedAt: generateMock(z.coerce.date().optional()),
+  });
+
+export const getMockUserNotificationConfig = (): UserNotificationConfig => ({
+  id: generateId(),
+  userId: generateId(),
+  tenantId: generateId(),
+  inAppConfig: getMockNotificationConfig(),
+  emailConfig: getMockNotificationConfig(),
+  createdAt: generateMock(z.coerce.date()),
+  updatedAt: generateMock(z.coerce.date().optional()),
+});

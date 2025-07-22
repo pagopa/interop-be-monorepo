@@ -1,25 +1,27 @@
 meta {
-  name: Returns a set of keys by client ID-
+  name: Returns a set of keys by client ID
   type: http
-  seq: 2
+  seq: 16
 }
 
 get {
-  url: {{host-bff}}/clients/:clientId/keys
+  url: {{host-bff}}/clients/:clientId/keys?offset=0&limit=10
   body: none
   auth: none
 }
 
+params:query {
+  offset: 0
+  limit: 10
+}
+
 params:path {
-  clientId: bfb613c0-f07a-45ee-be0a-26cf9985f940
+  clientId: {{clientId}}
 }
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 docs {
   Given a client identifier it returns its corresponding set of keys, if any

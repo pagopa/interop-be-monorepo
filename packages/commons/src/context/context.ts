@@ -1,28 +1,36 @@
 import { constants } from "http2";
-import { randomUUID } from "crypto";
 import {
   ZodiosRouterContextRequestHandler,
   zodiosContext,
 } from "@zodios/express";
-import { z } from "zod";
 import {
+  ClientId,
   CorrelationId,
+  generateId,
   makeApiProblemBuilder,
   missingHeader,
+  SpanId,
+  TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { AuthData } from "../auth/authData.js";
 import { genericLogger, Logger, logger } from "../logging/index.js";
 import { parseCorrelationIdHeader } from "../auth/headers.js";
 
-export const AppContext = z.object({
-  serviceName: z.string(),
-  authData: AuthData,
-  correlationId: CorrelationId,
-});
-export type AppContext = z.infer<typeof AppContext>;
+export type AppContext<A extends AuthData = AuthData> = {
+  serviceName: string;
+  authData: A;
+  correlationId: CorrelationId;
+  spanId: SpanId;
+  requestTimestamp: number;
+};
 
-export const zodiosCtx = zodiosContext(z.object({ ctx: AppContext }));
+export type AuthServerAppContext = AppContext & {
+  clientId?: ClientId;
+  organizationId?: TenantId;
+};
+
+export const zodiosCtx = zodiosContext();
 export type ZodiosContext = NonNullable<typeof zodiosCtx>;
 export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
@@ -45,6 +53,7 @@ export const contextMiddleware =
       req.ctx = {
         serviceName,
         correlationId: unsafeBrandId<CorrelationId>(correlationId),
+        spanId: generateId<SpanId>(),
       } as AppContext;
     };
 
@@ -55,15 +64,21 @@ export const contextMiddleware =
         const problem = makeApiProblem(
           missingHeader("X-Correlation-Id"),
           () => constants.HTTP_STATUS_BAD_REQUEST,
-          genericLogger,
-          unsafeBrandId("MISSING")
+          {
+            logger: genericLogger,
+            correlationId: unsafeBrandId("MISSING"),
+            serviceName,
+          }
         );
         return res.status(problem.status).send(problem);
       }
 
       setCtx(correlationIdHeader);
+      res.header("X-Correlation-Id", correlationIdHeader);
     } else {
-      setCtx(randomUUID());
+      const correlationId = generateId<CorrelationId>();
+      setCtx(correlationId);
+      res.header("X-Correlation-Id", correlationId);
     }
 
     return next();

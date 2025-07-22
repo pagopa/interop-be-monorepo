@@ -2,14 +2,14 @@ import {
   ReadModelRepository,
   ReadModelFilter,
   EServiceCollection,
-  userRoles,
-  hasPermission,
-  AuthData,
   TenantCollection,
+  M2MAuthData,
+  UIAuthData,
+  EServiceTemplateCollection,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
-  Document,
   EService,
   Agreement,
   AgreementState,
@@ -21,7 +21,6 @@ import {
   WithMetadata,
   Attribute,
   EServiceId,
-  EServiceDocumentId,
   TenantId,
   Tenant,
   EServiceReadModel,
@@ -32,6 +31,8 @@ import {
   delegationState,
   delegationKind,
   DelegationKind,
+  EServiceTemplate,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -41,7 +42,10 @@ import {
   Consumer,
   consumer,
 } from "../model/domain/models.js";
-import { notActiveDescriptorState } from "./validators.js";
+import {
+  hasRoleToAccessInactiveDescriptors,
+  notActiveDescriptorState,
+} from "./validators.js";
 
 async function getEService(
   eservices: EServiceCollection,
@@ -97,6 +101,31 @@ async function getTenant(
   return result.data;
 }
 
+async function getEServiceTemplate(
+  templates: EServiceTemplateCollection,
+  filter: Filter<WithId<WithMetadata<EServiceTemplate>>>
+): Promise<EServiceTemplate | undefined> {
+  const data = await templates.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
+
+  if (!data) {
+    return undefined;
+  }
+
+  const result = EServiceTemplate.safeParse(data.data);
+
+  if (!result.success) {
+    throw genericInternalError(
+      `Unable to parse template item: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+  }
+
+  return result.data;
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
@@ -106,10 +135,11 @@ export function readModelServiceBuilder(
   const attributes = readModelRepository.attributes;
   const tenants = readModelRepository.tenants;
   const delegations = readModelRepository.delegations;
+  const eserviceTemplates = readModelRepository.eserviceTemplates;
 
   return {
     async getEServices(
-      authData: AuthData,
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
@@ -122,7 +152,9 @@ export function readModelServiceBuilder(
         name,
         attributesIds,
         mode,
+        isConsumerDelegable,
         delegated,
+        templatesIds,
       } = filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
@@ -212,76 +244,81 @@ export function readModelServiceBuilder(
           ],
         });
 
-      const visibilityFilter: ReadModelFilter<EService> = hasPermission(
-        [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
-        authData
-      )
-        ? {
-            $nor: [
-              {
-                $and: [
-                  {
-                    $nor: [
-                      { "data.producerId": authData.organizationId },
-                      {
-                        delegations: {
-                          $elemMatch: {
-                            "data.delegateId": authData.organizationId,
-                            "data.state": delegationState.active,
-                            "data.kind": delegationKind.delegatedProducer,
+      const visibilityFilter: ReadModelFilter<EService> =
+        hasRoleToAccessInactiveDescriptors(authData)
+          ? {
+              $nor: [
+                {
+                  $and: [
+                    {
+                      $nor: [
+                        { "data.producerId": authData.organizationId },
+                        {
+                          delegations: {
+                            $elemMatch: {
+                              "data.delegateId": authData.organizationId,
+                              "data.state": delegationState.active,
+                              "data.kind": delegationKind.delegatedProducer,
+                            },
                           },
                         },
-                      },
-                    ],
-                  },
-                  { "data.descriptors": { $size: 0 } },
-                ],
-              },
-              {
-                $and: [
-                  {
-                    $nor: [
-                      { "data.producerId": authData.organizationId },
-                      {
-                        delegations: {
-                          $elemMatch: {
-                            "data.delegateId": authData.organizationId,
-                            "data.state": delegationState.active,
-                            "data.kind": delegationKind.delegatedProducer,
+                      ],
+                    },
+                    { "data.descriptors": { $size: 0 } },
+                  ],
+                },
+                {
+                  $and: [
+                    {
+                      $nor: [
+                        { "data.producerId": authData.organizationId },
+                        {
+                          delegations: {
+                            $elemMatch: {
+                              "data.delegateId": authData.organizationId,
+                              "data.state": delegationState.active,
+                              "data.kind": delegationKind.delegatedProducer,
+                            },
                           },
                         },
+                      ],
+                    },
+                    { "data.descriptors": { $size: 1 } },
+                    {
+                      "data.descriptors.state": {
+                        $in: notActiveDescriptorState,
                       },
-                    ],
-                  },
-                  { "data.descriptors": { $size: 1 } },
-                  {
-                    "data.descriptors.state": {
-                      $in: notActiveDescriptorState,
                     },
-                  },
-                ],
-              },
-            ],
-          }
-        : {
-            $nor: [
-              { "data.descriptors": { $size: 0 } },
-              {
-                $and: [
-                  { "data.descriptors": { $size: 1 } },
-                  {
-                    "data.descriptors.state": {
-                      $in: notActiveDescriptorState,
+                  ],
+                },
+              ],
+            }
+          : {
+              $nor: [
+                { "data.descriptors": { $size: 0 } },
+                {
+                  $and: [
+                    { "data.descriptors": { $size: 1 } },
+                    {
+                      "data.descriptors.state": {
+                        $in: notActiveDescriptorState,
+                      },
                     },
-                  },
-                ],
-              },
-            ],
-          };
+                  ],
+                },
+              ],
+            };
 
       const modeFilter: ReadModelFilter<EService> = mode
         ? { "data.mode": { $eq: mode } }
         : {};
+
+      const isConsumerDelegableFilter: ReadModelFilter<EService> =
+        isConsumerDelegable === true
+          ? { "data.isConsumerDelegable": { $eq: true } }
+          : isConsumerDelegable === false
+          ? { "data.isConsumerDelegable": { $ne: true } }
+          : {};
 
       const delegatedFilter: ReadModelFilter<EService> = match(delegated)
         .with(true, () => ({
@@ -307,6 +344,13 @@ export function readModelServiceBuilder(
         }))
         .otherwise(() => ({}));
 
+      const templatesIdsFilter =
+        templatesIds.length > 0
+          ? {
+              "data.templateId": { $in: templatesIds },
+            }
+          : {};
+
       const aggregationPipeline = [
         delegationLookup,
         { $match: nameFilter },
@@ -316,7 +360,9 @@ export function readModelServiceBuilder(
         { $match: attributesFilter },
         { $match: visibilityFilter },
         { $match: modeFilter },
+        { $match: isConsumerDelegableFilter },
         { $match: delegatedFilter },
+        { $match: templatesIdsFilter },
         {
           $project: {
             data: 1,
@@ -352,20 +398,40 @@ export function readModelServiceBuilder(
         ),
       };
     },
-    async getEServiceByNameAndProducerId({
+    async isEServiceNameAvailableForProducer({
       name,
       producerId,
     }: {
       name: string;
       producerId: TenantId;
-    }): Promise<WithMetadata<EService> | undefined> {
-      return getEService(eservices, {
-        "data.name": {
-          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
-          $options: "i",
+    }): Promise<boolean> {
+      const count = await eservices.countDocuments(
+        {
+          "data.name": {
+            $regex: `^${ReadModelRepository.escapeRegExp(name)}$`,
+            $options: "i",
+          },
+          "data.producerId": producerId,
         },
-        "data.producerId": producerId,
-      });
+        { limit: 1 }
+      );
+      return count === 0;
+    },
+    async isEServiceNameConflictingWithTemplate({
+      name,
+    }: {
+      name: string;
+    }): Promise<boolean> {
+      const count = await eserviceTemplates.countDocuments(
+        {
+          "data.name": {
+            $regex: `^${ReadModelRepository.escapeRegExp(name)}$`,
+            $options: "i",
+          },
+        },
+        { limit: 1 }
+      );
+      return count > 0;
     },
     async getEServiceById(
       id: EServiceId
@@ -480,16 +546,6 @@ export function readModelServiceBuilder(
           aggregationPipeline
         ),
       };
-    },
-    async getDocumentById(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      documentId: EServiceDocumentId
-    ): Promise<Document | undefined> {
-      const eservice = await this.getEServiceById(eserviceId);
-      return eservice?.data.descriptors
-        .find((d) => d.id === descriptorId)
-        ?.docs.find((d) => d.id === documentId);
     },
     async listAgreements({
       eservicesIds,
@@ -619,6 +675,11 @@ export function readModelServiceBuilder(
       }
 
       return result.data;
+    },
+    async getEServiceTemplateById(
+      id: EServiceTemplateId
+    ): Promise<EServiceTemplate | undefined> {
+      return getEServiceTemplate(eserviceTemplates, { "data.id": id });
     },
   };
 }

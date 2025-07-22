@@ -1,4 +1,10 @@
-import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import {
+  SESv2Client,
+  SendEmailCommand,
+  SendEmailCommandInput,
+  TooManyRequestsException,
+} from "@aws-sdk/client-sesv2";
 import { mockClient } from "aws-sdk-client-mock";
 import { describe, it, expect, beforeEach } from "vitest";
 import { AWSSesConfig, initSesMailManager } from "pagopa-interop-commons";
@@ -23,30 +29,87 @@ describe("initSesMailManager", () => {
     const from = "test@example.com";
     const to = ["recipient@example.com"];
     const subject = "Test Subject";
-    const body = "<h1>Hello World</h1>";
+    const html = "<h1>Hello World</h1>";
 
-    await emailManager.send(from, to, subject, body);
+    await emailManager.send({ from, to, subject, html });
 
     expect(sesMock.calls()).toHaveLength(1);
 
-    const call = sesMock.calls()[0].args[0].input;
-    expect(call).toEqual({
-      Destination: {
-        ToAddresses: to,
-      },
-      Content: {
-        Simple: {
-          Subject: {
-            Data: subject,
-          },
-          Body: {
-            Html: {
-              Data: body,
-            },
-          },
+    const commandInput = sesMock.calls()[0].args[0]
+      .input as SendEmailCommandInput;
+
+    const rawData = commandInput.Content!.Raw!.Data;
+
+    const emailString = Buffer.from(rawData!).toString();
+    expect(emailString).toContain(`From: ${from}`);
+    expect(emailString).toContain(`To: ${to[0]}`);
+    expect(emailString).toContain(`Subject: ${subject}`);
+    expect(emailString).toContain(html);
+  });
+
+  it("send an email throw generic exception", async () => {
+    // Setup the mock to throws generic exception
+    const expectedGenericError = new Error("Generic error");
+    sesMock.on(SendEmailCommand).rejects(expectedGenericError);
+
+    const awsSesConfig: AWSSesConfig = {
+      awsRegion: "eu-south-1",
+      awsSesEndpoint: undefined,
+    };
+    const emailManager = initSesMailManager(awsSesConfig);
+
+    const from = "test@example.com";
+    const to = ["recipient@example.com"];
+    const subject = "Test Subject";
+    const html = "<h1>Hello World</h1>";
+
+    await expect(
+      emailManager.send({ from, to, subject, html })
+    ).rejects.toThrowError(expectedGenericError);
+
+    expect(sesMock.calls()).toHaveLength(1);
+  });
+
+  it("should send an email if AWS SES response throws TooManyRequestsException", async () => {
+    // Setup the mock to throws TooManyRequestsException
+    sesMock.on(SendEmailCommand).resolves(
+      new TooManyRequestsException({
+        message: "Rate limit exceeded",
+        $metadata: {
+          httpStatusCode: 429,
+          requestId: "request-id",
+          extendedRequestId: "extended-request-id",
+          cfId: "cf-id",
+          attempts: 1,
+          totalRetryDelay: 0,
         },
-      },
-      FromEmailAddress: from,
-    });
+      })
+    );
+
+    const awsSesConfig: AWSSesConfig = {
+      awsRegion: "eu-south-1",
+      awsSesEndpoint: undefined,
+    };
+    const emailManager = initSesMailManager(awsSesConfig);
+
+    const from = "test@example.com";
+    const to = ["recipient@example.com"];
+    const subject = "Test Subject";
+    const html = "<h1>Hello World</h1>";
+
+    await emailManager.send({ from, to, subject, html });
+
+    expect(sesMock.calls()).toHaveLength(1);
+
+    const commandInput = sesMock.calls()[0].args[0]
+      .input as SendEmailCommandInput;
+
+    const rawData = commandInput.Content!.Raw!.Data;
+
+    const emailString = Buffer.from(rawData!).toString();
+    expect(emailString).toContain(`From: ${from}`);
+    expect(emailString).toContain(`To: ${to[0]}`);
+    expect(emailString).toContain(`Subject: ${subject}`);
+    expect(emailString).toContain(html);
   });
 });

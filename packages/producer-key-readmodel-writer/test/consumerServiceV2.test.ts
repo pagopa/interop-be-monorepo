@@ -3,7 +3,7 @@ import {
   getMockKey,
   writeInReadmodel,
   getMockProducerKeychain,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   AuthorizationEventEnvelopeV2,
   generateId,

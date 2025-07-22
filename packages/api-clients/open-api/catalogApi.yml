@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Catalog Process Micro Service
   description: This service is the catalog process
-  version: "v1"
+  version: "{{version}}"
   contact:
     name: API Support
     url: http://www.example.com/support
@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/catalog-process/v1"
+  - url: "/"
     description: This service is the catalog process
 security:
   - bearerAuth: []
@@ -37,6 +37,7 @@ paths:
         - process
       summary: Retrieve a list of E-Service
       operationId: getEServices
+      description: Retrieves a list of E-Services with optional filters
       parameters:
         - in: query
           name: name
@@ -96,10 +97,25 @@ paths:
           schema:
             $ref: "#/components/schemas/EServiceMode"
         - in: query
+          name: isConsumerDelegable
+          description: EService isConsumerDelegable filter
+          schema:
+            type: boolean
+        - in: query
           name: delegated
           description: if true only delegated e-services will be returned, if false only non-delegated e-services will be returned, if not present all e-services will be returned
           schema:
             type: boolean
+        - in: query
+          name: templatesIds
+          description: comma separated sequence of template IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
         - in: query
           name: offset
           required: true
@@ -122,6 +138,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServices"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -129,6 +151,7 @@ paths:
         - process
       summary: Create a new e-service
       operationId: createEService
+      description: Creates a new E-Service
       requestBody:
         description: An E-Service seed
         content:
@@ -146,13 +169,13 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Name Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}:
@@ -165,6 +188,7 @@ paths:
         - process
       summary: Get an e-service
       operationId: getEServiceById
+      description: Retrieves an E-Service by its ID
       parameters:
         - name: eServiceId
           in: path
@@ -182,13 +206,13 @@ paths:
         "404":
           description: E-Service not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     put:
@@ -198,6 +222,7 @@ paths:
         - process
       summary: Updates e-service general information
       operationId: updateEServiceById
+      description: Updates the general information of the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -222,13 +247,13 @@ paths:
         "404":
           description: E-Service not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -238,6 +263,7 @@ paths:
         - process
       summary: Deletes an e-service
       operationId: deleteEService
+      description: Deletes the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -252,13 +278,142 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Updates e-service template instance general information
+      operationId: updateEServiceTemplateInstanceById
+      description: Updates the general information of the specified E-Service template instance
+      parameters:
+        - name: eServiceId
+          in: path
+          description: The E-Service id to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: An E-Service update seed containing the possible updatable fields
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceTemplateInstanceSeed"
+      responses:
+        "200":
+          description: E-Service updated
+          content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "404":
+          description: E-Service not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/{templateId}/eservices:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Create a new e-service instance from a template
+      operationId: createEServiceInstanceFromTemplate
+      description: Creates a new E-Service instance from a template
+      parameters:
+        - name: templateId
+          in: path
+          description: The template id to create the e-service from
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Template instantiation parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InstanceEServiceSeed"
+      responses:
+        "200":
+          description: EService created from template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Template not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}/upgrade:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Upgrade an instance of a template
+      operationId: upgradeEServiceInstance
+      description: Upgrades an instance of a template for the specified E-Service
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Upgraded EService Descriptor created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+        "404":
+          description: E-Service not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/consumers:
@@ -271,6 +426,7 @@ paths:
         - process
       summary: Retrieve Consumers for an EService
       operationId: getEServiceConsumers
+      description: Retrieves the consumers of the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -304,13 +460,13 @@ paths:
         "404":
           description: E-Service not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors:
@@ -323,6 +479,7 @@ paths:
         - process
       summary: Adds a descriptor to the specified e-service
       operationId: createDescriptor
+      description: Adds a descriptor to the specified e-service
       parameters:
         - name: eServiceId
           in: path
@@ -347,13 +504,57 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}/descriptors:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Adds a descriptor to the specified template instance e-service
+      operationId: createTemplateInstanceDescriptor
+      description: Adds a descriptor to the specified template instance e-service
+      parameters:
+        - name: eServiceId
+          in: path
+          description: The E-Service id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: An E-Service Instance Descriptor seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceInstanceDescriptorSeed"
+        required: true
+      responses:
+        "200":
+          description: EService Instance Descriptor created.
+          content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}:
@@ -366,6 +567,7 @@ paths:
         - process
       summary: Deletes a draft descriptor
       operationId: deleteDraft
+      description: Deletes a draft descriptor for the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -385,13 +587,13 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     put:
@@ -401,6 +603,7 @@ paths:
         - process
       summary: Updates a draft descriptor
       operationId: updateDraftDescriptor
+      description: Updates a draft descriptor for the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -431,13 +634,61 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Updates a draft descriptor for an eservice template instance
+      operationId: updateDraftDescriptorTemplateInstance
+      description: Updates a draft descriptor for the specified E-Service template instance
+      parameters:
+        - name: eServiceId
+          in: path
+          description: The E-Service id
+          required: true
+          schema:
+            type: string
+        - name: descriptorId
+          in: path
+          description: The Descriptor Id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: An E-Service Descriptor seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceDescriptorTemplateInstanceSeed"
+        required: true
+      responses:
+        "200":
+          description: EService with draft descriptor updated.
+          content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/publish:
@@ -450,6 +701,7 @@ paths:
         - process
       summary: Publish the selected descriptor.
       operationId: publishDescriptor
+      description: Publishes the specified descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -469,13 +721,13 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/suspend:
@@ -488,6 +740,7 @@ paths:
         - process
       summary: Suspend the selected descriptor.
       operationId: suspendDescriptor
+      description: Suspends the specified descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -507,13 +760,13 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/activate:
@@ -526,6 +779,7 @@ paths:
         - process
       summary: Activate the selected descriptor.
       operationId: activateDescriptor
+      description: Activates the specified descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -545,13 +799,13 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/clone:
@@ -564,6 +818,7 @@ paths:
         - process
       summary: Clones the selected descriptor.
       operationId: cloneEServiceByDescriptor
+      description: Clones an E-Service using the specified descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -589,13 +844,13 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/archive:
@@ -608,6 +863,7 @@ paths:
         - process
       summary: Archive the selected descriptor.
       operationId: archiveDescriptor
+      description: Archives the specified descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -629,13 +885,13 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/update:
@@ -648,6 +904,7 @@ paths:
         - process
       summary: Update the selected descriptor.
       operationId: updateDescriptor
+      description: Updates the specified descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -680,13 +937,77 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/agreementApprovalPolicy/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update agreement approval policy of published descriptor
+      operationId: updateAgreementApprovalPolicy
+      description: Updates the agreement approval policy for the specified E-Service descriptor
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceDescriptorAgreementApprovalPolicySeed"
+      responses:
+        "200":
+          description: EService descriptor updated.
+          content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents:
@@ -699,6 +1020,7 @@ paths:
         - process
       summary: Add new e-service document
       operationId: createEServiceDocument
+      description: Adds a new document to the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -729,13 +1051,13 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}:
@@ -748,6 +1070,7 @@ paths:
         - process
       summary: Get an e-service document
       operationId: getEServiceDocumentById
+      description: Retrieves a document of the specified E-Service by its ID
       parameters:
         - name: eServiceId
           in: path
@@ -755,18 +1078,21 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: the descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
         - name: documentId
           in: path
           description: the document id
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: EService document metadata retrieved
@@ -777,13 +1103,13 @@ paths:
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -793,6 +1119,7 @@ paths:
         - process
       summary: Deletes an e-service document
       operationId: deleteEServiceDocumentById
+      description: Deletes a document from the specified E-Service by its ID
       parameters:
         - name: eServiceId
           in: path
@@ -818,13 +1145,13 @@ paths:
         "404":
           description: E-Service descriptor document not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update:
@@ -837,6 +1164,7 @@ paths:
         - process
       summary: Updates an e-service document
       operationId: updateEServiceDocumentById
+      description: Updates a document of the specified E-Service by its ID
       parameters:
         - name: eServiceId
           in: path
@@ -873,13 +1201,169 @@ paths:
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/rest:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Add EService template instance interface for REST protocol
+      operationId: addEServiceTemplateInstanceInterfaceRest
+      description: Adds a REST interface to the specified E-Service template instance descriptor
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the eservice descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing eservice's interface API REST URLs and contacts
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemplateInstanceInterfaceRESTSeed"
+      responses:
+        "200":
+          description: EService Interface Document uploaded
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/soap:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Add EService template instance interface for SOAP protocol
+      operationId: addEServiceTemplateInstanceInterfaceSoap
+      description: Adds a SOAP interface to the specified E-Service template instance descriptor
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the eservice descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing eservice's interface API SOAP URLs and contacts
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemplateInstanceInterfaceSOAPSeed"
+      responses:
+        "200":
+          description: EService Interface Document uploaded
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/riskAnalysis:
@@ -892,6 +1376,7 @@ paths:
         - process
       summary: Create an e-service risk analysis
       operationId: createRiskAnalysis
+      description: Creates a new risk analysis for the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -913,19 +1398,19 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId}:
@@ -938,6 +1423,7 @@ paths:
         - process
       summary: Update an e-service risk analysis
       operationId: updateRiskAnalysis
+      description: Updates the risk analysis for the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -966,19 +1452,19 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -988,6 +1474,7 @@ paths:
         - process
       summary: Delete an e-service risk analysis
       operationId: deleteRiskAnalysis
+      description: Deletes the risk analysis from the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -1009,19 +1496,19 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/description/update:
@@ -1034,6 +1521,7 @@ paths:
         - process
       summary: Update an e-service description
       operationId: updateEServiceDescription
+      description: Updates the description of the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -1059,19 +1547,76 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/delegationFlags/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update an e-service isConsumerDelegable and isClientAccessDelegable flags
+      operationId: updateEServiceDelegationFlags
+      description: Updates the delegation flags of the specified E-Service
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the new flags
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDelegationFlagsUpdateSeed"
+      responses:
+        "200":
+          description: EService flags updated
+          content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/name/update:
@@ -1084,6 +1629,7 @@ paths:
         - process
       summary: Update an e-service name
       operationId: updateEServiceName
+      description: Updates the name of the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -1109,6 +1655,62 @@ paths:
         "403":
           description: Forbidden
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/signalhub/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Enable/disable SignalHub for an e-service
+      operationId: updateEServiceSignalHubFlag
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing a boolean that describes if SignalHub will be enabled or disabled
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceSignalHubUpdateSeed"
+      responses:
+        "200":
+          description: EService SignalHub flag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
@@ -1124,7 +1726,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/:eServiceId/descriptors/:descriptorId/approve:
+  /eservices/{eServiceId}/descriptors/{descriptorId}/approve:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1134,6 +1736,7 @@ paths:
         - process
       summary: approve a delegated new e-service version
       operationId: approveDelegatedEServiceDescriptor
+      description: Approves a delegated E-Service descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -1155,22 +1758,22 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/:eServiceId/descriptors/:descriptorId/reject:
+  /eservices/{eServiceId}/descriptors/{descriptorId}/reject:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1180,6 +1783,7 @@ paths:
         - process
       summary: reject a delegated new e-service version
       operationId: rejectDelegatedEServiceDescriptor
+      description: Rejects a delegated E-Service descriptor
       requestBody:
         description: Payload containing the reason of the rejection
         content:
@@ -1208,19 +1812,19 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update:
@@ -1233,6 +1837,7 @@ paths:
         - process
       summary: Update e-service published descriptor attributes
       operationId: updateDescriptorAttributes
+      description: Updates the attributes of the specified E-Service descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -1265,25 +1870,427 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: E-Service or descriptor not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/templates/eservices/{eServiceId}/name/update:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - process
+      requestBody:
+        description: A payload containing the new name
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceNameUpdateSeed"
+      operationId: updateTemplateInstanceName
+      description: Updates the name of a template instance after a template update
+      responses:
+        "204":
+          description: E-Service name updated
+        "404":
+          description: E-Service Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/templates/eservices/{eServiceId}/description/update:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - process
+      requestBody:
+        description: A payload containing the new name
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptionUpdateSeed"
+      operationId: updateTemplateInstanceDescription
+      description: Update the description of a template instance after a template update
+      responses:
+        "204":
+          description: E-Service description updated
+        "404":
+          description: E-Service Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/voucherLifespan/update:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the eservice descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - process
+      requestBody:
+        description: A payload containing the new voucher lifespan
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorVoucherLifespanUpdateSeed"
+      operationId: updateTemplateInstanceDescriptorVoucherLifespan
+      description: Update voucher lifespan of a template instance descriptor after template update
+      responses:
+        "204":
+          description: E-Service descriptor voucher lifespan updated
+        "404":
+          description: E-Service or descriptor Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      description: Update attributes of a template instance descriptor after template update
+      operationId: updateTemplateInstanceDescriptorAttributes
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the attributes
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttributesSeed"
+      responses:
+        "204":
+          description: EService descriptor attributes updated
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: E-Service or descriptor not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/documents/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      description: Add a new document in a template instance descriptor after template update
+      operationId: createTemplateInstanceDescriptorDocument
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: E-Service document
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
+      responses:
+        "204":
+          description: EService Document created
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      description: Update a document in a template instance descriptor after template update
+      operationId: updateTemplateInstanceDescriptorDocument
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: documentId
+          in: path
+          description: the document id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the possible document updatable fields
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceDescriptorDocumentSeed"
+      responses:
+        "200":
+          description: EService Document updated.
+          content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDoc"
+        "404":
+          description: EService not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      description: Deletes a document in a template instance descriptor after template update
+      operationId: deleteTemplateInstanceDescriptorDocument
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: documentId
+          in: path
+          description: the document id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Document deleted.
+        "404":
+          description: E-Service descriptor document not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update the selected template instance descriptor.
+      operationId: updateTemplateInstanceDescriptor
+      description: Updates the specified E-Service template instance descriptor
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceTemplateInstanceDescriptorQuotasSeed"
+      responses:
+        "200":
+          description: E-service template instance descriptor updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /status:
@@ -1298,7 +2305,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
@@ -1336,6 +2343,10 @@ components:
           $ref: "#/components/schemas/DescriptorSeedForEServiceCreation"
         isSignalHubEnabled:
           type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -1358,6 +2369,20 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+    UpdateEServiceTemplateInstanceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
           type: boolean
     DescriptorSeedForEServiceCreation:
       required:
@@ -1441,6 +2466,32 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
+    EServiceInstanceDescriptorSeed:
+      required:
+        - audience
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+      type: object
+      additionalProperties: false
+      properties:
+        audience:
+          type: array
+          items:
+            type: string
+            minLength: 0
+            maxLength: 250
+        dailyCallsPerConsumer:
+          description: "maximum number of daily calls that this descriptor can afford."
+          type: integer
+          format: int32
+          minimum: 1
+        dailyCallsTotal:
+          description: "total daily calls available for this e-service."
+          type: integer
+          format: int32
+          minimum: 1
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
     UpdateEServiceDescriptorSeed:
       required:
         - audience
@@ -1481,6 +2532,33 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+    UpdateEServiceDescriptorTemplateInstanceSeed:
+      required:
+        - audience
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+        - agreementApprovalPolicy
+      type: object
+      additionalProperties: false
+      properties:
+        audience:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 250
+        dailyCallsPerConsumer:
+          description: "maximum number of daily calls that this descriptor can afford."
+          type: integer
+          format: int32
+          minimum: 1
+        dailyCallsTotal:
+          description: "total daily calls available for this e-service."
+          type: integer
+          format: int32
+          minimum: 1
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
     UpdateEServiceDescriptorQuotasSeed:
       type: object
       additionalProperties: false
@@ -1502,6 +2580,29 @@ components:
         - voucherLifespan
         - dailyCallsPerConsumer
         - dailyCallsTotal
+    UpdateEServiceTemplateInstanceDescriptorQuotasSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        dailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 1
+        dailyCallsTotal:
+          type: integer
+          format: int32
+          minimum: 1
+      required:
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+    UpdateEServiceDescriptorAgreementApprovalPolicySeed:
+      type: object
+      additionalProperties: false
+      properties:
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+      required:
+        - agreementApprovalPolicy
     CreateEServiceDescriptorDocumentSeed:
       required:
         - documentId
@@ -1534,6 +2635,8 @@ components:
           type: array
           items:
             type: string
+        interfaceTemplateMetadata:
+          $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
     UpdateEServiceDescriptorDocumentSeed:
       required:
         - prettyName
@@ -1614,7 +2717,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 250
+              maxLength: 2000
       required:
         - version
         - answers
@@ -1655,6 +2758,74 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+        templateId:
+          type: string
+          format: uuid
+    EServiceTemplateVersionRef:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+        interfaceMetadata:
+          $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
+    TemplateInstanceInterfaceRESTSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - contactName
+        - contactEmail
+        - serverUrls
+      properties:
+        contactName:
+          type: string
+        contactEmail:
+          type: string
+          format: email
+        contactUrl:
+          type: string
+          format: uri
+        termsAndConditionsUrl:
+          type: string
+          format: uri
+        serverUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+    TemplateInstanceInterfaceSOAPSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - serverUrls
+      properties:
+        serverUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+    TemplateInstanceInterfaceMetadata:
+      type: object
+      additionalProperties: false
+      properties:
+        contactName:
+          type: string
+        contactEmail:
+          type: string
+          format: email
+        contactUrl:
+          type: string
+          format: uri
+        termsAndConditionsUrl:
+          type: string
+          format: uri
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -1806,6 +2977,8 @@ components:
           type: string
         checksum:
           type: string
+        contacts:
+          $ref: "#/components/schemas/DescriptorInterfaceContacts"
     EServiceDescriptionUpdateSeed:
       type: object
       additionalProperties: false
@@ -1816,6 +2989,17 @@ components:
           maxLength: 250
       required:
         - description
+    EServiceDelegationFlagsUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+      required:
+        - isConsumerDelegable
+        - isClientAccessDelegable
     EServiceNameUpdateSeed:
       type: object
       additionalProperties: false
@@ -1826,6 +3010,14 @@ components:
           maxLength: 60
       required:
         - name
+    EServiceSignalHubUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isSignalHubEnabled:
+          type: boolean
+      required:
+        - isSignalHubEnabled
     EServiceDescriptor:
       type: object
       additionalProperties: false
@@ -1899,6 +3091,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RejectionReason"
+        templateVersionRef:
+          $ref: "#/components/schemas/EServiceTemplateVersionRef"
     Attribute:
       type: object
       additionalProperties: false
@@ -1988,6 +3182,49 @@ components:
           type: string
       required:
         - rejectionReason
+    DescriptorInterfaceContacts:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        url:
+          type: string
+        termsAndConditionsUrl:
+          type: string
+        serverUrls:
+          type: array
+          items:
+            type: string
+      required:
+        - name
+        - email
+        - url
+        - termsAndConditionsUrl
+        - serverUrls
+    EServiceDescriptorVoucherLifespanUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        voucherLifespan:
+          type: integer
+          format: int32
+          minimum: 60
+          maximum: 86400
+      required:
+        - voucherLifespan
+    InstanceEServiceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
     Problem:
       properties:
         type:

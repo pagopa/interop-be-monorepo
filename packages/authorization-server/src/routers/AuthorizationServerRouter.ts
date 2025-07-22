@@ -1,56 +1,29 @@
 import { constants } from "http2";
 import {
+  AuthServerAppContext,
   ExpressContext,
-  fromAppContext,
-  initFileManager,
-  initRedisRateLimiter,
-  InteropTokenGenerator,
+  logger,
   rateLimiterHeadersFromStatus,
+  WithLogger,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { Problem, tooManyRequestsError } from "pagopa-interop-models";
+import {
+  ClientId,
+  Problem,
+  TenantId,
+  tooManyRequestsError,
+} from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { initProducer } from "kafka-iam-auth";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
-import { tokenServiceBuilder } from "../services/tokenService.js";
-import { config } from "../config/config.js";
-
-const dynamoDBClient = new DynamoDBClient();
-const redisRateLimiter = await initRedisRateLimiter({
-  limiterGroup: "AUTHSERVER",
-  maxRequests: config.rateLimiterMaxRequests,
-  rateInterval: config.rateLimiterRateInterval,
-  burstPercentage: config.rateLimiterBurstPercentage,
-  redisHost: config.rateLimiterRedisHost,
-  redisPort: config.rateLimiterRedisPort,
-  timeout: config.rateLimiterTimeout,
-});
-const producer = await initProducer(config, config.tokenAuditingTopic);
-const fileManager = initFileManager(config);
-
-const tokenGenerator = new InteropTokenGenerator({
-  generatedInteropTokenKid: config.generatedInteropTokenKid,
-  generatedInteropTokenIssuer: config.generatedInteropTokenIssuer,
-  generatedInteropTokenM2MAudience: config.generatedInteropTokenM2MAudience,
-  generatedInteropTokenM2MDurationSeconds:
-    config.generatedInteropTokenM2MDurationSeconds,
-});
-
-const tokenService = tokenServiceBuilder({
-  tokenGenerator,
-  dynamoDBClient,
-  redisRateLimiter,
-  producer,
-  fileManager,
-});
+import { TokenService } from "../services/tokenService.js";
 
 const authorizationServerRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  tokenService: TokenService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const authorizationServerRouter = ctx.router(
     authorizationServerApi.authApi.api,
@@ -58,82 +31,94 @@ const authorizationServerRouter = (
       validationErrorHandler: zodiosValidationErrorToApiProblem,
     }
   );
-  authorizationServerRouter.post(
-    "/authorization-server/token.oauth2",
-    async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+  authorizationServerRouter.post("/token.oauth2", async (req, res) => {
+    /* generateToken needs to mutate the context to set the clientId and organizationId,
+      so that they can be used in further middlewares (e.g., the application audit).
+      We create two dedicated mutation functions so that we can pass down a read-only context
+      and the mutation function, and avoid mutating it directly.
+      */
+    const setCtxClientId = (clientId: ClientId): void => {
+      // eslint-disable-next-line functional/immutable-data
+      req.ctx.clientId = clientId;
+    };
 
-      try {
-        const tokenResult = await tokenService.generateToken(
-          req.body,
-          ctx.correlationId,
-          ctx.logger
-        );
+    const setCtxOrganizationId = (organizationId: TenantId): void => {
+      // eslint-disable-next-line functional/immutable-data
+      req.ctx.organizationId = organizationId;
+    };
 
-        const headers = rateLimiterHeadersFromStatus(
-          tokenResult.rateLimiterStatus
-        );
-        res.set(headers);
+    const ctx: WithLogger<AuthServerAppContext> = {
+      ...req.ctx,
+      logger: logger({ ...req.ctx }),
+    };
 
-        if (tokenResult.limitReached) {
-          const errorRes = makeApiProblem(
-            tooManyRequestsError(tokenResult.rateLimitedTenantId),
-            authorizationServerErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+    try {
+      const tokenResult = await tokenService.generateToken(
+        req.headers,
+        req.body,
+        ctx,
+        setCtxClientId,
+        setCtxOrganizationId
+      );
 
-          return res.status(errorRes.status).send(errorRes);
-        }
+      const headers = rateLimiterHeadersFromStatus(
+        tokenResult.rateLimiterStatus
+      );
+      res.set(headers);
 
-        return res.status(200).send({
-          access_token: tokenResult.token.serialized,
-          token_type: "Bearer",
-          expires_in: tokenResult.token.payload.exp,
-        });
-      } catch (err) {
+      if (tokenResult.limitReached) {
         const errorRes = makeApiProblem(
-          err,
+          tooManyRequestsError(tokenResult.rateLimitedTenantId),
           authorizationServerErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
-        if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
-          const cleanedError: Problem = {
-            title: "The request contains bad syntax or cannot be fulfilled.",
-            type: "about:blank",
-            status: constants.HTTP_STATUS_BAD_REQUEST,
-            detail: "Bad request",
-            errors: [
-              {
-                code: "015-0008",
-                detail: "Unable to generate a token for the given request",
-              },
-            ],
-            correlationId: ctx.correlationId,
-          };
 
-          return res.status(cleanedError.status).send(cleanedError);
-        } else {
-          const cleanedError: Problem = {
-            title: "The request couldn't be fulfilled due to an internal error",
-            type: "internalServerError",
-            status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-            detail: "Internal server error",
-            errors: [
-              {
-                code: "015-0000",
-                detail:
-                  "Unable to generate a token for the given request due to an internal error",
-              },
-            ],
-            correlationId: ctx.correlationId,
-          };
-          return res.status(cleanedError.status).send(cleanedError);
-        }
+        return res.status(errorRes.status).send(errorRes);
+      }
+
+      return res.status(200).send({
+        access_token: tokenResult.token.serialized,
+        token_type: tokenResult.isDPoP ? "DPoP" : "Bearer",
+        expires_in:
+          tokenResult.token.payload.exp - tokenResult.token.payload.iat,
+      });
+    } catch (err) {
+      const errorRes = makeApiProblem(err, authorizationServerErrorMapper, ctx);
+      if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
+        const cleanedError: Problem = {
+          title: "The request contains bad syntax or cannot be fulfilled.",
+          type: "about:blank",
+          status: constants.HTTP_STATUS_BAD_REQUEST,
+          detail: "Bad request",
+          errors: [
+            {
+              code: "015-0008",
+              detail: "Unable to generate a token for the given request",
+            },
+          ],
+          correlationId: ctx.correlationId,
+        };
+
+        return res.status(cleanedError.status).send(cleanedError);
+      } else {
+        const cleanedError: Problem = {
+          title: "The request couldn't be fulfilled due to an internal error",
+          type: "internalServerError",
+          status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
+          detail: "Internal server error",
+          errors: [
+            {
+              code: "015-0000",
+              detail:
+                "Unable to generate a token for the given request due to an internal error",
+            },
+          ],
+          correlationId: ctx.correlationId,
+        };
+        return res.status(cleanedError.status).send(cleanedError);
       }
     }
-  );
+  });
   return authorizationServerRouter;
 };
 

@@ -69,6 +69,10 @@ export function toOutboundEventV2(
       { type: "ProducerDelegationApproved" },
       { type: "ProducerDelegationRejected" },
       { type: "ProducerDelegationRevoked" },
+      { type: "ConsumerDelegationSubmitted" },
+      { type: "ConsumerDelegationApproved" },
+      { type: "ConsumerDelegationRejected" },
+      { type: "ConsumerDelegationRevoked" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -78,6 +82,7 @@ export function toOutboundEventV2(
             msg.data.delegation && toOutboundDelegationV2(msg.data.delegation),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   afterAll,
   afterEach,
@@ -257,6 +256,7 @@ describe("integration tests V1 events", async () => {
       const expectedAgreementEntry: PlatformStatesAgreementEntry = {
         ...previousPlatformStatesAgreement,
         state: itemState.active,
+        producerId: agreement.producerId,
         version: 3,
         updatedAt: new Date().toISOString(),
       };
@@ -277,6 +277,7 @@ describe("integration tests V1 events", async () => {
           GSIPK_eserviceId_descriptorId,
           agreementId: agreement.id,
           agreementState: itemState.active,
+          producerId: agreement.producerId,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
@@ -285,6 +286,7 @@ describe("integration tests V1 events", async () => {
           GSIPK_eserviceId_descriptorId,
           agreementId: agreement.id,
           agreementState: itemState.active,
+          producerId: agreement.producerId,
           updatedAt: new Date().toISOString(),
         };
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
@@ -414,6 +416,7 @@ describe("integration tests V1 events", async () => {
         agreementTimestamp:
           latestAgreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: latestAgreement.descriptorId,
+        producerId: latestAgreement.producerId,
       };
       expect(retrievedAgreementEntry).toEqual(expectedAgreementEntry);
 
@@ -430,6 +433,7 @@ describe("integration tests V1 events", async () => {
           ...tokenGenStatesConsumerClient1,
           agreementId: latestAgreement.id,
           agreementState: itemState.active,
+          producerId: latestAgreement.producerId,
           GSIPK_eserviceId_descriptorId,
           updatedAt: new Date().toISOString(),
         };
@@ -438,6 +442,7 @@ describe("integration tests V1 events", async () => {
           ...tokenGenStatesConsumerClient2,
           agreementId: latestAgreement.id,
           agreementState: itemState.active,
+          producerId: latestAgreement.producerId,
           GSIPK_eserviceId_descriptorId,
           updatedAt: new Date().toISOString(),
         };
@@ -536,6 +541,7 @@ describe("integration tests V1 events", async () => {
         agreementId: agreement.id,
         agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
       };
       expect(retrievedAgreementEntry).toEqual(expectedAgreementEntry);
 
@@ -553,6 +559,7 @@ describe("integration tests V1 events", async () => {
           agreementId: agreement.id,
           GSIPK_eserviceId_descriptorId,
           agreementState: itemState.active,
+          producerId: agreement.producerId,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
@@ -561,6 +568,7 @@ describe("integration tests V1 events", async () => {
           GSIPK_eserviceId_descriptorId,
           agreementId: agreement.id,
           agreementState: itemState.active,
+          producerId: agreement.producerId,
           updatedAt: new Date().toISOString(),
         };
 
@@ -678,6 +686,7 @@ describe("integration tests V1 events", async () => {
         agreementId: agreement.id,
         agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
       };
       expect(retrievedAgreementEntry).toEqual(expectedAgreementEntry);
 
@@ -694,6 +703,7 @@ describe("integration tests V1 events", async () => {
           ...tokenGenStatesConsumerClient1,
           agreementId: agreement.id,
           agreementState: itemState.active,
+          producerId: agreement.producerId,
           descriptorState: catalogEntry.state,
           descriptorAudience: catalogEntry.descriptorAudience,
           descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
@@ -705,6 +715,7 @@ describe("integration tests V1 events", async () => {
           ...tokenGenStatesConsumerClient2,
           agreementId: agreement.id,
           agreementState: itemState.active,
+          producerId: agreement.producerId,
           descriptorState: catalogEntry.state,
           descriptorAudience: catalogEntry.descriptorAudience,
           descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
@@ -1183,6 +1194,7 @@ describe("integration tests V1 events", async () => {
         agreementId: latestAgreement.id,
         agreementTimestamp: latestAgreement.stamps.upgrade!.when.toISOString(),
         agreementDescriptorId: latestAgreement.descriptorId,
+        producerId: latestAgreement.producerId,
       };
       expect(retrievedEntry).toEqual(expectedAgreementEntry);
 
@@ -1201,6 +1213,7 @@ describe("integration tests V1 events", async () => {
           GSIPK_eserviceId_descriptorId,
           agreementId: latestAgreement.id,
           agreementState: itemState.active,
+          producerId: latestAgreement.producerId,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
@@ -1209,6 +1222,7 @@ describe("integration tests V1 events", async () => {
           GSIPK_eserviceId_descriptorId,
           agreementId: latestAgreement.id,
           agreementState: itemState.active,
+          producerId: latestAgreement.producerId,
           updatedAt: new Date().toISOString(),
         };
 
@@ -1438,6 +1452,7 @@ describe("integration tests V1 events", async () => {
         agreementId: agreement.id,
         agreementTimestamp: agreement.stamps.upgrade!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
       };
       expect(retrievedAgreementEntry).toEqual(expectedAgreementEntry);
 
@@ -1455,6 +1470,7 @@ describe("integration tests V1 events", async () => {
           GSIPK_eserviceId_descriptorId,
           agreementId: agreement.id,
           agreementState: itemState.active,
+          producerId: agreement.producerId,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
@@ -1463,6 +1479,7 @@ describe("integration tests V1 events", async () => {
           GSIPK_eserviceId_descriptorId,
           agreementId: agreement.id,
           agreementState: itemState.active,
+          producerId: agreement.producerId,
           updatedAt: new Date().toISOString(),
         };
 
@@ -1697,6 +1714,7 @@ describe("integration tests V1 events", async () => {
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
         ...previousAgreementStateEntry,
         state: itemState.inactive,
+        producerId: agreement.producerId,
         updatedAt: new Date().toISOString(),
         version: 2,
       };
@@ -1720,6 +1738,7 @@ describe("integration tests V1 events", async () => {
           ...tokenGenStatesConsumerClient1,
           GSIPK_eserviceId_descriptorId,
           agreementState: itemState.inactive,
+          producerId: agreement.producerId,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
@@ -1727,6 +1746,7 @@ describe("integration tests V1 events", async () => {
           ...tokenGenStatesConsumerClient2,
           GSIPK_eserviceId_descriptorId,
           agreementState: itemState.inactive,
+          producerId: agreement.producerId,
           updatedAt: new Date().toISOString(),
         };
 
@@ -1784,6 +1804,7 @@ describe("integration tests V1 events", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
         agreementDescriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
       };
 
       expect(retrievedAgreementEntry).toEqual(expectedAgreementStateEntry);
@@ -2011,6 +2032,7 @@ describe("integration tests V1 events", async () => {
       const expectedAgreementStateEntry: PlatformStatesAgreementEntry = {
         ...previousAgreementStateEntry,
         state: itemState.active,
+        producerId: agreement.producerId,
         updatedAt: new Date().toISOString(),
         version: 3,
       };
@@ -2034,6 +2056,7 @@ describe("integration tests V1 events", async () => {
           ...tokenGenStatesConsumerClient1,
           GSIPK_eserviceId_descriptorId,
           agreementState: itemState.active,
+          producerId: agreement.producerId,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
@@ -2041,6 +2064,7 @@ describe("integration tests V1 events", async () => {
           ...tokenGenStatesConsumerClient2,
           GSIPK_eserviceId_descriptorId,
           agreementState: itemState.active,
+          producerId: agreement.producerId,
           updatedAt: new Date().toISOString(),
         };
 

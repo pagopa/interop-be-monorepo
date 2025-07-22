@@ -2,6 +2,9 @@
 
 version: "3"
 name: pagopa-interop
+volumes:
+  readmodel-volume:
+
 services:
   # Event Store Postgres DB
   event-store:
@@ -11,6 +14,47 @@ services:
     ports:
       - 6001:5432
     environment:
+      POSTGRES_DB: root
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    command: -c 'max_connections=512' -c 'wal_level=logical'
+
+  # POSTGRESQL readmodel
+  readmodel-sql:
+    volumes:
+      - ./readmodel-db:/docker-entrypoint-initdb.d
+    image: postgres:14
+    ports:
+      - 6002:5433
+    environment:
+      PGPORT: 5433
+      POSTGRES_DB: root
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    command: -c 'max_connections=512' -c 'wal_level=logical'
+
+  # POSTGRESQL in-app notification manager
+  in-app-notification-manager-sql:
+    volumes:
+      - ./in-app-notification-db:/docker-entrypoint-initdb.d
+    image: postgres:14
+    ports:
+      - 6004:5433
+    environment:
+      PGPORT: 5433
+      POSTGRES_DB: root
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+
+  # analytics POSTGRESQL-15
+  domains-analytics-sql:
+    volumes:
+      - ./domains-analytics-db:/docker-entrypoint-initdb.d
+    image: postgres:15
+    ports:
+      - 6003:5434
+    environment:
+      PGPORT: 5434
       POSTGRES_DB: root
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
@@ -60,6 +104,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - readmodel-volume:/data/db
 
   # Dynamo DB readmodel for token generation and privacy notices
   dynamodb-local:
@@ -95,7 +141,7 @@ services:
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local
       - AWS_REGION=eu-south-1
-      - TABLES=privacy-notice,privacy-notice-acceptances,platform-states,token-generation-states
+      - TABLES=privacy-notice,privacy-notice-acceptances,platform-states,token-generation-states,dpop-cache
     entrypoint: ./dynamo-migrations.sh
 
   # Web GUI for mongo

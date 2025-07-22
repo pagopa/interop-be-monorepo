@@ -9,14 +9,22 @@ import {
   EServiceId,
   operationForbidden,
   Tenant,
+  tenantFeatureType,
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
+import {
   delegationAlreadyExists,
+  delegationRelatedAgreementExists,
   delegationStampNotFound,
   delegatorAndDelegateSameIdError,
   differentEServiceProducer,
+  eserviceNotConsumerDelegable,
   incorrectState,
   operationRestrictedToDelegate,
   operationRestrictedToDelegator,
@@ -59,11 +67,15 @@ export const assertDelegatorAndDelegateAllowedOrigins = async (
   delegator: Tenant,
   delegate: Tenant
 ): Promise<void> => {
-  if (!config.producerAllowedOrigins.includes(delegator?.externalId?.origin)) {
+  if (
+    !config.delegationsAllowedOrigins.includes(delegator?.externalId?.origin)
+  ) {
     throw originNotCompliant(delegator, "Delegator");
   }
 
-  if (!config.producerAllowedOrigins.includes(delegate?.externalId?.origin)) {
+  if (
+    !config.delegationsAllowedOrigins.includes(delegate?.externalId?.origin)
+  ) {
     throw originNotCompliant(delegate, "Delegate");
   }
 };
@@ -76,8 +88,14 @@ export const assertTenantAllowedToReceiveDelegation = (
     (f) =>
       f.type ===
       match(kind)
-        .with(delegationKind.delegatedProducer, () => "DelegatedProducer")
-        .with(delegationKind.delegatedConsumer, () => "DelegatedConsumer")
+        .with(
+          delegationKind.delegatedProducer,
+          () => tenantFeatureType.delegatedProducer
+        )
+        .with(
+          delegationKind.delegatedConsumer,
+          () => tenantFeatureType.delegatedConsumer
+        )
         .exhaustive()
   );
 
@@ -108,20 +126,23 @@ export const assertDelegationNotExists = async (
 
 export const assertIsDelegate = (
   delegation: Delegation,
-  requesterId: TenantId
+  authData: UIAuthData | M2MAdminAuthData
 ): void => {
-  if (delegation.delegateId !== requesterId) {
-    throw operationRestrictedToDelegate(requesterId, delegation.id);
+  if (delegation.delegateId !== authData.organizationId) {
+    throw operationRestrictedToDelegate(authData.organizationId, delegation.id);
   }
 };
 
 // rename to assertRequesterIsDelegator?
 export const assertIsDelegator = (
   delegation: Delegation,
-  requesterId: TenantId
+  authData: UIAuthData
 ): void => {
-  if (delegation.delegatorId !== requesterId) {
-    throw operationRestrictedToDelegator(requesterId, delegation.id);
+  if (delegation.delegatorId !== authData.organizationId) {
+    throw operationRestrictedToDelegator(
+      authData.organizationId,
+      delegation.id
+    );
   }
 };
 
@@ -141,11 +162,11 @@ export const assertIsState = (
 
 export const assertRequesterIsDelegateOrDelegator = (
   delegation: Delegation,
-  requesterId: TenantId
+  authData: UIAuthData | M2MAuthData
 ): void => {
   if (
-    delegation.delegateId !== requesterId &&
-    delegation.delegatorId !== requesterId
+    delegation.delegateId !== authData.organizationId &&
+    delegation.delegatorId !== authData.organizationId
   ) {
     throw operationForbidden;
   }
@@ -161,3 +182,28 @@ export function assertStampExists<S extends keyof Delegation["stamps"]>(
     throw delegationStampNotFound(stamp);
   }
 }
+
+export const assertEserviceIsConsumerDelegable = (eservice: EService): void => {
+  if (!eservice.isConsumerDelegable) {
+    throw eserviceNotConsumerDelegable(eservice.id);
+  }
+};
+
+export const assertNoDelegationRelatedAgreementExists = async (
+  consumerId: TenantId,
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<void> => {
+  const agreement = await readModelService.getDelegationRelatedAgreement(
+    eserviceId,
+    consumerId
+  );
+
+  if (agreement) {
+    throw delegationRelatedAgreementExists(
+      agreement.id,
+      agreement.eserviceId,
+      agreement.consumerId
+    );
+  }
+};

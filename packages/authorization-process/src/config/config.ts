@@ -2,13 +2,16 @@ import {
   CommonHTTPServiceConfig,
   ReadModelDbConfig,
   EventStoreConfig,
-  SelfCareConfig,
+  SelfCareClientConfig,
+  ApplicationAuditProducerConfig,
+  FeatureFlagSQLConfig,
+  ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   .and(EventStoreConfig)
-  .and(SelfCareConfig)
+  .and(SelfCareClientConfig)
   .and(
     z
       .object({
@@ -19,7 +22,10 @@ const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
         maxKeysPerClient: c.MAX_KEYS_PER_CLIENT,
         maxKeysPerProducerKeychain: c.MAX_KEYS_PER_PRODUCER_KEYCHAIN,
       }))
-  );
+  )
+  .and(ApplicationAuditProducerConfig)
+  .and(FeatureFlagSQLConfig)
+  .and(ReadModelSQLDbConfig);
 
 export type AuthorizationConfig = z.infer<typeof AuthorizationConfig>;
 

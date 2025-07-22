@@ -70,7 +70,6 @@ import {
   setClientPurposeIdsInPlatformStatesEntry,
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
-  readConsumerClientsInTokenGenStatesV1,
   retrievePlatformStatesByPurpose,
   updateTokenGenStatesDataForSecondRetrieval,
   upsertPlatformClientEntry,
@@ -867,51 +866,6 @@ describe("utils", () => {
     });
   });
 
-  it("readConsumerClientsInTokenGenStatesV1", async () => {
-    const clientId = generateId<ClientId>();
-    const pk1 = makeTokenGenerationStatesClientKidPK({ clientId, kid: "" });
-    const pk2 = makeTokenGenerationStatesClientKidPurposePK({
-      clientId,
-      kid: "",
-      purposeId: generateId<PurposeId>(),
-    });
-
-    const GSIPK_clientId = clientId;
-
-    const tokenGenStatesConsumerClientWithoutPurpose: TokenGenerationStatesConsumerClient =
-      {
-        ...getMockTokenGenStatesConsumerClient(pk1),
-        GSIPK_clientId,
-      };
-
-    const tokenGenStatesConsumerClientWithPurpose: TokenGenerationStatesConsumerClient =
-      {
-        ...getMockTokenGenStatesConsumerClient(pk2),
-        GSIPK_clientId,
-      };
-
-    await writeTokenGenStatesConsumerClient(
-      tokenGenStatesConsumerClientWithoutPurpose,
-      dynamoDBClient
-    );
-    await writeTokenGenStatesConsumerClient(
-      tokenGenStatesConsumerClientWithPurpose,
-      dynamoDBClient
-    );
-
-    const res = await readConsumerClientsInTokenGenStatesV1(
-      GSIPK_clientId,
-      dynamoDBClient
-    );
-
-    expect(res).toEqual(
-      expect.arrayContaining([
-        tokenGenStatesConsumerClientWithoutPurpose,
-        tokenGenStatesConsumerClientWithPurpose,
-      ])
-    );
-  });
-
   it("setClientPurposeIdsInPlatformStatesEntry", async () => {
     const clientEntry1: PlatformStatesClientEntry = {
       ...getMockPlatformStatesClientEntry(),
@@ -1122,7 +1076,7 @@ describe("utils", () => {
           kid: "kid",
           purposeId: generateId<PurposeId>(),
         }),
-        consumerId: generateId(),
+        consumerId: generateId<TenantId>(),
         clientKind: clientKindTokenGenStates.consumer,
         publicKey: "publicKey",
         GSIPK_clientId: generateId<ClientId>(),
@@ -1143,10 +1097,12 @@ describe("utils", () => {
 
   it("updateTokenGenStatesDataForSecondRetrieval", async () => {
     const consumerId = generateId<TenantId>();
+    const producerId = generateId<TenantId>();
     const descriptor = getMockDescriptor();
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
+      producerId,
     };
     const purpose: Purpose = {
       ...getMockPurpose(),
@@ -1165,6 +1121,8 @@ describe("utils", () => {
       ...getMockAgreement(),
       eserviceId: eservice.id,
       descriptorId: descriptor.id,
+      producerId,
+      consumerId,
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -1177,6 +1135,7 @@ describe("utils", () => {
     const tokenConsumerClient: TokenGenerationStatesConsumerClient = {
       ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
       consumerId,
+      producerId,
       GSIPK_clientId: client.id,
       GSIPK_clientId_kid: makeGSIPKClientIdKid({
         clientId: client.id,
@@ -1224,6 +1183,7 @@ describe("utils", () => {
       agreementId: agreement.id,
       agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
       agreementDescriptorId: agreement.descriptorId,
+      producerId: agreement.producerId,
     };
 
     const platformCatalogEntry: PlatformStatesCatalogEntry = {

@@ -1,7 +1,9 @@
 import {
   ApiError,
   ClientId,
+  DelegationId,
   DescriptorId,
+  EService,
   EServiceId,
   ProducerKeychainId,
   PurposeId,
@@ -12,7 +14,7 @@ import {
 
 export const errorCodes = {
   clientNotFound: "0001",
-  organizationNotAllowedOnClient: "0002",
+  tenantNotAllowedOnClient: "0002",
   clientUserIdNotFound: "0003",
   clientKeyNotFound: "0004",
   userNotAllowedOnClient: "0005",
@@ -20,25 +22,33 @@ export const errorCodes = {
   userWithoutSecurityPrivileges: "0007",
   clientUserAlreadyAssigned: "0008",
   eserviceNotFound: "0009",
-  noPurposeVersionsFoundInRequiredState: "0010",
+  noActiveOrSuspendedPurposeVersionFound: "0010",
   descriptorNotFound: "0011",
-  noAgreementFoundInRequiredState: "0012",
+  noActiveOrSuspendedAgreementFound: "0012",
   purposeAlreadyLinkedToClient: "0013",
-  organizationNotAllowedOnPurpose: "0014",
+  tenantNotAllowedOnPurpose: "0014",
   tooManyKeysPerClient: "0015",
   userNotFound: "0016",
   keyAlreadyExists: "0017",
   producerKeychainNotFound: "0018",
-  organizationNotAllowedOnProducerKeychain: "0019",
+  tenantNotAllowedOnProducerKeychain: "0019",
   producerKeychainUserAlreadyAssigned: "0020",
   producerKeychainUserIdNotFound: "0021",
   tooManyKeysPerProducerKeychain: "0022",
   userNotAllowedOnProducerKeychain: "0023",
   producerKeyNotFound: "0024",
-  organizationNotAllowedOnEService: "0025",
+  tenantNotAllowedOnEService: "0025",
   eserviceAlreadyLinkedToProducerKeychain: "0026",
   userNotAllowedToDeleteClientKey: "0027",
   userNotAllowedToDeleteProducerKeychainKey: "0028",
+  purposeDelegationNotFound: "0029",
+  eserviceNotDelegableForClientAccess: "0030",
+  clientKindNotAllowed: "0031",
+  securityUserNotMember: "0032",
+  clientAdminIdNotFound: "0033",
+  userAlreadyAssignedAsAdmin: "0034",
+  jwkNotFound: "0035",
+  producerJwkNotFound: "0036",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -53,14 +63,14 @@ export function clientNotFound(clientId: ClientId): ApiError<ErrorCodes> {
   });
 }
 
-export function organizationNotAllowedOnClient(
-  organizationId: TenantId,
+export function tenantNotAllowedOnClient(
+  tenantId: TenantId,
   clientId: ClientId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed on client ${clientId}`,
-    code: "organizationNotAllowedOnClient",
-    title: "Organization not allowed on client",
+    detail: `Tenant ${tenantId} is not allowed on client ${clientId}`,
+    code: "tenantNotAllowedOnClient",
+    title: "Tenant not allowed on client",
   });
 }
 
@@ -72,6 +82,17 @@ export function clientUserIdNotFound(
     detail: `User ${userId} not found in client ${clientId}`,
     code: "clientUserIdNotFound",
     title: "User id not found in client",
+  });
+}
+
+export function clientAdminIdNotFound(
+  clientId: ClientId,
+  adminId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client admin ${adminId} not found in client ${clientId}`,
+    code: "clientAdminIdNotFound",
+    title: "Client admin id not found in client",
   });
 }
 
@@ -127,6 +148,17 @@ export function clientUserAlreadyAssigned(
   });
 }
 
+export function clientAdminAlreadyAssignedToUser(
+  clientId: ClientId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} is already assigned as admin to the client ${clientId}`,
+    code: "userAlreadyAssignedAsAdmin",
+    title: "User already assigned as admin to the client",
+  });
+}
+
 export function eserviceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} not found`,
@@ -135,13 +167,13 @@ export function eserviceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   });
 }
 
-export function noPurposeVersionsFoundInRequiredState(
+export function noActiveOrSuspendedPurposeVersionFound(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No versions in required state found in purpose ${purposeId}`,
-    code: "noPurposeVersionsFoundInRequiredState",
-    title: "No purpose versions found in required state",
+    detail: `No active or suspended purpose versions found in purpose ${purposeId}`,
+    code: "noActiveOrSuspendedPurposeVersionFound",
+    title: "No active or suspended purpose versions found",
   });
 }
 
@@ -156,14 +188,14 @@ export function descriptorNotFound(
   });
 }
 
-export function noAgreementFoundInRequiredState(
+export function noActiveOrSuspendedAgreementFound(
   eserviceId: EServiceId,
   consumerId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No agreement in required state found for eservice ${eserviceId} and consumer ${consumerId}`,
-    code: "noAgreementFoundInRequiredState",
-    title: "No Agreement found in required state",
+    detail: `No active or suspended agreement found for eservice ${eserviceId} and consumer ${consumerId}`,
+    code: "noActiveOrSuspendedAgreementFound",
+    title: "No active or suspended Agreement found",
   });
 }
 
@@ -178,14 +210,19 @@ export function purposeAlreadyLinkedToClient(
   });
 }
 
-export function organizationNotAllowedOnPurpose(
-  organizationId: TenantId,
-  purposeId: PurposeId
+export function tenantNotAllowedOnPurpose(
+  tenantId: TenantId,
+  purposeId: PurposeId,
+  delegationId?: DelegationId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed on purpose ${purposeId}`,
-    code: "organizationNotAllowedOnPurpose",
-    title: "Organization not allowed on purpose",
+    detail: `Tenant ${tenantId} is not allowed on purpose ${purposeId} ${
+      delegationId
+        ? `as delegate for delegation ${delegationId}`
+        : `as consumer`
+    }`,
+    code: "tenantNotAllowedOnPurpose",
+    title: "Tenant not allowed on purpose",
   });
 }
 
@@ -194,7 +231,7 @@ export function tooManyKeysPerClient(
   size: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Keys count (${size}) for the client ${clientId} exceed maximum allowed value`,
+    detail: `Keys count (${size}) for the client ${clientId} exceeds maximum allowed value`,
     code: "tooManyKeysPerClient",
     title: "Too many Keys per client",
   });
@@ -224,7 +261,7 @@ export function userNotFound(
 
 export function keyAlreadyExists(kid: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Key with kid ${kid} already exists `,
+    detail: `Key with kid ${kid} already exists`,
     code: "keyAlreadyExists",
     title: "Key already exists",
   });
@@ -240,14 +277,14 @@ export function producerKeychainNotFound(
   });
 }
 
-export function organizationNotAllowedOnProducerKeychain(
-  organizationId: TenantId,
+export function tenantNotAllowedOnProducerKeychain(
+  tenantId: TenantId,
   producerKeychainId: ProducerKeychainId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed on producer keychain ${producerKeychainId}`,
-    code: "organizationNotAllowedOnProducerKeychain",
-    title: "Organization not allowed on producer keychain",
+    detail: `Tenant ${tenantId} is not allowed on producer keychain ${producerKeychainId}`,
+    code: "tenantNotAllowedOnProducerKeychain",
+    title: "Tenant not allowed on producer keychain",
   });
 }
 
@@ -319,14 +356,14 @@ export function producerKeychainUserIdNotFound(
   });
 }
 
-export function organizationNotAllowedOnEService(
-  organizationId: TenantId,
+export function tenantNotAllowedOnEService(
+  tenantId: TenantId,
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed on e-service ${eserviceId}`,
-    code: "organizationNotAllowedOnEService",
-    title: "Organization not allowed on e-service",
+    detail: `Tenant ${tenantId} is not allowed on e-service ${eserviceId}`,
+    code: "tenantNotAllowedOnEService",
+    title: "Tenant not allowed on e-service",
   });
 }
 
@@ -338,5 +375,57 @@ export function eserviceAlreadyLinkedToProducerKeychain(
     detail: `EService ${eserviceId} is already linked to producer keychain ${producerKeychainId}`,
     code: "eserviceAlreadyLinkedToProducerKeychain",
     title: "EService already linked to producer keychain",
+  });
+}
+
+export function purposeDelegationNotFound(
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} not found`,
+    code: "purposeDelegationNotFound",
+    title: "Delegation not found",
+  });
+}
+
+export function eserviceNotDelegableForClientAccess(
+  eservice: EService
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eservice.id} is not delegable for client access`,
+    code: "eserviceNotDelegableForClientAccess",
+    title: "EService not delegable for client access",
+  });
+}
+
+export function clientKindNotAllowed(clientId: ClientId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client ${clientId} kind is not allowed for requested operation`,
+    code: "clientKindNotAllowed",
+    title: "Operation not allowed on client kind",
+  });
+}
+
+export function securityUserNotMember(userId: UserId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} with user role "security" is not a member of the client`,
+    code: "securityUserNotMember",
+    title: "Security user not member",
+  });
+}
+
+export function jwkNotFound(kid: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `JWK with kid ${kid} not found`,
+    code: "jwkNotFound",
+    title: "JWK not found",
+  });
+}
+
+export function producerJwkNotFound(kid: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Producer JWK with kid ${kid} not found`,
+    code: "producerJwkNotFound",
+    title: "Producer JWK not found",
   });
 }

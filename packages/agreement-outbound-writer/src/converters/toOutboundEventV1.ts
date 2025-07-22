@@ -88,6 +88,7 @@ export function toOutboundEventV1(
             msg.data.agreement && toOutboundAgreementV1(msg.data.agreement),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -99,6 +100,7 @@ export function toOutboundEventV1(
         agreementId: msg.data.agreementId,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "AgreementConsumerDocumentAdded" }, (msg) => ({
@@ -111,6 +113,7 @@ export function toOutboundEventV1(
           msg.data.document && toOutboundAgreementDocumentV1(msg.data.document),
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "AgreementConsumerDocumentRemoved" }, (msg) => ({
@@ -122,6 +125,7 @@ export function toOutboundEventV1(
         documentId: msg.data.documentId,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "AgreementContractAdded" }, (msg) => ({
@@ -134,6 +138,7 @@ export function toOutboundEventV1(
           msg.data.contract && toOutboundAgreementDocumentV1(msg.data.contract),
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .exhaustive();

@@ -133,6 +133,29 @@ export function toCreateEventClientUserAdded(
   };
 }
 
+export function toCreateEventClientAdminSet(
+  adminId: UserId,
+  client: Client,
+  version: number,
+  correlationId: CorrelationId,
+  oldAdminId: UserId | undefined
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientAdminSet",
+      event_version: 2,
+      data: {
+        client: toClientV2(client),
+        adminId,
+        ...(oldAdminId && { oldAdminId }),
+      },
+    },
+    correlationId,
+  };
+}
+
 export function toCreateEventClientPurposeAdded(
   purposeId: PurposeId,
   client: Client,
@@ -333,6 +356,48 @@ export function toCreateEventProducerKeychainEServiceRemoved(
       data: {
         eserviceId,
         producerKeychain: toProducerKeychainV2(producerKeychain),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventClientAdminRoleRevoked(
+  client: Client,
+  adminId: UserId,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientAdminRoleRevoked",
+      event_version: 2,
+      data: {
+        client: toClientV2(client),
+        adminId,
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventClientAdminRemoved(
+  client: Client,
+  adminId: UserId,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientAdminRemoved",
+      event_version: 2,
+      data: {
+        client: toClientV2(client),
+        adminId,
       },
     },
     correlationId,

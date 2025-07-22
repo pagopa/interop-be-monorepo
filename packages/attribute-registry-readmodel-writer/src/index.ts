@@ -27,6 +27,7 @@ async function processMessage({
     eventType: msg.type,
     eventVersion: msg.event_version,
     streamId: msg.stream_id,
+    streamVersion: msg.version,
     correlationId: msg.correlation_id
       ? unsafeBrandId<CorrelationId>(msg.correlation_id)
       : generateId<CorrelationId>(),
@@ -38,4 +39,9 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.attributeTopic], processMessage);
+await runConsumer(
+  config,
+  [config.attributeTopic],
+  processMessage,
+  "attribute-registry-readmodel-writer"
+);

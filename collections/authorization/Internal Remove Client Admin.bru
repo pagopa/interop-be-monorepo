@@ -1,0 +1,21 @@
+meta {
+  name: Internal Remove Client Admin
+  type: http
+  seq: 32
+}
+
+delete {
+  url: {{host-authorization}}/internal/clients/:clientId/admin/:adminId
+  body: none
+  auth: none
+}
+
+params:path {
+  adminId: {{userId1}}
+  clientId: {{clientId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

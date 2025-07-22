@@ -48,6 +48,8 @@ export function toOutboundEventV2(
       { type: "MaintenanceTenantUpdated" },
       { type: "TenantDelegatedProducerFeatureAdded" },
       { type: "TenantDelegatedProducerFeatureRemoved" },
+      { type: "TenantDelegatedConsumerFeatureAdded" },
+      { type: "TenantDelegatedConsumerFeatureRemoved" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -58,6 +60,7 @@ export function toOutboundEventV2(
             (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -81,6 +84,7 @@ export function toOutboundEventV2(
             (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -95,6 +99,7 @@ export function toOutboundEventV2(
           (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "TenantKindUpdated" }, (msg) => ({
@@ -108,6 +113,7 @@ export function toOutboundEventV2(
           (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with(

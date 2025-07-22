@@ -5,7 +5,8 @@
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "vitest",
+    "test": "echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
+    "test:old": "echo \"Old readmodel\" && vitest --config vitest.config.ts ",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -18,18 +19,21 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/node": "20.14.6",
+    "@types/node": "20.19.4",
     "@pagopa/eslint-config": "3.0.0",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
-    "vitest": "1.6.0"
+    "vitest": "1.6.1"
   },
   "dependencies": {
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-readmodel": "workspace:*",
+    "pagopa-interop-readmodel-models": "workspace:*",
     "dotenv-flow": "4.1.0",
+    "drizzle-orm": "0.39.3",
     "date-fns": "3.6.0",
     "mongodb": "6.7.0",
     "zod": "3.23.8"

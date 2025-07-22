@@ -1,7 +1,7 @@
 meta {
   name: retrieves a list of clients
   type: http
-  seq: 1
+  seq: 12
 }
 
 get {
@@ -20,10 +20,7 @@ params:query {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 docs {
   retrieves a list of clients

@@ -1,9 +1,12 @@
 import {
   AppContext,
   DB,
-  Logger,
   WithLogger,
   eventRepository,
+  UIAuthData,
+  M2MAuthData,
+  InternalAuthData,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -20,7 +23,7 @@ import {
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
-  OrganizationIsNotACertifier,
+  tenantIsNotACertifier,
   attributeDuplicateByName,
   attributeDuplicateByNameAndCode,
   attributeNotFound,
@@ -52,7 +55,7 @@ export function attributeRegistryServiceBuilder(
         offset: number;
         limit: number;
       },
-      logger: Logger
+      { logger }: WithLogger<AppContext>
     ): Promise<ListResult<Attribute>> {
       logger.info(
         `Getting attributes with name = ${name}, limit = ${limit}, offset = ${offset}, kinds = ${kinds}`
@@ -68,7 +71,7 @@ export function attributeRegistryServiceBuilder(
 
     async getAttributeByName(
       name: string,
-      logger: Logger
+      { logger }: WithLogger<AppContext>
     ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute with name ${name}`);
       const attribute = await readModelService.getAttributeByName(name);
@@ -86,7 +89,7 @@ export function attributeRegistryServiceBuilder(
         origin: string;
         code: string;
       },
-      logger: Logger
+      { logger }: WithLogger<AppContext>
     ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute ${origin}/${code}`);
       const attribute = await readModelService.getAttributeByOriginAndCode({
@@ -101,7 +104,7 @@ export function attributeRegistryServiceBuilder(
 
     async getAttributeById(
       id: AttributeId,
-      logger: Logger
+      { logger }: WithLogger<AppContext>
     ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute with ID ${id}`);
       const attribute = await readModelService.getAttributeById(id);
@@ -121,7 +124,7 @@ export function attributeRegistryServiceBuilder(
         offset: number;
         limit: number;
       },
-      logger: Logger
+      { logger }: WithLogger<AppContext>
     ): Promise<ListResult<Attribute>> {
       logger.info(`Retrieving attributes in bulk by id in [${ids}]`);
       return await readModelService.getAttributesByIds({ ids, offset, limit });
@@ -129,7 +132,7 @@ export function attributeRegistryServiceBuilder(
 
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: attributeRegistryApi.AttributeSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Attribute> {
       logger.info(
         `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`
@@ -171,7 +174,7 @@ export function attributeRegistryServiceBuilder(
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: attributeRegistryApi.AttributeSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Attribute> {
       logger.info(
         `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
@@ -212,8 +215,12 @@ export function attributeRegistryServiceBuilder(
 
     async createCertifiedAttribute(
       apiCertifiedAttributeSeed: attributeRegistryApi.CertifiedAttributeSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
-    ): Promise<Attribute> {
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Attribute>> {
       logger.info(
         `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
       );
@@ -252,18 +259,21 @@ export function attributeRegistryServiceBuilder(
         `Certified attribute created with id ${newCertifiedAttribute.id}`
       );
 
-      const event = toCreateEventAttributeAdded(
-        newCertifiedAttribute,
-        correlationId
+      const event = await repository.createEvent(
+        toCreateEventAttributeAdded(newCertifiedAttribute, correlationId)
       );
-      await repository.createEvent(event);
 
-      return newCertifiedAttribute;
+      return {
+        data: newCertifiedAttribute,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
 
-    async createInternalCertifiedAttribute(
+    async internalCreateCertifiedAttribute(
       apiInternalCertifiedAttributeSeed: attributeRegistryApi.InternalCertifiedAttributeSeed,
-      { correlationId, logger }: WithLogger<AppContext>
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<Attribute> {
       logger.info(
         `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`
@@ -325,7 +335,7 @@ async function getCertifierId(
   if (certifier) {
     return certifier.certifierId;
   }
-  throw OrganizationIsNotACertifier(tenantId);
+  throw tenantIsNotACertifier(tenantId);
 }
 
 export type AttributeRegistryService = ReturnType<

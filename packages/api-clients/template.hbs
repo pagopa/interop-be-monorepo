@@ -40,6 +40,8 @@ export const {{@key}}Endpoints = makeApi([
 				{{/if}}
 				{{#if (and (eq type "Query") (eq schema "z.array(z.string()).optional().default([])"))}}
 						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined).pipe(z.array(z.string()).optional().default([])), z.array(z.string()).optional().default([])]),
+				{{else if (and (eq type "Query") (eq schema "z.array(z.string().uuid()).optional().default([])"))}}
+						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined).pipe(z.array(z.string().uuid()).optional().default([])), z.array(z.string().uuid()).optional().default([])]),
 				{{else if (and (eq type "Query") (eq schema "z.array(AttributeKind)"))}}
 						schema: z.union([z.string().transform(v => v.split(",")).pipe(z.array(AttributeKind)), z.array(AttributeKind)])
 				{{else if (and (eq type "Query") (eq schema "z.array(AgreementState).optional().default([])"))}}
@@ -52,6 +54,8 @@ export const {{@key}}Endpoints = makeApi([
 						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(DelegationState).optional().default([])), z.array(DelegationState).optional().default([])])
 				{{else if (and (eq type "Query") (eq schema "z.array(TenantFeatureType).optional().default([])"))}}
 						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(TenantFeatureType).optional().default([])), z.array(TenantFeatureType).optional().default([])])
+				{{else if (and (eq type "Query") (eq schema "z.array(EServiceTemplateVersionState).optional().default([])"))}}
+						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(EServiceTemplateVersionState).optional().default([])), z.array(EServiceTemplateVersionState).optional().default([])])
 				{{else}}
 					schema: {{{schema}}},
 				{{/if}}

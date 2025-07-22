@@ -1,7 +1,7 @@
 meta {
   name: Returns a base64 encoded key by client and key identifier -kid--
   type: http
-  seq: 1
+  seq: 9
 }
 
 get {
@@ -17,10 +17,7 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 docs {
   Given a client and key identifiers it returns the corresponding encoded key, if any

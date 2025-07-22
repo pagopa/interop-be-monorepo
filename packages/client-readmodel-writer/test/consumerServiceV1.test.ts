@@ -5,7 +5,7 @@ import {
   getMockClient,
   getMockKey,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   AuthorizationEventEnvelopeV1,
   Client,
@@ -351,60 +351,6 @@ describe("Events V1", async () => {
             value: {
               ...toKeyV1(addedKey),
             },
-          },
-        ],
-      };
-
-      const message: AuthorizationEventEnvelopeV1 = {
-        ...mockMessage,
-        stream_id: updatedClient.id,
-        version: 2,
-        type: "KeysAdded",
-        data: payload,
-      };
-
-      await handleMessageV1(message, clients);
-
-      const retrievedClient = await clients.findOne({
-        "data.id": updatedClient.id,
-      });
-
-      expect(retrievedClient).toMatchObject({
-        data: toReadModelClient(updatedClient),
-        metadata: { version: 2 },
-      });
-    });
-
-    it.each(["prime256v1", "secp256k1"])("KeysAdded - EC", async (curve) => {
-      const mockClient: Client = {
-        ...getMockClient(),
-        keys: [],
-      };
-      await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
-
-      const key = crypto.generateKeyPairSync("ec", {
-        namedCurve: curve,
-      }).publicKey;
-
-      const base64Key = Buffer.from(
-        key.export({ type: "spki", format: "pem" })
-      ).toString("base64url");
-
-      const addedKey: Key = {
-        ...getMockKey(),
-        encodedPem: base64Key,
-      };
-
-      const updatedClient: Client = {
-        ...mockClient,
-        keys: [],
-      };
-      const payload: KeysAddedV1 = {
-        clientId: updatedClient.id,
-        keys: [
-          {
-            keyId: generateId(),
-            value: toKeyV1(addedKey),
           },
         ],
       };

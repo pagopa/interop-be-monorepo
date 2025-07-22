@@ -1,5 +1,6 @@
 import {
   ApiError,
+  DelegationId,
   DescriptorId,
   EServiceId,
   EServiceMode,
@@ -21,10 +22,10 @@ export const errorCodes = {
   tenantKindNotFound: "0004",
   purposeVersionNotFound: "0005",
   purposeVersionDocumentNotFound: "0006",
-  organizationNotAllowed: "0007",
-  organizationIsNotTheConsumer: "0008",
+  tenantNotAllowed: "0007",
+  tenantIsNotTheConsumer: "0008",
   purposeVersionCannotBeDeleted: "0009",
-  organizationIsNotTheProducer: "0010",
+  tenantIsNotTheProducer: "0010",
   notValidVersionState: "0011",
   eServiceModeNotAllowed: "0012",
   missingFreeOfChargeReason: "0013",
@@ -41,6 +42,10 @@ export const errorCodes = {
   missingRiskAnalysis: "0024",
   purposeVersionStateConflict: "0025",
   riskAnalysisConfigLatestVersionNotFound: "0026",
+  tenantIsNotTheDelegatedConsumer: "0027",
+  tenantIsNotTheDelegatedProducer: "0028",
+  purposeDelegationNotFound: "0029",
+  purposeCannotBeUpdated: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -102,23 +107,34 @@ export function purposeVersionDocumentNotFound(
   });
 }
 
-export function organizationNotAllowed(
-  organizationId: TenantId
-): ApiError<ErrorCodes> {
+export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation`,
-    code: "organizationNotAllowed",
-    title: "Organization not allowed",
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is neither producer/consumer nor delegate`,
+    code: "tenantNotAllowed",
+    title: "Tenant not allowed",
   });
 }
 
-export function organizationIsNotTheConsumer(
-  organizationId: TenantId
+export function tenantIsNotTheConsumer(
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation`,
-    code: "organizationIsNotTheConsumer",
-    title: "Organization not allowed",
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the consumer`,
+    code: "tenantIsNotTheConsumer",
+    title: "Tenant not allowed",
+  });
+}
+
+export function tenantIsNotTheDelegatedConsumer(
+  tenantId: TenantId,
+  delegationId: DelegationId | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the delegated consumer${
+      delegationId ? ` of delegation ${delegationId}` : ""
+    }`,
+    code: "tenantIsNotTheDelegatedConsumer",
+    title: "Tenant not allowed",
   });
 }
 
@@ -129,17 +145,30 @@ export function purposeVersionCannotBeDeleted(
   return new ApiError({
     detail: `Version ${versionId} of Purpose ${purposeId} cannot be deleted`,
     code: "purposeVersionCannotBeDeleted",
-    title: "Purpose version canont be deleted",
+    title: "Purpose version cannot be deleted",
   });
 }
 
-export function organizationIsNotTheProducer(
-  organizationId: TenantId
+export function tenantIsNotTheProducer(
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation`,
-    code: "organizationIsNotTheProducer",
-    title: "Organization not allowed",
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the producer`,
+    code: "tenantIsNotTheProducer",
+    title: "Tenant not allowed",
+  });
+}
+
+export function tenantIsNotTheDelegatedProducer(
+  tenantId: TenantId,
+  delegationId: DelegationId | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the delegate producer${
+      delegationId ? ` of delegation ${delegationId}` : ""
+    }`,
+    code: "tenantIsNotTheDelegatedProducer",
+    title: "Tenant not allowed",
   });
 }
 
@@ -187,7 +216,7 @@ export function notValidVersionState(
   versionState: PurposeVersionState
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose version ${purposeVersionId} has a not valid state for this operation: ${versionState}`,
+    detail: `Purpose version ${purposeVersionId} is in an invalid state ${versionState} for this operation`,
     code: "notValidVersionState",
     title: "Not valid purpose version state",
   });
@@ -304,5 +333,26 @@ export function purposeVersionStateConflict(
     detail: `Operation is not allowed on state ${state} for Version ${versionId} of Purpose ${purposeId}`,
     code: "purposeVersionStateConflict",
     title: "Purpose version state conflict",
+  });
+}
+
+export function purposeDelegationNotFound(
+  purposeId: PurposeId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} not found for delegated purpose ${purposeId}`,
+    code: "purposeDelegationNotFound",
+    title: "Purpose delegation not found",
+  });
+}
+
+export function purposeCannotBeUpdated(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Archived purpose ${purposeId} cannot be updated`,
+    code: "purposeCannotBeUpdated",
+    title: "Purpose cannot be updated",
   });
 }

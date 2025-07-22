@@ -20,20 +20,21 @@
   },
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
-    "@types/html2json": "1.0.1",
+    "@types/html2json": "1.0.4",
     "@types/lodash.isempty": "4.4.9",
-    "@types/node": "20.4.9",
+    "@types/node": "20.19.4",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
     "typescript": "5.4.5"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "3.693.0",
-    "@aws-sdk/util-dynamodb": "3.693.0",
-    "axios": "^1.7.4",
-    "html2json": "^1.0.2",
+    "@aws-sdk/client-dynamodb": "3.840.0",
+    "@aws-sdk/util-dynamodb": "3.840.0",
+    "axios": "1.8.2",
+    "html2json": "1.0.2",
     "lodash.isempty": "4.4.0",
     "pagopa-interop-commons": "workspace:*",
-    "zod": "^3.23.8"
+    "pagopa-interop-models": "workspace:*",
+    "zod": "3.23.8"
   }
 }

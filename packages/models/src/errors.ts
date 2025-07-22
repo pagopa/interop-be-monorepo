@@ -1,8 +1,21 @@
 /* eslint-disable max-classes-per-file */
+import { constants } from "http2";
 import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { AxiosError, isAxiosError } from "axios";
 import { CorrelationId } from "./brandedIds.js";
+import { serviceErrorCode, ServiceName } from "./services.js";
+
+const {
+  HTTP_STATUS_UNAUTHORIZED,
+  HTTP_STATUS_FORBIDDEN,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_TOO_MANY_REQUESTS,
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+} = constants;
+
+export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
@@ -67,8 +80,14 @@ export type Problem = {
 type MakeApiProblemFn<T extends string> = (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
-  logger: { error: (message: string) => void; warn: (message: string) => void },
-  correlationId: CorrelationId,
+  context: {
+    logger: {
+      error: (message: string) => void;
+      warn: (message: string) => void;
+    };
+    correlationId: CorrelationId;
+    serviceName: string;
+  },
   operationalLogMessage?: string
 ) => Problem;
 
@@ -80,14 +99,48 @@ const makeProblemLogString = (
   return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - original error: ${originalError}`;
 };
 
+type ProblemBuilderOptions = {
+  /**
+   * If true, allows Problem objects received from downstream services
+   * to be passed through directly. If false, they are treated as generic errors.
+   *
+   * @default true
+   */
+  problemErrorsPassthrough?: boolean;
+  /**
+   * If true, return a generic problem whenever an error is mapped to HTTP 500, hiding the underlying error info.
+   * This also applies to 500 errors passing through from downstream services.
+   *
+   * @default false
+   */
+  forceGenericProblemOn500?: boolean;
+};
+
 export function makeApiProblemBuilder<T extends string>(
   errors: {
     [K in T]: string;
   },
-  problemErrorsPassthrough: boolean = true
+  options: ProblemBuilderOptions = {}
 ): MakeApiProblemFn<T> {
-  const allErrors = { ...errorCodes, ...errors };
-  return (error, httpMapper, logger, correlationId, operationalLogMessage) => {
+  const { problemErrorsPassthrough = true, forceGenericProblemOn500 = false } =
+    options;
+  const allErrors = { ...commonErrorCodes, ...errors };
+
+  function retrieveServiceErrorCode(serviceName: string): string {
+    const serviceNameParsed = ServiceName.safeParse(serviceName);
+    return serviceNameParsed.success
+      ? serviceErrorCode[serviceNameParsed.data]
+      : "000";
+  }
+
+  return (
+    error,
+    httpMapper,
+    { logger, correlationId, serviceName },
+    operationalLogMessage
+  ) => {
+    const serviceErrorCode = retrieveServiceErrorCode(serviceName);
+
     const makeProblem = (
       httpStatus: number,
       { title, detail, errors }: ApiError<T | CommonErrorCodes>
@@ -98,46 +151,88 @@ export function makeApiProblemBuilder<T extends string>(
       detail,
       correlationId,
       errors: errors.map(({ code, detail }) => ({
-        code: allErrors[code],
+        code: `${serviceErrorCode}-${allErrors[code]}`,
         detail,
       })),
     });
 
-    const genericProblem = makeProblem(500, genericError("Unexpected error"));
+    const genericProblem = makeProblem(
+      HTTP_STATUS_INTERNAL_SERVER_ERROR,
+      genericError("Unexpected error")
+    );
 
     if (operationalLogMessage) {
       logger.warn(operationalLogMessage);
     }
+
     return match<unknown, Problem>(error)
       .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
-        const problem = makeProblem(httpMapper(error), error);
-        logger.warn(makeProblemLogString(problem, error));
+        const mappedCode = httpMapper(error);
+        const code =
+          mappedCode === HTTP_STATUS_INTERNAL_SERVER_ERROR
+            ? defaultCommonErrorMapper(error.code as CommonErrorCodes)
+            : mappedCode;
+
+        const isInternalServerError =
+          code === HTTP_STATUS_INTERNAL_SERVER_ERROR;
+
+        const problem = makeProblem(code, error);
+        const problemLogString = makeProblemLogString(problem, error);
+
+        if (forceGenericProblemOn500 && isInternalServerError) {
+          logger.warn(
+            `${problemLogString}. forceGenericProblemOn500 is set to true, returning generic problem`
+          );
+          return genericProblem;
+        }
+
+        logger.warn(problemLogString);
         return problem;
       })
       .with(
         /* this case is to allow a passthrough of Problem errors, so that
            services that call other interop services can forward Problem errors
            as they are, without the need to explicitly handle them */
-        {
-          response: {
-            status: P.number,
-            data: {
-              type: "about:blank",
-              title: P.string,
+        P.intersection(
+          P.when((e): e is AxiosError<Problem> => isAxiosError(e)),
+          {
+            response: {
+              // Matching also AxiosError content to ensure data matches Problem type
               status: P.number,
-              detail: P.string,
-              errors: P.array({
-                code: P.string,
+              data: {
+                type: "about:blank",
+                title: P.string,
+                status: P.number,
                 detail: P.string,
-              }),
-              correlationId: P.string.optional(),
+                errors: P.array({
+                  code: P.string,
+                  detail: P.string,
+                }),
+                correlationId: P.string.optional(),
+              },
             },
-          },
-        },
+          }
+        ),
         (e) => {
           const receivedProblem: Problem = e.response.data;
           if (problemErrorsPassthrough) {
-            logger.warn(makeProblemLogString(receivedProblem, error));
+            const problemLogString = makeProblemLogString(
+              receivedProblem,
+              error
+            );
+
+            if (
+              forceGenericProblemOn500 &&
+              (e.response.status === HTTP_STATUS_INTERNAL_SERVER_ERROR ||
+                receivedProblem.status === HTTP_STATUS_INTERNAL_SERVER_ERROR)
+            ) {
+              logger.warn(
+                `${problemLogString}. forceGenericProblemOn500 is set to true, returning generic problem`
+              );
+              return genericProblem;
+            }
+
+            logger.warn(problemLogString);
             return receivedProblem;
           } else {
             logger.warn(
@@ -167,7 +262,7 @@ export function makeApiProblemBuilder<T extends string>(
   };
 }
 
-const errorCodes = {
+export const commonErrorCodes = {
   authenticationSaslFailed: "9000",
   jwtDecodingError: "9001",
   htmlTemplateInterpolationError: "9002",
@@ -186,14 +281,33 @@ const errorCodes = {
   jwkDecodingError: "10000",
   notAllowedPrivateKeyException: "10001",
   missingRequiredJWKClaim: "10002",
-  invalidKey: "10003",
+  invalidPublicKey: "10003",
   tooManyRequestsError: "10004",
   notAllowedCertificateException: "10005",
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
+  invalidKeyLength: "10008",
+  notAnRSAKey: "10009",
+  invalidEserviceInterfaceFileDetected: "10010",
+  openapiVersionNotRecognized: "10011",
+  interfaceExtractingInfoError: "10012",
+  invalidInterfaceContentTypeDetected: "10013",
+  tokenVerificationFailed: "10014",
+  invalidEserviceInterfaceData: "10015",
+  soapFileParsingError: "10016",
+  interfaceExtractingSoapFieldValueError: "10017",
+  soapFileCreatingError: "10018",
+  notAllowedMultipleKeysException: "10019",
+  featureFlagNotEnabled: "10020",
+  kafkaApplicationAuditingFailed: "10021",
+  fallbackApplicationAuditingFailed: "10022",
+  invalidSqsMessage: "10023",
+  decodeSQSMessageError: "10024",
+  pollingMaxRetriesExceeded: "10025",
+  invalidServerUrl: "10026",
 } as const;
 
-export type CommonErrorCodes = keyof typeof errorCodes;
+export type CommonErrorCodes = keyof typeof commonErrorCodes;
 
 export function parseErrorMessage(error: unknown): string {
   if (error instanceof ZodError) {
@@ -220,6 +334,44 @@ export function missingKafkaMessageDataError(
   return new InternalError({
     code: "missingKafkaMessageData",
     detail: `"Invalid message: missing data '${dataName}' in ${eventType} event"`,
+  });
+}
+
+export function kafkaApplicationAuditingFailed(): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "kafkaApplicationAuditingFailed",
+    detail: "Kafka application auditing failed",
+  });
+}
+
+export function fallbackApplicationAuditingFailed(): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "fallbackApplicationAuditingFailed",
+    detail: `Fallback application auditing failed`,
+  });
+}
+
+export function invalidSqsMessage(
+  messageId: string | undefined,
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "invalidSqsMessage",
+    detail: `Error while validating SQS message for id ${messageId}: ${parseErrorMessage(
+      error
+    )}`,
+  });
+}
+
+export function decodeSQSMessageError(
+  messageId: string | undefined,
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    detail: `Failed to decode SQS ApplicationAuditEvent message with MessageId: ${messageId}. Error details: ${JSON.stringify(
+      error
+    )}`,
+    code: "decodeSQSMessageError",
   });
 }
 
@@ -254,14 +406,46 @@ export function tokenGenerationError(
 export function kafkaMessageProcessError(
   topic: string,
   partition: number,
-  offset: string,
+  {
+    offset,
+    streamId,
+    eventType,
+    eventVersion,
+    streamVersion,
+    correlationId,
+    serviceName,
+  }: {
+    offset: string;
+    streamId?: string;
+    eventType?: string;
+    eventVersion?: number;
+    streamVersion?: number;
+    correlationId?: string;
+    serviceName?: string;
+  },
   error?: unknown
 ): InternalError<CommonErrorCodes> {
+  const serviceNamePrefix = serviceName ? `[${serviceName}] -` : "";
+  const correlationIdPrefix = correlationId ? `[CID=${correlationId}]` : "";
+  const eventTypePrefix = eventType ? `[ET=${eventType}]` : "";
+  const eventVersionPrefix = eventVersion ? `[EV=${eventVersion}]` : "";
+  const streamVersionPrefix =
+    streamVersion !== undefined ? `[SV=${streamVersion}]` : "";
+  const streamIdPrefix = streamId ? `[SID=${streamId}]` : "";
+  const errorMessage = error ? `${parseErrorMessage(error)}` : "";
+
+  const prefixes = [
+    serviceNamePrefix,
+    correlationIdPrefix,
+    eventTypePrefix,
+    eventVersionPrefix,
+    streamVersionPrefix,
+    streamIdPrefix,
+  ].join(" ");
+
   return new InternalError({
     code: "kafkaMessageProcessError",
-    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offset ${offset}. ${
-      error ? parseErrorMessage(error) : ""
-    }`,
+    detail: `${prefixes} Error handling Kafka message. Topic: ${topic}. Partition number: ${partition}. Offset: ${offset}. Message: ${errorMessage}`,
   });
 }
 
@@ -285,13 +469,26 @@ export function pdfGenerationError(
 
 /* ===== API Error ===== */
 
+const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
+  match(code)
+    .with("badRequestError", () => HTTP_STATUS_BAD_REQUEST)
+    .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
+    .with(
+      "unauthorizedError",
+      "featureFlagNotEnabled",
+      "operationForbidden",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export function authenticationSaslFailed(
   message: string
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
     code: "authenticationSaslFailed",
     title: "SASL authentication fails",
-    detail: `SALS Authentication fails with this error : ${message}`,
+    detail: `SASL Authentication fails with this error: ${message}`,
   });
 }
 
@@ -346,6 +543,20 @@ export function jwtDecodingError(error: unknown): ApiError<CommonErrorCodes> {
     detail: `Unexpected error on JWT decoding: ${parseErrorMessage(error)}`,
     code: "jwtDecodingError",
     title: "JWT decoding error",
+  });
+}
+
+export function tokenVerificationFailed(
+  uid: string | undefined,
+  selfcareId: string | undefined
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail:
+      "Token verification failed" +
+      (uid ? " for user " + uid : "") +
+      (selfcareId ? " for tenant " + selfcareId : ""),
+    code: "tokenVerificationFailed",
+    title: "Token verification failed",
   });
 }
 
@@ -404,6 +615,14 @@ export function notAllowedCertificateException(): ApiError<CommonErrorCodes> {
   });
 }
 
+export function notAllowedMultipleKeysException(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The received key contains multiple keys`,
+    code: "notAllowedMultipleKeysException",
+    title: "Not allowed multiple keys exception",
+  });
+}
+
 export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: `One or more required JWK claims are missing`,
@@ -412,13 +631,150 @@ export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
   });
 }
 
-export function invalidKey(
-  kid: string,
-  error: unknown
+export function invalidPublicKey(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Public key is invalid`,
+    code: "invalidPublicKey",
+    title: "Invalid Key",
+  });
+}
+
+export function invalidKeyLength(
+  length: number | undefined,
+  minLength: number = 2048
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Key ${kid} is invalid. Reason: ${parseErrorMessage(error)}`,
-    code: "invalidKey",
-    title: "Invalid Key",
+    detail: `Invalid RSA key length: ${length} bits. It must be at least ${minLength}`,
+    code: "invalidKeyLength",
+    title: "Invalid Key length",
+  });
+}
+
+export function notAnRSAKey(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Provided key is not an RSA key`,
+    code: "notAnRSAKey",
+    title: "Not an RSA key",
+  });
+}
+
+export function invalidInterfaceFileDetected(resource: {
+  id: string;
+  isEserviceTemplate: boolean;
+}): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for ${
+      resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
+    } with ID ${resource.id} is invalid`,
+    code: "invalidEserviceInterfaceFileDetected",
+    title: "Invalid interface file detected",
+  });
+}
+
+export function invalidInterfaceData(resource: {
+  id: string;
+  isEserviceTemplate: boolean;
+}): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface data provided for ${
+      resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
+    } ${resource.id} is invalid`,
+    code: "invalidEserviceInterfaceData",
+    title: "Invalid interface file data provided",
+  });
+}
+
+export function openapiVersionNotRecognized(
+  version: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `OpenAPI version not recognized - ${version}`,
+    code: "openapiVersionNotRecognized",
+    title: "OpenAPI version not recognized",
+  });
+}
+
+export function parsingSoapFileError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error parsing SOAP file`,
+    code: "soapFileParsingError",
+    title: "Error parsing SOAP file",
+  });
+}
+
+export function buildingSoapFileError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error creating SOAP file`,
+    code: "soapFileCreatingError",
+    title: "Error creating SOAP file",
+  });
+}
+
+export function interfaceExtractingInfoError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error extracting info from interface file`,
+    code: "interfaceExtractingInfoError",
+    title: "Error extracting info from interface file",
+  });
+}
+export function interfaceExtractingSoapFiledError(
+  fieldName: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error extracting field ${fieldName} from SOAP file`,
+    code: "interfaceExtractingSoapFieldValueError",
+    title: "Error extracting field from SOAP file",
+  });
+}
+
+export function invalidInterfaceContentTypeDetected(
+  resource: {
+    id: string;
+    isEserviceTemplate: boolean;
+  },
+  contentType: string,
+  technology: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for ${
+      resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
+    } ${
+      resource.id
+    } has a contentType ${contentType} not admitted for ${technology} technology`,
+    code: "invalidInterfaceContentTypeDetected",
+    title: "Invalid content type detected",
+  });
+}
+export function featureFlagNotEnabled(
+  featureFlag: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Feature flag ${featureFlag} is not enabled`,
+    code: "featureFlagNotEnabled",
+    title: "Feature flag not enabled",
+  });
+}
+
+export function pollingMaxRetriesExceeded(
+  retries: number,
+  retryDelayMs: number
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Polling exceeded maximum retries (${retries}) with delay ${retryDelayMs}ms`,
+    code: "pollingMaxRetriesExceeded",
+    title: "Polling max retries exceeded",
+  });
+}
+
+export function invalidServerUrl(resource: {
+  id: string;
+  isEserviceTemplate: boolean;
+}): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for ${
+      resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
+    } with ID ${resource.id} has invalid server URL`,
+    code: "invalidServerUrl",
+    title: "Invalid server URL",
   });
 }

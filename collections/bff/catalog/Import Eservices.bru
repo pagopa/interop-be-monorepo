@@ -1,7 +1,7 @@
 meta {
   name: Import Eservices
   type: http
-  seq: 1
+  seq: 10
 }
 
 post {
@@ -12,9 +12,7 @@ post {
 
 headers {
   Authorization: {{JWT}}
-  X-Correlation-Id: {{correlation-id}}
 }
-
 
 body:multipart-form {
   filename: f07b1c49-38fc-445e-a103-c2c156ae85ca_3bb5154d-eebc-42fd-9ea9-32b5be48e434.zip

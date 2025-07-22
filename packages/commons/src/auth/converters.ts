@@ -12,7 +12,7 @@ export const keyToClientJWKKey = (
   key: Key,
   clientId: ClientId
 ): ClientJWKKey => {
-  const jwk = createJWK(key.encodedPem);
+  const jwk = createJWK({ pemKeyBase64: key.encodedPem, strictCheck: false });
   if (!jwk.e || !jwk.kty || !jwk.n) {
     throw missingRequiredJWKClaim();
   }
@@ -31,7 +31,7 @@ export const keyToProducerJWKKey = (
   key: Key,
   producerKeychainId: ProducerKeychainId
 ): ProducerJWKKey => {
-  const jwk = createJWK(key.encodedPem);
+  const jwk = createJWK({ pemKeyBase64: key.encodedPem, strictCheck: false });
   if (!jwk.e || !jwk.kty || !jwk.n) {
     throw missingRequiredJWKClaim();
   }

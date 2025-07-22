@@ -257,5 +257,13 @@ export async function enhanceEservice(
     serverUrls: latestValidDescriptor.serverUrls,
     producer: producerOrganization,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
+    isConsumerDelegable: eservice.isConsumerDelegable,
+    isClientAccessDelegable: eservice.isClientAccessDelegable,
+    templateRef: eservice.templateId
+      ? {
+          templateId: eservice.templateId,
+          templateVersionId: latestValidDescriptor.templateVersionRef?.id,
+        }
+      : undefined,
   };
 }

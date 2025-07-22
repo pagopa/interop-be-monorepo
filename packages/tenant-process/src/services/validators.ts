@@ -1,4 +1,4 @@
-import { AuthData, userRoles } from "pagopa-interop-commons";
+import { M2MAuthData, UIAuthData } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
@@ -18,20 +18,19 @@ import {
   tenantAttributeType,
   tenantKind,
   SCP,
+  TenantFeature,
   Agreement,
   Delegation,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   expirationDateCannotBeInThePast,
-  organizationNotFoundInVerifiers,
+  tenantNotFoundInVerifiers,
   verifiedAttributeNotFoundInTenant,
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
   tenantIsNotACertifier,
   attributeNotFound,
-  tenantAlreadyHasDelegatedProducerFeature,
-  tenantHasNoDelegatedProducerFeature,
   eServiceNotFound,
   descriptorNotFoundInEservice,
 } from "../model/domain/errors.js";
@@ -106,7 +105,7 @@ export function assertOrganizationVerifierExist(
   tenantVerifier: TenantVerifier | undefined
 ): asserts tenantVerifier is NonNullable<TenantVerifier> {
   if (tenantVerifier === undefined) {
-    throw organizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
+    throw tenantNotFoundInVerifiers(verifierId, tenantId, attributeId);
   }
 }
 
@@ -144,31 +143,19 @@ export function getTenantKind(
 }
 
 export async function assertRequesterAllowed(
-  resourceId: string,
-  requesterId: string
+  tenantId: TenantId,
+  authData: UIAuthData | M2MAuthData
 ): Promise<void> {
-  if (resourceId !== requesterId) {
+  if (tenantId !== authData.organizationId) {
     throw operationForbidden;
   }
 }
 
 export function assertRequesterDelegationsAllowedOrigin(
-  authData: AuthData
+  authData: UIAuthData
 ): void {
-  if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
+  if (!config.delegationsAllowedOrigins.includes(authData.externalId.origin)) {
     throw operationForbidden;
-  }
-}
-
-export async function assertResourceAllowed(
-  resourceId: string,
-  authData: AuthData
-): Promise<void> {
-  const roles = authData.userRoles;
-  const organizationId = authData.organizationId;
-
-  if (!roles.includes(userRoles.INTERNAL_ROLE)) {
-    return await assertRequesterAllowed(resourceId, organizationId);
   }
 }
 
@@ -224,7 +211,7 @@ export function assertOrganizationIsInAttributeVerifiers(
   attribute: VerifiedTenantAttribute
 ): void {
   if (!attribute.verifiedBy.some((v) => v.id === verifierId)) {
-    throw organizationNotFoundInVerifiers(verifierId, tenantId, attribute.id);
+    throw tenantNotFoundInVerifiers(verifierId, tenantId, attribute.id);
   }
 }
 
@@ -255,16 +242,9 @@ export function retrieveCertifierId(tenant: Tenant): string {
   return certifierFeature;
 }
 
-export function assertDelegatedProducerFeatureNotAssigned(
-  tenant: Tenant
-): void {
-  if (tenant.features.some((f) => f.type === "DelegatedProducer")) {
-    throw tenantAlreadyHasDelegatedProducerFeature(tenant.id);
-  }
-}
-
-export function assertDelegatedProducerFeatureAssigned(tenant: Tenant): void {
-  if (!tenant.features.some((f) => f.type === "DelegatedProducer")) {
-    throw tenantHasNoDelegatedProducerFeature(tenant.id);
-  }
+export function isFeatureAssigned(
+  tenant: Tenant,
+  featureType: TenantFeature["type"]
+): boolean {
+  return tenant.features.some((f) => f.type === featureType);
 }

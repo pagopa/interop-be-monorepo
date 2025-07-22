@@ -16,6 +16,11 @@ import {
   DelegationId,
   EServiceEvent,
   EServiceId,
+  EServiceTemplateEvent,
+  eserviceTemplateEventToBinaryDataV2,
+  EServiceTemplateId,
+  NotificationConfigEvent,
+  notificationConfigEventToBinaryDataV2,
   ProducerKeychainId,
   protobufDecoder,
   PurposeEvent,
@@ -24,6 +29,8 @@ import {
   TenantEvent,
   tenantEventToBinaryData,
   TenantId,
+  TenantNotificationConfigId,
+  UserNotificationConfigId,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import { match } from "ts-pattern";
@@ -35,7 +42,9 @@ type EventStoreSchema =
   | "tenant"
   | "purpose"
   | '"authorization"'
-  | "delegation";
+  | "delegation"
+  | "eservice_template"
+  | "notification_config";
 
 export type StoredEvent<T extends Event> = {
   stream_id: string;
@@ -66,6 +75,10 @@ export async function writeInEventstore<T extends EventStoreSchema>(
     ? StoredEvent<AuthorizationEvent>
     : T extends "delegation"
     ? StoredEvent<DelegationEvent>
+    : T extends "eservice_template"
+    ? StoredEvent<EServiceTemplateEvent>
+    : T extends "notification_config"
+    ? StoredEvent<NotificationConfigEvent>
     : never,
   schema: T,
   postgresDB: IDatabase<unknown>
@@ -99,6 +112,16 @@ export async function writeInEventstore<T extends EventStoreSchema>(
         .with("delegation", () =>
           delegationEventToBinaryDataV2(event.event as DelegationEvent)
         )
+        .with("eservice_template", () =>
+          eserviceTemplateEventToBinaryDataV2(
+            event.event as EServiceTemplateEvent
+          )
+        )
+        .with("notification_config", () =>
+          notificationConfigEventToBinaryDataV2(
+            event.event as NotificationConfigEvent
+          )
+        )
         .exhaustive(),
     ]
   );
@@ -119,6 +142,10 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
     ? ClientId | ProducerKeychainId
     : T extends "delegation"
     ? DelegationId
+    : T extends "eservice_template"
+    ? EServiceTemplateId
+    : T extends "notification_config"
+    ? TenantNotificationConfigId | UserNotificationConfigId
     : never,
   schema: T,
   postgresDB: IDatabase<unknown>
@@ -138,6 +165,10 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
       ? AuthorizationEvent
       : T extends "delegation"
       ? DelegationEvent
+      : T extends "eservice_template"
+      ? EServiceTemplateEvent
+      : T extends "notification_config"
+      ? NotificationConfigEvent
       : never
   >
 > {
@@ -162,6 +193,10 @@ export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
     ? ClientId | ProducerKeychainId
     : T extends "delegation"
     ? DelegationId
+    : T extends "eservice_template"
+    ? EServiceTemplateId
+    : T extends "notification_config"
+    ? TenantNotificationConfigId | UserNotificationConfigId
     : never,
   version: number,
   schema: T,
@@ -182,6 +217,10 @@ export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
       ? AuthorizationEvent
       : T extends "delegation"
       ? DelegationEvent
+      : T extends "eservice_template"
+      ? EServiceTemplateEvent
+      : T extends "notification_config"
+      ? NotificationConfigEvent
       : never
   >
 > {

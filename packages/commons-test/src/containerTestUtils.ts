@@ -1,6 +1,9 @@
 import {
+  AnalyticsSQLDbConfig,
   EventStoreConfig,
+  InAppNotificationDBConfig,
   ReadModelDbConfig,
+  ReadModelSQLDbConfig,
   S3Config,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
@@ -10,6 +13,8 @@ export const TEST_MONGO_DB_IMAGE = "mongo:4.0";
 
 export const TEST_POSTGRES_DB_PORT = 5432;
 export const TEST_POSTGRES_DB_IMAGE = "postgres:14";
+
+export const TEST_POSTGRES_ANALYTICS_DB_IMAGE = "postgres:15";
 
 export const TEST_DYNAMODB_PORT = 8000;
 export const TEST_DYNAMODB_IMAGE = "amazon/dynamodb-local:latest";
@@ -24,6 +29,13 @@ export const TEST_MAILPIT_IMAGE = "axllent/mailpit:v1.19";
 
 export const TEST_REDIS_IMAGE = "redis:7.2.5-alpine3.20";
 export const TEST_REDIS_PORT = 6379;
+
+export const TEST_NODE_IMAGE = "node:20";
+export const TEST_AWS_SES_VERSION = "2.4";
+export const TEST_AWS_SES_PORT = 8021;
+
+export const TEST_IN_APP_NOTIFICATION_DB_PORT = 5432;
+export const TEST_IN_APP_NOTIFICATION_DB_IMAGE = "postgres:14";
 
 /**
  * Starts a MongoDB container for testing purposes.
@@ -59,6 +71,29 @@ export const postgreSQLContainer = (
       {
         source: "../../docker/event-store-init.sql",
         target: "/docker-entrypoint-initdb.d/01-init.sql",
+      },
+    ])
+    .withExposedPorts(TEST_POSTGRES_DB_PORT);
+
+/**
+ * Starts a PostgreSQL container for testing purposes.
+ *
+ * @param config - The configuration for the ReadModel PostgreSQL container.
+ * @returns A promise that resolves to the started test container.
+ */
+export const postgreSQLReadModelContainer = (
+  config: ReadModelSQLDbConfig
+): GenericContainer =>
+  new GenericContainer(TEST_POSTGRES_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.readModelSQLDbName,
+      POSTGRES_USER: config.readModelSQLDbUsername,
+      POSTGRES_PASSWORD: config.readModelSQLDbPassword,
+    })
+    .withCopyDirectoriesToContainer([
+      {
+        source: "../../docker/readmodel-db",
+        target: "/docker-entrypoint-initdb.d",
       },
     ])
     .withExposedPorts(TEST_POSTGRES_DB_PORT);
@@ -119,3 +154,53 @@ export const mailpitContainer = (): GenericContainer =>
 
 export const redisContainer = (): GenericContainer =>
   new GenericContainer(TEST_REDIS_IMAGE).withExposedPorts(TEST_REDIS_PORT);
+
+/**
+ * Starts a container that exposes an AWS SES v2 compatible API.
+ *
+ * This container is used to test the email sending functionality of the
+ * AWS SES services.
+ *
+ * @returns A promise that resolves to the started test container.
+ */
+export const awsSESContainer = (): GenericContainer =>
+  new GenericContainer(TEST_NODE_IMAGE)
+    .withEntrypoint(["bash", "-c"])
+    .withCommand([
+      `npm install -g aws-ses-v2-local@${TEST_AWS_SES_VERSION}; aws-ses-v2-local --port=${TEST_AWS_SES_PORT} --host=0.0.0.0`,
+    ])
+    .withExposedPorts(TEST_AWS_SES_PORT);
+
+export const postgreSQLAnalyticsContainer = (
+  config: AnalyticsSQLDbConfig
+): GenericContainer =>
+  new GenericContainer(TEST_POSTGRES_ANALYTICS_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.dbName,
+      POSTGRES_USER: config.dbUsername,
+      POSTGRES_PASSWORD: config.dbPassword,
+    })
+    .withCopyFilesToContainer([
+      {
+        source: "../../docker/domains-analytics-db/domains-init.sql",
+        target: "/docker-entrypoint-initdb.d/01-init.sql",
+      },
+    ])
+    .withExposedPorts(TEST_POSTGRES_DB_PORT);
+
+export const inAppNotificationDBContainer = (
+  config: InAppNotificationDBConfig
+): GenericContainer =>
+  new GenericContainer(TEST_IN_APP_NOTIFICATION_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.inAppNotificationDBName,
+      POSTGRES_USER: config.inAppNotificationDBUsername,
+      POSTGRES_PASSWORD: config.inAppNotificationDBPassword,
+    })
+    .withCopyDirectoriesToContainer([
+      {
+        source: "../../docker/in-app-notification-db",
+        target: "/docker-entrypoint-initdb.d",
+      },
+    ])
+    .withExposedPorts(TEST_IN_APP_NOTIFICATION_DB_PORT);

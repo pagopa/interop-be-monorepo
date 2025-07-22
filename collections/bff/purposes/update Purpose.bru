@@ -16,18 +16,15 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 body:json {
   {
-    "title": "{{$randomLoremWord}} asda",
-    "description": "{{$randomLoremWords}} asda",
-    "isFreeOfCharge": {{$randomBoolean}},
-    "dailyCalls": {{$randomInt}},
-    "freeOfChargeReason": "{{$randomLoremWords}}",
+    "title": "{{randomLoremWord}} title test",
+    "description": "{{randomLoremWords}} description test",
+    "isFreeOfCharge": {{randomBoolean}},
+    "dailyCalls": {{randomInt}},
+    "freeOfChargeReason": "{{randomLoremWords}}",
     "riskAnalysisForm": {
       "version": "3.0",
       "answers": {
@@ -54,6 +51,28 @@ body:json {
       "declarationConfirmGDPR": ["true"]
     }}
   }
+}
+
+script:pre-request {
+  const randomInt = Math.round(Math.random() * 10000);
+    bru.setVar("randomInt", randomInt);
+    
+  const randomBoolean = Math.random() < 0.5;
+  bru.setVar("randomBoolean", randomBoolean);
+    
+  const loremWords = ["example", "random", "data", "sample", "api", "bruno", "mock", "testing", "validation", "service", "response", "request"];
+  const randomLoremWord = loremWords[Math.floor(Math.random() * loremWords.length)];
+  bru.setVar("randomLoremWord", randomLoremWord);
+    
+  let randomLoremWords = "";
+  while (randomLoremWords.length < 10) {
+    randomLoremWords = loremWords
+      .sort(() => 0.5 - Math.random()) // Mescola l'array
+      .slice(0, Math.floor(Math.random() * 5) + 2) // Prendi almeno 2-6 parole
+      .join(" ");
+  }
+    
+  bru.setVar("randomLoremWords", randomLoremWords);
 }
 
 docs {

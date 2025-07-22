@@ -3,37 +3,28 @@ import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
-  InteropTokenGenerator,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  RateLimiter,
   rateLimiterHeadersFromStatus,
 } from "pagopa-interop-commons";
-import { tooManyRequestsError } from "pagopa-interop-models";
+import {
+  ApiError,
+  emptyErrorMapper,
+  genericError,
+  tooManyRequestsError,
+} from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { authorizationServiceBuilder } from "../services/authorizationService.js";
-import { sessionTokenErrorMapper } from "../utilities/errorMappers.js";
+import { AuthorizationService } from "../services/authorizationService.js";
 import { config } from "../config/config.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
 const authorizationRouter = (
   ctx: ZodiosContext,
-  { tenantProcessClient }: PagoPAInteropBeClients,
-  allowList: string[],
-  rateLimiter: RateLimiter
+  authorizationService: AuthorizationService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const authorizationRouter = ctx.router(bffApi.authorizationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const interopTokenGenerator = new InteropTokenGenerator(config);
-  const authorizationService = authorizationServiceBuilder(
-    interopTokenGenerator,
-    tenantProcessClient,
-    allowList,
-    rateLimiter
-  );
 
   authorizationRouter
     .post("/session/tokens", async (req, res) => {
@@ -57,15 +48,19 @@ const authorizationRouter = (
           .status(200)
           .send(bffApi.SessionToken.parse(result.sessionToken));
       } catch (error) {
-        const err = makeApiProblem(
-          error,
-          sessionTokenErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+        ctx.logger.info(
+          `Error creating a session token: ${
+            error instanceof ApiError ? error.detail : error
+          }. Returning a generic error response.`
+        );
+        const errorRes = makeApiProblem(
+          genericError("Error creating a session token"),
+          emptyErrorMapper,
+          ctx,
           "Error creating a session token"
         );
 
-        return res.status(err.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/support", async (req, res) => {

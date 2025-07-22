@@ -45,7 +45,7 @@ export async function handleMessageV2(
         agreement.stamps.activation?.when.toISOString();
       if (!agreementTimestamp) {
         throw genericInternalError(
-          "An activated agreement should have activation stamp"
+          "An activated agreement should have an activation stamp"
         );
       }
 
@@ -68,6 +68,7 @@ export async function handleMessageV2(
             agreementId: agreement.id,
             agreementTimestamp,
             agreementDescriptorId: agreement.descriptorId,
+            producerId: agreement.producerId,
           };
 
           await upsertPlatformStatesAgreementEntry(
@@ -204,6 +205,7 @@ export async function handleMessageV2(
             agreementId: agreement.id,
             agreementTimestamp,
             agreementDescriptorId: agreement.descriptorId,
+            producerId: agreement.producerId,
           };
 
           await upsertPlatformStatesAgreementEntry(
@@ -225,49 +227,53 @@ export async function handleMessageV2(
         return Promise.resolve();
       }
     })
-    .with({ type: "AgreementArchivedByConsumer" }, async (msg) => {
-      const agreement = parseAgreement(msg.data.agreement);
+    .with(
+      { type: "AgreementArchivedByConsumer" },
+      { type: "AgreementArchivedByRevokedDelegation" },
+      async (msg) => {
+        const agreement = parseAgreement(msg.data.agreement);
 
-      const primaryKey = makePlatformStatesAgreementPK({
-        consumerId: agreement.consumerId,
-        eserviceId: agreement.eserviceId,
-      });
-      const agreementEntry = await readAgreementEntry(
-        primaryKey,
-        dynamoDBClient
-      );
-
-      const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
-        consumerId: agreement.consumerId,
-        eserviceId: agreement.eserviceId,
-      });
-
-      const agreementTimestamp = extractAgreementTimestamp(agreement);
-
-      if (
-        isLatestAgreement(agreementEntry, agreementTimestamp) &&
-        agreementEntry?.agreementId === agreement.id
-      ) {
-        // token-generation-states only if agreement is the latest
-        await updateAgreementStateOnTokenGenStates({
-          GSIPK_consumerId_eserviceId,
-          agreementState: agreement.state,
-          dynamoDBClient,
-          logger,
+        const primaryKey = makePlatformStatesAgreementPK({
+          consumerId: agreement.consumerId,
+          eserviceId: agreement.eserviceId,
         });
-        await updateAgreementStateInPlatformStatesEntry(
-          dynamoDBClient,
+        const agreementEntry = await readAgreementEntry(
           primaryKey,
-          agreementStateToItemState(agreement.state),
-          msg.version,
-          logger
+          dynamoDBClient
         );
-      } else {
-        logger.info(
-          `Platform-states and Token-generation-states. Skipping processing of entry with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId} and agreement ${agreement.id}. Reason: agreement is not the latest`
-        );
+
+        const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
+          consumerId: agreement.consumerId,
+          eserviceId: agreement.eserviceId,
+        });
+
+        const agreementTimestamp = extractAgreementTimestamp(agreement);
+
+        if (
+          isLatestAgreement(agreementEntry, agreementTimestamp) &&
+          agreementEntry?.agreementId === agreement.id
+        ) {
+          // token-generation-states only if agreement is the latest
+          await updateAgreementStateOnTokenGenStates({
+            GSIPK_consumerId_eserviceId,
+            agreementState: agreement.state,
+            dynamoDBClient,
+            logger,
+          });
+          await updateAgreementStateInPlatformStatesEntry(
+            dynamoDBClient,
+            primaryKey,
+            agreementStateToItemState(agreement.state),
+            msg.version,
+            logger
+          );
+        } else {
+          logger.info(
+            `Platform-states and Token-generation-states. Skipping processing of entry with GSIPK_consumerId_eserviceId ${GSIPK_consumerId_eserviceId} and agreement ${agreement.id}. Reason: agreement is not the latest`
+          );
+        }
       }
-    })
+    )
     .with(
       { type: "AgreementAdded" },
       { type: "AgreementDeleted" },
@@ -279,6 +285,7 @@ export async function handleMessageV2(
       { type: "AgreementSetDraftByPlatform" },
       { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
       { type: "AgreementArchivedByUpgrade" },
+      { type: "AgreementDeletedByRevokedDelegation" },
       () => Promise.resolve()
     )
     .exhaustive();

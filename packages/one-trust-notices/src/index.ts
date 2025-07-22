@@ -3,7 +3,7 @@ import {
   logger,
   withExecutionTime,
 } from "pagopa-interop-commons";
-import { CorrelationId, generateId } from "../../models/dist/brandedIds.js";
+import { CorrelationId, generateId } from "pagopa-interop-models";
 import { html2json } from "./services/html2json.js";
 import { OneTrustNoticeDBSchema } from "./models/index.js";
 

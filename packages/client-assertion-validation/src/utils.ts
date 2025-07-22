@@ -6,6 +6,7 @@ import {
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
   ClientAssertionDigest,
+  algorithm,
 } from "pagopa-interop-models";
 import {
   FailedValidation,
@@ -30,7 +31,7 @@ import {
   invalidHashLength,
   invalidHashAlgorithm,
   invalidKidFormat,
-  digestClaimNotFound,
+  invalidDigestClaim,
   audienceNotFound,
   invalidAgreementState,
   invalidEServiceState,
@@ -40,7 +41,7 @@ import {
 export const EXPECTED_CLIENT_ASSERTION_TYPE =
   "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 export const EXPECTED_CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials";
-export const ALLOWED_ALGORITHM = "RS256";
+export const ALLOWED_ALGORITHM = algorithm.RS256;
 const ALLOWED_DIGEST_ALGORITHM = "SHA256";
 
 export const validateJti = (jti?: string): ValidationResult<string> => {
@@ -166,7 +167,7 @@ export const validateDigest = (
   }
   const result = ClientAssertionDigest.safeParse(digest);
   if (!result.success) {
-    return failedValidation([digestClaimNotFound(result.error.toString())]);
+    return failedValidation([invalidDigestClaim(JSON.stringify(result.error))]);
   }
   const validatedDigest = result.data;
   const digestLengthError =

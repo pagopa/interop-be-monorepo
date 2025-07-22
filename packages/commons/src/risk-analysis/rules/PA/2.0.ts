@@ -42,7 +42,7 @@ export const pa2 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -62,7 +62,7 @@ export const pa2 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -142,7 +142,7 @@ export const pa2 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -215,7 +215,7 @@ export const pa2 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -287,7 +287,7 @@ export const pa2 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -315,7 +315,7 @@ export const pa2 = {
         en: "TODO",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -343,7 +343,7 @@ export const pa2 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -500,7 +500,7 @@ export const pa2 = {
         en: "TODO",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,

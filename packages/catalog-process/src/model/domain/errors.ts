@@ -5,8 +5,10 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  EServiceTemplateId,
   RiskAnalysisId,
   TenantId,
+  TenantKind,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
@@ -17,7 +19,7 @@ export const errorCodes = {
   eServiceDocumentNotFound: "0004",
   eServiceNotFound: "0005",
   draftDescriptorAlreadyExists: "0006",
-  eServiceDuplicate: "007",
+  eServiceNameDuplicateForProducer: "007",
   originNotCompliant: "0008",
   attributeNotFound: "0009",
   inconsistentDailyCalls: "0010",
@@ -30,14 +32,26 @@ export const errorCodes = {
   eServiceRiskAnalysisNotFound: "0017",
   eServiceRiskAnalysisIsRequired: "0018",
   riskAnalysisNotValid: "0019",
-  prettyNameDuplicate: "0020",
+  documentPrettyNameDuplicate: "0020",
   riskAnalysisDuplicated: "0021",
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
-  inconsistentAttributesSeedGroupsCount: "0024",
-  descriptorAttributeGroupSupersetMissingInAttributesSeed: "0025",
-  unchangedAttributes: "0026",
-  eserviceWithActiveOrPendingDelegation: "0027",
+  eserviceWithActiveOrPendingDelegation: "0024",
+  invalidEServiceFlags: "0025",
+  inconsistentAttributesSeedGroupsCount: "0026",
+  descriptorAttributeGroupSupersetMissingInAttributesSeed: "0027",
+  unchangedAttributes: "0028",
+  eServiceTemplateNotFound: "0029",
+  eServiceTemplateWithoutPublishedVersion: "0030",
+  templateInstanceNotAllowed: "0031",
+  eServiceNotAnInstance: "0032",
+  eServiceAlreadyUpgraded: "0033",
+  invalidDescriptorVersion: "0034",
+  eserviceTemplateInterfaceNotFound: "0035",
+  eserviceTemplateInterfaceDataNotValid: "0036",
+  descriptorTemplateVersionNotFound: "0037",
+  templateMissingRequiredRiskAnalysis: "0038",
+  eserviceTemplateNameConflict: "0039",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -52,11 +66,24 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceDuplicate(eserviceName: string): ApiError<ErrorCodes> {
+export function eServiceNameDuplicateForProducer(
+  eserviceName: string,
+  producerId: TenantId
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `An EService with name ${eserviceName} already exists`,
-    code: "eServiceDuplicate",
+    detail: `An EService with name ${eserviceName} already exists for producer ${producerId}`,
+    code: "eServiceNameDuplicateForProducer",
     title: "Duplicated service name",
+  });
+}
+
+export function eserviceTemplateNameConflict(
+  eserviceName: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `An EService template with name ${eserviceName} already exists`,
+    code: "eserviceTemplateNameConflict",
+    title: "EService template name conflict",
   });
 }
 
@@ -99,7 +126,7 @@ export function notValidDescriptorState(
   descriptorStatus: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} has a not valid status for this operation ${descriptorStatus}`,
+    detail: `Descriptor ${descriptorId} is in an invalid state ${descriptorStatus} for this operation`,
     code: "notValidDescriptor",
     title: "Not valid descriptor",
   });
@@ -130,7 +157,7 @@ export function invalidDescriptorVersion(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: details,
-    code: "notValidDescriptor",
+    code: "invalidDescriptorVersion",
     title: "Version is not a valid descriptor version",
   });
 }
@@ -246,13 +273,13 @@ export function riskAnalysisNotValid(): ApiError<ErrorCodes> {
   });
 }
 
-export function prettyNameDuplicate(
+export function documentPrettyNameDuplicate(
   prettyName: string,
   descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `A document with prettyName ${prettyName} already exists in descriptor ${descriptorId}`,
-    code: "prettyNameDuplicate",
+    code: "documentPrettyNameDuplicate",
     title: "Duplicated prettyName",
   });
 }
@@ -318,5 +345,109 @@ export function eserviceWithActiveOrPendingDelegation(
     detail: `E-service ${eserviceId} can't be deleted with an active or pending delegation ${delegationId}`,
     code: "eserviceWithActiveOrPendingDelegation",
     title: "E-service with active or pending delegation",
+  });
+}
+
+export function invalidEServiceFlags(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} flags are not valid`,
+    code: "invalidEServiceFlags",
+    title: "Invalid EService flags",
+  });
+}
+
+export function eServiceTemplateNotFound(
+  eServiceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eServiceTemplateId} not found`,
+    code: "eServiceTemplateNotFound",
+    title: "EService template not found",
+  });
+}
+
+export function eServiceTemplateWithoutPublishedVersion(
+  eServiceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eServiceTemplateId} does not have a published version`,
+    code: "eServiceTemplateWithoutPublishedVersion",
+    title: "EService template without published version",
+  });
+}
+
+export function templateInstanceNotAllowed(
+  eserviceId: EServiceId,
+  eServiceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Operation not allowed on EService ${eserviceId} instance of template ${eServiceTemplateId}`,
+    code: "templateInstanceNotAllowed",
+    title: "TemplateId must be undefined",
+  });
+}
+
+export function eServiceNotAnInstance(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is not an instance of a template`,
+    code: "eServiceNotAnInstance",
+    title: "EService is not an instance",
+  });
+}
+
+export function eServiceAlreadyUpgraded(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} has already the latest version of the template`,
+    code: "eServiceAlreadyUpgraded",
+    title: "EService already upgraded",
+  });
+}
+
+export function eserviceTemplateInterfaceNotFound(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template interface for template ${eserviceTemplateId} with version ${eserviceTemplateVersionId} not found`,
+    code: "eserviceTemplateInterfaceNotFound",
+    title: "EService template interface document not found",
+  });
+}
+
+export function eserviceInterfaceDataNotValid(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template interface data not valid`,
+    code: "eserviceTemplateInterfaceDataNotValid",
+    title: "EService template interface data not valid",
+  });
+}
+
+export function descriptorTemplateVersionNotFound(
+  descriptorId: DescriptorId,
+  eserviceId: EServiceId,
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Template version for instance descriptor ${descriptorId} of e-service ${eserviceId} not found in template ${eserviceTemplateId}`,
+    code: "descriptorTemplateVersionNotFound",
+    title: "Descriptor template version not found",
+  });
+}
+
+export function templateMissingRequiredRiskAnalysis(
+  templateId: EServiceTemplateId,
+  tenantId: TenantId,
+  tenantKind: TenantKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Template ${templateId} cannot be instantiated: no risk analysis found for tenant ${tenantId} with kind ${tenantKind}`,
+    code: "templateMissingRequiredRiskAnalysis",
+    title: "Missing required risk analysis",
   });
 }

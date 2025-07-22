@@ -12,7 +12,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   Agreement,
-  AgreementContractPDFPayload,
   AgreementDocumentId,
   Attribute,
   CertifiedTenantAttribute,
@@ -28,10 +27,17 @@ import {
   Delegation,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { getVerifiedAttributeExpirationDate } from "pagopa-interop-agreement-lifecycle";
+import {
+  getVerifiedAttributeExpirationDate,
+  getVerifiedAttributeDelegationId,
+} from "pagopa-interop-agreement-lifecycle";
 import { attributeNotFound } from "../model/domain/errors.js";
 import { AgreementProcessConfig } from "../config/config.js";
 import { assertStampExists } from "../model/domain/agreement-validators.js";
+import {
+  ActiveDelegations,
+  AgreementContractPDFPayload,
+} from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 
@@ -39,8 +45,7 @@ const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
 
 export type DelegationData = {
-  producerDelegation: Delegation;
-  delegator: Tenant;
+  delegation: Delegation;
   delegate: Tenant;
 };
 
@@ -143,6 +148,7 @@ const getPdfPayload = async (
   consumer: Tenant,
   producer: Tenant,
   producerDelegationData: DelegationData | undefined,
+  consumerDelegationData: DelegationData | undefined,
   readModelService: ReadModelService
 ): Promise<AgreementContractPDFPayload> => {
   const today = new Date();
@@ -188,6 +194,7 @@ const getPdfPayload = async (
       assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
       attributeName: attribute.name,
       attributeId: attribute.id,
+      delegationId: tenantAttribute.delegationId,
     })),
     verifiedAttributes: verified.map(({ attribute, tenantAttribute }) => {
       const expirationDate = getVerifiedAttributeExpirationDate(
@@ -202,34 +209,34 @@ const getPdfPayload = async (
         expirationDate: expirationDate
           ? dateAtRomeZone(expirationDate)
           : undefined,
+        delegationId: getVerifiedAttributeDelegationId(
+          producer.id,
+          tenantAttribute
+        ),
       };
     }),
-    producerDelegationId: producerDelegationData?.producerDelegation.id,
-    producerDelegatorName: producerDelegationData?.delegator.name,
-    producerDelegatorIpaCode:
-      producerDelegationData && getIpaCode(producerDelegationData?.delegator),
+    producerDelegationId: producerDelegationData?.delegation.id,
     producerDelegateName: producerDelegationData?.delegate.name,
     producerDelegateIpaCode:
       producerDelegationData && getIpaCode(producerDelegationData?.delegate),
+    consumerDelegationId: consumerDelegationData?.delegation.id,
+    consumerDelegateName: consumerDelegationData?.delegate.name,
+    consumerDelegateIpaCode:
+      consumerDelegationData && getIpaCode(consumerDelegationData?.delegate),
   };
 };
 
-const buildProducerDelegationData = async (
-  producerDelegation: Delegation,
+const buildDelegationData = async (
+  delegation: Delegation,
   readModelService: ReadModelService
 ): Promise<DelegationData> => {
-  const delegator = await retrieveTenant(
-    producerDelegation.delegatorId,
-    readModelService
-  );
   const delegate = await retrieveTenant(
-    producerDelegation.delegateId,
+    delegation.delegateId,
     readModelService
   );
 
   return {
-    producerDelegation,
-    delegator,
+    delegation,
     delegate,
   };
 };
@@ -257,14 +264,15 @@ export const contractBuilder = (
       eservice: EService,
       consumer: Tenant,
       producer: Tenant,
-      producerDelegation: Delegation | undefined
+      { producerDelegation, consumerDelegation }: ActiveDelegations
     ): Promise<AgreementDocument> => {
       const producerDelegationData =
         producerDelegation &&
-        (await buildProducerDelegationData(
-          producerDelegation,
-          readModelService
-        ));
+        (await buildDelegationData(producerDelegation, readModelService));
+
+      const consumerDelegationData =
+        consumerDelegation &&
+        (await buildDelegationData(consumerDelegation, readModelService));
 
       const pdfPayload = await getPdfPayload(
         agreement,
@@ -272,6 +280,7 @@ export const contractBuilder = (
         consumer,
         producer,
         producerDelegationData,
+        consumerDelegationData,
         readModelService
       );
 

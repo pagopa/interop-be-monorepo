@@ -28,7 +28,7 @@ import {
   TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { WithLogger } from "pagopa-interop-commons";
+import { isFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
 import {
   agreementApi,
   authorizationApi,
@@ -44,7 +44,7 @@ import {
   ErrorCodes,
   eserviceDescriptorNotFound,
   missingActivePurposeVersion,
-  organizationNotAllowed,
+  tenantNotAllowed,
   purposeIdNotFoundInClientAssertion,
   purposeNotFound,
 } from "../model/errors.js";
@@ -77,7 +77,12 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         verifyClientAssertion(
           clientAssertion,
           clientId,
-          config.clientAssertionAudience
+          config.clientAssertionAudience,
+          ctx.logger,
+          isFeatureFlagEnabled(
+            config,
+            "featureFlagClientAssertionStrictClaimsValidation"
+          )
         );
 
       if (parametersErrors || clientAssertionErrors) {
@@ -196,7 +201,7 @@ function assertIsConsumer(
   keyWithClient: authorizationApi.KeyWithClient
 ) {
   if (requesterId !== keyWithClient.client.consumerId) {
-    throw organizationNotAllowed(keyWithClient.client.id);
+    throw tenantNotAllowed(keyWithClient.client.id);
   }
 }
 

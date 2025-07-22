@@ -24,15 +24,12 @@ import {
   AttributeValue,
   DynamoDBClient,
   GetItemCommand,
-  GetItemCommandOutput,
   GetItemInput,
   PutItemCommand,
   PutItemInput,
   QueryCommand,
-  QueryCommandOutput,
   QueryInput,
   ScanCommand,
-  ScanCommandOutput,
   ScanInput,
   UpdateItemCommand,
   UpdateItemInput,
@@ -70,6 +67,9 @@ export const upsertPlatformStatesAgreementEntry = async (
       agreementDescriptorId: {
         S: agreementEntry.agreementDescriptorId,
       },
+      producerId: {
+        S: agreementEntry.producerId,
+      },
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
@@ -90,7 +90,7 @@ export const readAgreementEntry = async (
     ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
-  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+  const data = await dynamoDBClient.send(command);
 
   if (!data.Item) {
     return undefined;
@@ -201,6 +201,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
     entriesToUpdate,
     agreementId,
     agreementState,
+    producerId,
     dynamoDBClient,
     GSIPK_eserviceId_descriptorId,
     catalogEntry,
@@ -209,6 +210,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
     entriesToUpdate: TokenGenStatesConsumerClientGSIAgreement[];
     agreementId: AgreementId;
     agreementState: AgreementState;
+    producerId: TenantId;
     dynamoDBClient: DynamoDBClient;
     GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
     catalogEntry: PlatformStatesCatalogEntry | undefined;
@@ -262,13 +264,16 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
           ":newState": {
             S: agreementStateToItemState(agreementState),
           },
+          ":producerId": {
+            S: producerId,
+          },
           ":newUpdatedAt": {
             S: new Date().toISOString(),
           },
           ...additionalAttributesToSet,
         },
         UpdateExpression:
-          "SET agreementId = :agreementId, agreementState = :newState, GSIPK_eserviceId_descriptorId = :gsiEServiceIdDescriptorId, updatedAt = :newUpdatedAt".concat(
+          "SET agreementId = :agreementId, agreementState = :newState, GSIPK_eserviceId_descriptorId = :gsiEServiceIdDescriptorId, producerId = :producerId, updatedAt = :newUpdatedAt".concat(
             additionalDescriptorInfo
               ? ", descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan"
               : ""
@@ -288,6 +293,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
   GSIPK_consumerId_eserviceId,
   agreementId,
   agreementState,
+  producerId,
   dynamoDBClient,
   GSIPK_eserviceId_descriptorId,
   catalogEntry,
@@ -296,27 +302,27 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId;
   agreementId: AgreementId;
   agreementState: AgreementState;
+  producerId: TenantId;
   dynamoDBClient: DynamoDBClient;
   GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
   catalogEntry: PlatformStatesCatalogEntry | undefined;
   logger: Logger;
-}): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
-  const runPaginatedQuery = async (
-    consumerId_eserviceId: GSIPKConsumerIdEServiceId,
-    dynamoDBClient: DynamoDBClient,
-    exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
+}): Promise<void> => {
+  // eslint-disable-next-line functional/no-let
+  let exclusiveStartKey: Record<string, AttributeValue> | undefined;
+
+  do {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Agreement",
       KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
       ExpressionAttributeValues: {
-        ":gsiValue": { S: consumerId_eserviceId },
+        ":gsiValue": { S: GSIPK_consumerId_eserviceId },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
     const command = new QueryCommand(input);
-    const data: QueryCommandOutput = await dynamoDBClient.send(command);
+    const data = await dynamoDBClient.send(command);
 
     if (!data.Items) {
       throw genericInternalError(
@@ -343,32 +349,16 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
         entriesToUpdate: tokenGenStatesEntries.data,
         agreementId,
         agreementState,
+        producerId,
         dynamoDBClient,
         GSIPK_eserviceId_descriptorId,
         catalogEntry,
         logger,
       });
 
-      if (!data.LastEvaluatedKey) {
-        return tokenGenStatesEntries.data;
-      } else {
-        return [
-          ...tokenGenStatesEntries.data,
-          ...(await runPaginatedQuery(
-            consumerId_eserviceId,
-            dynamoDBClient,
-            data.LastEvaluatedKey
-          )),
-        ];
-      }
+      exclusiveStartKey = data.LastEvaluatedKey;
     }
-  };
-
-  return await runPaginatedQuery(
-    GSIPK_consumerId_eserviceId,
-    dynamoDBClient,
-    undefined
-  );
+  } while (exclusiveStartKey);
 };
 
 export const extractAgreementIdFromAgreementPK = (
@@ -398,24 +388,22 @@ export const updateAgreementStateOnTokenGenStates = async ({
   agreementState: AgreementState;
   dynamoDBClient: DynamoDBClient;
   logger: Logger;
-}): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
-  const runPaginatedQuery = async (
-    agreementState: AgreementState,
-    consumerId_eserviceId: GSIPKConsumerIdEServiceId,
-    dynamoDBClient: DynamoDBClient,
-    exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
+}): Promise<void> => {
+  // eslint-disable-next-line functional/no-let
+  let exclusiveStartKey: Record<string, AttributeValue> | undefined;
+
+  do {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Agreement",
       KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
       ExpressionAttributeValues: {
-        ":gsiValue": { S: consumerId_eserviceId },
+        ":gsiValue": { S: GSIPK_consumerId_eserviceId },
       },
       ExclusiveStartKey: exclusiveStartKey,
     };
     const command = new QueryCommand(input);
-    const data: QueryCommandOutput = await dynamoDBClient.send(command);
+    const data = await dynamoDBClient.send(command);
 
     if (!data.Items) {
       throw genericInternalError(
@@ -445,28 +433,9 @@ export const updateAgreementStateOnTokenGenStates = async ({
         logger,
       });
 
-      if (!data.LastEvaluatedKey) {
-        return tokenGenStatesEntries.data;
-      } else {
-        return [
-          ...tokenGenStatesEntries.data,
-          ...(await runPaginatedQuery(
-            agreementState,
-            consumerId_eserviceId,
-            dynamoDBClient,
-            data.LastEvaluatedKey
-          )),
-        ];
-      }
+      exclusiveStartKey = data.LastEvaluatedKey;
     }
-  };
-
-  return await runPaginatedQuery(
-    agreementState,
-    GSIPK_consumerId_eserviceId,
-    dynamoDBClient,
-    undefined
-  );
+  } while (exclusiveStartKey);
 };
 
 export const readCatalogEntry = async (
@@ -481,7 +450,7 @@ export const readCatalogEntry = async (
     ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
-  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+  const data = await dynamoDBClient.send(command);
 
   if (!data.Item) {
     return undefined;
@@ -536,6 +505,7 @@ export const updateLatestAgreementOnTokenGenStates = async (
       }),
       agreementId: agreement.id,
       agreementState: agreement.state,
+      producerId: agreement.producerId,
       dynamoDBClient,
       GSIPK_eserviceId_descriptorId,
       catalogEntry: platformStatesCatalogEntry,
@@ -591,21 +561,10 @@ export const updateAgreementStateInPlatformStatesV1 = async (
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
-  const runPaginatedQuery = async ({
-    agreementId,
-    agreementItemState,
-    msgVersion,
-    dynamoDBClient,
-    logger,
-    exclusiveStartKey,
-  }: {
-    agreementId: AgreementId;
-    agreementItemState: ItemState;
-    msgVersion: number;
-    dynamoDBClient: DynamoDBClient;
-    logger: Logger;
-    exclusiveStartKey?: Record<string, AttributeValue>;
-  }): Promise<void> => {
+  // eslint-disable-next-line functional/no-let
+  let exclusiveStartKey: Record<string, AttributeValue> | undefined;
+
+  do {
     const readInput: ScanInput = {
       TableName: config.tokenGenerationReadModelTableNamePlatform,
       FilterExpression: "agreementId = :agreementId",
@@ -616,7 +575,7 @@ export const updateAgreementStateInPlatformStatesV1 = async (
       ConsistentRead: true,
     };
     const commandQuery = new ScanCommand(readInput);
-    const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+    const data = await dynamoDBClient.send(commandQuery);
 
     if (!data.Items) {
       throw genericInternalError(
@@ -649,26 +608,9 @@ export const updateAgreementStateInPlatformStatesV1 = async (
         );
       }
 
-      if (data.LastEvaluatedKey) {
-        await runPaginatedQuery({
-          agreementId,
-          agreementItemState,
-          msgVersion,
-          dynamoDBClient,
-          logger,
-          exclusiveStartKey: data.LastEvaluatedKey,
-        });
-      }
+      exclusiveStartKey = data.LastEvaluatedKey;
     }
-  };
-  await runPaginatedQuery({
-    agreementId,
-    agreementItemState,
-    msgVersion,
-    dynamoDBClient,
-    logger,
-    exclusiveStartKey: undefined,
-  });
+  } while (exclusiveStartKey);
 };
 
 export const updateAgreementStateInTokenGenStatesV1 = async (
@@ -677,12 +619,10 @@ export const updateAgreementStateInTokenGenStatesV1 = async (
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
-  const runPaginatedQuery = async (
-    agreementId: AgreementId,
-    dynamoDBClient: DynamoDBClient,
-    logger: Logger,
-    exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<void> => {
+  // eslint-disable-next-line functional/no-let
+  let exclusiveStartKey: Record<string, AttributeValue> | undefined;
+
+  do {
     const readInput: ScanInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       FilterExpression: "agreementId = :agreementId",
@@ -693,7 +633,7 @@ export const updateAgreementStateInTokenGenStatesV1 = async (
       ConsistentRead: true,
     };
     const commandQuery = new ScanCommand(readInput);
-    const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+    const data = await dynamoDBClient.send(commandQuery);
 
     if (!data.Items) {
       throw genericInternalError(
@@ -723,17 +663,9 @@ export const updateAgreementStateInTokenGenStatesV1 = async (
         logger,
       });
 
-      if (data.LastEvaluatedKey) {
-        await runPaginatedQuery(
-          agreementId,
-          dynamoDBClient,
-          logger,
-          data.LastEvaluatedKey
-        );
-      }
+      exclusiveStartKey = data.LastEvaluatedKey;
     }
-  };
-  await runPaginatedQuery(agreementId, dynamoDBClient, logger, undefined);
+  } while (exclusiveStartKey);
 };
 
 export const extractAgreementTimestamp = (agreement: Agreement): string =>

@@ -63,6 +63,7 @@ export const ExportedEService = EService.pick({
   description: true,
   mode: true,
   createdAt: true,
+  technology: true,
 } satisfies StrictPick<EService>).and(
   z.object({
     descriptors: z.array(ExportedDescriptor),
@@ -98,6 +99,7 @@ export const ExportedPurpose = Purpose.pick({
   id: true,
   eserviceId: true,
   consumerId: true,
+  delegationId: true,
   suspendedByConsumer: true,
   suspendedByProducer: true,
   title: true,

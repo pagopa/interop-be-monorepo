@@ -1,8 +1,4 @@
-import {
-  DynamoDBClient,
-  PutItemInput,
-  PutItemCommand,
-} from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   setupTestContainersVitest,
   writeInReadmodel,
@@ -11,26 +7,54 @@ import {
   Agreement,
   Client,
   EService,
-  PlatformStatesClientEntry,
   Purpose,
   toReadModelAgreement,
   toReadModelClient,
   toReadModelEService,
   toReadModelPurpose,
 } from "pagopa-interop-models";
+import {
+  catalogReadModelServiceBuilder,
+  clientReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { afterEach, inject } from "vitest";
+import { upsertAgreement } from "pagopa-interop-readmodel/testUtils";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { config as checkerConfig } from "../src/configs/config.js";
 
 export const config = inject("tokenGenerationReadModelConfig");
 
-export const { cleanup, readModelRepository } = await setupTestContainersVitest(
-  inject("readModelConfig")
-);
+export const { cleanup, readModelRepository, readModelDB } =
+  await setupTestContainersVitest(
+    inject("readModelConfig"),
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    inject("readModelSQLConfig")
+  );
 
 afterEach(cleanup);
 
 if (!config) {
-  throw new Error("config is not defined");
+  throw new Error("Config is not defined");
 }
+
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+export const readModelService =
+  checkerConfig.featureFlagSQL &&
+  checkerConfig.readModelSQLDbHost &&
+  checkerConfig.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 export const dynamoDBClient = new DynamoDBClient({
   endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
@@ -41,6 +65,8 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
     toReadModelEService(eservice),
     readModelRepository.eservices
   );
+
+  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
@@ -48,6 +74,8 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
     toReadModelPurpose(purpose),
     readModelRepository.purposes
   );
+
+  await purposeReadModelServiceSQL.upsertPurpose(purpose, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
@@ -55,6 +83,8 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
     toReadModelAgreement(agreement),
     readModelRepository.agreements
   );
+
+  await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneClient = async (client: Client): Promise<void> => {
@@ -62,41 +92,6 @@ export const addOneClient = async (client: Client): Promise<void> => {
     toReadModelClient(client),
     readModelRepository.clients
   );
-};
 
-export const writePlatformStatesClientEntry = async (
-  clientEntry: PlatformStatesClientEntry,
-  dynamoDBClient: DynamoDBClient
-): Promise<void> => {
-  const input: PutItemInput = {
-    ConditionExpression: "attribute_not_exists(PK)",
-    Item: {
-      PK: {
-        S: clientEntry.PK,
-      },
-      state: {
-        S: clientEntry.state,
-      },
-      clientPurposesIds: {
-        L: clientEntry.clientPurposesIds.map((purposeId) => ({
-          S: purposeId,
-        })),
-      },
-      clientKind: {
-        S: clientEntry.clientKind,
-      },
-      clientConsumerId: {
-        S: clientEntry.clientConsumerId,
-      },
-      version: {
-        N: clientEntry.version.toString(),
-      },
-      updatedAt: {
-        S: clientEntry.updatedAt,
-      },
-    },
-    TableName: "platform-states",
-  };
-  const command = new PutItemCommand(input);
-  await dynamoDBClient.send(command);
+  await clientReadModelServiceSQL.upsertClient(client, 0);
 };

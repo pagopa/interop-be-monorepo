@@ -3,7 +3,10 @@
 import { randomUUID } from "crypto";
 import { Attribute, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { TenantSeed, getAttributesToRevoke } from "../src/index.js";
+import {
+  TenantSeed,
+  getAttributesToRevoke,
+} from "../src/services/ipaCertifiedAttributesImporterService.js";
 import { attributes } from "./expectation.js";
 
 describe("GetAttributesToRevoke", async () => {
@@ -61,7 +64,7 @@ describe("GetAttributesToRevoke", async () => {
     expect(attributesToRevoke).toEqual([
       {
         tOrigin: ipaTenants[0].externalId.origin,
-        tExtenalId: ipaTenants[0].externalId.value,
+        tExternalId: ipaTenants[0].externalId.value,
         aOrigin: attributes[2].origin,
         aCode: attributes[2].code,
       },
@@ -120,7 +123,7 @@ describe("GetAttributesToRevoke", async () => {
     expect(attributesToRevoke).toEqual([
       {
         tOrigin: ipaTenants[0].externalId.origin,
-        tExtenalId: ipaTenants[0].externalId.value,
+        tExternalId: ipaTenants[0].externalId.value,
         aOrigin: attributes[1].origin,
         aCode: attributes[1].code,
       },

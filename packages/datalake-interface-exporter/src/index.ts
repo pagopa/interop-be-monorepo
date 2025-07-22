@@ -30,6 +30,7 @@ async function processMessage(payload: EachMessagePayload): Promise<void> {
     eventType: decodedMsg.type,
     eventVersion: decodedMsg.event_version,
     streamId: decodedMsg.stream_id,
+    streamVersion: decodedMsg.version,
     correlationId,
   });
 
@@ -43,4 +44,9 @@ async function processMessage(payload: EachMessagePayload): Promise<void> {
     .exhaustive();
 }
 
-await runConsumer(config, [config.catalogTopic], processMessage);
+await runConsumer(
+  config,
+  [config.catalogTopic],
+  processMessage,
+  "datalake-interface-exporter"
+);

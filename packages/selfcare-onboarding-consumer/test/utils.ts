@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { EachMessagePayload } from "kafkajs";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { InteropToken } from "pagopa-interop-commons";
+import { InteropInternalToken } from "pagopa-interop-commons";
 
 export const interopProductName = "test-interop-product";
 export const allowedOrigins = [
@@ -40,7 +40,7 @@ export const correctInstitutionEventField = {
 
 export const correctEventPayload = {
   id: "cfb4f57f-8d93-4e30-8c87-37a29c3c6dac",
-  internalIstitutionID: "b730fbb7-fffe-4090-a3ea-53ee7e07a4b9",
+  institutionId: "b730fbb7-fffe-4090-a3ea-53ee7e07a4b9",
   product: interopProductName,
   state: "ACTIVE",
   fileName: "",
@@ -77,14 +77,14 @@ export const selfcareUpsertTenantSeed = {
     origin: correctEventPayload.institution.origin,
     value: correctEventPayload.institution.originId,
   },
-  selfcareId: correctEventPayload.internalIstitutionID,
+  selfcareId: correctEventPayload.institutionId,
   name: correctEventPayload.institution.description,
 };
 
-export const generateInternalTokenMock = (): Promise<InteropToken> =>
-  Promise.resolve(interopToken);
+export const generateInternalTokenMock = (): Promise<InteropInternalToken> =>
+  Promise.resolve(interopInternalToken);
 
-export const interopToken: InteropToken = {
+export const interopInternalToken: InteropInternalToken = {
   header: {
     alg: "algorithm",
     use: "use",
@@ -99,7 +99,7 @@ export const interopToken: InteropToken = {
     iat: 0,
     nbf: 0,
     exp: 10,
-    role: "role1",
+    role: "internal",
   },
   serialized: "the-token",
 };

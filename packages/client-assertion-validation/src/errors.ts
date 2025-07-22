@@ -25,7 +25,7 @@ export const errorCodes = {
   invalidEServiceState: "0022",
   invalidClientIdFormat: "0023",
   invalidSubjectFormat: "0024",
-  digestClaimNotFound: "0025",
+  invalidDigestClaim: "0025",
   invalidHashLength: "0026",
   invalidHashAlgorithm: "0027",
   algorithmNotFound: "0028",
@@ -251,11 +251,11 @@ export function invalidSubjectFormat(subject: string): ApiError<ErrorCodes> {
   });
 }
 
-export function digestClaimNotFound(message: string): ApiError<ErrorCodes> {
+export function invalidDigestClaim(message: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Digest claim not found. Reason: ${message}`,
-    code: "digestClaimNotFound",
-    title: "Digest claim not found",
+    detail: `Invalid digest claim. Reason: ${message}`,
+    code: "invalidDigestClaim",
+    title: "Invalid digest claim",
   });
 }
 
@@ -308,12 +308,15 @@ export function invalidKidFormat(): ApiError<ErrorCodes> {
 }
 
 export function clientAssertionInvalidClaims(
-  details: string
+  details: string,
+  headerOrPayload: "header" | "payload"
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion validation failure. Reason: ${details}`,
+    detail: `Invalid claims in client assertion ${headerOrPayload}. Reason: ${JSON.stringify(
+      JSON.parse(details)
+    )}`,
     code: "clientAssertionInvalidClaims",
-    title: "Invalid claims in header or payload",
+    title: `Invalid claims in client assertion ${headerOrPayload}`,
   });
 }
 

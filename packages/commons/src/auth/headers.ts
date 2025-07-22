@@ -1,4 +1,4 @@
-import { Request } from "express";
+import { Request, Response } from "express";
 import { badBearerToken, missingHeader } from "pagopa-interop-models";
 import { z } from "zod";
 import { Logger } from "../logging/index.js";
@@ -37,4 +37,12 @@ export function jwtFromAuthHeader(req: Request, logger: Logger): string {
   }
 
   return authHeaderParts[1];
+}
+
+export const METADATA_VERSION_HEADER = "x-metadata-version";
+export function setMetadataVersionHeader(
+  res: Response,
+  metadata: { version: number }
+): void {
+  res.set(METADATA_VERSION_HEADER, metadata.version.toString());
 }

@@ -40,6 +40,8 @@ export const {{@key}}Endpoints = makeApi([
 				{{/if}}
 				{{#if (and (eq type "Query") (eq schema "z.array(z.string()).optional().default([])"))}}
 						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined).pipe(z.array(z.string()).optional().default([])), z.array(z.string()).optional().default([])]),
+				{{else if (and (eq type "Query") (eq schema "z.array(z.string().uuid()).optional().default([])"))}}
+						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined).pipe(z.array(z.string().uuid()).optional().default([])), z.array(z.string().uuid()).optional().default([])]),
 				{{else if (and (eq type "Query") (eq schema "z.array(AttributeKind).default([])"))}}
 						schema: z.union([z.string().transform(v => v.split(",")).pipe(z.array(AttributeKind).default([])), z.array(AttributeKind).default([])])
 				{{else if (and (eq type "Query") (eq schema "z.array(AgreementState).optional().default([])"))}}
@@ -77,6 +79,8 @@ export const {{@key}}Endpoints = makeApi([
 			response: z.instanceof(Buffer),
 		{{else if (and (eq method "get") (eq path "/delegations/:delegationId/contracts/:contractId"))}}
 			response: z.instanceof(Buffer),
+        {{else if (and (eq method "get") (eq path "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId"))}}
+            response: z.instanceof(Buffer),
 		{{else}}
 			response: {{{response}}},
 		{{/if}}

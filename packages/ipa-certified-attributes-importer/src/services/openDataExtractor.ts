@@ -14,12 +14,8 @@ export type InstitutionKind = "Agency" | "AOO" | "UO";
 export type Institution = {
   id: string;
   originId: string;
-  taxCode: string;
   category: string;
   description: string;
-  digitalAddress: string;
-  address: string;
-  zipCode: string;
   origin: string;
   kind: string;
   classification: Classification;
@@ -211,21 +207,6 @@ export async function getAllInstitutions(
       return accumulator;
     }
 
-    const digitalAddress = extractor("Mail1", z.string());
-    if (!digitalAddress) {
-      return accumulator;
-    }
-
-    const address = extractor("Indirizzo", z.string());
-    if (!address) {
-      return accumulator;
-    }
-
-    const zipCode = extractor("CAP", z.string());
-    if (!zipCode) {
-      return accumulator;
-    }
-
     const kind = match(institutionKind)
       .with("Agency", () => extractor("Tipologia", z.string()))
       .otherwise(() => {
@@ -243,12 +224,8 @@ export async function getAllInstitutions(
     accumulator.push({
       id: taxCode,
       originId,
-      taxCode,
       category,
       description,
-      digitalAddress,
-      address,
-      zipCode,
       origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
       kind,
       classification: match<InstitutionKind, Classification>(institutionKind)

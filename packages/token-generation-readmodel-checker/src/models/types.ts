@@ -51,6 +51,7 @@ export const ComparisonPlatformStatesAgreementEntry =
     agreementId: true,
     agreementDescriptorId: true,
     agreementTimestamp: true,
+    producerId: true,
   });
 export type ComparisonPlatformStatesAgreementEntry = z.infer<
   typeof ComparisonPlatformStatesAgreementEntry

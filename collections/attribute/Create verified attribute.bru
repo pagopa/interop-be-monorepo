@@ -18,6 +18,16 @@ headers {
 body:json {
   {
     "description": "prova",
-    "name": "myattr"
+    "name": "{{randomName}}"
   }
+}
+
+vars:post-response {
+  attributeId: res.body.id
+}
+
+script:pre-request {
+  const randomName = Math.round(Math.random() * 10000)
+
+  bru.setVar("randomName", randomName)
 }

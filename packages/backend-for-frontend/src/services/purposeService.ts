@@ -2,8 +2,10 @@ import {
   WithLogger,
   FileManager,
   removeDuplicates,
+  UIAuthData,
 } from "pagopa-interop-commons";
 import {
+  CorrelationId,
   EServiceId,
   PurposeId,
   PurposeVersionDocumentId,
@@ -18,17 +20,14 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
-  AgreementProcessClient,
-  AuthorizationProcessClient,
-  CatalogProcessClient,
-  PurposeProcessClient,
+  DelegationProcessClient,
+  PagoPAInteropBeClients,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import {
   agreementNotFound,
   eserviceDescriptorNotFound,
   eServiceNotFound,
-  purposeDraftVersionNotFound,
   purposeNotFound,
   tenantNotFound,
 } from "../model/errors.js";
@@ -36,9 +35,56 @@ import { BffAppContext, Headers } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
+import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { isAgreementUpgradable } from "./validators.js";
+
+const enrichPurposeDelegation = async (
+  delegationId: string,
+  delegationProcessClient: DelegationProcessClient,
+  tenantProcessClient: TenantProcessClient,
+  headers: Headers
+): Promise<bffApi.DelegationWithCompactTenants> => {
+  const delegation = await delegationProcessClient.delegation.getDelegation({
+    headers,
+    params: {
+      delegationId,
+    },
+  });
+
+  const [delegate, delegator] = await Promise.all(
+    [delegation.delegateId, delegation.delegatorId].map((id) =>
+      tenantProcessClient.tenant.getTenant({
+        headers,
+        params: { id },
+      })
+    )
+  );
+
+  if (!delegate) {
+    throw tenantNotFound(delegation.delegateId);
+  }
+  if (!delegator) {
+    throw tenantNotFound(delegation.delegatorId);
+  }
+
+  return {
+    id: delegationId,
+    delegate: {
+      id: delegate.id,
+      name: delegate.name,
+      contactMail: getLatestTenantContactEmail(delegate),
+      kind: delegate.kind,
+    },
+    delegator: {
+      id: delegator.id,
+      name: delegator.name,
+      contactMail: getLatestTenantContactEmail(delegator),
+      kind: delegator.kind,
+    },
+  };
+};
 
 export const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
@@ -58,20 +104,25 @@ export const getCurrentVersion = (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function purposeServiceBuilder(
-  purposeProcessClient: PurposeProcessClient,
-  catalogProcessClient: CatalogProcessClient,
-  tenantProcessClient: TenantProcessClient,
-  agreementProcessClient: AgreementProcessClient,
-  authorizationClient: AuthorizationProcessClient,
+  {
+    purposeProcessClient,
+    catalogProcessClient,
+    tenantProcessClient,
+    agreementProcessClient,
+    delegationProcessClient,
+    authorizationClient,
+    selfcareV2UserClient,
+  }: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
   const enhancePurpose = async (
-    requesterId: string,
+    authData: UIAuthData,
     purpose: purposeApi.Purpose,
     eservices: catalogApi.EService[],
     producers: tenantApi.Tenant[],
     consumers: tenantApi.Tenant[],
-    headers: Headers
+    headers: Headers,
+    correlationId: CorrelationId
     // eslint-disable-next-line max-params
   ): Promise<bffApi.Purpose> => {
     const eservice = eservices.find((e) => e.id === purpose.eserviceId);
@@ -109,18 +160,6 @@ export function purposeServiceBuilder(
       );
     }
 
-    const clients =
-      requesterId === purpose.consumerId
-        ? (
-            await getAllClients(
-              authorizationClient,
-              purpose.consumerId,
-              purpose.id,
-              headers
-            )
-          ).map(toBffApiCompactClient)
-        : [];
-
     const currentVersion = getCurrentVersion(purpose.versions);
     const waitingForApprovalVersion = purpose.versions.find(
       (v) =>
@@ -138,11 +177,32 @@ export function purposeServiceBuilder(
         ? latestVersion
         : undefined;
 
+    const delegation = purpose.delegationId
+      ? await enrichPurposeDelegation(
+          purpose.delegationId,
+          delegationProcessClient,
+          tenantProcessClient,
+          headers
+        )
+      : undefined;
+
+    const clients = await getAllClients(
+      authorizationClient,
+      authData.organizationId,
+      purpose.id,
+      headers
+    );
+
     return {
       id: purpose.id,
       title: purpose.title,
       description: purpose.description,
-      consumer: { id: consumer.id, name: consumer.name },
+      consumer: {
+        id: consumer.id,
+        name: consumer.name,
+        kind: consumer.kind,
+        contactMail: getLatestTenantContactEmail(consumer),
+      },
       riskAnalysisForm: purpose.riskAnalysisForm,
       eservice: {
         id: eservice.id,
@@ -163,7 +223,16 @@ export function purposeServiceBuilder(
       },
       currentVersion: currentVersion && toBffApiPurposeVersion(currentVersion),
       versions: purpose.versions.map(toBffApiPurposeVersion),
-      clients,
+      clients: await Promise.all(
+        clients.map((client) =>
+          toBffApiCompactClient(
+            selfcareV2UserClient,
+            client,
+            authData.selfcareId,
+            correlationId
+          )
+        )
+      ),
       waitingForApprovalVersion:
         waitingForApprovalVersion &&
         toBffApiPurposeVersion(waitingForApprovalVersion),
@@ -175,11 +244,12 @@ export function purposeServiceBuilder(
       dailyCallsTotal: currentDescriptor.dailyCallsTotal,
       rejectedVersion:
         rejectedVersion && toBffApiPurposeVersion(rejectedVersion),
+      delegation,
     };
   };
 
   const getPurposes = async (
-    requesterId: string,
+    authData: UIAuthData,
     filters: {
       name?: string | undefined;
       eservicesIds?: string[];
@@ -187,14 +257,15 @@ export function purposeServiceBuilder(
       producersIds?: string[];
       states?: purposeApi.PurposeVersionState[];
       excludeDraft?: boolean | undefined;
+      offset: number;
+      limit: number;
     },
-    offset: number,
-    limit: number,
-    headers: Headers
+    headers: Headers,
+    correlationId: CorrelationId
   ): Promise<bffApi.Purposes> => {
-    const distinctFilters = {
+    const queries = {
       ...filters,
-      eseviceIds:
+      eservicesIds:
         filters.eservicesIds && removeDuplicates(filters.eservicesIds),
       consumersIds:
         filters.consumersIds && removeDuplicates(filters.consumersIds),
@@ -204,11 +275,7 @@ export function purposeServiceBuilder(
     };
 
     const purposes = await purposeProcessClient.getPurposes({
-      queries: {
-        ...distinctFilters,
-        limit,
-        offset,
-      },
+      queries,
       headers,
     });
 
@@ -240,14 +307,22 @@ export function purposeServiceBuilder(
 
     const results = await Promise.all(
       purposes.results.map((p) =>
-        enhancePurpose(requesterId, p, eservices, producers, consumers, headers)
+        enhancePurpose(
+          authData,
+          p,
+          eservices,
+          producers,
+          consumers,
+          headers,
+          correlationId
+        )
       )
     );
 
     return {
       pagination: {
-        offset,
-        limit,
+        offset: filters.offset,
+        limit: filters.limit,
         totalCount: purposes.totalCount,
       },
       results,
@@ -322,45 +397,54 @@ export function purposeServiceBuilder(
         name?: string | undefined;
         eservicesIds?: string[] | undefined;
         consumersIds?: string[] | undefined;
-        producersIds?: string[] | undefined;
         states?: purposeApi.PurposeVersionState[] | undefined;
       },
       offset: number,
       limit: number,
-      { headers, authData, logger }: WithLogger<BffAppContext>
+      { headers, authData, logger, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
       logger.info(
-        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Producers ${filters.producersIds}, offset ${offset}, limit ${limit}`
+        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Consumers ${filters.consumersIds} offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
-        authData.organizationId,
-        { ...filters, excludeDraft: true },
-        offset,
-        limit,
-        headers
+        authData,
+        {
+          ...filters,
+          excludeDraft: true,
+          producersIds: [authData.organizationId],
+          offset,
+          limit,
+        },
+        headers,
+        correlationId
       );
     },
     async getConsumerPurposes(
       filters: {
         name?: string | undefined;
         eservicesIds?: string[] | undefined;
-        consumersIds?: string[] | undefined;
         producersIds?: string[] | undefined;
         states?: purposeApi.PurposeVersionState[] | undefined;
       },
       offset: number,
       limit: number,
-      { headers, authData, logger }: WithLogger<BffAppContext>
+      { headers, authData, logger, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
       logger.info(
-        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Consumers ${filters.consumersIds}, offset ${offset}, limit ${limit}`
+        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Producers ${filters.producersIds} offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
-        authData.organizationId,
-        { ...filters, excludeDraft: false },
-        offset,
-        limit,
-        headers
+        authData,
+        {
+          ...filters,
+          excludeDraft: false,
+          consumersIds: [authData.organizationId],
+          offset,
+          limit,
+        },
+
+        headers,
+        correlationId
       );
     },
     async clonePurpose(
@@ -377,12 +461,7 @@ export function purposeServiceBuilder(
         headers,
       });
 
-      const draft = cloned.versions.find(
-        (v) => v.state === purposeApi.PurposeVersionState.Values.DRAFT
-      );
-      if (!draft) {
-        throw purposeDraftVersionNotFound(purposeId);
-      }
+      const draft = cloned.versions[0];
 
       return {
         purposeId: cloned.id,
@@ -398,19 +477,17 @@ export function purposeServiceBuilder(
         `Creating version for purpose ${purposeId} with dailyCalls ${seed.dailyCalls}`
       );
 
-      const purposeVersion = await purposeProcessClient.createPurposeVersion(
-        seed,
-        {
+      const { createdVersionId } =
+        await purposeProcessClient.createPurposeVersion(seed, {
           params: {
             purposeId,
           },
           headers,
-        }
-      );
+        });
 
       return {
         purposeId,
-        versionId: purposeVersion.id,
+        versionId: createdVersionId,
       };
     },
     async getRiskAnalysisDocument(
@@ -558,7 +635,7 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Updating Purpose ${id}`);
 
-      const result = await purposeProcessClient.updatePurpose(seed, {
+      const updatedPurpose = await purposeProcessClient.updatePurpose(seed, {
         params: {
           id,
         },
@@ -567,12 +644,12 @@ export function purposeServiceBuilder(
 
       return {
         purposeId: id,
-        versionId: result.id,
+        versionId: updatedPurpose.versions[0].id,
       };
     },
     async getPurpose(
       id: PurposeId,
-      { headers, authData, logger }: WithLogger<BffAppContext>
+      { headers, authData, logger, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.Purpose> {
       logger.info(`Retrieving Purpose ${id}`);
 
@@ -601,27 +678,29 @@ export function purposeServiceBuilder(
         throw agreementNotFound(unsafeBrandId(purpose.consumerId));
       }
 
-      const consumer = await tenantProcessClient.tenant.getTenant({
-        params: {
-          id: agreement.consumerId,
-        },
-        headers,
-      });
-
-      const producer = await tenantProcessClient.tenant.getTenant({
-        params: {
-          id: agreement.producerId,
-        },
-        headers,
-      });
+      const [consumer, producer] = await Promise.all([
+        tenantProcessClient.tenant.getTenant({
+          params: {
+            id: agreement.consumerId,
+          },
+          headers,
+        }),
+        tenantProcessClient.tenant.getTenant({
+          params: {
+            id: agreement.producerId,
+          },
+          headers,
+        }),
+      ]);
 
       return await enhancePurpose(
-        authData.organizationId,
+        authData,
         purpose,
         [eservice],
         [producer],
         [consumer],
-        headers
+        headers,
+        correlationId
       );
     },
     async retrieveLatestRiskAnalysisConfiguration(
@@ -662,3 +741,5 @@ export function purposeServiceBuilder(
     },
   };
 }
+
+export type PurposeService = ReturnType<typeof purposeServiceBuilder>;

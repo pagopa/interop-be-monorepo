@@ -1,8 +1,15 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
-  AuthData,
+  InternalAuthData,
+  M2MAdminAuthData,
+  M2MAuthData,
   RiskAnalysisValidatedForm,
+  UIAuthData,
+  hasAtLeastOneSystemRole,
+  hasAtLeastOneUserRole,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  systemRole,
+  userRole,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -18,10 +25,12 @@ import {
   descriptorState,
   eserviceMode,
   operationForbidden,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   draftDescriptorAlreadyExists,
+  eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -30,6 +39,11 @@ import {
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
+  templateInstanceNotAllowed,
+  eServiceNotAnInstance,
+  inconsistentDailyCalls,
+  eserviceWithoutValidDescriptors,
+  eserviceTemplateNameConflict,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -57,6 +71,13 @@ export const notActiveDescriptorState: DescriptorState[] = [
   descriptorState.waitingForApproval,
 ];
 
+export const activeDescriptorStates: DescriptorState[] = [
+  descriptorState.published,
+  descriptorState.suspended,
+  descriptorState.deprecated,
+  descriptorState.archived,
+];
+
 export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
   return match(descriptor.state)
     .with(descriptorState.draft, descriptorState.waitingForApproval, () => true)
@@ -74,7 +95,7 @@ export function isActiveDescriptor(descriptor: Descriptor): boolean {
   return !isNotActiveDescriptor(descriptor);
 }
 
-export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
+function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
   return match(descriptor.state)
     .with(
       descriptorState.deprecated,
@@ -94,13 +115,9 @@ export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
 export async function assertRequesterIsDelegateProducerOrProducer(
   producerId: TenantId,
   eserviceId: EServiceId,
-  authData: AuthData,
+  authData: UIAuthData | M2MAuthData,
   readModelService: ReadModelService
 ): Promise<void> {
-  if (authData.userRoles.includes("internal")) {
-    return;
-  }
-
   // Search for active producer delegation
   const producerDelegation = await readModelService.getLatestDelegation({
     eserviceId,
@@ -124,11 +141,8 @@ export async function assertRequesterIsDelegateProducerOrProducer(
 
 export function assertRequesterIsProducer(
   producerId: TenantId,
-  authData: AuthData
+  authData: UIAuthData | M2MAuthData
 ): void {
-  if (authData.userRoles.includes("internal")) {
-    return;
-  }
   if (producerId !== authData.organizationId) {
     throw operationForbidden;
   }
@@ -155,6 +169,11 @@ export async function assertNoExistingProducerDelegationInActiveOrPendingState(
 export function assertIsDraftEservice(eservice: EService): void {
   if (eservice.descriptors.some((d) => d.state !== descriptorState.draft)) {
     throw eserviceNotInDraftState(eservice.id);
+  }
+}
+export function assertIsDraftDescriptor(descriptor: Descriptor): void {
+  if (descriptor.state !== descriptorState.draft) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
   }
 }
 
@@ -250,4 +269,107 @@ export function assertDocumentDeletableDescriptorState(
       throw notValidDescriptorState(descriptor.id, descriptor.state);
     })
     .exhaustive();
+}
+
+export async function assertEServiceNameAvailableForProducer(
+  name: string,
+  producerId: TenantId,
+  readModelService: ReadModelService
+): Promise<void> {
+  const isEServiceNameAvailable =
+    await readModelService.isEServiceNameAvailableForProducer({
+      name,
+      producerId,
+    });
+  if (!isEServiceNameAvailable) {
+    throw eServiceNameDuplicateForProducer(name, producerId);
+  }
+}
+
+export async function assertEServiceNameNotConflictingWithTemplate(
+  name: string,
+  readModelService: ReadModelService
+): Promise<void> {
+  const eserviceTemplateWithSameNameExists =
+    await readModelService.isEServiceNameConflictingWithTemplate({
+      name,
+    });
+  if (eserviceTemplateWithSameNameExists) {
+    throw eserviceTemplateNameConflict(name);
+  }
+}
+
+export function assertEServiceNotTemplateInstance(
+  eserviceId: EServiceId,
+  templateId: EServiceTemplateId | undefined
+): void {
+  if (templateId !== undefined) {
+    throw templateInstanceNotAllowed(eserviceId, templateId);
+  }
+}
+
+export function assertEServiceIsTemplateInstance(
+  eservice: EService
+): asserts eservice is EService & {
+  templateId: EServiceTemplateId;
+  descriptors: Array<
+    Descriptor & {
+      templateVersionRef: NonNullable<Descriptor["templateVersionRef"]>;
+    }
+  >;
+} {
+  if (eservice.templateId === undefined) {
+    throw eServiceNotAnInstance(eservice.id);
+  }
+}
+
+export function assertConsistentDailyCalls({
+  dailyCallsPerConsumer,
+  dailyCallsTotal,
+}: {
+  dailyCallsPerConsumer: number;
+  dailyCallsTotal: number;
+}): void {
+  if (dailyCallsPerConsumer > dailyCallsTotal) {
+    throw inconsistentDailyCalls();
+  }
+}
+
+export function assertDescriptorUpdatableAfterPublish(
+  descriptor: Descriptor
+): void {
+  if (!isDescriptorUpdatableAfterPublish(descriptor)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
+
+export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
+  const hasValidDescriptor = eservice.descriptors.some(
+    isDescriptorUpdatableAfterPublish
+  );
+  if (!hasValidDescriptor) {
+    throw eserviceWithoutValidDescriptors(eservice.id);
+  }
+}
+
+/**
+ * Checks if the user has the roles required to access inactive
+ * descriptors (i.e., DRAFT or WAITING_FOR_APPROVAL).
+ * NOT sufficient to access them; the request must also originate
+ * from the producer tenant or the delegate producer tenant.
+ */
+export function hasRoleToAccessInactiveDescriptors(
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
+): boolean {
+  return (
+    hasAtLeastOneUserRole(authData, [
+      userRole.ADMIN_ROLE,
+      userRole.API_ROLE,
+      userRole.SUPPORT_ROLE,
+    ]) ||
+    hasAtLeastOneSystemRole(authData, [
+      systemRole.M2M_ADMIN_ROLE,
+      systemRole.M2M_ROLE,
+    ])
+  );
 }

@@ -2,21 +2,20 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
-  ReadModelRepository,
   ZodiosContext,
-  authorizationMiddleware,
-  initDB,
-  initFileManager,
-  initPDFGenerator,
-  userRoles,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
+  authRole,
+  validateAuthorization,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import {
   TenantId,
   DescriptorId,
   EServiceId,
   unsafeBrandId,
+  DelegationId,
+  emptyErrorMapper,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -25,9 +24,7 @@ import {
   apiAgreementStateToAgreementState,
   fromApiCompactTenant,
 } from "../model/domain/apiConverter.js";
-import { agreementServiceBuilder } from "../services/agreementService.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../config/config.js";
+import { AgreementService } from "../services/agreementService.js";
 import {
   activateAgreementErrorMapper,
   addConsumerDocumentErrorMapper,
@@ -44,85 +41,69 @@ import {
   updateAgreementErrorMapper,
   upgradeAgreementErrorMapper,
   computeAgreementsStateErrorMapper,
+  verifyTenantCertifiedAttributesErrorMapper,
+  getAgreementConsumerDocumentsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-const pdfGenerator = await initPDFGenerator();
-
-const agreementService = agreementServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService,
-  initFileManager(config),
-  pdfGenerator
-);
 
 const {
   ADMIN_ROLE,
   SECURITY_ROLE,
   API_ROLE,
   M2M_ROLE,
+  M2M_ADMIN_ROLE,
   INTERNAL_ROLE,
   SUPPORT_ROLE,
-} = userRoles;
+} = authRole;
 
 const agreementRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  agreementService: AgreementService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const agreementRouter = ctx.router(agreementApi.agreementApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  agreementRouter.post(
-    "/agreements/:agreementId/submit",
-    authorizationMiddleware([ADMIN_ROLE]),
-    async (req, res) => {
+  agreementRouter
+    .post("/agreements/:agreementId/submit", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const agreement = await agreementService.submitAgreement(
-          unsafeBrandId(req.params.agreementId),
-          req.body,
-          ctx
-        );
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data: agreement, metadata } =
+          await agreementService.submitAgreement(
+            unsafeBrandId(req.params.agreementId),
+            req.body,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
             agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          submitAgreementErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, submitAgreementErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.post(
-    "/agreements/:agreementId/activate",
-    authorizationMiddleware([ADMIN_ROLE]),
-    async (req, res) => {
+    .post("/agreements/:agreementId/activate", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const agreement = await agreementService.activateAgreement(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data: agreement, metadata } =
+          await agreementService.activateAgreement(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
@@ -133,27 +114,26 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           activateAgreementErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.post(
-    "/agreements/:agreementId/consumer-documents",
-    authorizationMiddleware([ADMIN_ROLE]),
-    async (req, res) => {
+    .post("/agreements/:agreementId/consumer-documents", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const document = await agreementService.addConsumerDocument(
-          unsafeBrandId(req.params.agreementId),
-          req.body,
-          ctx
-        );
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
+        const { data: document, metadata } =
+          await agreementService.addConsumerDocument(
+            unsafeBrandId(req.params.agreementId),
+            req.body,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
@@ -165,81 +145,117 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           addConsumerDocumentErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
-
-  agreementRouter.get(
-    "/agreements/:agreementId/consumer-documents/:documentId",
-    authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
-    async (req, res) => {
+    })
+    .get("/agreements/:agreementId/consumer-documents", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const document = await agreementService.getAgreementConsumerDocument(
-          unsafeBrandId(req.params.agreementId),
-          unsafeBrandId(req.params.documentId),
-          ctx
-        );
-        return res
-          .status(200)
-          .send(
-            agreementApi.Document.parse(
-              agreementDocumentToApiAgreementDocument(document)
-            )
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
+
+        const { results, totalCount } =
+          await agreementService.getAgreementConsumerDocuments(
+            unsafeBrandId(req.params.agreementId),
+            req.query,
+            ctx
           );
+        return res.status(200).send(
+          agreementApi.Documents.parse({
+            results: results.map(agreementDocumentToApiAgreementDocument),
+            totalCount,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getConsumerDocumentErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          getAgreementConsumerDocumentsErrorMapper,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
+    .get(
+      "/agreements/:agreementId/consumer-documents/:documentId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
 
-  agreementRouter.delete(
-    "/agreements/:agreementId/consumer-documents/:documentId",
-    authorizationMiddleware([ADMIN_ROLE]),
-    async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            SUPPORT_ROLE,
+            M2M_ADMIN_ROLE,
+            M2M_ROLE,
+          ]);
 
-      try {
-        await agreementService.removeAgreementConsumerDocument(
-          unsafeBrandId(req.params.agreementId),
-          unsafeBrandId(req.params.documentId),
-          ctx
-        );
-        return res.status(204).send();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          removeConsumerDocumentErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
-        return res.status(errorRes.status).send(errorRes);
+          const document = await agreementService.getAgreementConsumerDocument(
+            unsafeBrandId(req.params.agreementId),
+            unsafeBrandId(req.params.documentId),
+            ctx
+          );
+          return res
+            .status(200)
+            .send(
+              agreementApi.Document.parse(
+                agreementDocumentToApiAgreementDocument(document)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getConsumerDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    }
-  );
+    )
 
-  agreementRouter.post(
-    "/agreements/:agreementId/suspend",
-    authorizationMiddleware([ADMIN_ROLE]),
-    async (req, res) => {
+    .delete(
+      "/agreements/:agreementId/consumer-documents/:documentId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          const { metadata } =
+            await agreementService.removeAgreementConsumerDocument(
+              unsafeBrandId(req.params.agreementId),
+              unsafeBrandId(req.params.documentId),
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            removeConsumerDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+
+    .post("/agreements/:agreementId/suspend", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const agreement = await agreementService.suspendAgreement(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data: agreement, metadata } =
+          await agreementService.suspendAgreement(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -249,50 +265,44 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           suspendAgreementErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.post(
-    "/agreements/:agreementId/reject",
-    authorizationMiddleware([ADMIN_ROLE]),
-    async (req, res) => {
+    .post("/agreements/:agreementId/reject", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const agreement = await agreementService.rejectAgreement(
-          unsafeBrandId(req.params.agreementId),
-          req.body.reason,
-          ctx
-        );
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data: agreement, metadata } =
+          await agreementService.rejectAgreement(
+            unsafeBrandId(req.params.agreementId),
+            req.body.reason,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
             agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          rejectAgreementErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, rejectAgreementErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.post(
-    "/agreements/:agreementId/archive",
-    authorizationMiddleware([ADMIN_ROLE]),
-    async (req, res) => {
+    .post("/agreements/:agreementId/archive", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
         const agreement = await agreementService.archiveAgreement(
           unsafeBrandId(req.params.agreementId),
           ctx
@@ -306,52 +316,56 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           archiveAgreementErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.post(
-    "/agreements",
-    authorizationMiddleware([ADMIN_ROLE]),
-    async (req, res) => {
+    .post("/agreements", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const agreement = await agreementService.createAgreement(req.body, ctx);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data: agreement, metadata } =
+          await agreementService.createAgreement(
+            {
+              eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
+              descriptorId: unsafeBrandId<DescriptorId>(req.body.descriptorId),
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                : undefined,
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
             agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          createAgreementErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, createAgreementErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.get(
-    "/agreements",
-    authorizationMiddleware([
-      ADMIN_ROLE,
-      API_ROLE,
-      SECURITY_ROLE,
-      M2M_ROLE,
-      SUPPORT_ROLE,
-    ]),
-    async (req, res) => {
+    .get("/agreements", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+          M2M_ADMIN_ROLE,
+          SUPPORT_ROLE,
+        ]);
+
         const agreements = await agreementService.getAgreements(
           {
             eserviceId: req.query.eservicesIds.map(unsafeBrandId<EServiceId>),
@@ -367,7 +381,7 @@ const agreementRouter = (
           },
           req.query.limit,
           req.query.offset,
-          ctx.logger
+          ctx
         );
 
         return res.status(200).send(
@@ -377,34 +391,27 @@ const agreementRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          () => 500,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.get(
-    "/producers",
-    authorizationMiddleware([
-      ADMIN_ROLE,
-      API_ROLE,
-      SECURITY_ROLE,
-      SUPPORT_ROLE,
-    ]),
-    async (req, res) => {
+    .get("/producers", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const producers = await agreementService.getAgreementProducers(
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          SUPPORT_ROLE,
+        ]);
+
+        const producers = await agreementService.getAgreementsProducers(
           req.query.producerName,
           req.query.limit,
           req.query.offset,
-          ctx.logger
+          ctx
         );
 
         return res.status(200).send(
@@ -414,34 +421,27 @@ const agreementRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          () => 500,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.get(
-    "/consumers",
-    authorizationMiddleware([
-      ADMIN_ROLE,
-      API_ROLE,
-      SECURITY_ROLE,
-      SUPPORT_ROLE,
-    ]),
-    async (req, res) => {
+    .get("/consumers", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const consumers = await agreementService.getAgreementConsumers(
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          SUPPORT_ROLE,
+        ]);
+
+        const consumers = await agreementService.getAgreementsConsumers(
           req.query.consumerName,
           req.query.limit,
           req.query.offset,
-          ctx.logger
+          ctx
         );
 
         return res.status(200).send(
@@ -451,83 +451,116 @@ const agreementRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          () => 500,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.get(
-    "/agreements/:agreementId",
-    authorizationMiddleware([
-      ADMIN_ROLE,
-      API_ROLE,
-      SECURITY_ROLE,
-      M2M_ROLE,
-      INTERNAL_ROLE,
-      SUPPORT_ROLE,
-    ]),
-    async (req, res) => {
+    .get("/agreements/:agreementId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const agreement = await agreementService.getAgreementById(
-          unsafeBrandId(req.params.agreementId),
-          ctx.logger
-        );
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+          M2M_ADMIN_ROLE,
+          SUPPORT_ROLE,
+        ]);
+
+        const { data: agreement, metadata } =
+          await agreementService.getAgreementById(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
             agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getAgreementErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, getAgreementErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.delete(
-    "/agreements/:agreementId",
-    authorizationMiddleware([ADMIN_ROLE]),
-    async (req, res) => {
+    .delete("/agreements/:agreementId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
         await agreementService.deleteAgreementById(
           unsafeBrandId(req.params.agreementId),
           ctx
         );
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          deleteAgreementErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, deleteAgreementErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.post(
-    "/agreements/:agreementId/update",
-    authorizationMiddleware([ADMIN_ROLE]),
-    async (req, res) => {
+    .delete(
+      "/internal/delegations/:delegationId/agreements/:agreementId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          await agreementService.internalDeleteAgreementAfterDelegationRevocation(
+            unsafeBrandId(req.params.agreementId),
+            unsafeBrandId(req.params.delegationId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteAgreementErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+
+    .post(
+      "/internal/delegations/:delegationId/agreements/:agreementId/archive",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          await agreementService.internalArchiveAgreementAfterDelegationRevocation(
+            unsafeBrandId(req.params.agreementId),
+            unsafeBrandId(req.params.delegationId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            archiveAgreementErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+
+    .post("/agreements/:agreementId/update", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
         const agreement = await agreementService.updateAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body,
@@ -540,28 +573,24 @@ const agreementRouter = (
             agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          updateAgreementErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, updateAgreementErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.post(
-    "/agreements/:agreementId/upgrade",
-    authorizationMiddleware([ADMIN_ROLE]),
-    async (req, res) => {
+    .post("/agreements/:agreementId/upgrade", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const agreement = await agreementService.upgradeAgreement(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data: agreement, metadata } =
+          await agreementService.upgradeAgreement(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
@@ -572,21 +601,18 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           upgradeAgreementErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.post(
-    "/agreements/:agreementId/clone",
-    authorizationMiddleware([ADMIN_ROLE]),
-    async (req, res) => {
+    .post("/agreements/:agreementId/clone", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
         const agreement = await agreementService.cloneAgreement(
           unsafeBrandId(req.params.agreementId),
           ctx
@@ -598,25 +624,18 @@ const agreementRouter = (
             agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          cloneAgreementErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, cloneAgreementErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.post(
-    "/compute/agreementsState",
-    authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE, M2M_ROLE]),
-    async (req, res) => {
+    .post("/internal/compute/agreementsState", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        await agreementService.computeAgreementsStateByAttribute(
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        await agreementService.internalComputeAgreementsStateByAttribute(
           unsafeBrandId(req.body.attributeId),
           fromApiCompactTenant(req.body.consumer),
           ctx
@@ -627,38 +646,32 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           computeAgreementsStateErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
 
-  agreementRouter.get(
-    "/agreements/filter/eservices",
-    authorizationMiddleware([
-      ADMIN_ROLE,
-      API_ROLE,
-      SECURITY_ROLE,
-      SUPPORT_ROLE,
-    ]),
-    async (req, res) => {
+    .get("/agreements/filter/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const eservices = await agreementService.getAgreementEServices(
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          SUPPORT_ROLE,
+        ]);
+
+        const eservices = await agreementService.getAgreementsEServices(
           {
             eserviceName: req.query.eServiceName,
             consumerIds: req.query.consumersIds.map(unsafeBrandId<TenantId>),
             producerIds: req.query.producersIds.map(unsafeBrandId<TenantId>),
-            agreeementStates: req.query.states.map(
-              apiAgreementStateToAgreementState
-            ),
           },
           req.query.limit,
           req.query.offset,
-          ctx.logger
+          ctx
         );
 
         return res.status(200).send(
@@ -668,16 +681,42 @@ const agreementRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          () => 500,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    })
+
+    .get(
+      "/tenants/:tenantId/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/validate",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+
+          const result = await agreementService.verifyTenantCertifiedAttributes(
+            {
+              tenantId: unsafeBrandId<TenantId>(req.params.tenantId),
+              descriptorId: unsafeBrandId<DescriptorId>(
+                req.params.descriptorId
+              ),
+              eserviceId: unsafeBrandId<EServiceId>(req.params.eserviceId),
+            },
+            ctx
+          );
+          return res
+            .status(200)
+            .send(agreementApi.HasCertifiedAttributes.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            verifyTenantCertifiedAttributesErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return agreementRouter;
 };

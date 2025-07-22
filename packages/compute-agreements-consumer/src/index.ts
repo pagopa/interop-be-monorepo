@@ -42,6 +42,7 @@ async function processMessage({
     eventType: decodedMsg.type,
     eventVersion: decodedMsg.event_version,
     streamId: decodedMsg.stream_id,
+    streamVersion: decodedMsg.version,
     correlationId,
   });
 
@@ -65,7 +66,7 @@ async function processMessage({
           );
           const token = (await refreshableToken.get()).serialized;
 
-          await agreementProcessClient.computeAgreementsByAttribute(
+          await agreementProcessClient.internalComputeAgreementsByAttribute(
             {
               attributeId: unsafeBrandId(attributeId),
               consumer: toApiCompactTenant(fromTenantV2(tenant)),
@@ -97,7 +98,9 @@ async function processMessage({
           "TenantMailAdded",
           "MaintenanceTenantPromotedToCertifier",
           "TenantDelegatedProducerFeatureAdded",
-          "TenantDelegatedProducerFeatureRemoved"
+          "TenantDelegatedProducerFeatureRemoved",
+          "TenantDelegatedConsumerFeatureAdded",
+          "TenantDelegatedConsumerFeatureRemoved"
         ),
       },
       () => Promise.resolve()
@@ -106,4 +109,9 @@ async function processMessage({
     .exhaustive();
 }
 
-await runConsumer(config, [config.tenantTopic], processMessage);
+await runConsumer(
+  config,
+  [config.tenantTopic],
+  processMessage,
+  "compute-agreements-consumer"
+);

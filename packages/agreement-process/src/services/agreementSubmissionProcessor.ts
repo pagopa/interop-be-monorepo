@@ -1,15 +1,19 @@
 /* eslint-disable max-params */
-import { CreateEvent } from "pagopa-interop-commons";
+import {
+  UIAuthData,
+  CreateEvent,
+  M2MAdminAuthData,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
   AgreementStamp,
   AgreementStamps,
   AgreementState,
+  Delegation,
   Descriptor,
   EService,
   Tenant,
-  UserId,
   agreementState,
   tenantMailKind,
 } from "pagopa-interop-models";
@@ -53,10 +57,18 @@ export const createSubmissionUpdateAgreementSeed = (
   agreement: Agreement,
   payload: agreementApi.AgreementSubmissionPayload,
   newState: AgreementState,
-  userId: UserId,
-  suspendedByPlatform: boolean | undefined
+  authData: UIAuthData | M2MAdminAuthData,
+  suspendedByPlatform: boolean | undefined,
+  activeConsumerDelegation: Delegation | undefined
 ): UpdateAgreementSeed => {
-  const stamps = calculateStamps(agreement, newState, createStamp(userId));
+  const stamps = calculateStamps(
+    agreement,
+    newState,
+    createStamp(authData, {
+      consumerDelegation: activeConsumerDelegation,
+      producerDelegation: undefined,
+    })
+  );
   const isActivation = newState === agreementState.active;
 
   /* As we do in the upgrade, we copy suspendedByProducer, suspendedByProducer, and suspendedAt

@@ -178,6 +178,7 @@ export const descriptorToApiDescriptor = (
     rejectionReason: reason.rejectionReason,
     rejectedAt: reason.rejectedAt.toJSON(),
   })),
+  templateVersionRef: descriptor.templateVersionRef,
 });
 
 export const eServiceToApiEService = (
@@ -202,4 +203,7 @@ export const eServiceToApiEService = (
   })),
   descriptors: eservice.descriptors.map(descriptorToApiDescriptor),
   isSignalHubEnabled: eservice.isSignalHubEnabled,
+  isConsumerDelegable: eservice.isConsumerDelegable,
+  isClientAccessDelegable: eservice.isClientAccessDelegable,
+  templateId: eservice.templateId,
 });

@@ -5,33 +5,64 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  FileManager,
 } from "pagopa-interop-commons";
+import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   activateAgreementErrorMapper,
-  emptyErrorMapper,
   getAgreementByIdErrorMapper,
   getAgreementContractErrorMapper,
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
-import { agreementServiceBuilder } from "../services/agreementService.js";
+import { AgreementService } from "../services/agreementService.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients,
-  fileManager: FileManager
+  agreementService: AgreementService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const agreementRouter = ctx.router(bffApi.agreementsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const agreementService = agreementServiceBuilder(clients, fileManager);
-
   agreementRouter
-    .get("/agreements", async (req, res) => {
+    .get("/consumers/agreements", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const {
+          producersIds,
+          eservicesIds,
+          limit,
+          offset,
+          showOnlyUpgradeable,
+          states,
+        } = req.query;
+
+        const result = await agreementService.getConsumerAgreements(
+          {
+            offset,
+            limit,
+            eservicesIds,
+            producersIds,
+            states,
+            showOnlyUpgradeable,
+          },
+          ctx
+        );
+        return res.status(200).send(bffApi.Agreements.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getAgreementsErrorMapper,
+          ctx,
+          "Error retrieving agreements"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+
+    .get("/producers/agreements", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
@@ -40,16 +71,14 @@ const agreementRouter = (
           eservicesIds,
           limit,
           offset,
-          producersIds,
           showOnlyUpgradeable,
           states,
         } = req.query;
 
-        const result = await agreementService.getAgreements(
+        const result = await agreementService.getProducerAgreements(
           {
             offset,
             limit,
-            producersIds,
             eservicesIds,
             consumersIds,
             states,
@@ -62,8 +91,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           getAgreementsErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           "Error retrieving agreements"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -80,8 +108,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating agreement for EService ${req.body.eserviceId} and Descriptor ${req.body.descriptorId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -91,14 +118,13 @@ const agreementRouter = (
     .get("/producers/agreements/eservices", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
-      const { offset, limit, states, q } = req.query;
+      const { offset, limit, q } = req.query;
       try {
         const requesterId = ctx.authData.organizationId;
-        const result = await agreementService.getAgreementsEserviceProducers(
+        const result = await agreementService.getAgreementsProducerEServices(
           {
             offset,
             limit,
-            states,
             requesterId,
             eServiceName: q,
           },
@@ -110,8 +136,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving eservices from agreement filtered by eservice name ${q}, offset ${offset}, limit ${limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -124,7 +149,7 @@ const agreementRouter = (
       const { offset, limit, q } = req.query;
       try {
         const requesterId = ctx.authData.organizationId;
-        const result = await agreementService.getAgreementsEserviceConsumers(
+        const result = await agreementService.getAgreementsConsumerEServices(
           {
             offset,
             limit,
@@ -139,8 +164,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving eservices from agreement filtered by eservice name ${q}, offset ${offset}, limit ${limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -152,7 +176,7 @@ const agreementRouter = (
 
       const { offset, limit, q } = req.query;
       try {
-        const result = await agreementService.getAgreementProducers(
+        const result = await agreementService.getAgreementsProducers(
           {
             offset,
             limit,
@@ -165,8 +189,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving producers from agreement filtered by producer name ${q}, offset ${offset}, limit ${limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -178,7 +201,7 @@ const agreementRouter = (
 
       const { offset, limit, q } = req.query;
       try {
-        const result = await agreementService.getAgreementConsumers(
+        const result = await agreementService.getAgreementsConsumers(
           {
             offset,
             limit,
@@ -191,8 +214,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving consumers from agreement filtered by consumer name ${q}, offset ${offset}, limit ${limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -212,8 +234,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           getAgreementByIdErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -230,8 +251,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error deleting agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -253,8 +273,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error adding consumer document to agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -274,8 +293,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           activateAgreementErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error activating agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -295,8 +313,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error cloning agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -320,8 +337,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error downloading consumer document ${req.params.documentId} for agreement ${req.params.agreementId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -346,8 +362,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error deleting consumer document ${req.params.documentId} for agreement ${req.params.agreementId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -369,8 +384,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           getAgreementContractErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error downloading contract for agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -391,8 +405,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error submitting agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -412,8 +425,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error suspending agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -434,8 +446,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error rejecting agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -452,8 +463,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error archiving agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -474,8 +484,7 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error updating agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -495,13 +504,39 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error upgrading agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+
+    .get(
+      "/tenants/:tenantId/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/validate",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result = await agreementService.verifyTenantCertifiedAttributes(
+            req.params.tenantId,
+            req.params.eserviceId,
+            req.params.descriptorId,
+            ctx
+          );
+          return res
+            .status(200)
+            .send(bffApi.HasCertifiedAttributes.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error verifying certified attributes`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return agreementRouter;
 };

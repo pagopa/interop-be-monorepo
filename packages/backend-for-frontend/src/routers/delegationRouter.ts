@@ -2,16 +2,14 @@ import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import {
   ExpressContext,
-  FileManager,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { fromBffAppContext } from "../utilities/context.js";
-import { delegationServiceBuilder } from "../services/delegationService.js";
-import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
+import { DelegationService } from "../services/delegationService.js";
+import { makeApiProblem } from "../model/errors.js";
 import {
   getDelegationByIdErrorMapper,
   getDelegationsErrorMapper,
@@ -19,23 +17,11 @@ import {
 
 const delegationRouter = (
   ctx: ZodiosContext,
-  {
-    delegationProcessClient,
-    tenantProcessClient,
-    catalogProcessClient,
-  }: PagoPAInteropBeClients,
-  fileManager: FileManager
+  delegationService: DelegationService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const delegationRouter = ctx.router(bffApi.delegationsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const delegationService = delegationServiceBuilder(
-    delegationProcessClient,
-    tenantProcessClient,
-    catalogProcessClient,
-    fileManager
-  );
 
   delegationRouter
     .get("/delegations", async (req, res) => {
@@ -71,8 +57,7 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           getDelegationsErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving delegations`
         );
 
@@ -83,7 +68,7 @@ const delegationRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const delegation = await delegationService.getDelegationById(
+        const delegation = await delegationService.getDelegation(
           unsafeBrandId(req.params.delegationId),
           ctx
         );
@@ -93,8 +78,7 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           getDelegationByIdErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving delegation by id ${req.params.delegationId}`
         );
 
@@ -119,8 +103,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error retrieving contract ${req.params.contractId} of delegation ${req.params.delegationId}`
           );
 

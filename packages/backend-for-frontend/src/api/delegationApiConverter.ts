@@ -97,7 +97,8 @@ export function toBffDelegationApiDelegation(
     revocationContract: delegation.revocationContract
       ? toBffDelegationApiDelegationDoc(delegation.revocationContract)
       : undefined,
-    submittedAt: delegation.submittedAt,
+    createdAt: delegation.createdAt,
+    updatedAt: delegation.updatedAt,
     rejectionReason: delegation.rejectionReason,
     state: delegation.state,
     kind: delegation.kind,

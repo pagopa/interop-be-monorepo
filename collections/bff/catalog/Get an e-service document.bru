@@ -1,7 +1,7 @@
 meta {
   name: Get an e-service document
   type: http
-  seq: 2
+  seq: 26
 }
 
 get {
@@ -18,8 +18,5 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
   Accept: application/octet-stream
 }
-
-

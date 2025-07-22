@@ -9,8 +9,8 @@ import {
   TenantUnitTypeV2,
   TenantV2,
   TenantVerifierV2,
-  dateToBigInt,
-} from "../index.js";
+} from "../gen/v2/tenant/tenant.js";
+import { dateToBigInt } from "../utils.js";
 import {
   Tenant,
   TenantAttribute,
@@ -41,6 +41,14 @@ export function toFeatureV2(feature: TenantFeature): TenantFeatureV2 {
       sealedValue: {
         oneofKind: "delegatedProducer",
         delegatedProducer: {
+          availabilityTimestamp: dateToBigInt(feature.availabilityTimestamp),
+        },
+      },
+    }))
+    .with({ type: "DelegatedConsumer" }, (feature) => ({
+      sealedValue: {
+        oneofKind: "delegatedConsumer",
+        delegatedConsumer: {
           availabilityTimestamp: dateToBigInt(feature.availabilityTimestamp),
         },
       },
@@ -99,6 +107,7 @@ export function toAttributeV2(input: TenantAttribute): TenantAttributeV2 {
           id: attribute.id,
           assignmentTimestamp: dateToBigInt(attribute.assignmentTimestamp),
           revocationTimestamp: dateToBigInt(attribute.revocationTimestamp),
+          delegationId: attribute.delegationId,
         },
       },
     }))

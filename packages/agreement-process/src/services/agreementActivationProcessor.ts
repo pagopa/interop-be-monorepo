@@ -1,17 +1,19 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent } from "pagopa-interop-commons";
+import {
+  CreateEvent,
+  M2MAdminAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
   AgreementEventV2,
   AgreementState,
   CorrelationId,
-  Delegation,
   Descriptor,
   EService,
   Tenant,
   TenantId,
-  UserId,
   agreementState,
   genericError,
 } from "pagopa-interop-models";
@@ -22,7 +24,10 @@ import {
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
 } from "../model/domain/agreement-validators.js";
-import { UpdateAgreementSeed } from "../model/domain/models.js";
+import {
+  ActiveDelegations,
+  UpdateAgreementSeed,
+} from "../model/domain/models.js";
 import {
   toCreateEventAgreementActivated,
   toCreateEventAgreementSuspendedByPlatform,
@@ -49,21 +54,21 @@ export function createActivationUpdateAgreementSeed({
   suspendedByConsumer,
   suspendedByProducer,
   suspendedByPlatform,
-  producerDelegation,
+  activeDelegations,
 }: {
   isFirstActivation: boolean;
   newState: AgreementState;
   descriptor: Descriptor;
   consumer: Tenant;
   eservice: EService;
-  authData: AuthData;
+  authData: UIAuthData | M2MAdminAuthData;
   agreement: Agreement;
   suspendedByConsumer: boolean | undefined;
   suspendedByProducer: boolean | undefined;
   suspendedByPlatform: boolean | undefined;
-  producerDelegation: Delegation | undefined;
+  activeDelegations: ActiveDelegations;
 }): UpdateAgreementSeed {
-  const stamp = createStamp(authData.userId, producerDelegation?.id);
+  const stamp = createStamp(authData, activeDelegations);
 
   return isFirstActivation
     ? {
@@ -93,14 +98,15 @@ export function createActivationUpdateAgreementSeed({
             agreement,
             authData.organizationId,
             agreementState.active,
-            stamp
+            stamp,
+            activeDelegations.consumerDelegation?.delegateId
           ),
           suspensionByProducer: suspendedByProducerStamp(
             agreement,
             authData.organizationId,
             agreementState.active,
             stamp,
-            producerDelegation?.delegateId
+            activeDelegations.producerDelegation?.delegateId
           ),
         },
         suspendedByPlatform,
@@ -117,9 +123,9 @@ export async function createActivationEvent(
   originalSuspendedByPlatform: boolean | undefined,
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,
-  authData: AuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   correlationId: CorrelationId,
-  delegateProducerId?: TenantId
+  activeDelegations: ActiveDelegations
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (isFirstActivation) {
     // Pending >>> Active
@@ -162,7 +168,10 @@ export async function createActivationEvent(
     ])
       .with(
         [updatedAgreement.producerId, agreementState.active],
-        [delegateProducerId, agreementState.active],
+        [
+          activeDelegations.producerDelegation?.delegateId,
+          agreementState.active,
+        ],
         () => [
           toCreateEventAgreementUnsuspendedByProducer(
             updatedAgreement,
@@ -173,7 +182,10 @@ export async function createActivationEvent(
       )
       .with(
         [updatedAgreement.producerId, agreementState.suspended],
-        [delegateProducerId, agreementState.suspended],
+        [
+          activeDelegations.producerDelegation?.delegateId,
+          agreementState.suspended,
+        ],
         () => [
           toCreateEventAgreementUnsuspendedByProducer(
             {
@@ -191,29 +203,43 @@ export async function createActivationEvent(
           ),
         ]
       )
-      .with([updatedAgreement.consumerId, agreementState.active], () => [
-        toCreateEventAgreementUnsuspendedByConsumer(
-          updatedAgreement,
-          agreementEventStoreVersion,
-          correlationId
-        ),
-      ])
-      .with([updatedAgreement.consumerId, agreementState.suspended], () => [
-        toCreateEventAgreementUnsuspendedByConsumer(
-          {
-            ...updatedAgreement,
-            suspendedByPlatform: originalSuspendedByPlatform,
-          },
-          agreementEventStoreVersion,
-          correlationId
-        ),
-        ...maybeCreateSuspensionByPlatformEvents(
-          updatedAgreement,
-          suspendedByPlatformChanged,
-          agreementEventStoreVersion + 1,
-          correlationId
-        ),
-      ])
+      .with(
+        [updatedAgreement.consumerId, agreementState.active],
+        [
+          activeDelegations.consumerDelegation?.delegateId,
+          agreementState.active,
+        ],
+        () => [
+          toCreateEventAgreementUnsuspendedByConsumer(
+            updatedAgreement,
+            agreementEventStoreVersion,
+            correlationId
+          ),
+        ]
+      )
+      .with(
+        [updatedAgreement.consumerId, agreementState.suspended],
+        [
+          activeDelegations.consumerDelegation?.delegateId,
+          agreementState.suspended,
+        ],
+        () => [
+          toCreateEventAgreementUnsuspendedByConsumer(
+            {
+              ...updatedAgreement,
+              suspendedByPlatform: originalSuspendedByPlatform,
+            },
+            agreementEventStoreVersion,
+            correlationId
+          ),
+          ...maybeCreateSuspensionByPlatformEvents(
+            updatedAgreement,
+            suspendedByPlatformChanged,
+            agreementEventStoreVersion + 1,
+            correlationId
+          ),
+        ]
+      )
       .otherwise(() => {
         throw genericError(
           `Unexpected organizationId - nextState pair in activateAgreement. OrganizationId: ${authData.organizationId} - nextState: ${updatedAgreement.state}`
@@ -224,7 +250,8 @@ export async function createActivationEvent(
 
 export const archiveRelatedToAgreements = async (
   agreement: Agreement,
-  userId: UserId,
+  authData: UIAuthData | M2MAdminAuthData,
+  activeDelegations: ActiveDelegations,
   readModelService: ReadModelService,
   correlationId: CorrelationId
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
@@ -240,7 +267,12 @@ export const archiveRelatedToAgreements = async (
   );
 
   return archivables.map((agreementData) =>
-    createAgreementArchivedByUpgradeEvent(agreementData, userId, correlationId)
+    createAgreementArchivedByUpgradeEvent(
+      agreementData,
+      authData,
+      activeDelegations,
+      correlationId
+    )
   );
 };
 

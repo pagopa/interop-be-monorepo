@@ -2,6 +2,7 @@
 import { fail } from "assert";
 import { describe, expect, it } from "vitest";
 import {
+  algorithm,
   ClientId,
   clientKindTokenGenStates,
   generateId,
@@ -17,7 +18,7 @@ import {
   getMockTokenGenStatesApiClient,
   getMockTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
-import { dateToSeconds } from "pagopa-interop-commons";
+import { dateToSeconds, genericLogger } from "pagopa-interop-commons";
 import {
   validateClientKindAndPlatformState,
   validateRequestParameters,
@@ -28,7 +29,7 @@ import { validateAudience, validatePlatformState } from "../src/utils.js";
 import {
   algorithmNotAllowed,
   algorithmNotFound,
-  digestClaimNotFound,
+  invalidDigestClaim,
   expNotFound,
   invalidEServiceState,
   invalidAgreementState,
@@ -121,7 +122,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeUndefined();
     });
@@ -135,12 +137,33 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger,
+        true
       );
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
+      expect(errors![0].code).toEqual(
+        clientAssertionInvalidClaims("{}", "header").code
+      );
+    });
+
+    // TODO: remove this test when we will only accept valid client assertion claims
+    it("ignore unexpected claims in client assertion header", async () => {
+      const { jws } = await getMockClientAssertion({
+        customHeader: {
+          invalidHeaderProp: "wrong",
+        },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+
+      expect(errors).toBeUndefined();
     });
 
     it("clientAssertionInvalidClaims - payload", async () => {
@@ -152,11 +175,30 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger,
+        true
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
+      expect(errors![0].code).toEqual(
+        clientAssertionInvalidClaims("{}", "payload").code
+      );
+    });
+
+    it("ignore unexpected claims in client assertion payload", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          wrongPayloadProp: "wrong",
+        },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeUndefined();
     });
 
     it("wrong signature", async () => {
@@ -166,7 +208,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         clientAssertionWithWrongSignature,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeUndefined();
     });
@@ -181,7 +224,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         clientAssertionWithWrongSignature,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeUndefined();
     });
@@ -190,7 +234,8 @@ describe("validation test", async () => {
       const { errors: errors1 } = verifyClientAssertion(
         "too.many.substrings.in.client.assertion",
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors1).toBeDefined();
       expect(errors1).toHaveLength(1);
@@ -199,7 +244,8 @@ describe("validation test", async () => {
       const { errors: errors2 } = verifyClientAssertion(
         "not a jwt",
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors2).toBeDefined();
       expect(errors2).toHaveLength(1);
@@ -208,7 +254,8 @@ describe("validation test", async () => {
       const { errors: errors3 } = verifyClientAssertion(
         "not.a.jwt",
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors3).toBeDefined();
       expect(errors3).toHaveLength(1);
@@ -221,7 +268,8 @@ describe("validation test", async () => {
       const { errors: errors4 } = verifyClientAssertion(
         "signature.missing",
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors4).toBeDefined();
       expect(errors4).toHaveLength(1);
@@ -236,7 +284,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -251,7 +300,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -266,7 +316,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -278,7 +329,7 @@ describe("validation test", async () => {
       const options: jsonwebtoken.SignOptions = {
         header: {
           kid: generateId(),
-          alg: "RS256",
+          alg: algorithm.RS256,
         },
       };
       const jws = jsonwebtoken.sign(
@@ -290,7 +341,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
 
       expect(errors).toBeDefined();
@@ -309,7 +361,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -325,7 +378,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -341,7 +395,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -355,7 +410,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -369,7 +425,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(2);
@@ -383,7 +440,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -398,7 +456,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         generateId<ClientId>(),
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -414,7 +473,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         clientId,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -431,7 +491,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -444,7 +505,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         notClientId,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -461,23 +523,43 @@ describe("validation test", async () => {
       const verifiedClientAssertion = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
+      expect(verifiedClientAssertion.errors).toBeUndefined();
       expect(verifiedClientAssertion.data?.payload.digest).toBeUndefined();
     });
 
-    it("digestClaimNotFound", async () => {
+    it("should not throw error if digest is null", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          digest: null,
+        },
+      });
+
+      const verifiedClientAssertion = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(verifiedClientAssertion.errors).toBeUndefined();
+      expect(verifiedClientAssertion.data?.payload.digest).toBeUndefined();
+    });
+
+    it("invalidDigestClaim", async () => {
       const { jws } = await getMockClientAssertion({
         customClaims: { digest: { alg: "alg", invalidProp: true } },
       });
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(digestClaimNotFound("").code);
+      expect(errors![0].code).toEqual(invalidDigestClaim("").code);
     });
 
     it("invalidHashLength", async () => {
@@ -489,7 +571,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -505,7 +588,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -521,7 +605,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(2);
@@ -539,7 +624,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -554,7 +640,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -568,7 +655,8 @@ describe("validation test", async () => {
       const { errors } = verifyClientAssertion(
         jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -594,7 +682,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         jws,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeUndefined();
     });
@@ -610,7 +698,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         jws,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(
@@ -671,7 +759,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         jws,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -687,7 +775,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         "not-a-valid-jws",
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -708,7 +796,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         clientAssertionWithWrongSignature,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -724,7 +812,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         "too.many.substrings.in.client.assertion",
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -748,7 +836,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         clientAssertionWithWrongSignature,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -780,7 +868,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         jws,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -875,7 +963,8 @@ describe("validation test", async () => {
           })
         ).jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       if (!mockClientAssertion) {
         fail();
@@ -900,7 +989,8 @@ describe("validation test", async () => {
           })
         ).jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       if (!mockClientAssertion) {
         fail();
@@ -922,7 +1012,8 @@ describe("validation test", async () => {
       const { data: mockClientAssertion } = verifyClientAssertion(
         (await getMockClientAssertion()).jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       if (!mockClientAssertion) {
         fail();
@@ -949,7 +1040,8 @@ describe("validation test", async () => {
           })
         ).jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       if (!mockClientAssertion) {
         fail();
@@ -974,7 +1066,8 @@ describe("validation test", async () => {
           })
         ).jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       if (!mockClientAssertion) {
         fail();
@@ -1001,7 +1094,8 @@ describe("validation test", async () => {
           })
         ).jws,
         undefined,
-        expectedAudiences
+        expectedAudiences,
+        genericLogger
       );
       if (!mockClientAssertion) {
         fail();

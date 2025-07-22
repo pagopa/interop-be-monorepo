@@ -1,6 +1,7 @@
 import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
+  authorizationApi,
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
@@ -8,7 +9,9 @@ import {
   delegationKind,
   delegationState,
   EServiceId,
+  EServiceTemplateId,
   TenantId,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { descriptorAttributesFromApi } from "../api/catalogApiConverter.js";
@@ -20,8 +23,10 @@ import { tenantAttributesFromApi } from "../api/tenantApiConverter.js";
 import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import {
   delegatedEserviceNotExportable,
+  eserviceIsNotDraft,
   invalidEServiceRequester,
   notValidDescriptor,
+  templateInstanceNotAllowed,
 } from "../model/errors.js";
 import {
   agreementApiState,
@@ -193,7 +198,38 @@ export function hasCertifiedAttributes(
 export function verifyExportEligibility(
   descriptor: catalogApi.EServiceDescriptor
 ): void {
-  if (isValidDescriptor(descriptor)) {
+  if (!isValidDescriptor(descriptor)) {
     throw notValidDescriptor(descriptor.id, descriptor.state);
+  }
+}
+
+export function assertIsDraftEservice(eservice: catalogApi.EService): void {
+  if (
+    eservice.descriptors.some(
+      (d) => d.state !== catalogApi.EServiceDescriptorState.Values.DRAFT
+    )
+  ) {
+    throw eserviceIsNotDraft(eservice.id);
+  }
+}
+
+export function assertEServiceNotTemplateInstance(
+  eservice: catalogApi.EService
+): asserts eservice is catalogApi.EService & {
+  templateId: EServiceTemplateId | undefined;
+} {
+  const templateId = eservice.templateId;
+  if (templateId !== undefined) {
+    throw templateInstanceNotAllowed(eservice.id, templateId);
+  }
+}
+
+export function assertClientVisibilityIsFull(
+  client: authorizationApi.Client
+): asserts client is authorizationApi.Client & {
+  visibility: typeof authorizationApi.Visibility.Values.FULL;
+} {
+  if (client.visibility !== authorizationApi.Visibility.Values.FULL) {
+    throw unauthorizedError("Tenant is not the owner of the client");
   }
 }

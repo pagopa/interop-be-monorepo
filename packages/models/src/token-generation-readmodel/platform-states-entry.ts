@@ -10,6 +10,7 @@ import {
   PurposeId,
   PurposeVersionId,
   TenantId,
+  UserId,
 } from "../brandedIds.js";
 import { ClientKindTokenGenStates } from "./commons.js";
 
@@ -54,6 +55,7 @@ export const PlatformStatesAgreementEntry = PlatformStatesBaseEntry.extend({
   agreementId: AgreementId,
   agreementTimestamp: z.string().datetime(),
   agreementDescriptorId: DescriptorId,
+  producerId: TenantId,
 });
 export type PlatformStatesAgreementEntry = z.infer<
   typeof PlatformStatesAgreementEntry
@@ -64,6 +66,7 @@ export const PlatformStatesClientEntry = PlatformStatesBaseEntry.extend({
   clientKind: ClientKindTokenGenStates,
   clientConsumerId: TenantId,
   clientPurposesIds: z.array(PurposeId),
+  clientAdminId: UserId.optional(),
 });
 export type PlatformStatesClientEntry = z.infer<
   typeof PlatformStatesClientEntry

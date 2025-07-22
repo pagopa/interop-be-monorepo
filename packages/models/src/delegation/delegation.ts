@@ -62,11 +62,8 @@ export const Delegation = z.object({
   delegateId: TenantId,
   eserviceId: EServiceId,
   createdAt: z.coerce.date(),
-  submittedAt: z.coerce.date(),
-  approvedAt: z.coerce.date().optional(),
-  rejectedAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
   rejectionReason: z.string().optional(),
-  revokedAt: z.coerce.date().optional(),
   state: DelegationState,
   kind: DelegationKind,
   activationContract: DelegationContractDocument.optional(),
@@ -74,3 +71,16 @@ export const Delegation = z.object({
   stamps: DelegationStamps,
 });
 export type Delegation = z.infer<typeof Delegation>;
+
+export const DelegationStampKind = DelegationStamps.keyof();
+export type DelegationStampKind = z.infer<typeof DelegationStampKind>;
+
+export const delegationContractKind = {
+  activation: "activation",
+  revocation: "revocation",
+} as const;
+export const DelegationContractKind = z.enum([
+  Object.values(delegationContractKind)[0],
+  ...Object.values(delegationContractKind).slice(1),
+]);
+export type DelegationContractKind = z.infer<typeof DelegationContractKind>;

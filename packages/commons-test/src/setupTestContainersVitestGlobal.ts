@@ -4,52 +4,62 @@
 /* eslint-disable functional/no-let */
 
 import { config as dotenv } from "dotenv-flow";
-import { StartedTestContainer } from "testcontainers";
-import type { GlobalSetupContext } from "vitest/node";
-import type {} from "vitest";
 import {
+  AWSSesConfig,
+  AnalyticsSQLDbConfig,
+  DPoPConfig,
   EventStoreConfig,
   FileManagerConfig,
-  LoggerConfig,
   ReadModelDbConfig,
+  ReadModelSQLDbConfig,
   RedisRateLimiterConfig,
   S3Config,
   TokenGenerationReadModelDbConfig,
+  InAppNotificationDBConfig,
 } from "pagopa-interop-commons";
-import { z } from "zod";
+import { StartedTestContainer } from "testcontainers";
+import type {} from "vitest";
+import type { GlobalSetupContext } from "vitest/node";
 import {
+  TEST_AWS_SES_PORT,
+  TEST_DYNAMODB_PORT,
+  TEST_MAILPIT_HTTP_PORT,
+  TEST_MAILPIT_SMTP_PORT,
   TEST_MINIO_PORT,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
+  TEST_REDIS_PORT,
+  awsSESContainer,
+  dynamoDBContainer,
+  mailpitContainer,
   minioContainer,
   mongoDBContainer,
+  postgreSQLReadModelContainer,
   postgreSQLContainer,
-  mailpitContainer,
-  TEST_MAILPIT_SMTP_PORT,
-  TEST_MAILPIT_HTTP_PORT,
-  dynamoDBContainer,
-  TEST_DYNAMODB_PORT,
   redisContainer,
-  TEST_REDIS_PORT,
+  postgreSQLAnalyticsContainer,
+  inAppNotificationDBContainer,
+  TEST_IN_APP_NOTIFICATION_DB_PORT,
 } from "./containerTestUtils.js";
-import { PecEmailManagerConfigTest } from "./testConfig.js";
-
-const EnhancedTokenGenerationReadModelDbConfig =
-  TokenGenerationReadModelDbConfig.and(
-    z.object({ tokenGenerationReadModelDbPort: z.number() })
-  );
-type EnhancedTokenGenerationReadModelDbConfig = z.infer<
-  typeof EnhancedTokenGenerationReadModelDbConfig
->;
+import {
+  EnhancedDPoPConfig,
+  EnhancedTokenGenerationReadModelDbConfig,
+  PecEmailManagerConfigTest,
+} from "./testConfig.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
+    readModelSQLConfig?: ReadModelSQLDbConfig;
     tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
-    fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
+    fileManagerConfig?: FileManagerConfig & S3Config;
     redisRateLimiterConfig?: RedisRateLimiterConfig;
     emailManagerConfig?: PecEmailManagerConfigTest;
+    sesEmailManagerConfig?: AWSSesConfig;
+    analyticsSQLDbConfig?: AnalyticsSQLDbConfig;
+    dpopConfig?: EnhancedDPoPConfig;
+    inAppNotificationDbConfig?: InAppNotificationDBConfig;
   }
 }
 
@@ -65,23 +75,32 @@ export function setupTestContainersVitestGlobal() {
   dotenv();
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
-  const fileManagerConfig = FileManagerConfig.and(S3Config)
-    .and(LoggerConfig)
-    .safeParse(process.env);
+  const readModelSQLConfig = ReadModelSQLDbConfig.safeParse(process.env);
+  const analyticsSQLDbConfig = AnalyticsSQLDbConfig.safeParse(process.env);
+  const fileManagerConfig = FileManagerConfig.safeParse(process.env);
   const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
   const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
+  const awsSESConfig = AWSSesConfig.safeParse(process.env);
   const tokenGenerationReadModelConfig =
     TokenGenerationReadModelDbConfig.safeParse(process.env);
+  const dpopConfig = DPoPConfig.safeParse(process.env);
+  const inAppNotificationDbConfig = InAppNotificationDBConfig.safeParse(
+    process.env
+  );
 
   return async function ({
     provide,
   }: GlobalSetupContext): Promise<() => Promise<void>> {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
+    let startedPostgreSqlReadModelContainer: StartedTestContainer | undefined;
+    let startedPostgreSqlAnalyticsContainer: StartedTestContainer | undefined;
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
     let startedRedisContainer: StartedTestContainer | undefined;
     let startedDynamoDbContainer: StartedTestContainer | undefined;
+    let startedAWSSesContainer: StartedTestContainer | undefined;
+    let startedInAppNotificationContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -111,6 +130,31 @@ export function setupTestContainersVitestGlobal() {
       provide("eventStoreConfig", eventStoreConfig.data);
     }
 
+    if (readModelSQLConfig.success) {
+      startedPostgreSqlReadModelContainer = await postgreSQLReadModelContainer(
+        readModelSQLConfig.data
+      ).start();
+
+      readModelSQLConfig.data.readModelSQLDbPort =
+        startedPostgreSqlReadModelContainer.getMappedPort(
+          TEST_POSTGRES_DB_PORT
+        );
+
+      provide("readModelSQLConfig", readModelSQLConfig.data);
+    }
+
+    if (analyticsSQLDbConfig.success) {
+      startedPostgreSqlAnalyticsContainer = await postgreSQLAnalyticsContainer(
+        analyticsSQLDbConfig.data
+      ).start();
+      analyticsSQLDbConfig.data.dbPort =
+        startedPostgreSqlAnalyticsContainer.getMappedPort(
+          TEST_POSTGRES_DB_PORT
+        );
+
+      provide("analyticsSQLDbConfig", analyticsSQLDbConfig.data);
+    }
+
     // Setting up the MongoDB container if the config is provided
     if (readModelConfig.success) {
       startedMongodbContainer = await mongoDBContainer(
@@ -125,14 +169,22 @@ export function setupTestContainersVitestGlobal() {
 
     // Setting up the Minio container if the config is provided
     if (fileManagerConfig.success) {
-      startedMinioContainer = await minioContainer(
-        fileManagerConfig.data
-      ).start();
+      const s3Bucket =
+        S3Config.safeParse(process.env)?.data?.s3Bucket ??
+        "interop-local-bucket";
+
+      startedMinioContainer = await minioContainer({
+        ...fileManagerConfig.data,
+        s3Bucket,
+      }).start();
 
       fileManagerConfig.data.s3ServerPort =
         startedMinioContainer?.getMappedPort(TEST_MINIO_PORT);
 
-      provide("fileManagerConfig", fileManagerConfig.data);
+      provide("fileManagerConfig", {
+        ...fileManagerConfig.data,
+        s3Bucket,
+      });
     }
 
     if (emailManagerConfig.success) {
@@ -157,6 +209,15 @@ export function setupTestContainersVitestGlobal() {
       });
     }
 
+    if (dpopConfig.success) {
+      startedDynamoDbContainer = await dynamoDBContainer().start();
+
+      provide("dpopConfig", {
+        ...dpopConfig.data,
+        dpopDbPort: startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT),
+      });
+    }
+
     if (redisRateLimiterConfig.success) {
       startedRedisContainer = await redisContainer().start();
       redisRateLimiterConfig.data.rateLimiterRedisPort =
@@ -164,13 +225,40 @@ export function setupTestContainersVitestGlobal() {
       provide("redisRateLimiterConfig", redisRateLimiterConfig.data);
     }
 
+    if (awsSESConfig.success) {
+      startedAWSSesContainer = await awsSESContainer().start();
+      provide("sesEmailManagerConfig", {
+        awsRegion: awsSESConfig.data.awsRegion,
+        awsSesEndpoint: `http://localhost:${startedAWSSesContainer.getMappedPort(
+          TEST_AWS_SES_PORT
+        )}`,
+      });
+    }
+
+    if (inAppNotificationDbConfig.success) {
+      startedInAppNotificationContainer = await inAppNotificationDBContainer(
+        inAppNotificationDbConfig.data
+      ).start();
+      provide("inAppNotificationDbConfig", {
+        ...inAppNotificationDbConfig.data,
+        inAppNotificationDBPort:
+          startedInAppNotificationContainer.getMappedPort(
+            TEST_IN_APP_NOTIFICATION_DB_PORT
+          ),
+      });
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
+      await startedPostgreSqlReadModelContainer?.stop();
+      await startedPostgreSqlAnalyticsContainer?.stop();
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
       await startedDynamoDbContainer?.stop();
       await startedRedisContainer?.stop();
+      await startedAWSSesContainer?.stop();
+      await startedInAppNotificationContainer?.stop();
     };
   };
 }
