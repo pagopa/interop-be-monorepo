@@ -29,7 +29,6 @@ import {
   clientJWKKeyReadModelServiceBuilder,
   clientReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
-  producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
   producerJWKKeyReadModelServiceBuilder,
@@ -68,8 +67,6 @@ export const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 export const clientReadModelServiceSQL =
   clientReadModelServiceBuilder(readModelDB);
-export const producerKeychainReadModelServiceSQL =
-  producerKeychainReadModelServiceBuilder(readModelDB);
 export const clientKeysReadModelServiceSQL =
   clientJWKKeyReadModelServiceBuilder(readModelDB);
 export const producerKeychainKeyReadModelServiceSQL =
