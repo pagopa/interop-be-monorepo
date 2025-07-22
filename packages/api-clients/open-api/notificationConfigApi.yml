@@ -517,15 +517,10 @@ components:
           type: boolean
         clientKeyAddedDeletedToClientUsers:
           type: boolean
-    TenantNotificationConfigSeed:
-      type: object
-      additionalProperties: false
-      required:
-        - tenantId
-      properties:
-        tenantId:
-          type: string
-          format: uuid
+        productionAgreementSuspendedUnsuspended:
+          type: boolean
+        consumptionAgreementSuspendedUnsuspended:
+          type: boolean
     UserNotificationConfigSeed:
       type: object
       additionalProperties: false
@@ -557,14 +552,14 @@ components:
       additionalProperties: false
       required:
         - newEServiceVersionPublished
-        - producerSuspendUnsuspendAgreement
-        - consumerSuspendUnsuspendAgreement
+        - productionAgreementSuspendedUnsuspended
+        - consumptionAgreementSuspendedUnsuspended
       properties:
         newEServiceVersionPublished:
           type: boolean
-        producerSuspendUnsuspendAgreement:
+        productionAgreementSuspendedUnsuspended:
           type: boolean
-        consumerSuspendUnsuspendAgreement:
+        consumptionAgreementSuspendedUnsuspended:
           type: boolean
     Problem:
       properties:
