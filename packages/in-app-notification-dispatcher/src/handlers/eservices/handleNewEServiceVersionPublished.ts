@@ -26,7 +26,7 @@ export async function handleNewEServiceVersionPublished(
     );
   }
   logger.info(
-    `Sending in-app notification for new descriptor published eservice ${eserviceV2Msg.id}`
+    `Sending in-app notification for handleNewEServiceVersionPublished ${eserviceV2Msg.id}`
   );
 
   const eservice = fromEServiceV2(eserviceV2Msg);
