@@ -14,7 +14,7 @@ import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import { config } from "../../config/config.js";
 import { retrieveTenant, retrieveEservice } from "../handlerCommons.js";
 
-export type AgreementSuspendUnsuspendEventType =
+export type AgreementSuspendedUnsuspendedEventType =
   | "AgreementSuspendedByConsumer"
   | "AgreementUnsuspendedByConsumer"
   | "AgreementSuspendedByProducer"
@@ -31,7 +31,7 @@ export async function handleAgreementSuspendedUnsuspended(
   agreementV2Msg: AgreementV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  eventType: AgreementSuspendUnsuspendEventType
+  eventType: AgreementSuspendedUnsuspendedEventType
 ): Promise<Notification[]> {
   if (!agreementV2Msg) {
     throw missingKafkaMessageDataError("agreement", eventType);
@@ -87,7 +87,7 @@ async function getSubjectName(
     producerId: TenantId;
     consumerId: TenantId;
   },
-  eventType: AgreementSuspendUnsuspendEventType,
+  eventType: AgreementSuspendedUnsuspendedEventType,
   readModelService: ReadModelServiceSQL
 ): Promise<string> {
   const getTenantName = async (tenantId: TenantId): Promise<string> => {
@@ -95,7 +95,9 @@ async function getSubjectName(
     return tenant.name;
   };
 
-  return match<AgreementSuspendUnsuspendEventType, Promise<string>>(eventType)
+  return match<AgreementSuspendedUnsuspendedEventType, Promise<string>>(
+    eventType
+  )
     .with(
       "AgreementSuspendedByConsumer",
       "AgreementUnsuspendedByConsumer",
@@ -115,9 +117,9 @@ async function getSubjectName(
 }
 
 function getAudiencesToNotify(
-  eventType: AgreementSuspendUnsuspendEventType
+  eventType: AgreementSuspendedUnsuspendedEventType
 ): NotificationAudience[] {
-  return match<AgreementSuspendUnsuspendEventType, NotificationAudience[]>(
+  return match<AgreementSuspendedUnsuspendedEventType, NotificationAudience[]>(
     eventType
   )
     .with("AgreementSuspendedByConsumer", () => ["producer"])
@@ -130,11 +132,12 @@ function getAudiencesToNotify(
 }
 
 function getActionPerformed(
-  eventType: AgreementSuspendUnsuspendEventType
+  eventType: AgreementSuspendedUnsuspendedEventType
 ): "sospeso" | "riattivato" {
-  return match<AgreementSuspendUnsuspendEventType, "sospeso" | "riattivato">(
-    eventType
-  )
+  return match<
+    AgreementSuspendedUnsuspendedEventType,
+    "sospeso" | "riattivato"
+  >(eventType)
     .with(
       "AgreementSuspendedByConsumer",
       "AgreementSuspendedByProducer",
