@@ -34,11 +34,11 @@ export const aggregateTenantNotificationConfig = ({
     newEServiceVersionPublished: enabledNotifications.includes(
       "newEServiceVersionPublished"
     ),
-    producerSuspendUnsuspendAgreement: enabledNotifications.includes(
-      "producerSuspendUnsuspendAgreement"
+    productionAgreementSuspendedUnsuspended: enabledNotifications.includes(
+      "productionAgreementSuspendedUnsuspended"
     ),
-    consumerSuspendUnsuspendAgreement: enabledNotifications.includes(
-      "consumerSuspendUnsuspendAgreement"
+    consumptionAgreementSuspendedUnsuspended: enabledNotifications.includes(
+      "consumptionAgreementSuspendedUnsuspended"
     ),
   };
 
@@ -81,22 +81,22 @@ export const aggregateUserNotificationConfig = ({
     newEServiceVersionPublished: enabledInAppNotifications.includes(
       "newEServiceVersionPublished"
     ),
-    producerSuspendUnsuspendAgreement: enabledNotifications.includes(
-      "producerSuspendUnsuspendAgreement.inApp"
+    productionAgreementSuspendedUnsuspended: enabledNotifications.includes(
+      "productionAgreementSuspendedUnsuspended.inApp"
     ),
-    consumerSuspendUnsuspendAgreement: enabledNotifications.includes(
-      "consumerSuspendUnsuspendAgreement.inApp"
+    consumptionAgreementSuspendedUnsuspended: enabledNotifications.includes(
+      "consumptionAgreementSuspendedUnsuspended.inApp"
     ),
   };
   const emailConfig: NotificationConfig = {
     newEServiceVersionPublished: enabledEmailNotifications.includes(
       "newEServiceVersionPublished"
     ),
-    producerSuspendUnsuspendAgreement: enabledNotifications.includes(
-      "producerSuspendUnsuspendAgreement.email"
+    productionAgreementSuspendedUnsuspended: enabledNotifications.includes(
+      "productionAgreementSuspendedUnsuspended.email"
     ),
-    consumerSuspendUnsuspendAgreement: enabledNotifications.includes(
-      "consumerSuspendUnsuspendAgreement.email"
+    consumptionAgreementSuspendedUnsuspended: enabledNotifications.includes(
+      "consumptionAgreementSuspendedUnsuspended.email"
     ),
   };
 

@@ -7,7 +7,12 @@ import {
 export function tenantNotificationConfigToApiTenantNotificationConfig({
   id,
   tenantId,
-  config: { newEServiceVersionPublished, ...rest },
+  config: {
+    newEServiceVersionPublished,
+    productionAgreementSuspendedUnsuspended,
+    consumptionAgreementSuspendedUnsuspended,
+    ...rest
+  },
   createdAt,
   updatedAt,
 }: TenantNotificationConfig): notificationConfigApi.TenantNotificationConfig {
@@ -17,6 +22,8 @@ export function tenantNotificationConfigToApiTenantNotificationConfig({
     tenantId,
     config: {
       newEServiceVersionPublished,
+      productionAgreementSuspendedUnsuspended,
+      consumptionAgreementSuspendedUnsuspended,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),
@@ -29,10 +36,18 @@ export function userNotificationConfigToApiUserNotificationConfig({
   tenantId,
   inAppConfig: {
     newEServiceVersionPublished: newEServiceVersionPublishedInApp,
+    productionAgreementSuspendedUnsuspended:
+      productionAgreementSuspendedUnsuspendedInApp,
+    consumptionAgreementSuspendedUnsuspended:
+      consumptionAgreementSuspendedUnsuspendedInApp,
     ...inAppRest
   },
   emailConfig: {
     newEServiceVersionPublished: newEServiceVersionPublishedEmail,
+    productionAgreementSuspendedUnsuspended:
+      productionAgreementSuspendedUnsuspendedEmail,
+    consumptionAgreementSuspendedUnsuspended:
+      consumptionAgreementSuspendedUnsuspendedEmail,
     ...emailRest
   },
   createdAt,
@@ -46,9 +61,17 @@ export function userNotificationConfigToApiUserNotificationConfig({
     tenantId,
     inAppConfig: {
       newEServiceVersionPublished: newEServiceVersionPublishedInApp,
+      productionAgreementSuspendedUnsuspended:
+        productionAgreementSuspendedUnsuspendedInApp,
+      consumptionAgreementSuspendedUnsuspended:
+        consumptionAgreementSuspendedUnsuspendedInApp,
     },
     emailConfig: {
       newEServiceVersionPublished: newEServiceVersionPublishedEmail,
+      productionAgreementSuspendedUnsuspended:
+        productionAgreementSuspendedUnsuspendedEmail,
+      consumptionAgreementSuspendedUnsuspended:
+        consumptionAgreementSuspendedUnsuspendedEmail,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),

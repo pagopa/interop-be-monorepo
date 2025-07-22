@@ -26,10 +26,10 @@ type NotificationAudience = "consumer" | "producer";
 type ActionType = "sospeso" | "riattivato";
 
 type NotificationConfig =
-  | "consumerSuspendUnsuspendAgreement"
-  | "producerSuspendUnsuspendAgreement";
+  | "consumptionAgreementSuspendedUnsuspended"
+  | "productionAgreementSuspendedUnsuspended";
 
-export async function handleAgreementSuspendUnsuspend(
+export async function handleAgreementSuspendedUnsuspended(
   agreementV2Msg: AgreementV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
@@ -39,7 +39,7 @@ export async function handleAgreementSuspendUnsuspend(
     throw missingKafkaMessageDataError("agreement", eventType);
   }
   logger.info(
-    `Sending in-app notification for ${eventType} agreement ${agreementV2Msg.id}`
+    `Handle agreement suspended/unsuspended in-app notification for ${eventType} agreement ${agreementV2Msg.id}`
   );
 
   const agreement = fromAgreementV2(agreementV2Msg);
@@ -168,8 +168,8 @@ async function getUsersWithNotificationsEnabled(
     return readModelService.getTenantUsersWithNotificationEnabled(
       [audienceId],
       match<NotificationAudience, NotificationConfig>(audience)
-        .with("consumer", () => "consumerSuspendUnsuspendAgreement")
-        .with("producer", () => "producerSuspendUnsuspendAgreement")
+        .with("consumer", () => "consumptionAgreementSuspendedUnsuspended")
+        .with("producer", () => "productionAgreementSuspendedUnsuspended")
         .exhaustive()
     );
   });
