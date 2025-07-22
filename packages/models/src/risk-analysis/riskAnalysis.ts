@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  LinkId,
   RiskAnalysisFormId,
   RiskAnalysisFormTemplateId,
   RiskAnalysisId,
@@ -68,6 +69,7 @@ export const RiskAnalysisTemplateAnnotationDocument = z.object({
 
 // TODO: move to commons if needed
 export const Link = z.object({
+  id: LinkId,
   url: z.string().url(),
   name: z.string(),
 });
