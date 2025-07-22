@@ -73,6 +73,7 @@ export const Link = z.object({
   url: z.string().url(),
   name: z.string(),
 });
+export type Link = z.infer<typeof Link>;
 
 export const RiskAnalysisTemplateAnswerAnnotation = z.object({
   id: RiskAnalysisTemplateAnswerAnnotationId,
@@ -80,6 +81,9 @@ export const RiskAnalysisTemplateAnswerAnnotation = z.object({
   docs: z.array(RiskAnalysisTemplateAnnotationDocument).optional(),
   urls: z.array(Link).optional(),
 });
+export type RiskAnalysisTemplateAnswerAnnotation = z.infer<
+  typeof RiskAnalysisTemplateAnswerAnnotation
+>;
 
 export const RiskAnalysisTemplateSingleAnswer = RiskAnalysisSingleAnswer.and(
   z.object({
@@ -87,6 +91,9 @@ export const RiskAnalysisTemplateSingleAnswer = RiskAnalysisSingleAnswer.and(
     annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
   })
 );
+export type RiskAnalysisTemplateSingleAnswer = z.infer<
+  typeof RiskAnalysisTemplateSingleAnswer
+>;
 
 export const RiskAnalysisTemplateMultiAnswer = RiskAnalysisMultiAnswer.and(
   z.object({
@@ -94,6 +101,9 @@ export const RiskAnalysisTemplateMultiAnswer = RiskAnalysisMultiAnswer.and(
     annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
   })
 );
+export type RiskAnalysisTemplateMultiAnswer = z.infer<
+  typeof RiskAnalysisTemplateMultiAnswer
+>;
 
 export const RiskAnalysisFormTemplate = z.object({
   id: RiskAnalysisFormTemplateId,
@@ -101,3 +111,4 @@ export const RiskAnalysisFormTemplate = z.object({
   singleAnswers: z.array(RiskAnalysisTemplateSingleAnswer),
   multiAnswers: z.array(RiskAnalysisTemplateMultiAnswer),
 });
+export type RiskAnalysisFormTemplate = z.infer<typeof RiskAnalysisFormTemplate>;

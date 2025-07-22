@@ -20,12 +20,15 @@ export const PurposeTemplateState = z.enum([
 export type PurposeTemplateState = z.infer<typeof PurposeTemplateState>;
 
 export const PurposeTemplate = z.object({
+  // TODO: new purposeTemplate properties
   id: PurposeTemplateId,
   name: z.string(),
   target: z.string(),
   creatorId: TenantId,
-  eserviceId: EServiceId,
   descriptorId: DescriptorId,
+
+  // TODO: original purpose/purposeVersion properties
+  eserviceId: EServiceId,
   state: PurposeTemplateState,
   title: z.string(),
   description: z.string(),
@@ -36,3 +39,4 @@ export const PurposeTemplate = z.object({
   freeOfChargeReason: z.string().optional(),
   dailyCalls: z.number().optional(),
 });
+export type PurposeTemplate = z.infer<typeof PurposeTemplate>;
