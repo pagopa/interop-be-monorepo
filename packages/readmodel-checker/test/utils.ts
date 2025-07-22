@@ -32,7 +32,6 @@ import {
   producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
-  producerJWKKeyReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -72,8 +71,6 @@ export const producerKeychainReadModelServiceSQL =
   producerKeychainReadModelServiceBuilder(readModelDB);
 export const clientKeysReadModelServiceSQL =
   clientJWKKeyReadModelServiceBuilder(readModelDB);
-export const producerKeychainKeyReadModelServiceSQL =
-  producerJWKKeyReadModelServiceBuilder(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>
