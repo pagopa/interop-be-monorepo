@@ -314,10 +314,10 @@ export function readModelServiceBuilderSQL(
                                 delegationInReadmodelDelegation.delegateId,
                                 authData.organizationId
                               ),
-                              eq(
-                                delegationInReadmodelDelegation.state,
-                                delegationState.active
-                              ),
+                              inArray(delegationInReadmodelDelegation.state, [
+                                delegationState.active,
+                                delegationState.waitingForApproval,
+                              ]),
                               eq(
                                 delegationInReadmodelDelegation.kind,
                                 delegationKind.delegatedProducer
