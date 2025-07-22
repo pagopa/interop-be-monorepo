@@ -2,7 +2,7 @@ import { match } from "ts-pattern";
 import {
   TenantEventEnvelopeV1,
   fromTenantV1,
-  genericInternalError,
+  missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { ReadModelService } from "./readModelService.js";
@@ -18,7 +18,7 @@ export async function handleMessageV1(
       { type: "TenantMailAdded" },
       async (msg) => {
         if (!msg.data.tenant) {
-          throw genericInternalError("Tenant not found in message");
+          throw missingKafkaMessageDataError("tenant", msg.type);
         }
 
         await readModelService.upsertTenant(
