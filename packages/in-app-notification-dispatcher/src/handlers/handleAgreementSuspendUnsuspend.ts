@@ -14,7 +14,7 @@ import { inAppTemplates } from "../templates/inAppTemplates.js";
 import { config } from "../config/config.js";
 import { retrieveTenant, retrieveEservice } from "./handlerCommons.js";
 
-type AgreementSuspendUnsuspendEventType =
+export type AgreementSuspendUnsuspendEventType =
   | "AgreementSuspendedByConsumer"
   | "AgreementUnsuspendedByConsumer"
   | "AgreementSuspendedByProducer"
