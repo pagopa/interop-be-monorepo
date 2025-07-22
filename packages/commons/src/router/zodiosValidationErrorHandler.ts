@@ -14,14 +14,14 @@ export function zodiosValidationErrorToApiProblem(
         context: string;
         error: z.ZodIssue[];
       }
-    | Error,
+    | SyntaxError,
   req: WithZodiosContext<express.Request, ExpressContext>,
   res: Response,
   _next: NextFunction
 ): Response {
   const ctx = fromAppContext(req.ctx);
   const { detail, errors } =
-    zodError instanceof Error
+    zodError instanceof SyntaxError
       ? { detail: zodError.message, errors: [zodError] }
       : {
           detail: `Incorrect value for ${zodError.context}`,
