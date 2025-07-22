@@ -265,8 +265,6 @@ describe("addTenantMail", async () => {
           authData: getMockAuthData(mockTenant.id),
         })
       )
-    ).rejects.toThrowError(
-      notValidMailAddress(mailSeedWithStrangeCharacters.address)
-    );
+    ).rejects.toThrowError(notValidMailAddress());
   });
 });

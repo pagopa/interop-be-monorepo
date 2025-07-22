@@ -293,7 +293,7 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
         const attribute =
           await attributeRegistryService.createDeclaredAttribute(req.body, ctx);
@@ -315,7 +315,7 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
         const { data: attribute, metadata } =
           await attributeRegistryService.createVerifiedAttribute(req.body, ctx);
