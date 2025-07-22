@@ -9,10 +9,10 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
-import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../templates/inAppTemplates.js";
-import { config } from "../config/config.js";
-import { retrieveTenant, retrieveEservice } from "./handlerCommons.js";
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { inAppTemplates } from "../../templates/inAppTemplates.js";
+import { config } from "../../config/config.js";
+import { retrieveTenant, retrieveEservice } from "../handlerCommons.js";
 
 export type AgreementSuspendUnsuspendEventType =
   | "AgreementSuspendedByConsumer"
