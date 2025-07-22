@@ -16,7 +16,10 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { config } from "../src/config/config.js";
-import { handleAgreementSuspendedUnsuspended } from "../src/handlers/handleAgreementSuspendUnsuspend.js";
+import {
+  AgreementSuspendUnsuspendEventType,
+  handleAgreementSuspendedUnsuspended,
+} from "../src/handlers/handleAgreementSuspendUnsuspend.js";
 import { tenantNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
@@ -26,7 +29,7 @@ import {
   readModelService,
 } from "./utils.js";
 
-describe("handleAgreementSuspendUnsuspend", () => {
+describe("handleAgreementSuspendedUnsuspended", () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -109,7 +112,12 @@ describe("handleAgreementSuspendUnsuspend", () => {
     expect(notifications).toEqual([]);
   });
 
-  it.each([
+  it.each<{
+    eventType: AgreementSuspendUnsuspendEventType;
+    expectedAudience: "consumer" | "producer" | "both";
+    expectedAction: "sospeso" | "riattivato";
+    expectedSubject: string;
+  }>([
     {
       eventType: "AgreementSuspendedByConsumer",
       expectedAudience: "producer",
@@ -183,13 +191,7 @@ describe("handleAgreementSuspendUnsuspend", () => {
         toAgreementV2(agreement),
         logger,
         readModelService,
-        eventType as
-          | "AgreementSuspendedByConsumer"
-          | "AgreementUnsuspendedByConsumer"
-          | "AgreementSuspendedByProducer"
-          | "AgreementUnsuspendedByProducer"
-          | "AgreementSuspendedByPlatform"
-          | "AgreementUnsuspendedByPlatform"
+        eventType
       );
 
       const expectedUsers: Array<{ userId: string; tenantId: string }> =
@@ -204,7 +206,7 @@ describe("handleAgreementSuspendUnsuspend", () => {
       expect(notifications).toHaveLength(expectedUsers.length);
 
       const expectedBody = inAppTemplates.agreementSuspendedUnsuspended(
-        expectedAction as "sospeso" | "riattivato",
+        expectedAction,
         expectedSubject,
         eservice.name
       );
