@@ -12,6 +12,7 @@ import {
   AttributeId,
   TenantId,
   EServiceTemplateId,
+  Technology,
 } from "pagopa-interop-models";
 
 export type ApiGetEServicesFilters = {
@@ -21,8 +22,11 @@ export type ApiGetEServicesFilters = {
   states: DescriptorState[];
   agreementStates: AgreementState[];
   name?: string;
+  technology?: Technology;
   mode?: EServiceMode;
+  isSignalHubEnabled?: boolean;
   isConsumerDelegable?: boolean;
+  isClientAccessDelegable?: boolean;
   delegated?: boolean;
   templatesIds: EServiceTemplateId[];
 };
@@ -43,7 +47,7 @@ export type EServiceDocument = {
 };
 
 export const consumer = z.object({
-  descriptorVersion: z.coerce.number().int(),
+  descriptorVersion: z.string(),
   descriptorState: DescriptorState,
   agreementState: AgreementState,
   consumerName: z.string(),

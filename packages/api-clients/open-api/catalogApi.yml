@@ -97,8 +97,23 @@ paths:
           schema:
             $ref: "#/components/schemas/EServiceMode"
         - in: query
+          name: technology
+          description: EService technology filter
+          schema:
+            $ref: "#/components/schemas/EServiceTechnology"
+        - in: query
+          name: isSignalHubEnabled
+          description: EService isSignalHubEnabled filter
+          schema:
+            type: boolean
+        - in: query
           name: isConsumerDelegable
           description: EService isConsumerDelegable filter
+          schema:
+            type: boolean
+        - in: query
+          name: isClientAccessDelegable
+          description: EService isClientAccessDelegable filter
           schema:
             type: boolean
         - in: query
@@ -3039,8 +3054,7 @@ components:
           type: string
           format: uuid
         version:
-          type: integer
-          format: int32
+          type: string
         description:
           type: string
         audience:

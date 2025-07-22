@@ -120,6 +120,29 @@ const attributeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/certifiedAttributes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const attributes = await attributeService.getCertifiedAttributes(
+          req.query,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.CertifiedAttributes.parse(attributes));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error retrieving certified attributes"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/verifiedAttributes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 

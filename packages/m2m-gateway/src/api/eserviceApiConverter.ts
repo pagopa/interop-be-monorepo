@@ -6,13 +6,16 @@ export function toGetEServicesQueryParams(
   return {
     producersIds: params.producerIds,
     templatesIds: params.templateIds,
-    name: undefined,
+    name: params.name,
+    technology: params.technology,
     eservicesIds: [],
     attributesIds: [],
     states: [],
     agreementStates: [],
-    mode: undefined,
-    isConsumerDelegable: undefined,
+    mode: params.mode,
+    isSignalHubEnabled: params.isSignalHubEnabled,
+    isConsumerDelegable: params.isConsumerDelegable,
+    isClientAccessDelegable: params.isClientAccessDelegable,
     delegated: undefined,
     offset: params.offset,
     limit: params.limit,
@@ -41,7 +44,7 @@ export function toM2MGatewayApiEServiceDescriptor(
 ): m2mGatewayApi.EServiceDescriptor {
   return {
     id: descriptor.id,
-    version: descriptor.version.toString(),
+    version: descriptor.version,
     description: descriptor.description,
     audience: descriptor.audience,
     voucherLifespan: descriptor.voucherLifespan,

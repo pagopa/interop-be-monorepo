@@ -42,6 +42,7 @@ import {
   upgradeAgreementErrorMapper,
   computeAgreementsStateErrorMapper,
   verifyTenantCertifiedAttributesErrorMapper,
+  getAgreementConsumerDocumentsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
@@ -149,7 +150,33 @@ const agreementRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/agreements/:agreementId/consumer-documents", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
+
+        const { results, totalCount } =
+          await agreementService.getAgreementConsumerDocuments(
+            unsafeBrandId(req.params.agreementId),
+            req.query,
+            ctx
+          );
+        return res.status(200).send(
+          agreementApi.Documents.parse({
+            results: results.map(agreementDocumentToApiAgreementDocument),
+            totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getAgreementConsumerDocumentsErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get(
       "/agreements/:agreementId/consumer-documents/:documentId",
       async (req, res) => {
@@ -584,12 +611,15 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.cloneAgreement(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.cloneAgreement(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
