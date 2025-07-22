@@ -1,6 +1,6 @@
 import {
   Agreement,
-  ProducerJWKKey,
+  Attribute,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
@@ -10,19 +10,19 @@ import {
   agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
+  attributeInReadmodelAttribute,
   DrizzleReturnType,
-  producerJwkKeyInReadmodelProducerJwkKey,
   tenantNotificationConfigInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
 } from "./notification-config/splitters.js";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
-import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
-import { splitProducerJWKKeyIntoObjectsSQL } from "./authorization/producerJWKKeySplitters.js";
+import { checkMetadataVersion } from "./utils.js";
+import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -108,23 +108,17 @@ export const upsertAgreement = async (
   });
 };
 
-export const upsertProducerJWKKey = async (
+export const upsertAttribute = async (
   readModelDB: DrizzleReturnType,
-  jwkKey: ProducerJWKKey,
+  attribute: Attribute,
   metadataVersion: number
 ): Promise<void> => {
   await readModelDB.transaction(async (tx) => {
-    const shouldUpsert = await checkMetadataVersionByFilter(
+    const shouldUpsert = await checkMetadataVersion(
       tx,
-      producerJwkKeyInReadmodelProducerJwkKey,
+      attributeInReadmodelAttribute,
       metadataVersion,
-      and(
-        eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid),
-        eq(
-          producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
-          jwkKey.producerKeychainId
-        )
-      )
+      attribute.id
     );
 
     if (!shouldUpsert) {
@@ -132,24 +126,14 @@ export const upsertProducerJWKKey = async (
     }
 
     await tx
-      .delete(producerJwkKeyInReadmodelProducerJwkKey)
-      .where(
-        and(
-          eq(
-            producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
-            jwkKey.producerKeychainId
-          ),
-          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
-        )
-      );
+      .delete(attributeInReadmodelAttribute)
+      .where(eq(attributeInReadmodelAttribute.id, attribute.id));
 
-    const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
-      jwkKey,
+    const attributeSQL = splitAttributeIntoObjectsSQL(
+      attribute,
       metadataVersion
     );
 
-    await tx
-      .insert(producerJwkKeyInReadmodelProducerJwkKey)
-      .values(producerJWKKeySQL);
+    await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
   });
 };
