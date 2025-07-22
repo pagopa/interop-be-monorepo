@@ -2,6 +2,8 @@ import { runConsumer } from "kafka-iam-auth";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
+import { InteropTokenGenerator } from "pagopa-interop-commons";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { userServiceBuilderSQL } from "./services/userServiceSQL.js";
 import { messageProcessorBuilder } from "./services/messageProcessor.js";
@@ -19,12 +21,20 @@ const pool = new pg.Pool({
 });
 const userDB = drizzle(pool);
 
+const notificationConfigProcessClient =
+  notificationConfigApi.createProcessApiClient(
+    config.notificationConfigProcessUrl
+  );
+
 const readModelServiceSQL = readModelServiceBuilderSQL({ readModelDB });
 const userServiceSQL = userServiceBuilderSQL(userDB);
+const interopTokenGenerator = new InteropTokenGenerator(config);
 
 const messageProcessor = messageProcessorBuilder(
   readModelServiceSQL,
-  userServiceSQL
+  userServiceSQL,
+  notificationConfigProcessClient,
+  interopTokenGenerator
 );
 
 await runConsumer(

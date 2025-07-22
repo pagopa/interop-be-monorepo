@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  APIEndpoint,
   KafkaConsumerConfig,
   ReadModelSQLDbConfig,
   SelfcareConsumerConfig,
@@ -12,7 +13,17 @@ export const SelfcareClientUsersUpdaterConsumerConfig = KafkaConsumerConfig.and(
 )
   .and(ReadModelSQLDbConfig)
   .and(SelfcareConsumerConfig)
-  .and(UserSQLDbConfig);
+  .and(UserSQLDbConfig)
+  .and(TokenGenerationConfig)
+  .and(
+    z
+      .object({
+        NOTIFICATION_CONFIG_PROCESS_URL: APIEndpoint,
+      })
+      .transform((c) => ({
+        notificationConfigProcessUrl: c.NOTIFICATION_CONFIG_PROCESS_URL,
+      }))
+  );
 
 export type SelfcareClientUsersUpdaterConsumerConfig = z.infer<
   typeof SelfcareClientUsersUpdaterConsumerConfig

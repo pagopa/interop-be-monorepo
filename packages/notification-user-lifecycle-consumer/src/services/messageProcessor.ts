@@ -1,4 +1,4 @@
-import { logger } from "pagopa-interop-commons";
+import { InteropTokenGenerator, logger } from "pagopa-interop-commons";
 import {
   unsafeBrandId,
   genericInternalError,
@@ -7,16 +7,23 @@ import {
 import type { UserId, SelfcareId, CorrelationId } from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { match } from "ts-pattern";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { UsersEventPayload } from "../model/UsersEventPayload.js";
 import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import { UserServiceSQL } from "./userServiceSQL.js";
 
+// eslint-disable-next-line max-params
 export async function processUserEvent(
   payload: UsersEventPayload,
   readModelServiceSQL: ReadModelServiceSQL,
   userServiceSQL: UserServiceSQL,
-  loggerInstance: ReturnType<typeof logger>
+  notificationConfigProcessClient: ReturnType<
+    typeof notificationConfigApi.createProcessApiClient
+  >,
+  interopTokenGenerator: InteropTokenGenerator,
+  loggerInstance: ReturnType<typeof logger>,
+  correlationId: CorrelationId
 ): Promise<void> {
   const userId = unsafeBrandId<UserId>(payload.user.userId);
   const institutionId = unsafeBrandId<SelfcareId>(payload.institutionId);
@@ -41,19 +48,49 @@ export async function processUserEvent(
     productRole: payload.user.productRole,
   };
 
+  // TODO try catch process call error
   await match(action)
-    .with("add", () => {
+    .with("add", async () => {
       loggerInstance.info(`Add user id ${userId} from tenant ${tenantId}`);
-      // TODO: call internal create notification config
+
+      const { serialized } =
+        await interopTokenGenerator.generateInternalToken();
+      await notificationConfigProcessClient.createUserDefaultNotificationConfig(
+        {
+          userId,
+          tenantId,
+        },
+        {
+          headers: {
+            "X-Correlation-Id": correlationId,
+            Authorization: `Bearer ${serialized}`,
+          },
+        }
+      );
+
       return userServiceSQL.insertUser(userData);
     })
-    .with("update", () => {
+    .with("update", async () => {
       loggerInstance.info(`Update user id ${userId} from tenant ${tenantId}`);
       return userServiceSQL.updateUser(userData);
     })
-    .with("delete", () => {
+    .with("delete", async () => {
       loggerInstance.info(`Removing user ${userId} from tenant ${tenantId}`);
-      // TODO: call internal delete notification config
+      const { serialized } =
+        await interopTokenGenerator.generateInternalToken();
+      await notificationConfigProcessClient.deleteUserNotificationConfig(
+        undefined,
+        {
+          params: {
+            userId,
+            tenantId,
+          },
+          headers: {
+            "X-Correlation-Id": correlationId,
+            Authorization: `Bearer ${serialized}`,
+          },
+        }
+      );
       return userServiceSQL.deleteUser(userId);
     })
     .exhaustive();
@@ -69,7 +106,11 @@ function jsonSafeParse(json: string): unknown {
 
 export function messageProcessorBuilder(
   readModelServiceSQL: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL
+  userServiceSQL: UserServiceSQL,
+  notificationConfigProcessClient: ReturnType<
+    typeof notificationConfigApi.createProcessApiClient
+  >,
+  interopTokenGenerator: InteropTokenGenerator
 ): { processMessage: (payload: EachMessagePayload) => Promise<void> } {
   return {
     processMessage: async ({
@@ -110,7 +151,10 @@ export function messageProcessorBuilder(
           userEventPayload.data,
           readModelServiceSQL,
           userServiceSQL,
-          loggerInstance
+          notificationConfigProcessClient,
+          interopTokenGenerator,
+          loggerInstance,
+          correlationId
         );
         loggerInstance.info(
           `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${userEventPayload.data.institutionId}`
