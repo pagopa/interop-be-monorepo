@@ -203,5 +203,22 @@ export function eserviceServiceBuilder(
       await pollEserviceById(eServiceId, metadata, headers);
       return toM2MGatewayApiEService(data);
     },
+    async unsuspendDescriptor(
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Unsuspending descriptor with id ${descriptorId} for eservice with id ${eServiceId}`
+      );
+
+      const { data, metadata } =
+        await clients.catalogProcessClient.activateDescriptor(undefined, {
+          params: { eServiceId, descriptorId },
+          headers,
+        });
+      await pollEserviceById(eServiceId, metadata, headers);
+      return toM2MGatewayApiEService(data);
+    },
   };
 }
