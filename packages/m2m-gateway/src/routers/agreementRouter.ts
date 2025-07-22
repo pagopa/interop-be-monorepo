@@ -339,7 +339,30 @@ const agreementRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/agreements/:agreementId/clone", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const clonedAgreement = await agreementService.cloneAgreement(
+          unsafeBrandId(req.params.agreementId),
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.Agreement.parse(clonedAgreement));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error cloning agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return agreementRouter;
 };
