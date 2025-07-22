@@ -6,13 +6,13 @@ import {
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
-import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../templates/inAppTemplates.js";
-import { config } from "../config/config.js";
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { inAppTemplates } from "../../templates/inAppTemplates.js";
+import { config } from "../../config/config.js";
 import {
   retrieveLatestPublishedDescriptor,
   retrieveTenant,
-} from "./handlerCommons.js";
+} from "../handlerCommons.js";
 
 export async function handleNewEServiceVersionPublished(
   eserviceV2Msg: EServiceV2 | undefined,

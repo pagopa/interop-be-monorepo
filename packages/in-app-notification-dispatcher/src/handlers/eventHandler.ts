@@ -10,7 +10,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { handleNewEServiceVersionPublished } from "./handleNewEServiceVersionPublished.js";
+import { handleNewEServiceVersionPublished } from "./eservices/handleNewEServiceVersionPublished.js";
 
 export async function handleEvent(
   decodedMessage:
