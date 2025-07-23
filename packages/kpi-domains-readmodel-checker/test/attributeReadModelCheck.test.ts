@@ -2,6 +2,7 @@ import { getMockAttribute } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { Attribute, WithMetadata, attributeKind } from "pagopa-interop-models";
+import { upsertAttribute } from "pagopa-interop-readmodel/testUtils";
 import { compare } from "../src/utils.js";
 import {
   addOneAttribute,
@@ -9,7 +10,6 @@ import {
   readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
-import { upsertAttribute } from "pagopa-interop-readmodel/testUtils";
 
 describe("Check attribute readmodels", () => {
   it("should return -1 if the postgres schema is empty", async () => {
@@ -45,7 +45,7 @@ describe("Check attribute readmodels", () => {
     await upsertAttribute(
       readModelDB,
       attribute.data,
-      attribute.metadata.version,
+      attribute.metadata.version
     );
 
     const attributes = await readModelServiceKPI.getAllAttributes();
@@ -79,7 +79,7 @@ describe("Check attribute readmodels", () => {
     await upsertAttribute(
       readModelDB,
       attribute2.data,
-      attribute2.metadata.version,
+      attribute2.metadata.version
     );
 
     const attributes = await readModelServiceKPI.getAllAttributes();
@@ -112,12 +112,12 @@ describe("Check attribute readmodels", () => {
     await upsertAttribute(
       readModelDB,
       attribute1.data,
-      attribute1.metadata.version,
+      attribute1.metadata.version
     );
     await upsertAttribute(
       readModelDB,
       attribute2.data,
-      attribute2.metadata.version,
+      attribute2.metadata.version
     );
 
     const attributes = await readModelServiceKPI.getAllAttributes();
@@ -156,7 +156,7 @@ describe("Check attribute readmodels", () => {
     await upsertAttribute(
       readModelDB,
       attribute1InPostgresDb.data,
-      attribute1InPostgresDb.metadata.version,
+      attribute1InPostgresDb.metadata.version
     );
 
     const attributes = await readModelServiceKPI.getAllAttributes();
@@ -191,7 +191,7 @@ describe("Check attribute readmodels", () => {
     await upsertAttribute(
       readModelDB,
       attribute1InPostgresDb.data,
-      attribute1InPostgresDb.metadata.version,
+      attribute1InPostgresDb.metadata.version
     );
 
     const attributes = await readModelServiceKPI.getAllAttributes();
