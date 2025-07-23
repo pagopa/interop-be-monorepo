@@ -155,5 +155,23 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
+    async createDeclaredAttribute(
+      seed: m2mGatewayApi.DeclaredAttributeSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.DeclaredAttribute> {
+      logger.info(`Creating declared attribute with name ${seed.name}`);
+
+      const response =
+        await clients.attributeProcessClient.createDeclaredAttribute(seed, {
+          headers,
+        });
+
+      const polledResource = await pollAttribute(response, headers);
+
+      return toM2MGatewayApiDeclaredAttribute({
+        attribute: polledResource.data,
+        logger,
+      });
+    },
   };
 }
