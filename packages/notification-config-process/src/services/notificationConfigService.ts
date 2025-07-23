@@ -197,7 +197,7 @@ export function notificationConfigServiceBuilder(
         (await tenantReadModelService.getTenantById(tenantId)) === undefined
       ) {
         logger.warn(
-          `Tenant ${tenantId} not found, creating default notification configuration anyway`
+          `Tenant ${tenantId} not found, creating default notification configuration anyway (assuming the readmodel is not yet updated with the new tenant)`
         );
       }
 
@@ -273,7 +273,7 @@ export function notificationConfigServiceBuilder(
         (await tenantReadModelService.getTenantById(tenantId)) !== undefined
       ) {
         logger.warn(
-          `Tenant ${tenantId} still exists, deleting notification configuration anyway`
+          `Tenant ${tenantId} still exists, deleting notification configuration anyway (assuming the readmodel is not yet updated with the deletion)`
         );
       }
 
