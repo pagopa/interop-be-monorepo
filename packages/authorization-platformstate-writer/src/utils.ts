@@ -825,26 +825,59 @@ export const upsertTokenGenStatesConsumerClientsV1 = async ({
         );
       }
 
-      const updateTokenGenStatesData = async (): Promise<void> => {
-        const { purposeEntry, agreementEntry, catalogEntry } =
-          await retrievePlatformStatesByPurpose(
-            purposeId,
-            dynamoDBClient,
-            logger
-          );
+      if (clientEntries.data.length === 0) {
+        return [];
+      }
 
-        const seenKids = new Set<string>();
+      const { purposeEntry, agreementEntry, catalogEntry } =
+        await retrievePlatformStatesByPurpose(
+          purposeId,
+          dynamoDBClient,
+          logger
+        );
 
-        for (const entry of clientEntries.data) {
-          const addedTokenGenStatesConsumerClient = await match(
-            // Count without the current purpose
-            purposeIds.length - 1
-          )
-            .with(0, async () => {
+      const seenKids = new Set<string>();
+
+      for (const entry of clientEntries.data) {
+        const addedTokenGenStatesConsumerClient = await match(
+          // Count without the current purpose
+          purposeIds.length - 1
+        )
+          .with(0, async () => {
+            const newTokenGenStatesConsumerClient =
+              createTokenGenStatesConsumerClient({
+                consumerId: entry.consumerId,
+                kid: extractKidFromTokenGenStatesEntryPK(entry.PK),
+                publicKey: entry.publicKey,
+                clientId,
+                purposeId,
+                purposeEntry,
+                agreementEntry,
+                catalogEntry,
+              });
+
+            await upsertTokenGenStatesConsumerClient(
+              newTokenGenStatesConsumerClient,
+              dynamoDBClient,
+              logger
+            );
+            if (TokenGenerationStatesClientKidPK.safeParse(entry.PK).success) {
+              // Remove only partial entries (to avoid deleting complete entries after retry)
+              await deleteClientEntryFromTokenGenerationStates(
+                entry.PK,
+                dynamoDBClient,
+                logger
+              );
+            }
+            return newTokenGenStatesConsumerClient;
+          })
+          .with(P.number.gt(0), async () => {
+            const kid = extractKidFromTokenGenStatesEntryPK(entry.PK);
+            if (!seenKids.has(kid)) {
               const newTokenGenStatesConsumerClient =
                 createTokenGenStatesConsumerClient({
                   consumerId: entry.consumerId,
-                  kid: extractKidFromTokenGenStatesEntryPK(entry.PK),
+                  kid,
                   publicKey: entry.publicKey,
                   clientId,
                   purposeId,
@@ -858,55 +891,20 @@ export const upsertTokenGenStatesConsumerClientsV1 = async ({
                 dynamoDBClient,
                 logger
               );
-              if (
-                TokenGenerationStatesClientKidPK.safeParse(entry.PK).success
-              ) {
-                // Remove only partial entries (to avoid deleting complete entries after retry)
-                await deleteClientEntryFromTokenGenerationStates(
-                  entry.PK,
-                  dynamoDBClient,
-                  logger
-                );
-              }
+              seenKids.add(kid);
               return newTokenGenStatesConsumerClient;
-            })
-            .with(P.number.gt(0), async () => {
-              const kid = extractKidFromTokenGenStatesEntryPK(entry.PK);
-              if (!seenKids.has(kid)) {
-                const newTokenGenStatesConsumerClient =
-                  createTokenGenStatesConsumerClient({
-                    consumerId: entry.consumerId,
-                    kid,
-                    publicKey: entry.publicKey,
-                    clientId,
-                    purposeId,
-                    purposeEntry,
-                    agreementEntry,
-                    catalogEntry,
-                  });
+            }
+            return null;
+          })
+          .run();
 
-                await upsertTokenGenStatesConsumerClient(
-                  newTokenGenStatesConsumerClient,
-                  dynamoDBClient,
-                  logger
-                );
-                seenKids.add(kid);
-                return newTokenGenStatesConsumerClient;
-              }
-              return null;
-            })
-            .run();
-
-          if (addedTokenGenStatesConsumerClient) {
-            // eslint-disable-next-line functional/immutable-data
-            addedTokenGenStatesConsumerClients.push(
-              addedTokenGenStatesConsumerClient
-            );
-          }
+        if (addedTokenGenStatesConsumerClient) {
+          // eslint-disable-next-line functional/immutable-data
+          addedTokenGenStatesConsumerClients.push(
+            addedTokenGenStatesConsumerClient
+          );
         }
-      };
-
-      await updateTokenGenStatesData();
+      }
 
       exclusiveStartKey = data.LastEvaluatedKey;
     }
