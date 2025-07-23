@@ -1,7 +1,7 @@
 import {
   EServiceEventEnvelopeV2,
   fromEServiceV2,
-  genericInternalError,
+  missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -61,12 +61,10 @@ export async function handleMessageV2(
       { type: "EServiceSignalHubDisabled" },
       async (message) => {
         const eservice = message.data.eservice;
-
         if (!eservice) {
-          throw genericInternalError(
-            "Eservice can't be missing in event message"
-          );
+          throw missingKafkaMessageDataError("eservice", message.type);
         }
+
         return await catalogWriterService.upsertEService(
           fromEServiceV2(eservice),
           message.version
