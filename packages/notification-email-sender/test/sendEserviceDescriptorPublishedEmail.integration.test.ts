@@ -60,7 +60,7 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: "Published",
-      version: "1",
+      version: 1,
     };
 
     const eservice: EService = {
@@ -214,7 +214,7 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: "Published",
-      version: "1",
+      version: 1,
     };
 
     const eservice: EService = {

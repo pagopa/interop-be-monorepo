@@ -66,6 +66,7 @@ export const toDocumentV1 = (input: Document): EServiceDocumentV1 => ({
 
 export const toDescriptorV1 = (input: Descriptor): EServiceDescriptorV1 => ({
   ...input,
+  version: input.version.toString(),
   attributes: {
     certified: input.attributes.certified.map(toEServiceAttributeV1),
     declared: input.attributes.declared.map(toEServiceAttributeV1),

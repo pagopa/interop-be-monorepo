@@ -363,7 +363,7 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
 
 export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
-  version: "1",
+  version: 1,
   docs: [],
   state: state || descriptorState.draft,
   audience: ["pagopa.it"],
