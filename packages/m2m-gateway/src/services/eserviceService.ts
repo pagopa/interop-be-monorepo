@@ -257,5 +257,26 @@ export function eserviceServiceBuilder(
       await pollEserviceById(eServiceId, metadata, headers);
       return toM2MGatewayApiEService(data);
     },
+    async rejectDelegatedEServiceDescriptor(
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      body: catalogApi.RejectDelegatedEServiceDescriptorSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Rejecting a delegated eService descriptor with id ${descriptorId} for eservice with id ${eServiceId}`
+      );
+
+      const { data, metadata } =
+        await clients.catalogProcessClient.rejectDelegatedEServiceDescriptor(
+          body,
+          {
+            params: { eServiceId, descriptorId },
+            headers,
+          }
+        );
+      await pollEserviceById(eServiceId, metadata, headers);
+      return toM2MGatewayApiEService(data);
+    },
   };
 }
