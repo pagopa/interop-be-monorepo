@@ -8,7 +8,6 @@ import {
 } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
 import {
-  attributeReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
@@ -31,7 +30,11 @@ import {
   Delegation,
   EServiceId,
 } from "pagopa-interop-models";
-import { upsertAgreement } from "pagopa-interop-readmodel/testUtils";
+import {
+  upsertAgreement,
+  upsertAttribute,
+  upsertEService,
+} from "pagopa-interop-readmodel/testUtils";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -62,7 +65,6 @@ export const attributes = readModelRepository.attributes;
 export const delegations = readModelRepository.delegations;
 export const eserviceTemplates = readModelRepository.eserviceTemplates;
 
-const attributeReadModelService = attributeReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
@@ -129,12 +131,12 @@ export const writeEServiceTemplateInEventstore = async (
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeEServiceInEventstore(eservice);
   await writeInReadmodel(toReadModelEService(eservice), eservices);
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-  await attributeReadModelService.upsertAttribute(attribute, 0);
+  await upsertAttribute(readModelDB, attribute, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
