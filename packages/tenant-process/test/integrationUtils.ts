@@ -32,6 +32,10 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
+import {
+  upsertAgreement,
+  upsertAttribute,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
@@ -112,7 +116,7 @@ export const writeTenantInEventstore = async (
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
@@ -122,7 +126,7 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-  await attributeReadModelServiceSQL.upsertAttribute(attribute, 0);
+  await upsertAttribute(readModelDB, attribute, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
