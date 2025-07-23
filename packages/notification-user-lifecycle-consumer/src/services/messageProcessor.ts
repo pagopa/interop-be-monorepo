@@ -53,21 +53,26 @@ export async function processUserEvent(
     .with("add", async () => {
       loggerInstance.info(`Add user id ${userId} from tenant ${tenantId}`);
 
-      const { serialized } =
-        await interopTokenGenerator.generateInternalToken();
-      await notificationConfigProcessClient.createUserDefaultNotificationConfig(
-        {
-          userId,
-          tenantId,
-        },
-        {
-          headers: {
-            "X-Correlation-Id": correlationId,
-            Authorization: `Bearer ${serialized}`,
+      try {
+        const { serialized } =
+          await interopTokenGenerator.generateInternalToken();
+        await notificationConfigProcessClient.createUserDefaultNotificationConfig(
+          {
+            userId,
+            tenantId,
           },
-        }
-      );
-
+          {
+            headers: {
+              "X-Correlation-Id": correlationId,
+              Authorization: `Bearer ${serialized}`,
+            },
+          }
+        );
+      } catch (err) {
+        loggerInstance.error(
+          `Error creating user default notification config for user ${userId} from tenant ${tenantId}. Reason: ${err}`
+        );
+      }
       return userServiceSQL.insertUser(userData);
     })
     .with("update", async () => {
@@ -76,21 +81,27 @@ export async function processUserEvent(
     })
     .with("delete", async () => {
       loggerInstance.info(`Removing user ${userId} from tenant ${tenantId}`);
-      const { serialized } =
-        await interopTokenGenerator.generateInternalToken();
-      await notificationConfigProcessClient.deleteUserNotificationConfig(
-        undefined,
-        {
-          params: {
-            userId,
-            tenantId,
-          },
-          headers: {
-            "X-Correlation-Id": correlationId,
-            Authorization: `Bearer ${serialized}`,
-          },
-        }
-      );
+      try {
+        const { serialized } =
+          await interopTokenGenerator.generateInternalToken();
+        await notificationConfigProcessClient.deleteUserNotificationConfig(
+          undefined,
+          {
+            params: {
+              userId,
+              tenantId,
+            },
+            headers: {
+              "X-Correlation-Id": correlationId,
+              Authorization: `Bearer ${serialized}`,
+            },
+          }
+        );
+      } catch (err) {
+        loggerInstance.error(
+          `Error deleting user default notification config for user ${userId} from tenant ${tenantId}. Reason: ${err}`
+        );
+      }
       return userServiceSQL.deleteUser(userId);
     })
     .exhaustive();
