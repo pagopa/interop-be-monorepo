@@ -201,12 +201,13 @@ export const aggregateUserNotificationConfig = ({
     clientKeyStatusChangedToClientUsers: enabledInAppNotifications.includes(
       "clientKeyStatusChangedToClientUsers"
     ),
-    productionAgreementSuspendedUnsuspended: enabledNotifications.includes(
-      "productionAgreementSuspendedUnsuspended.inApp"
+    productionAgreementSuspendedUnsuspended: enabledInAppNotifications.includes(
+      "productionAgreementSuspendedUnsuspended"
     ),
-    consumptionAgreementSuspendedUnsuspended: enabledNotifications.includes(
-      "consumptionAgreementSuspendedUnsuspended.inApp"
-    ),
+    consumptionAgreementSuspendedUnsuspended:
+      enabledInAppNotifications.includes(
+        "consumptionAgreementSuspendedUnsuspended"
+      ),
   };
   const emailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: enabledEmailNotifications.includes(
@@ -274,12 +275,13 @@ export const aggregateUserNotificationConfig = ({
     clientKeyStatusChangedToClientUsers: enabledEmailNotifications.includes(
       "clientKeyStatusChangedToClientUsers"
     ),
-    productionAgreementSuspendedUnsuspended: enabledNotifications.includes(
-      "productionAgreementSuspendedUnsuspended.email"
+    productionAgreementSuspendedUnsuspended: enabledEmailNotifications.includes(
+      "productionAgreementSuspendedUnsuspended"
     ),
-    consumptionAgreementSuspendedUnsuspended: enabledNotifications.includes(
-      "consumptionAgreementSuspendedUnsuspended.email"
-    ),
+    consumptionAgreementSuspendedUnsuspended:
+      enabledEmailNotifications.includes(
+        "consumptionAgreementSuspendedUnsuspended"
+      ),
   };
 
   return {
