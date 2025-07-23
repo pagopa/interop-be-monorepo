@@ -4222,6 +4222,88 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/reject:
+    post:
+      tags:
+        - eservices
+      summary: reject a delegated new e-service version
+      operationId: rejectDelegatedEServiceDescriptor
+      description: Rejects a delegated E-Service descriptor
+      requestBody:
+        description: Payload containing the reason of the rejection
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedEServiceDescriptorSeed"
+        required: true
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: New delegated e-service version rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: EService not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /eserviceTemplates/{templateId}:
     parameters:
       - name: templateId
@@ -7557,6 +7639,14 @@ components:
       enum:
         - REST
         - SOAP
+    RejectDelegatedEServiceDescriptorSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        rejectionReason:
+          type: string
+      required:
+        - rejectionReason
     EServiceTemplate:
       type: object
       additionalProperties: false
