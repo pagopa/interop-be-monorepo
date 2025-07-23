@@ -75,6 +75,7 @@ describe("API /producerKeychains authorization test", () => {
     authRole.ADMIN_ROLE,
     authRole.SECURITY_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.M2M_ROLE,
   ];
 
   it.each(authorizedRoles)(

@@ -4,13 +4,11 @@ import {
   generateId,
   ProducerKeychain,
   ProducerKeychainId,
-  TenantId,
   UserId,
 } from "pagopa-interop-models";
 import {
   generateToken,
   getMockProducerKeychain,
-  mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -21,10 +19,7 @@ import {
   producerKeychainUserAlreadyAssigned,
   userWithoutSecurityPrivileges,
 } from "../../src/model/domain/errors.js";
-import {
-  testToFullProducerKeychain,
-  testToPartialProducerKeychain,
-} from "../apiUtils.js";
+import { testToFullProducerKeychain } from "../apiUtils.js";
 
 describe("API /producerKeychains/{producerKeychainId}/users authorization test", () => {
   const users: UserId[] = [generateId()];
@@ -54,26 +49,8 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
 
   it.each(authorizedRoles)(
-    "Should return 200 with a partial producerKeychain for user with role %s and tenant != producerKeychain consumerId",
+    "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken(role);
-      const res = await makeRequest(token, mockProducerKeychain.id);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(
-        testToPartialProducerKeychain(mockProducerKeychain)
-      );
-    }
-  );
-
-  it.each(authorizedRoles)(
-    "Should return 200 with a full producerKeychain for user with role %s and tenant = producerKeychain producerId",
-    async (role) => {
-      const mockProducerKeychain = getMockProducerKeychain({
-        producerId: mockTokenOrganizationId,
-      });
-      authorizationService.addProducerKeychainUsers = vi
-        .fn()
-        .mockResolvedValueOnce(mockProducerKeychain);
       const token = generateToken(role);
       const res = await makeRequest(token, mockProducerKeychain.id);
       expect(res.status).toBe(200);
