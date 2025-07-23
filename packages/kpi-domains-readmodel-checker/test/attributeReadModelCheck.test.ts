@@ -5,10 +5,11 @@ import { Attribute, WithMetadata, attributeKind } from "pagopa-interop-models";
 import { compare } from "../src/utils.js";
 import {
   addOneAttribute,
-  attributeReadModelServiceSQL,
+  readModelDB,
   readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
+import { upsertAttribute } from "pagopa-interop-readmodel/testUtils";
 
 describe("Check attribute readmodels", () => {
   it("should return -1 if the postgres schema is empty", async () => {
@@ -41,9 +42,10 @@ describe("Check attribute readmodels", () => {
 
     await addOneAttribute(attribute);
 
-    await attributeReadModelServiceSQL.upsertAttribute(
+    await upsertAttribute(
+      readModelDB,
       attribute.data,
-      attribute.metadata.version
+      attribute.metadata.version,
     );
 
     const attributes = await readModelServiceKPI.getAllAttributes();
@@ -74,9 +76,10 @@ describe("Check attribute readmodels", () => {
     await addOneAttribute(attribute1);
     await addOneAttribute(attribute2);
 
-    await attributeReadModelServiceSQL.upsertAttribute(
+    await upsertAttribute(
+      readModelDB,
       attribute2.data,
-      attribute2.metadata.version
+      attribute2.metadata.version,
     );
 
     const attributes = await readModelServiceKPI.getAllAttributes();
@@ -106,13 +109,15 @@ describe("Check attribute readmodels", () => {
 
     await addOneAttribute(attribute1);
 
-    await attributeReadModelServiceSQL.upsertAttribute(
+    await upsertAttribute(
+      readModelDB,
       attribute1.data,
-      attribute1.metadata.version
+      attribute1.metadata.version,
     );
-    await attributeReadModelServiceSQL.upsertAttribute(
+    await upsertAttribute(
+      readModelDB,
       attribute2.data,
-      attribute2.metadata.version
+      attribute2.metadata.version,
     );
 
     const attributes = await readModelServiceKPI.getAllAttributes();
@@ -148,9 +153,10 @@ describe("Check attribute readmodels", () => {
 
     await addOneAttribute(attribute1);
 
-    await attributeReadModelServiceSQL.upsertAttribute(
+    await upsertAttribute(
+      readModelDB,
       attribute1InPostgresDb.data,
-      attribute1InPostgresDb.metadata.version
+      attribute1InPostgresDb.metadata.version,
     );
 
     const attributes = await readModelServiceKPI.getAllAttributes();
@@ -182,9 +188,10 @@ describe("Check attribute readmodels", () => {
 
     await addOneAttribute(attribute1);
 
-    await attributeReadModelServiceSQL.upsertAttribute(
+    await upsertAttribute(
+      readModelDB,
       attribute1InPostgresDb.data,
-      attribute1InPostgresDb.metadata.version
+      attribute1InPostgresDb.metadata.version,
     );
 
     const attributes = await readModelServiceKPI.getAllAttributes();

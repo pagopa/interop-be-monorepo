@@ -5,10 +5,11 @@ import { Agreement, WithMetadata, generateId } from "pagopa-interop-models";
 import { compare } from "../src/utils.js";
 import {
   addOneAgreement,
-  agreementReadModelServiceSQL,
+  readModelDB,
   readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
+import { upsertAgreement } from "pagopa-interop-readmodel/testUtils";
 
 describe("Check agreement readmodels", () => {
   it("should return -1 if the postgres schema is empty", async () => {
@@ -41,9 +42,10 @@ describe("Check agreement readmodels", () => {
 
     await addOneAgreement(agreement);
 
-    await agreementReadModelServiceSQL.upsertAgreement(
+    await upsertAgreement(
+      readModelDB,
       agreement.data,
-      agreement.metadata.version
+      agreement.metadata.version,
     );
 
     const agreements = await readModelServiceKPI.getAllAgreements();
@@ -74,9 +76,10 @@ describe("Check agreement readmodels", () => {
     await addOneAgreement(agreement1);
     await addOneAgreement(agreement2);
 
-    await agreementReadModelServiceSQL.upsertAgreement(
+    await upsertAgreement(
+      readModelDB,
       agreement2.data,
-      agreement2.metadata.version
+      agreement2.metadata.version,
     );
 
     const agreements = await readModelServiceKPI.getAllAgreements();
@@ -106,13 +109,15 @@ describe("Check agreement readmodels", () => {
 
     await addOneAgreement(agreement1);
 
-    await agreementReadModelServiceSQL.upsertAgreement(
+    await upsertAgreement(
+      readModelDB,
       agreement1.data,
-      agreement1.metadata.version
+      agreement1.metadata.version,
     );
-    await agreementReadModelServiceSQL.upsertAgreement(
+    await upsertAgreement(
+      readModelDB,
       agreement2.data,
-      agreement2.metadata.version
+      agreement2.metadata.version,
     );
 
     const agreements = await readModelServiceKPI.getAllAgreements();
@@ -145,9 +150,10 @@ describe("Check agreement readmodels", () => {
 
     await addOneAgreement(agreement1);
 
-    await agreementReadModelServiceSQL.upsertAgreement(
+    await upsertAgreement(
+      readModelDB,
       agreement1InPostgresDb.data,
-      agreement1InPostgresDb.metadata.version
+      agreement1InPostgresDb.metadata.version,
     );
 
     const agreements = await readModelServiceKPI.getAllAgreements();
@@ -179,9 +185,10 @@ describe("Check agreement readmodels", () => {
 
     await addOneAgreement(agreement1);
 
-    await agreementReadModelServiceSQL.upsertAgreement(
+    await upsertAgreement(
+      readModelDB,
       agreement1InPostgresDb.data,
-      agreement1InPostgresDb.metadata.version
+      agreement1InPostgresDb.metadata.version,
     );
 
     const agreements = await readModelServiceKPI.getAllAgreements();
