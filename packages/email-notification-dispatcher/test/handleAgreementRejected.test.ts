@@ -390,6 +390,5 @@ describe("handleAgreementRejected", async () => {
     expect(messages[0].email.body).toContain(consumerTenant.name);
     expect(messages[0].email.body).toContain(eservice.name);
     expect(messages[0].email.body).toContain(descriptor.version);
-    console.log(messages[0].email.body);
   });
 });
