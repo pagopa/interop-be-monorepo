@@ -1,6 +1,7 @@
 import {
   Agreement,
   Attribute,
+  EService,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
@@ -12,6 +13,15 @@ import {
   agreementStampInReadmodelAgreement,
   attributeInReadmodelAttribute,
   DrizzleReturnType,
+  eserviceDescriptorAttributeInReadmodelCatalog,
+  eserviceDescriptorDocumentInReadmodelCatalog,
+  eserviceDescriptorInReadmodelCatalog,
+  eserviceDescriptorInterfaceInReadmodelCatalog,
+  eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceInReadmodelCatalog,
+  eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eserviceRiskAnalysisInReadmodelCatalog,
   tenantEnabledNotificationInReadmodelNotificationConfig,
   tenantNotificationConfigInReadmodelNotificationConfig,
   userEnabledInAppNotificationInReadmodelNotificationConfig,
@@ -26,6 +36,7 @@ import {
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import { checkMetadataVersion } from "./utils.js";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
+import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -162,5 +173,90 @@ export const upsertAttribute = async (
     );
 
     await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
+  });
+};
+
+export const upsertEService = async (
+  readModelDB: DrizzleReturnType,
+  eservice: EService,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      eserviceInReadmodelCatalog,
+      metadataVersion,
+      eservice.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(eserviceInReadmodelCatalog)
+      .where(eq(eserviceInReadmodelCatalog.id, eservice.id));
+
+    const {
+      eserviceSQL,
+      riskAnalysesSQL,
+      riskAnalysisAnswersSQL,
+      descriptorsSQL,
+      attributesSQL,
+      interfacesSQL,
+      documentsSQL,
+      rejectionReasonsSQL,
+      templateVersionRefsSQL,
+    } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
+
+    await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
+
+    for (const descriptorSQL of descriptorsSQL) {
+      await tx
+        .insert(eserviceDescriptorInReadmodelCatalog)
+        .values(descriptorSQL);
+    }
+
+    for (const interfaceSQL of interfacesSQL) {
+      await tx
+        .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+        .values(interfaceSQL);
+    }
+
+    for (const docSQL of documentsSQL) {
+      await tx
+        .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+        .values(docSQL);
+    }
+
+    for (const attributeSQL of attributesSQL) {
+      await tx
+        .insert(eserviceDescriptorAttributeInReadmodelCatalog)
+        .values(attributeSQL);
+    }
+
+    for (const riskAnalysisSQL of riskAnalysesSQL) {
+      await tx
+        .insert(eserviceRiskAnalysisInReadmodelCatalog)
+        .values(riskAnalysisSQL);
+    }
+
+    for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+      await tx
+        .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
+        .values(riskAnalysisAnswerSQL);
+    }
+
+    for (const rejectionReasonSQL of rejectionReasonsSQL) {
+      await tx
+        .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
+        .values(rejectionReasonSQL);
+    }
+
+    for (const templateVersionRefSQL of templateVersionRefsSQL) {
+      await tx
+        .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
+        .values(templateVersionRefSQL);
+    }
   });
 };
