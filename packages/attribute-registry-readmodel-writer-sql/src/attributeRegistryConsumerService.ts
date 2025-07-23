@@ -2,7 +2,7 @@ import { match } from "ts-pattern";
 import {
   AttributeEventEnvelope,
   fromAttributeV1,
-  genericInternalError,
+  missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { AttributeWriterService } from "./attributeWriterService.js";
@@ -14,7 +14,7 @@ export async function handleMessage(
   await match(message)
     .with({ type: "AttributeAdded" }, async (msg) => {
       if (!msg.data.attribute) {
-        throw genericInternalError(`Attribute not found in message data`);
+        throw missingKafkaMessageDataError("attribute", message.type);
       }
 
       await attributeWriterService.upsertAttribute(

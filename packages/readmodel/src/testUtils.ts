@@ -1,6 +1,7 @@
 import {
   Agreement,
   Attribute,
+  ClientJWKKey,
   EService,
   TenantNotificationConfig,
   UserNotificationConfig,
@@ -12,6 +13,7 @@ import {
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   attributeInReadmodelAttribute,
+  clientJwkKeyInReadmodelClientJwkKey,
   DrizzleReturnType,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
@@ -28,15 +30,16 @@ import {
   userEnabledEmailNotificationInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
 } from "./notification-config/splitters.js";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
-import { checkMetadataVersion } from "./utils.js";
+import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
+import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -258,5 +261,48 @@ export const upsertEService = async (
         .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
         .values(templateVersionRefSQL);
     }
+  });
+};
+
+export const upsertClientJWKKey = async (
+  readModelDB: DrizzleReturnType,
+  clientJWKKey: ClientJWKKey,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersionByFilter(
+      tx,
+      clientJwkKeyInReadmodelClientJwkKey,
+      metadataVersion,
+      and(
+        eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid),
+        eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientJWKKey.clientId)
+      )
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(clientJwkKeyInReadmodelClientJwkKey)
+      .where(
+        and(
+          eq(
+            clientJwkKeyInReadmodelClientJwkKey.clientId,
+            clientJWKKey.clientId
+          ),
+          eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
+        )
+      );
+
+    const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(
+      clientJWKKey,
+      metadataVersion
+    );
+
+    await tx
+      .insert(clientJwkKeyInReadmodelClientJwkKey)
+      .values(clientJWKKeySQL);
   });
 };
