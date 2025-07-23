@@ -7,10 +7,10 @@ import {
   EServiceId,
 } from "pagopa-interop-models";
 import {
-  CatalogReadModelService,
   checkMetadataVersion,
   documentToDocumentSQL,
   splitDescriptorIntoObjectsSQL,
+  splitEserviceIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
@@ -20,6 +20,7 @@ import {
   eserviceDescriptorInReadmodelCatalog,
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -27,10 +28,7 @@ import {
 import { and, eq, lte } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function customReadModelServiceBuilder(
-  db: DrizzleReturnType,
-  catalogReadModelService: CatalogReadModelService
-) {
+export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
   const updateMetadataVersionInCatalogTables = async (
     tx: DrizzleTransactionType,
     eserviceId: EServiceId,
@@ -90,10 +88,84 @@ export function customReadModelServiceBuilder(
       eservice: EService,
       metadataVersion: number
     ): Promise<void> {
-      return await catalogReadModelService.upsertEService(
-        eservice,
-        metadataVersion
-      );
+      await db.transaction(async (tx) => {
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          eserviceInReadmodelCatalog,
+          metadataVersion,
+          eservice.id
+        );
+
+        if (!shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(eserviceInReadmodelCatalog)
+          .where(eq(eserviceInReadmodelCatalog.id, eservice.id));
+
+        const {
+          eserviceSQL,
+          riskAnalysesSQL,
+          riskAnalysisAnswersSQL,
+          descriptorsSQL,
+          attributesSQL,
+          interfacesSQL,
+          documentsSQL,
+          rejectionReasonsSQL,
+          templateVersionRefsSQL,
+        } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
+
+        await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
+
+        for (const descriptorSQL of descriptorsSQL) {
+          await tx
+            .insert(eserviceDescriptorInReadmodelCatalog)
+            .values(descriptorSQL);
+        }
+
+        for (const interfaceSQL of interfacesSQL) {
+          await tx
+            .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+            .values(interfaceSQL);
+        }
+
+        for (const docSQL of documentsSQL) {
+          await tx
+            .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+            .values(docSQL);
+        }
+
+        for (const attributeSQL of attributesSQL) {
+          await tx
+            .insert(eserviceDescriptorAttributeInReadmodelCatalog)
+            .values(attributeSQL);
+        }
+
+        for (const riskAnalysisSQL of riskAnalysesSQL) {
+          await tx
+            .insert(eserviceRiskAnalysisInReadmodelCatalog)
+            .values(riskAnalysisSQL);
+        }
+
+        for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+          await tx
+            .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
+            .values(riskAnalysisAnswerSQL);
+        }
+
+        for (const rejectionReasonSQL of rejectionReasonsSQL) {
+          await tx
+            .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
+            .values(rejectionReasonSQL);
+        }
+
+        for (const templateVersionRefSQL of templateVersionRefsSQL) {
+          await tx
+            .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
+            .values(templateVersionRefSQL);
+        }
+      });
     },
 
     async deleteDescriptorById({
@@ -307,10 +379,14 @@ export function customReadModelServiceBuilder(
       eserviceId: EServiceId,
       metadataVersion: number
     ): Promise<void> {
-      return catalogReadModelService.deleteEServiceById(
-        eserviceId,
-        metadataVersion
-      );
+      await db
+        .delete(eserviceInReadmodelCatalog)
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.id, eserviceId),
+            lte(eserviceInReadmodelCatalog.metadataVersion, metadataVersion)
+          )
+        );
     },
 
     async deleteDocumentOrInterface({
@@ -440,7 +516,6 @@ export function customReadModelServiceBuilder(
     },
   };
 }
-
-export type CustomReadModelService = ReturnType<
-  typeof customReadModelServiceBuilder
+export type CatalogWriterService = ReturnType<
+  typeof catalogWriterServiceBuilder
 >;
