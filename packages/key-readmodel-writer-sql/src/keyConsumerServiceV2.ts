@@ -3,6 +3,7 @@ import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
   genericInternalError,
+  missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
@@ -18,7 +19,7 @@ export async function handleMessageV2(
         ? fromClientV2(message.data.client)
         : undefined;
       if (!client) {
-        throw genericInternalError("Client not found in event");
+        throw missingKafkaMessageDataError("client", message.type);
       }
 
       const key = client?.keys.find((key) => key.kid === message.data.kid);
@@ -35,7 +36,7 @@ export async function handleMessageV2(
         ? fromClientV2(message.data.client)
         : undefined;
       if (!client) {
-        throw genericInternalError("Client not found in event");
+        throw missingKafkaMessageDataError("client", message.type);
       }
 
       await clientJWKKeyWriterService.deleteClientJWKKeyByClientIdAndKid(
