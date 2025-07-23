@@ -24,7 +24,10 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  tenantEnabledNotificationInReadmodelNotificationConfig,
   tenantNotificationConfigInReadmodelNotificationConfig,
+  userEnabledInAppNotificationInReadmodelNotificationConfig,
+  userEnabledEmailNotificationInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
 import { and, eq } from "drizzle-orm";
@@ -43,14 +46,22 @@ export const insertTenantNotificationConfig = async (
   tenantNotificationConfig: TenantNotificationConfig,
   metadataVersion: number
 ): Promise<void> => {
-  await readModelDB
-    .insert(tenantNotificationConfigInReadmodelNotificationConfig)
-    .values(
-      splitTenantNotificationConfigIntoObjectsSQL(
-        tenantNotificationConfig,
-        metadataVersion
-      )
+  const { tenantNotificationConfigSQL, enabledNotificationsSQL } =
+    splitTenantNotificationConfigIntoObjectsSQL(
+      tenantNotificationConfig,
+      metadataVersion
     );
+
+  await readModelDB.transaction(async (tx) => {
+    await tx
+      .insert(tenantNotificationConfigInReadmodelNotificationConfig)
+      .values(tenantNotificationConfigSQL);
+    if (enabledNotificationsSQL.length > 0) {
+      await tx
+        .insert(tenantEnabledNotificationInReadmodelNotificationConfig)
+        .values(enabledNotificationsSQL);
+    }
+  });
 };
 
 export const insertUserNotificationConfig = async (
@@ -58,14 +69,30 @@ export const insertUserNotificationConfig = async (
   userNotificationConfig: UserNotificationConfig,
   metadataVersion: number
 ): Promise<void> => {
-  await readModelDB
-    .insert(userNotificationConfigInReadmodelNotificationConfig)
-    .values(
-      splitUserNotificationConfigIntoObjectsSQL(
-        userNotificationConfig,
-        metadataVersion
-      )
-    );
+  const {
+    userNotificationConfigSQL,
+    enabledInAppNotificationsSQL,
+    enabledEmailNotificationsSQL,
+  } = splitUserNotificationConfigIntoObjectsSQL(
+    userNotificationConfig,
+    metadataVersion
+  );
+
+  await readModelDB.transaction(async (tx) => {
+    await tx
+      .insert(userNotificationConfigInReadmodelNotificationConfig)
+      .values(userNotificationConfigSQL);
+    if (enabledInAppNotificationsSQL.length > 0) {
+      await tx
+        .insert(userEnabledInAppNotificationInReadmodelNotificationConfig)
+        .values(enabledInAppNotificationsSQL);
+    }
+    if (enabledEmailNotificationsSQL.length > 0) {
+      await tx
+        .insert(userEnabledEmailNotificationInReadmodelNotificationConfig)
+        .values(enabledEmailNotificationsSQL);
+    }
+  });
 };
 
 export const upsertAgreement = async (

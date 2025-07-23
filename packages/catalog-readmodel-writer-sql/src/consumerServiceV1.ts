@@ -4,7 +4,7 @@ import {
   fromDescriptorV1,
   fromDocumentV1,
   fromEServiceV1,
-  genericInternalError,
+  missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { CatalogWriterService } from "./catalogWriterService.js";
@@ -25,9 +25,7 @@ export async function handleMessageV1(
       async (msg) => {
         const eserviceV1 = msg.data.eservice;
         if (!eserviceV1) {
-          throw genericInternalError(
-            "eservice can't be missing in event message"
-          );
+          throw missingKafkaMessageDataError("eservice", msg.type);
         }
 
         return await catalogWriterService.upsertEService(
@@ -47,11 +45,8 @@ export async function handleMessageV1(
     )
     .with({ type: "EServiceDocumentUpdated" }, async (msg) => {
       const documentV1 = msg.data.updatedDocument;
-
       if (!documentV1) {
-        throw genericInternalError(
-          "document can't be missing in event message"
-        );
+        throw missingKafkaMessageDataError("updatedDocument", msg.type);
       }
 
       await catalogWriterService.updateDocOrInterface({
@@ -72,11 +67,8 @@ export async function handleMessageV1(
     )
     .with({ type: "EServiceDocumentAdded" }, async (msg) => {
       const documentV1 = msg.data.document;
-
       if (!documentV1) {
-        throw genericInternalError(
-          "document can't be missing in event message"
-        );
+        throw missingKafkaMessageDataError("document", msg.type);
       }
 
       if (msg.data.isInterface) {
@@ -109,11 +101,8 @@ export async function handleMessageV1(
       { type: "EServiceDescriptorUpdated" },
       async (msg) => {
         const descriptorV1 = msg.data.eserviceDescriptor;
-
         if (!descriptorV1) {
-          throw genericInternalError(
-            "descriptor can't be missing in event message"
-          );
+          throw missingKafkaMessageDataError("eserviceDescriptor", msg.type);
         }
 
         await catalogWriterService.upsertDescriptor({
