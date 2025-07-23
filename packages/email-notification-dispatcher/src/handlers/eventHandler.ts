@@ -16,6 +16,7 @@ import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { config } from "../config/config.js";
 import { handleEserviceDescriptorPublished } from "./handleEServiceDescriptorPublished.js";
 import { handleAgreementActivated } from "./handleAgreementActivated.js";
+import { handleAgreementRejected } from "./handleAgreementRejected.js";
 
 const interopFeBaseUrl = config.interopFeBaseUrl;
 
@@ -50,6 +51,20 @@ export async function handleEvent(
       { type: "AgreementActivated" },
       async ({ correlation_id, data: { agreement } }) =>
         await handleAgreementActivated({
+          agreementV2Msg: agreement,
+          interopFeBaseUrl,
+          logger,
+          readModelService,
+          correlationId: correlation_id
+            ? unsafeBrandId<CorrelationId>(correlation_id)
+            : generateId<CorrelationId>(),
+          templateService,
+        })
+    )
+    .with(
+      { type: "AgreementRejected" },
+      async ({ correlation_id, data: { agreement } }) =>
+        await handleAgreementRejected({
           agreementV2Msg: agreement,
           interopFeBaseUrl,
           logger,
@@ -106,7 +121,6 @@ export async function handleEvent(
           "EServiceSignalHubDisabled",
           // Agreements
           "AgreementSubmitted",
-          "AgreementRejected",
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
