@@ -7,7 +7,6 @@ import { EachMessagePayload } from "kafkajs";
 import { delay, EmailManagerSES, logger } from "pagopa-interop-commons";
 import Mail from "nodemailer/lib/mailer/index.js";
 import { TooManyRequestsException } from "@aws-sdk/client-sesv2";
-import { EmailNotificationPayload } from "../model/emailNotificationPayload.js";
 import { config } from "../config/config.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -33,7 +32,7 @@ export function emailSenderProcessorBuilder(
         return;
       }
 
-      let jsonPayload: EmailNotificationPayload;
+      let jsonPayload: EmailNotificationMessagePayload;
       let mailOptions: Mail.Options;
       try {
         jsonPayload = JSON.parse(message.value.toString());
