@@ -33,6 +33,7 @@ import {
 import {
   upsertAgreement,
   upsertAttribute,
+  upsertEService,
 } from "pagopa-interop-readmodel/testUtils";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -130,7 +131,7 @@ export const writeEServiceTemplateInEventstore = async (
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeEServiceInEventstore(eservice);
   await writeInReadmodel(toReadModelEService(eservice), eservices);
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
