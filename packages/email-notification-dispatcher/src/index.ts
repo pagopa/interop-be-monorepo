@@ -13,10 +13,13 @@ import {
   AgreementEventV2,
   CorrelationId,
   EServiceEventV2,
+  DelegationEventV2,
   generateId,
   genericInternalError,
   PurposeEventV2,
   unsafeBrandId,
+  AuthorizationEventV2,
+  AttributeEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -74,12 +77,22 @@ registerPartial(
 
 function processMessage(topicHandlers: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
-    const { catalogTopic, agreementTopic, purposeTopic } = topicHandlers;
+    const {
+      catalogTopic,
+      agreementTopic,
+      purposeTopic,
+      delegationTopic,
+      authorizationTopic,
+      attributeTopic,
+    } = topicHandlers;
 
     const eventType = match(messagePayload.topic)
       .with(catalogTopic, () => EServiceEventV2)
       .with(agreementTopic, () => AgreementEventV2)
       .with(purposeTopic, () => PurposeEventV2)
+      .with(delegationTopic, () => DelegationEventV2)
+      .with(authorizationTopic, () => AuthorizationEventV2)
+      .with(attributeTopic, () => AttributeEvent)
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
