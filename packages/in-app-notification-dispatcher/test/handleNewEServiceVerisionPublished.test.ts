@@ -14,7 +14,7 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { config } from "../src/config/config.js";
-import { handleNewEServiceVersionPublished } from "../src/handlers/handleNewEServiceVersionPublished.js";
+import { handleNewEServiceVersionPublished } from "../src/handlers/eservices/handleNewEServiceVersionPublished.js";
 import { tenantNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
