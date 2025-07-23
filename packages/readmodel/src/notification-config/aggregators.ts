@@ -81,23 +81,25 @@ export const aggregateUserNotificationConfig = ({
     newEServiceVersionPublished: enabledInAppNotifications.includes(
       "newEServiceVersionPublished"
     ),
-    productionAgreementSuspendedUnsuspended: enabledNotifications.includes(
-      "productionAgreementSuspendedUnsuspended.inApp"
+    productionAgreementSuspendedUnsuspended: enabledInAppNotifications.includes(
+      "productionAgreementSuspendedUnsuspended"
     ),
-    consumptionAgreementSuspendedUnsuspended: enabledNotifications.includes(
-      "consumptionAgreementSuspendedUnsuspended.inApp"
-    ),
+    consumptionAgreementSuspendedUnsuspended:
+      enabledInAppNotifications.includes(
+        "consumptionAgreementSuspendedUnsuspended"
+      ),
   };
   const emailConfig: NotificationConfig = {
     newEServiceVersionPublished: enabledEmailNotifications.includes(
       "newEServiceVersionPublished"
     ),
-    productionAgreementSuspendedUnsuspended: enabledNotifications.includes(
-      "productionAgreementSuspendedUnsuspended.email"
+    productionAgreementSuspendedUnsuspended: enabledEmailNotifications.includes(
+      "productionAgreementSuspendedUnsuspended"
     ),
-    consumptionAgreementSuspendedUnsuspended: enabledNotifications.includes(
-      "consumptionAgreementSuspendedUnsuspended.email"
-    ),
+    consumptionAgreementSuspendedUnsuspended:
+      enabledEmailNotifications.includes(
+        "consumptionAgreementSuspendedUnsuspended"
+      ),
   };
 
   return {
