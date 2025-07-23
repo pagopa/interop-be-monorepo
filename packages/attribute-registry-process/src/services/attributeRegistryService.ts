@@ -220,7 +220,7 @@ export function attributeRegistryServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<Attribute> {
+    ): Promise<WithMetadata<Attribute>> {
       logger.info(
         `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
       );
@@ -258,9 +258,12 @@ export function attributeRegistryServiceBuilder(
         newVerifiedAttribute,
         correlationId
       );
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return newVerifiedAttribute;
+      return {
+        data: newVerifiedAttribute,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
 
     async createCertifiedAttribute(
