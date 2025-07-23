@@ -1774,8 +1774,15 @@ paths:
             type: string
             format: uuid
       responses:
-        "204":
+        "200":
           description: New delegated e-service version approved
+          headers:
+              X-Metadata-Version:
+                $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "403":
           description: Forbidden
           content:
