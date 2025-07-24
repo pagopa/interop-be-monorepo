@@ -1154,7 +1154,6 @@ paths:
         - name: producerId
           in: query
           description: ID of producer that MUST be related to the keychain
-          required: true
           schema:
             type: string
             format: uuid

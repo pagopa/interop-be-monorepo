@@ -12,6 +12,7 @@ import {
 import {
   EServiceId,
   PurposeId,
+  TenantId,
   UserId,
   emptyErrorMapper,
   unsafeBrandId,
@@ -669,7 +670,9 @@ const authorizationRouter = (
               filters: {
                 name,
                 userIds: userIds?.map(unsafeBrandId<UserId>),
-                producerId: unsafeBrandId(producerId),
+                producerId: producerId
+                  ? unsafeBrandId<TenantId>(producerId)
+                  : undefined,
                 eserviceId: eserviceId
                   ? unsafeBrandId<EServiceId>(eserviceId)
                   : undefined,
