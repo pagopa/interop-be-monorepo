@@ -1,6 +1,6 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
+import { DescriptorId, EServiceId, unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
@@ -15,6 +15,7 @@ import {
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
+import { pollResourceUntilDeletion } from "../utils/polling.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -56,6 +57,14 @@ export function eserviceServiceBuilder(
       metadata,
     };
   };
+
+  const pollEserviceUntilDeletion = (
+    eServiceId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveEServiceById(headers, unsafeBrandId(eServiceId))
+    )({});
 
   return {
     async getEService(
@@ -171,6 +180,18 @@ export function eserviceServiceBuilder(
         config.eserviceDocumentsContainer,
         logger
       );
+    },
+    async deleteEService(
+      eServiceId: EServiceId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting eservice with id ${eServiceId}`);
+
+      await clients.catalogProcessClient.deleteEService(undefined, {
+        params: { eServiceId },
+        headers,
+      });
+      await pollEserviceUntilDeletion(eServiceId, headers);
     },
   };
 }
