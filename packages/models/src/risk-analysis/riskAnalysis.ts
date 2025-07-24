@@ -63,7 +63,6 @@ export const RiskAnalysisTemplateAnnotationDocument = z.object({
   contentType: z.string(),
   prettyName: z.string(),
   path: z.string(),
-  checksum: z.string(),
   createdAt: z.coerce.date(),
 });
 
@@ -77,7 +76,7 @@ export type Link = z.infer<typeof Link>;
 
 export const RiskAnalysisTemplateAnswerAnnotation = z.object({
   id: RiskAnalysisTemplateAnswerAnnotationId,
-  text: z.string(),
+  text: z.string().optional(),
   docs: z.array(RiskAnalysisTemplateAnnotationDocument).optional(),
   urls: z.array(Link).optional(),
 });
@@ -89,6 +88,8 @@ export const RiskAnalysisTemplateSingleAnswer = RiskAnalysisSingleAnswer.and(
   z.object({
     editable: z.boolean(),
     annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
+    instruction: z.string().optional(),
+    suggestedValues: z.array(z.string()),
   })
 );
 export type RiskAnalysisTemplateSingleAnswer = z.infer<
@@ -99,6 +100,7 @@ export const RiskAnalysisTemplateMultiAnswer = RiskAnalysisMultiAnswer.and(
   z.object({
     editable: z.boolean(),
     annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
+    instruction: z.string().optional(),
   })
 );
 export type RiskAnalysisTemplateMultiAnswer = z.infer<

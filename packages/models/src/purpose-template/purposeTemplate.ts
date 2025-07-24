@@ -19,16 +19,20 @@ export const PurposeTemplateState = z.enum([
 ]);
 export type PurposeTemplateState = z.infer<typeof PurposeTemplateState>;
 
+export const EServiceDescriptorVersionPurposeTemplate = z.object({
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+});
+export type EServiceDescriptorVersionPurposeTemplate = z.infer<
+  typeof EServiceDescriptorVersionPurposeTemplate
+>;
+
 export const PurposeTemplate = z.object({
-  // TODO: new purposeTemplate properties
   id: PurposeTemplateId,
   name: z.string(),
   target: z.string(),
   creatorId: TenantId,
-  descriptorId: DescriptorId,
-
-  // TODO: original purpose/purposeVersion properties
-  eserviceId: EServiceId,
+  eservicesVersions: z.array(EServiceDescriptorVersionPurposeTemplate),
   state: PurposeTemplateState,
   title: z.string(),
   description: z.string(),
