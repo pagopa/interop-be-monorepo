@@ -92,6 +92,8 @@ describe("Tenant Queries", () => {
       expect(sortTenant(retrievedTenant)).toStrictEqual(sortTenant(tenant));
     });
     it("should *not* get a tenant from a tenantId", async () => {
+      await upsertTenant(readModelDB, getMockTenant(), 1);
+
       const retrievedTenant = await tenantReadModelService.getTenantById(
         generateId()
       );
