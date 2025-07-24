@@ -936,13 +936,12 @@ export function authorizationServiceBuilder(
       {
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<ProducerKeychain> {
+    ): Promise<WithMetadata<ProducerKeychain>> {
       logger.info(`Retrieving Producer Keychain ${producerKeychainId}`);
-      const producerKeychain = await retrieveProducerKeychain(
+      return await retrieveProducerKeychain(
         producerKeychainId,
         readModelService
       );
-      return producerKeychain.data;
     },
     async deleteProducerKeychain(
       {
