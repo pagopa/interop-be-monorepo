@@ -8,7 +8,10 @@ import {
   tenantReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { upsertAgreement } from "pagopa-interop-readmodel/testUtils";
+import {
+  upsertAgreement,
+  upsertEService,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
@@ -47,7 +50,7 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
