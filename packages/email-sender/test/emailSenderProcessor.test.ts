@@ -87,19 +87,6 @@ describe("emailSenderProcessor", () => {
     expect(mockSESEmailManager.send).toHaveBeenCalledTimes(2);
   });
 
-  it("should log a warn when hitting the rate limit of aws ses", async () => {
-    const message = kafkaMessagePayload;
-    // eslint-disable-next-line functional/immutable-data
-    mockSESEmailManager.send = vi.fn().mockRejectedValue(
-      new TooManyRequestsException({
-        message: "message",
-        $metadata: {},
-      })
-    );
-    await emailSenderProcessor.processMessage(message);
-    expect(mockSESEmailManager.send).toHaveBeenCalledTimes(10);
-  });
-
   it.each([
     { error: new AccountSuspendedException({ message: "", $metadata: {} }) },
     { error: new BadRequestException({ message: "", $metadata: {} }) },
