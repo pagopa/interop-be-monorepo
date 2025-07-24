@@ -1,4 +1,4 @@
-import { InteropTokenGenerator, logger } from "pagopa-interop-commons";
+import { logger, RefreshableInteropToken } from "pagopa-interop-commons";
 import {
   genericInternalError,
   generateId,
@@ -28,7 +28,7 @@ export async function processUserEvent(
   notificationConfigProcessClient: ReturnType<
     typeof notificationConfigApi.createProcessApiClient
   >,
-  interopTokenGenerator: InteropTokenGenerator,
+  refreshableToken: RefreshableInteropToken,
   loggerInstance: ReturnType<typeof logger>,
   correlationId: CorrelationId
 ): Promise<void> {
@@ -59,8 +59,7 @@ export async function processUserEvent(
       loggerInstance.info(`Add user id ${userId} from tenant ${tenantId}`);
 
       try {
-        const { serialized } =
-          await interopTokenGenerator.generateInternalToken();
+        const { serialized } = await refreshableToken.get();
         await notificationConfigProcessClient.createUserDefaultNotificationConfig(
           {
             userId,
@@ -87,8 +86,7 @@ export async function processUserEvent(
     .with("delete", async () => {
       loggerInstance.info(`Removing user ${userId} from tenant ${tenantId}`);
       try {
-        const { serialized } =
-          await interopTokenGenerator.generateInternalToken();
+        const { serialized } = await refreshableToken.get();
         await notificationConfigProcessClient.deleteUserNotificationConfig(
           undefined,
           {
@@ -118,7 +116,7 @@ export function messageProcessorBuilder(
   notificationConfigProcessClient: ReturnType<
     typeof notificationConfigApi.createProcessApiClient
   >,
-  interopTokenGenerator: InteropTokenGenerator
+  refreshableToken: RefreshableInteropToken
 ): { processMessage: (payload: EachMessagePayload) => Promise<void> } {
   return {
     processMessage: async ({
@@ -160,7 +158,7 @@ export function messageProcessorBuilder(
           readModelServiceSQL,
           userServiceSQL,
           notificationConfigProcessClient,
-          interopTokenGenerator,
+          refreshableToken,
           loggerInstance,
           correlationId
         );
