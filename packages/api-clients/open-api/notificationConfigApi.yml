@@ -521,6 +521,15 @@ components:
           type: boolean
         consumptionAgreementSuspendedUnsuspended:
           type: boolean
+    TenantNotificationConfigSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - tenantId
+      properties:
+        tenantId:
+          type: string
+          format: uuid
     UserNotificationConfigSeed:
       type: object
       additionalProperties: false
