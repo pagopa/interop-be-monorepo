@@ -5,15 +5,15 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { ReadModelService } from "./readModelService.js";
+import { TenantWriterService } from "./tenantWriterService.js";
 
 export async function handleMessageV2(
   message: TenantEventEnvelopeV2,
-  readModelService: ReadModelService
+  tenantWriterService: TenantWriterService
 ): Promise<void> {
   await match(message)
     .with({ type: "MaintenanceTenantDeleted" }, async (message) => {
-      await readModelService.deleteTenant(
+      await tenantWriterService.deleteTenantById(
         unsafeBrandId(message.data.tenantId),
         message.version
       );
@@ -47,7 +47,7 @@ export async function handleMessageV2(
           throw missingKafkaMessageDataError("tenant", message.type);
         }
 
-        await readModelService.upsertTenant(
+        await tenantWriterService.upsertTenant(
           fromTenantV2(message.data.tenant),
           message.version
         );
