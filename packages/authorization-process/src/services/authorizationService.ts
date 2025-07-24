@@ -873,7 +873,7 @@ export function authorizationServiceBuilder(
         producerKeychainSeed: authorizationApi.ProducerKeychainSeed;
       },
       { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+    ): Promise<ProducerKeychain> {
       logger.info(
         `Creating producer keychain ${producerKeychainSeed.name} for producer ${authData.organizationId}"`
       );
@@ -893,7 +893,7 @@ export function authorizationServiceBuilder(
         toCreateEventProducerKeychainAdded(producerKeychain, correlationId)
       );
 
-      return { producerKeychain, showUsers: true };
+      return producerKeychain;
     },
     async getProducerKeychains(
       {
@@ -930,17 +930,14 @@ export function authorizationServiceBuilder(
       }: {
         producerKeychainId: ProducerKeychainId;
       },
-      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
-    ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+      { logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+    ): Promise<ProducerKeychain> {
       logger.info(`Retrieving Producer Keychain ${producerKeychainId}`);
       const producerKeychain = await retrieveProducerKeychain(
         producerKeychainId,
         readModelService
       );
-      return {
-        producerKeychain: producerKeychain.data,
-        showUsers: authData.organizationId === producerKeychain.data.producerId,
-      };
+      return producerKeychain.data;
     },
     async deleteProducerKeychain(
       {
@@ -999,7 +996,7 @@ export function authorizationServiceBuilder(
         userIds: UserId[];
       },
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+    ): Promise<ProducerKeychain> {
       logger.info(
         `Binding producer keychain ${producerKeychainId} with users ${userIds.join(
           ", "
@@ -1052,10 +1049,7 @@ export function authorizationServiceBuilder(
         })
       );
 
-      return {
-        producerKeychain: updatedProducerKeychain,
-        showUsers: true,
-      };
+      return updatedProducerKeychain;
     },
     async removeProducerKeychainUser(
       {

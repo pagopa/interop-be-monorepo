@@ -10,6 +10,7 @@ import {
 } from "../api/authorizationApiConverter.js";
 import { decorateKey } from "./clientService.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
+import { assertProducerKeychainVisibilityIsFull } from "./validators.js";
 
 export function producerKeychainServiceBuilder(
   apiClients: PagoPAInteropBeClients
@@ -21,19 +22,17 @@ export function producerKeychainServiceBuilder(
       {
         limit,
         offset,
-        producerId,
         userIds,
         name,
         eserviceId,
       }: {
-        producerId: string;
         offset: number;
         limit: number;
         userIds: string[];
         name?: string;
         eserviceId?: string;
       },
-      { logger, headers }: WithLogger<BffAppContext>
+      { logger, headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactProducerKeychains> {
       logger.info(`Retrieving producer keychains`);
 
@@ -43,7 +42,7 @@ export function producerKeychainServiceBuilder(
             offset,
             limit,
             userIds,
-            producerId,
+            producerId: authData.organizationId,
             name,
             eserviceId,
           },
@@ -159,7 +158,7 @@ export function producerKeychainServiceBuilder(
 
       const selfcareId = authData.selfcareId;
 
-      const [{ keys }, { users }] = await Promise.all([
+      const [{ keys }, keychain] = await Promise.all([
         authorizationClient.producerKeychain.getProducerKeys({
           params: { producerKeychainId },
           queries: { userIds },
@@ -171,9 +170,17 @@ export function producerKeychainServiceBuilder(
         }),
       ]);
 
+      assertProducerKeychainVisibilityIsFull(keychain);
+
       const decoratedKeys = await Promise.all(
         keys.map((k) =>
-          decorateKey(selfcareV2UserClient, k, selfcareId, users, correlationId)
+          decorateKey(
+            selfcareV2UserClient,
+            k,
+            selfcareId,
+            keychain.users,
+            correlationId
+          )
         )
       );
 
@@ -190,7 +197,7 @@ export function producerKeychainServiceBuilder(
 
       const selfcareId = authData.selfcareId;
 
-      const [key, { users }] = await Promise.all([
+      const [key, keychain] = await Promise.all([
         authorizationClient.producerKeychain.getProducerKeyById({
           params: { producerKeychainId, keyId },
           headers,
@@ -201,11 +208,13 @@ export function producerKeychainServiceBuilder(
         }),
       ]);
 
+      assertProducerKeychainVisibilityIsFull(keychain);
+
       return decorateKey(
         selfcareV2UserClient,
         key,
         selfcareId,
-        users,
+        keychain.users,
         correlationId
       );
     },
@@ -319,6 +328,7 @@ async function enhanceProducerKeychain(
   producerKeychain: authorizationApi.ProducerKeychain,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.ProducerKeychain> {
+  assertProducerKeychainVisibilityIsFull(producerKeychain);
   const producer = await apiClients.tenantProcessClient.tenant.getTenant({
     params: { id: producerKeychain.producerId },
     headers: ctx.headers,

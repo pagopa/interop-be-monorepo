@@ -32,13 +32,12 @@ describe("getProducerKeychainById", async () => {
     };
     await addOneProducerKeychain(expectedProducerKeychain);
 
-    const { producerKeychain } =
-      await authorizationService.getProducerKeychainById(
-        {
-          producerKeychainId: expectedProducerKeychain.id,
-        },
-        getMockContext({ authData: getMockAuthData(organizationId) })
-      );
+    const producerKeychain = await authorizationService.getProducerKeychainById(
+      {
+        producerKeychainId: expectedProducerKeychain.id,
+      },
+      getMockContext({ authData: getMockAuthData(organizationId) })
+    );
     expect(sortProducerKeychain(producerKeychain)).toEqual(
       sortProducerKeychain(expectedProducerKeychain)
     );
@@ -52,13 +51,12 @@ describe("getProducerKeychainById", async () => {
 
     await addOneProducerKeychain(expectedProducerKeychainWithoutUser);
 
-    const { producerKeychain } =
-      await authorizationService.getProducerKeychainById(
-        {
-          producerKeychainId: expectedProducerKeychainWithoutUser.id,
-        },
-        getMockContext({ authData: getMockAuthData(organizationId) })
-      );
+    const producerKeychain = await authorizationService.getProducerKeychainById(
+      {
+        producerKeychainId: expectedProducerKeychainWithoutUser.id,
+      },
+      getMockContext({ authData: getMockAuthData(organizationId) })
+    );
     expect(producerKeychain).toEqual(expectedProducerKeychainWithoutUser);
   });
   it("should throw producerKeychainNotFound if the producerKeychain with the specified Id doesn't exist", async () => {
