@@ -13,6 +13,14 @@ import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import { UserServiceSQL } from "./userServiceSQL.js";
 
+function jsonSafeParse(json: string): unknown {
+  try {
+    return JSON.parse(json);
+  } catch (e) {
+    return {};
+  }
+}
+
 // eslint-disable-next-line max-params
 export async function processUserEvent(
   payload: UsersEventPayload,
@@ -48,7 +56,6 @@ export async function processUserEvent(
     productRole: payload.user.productRole,
   };
 
-  // TODO try catch process call error
   await match(action)
     .with("add", async () => {
       loggerInstance.info(`Add user id ${userId} from tenant ${tenantId}`);
@@ -105,14 +112,6 @@ export async function processUserEvent(
       return userServiceSQL.deleteUser(userId);
     })
     .exhaustive();
-}
-
-function jsonSafeParse(json: string): unknown {
-  try {
-    return JSON.parse(json);
-  } catch (e) {
-    return {};
-  }
 }
 
 export function messageProcessorBuilder(
