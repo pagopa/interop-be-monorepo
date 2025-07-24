@@ -2,10 +2,11 @@ import { getMockClientJWKKey } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { ClientJWKKey, WithMetadata } from "pagopa-interop-models";
+import { upsertClientJWKKey } from "pagopa-interop-readmodel/testUtils";
 import { compare } from "../src/utils.js";
 import {
   addOneClientJWKKey,
-  clientKeysReadModelServiceSQL,
+  readModelDB,
   readModelService,
   readModelServiceSQL,
 } from "./utils.js";
@@ -41,7 +42,7 @@ describe("Check client key readmodels", () => {
       metadata: { version: 1 },
     });
 
-    await clientKeysReadModelServiceSQL.upsertClientJWKKey(jwkKey, 1);
+    await upsertClientJWKKey(readModelDB, jwkKey, 1);
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
@@ -72,7 +73,7 @@ describe("Check client key readmodels", () => {
       metadata: { version: 1 },
     });
 
-    await clientKeysReadModelServiceSQL.upsertClientJWKKey(jwkKey2, 1);
+    await upsertClientJWKKey(readModelDB, jwkKey2, 1);
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
@@ -97,8 +98,8 @@ describe("Check client key readmodels", () => {
       metadata: { version: 1 },
     });
 
-    await clientKeysReadModelServiceSQL.upsertClientJWKKey(jwkKey1, 1);
-    await clientKeysReadModelServiceSQL.upsertClientJWKKey(jwkKey2, 1);
+    await upsertClientJWKKey(readModelDB, jwkKey1, 1);
+    await upsertClientJWKKey(readModelDB, jwkKey2, 1);
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
@@ -126,7 +127,8 @@ describe("Check client key readmodels", () => {
 
     await addOneClientJWKKey(clientKey1);
 
-    await clientKeysReadModelServiceSQL.upsertClientJWKKey(
+    await upsertClientJWKKey(
+      readModelDB,
       clientKey1InPostgresDb.data,
       clientKey1InPostgresDb.metadata.version
     );
@@ -157,7 +159,8 @@ describe("Check client key readmodels", () => {
 
     await addOneClientJWKKey(clientKey1);
 
-    await clientKeysReadModelServiceSQL.upsertClientJWKKey(
+    await upsertClientJWKKey(
+      readModelDB,
       clientKey1InPostgresDb.data,
       clientKey1InPostgresDb.metadata.version
     );
