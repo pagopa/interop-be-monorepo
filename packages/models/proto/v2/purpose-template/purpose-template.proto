@@ -15,17 +15,21 @@ message PurposeTemplateV2 {
   string name = 2;
   string target = 3;
   string creatorId = 4;
-  string eserviceId = 5;
-  string descriptorId = 6;
-  PurposeTemplateStateV2 state = 7;
-  string title = 8;
-  string description = 9;
-  optional PurposeRiskAnalysisFormTemplateV2 riskAnalysisForm = 10;
-  int64 createdAt = 11;
-  optional int64 updatedAt = 12;
-  bool isFreeOfCharge = 13;
-  optional string freeOfChargeReason = 14;
-  optional int32 dailyCalls = 15;
+  repeated  eservicesVersions = 5
+  PurposeTemplateStateV2 state = 6;
+  string title = 7;
+  string description = 8;
+  optional PurposeRiskAnalysisFormTemplateV2 riskAnalysisForm = 9;
+  int64 createdAt = 10;
+  optional int64 updatedAt = 11;
+  bool isFreeOfCharge = 12;
+  optional string freeOfChargeReason = 13;
+  optional int32 dailyCalls = 14;
+}
+
+message EserviceDescriptorVersionPurposeTemplateV2 {
+  string eserviceId = 1;
+  string descriptorId = 2;
 }
 
 // TODO: move the risk analysis template to a separate file if it's needed
@@ -42,6 +46,8 @@ message RiskAnalysisTemplateSingleAnswerV2 {
   optional string value = 3;
   bool editable = 4;
   optional RiskAnalysisTemplateAnswerAnnotationV2 annotation = 5;
+  optional string instruction = 6;
+  repeated string suggestedValues = 7;
 }
 
 message RiskAnalysisTemplateMultiAnswerV2 {
@@ -50,11 +56,12 @@ message RiskAnalysisTemplateMultiAnswerV2 {
   repeated string values = 3;
   bool editable = 4;
   optional RiskAnalysisTemplateAnswerAnnotationV2 annotation = 5;
+  optional string instruction = 6;
 }
 
 message RiskAnalysisTemplateAnswerAnnotationV2 {
   string id = 1;
-  string text = 2;
+  optional string text = 2;
   repeated RiskAnalysisTemplateAnnotationDocumentV2 docs = 3;
   repeated LinkV2 urls = 4;
 }
@@ -65,11 +72,11 @@ message RiskAnalysisTemplateAnnotationDocumentV2 {
   string contentType = 3;
   string prettyName = 4;
   string path = 5;
-  string checksum = 6;
-  int64 uploadDate = 7;
+  int64 createdAt = 6;
 }
 
 message LinkV2 {
-  string url = 1;
-  string name = 2;
+  string id = 1;
+  string url = 2;
+  string text = 3;
 }
