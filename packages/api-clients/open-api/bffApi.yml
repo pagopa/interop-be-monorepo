@@ -20376,18 +20376,113 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
 
   "/notification-config/tenantNotificationConfigs":
+    get:
+      security: []
+      tags:
+        - notificationConfigs
+      summary: Retrieve the tenant's notification configuration
+      operationId: getTenantNotificationConfig
+      responses:
+        "200":
+          description: The tenant's notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantNotificationConfig"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     post:
       security: []
       tags:
         - notificationConfigs
-      summary: Update a tenant's notification configuration
+      summary: Update the tenant's notification configuration
       operationId: updateTenantNotificationConfig
       requestBody:
         description: A notification config seed
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NotificationConfigSeed"
+              $ref: "#/components/schemas/TenantNotificationConfigUpdateSeed"
         required: true
       responses:
         "204":
@@ -20432,6 +20527,28 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "403":
           description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Not found
           content:
             application/problem+json:
               schema:
@@ -20454,18 +20571,113 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
 
   "/notification-config/userNotificationConfigs":
+    get:
+      security: []
+      tags:
+        - notificationConfigs
+      summary: Retrieve the user's notification configuration
+      operationId: getUserNotificationConfig
+      responses:
+        "200":
+          description: The user's notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserNotificationConfig"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     post:
       security: []
       tags:
         - notificationConfigs
-      summary: Update a user's notification configuration
+      summary: Update the user's notification configuration
       operationId: updateUserNotificationConfig
       requestBody:
         description: A user notification config seed
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserNotificationConfigSeed"
+              $ref: "#/components/schemas/UserNotificationConfigUpdateSeed"
         required: true
       responses:
         "204":
@@ -20510,6 +20722,28 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "403":
           description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Not found
           content:
             application/problem+json:
               schema:
@@ -24148,18 +24382,7 @@ components:
         - body
         - readAt
         - createdAt
-    UserNotificationConfigSeed:
-      type: object
-      additionalProperties: false
-      required:
-        - inAppConfig
-        - emailConfig
-      properties:
-        inAppConfig:
-          $ref: "#/components/schemas/NotificationConfigSeed"
-        emailConfig:
-          $ref: "#/components/schemas/NotificationConfigSeed"
-    NotificationConfigSeed:
+    NotificationConfig:
       type: object
       additionalProperties: false
       required:
@@ -24167,6 +24390,32 @@ components:
       properties:
         newEServiceVersionPublished:
           type: boolean
+    TenantNotificationConfig:
+      $ref: "#/components/schemas/NotificationConfig"
+    UserNotificationConfig:
+      type: object
+      additionalProperties: false
+      required:
+        - inAppConfig
+        - emailConfig
+      properties:
+        inAppConfig:
+          $ref: "#/components/schemas/NotificationConfig"
+        emailConfig:
+          $ref: "#/components/schemas/NotificationConfig"
+    TenantNotificationConfigUpdateSeed:
+      $ref: "#/components/schemas/NotificationConfig"
+    UserNotificationConfigUpdateSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - inAppConfig
+        - emailConfig
+      properties:
+        inAppConfig:
+          $ref: "#/components/schemas/NotificationConfig"
+        emailConfig:
+          $ref: "#/components/schemas/NotificationConfig"
     ProblemError:
       properties:
         code:
