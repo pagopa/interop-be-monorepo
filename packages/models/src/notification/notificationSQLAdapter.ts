@@ -1,5 +1,5 @@
-import { unsafeBrandId } from "../brandedIds.js";
-import { Notification } from "./notification.js";
+import { generateId, NotificationId, unsafeBrandId } from "../brandedIds.js";
+import { Notification, NewNotification } from "./notification.js";
 
 export type NotificationSQL = {
   id: string;
@@ -24,13 +24,13 @@ export const fromNotificationSQL = (
 });
 
 export const toNotificationSQL = (
-  notification: Notification
+  notification: NewNotification
 ): NotificationSQL => ({
-  id: notification.id,
+  id: generateId<NotificationId>(),
   userId: notification.userId,
   tenantId: notification.tenantId,
   body: notification.body,
   deepLink: notification.deepLink,
-  createdAt: notification.createdAt.toISOString(),
-  readAt: notification.readAt ? notification.readAt.toISOString() : null,
+  createdAt: new Date().toISOString(),
+  readAt: null,
 });
