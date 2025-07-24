@@ -1,8 +1,7 @@
 import {
   AgreementV2,
   fromAgreementV2,
-  Notification,
-  generateId,
+  NewNotification,
   missingKafkaMessageDataError,
   TenantId,
   UserId,
@@ -32,7 +31,7 @@ export async function handleAgreementSuspendedUnsuspended(
   logger: Logger,
   readModelService: ReadModelServiceSQL,
   eventType: AgreementSuspendedUnsuspendedEventType
-): Promise<Notification[]> {
+): Promise<NewNotification[]> {
   if (!agreementV2Msg) {
     throw missingKafkaMessageDataError("agreement", eventType);
   }
@@ -68,17 +67,13 @@ export async function handleAgreementSuspendedUnsuspended(
     subjectName,
     eservice.name
   );
-  const createdAt = new Date();
   const deepLink = `https://${config.interopFeBaseUrl}/ui/it/fruizione/sottoscrizione-eservice/${agreement.id}`;
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
-    id: generateId(),
-    createdAt,
     userId,
     tenantId,
     body,
     deepLink,
-    readAt: undefined,
   }));
 }
 

@@ -1,4 +1,7 @@
-import { AgreementEventEnvelopeV2, Notification } from "pagopa-interop-models";
+import {
+  AgreementEventEnvelopeV2,
+  NewNotification,
+} from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -8,7 +11,7 @@ export async function handleAgreementEvent(
   decodedMessage: AgreementEventEnvelopeV2,
   logger: Logger,
   _readModelService: ReadModelServiceSQL
-): Promise<Notification[]> {
+): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
       P.union(
