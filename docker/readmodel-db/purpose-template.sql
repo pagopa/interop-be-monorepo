@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template (
   free_of_charge_reason VARCHAR,
   daily_calls INTEGER,
   PRIMARY KEY (id),
-  CONSTRAINT purpose_template_id_metadata_version_unique UNIQUE (id, metadata_version)
+  UNIQUE (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_eservice_descriptor_version (
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_eservice_
   purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
   eservice_id UUID NOT NULL, --> readmodel_catalog.eservice.id  
   eservice_descriptor_id UUID NOT NULL, --> readmodel_catalog.eservice_descriptor.id
-  CONSTRAINT purpose_template_eservice_descriptor_version_purpose_template_id_unique UNIQUE (purpose_template_id, eservice_id), 
+  UNIQUE (purpose_template_id, eservice_id), 
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
   metadata_version INTEGER NOT NULL,
   "version" VARCHAR NOT NULL,
   PRIMARY KEY (id),
-  CONSTRAINT purpose_template_risk_analysis_form_purpose_template_id_unique UNIQUE (purpose_template_id),
+  UNIQUE (purpose_template_id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_annotatio
   "name" VARCHAR NOT NULL,
   content_type VARCHAR NOT NULL,
   "path" VARCHAR NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id, purpose_template_id, annotation_id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
