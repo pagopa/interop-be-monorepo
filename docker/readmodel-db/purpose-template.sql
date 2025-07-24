@@ -23,17 +23,16 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_eservice_
   purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
   eservice_id UUID NOT NULL, --> readmodel_catalog.eservice.id  
   eservice_descriptor_id UUID NOT NULL, --> readmodel_catalog.eservice_descriptor.id
-  UNIQUE (purpose_template_id, eservice_id), 
+  UNIQUE (purpose_template_id, eservice_id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_analysis_form (
   id UUID,
-  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
+  purpose_template_id UUID UNIQUE NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   "version" VARCHAR NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE (purpose_template_id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -58,7 +57,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_annotatio
   metadata_version INTEGER NOT NULL,
   answer_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_answer (id) ON DELETE CASCADE,
   "text" VARCHAR,
-  "urls" JSON, 
+  "urls" JSON,
   PRIMARY KEY (id, purpose_template_id, answer_id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
