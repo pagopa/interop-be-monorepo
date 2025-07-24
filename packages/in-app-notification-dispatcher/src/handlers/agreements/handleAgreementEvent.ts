@@ -2,6 +2,7 @@ import { AgreementEventEnvelopeV2, Notification } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { handleAgreementSuspendedUnsuspended } from "./handleAgreementSuspendedUnsuspended.js";
 
 export async function handleAgreementEvent(
   decodedMessage: AgreementEventEnvelopeV2,
@@ -9,6 +10,23 @@ export async function handleAgreementEvent(
   _readModelService: ReadModelServiceSQL
 ): Promise<Notification[]> {
   return match(decodedMessage)
+    .with(
+      P.union(
+        { type: "AgreementSuspendedByConsumer" },
+        { type: "AgreementUnsuspendedByConsumer" },
+        { type: "AgreementSuspendedByProducer" },
+        { type: "AgreementUnsuspendedByProducer" },
+        { type: "AgreementSuspendedByPlatform" },
+        { type: "AgreementUnsuspendedByPlatform" }
+      ),
+      ({ data: { agreement }, type }) =>
+        handleAgreementSuspendedUnsuspended(
+          agreement,
+          logger,
+          _readModelService,
+          type
+        )
+    )
     .with(
       {
         type: P.union(
@@ -18,15 +36,9 @@ export async function handleAgreementEvent(
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
-          "AgreementUnsuspendedByProducer",
-          "AgreementUnsuspendedByConsumer",
-          "AgreementUnsuspendedByPlatform",
           "AgreementArchivedByConsumer",
           "AgreementArchivedByUpgrade",
           "AgreementUpgraded",
-          "AgreementSuspendedByProducer",
-          "AgreementSuspendedByConsumer",
-          "AgreementSuspendedByPlatform",
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
