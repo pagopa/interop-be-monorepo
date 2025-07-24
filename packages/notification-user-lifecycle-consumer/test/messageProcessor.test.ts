@@ -1,13 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { logger, InteropTokenGenerator } from "pagopa-interop-commons";
+import { logger } from "pagopa-interop-commons";
 import {
   genericInternalError,
   TenantId,
   unsafeBrandId,
   generateId,
   CorrelationId,
+  SelfcareId,
+  UserId,
 } from "pagopa-interop-models";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
+import { RefreshableInteropToken } from "pagopa-interop-commons";
 import { processUserEvent } from "../src/services/messageProcessor.js";
 import { UsersEventPayload } from "../src/model/UsersEventPayload.js";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
@@ -31,9 +34,9 @@ describe("processUserEvent", () => {
     typeof notificationConfigApi.createProcessApiClient
   >;
 
-  const mockInteropTokenGenerator = {
-    generateInternalToken: vi.fn(),
-  } as unknown as InteropTokenGenerator;
+  const mockInteropTokenGenerator: RefreshableInteropToken = {
+    get: vi.fn(),
+  } as unknown as RefreshableInteropToken;
 
   const mockLogger = {
     info: vi.fn(),
@@ -41,8 +44,8 @@ describe("processUserEvent", () => {
     error: vi.fn(),
   } as unknown as ReturnType<typeof logger>;
 
-  const userId = "123e4567-e89b-12d3-a456-426614174000";
-  const institutionId = "inst-123";
+  const userId = unsafeBrandId<UserId>("123e4567-e89b-12d3-a456-426614174000");
+  const institutionId = unsafeBrandId<SelfcareId>("inst-123");
   const tenantId = "tenant-123";
   const correlationId = generateId<CorrelationId>();
 
@@ -53,10 +56,7 @@ describe("processUserEvent", () => {
       "getTenantIdBySelfcareId"
     ).mockResolvedValue(unsafeBrandId<TenantId>(tenantId));
 
-    vi.spyOn(
-      mockInteropTokenGenerator,
-      "generateInternalToken"
-    ).mockResolvedValue({
+    vi.spyOn(mockInteropTokenGenerator, "get").mockResolvedValue({
       serialized: "mock-token",
       header: { alg: "HS256", use: "sig", typ: "JWT", kid: "mock-kid" },
       payload: {
