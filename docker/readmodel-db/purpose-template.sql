@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_annotatio
 CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_annotation_document (
   purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
+  annotation_id UUID UNIQUE NOT NULL REFERENCES readmodel_purpose_template.purpose_template_annotation (id) ON DELETE CASCADE,
   "name" VARCHAR NOT NULL,
   content_type VARCHAR NOT NULL,
   "path" VARCHAR NOT NULL,
