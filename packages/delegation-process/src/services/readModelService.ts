@@ -10,6 +10,7 @@ import {
   DelegationState,
   EService,
   EServiceId,
+  EServiceMode,
   genericInternalError,
   ListResult,
   Tenant,
@@ -18,6 +19,7 @@ import {
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { delegationApi } from "pagopa-interop-api-clients";
+import { eserviceModeToApiEServiceMode } from "../model/domain/apiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
@@ -530,6 +532,7 @@ export function readModelServiceBuilder(
             _id: "$eservice.data.id",
             name: { $first: "$eservice.data.name" },
             producerId: { $first: "$eservice.data.producerId" },
+            mode: { $first: "$eservice.data.mode" },
           },
         },
         {
@@ -538,6 +541,7 @@ export function readModelServiceBuilder(
             id: "$_id",
             name: 1,
             producerId: 1,
+            mode: 1,
           },
         },
         {
@@ -545,7 +549,7 @@ export function readModelServiceBuilder(
         },
       ];
 
-      const data = await delegations
+      const data: delegationApi.CompactEService[] = await delegations
         .aggregate(
           [
             ...aggregationPipeline,
@@ -554,6 +558,12 @@ export function readModelServiceBuilder(
           ],
           { allowDiskUse: true }
         )
+        .map((e) => ({
+          id: e.id,
+          name: e.name,
+          producerId: e.producerId,
+          mode: eserviceModeToApiEServiceMode(e.mode as EServiceMode),
+        }))
         .toArray();
 
       const result = z.array(delegationApi.CompactEService).safeParse(data);
