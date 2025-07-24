@@ -11,6 +11,7 @@ import {
 } from "pagopa-interop-models";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { RefreshableInteropToken } from "pagopa-interop-commons";
+import { AxiosError } from "axios";
 import { processUserEvent } from "../src/services/messageProcessor.js";
 import { UsersEventPayload } from "../src/model/UsersEventPayload.js";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
@@ -235,7 +236,37 @@ describe("processUserEvent", () => {
     );
   });
 
-  it("should handle notification config creation error for 'add' event", async () => {
+  it("should throw an error on notification config creation error for 'add' event", async () => {
+    const addEvent: UsersEventPayload = {
+      ...baseEvent,
+      eventType: "add",
+    };
+
+    const apiError = new Error("API Error");
+    vi.spyOn(
+      mockNotificationConfigProcessClient,
+      "createUserDefaultNotificationConfig"
+    ).mockRejectedValueOnce(apiError);
+
+    await expect(
+      processUserEvent(
+        addEvent,
+        mockReadModelServiceSQL,
+        mockUserServiceSQL,
+        mockNotificationConfigProcessClient,
+        mockInteropTokenGenerator,
+        mockLogger,
+        correlationId
+      )
+    ).rejects.toThrow(
+      genericInternalError(
+        `Error creating default notification config for user ${userId} and tenant ${tenantId}. Reason: ${apiError}`
+      )
+    );
+    expect(mockUserServiceSQL.insertUser).not.toHaveBeenCalled();
+  });
+
+  it("should not throw an error on 409 notification config creation for 'add' event", async () => {
     const addEvent: UsersEventPayload = {
       ...baseEvent,
       eventType: "add",
@@ -244,7 +275,9 @@ describe("processUserEvent", () => {
     vi.spyOn(
       mockNotificationConfigProcessClient,
       "createUserDefaultNotificationConfig"
-    ).mockRejectedValueOnce(new Error("API Error"));
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+    ).mockRejectedValueOnce(new AxiosError("", "", {}, {}, { status: 409 }));
 
     await processUserEvent(
       addEvent,
@@ -256,15 +289,40 @@ describe("processUserEvent", () => {
       correlationId
     );
 
-    expect(mockLogger.error).toHaveBeenCalledWith(
-      `Error creating user default notification config for user ${unsafeBrandId(
-        userId
-      )} from tenant ${unsafeBrandId(tenantId)}. Reason: Error: API Error`
-    );
     expect(mockUserServiceSQL.insertUser).toHaveBeenCalled();
   });
 
-  it("should handle notification config deletion error for 'delete' event", async () => {
+  it("should throw an error on notification config deletion error for 'delete' event", async () => {
+    const deleteEvent: UsersEventPayload = {
+      ...baseEvent,
+      eventType: "delete",
+    };
+
+    const apiError = new Error("API Error");
+    vi.spyOn(
+      mockNotificationConfigProcessClient,
+      "deleteUserNotificationConfig"
+    ).mockRejectedValueOnce(apiError);
+
+    await expect(
+      processUserEvent(
+        deleteEvent,
+        mockReadModelServiceSQL,
+        mockUserServiceSQL,
+        mockNotificationConfigProcessClient,
+        mockInteropTokenGenerator,
+        mockLogger,
+        correlationId
+      )
+    ).rejects.toThrow(
+      genericInternalError(
+        `Error deleting default notification config for user ${userId} and tenant ${tenantId}. Reason: ${apiError}`
+      )
+    );
+    expect(mockUserServiceSQL.deleteUser).not.toHaveBeenCalled();
+  });
+
+  it("should not throw an error on 404 notification config deletion for 'delete' event", async () => {
     const deleteEvent: UsersEventPayload = {
       ...baseEvent,
       eventType: "delete",
@@ -273,7 +331,9 @@ describe("processUserEvent", () => {
     vi.spyOn(
       mockNotificationConfigProcessClient,
       "deleteUserNotificationConfig"
-    ).mockRejectedValueOnce(new Error("API Error"));
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+    ).mockRejectedValueOnce(new AxiosError("", "", {}, {}, { status: 404 }));
 
     await processUserEvent(
       deleteEvent,
@@ -285,11 +345,6 @@ describe("processUserEvent", () => {
       correlationId
     );
 
-    expect(mockLogger.error).toHaveBeenCalledWith(
-      `Error deleting user default notification config for user ${unsafeBrandId(
-        userId
-      )} from tenant ${unsafeBrandId(tenantId)}. Reason: Error: API Error`
-    );
     expect(mockUserServiceSQL.deleteUser).toHaveBeenCalled();
   });
 });
