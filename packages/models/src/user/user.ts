@@ -13,7 +13,6 @@ export const UserRole = z.enum([
   ...Object.values(userRole).slice(1),
 ]);
 export type UserRole = z.infer<typeof UserRole>;
-// TODO unify with the definitions in commons
 
 export const User = z.object({
   id: UserId,

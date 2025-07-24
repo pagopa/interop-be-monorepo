@@ -1,10 +1,9 @@
 import { InteropTokenGenerator, logger } from "pagopa-interop-commons";
 import {
-  unsafeBrandId,
   genericInternalError,
   generateId,
+  CorrelationId,
 } from "pagopa-interop-models";
-import type { UserId, SelfcareId, CorrelationId } from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { match } from "ts-pattern";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
@@ -33,9 +32,8 @@ export async function processUserEvent(
   loggerInstance: ReturnType<typeof logger>,
   correlationId: CorrelationId
 ): Promise<void> {
-  const userId = unsafeBrandId<UserId>(payload.user.userId);
-  const institutionId = unsafeBrandId<SelfcareId>(payload.institutionId);
-  const action = payload.eventType;
+  const userId = payload.user.userId;
+  const institutionId = payload.institutionId;
   const tenantId = await readModelServiceSQL.getTenantIdBySelfcareId(
     institutionId
   );
@@ -56,7 +54,7 @@ export async function processUserEvent(
     productRole: payload.user.productRole,
   };
 
-  await match(action)
+  await match(payload.eventType)
     .with("add", async () => {
       loggerInstance.info(`Add user id ${userId} from tenant ${tenantId}`);
 

@@ -1,4 +1,5 @@
 import { UserRole } from "pagopa-interop-commons";
+import { SelfcareId, unsafeBrandId, UserId } from "pagopa-interop-models";
 import { z } from "zod";
 
 export const selfcareUserEventType = {
@@ -67,10 +68,10 @@ type BaseUsersEventPayload = z.infer<typeof BaseUsersEventPayload>;
 export const UsersEventPayload = BaseUsersEventPayload.transform((data) => {
   const baseEvent = {
     id: data.id,
-    institutionId: data.institutionId,
+    institutionId: unsafeBrandId<SelfcareId>(data.institutionId),
     productId: data.productId,
     user: {
-      userId: data.user.userId,
+      userId: unsafeBrandId<UserId>(data.user.userId),
       name: data.user.name,
       familyName: data.user.familyName,
       email: data.user.email,
@@ -78,24 +79,15 @@ export const UsersEventPayload = BaseUsersEventPayload.transform((data) => {
     },
   };
 
-  if (data.eventType === selfcareUserEventType.add) {
-    return {
-      ...baseEvent,
-      eventType: "add" as const,
-    };
-  }
-
-  // For update events, check the relationship status
-  if (data.user.relationshipStatus === relationshipStatus.deleted) {
-    return {
-      ...baseEvent,
-      eventType: "delete" as const,
-    };
-  }
-
+  const eventType: "add" | "update" | "delete" =
+    data.eventType === selfcareUserEventType.add
+      ? "add"
+      : data.user.relationshipStatus === relationshipStatus.deleted
+      ? "delete"
+      : "update";
   return {
     ...baseEvent,
-    eventType: "update" as const,
+    eventType,
   };
 });
 
