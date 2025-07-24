@@ -4,11 +4,11 @@ package purpose.template.v2;
 
 import "v2/purpose-template/purpose-template.proto";
 
-message PurposeTemplateAddedV2 {
+message PurposeTemplatePublishedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
 }
 
-message PurposeTemplateDraftUpdatedV2 {
+message PurposeTemplateAddedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
 }
 
@@ -21,6 +21,10 @@ message PurposeTemplateSuspendedV2 {
 }
 
 message PurposeTemplateArchivedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+}
+
+message PurposeTemplateDraftUpdatedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
 }
 
