@@ -36,6 +36,12 @@ describe("updateUserNotificationConfig", () => {
       inAppConfig: {
         newEServiceVersionPublished:
           !userNotificationConfig.inAppConfig.newEServiceVersionPublished,
+        productionAgreementSuspendedUnsuspended:
+          !userNotificationConfig.inAppConfig
+            .productionAgreementSuspendedUnsuspended,
+        consumptionAgreementSuspendedUnsuspended:
+          !userNotificationConfig.inAppConfig
+            .consumptionAgreementSuspendedUnsuspended,
       },
       emailConfig: getMockNotificationConfig(),
     };

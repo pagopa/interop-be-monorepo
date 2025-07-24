@@ -31,6 +31,12 @@ describe("updateTenantNotificationConfig", () => {
     {
       newEServiceVersionPublished:
         !tenantNotificationConfig.config.newEServiceVersionPublished,
+      productionAgreementSuspendedUnsuspended:
+        !tenantNotificationConfig.config
+          .productionAgreementSuspendedUnsuspended,
+      consumptionAgreementSuspendedUnsuspended:
+        !tenantNotificationConfig.config
+          .consumptionAgreementSuspendedUnsuspended,
     };
 
   beforeAll(async () => {

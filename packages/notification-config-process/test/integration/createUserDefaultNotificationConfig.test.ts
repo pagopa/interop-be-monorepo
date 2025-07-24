@@ -26,9 +26,13 @@ describe("createUserNotificationConfig", () => {
 
   const defaultInAppConfig: NotificationConfig = {
     newEServiceVersionPublished: true,
+    productionAgreementSuspendedUnsuspended: true,
+    consumptionAgreementSuspendedUnsuspended: true,
   };
   const defaultEmailConfig: NotificationConfig = {
     newEServiceVersionPublished: true,
+    productionAgreementSuspendedUnsuspended: true,
+    consumptionAgreementSuspendedUnsuspended: true,
   };
   beforeAll(async () => {
     vi.useFakeTimers();

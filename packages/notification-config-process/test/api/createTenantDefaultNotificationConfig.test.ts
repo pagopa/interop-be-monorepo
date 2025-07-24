@@ -20,6 +20,8 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
   const defaultTenantId: TenantId = generateId();
   const defaultConfig: NotificationConfig = {
     newEServiceVersionPublished: true,
+    productionAgreementSuspendedUnsuspended: true,
+    consumptionAgreementSuspendedUnsuspended: true,
   };
   const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigSeed =
     {
