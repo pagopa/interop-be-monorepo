@@ -12,11 +12,16 @@ export const KafkaConsumerConfig = KafkaConfig.and(
         .union([z.literal("earliest"), z.literal("latest")])
         .default("latest"),
       RESET_CONSUMER_OFFSETS: z.string().default("false"),
+      CONSUMER_SESSION_TIMEOUT: z.coerce.number().default(30000),
     })
     .transform((c) => ({
       kafkaGroupId: c.KAFKA_GROUP_ID,
       topicStartingOffset: c.TOPIC_STARTING_OFFSET,
       resetConsumerOffsets: c.RESET_CONSUMER_OFFSETS.toLowerCase() === "true",
+      consumerSessionTimeoutMillis: c.CONSUMER_SESSION_TIMEOUT,
+      consumerHeartbeatIntervalMillis: Math.round(
+        c.CONSUMER_SESSION_TIMEOUT / 3 // 1/3 of session timeout as per Kafka best practices
+      ),
     }))
 );
 export type KafkaConsumerConfig = z.infer<typeof KafkaConsumerConfig>;
@@ -34,6 +39,7 @@ export const KafkaBatchConsumerConfig = z
       minBytes,
       maxWaitKafkaBatchMillis: c.MAX_WAIT_KAFKA_BATCH_MILLIS,
       sessionTimeoutMillis: Math.round(c.MAX_WAIT_KAFKA_BATCH_MILLIS * 1.5),
+      heartbeatIntervalMillis: Math.round(c.MAX_WAIT_KAFKA_BATCH_MILLIS * 0.5), // 1/3 of session timeout as per Kafka best practices
       maxBytes: Math.round(minBytes * 1.25),
     };
   });
