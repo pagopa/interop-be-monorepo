@@ -47,8 +47,11 @@ const extractAddress = (parsedXml: any): string[] => {
 
 const extractEndpoints = (parsedXml: any): string[] => {
   try {
-    const operation =
-      parsedXml["wsdl:definitions"]["wsdl:binding"]["wsdl:operation"];
+    const binding = parsedXml["wsdl:definitions"]["wsdl:binding"];
+    const operation = Array.isArray(binding)
+      ? binding.flatMap((b) => b["wsdl:operation"])
+      : binding["wsdl:operation"];
+
     return match(operation)
       .with(
         P.shape({ "soap:operation": { soapAction: P.string } }),
