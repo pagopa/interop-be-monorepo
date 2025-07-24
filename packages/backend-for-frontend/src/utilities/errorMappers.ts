@@ -159,6 +159,7 @@ export const createEServiceDocumentErrorMapper = (
     .with(
       "invalidInterfaceContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
+      "invalidServerUrl",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -171,6 +172,7 @@ export const createEServiceTemplateDocumentErrorMapper = (
     .with(
       "invalidInterfaceContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
+      "invalidServerUrl",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

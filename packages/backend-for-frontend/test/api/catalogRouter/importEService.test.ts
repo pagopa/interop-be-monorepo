@@ -54,14 +54,17 @@ describe("API POST /import/eservices", () => {
     },
     {
       error: invalidInterfaceContentTypeDetected(
-        generateId(),
+        { id: generateId(), isEserviceTemplate: false },
         "contentType",
         "REST"
       ),
       expectedStatus: 400,
     },
     {
-      error: invalidInterfaceFileDetected(generateId()),
+      error: invalidInterfaceFileDetected({
+        id: generateId(),
+        isEserviceTemplate: false,
+      }),
       expectedStatus: 400,
     },
     {

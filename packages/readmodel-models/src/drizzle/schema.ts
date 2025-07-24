@@ -21,6 +21,7 @@ import {
   readmodelClientJwkKey,
   readmodelProducerJwkKey,
   readmodelEserviceTemplate,
+  readmodelNotificationConfig,
 } from "../pgSchema.js";
 
 export const agreementInReadmodelAgreement = readmodelAgreement.table(
@@ -811,7 +812,7 @@ export const purposeRiskAnalysisAnswerInReadmodelPurpose =
       riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
       kind: varchar().notNull(),
       key: varchar().notNull(),
-      value: varchar().array(),
+      value: varchar().array().notNull(),
     },
     (table) => [
       foreignKey({
@@ -1693,6 +1694,155 @@ export const tenantVerifiedAttributeRevokerInReadmodelTenant =
           tenantInReadmodelTenant.metadataVersion,
         ],
         name: "tenant_verified_attribute_revok_tenant_id_metadata_version_fkey",
+      }),
+    ]
+  );
+
+export const tenantNotificationConfigInReadmodelNotificationConfig =
+  readmodelNotificationConfig.table(
+    "tenant_notification_config",
+    {
+      id: uuid().primaryKey().notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      tenantId: uuid("tenant_id").notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      updatedAt: timestamp("updated_at", {
+        withTimezone: true,
+        mode: "string",
+      }),
+    },
+    (table) => [
+      unique("tenant_notification_config_id_metadata_version_unique").on(
+        table.id,
+        table.metadataVersion
+      ),
+      unique("tenant_notification_config_tenant_id_unique").on(table.tenantId),
+    ]
+  );
+
+export const userNotificationConfigInReadmodelNotificationConfig =
+  readmodelNotificationConfig.table(
+    "user_notification_config",
+    {
+      id: uuid().primaryKey().notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      userId: uuid("user_id").notNull(),
+      tenantId: uuid("tenant_id").notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      updatedAt: timestamp("updated_at", {
+        withTimezone: true,
+        mode: "string",
+      }),
+    },
+    (table) => [
+      unique("user_notification_config_id_metadata_version_unique").on(
+        table.id,
+        table.metadataVersion
+      ),
+      unique("user_notification_config_user_id_tenant_id_unique").on(
+        table.userId,
+        table.tenantId
+      ),
+    ]
+  );
+
+export const tenantEnabledNotificationInReadmodelNotificationConfig =
+  readmodelNotificationConfig.table(
+    "tenant_enabled_notification",
+    {
+      tenantNotificationConfigId: uuid(
+        "tenant_notification_config_id"
+      ).notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      notificationType: varchar("notification_type").notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.tenantNotificationConfigId],
+        foreignColumns: [
+          tenantNotificationConfigInReadmodelNotificationConfig.id,
+        ],
+        name: "tenant_enabled_notification_tenant_notification_config_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.tenantNotificationConfigId, table.metadataVersion],
+        foreignColumns: [
+          tenantNotificationConfigInReadmodelNotificationConfig.id,
+          tenantNotificationConfigInReadmodelNotificationConfig.metadataVersion,
+        ],
+        name: "tenant_enabled_notification_tenant_notification_config_id__fkey",
+      }),
+      primaryKey({
+        columns: [table.tenantNotificationConfigId, table.notificationType],
+        name: "tenant_enabled_notification_pkey",
+      }),
+    ]
+  );
+
+export const userEnabledInAppNotificationInReadmodelNotificationConfig =
+  readmodelNotificationConfig.table(
+    "user_enabled_in_app_notification",
+    {
+      userNotificationConfigId: uuid("user_notification_config_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      notificationType: varchar("notification_type").notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.userNotificationConfigId],
+        foreignColumns: [
+          userNotificationConfigInReadmodelNotificationConfig.id,
+        ],
+        name: "user_enabled_in_app_notificati_user_notification_config_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.userNotificationConfigId, table.metadataVersion],
+        foreignColumns: [
+          userNotificationConfigInReadmodelNotificationConfig.id,
+          userNotificationConfigInReadmodelNotificationConfig.metadataVersion,
+        ],
+        name: "user_enabled_in_app_notificat_user_notification_config_id__fkey",
+      }),
+      primaryKey({
+        columns: [table.userNotificationConfigId, table.notificationType],
+        name: "user_enabled_in_app_notification_pkey",
+      }),
+    ]
+  );
+
+export const userEnabledEmailNotificationInReadmodelNotificationConfig =
+  readmodelNotificationConfig.table(
+    "user_enabled_email_notification",
+    {
+      userNotificationConfigId: uuid("user_notification_config_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      notificationType: varchar("notification_type").notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.userNotificationConfigId],
+        foreignColumns: [
+          userNotificationConfigInReadmodelNotificationConfig.id,
+        ],
+        name: "user_enabled_email_notificatio_user_notification_config_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.userNotificationConfigId, table.metadataVersion],
+        foreignColumns: [
+          userNotificationConfigInReadmodelNotificationConfig.id,
+          userNotificationConfigInReadmodelNotificationConfig.metadataVersion,
+        ],
+        name: "user_enabled_email_notificati_user_notification_config_id__fkey",
+      }),
+      primaryKey({
+        columns: [table.userNotificationConfigId, table.notificationType],
+        name: "user_enabled_email_notification_pkey",
       }),
     ]
   );

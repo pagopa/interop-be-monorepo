@@ -14,12 +14,14 @@ import {
   toReadModelPurpose,
 } from "pagopa-interop-models";
 import {
-  agreementReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
   clientReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { afterEach, inject } from "vitest";
+import {
+  upsertAgreement,
+  upsertEService,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { config as checkerConfig } from "../src/configs/config.js";
@@ -43,10 +45,7 @@ if (!config) {
   throw new Error("Config is not defined");
 }
 
-const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
-const agreementReadModelServiceSQL =
-  agreementReadModelServiceBuilder(readModelDB);
 const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
@@ -68,7 +67,7 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
     readModelRepository.eservices
   );
 
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
@@ -86,7 +85,7 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
     readModelRepository.agreements
   );
 
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneClient = async (client: Client): Promise<void> => {

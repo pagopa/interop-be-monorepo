@@ -14,6 +14,7 @@ import {
   invalidInterfaceContentTypeDetected,
   invalidInterfaceData,
   invalidInterfaceFileDetected,
+  invalidServerUrl,
   openapiVersionNotRecognized,
   technology,
   Technology,
@@ -80,7 +81,7 @@ const getInterfaceFileType = (
     .with(P.string.endsWith("xml"), () => eserviceInterfaceAllowedFileType.xml)
     .otherwise(() => undefined);
 
-const processRestInterface = (
+const retrieveServerUrlsRestAPI = (
   fileType: EserviceRestInterfaceType,
   file: string
 ): string[] => {
@@ -100,7 +101,7 @@ const processRestInterface = (
     });
 };
 
-export const interpolateApiSpec = async (
+export const interpolateTemplateApiSpec = async (
   eservice: EService,
   file: string,
   interfaceFileInfo: {
@@ -125,7 +126,7 @@ export const interpolateApiSpec = async (
       [eserviceInterfaceAllowedFileType.json, P.not(P.nullish)],
       [eserviceInterfaceAllowedFileType.yaml, P.not(P.nullish)],
       ([_, contactData]) =>
-        interpolateOpenApiSpec(eservice, file, interfaceFileInfo, {
+        interpolateTemplateRestApiSpec(eservice, file, interfaceFileInfo, {
           serverUrls,
           ...contactData,
         })
@@ -134,16 +135,16 @@ export const interpolateApiSpec = async (
       [eserviceInterfaceAllowedFileType.wsdl, P.nullish],
       [eserviceInterfaceAllowedFileType.xml, P.nullish],
       () =>
-        interpolateSoapApiSpec(eservice, file, interfaceFileInfo, {
+        interpolateTemplateSoapApiSpec(eservice, file, interfaceFileInfo, {
           serverUrls,
         })
     )
     .otherwise(() => {
-      throw invalidInterfaceData(eservice.id);
+      throw invalidInterfaceData({ id: eservice.id, isEserviceTemplate: true });
     });
 };
 
-export const interpolateOpenApiSpec = async (
+export const interpolateTemplateRestApiSpec = async (
   eservice: EService,
   file: string,
   interfaceFileInfo: {
@@ -171,7 +172,10 @@ export const interpolateOpenApiSpec = async (
       })
     )
     .otherwise(() => {
-      throw invalidInterfaceFileDetected(eservice.id);
+      throw invalidInterfaceFileDetected({
+        id: eservice.id,
+        isEserviceTemplate: true,
+      });
     });
 
   /* eslint-disable functional/immutable-data */
@@ -198,11 +202,14 @@ export const interpolateOpenApiSpec = async (
       type: interfaceFileInfo.contentType,
     });
   } catch (errors) {
-    throw invalidInterfaceFileDetected(eservice.id);
+    throw invalidInterfaceFileDetected({
+      id: eservice.id,
+      isEserviceTemplate: true,
+    });
   }
 };
 
-export const interpolateSoapApiSpec = async (
+export const interpolateTemplateSoapApiSpec = async (
   eservice: EService,
   file: string,
   interfaceFileInfo: {
@@ -270,19 +277,25 @@ export const interpolateSoapApiSpec = async (
       type: interfaceFileInfo.contentType,
     });
   } catch (errors) {
-    throw invalidInterfaceFileDetected(eservice.id);
+    throw invalidInterfaceFileDetected({
+      id: eservice.id,
+      isEserviceTemplate: true,
+    });
   }
 };
 
-export const extractEServiceUrlsFrom = async (
+export const retrieveServerUrlsAPI = async (
   file: File,
   kind: "INTERFACE" | "DOCUMENT",
   tech: Technology,
-  resourceId: string // logging purpose
+  resource: {
+    id: string;
+    isEserviceTemplate: boolean;
+  }
 ): Promise<string[]> => {
   const fileContent = await file.text();
   try {
-    return match({
+    const serverUrls = match({
       fileType: getInterfaceFileType(file.name),
       technology: tech,
       kind,
@@ -293,7 +306,7 @@ export const extractEServiceUrlsFrom = async (
           technology: technology.rest,
           fileType: P.union("json", "yaml"),
         },
-        (f) => processRestInterface(f.fileType, fileContent)
+        (f) => retrieveServerUrlsRestAPI(f.fileType, fileContent)
       )
       .with(
         {
@@ -312,6 +325,16 @@ export const extractEServiceUrlsFrom = async (
       .otherwise(() => {
         throw new Error();
       });
+
+    // Validate that all returned strings are valid URLs
+    for (const url of serverUrls) {
+      const { success } = z.string().url().safeParse(url);
+      if (!success) {
+        throw invalidServerUrl(resource);
+      }
+    }
+
+    return serverUrls;
   } catch (error) {
     throw match(error)
       .with(
@@ -319,14 +342,18 @@ export const extractEServiceUrlsFrom = async (
         P.instanceOf(ZodError),
         () => error
       )
-      .otherwise(() => invalidInterfaceFileDetected(resourceId));
+      .otherwise(() => invalidInterfaceFileDetected(resource));
   }
 };
 
 // eslint-disable-next-line max-params
 export async function verifyAndCreateDocument<T>(
   fileManager: FileManager,
-  resourceId: string, // logging purpose
+  resource: {
+    // logging purposes
+    id: string;
+    isEserviceTemplate: boolean;
+  },
   technology: Technology,
   kind: "INTERFACE" | "DOCUMENT",
   doc: File,
@@ -348,18 +375,14 @@ export async function verifyAndCreateDocument<T>(
 ): Promise<T> {
   const contentType = doc.type;
   if (!contentType) {
-    throw invalidInterfaceContentTypeDetected(
-      resourceId,
-      "invalid",
-      technology
-    );
+    throw invalidInterfaceContentTypeDetected(resource, "invalid", technology);
   }
 
-  const serverUrls = await extractEServiceUrlsFrom(
+  const serverUrls = await retrieveServerUrlsAPI(
     doc,
     kind,
     technology,
-    resourceId
+    resource
   );
 
   const filePath = await fileManager.storeBytes(
@@ -431,7 +454,7 @@ Promise<void> => {
 
   await verifyAndCreateDocument(
     fileManager,
-    eserviceId,
+    { id: eserviceId, isEserviceTemplate: false },
     technology,
     kind,
     file,

@@ -8,6 +8,8 @@ import {
   InteropTokenGenerator,
   RateLimiter,
   FileManager,
+  fromFilesToBodyMiddleware,
+  multerMiddleware,
 } from "pagopa-interop-commons";
 import express from "express";
 import {
@@ -20,6 +22,7 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
+import swaggerRouter from "./routers/swaggerRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
 import authorizationRouter from "./routers/authorizationRouter.js";
@@ -29,11 +32,7 @@ import selfcareRouter from "./routers/selfcareRouter.js";
 import supportRouter from "./routers/supportRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import toolRouter from "./routers/toolRouter.js";
-import {
-  fromFilesToBodyMiddleware,
-  multerMiddleware,
-  uiAuthDataValidationMiddleware,
-} from "./utilities/middlewares.js";
+import { uiAuthDataValidationMiddleware } from "./utilities/middlewares.js";
 import clientRouter from "./routers/clientRouter.js";
 import producerKeychainRouter from "./routers/producerKeychainRouter.js";
 import delegationRouter from "./routers/delegationRouter.js";
@@ -215,6 +214,7 @@ export async function createApp(
   app.use(
     appBasePath,
     healthRouter,
+    swaggerRouter,
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),

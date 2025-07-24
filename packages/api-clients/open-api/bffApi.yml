@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Backend for Frontend Micro Service
   description: Interop BFF implementation
-  version: "v1"
+  version: "1.0"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -93,6 +93,8 @@ tags:
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
+  - name: develop
+    description: Development
 paths:
   "/consumers/agreements":
     get:
@@ -11111,7 +11113,6 @@ paths:
             type: array
             items:
               $ref: "#/components/schemas/AttributeKind"
-            default: []
           required: true
           explode: false
       responses:
@@ -17017,6 +17018,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
     get:
       description: Retrieves delegation
       summary: Retrieves delegation
@@ -20529,6 +20531,17 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
 
+  "/apiDocs":
+    get:
+      security: []
+      tags:
+        - develop
+      summary: Swagger docs endpoint
+      description:  Display the API documentation
+      operationId: getDocs
+      responses:
+        "200":
+          description: successful operation
   "/status":
     get:
       security: []

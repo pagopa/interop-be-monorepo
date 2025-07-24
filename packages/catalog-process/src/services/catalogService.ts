@@ -8,7 +8,6 @@ import {
   eventRepository,
   FileManager,
   InternalAuthData,
-  interpolateApiSpec,
   Logger,
   M2MAuthData,
   riskAnalysisValidatedFormToNewRiskAnalysis,
@@ -20,6 +19,8 @@ import {
   assertFeatureFlagEnabled,
   isFeatureFlagEnabled,
   M2MAdminAuthData,
+  interpolateTemplateApiSpec,
+  authRole,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -710,7 +711,11 @@ export function catalogServiceBuilder(
       {
         authData,
         logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+      }: WithLogger<
+        AppContext<
+          UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
+        >
+      >
     ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -900,9 +905,9 @@ export function catalogServiceBuilder(
         )
           ? isTenantInSignalHubWhitelist(
               authData.organizationId,
-              eservice.data.isSignalHubEnabled
+              eserviceSeed.isSignalHubEnabled
             )
-          : eservice.data.isSignalHubEnabled,
+          : eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
           .with(P.nullish, () => undefined)
@@ -945,9 +950,9 @@ export function catalogServiceBuilder(
         isSignalHubEnabled: config.featureFlagSignalhubWhitelist
           ? isTenantInSignalHubWhitelist(
               authData.organizationId,
-              eservice.data.isSignalHubEnabled
+              eserviceSeed.isSignalHubEnabled
             )
-          : eservice.data.isSignalHubEnabled,
+          : eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
           .with(P.nullish, () => undefined)
@@ -3363,7 +3368,7 @@ async function createOpenApiInterfaceByTemplate(
   }
 
   const documentId = unsafeBrandId<EServiceDocumentId>(randomUUID());
-  const newInterfaceFile = await interpolateApiSpec(
+  const newInterfaceFile = await interpolateTemplateApiSpec(
     eservice,
     Buffer.from(interfaceTemplate).toString(),
     eserviceTemplateInterface,
@@ -3373,7 +3378,7 @@ async function createOpenApiInterfaceByTemplate(
 
   return await verifyAndCreateDocument(
     fileManager,
-    eservice.id,
+    { id: eservice.id, isEserviceTemplate: true },
     eservice.technology,
     "INTERFACE",
     newInterfaceFile,
@@ -3413,9 +3418,13 @@ async function createOpenApiInterfaceByTemplate(
 
 async function applyVisibilityToEService(
   eservice: EService,
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData,
   readModelService: ReadModelService
 ): Promise<EService> {
+  if (authData.systemRole === authRole.INTERNAL_ROLE) {
+    return eservice;
+  }
+
   if (hasRoleToAccessInactiveDescriptors(authData)) {
     /* Inactive descriptors are visible only if both conditions are met:
        1) The request is made with a role that can access inactive descriptors.
