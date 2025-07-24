@@ -7,6 +7,7 @@ import {
 import { EachMessagePayload } from "kafkajs";
 import { match } from "ts-pattern";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
+import { isAxiosError } from "axios";
 import { UsersEventPayload } from "../model/UsersEventPayload.js";
 import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -73,9 +74,15 @@ export async function processUserEvent(
           }
         );
       } catch (err) {
-        loggerInstance.error(
-          `Error creating user default notification config for user ${userId} from tenant ${tenantId}. Reason: ${err}`
-        );
+        if (isAxiosError(err) && err.response?.status === 409) {
+          loggerInstance.info(
+            `Notification config for user ${userId} and tenant ${tenantId} already exists, skipping creation`
+          );
+        } else {
+          throw genericInternalError(
+            `Error creating default notification config for user ${userId} and tenant ${tenantId}. Reason: ${err}`
+          );
+        }
       }
       return userServiceSQL.insertUser(userData);
     })
@@ -101,9 +108,15 @@ export async function processUserEvent(
           }
         );
       } catch (err) {
-        loggerInstance.error(
-          `Error deleting user default notification config for user ${userId} from tenant ${tenantId}. Reason: ${err}`
-        );
+        if (isAxiosError(err) && err.response?.status === 404) {
+          loggerInstance.info(
+            `Notification config for user ${userId} and tenant ${tenantId} not found, skipping deletion`
+          );
+        } else {
+          throw genericInternalError(
+            `Error deleting default notification config for user ${userId} and tenant ${tenantId}. Reason: ${err}`
+          );
+        }
       }
       return userServiceSQL.deleteUser(userId);
     })
