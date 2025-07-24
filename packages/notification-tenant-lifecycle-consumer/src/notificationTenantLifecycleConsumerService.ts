@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import {
   Logger,
   RefreshableInteropToken,
@@ -7,6 +8,7 @@ import {
   CorrelationId,
   TenantEventEnvelopeV2,
   fromTenantV2,
+  genericInternalError,
   missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -34,12 +36,24 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
           logger.info(
             `Creating default notification config for tenant ${message.data.tenant.id}`
           );
-          await notificationConfigProcess.client.createTenantDefaultNotificationConfig(
-            { tenantId: fromTenantV2(message.data.tenant).id },
-            {
-              headers,
+          try {
+            await notificationConfigProcess.client.createTenantDefaultNotificationConfig(
+              { tenantId: fromTenantV2(message.data.tenant).id },
+              {
+                headers,
+              }
+            );
+          } catch (error) {
+            if (isAxiosError(error) && error.response?.status === 409) {
+              logger.info(
+                `Notification config for tenant ${message.data.tenant.id} already exists, skipping creation`
+              );
+            } else {
+              throw genericInternalError(
+                `Error creating default notification config for tenant ${message.data.tenant.id}. Reason: ${error}`
+              );
             }
-          );
+          }
         })
         .with({ type: "MaintenanceTenantDeleted" }, async (message) => {
           const token = (await refreshableToken.get()).serialized;
@@ -47,13 +61,25 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
           logger.info(
             `Deleting notification config for tenant ${message.data.tenantId}`
           );
-          await notificationConfigProcess.client.deleteTenantNotificationConfig(
-            undefined,
-            {
-              params: { tenantId: unsafeBrandId(message.data.tenantId) },
-              headers,
+          try {
+            await notificationConfigProcess.client.deleteTenantNotificationConfig(
+              undefined,
+              {
+                params: { tenantId: unsafeBrandId(message.data.tenantId) },
+                headers,
+              }
+            );
+          } catch (error) {
+            if (isAxiosError(error) && error.response?.status === 404) {
+              logger.info(
+                `Notification config for tenant ${message.data.tenantId} not found, skipping deletion`
+              );
+            } else {
+              throw genericInternalError(
+                `Error deleting default notification config for tenant ${message.data.tenantId}. Reason: ${error}`
+              );
             }
-          );
+          }
         })
         .with(
           {
