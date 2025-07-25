@@ -88,7 +88,7 @@ export const RiskAnalysisTemplateSingleAnswer = RiskAnalysisSingleAnswer.and(
   z.object({
     editable: z.boolean(),
     annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
-    instruction: z.string().optional(),
+    assistiveText: z.string().optional(),
     suggestedValues: z.array(z.string()),
   })
 );
@@ -100,7 +100,7 @@ export const RiskAnalysisTemplateMultiAnswer = RiskAnalysisMultiAnswer.and(
   z.object({
     editable: z.boolean(),
     annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
-    instruction: z.string().optional(),
+    assistiveText: z.string().optional(),
   })
 );
 export type RiskAnalysisTemplateMultiAnswer = z.infer<
