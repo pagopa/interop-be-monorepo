@@ -23,8 +23,8 @@ export type AgreementSuspendedUnsuspendedEventType =
 
 type NotificationAudience = "consumer" | "producer";
 type NotificationConfig =
-  | "consumptionAgreementSuspendedUnsuspended"
-  | "productionAgreementSuspendedUnsuspended";
+  | "agreementSuspendedUnsuspendedToConsumer"
+  | "agreementSuspendedUnsuspendedToProducer";
 
 export async function handleAgreementSuspendedUnsuspended(
   agreementV2Msg: AgreementV2 | undefined,
@@ -165,8 +165,8 @@ async function getUsersWithNotificationsEnabled(
     return readModelService.getTenantUsersWithNotificationEnabled(
       [audienceId],
       match<NotificationAudience, NotificationConfig>(audience)
-        .with("consumer", () => "consumptionAgreementSuspendedUnsuspended")
-        .with("producer", () => "productionAgreementSuspendedUnsuspended")
+        .with("consumer", () => "agreementSuspendedUnsuspendedToConsumer")
+        .with("producer", () => "agreementSuspendedUnsuspendedToProducer")
         .exhaustive()
     );
   });
