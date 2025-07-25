@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  LinkId,
   RiskAnalysisFormId,
   RiskAnalysisFormTemplateId,
   RiskAnalysisId,
@@ -62,36 +63,49 @@ export const RiskAnalysisTemplateAnnotationDocument = z.object({
   contentType: z.string(),
   prettyName: z.string(),
   path: z.string(),
-  checksum: z.string(),
-  uploadDate: z.coerce.date(),
+  createdAt: z.coerce.date(),
 });
 
 // TODO: move to commons if needed
 export const Link = z.object({
+  id: LinkId,
   url: z.string().url(),
   name: z.string(),
 });
+export type Link = z.infer<typeof Link>;
 
 export const RiskAnalysisTemplateAnswerAnnotation = z.object({
   id: RiskAnalysisTemplateAnswerAnnotationId,
-  text: z.string(),
+  text: z.string().optional(),
   docs: z.array(RiskAnalysisTemplateAnnotationDocument).optional(),
   urls: z.array(Link).optional(),
 });
+export type RiskAnalysisTemplateAnswerAnnotation = z.infer<
+  typeof RiskAnalysisTemplateAnswerAnnotation
+>;
 
 export const RiskAnalysisTemplateSingleAnswer = RiskAnalysisSingleAnswer.and(
   z.object({
     editable: z.boolean(),
     annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
+    assistiveText: z.string().optional(),
+    suggestedValues: z.array(z.string()),
   })
 );
+export type RiskAnalysisTemplateSingleAnswer = z.infer<
+  typeof RiskAnalysisTemplateSingleAnswer
+>;
 
 export const RiskAnalysisTemplateMultiAnswer = RiskAnalysisMultiAnswer.and(
   z.object({
     editable: z.boolean(),
     annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
+    assistiveText: z.string().optional(),
   })
 );
+export type RiskAnalysisTemplateMultiAnswer = z.infer<
+  typeof RiskAnalysisTemplateMultiAnswer
+>;
 
 export const RiskAnalysisFormTemplate = z.object({
   id: RiskAnalysisFormTemplateId,
@@ -99,3 +113,4 @@ export const RiskAnalysisFormTemplate = z.object({
   singleAnswers: z.array(RiskAnalysisTemplateSingleAnswer),
   multiAnswers: z.array(RiskAnalysisTemplateMultiAnswer),
 });
+export type RiskAnalysisFormTemplate = z.infer<typeof RiskAnalysisFormTemplate>;

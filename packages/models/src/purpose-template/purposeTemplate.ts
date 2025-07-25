@@ -19,20 +19,28 @@ export const PurposeTemplateState = z.enum([
 ]);
 export type PurposeTemplateState = z.infer<typeof PurposeTemplateState>;
 
+export const EServiceDescriptorVersionPurposeTemplate = z.object({
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+});
+export type EServiceDescriptorVersionPurposeTemplate = z.infer<
+  typeof EServiceDescriptorVersionPurposeTemplate
+>;
+
 export const PurposeTemplate = z.object({
   id: PurposeTemplateId,
   name: z.string(),
   target: z.string(),
   creatorId: TenantId,
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId,
+  eservicesVersions: z.array(EServiceDescriptorVersionPurposeTemplate),
   state: PurposeTemplateState,
-  title: z.string(),
-  description: z.string(),
-  riskAnalysisForm: RiskAnalysisFormTemplate.optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().optional(),
-  isFreeOfCharge: z.boolean(),
-  freeOfChargeReason: z.string().optional(),
-  dailyCalls: z.number().optional(),
+  purposeTitle: z.string(),
+  purposeDescription: z.string(),
+  purposeRiskAnalysisForm: RiskAnalysisFormTemplate.optional(),
+  purposeIsFreeOfCharge: z.boolean(),
+  purposeFreeOfChargeReason: z.string().optional(),
+  purposeDailyCalls: z.number().optional(),
 });
+export type PurposeTemplate = z.infer<typeof PurposeTemplate>;
