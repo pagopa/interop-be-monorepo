@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CorrelationId, SpanId } from "../brandedIds.js";
+import { ClientKind } from "../authorization/client.js";
 
 export const ApplicationAuditPhase = {
   BEGIN_REQUEST: "BEGIN_REQUEST",
@@ -64,6 +65,7 @@ export const ApplicationAuditEndRequestAuthServer = z.object({
   amazonTraceId: z.string().optional(),
   organizationId: z.string().optional(),
   clientId: z.string().optional(),
+  clientKind: ClientKind.optional(),
   httpResponseStatus: z.number(),
   executionTimeMs: z.number(),
 });
