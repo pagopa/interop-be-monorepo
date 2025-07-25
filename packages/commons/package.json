@@ -42,7 +42,7 @@
     "kafkajs": "2.2.4",
     "mime": "4.0.7",
     "mongodb": "6.7.0",
-    "multer": "2.0.1",
+    "multer": "2.0.2",
     "nodemailer": "6.9.14",
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "11.8.0",
