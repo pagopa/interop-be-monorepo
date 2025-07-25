@@ -31,14 +31,14 @@ export const aggregateTenantNotificationConfig = ({
   );
 
   const config: NotificationConfig = {
-    newEServiceVersionPublished: enabledNotifications.includes(
-      "newEServiceVersionPublished"
+    newEServiceVersionPublishedToConsumer: enabledNotifications.includes(
+      "newEServiceVersionPublishedToConsumer"
     ),
-    productionAgreementSuspendedUnsuspended: enabledNotifications.includes(
-      "productionAgreementSuspendedUnsuspended"
+    agreementSuspendedUnsuspendedToProducer: enabledNotifications.includes(
+      "agreementSuspendedUnsuspendedToProducer"
     ),
-    consumptionAgreementSuspendedUnsuspended: enabledNotifications.includes(
-      "consumptionAgreementSuspendedUnsuspended"
+    agreementSuspendedUnsuspendedToConsumer: enabledNotifications.includes(
+      "agreementSuspendedUnsuspendedToConsumer"
     ),
   };
 
@@ -78,28 +78,26 @@ export const aggregateUserNotificationConfig = ({
   );
 
   const inAppConfig: NotificationConfig = {
-    newEServiceVersionPublished: enabledInAppNotifications.includes(
-      "newEServiceVersionPublished"
+    newEServiceVersionPublishedToConsumer: enabledInAppNotifications.includes(
+      "newEServiceVersionPublishedToConsumer"
     ),
-    productionAgreementSuspendedUnsuspended: enabledInAppNotifications.includes(
-      "productionAgreementSuspendedUnsuspended"
+    agreementSuspendedUnsuspendedToProducer: enabledInAppNotifications.includes(
+      "agreementSuspendedUnsuspendedToProducer"
     ),
-    consumptionAgreementSuspendedUnsuspended:
-      enabledInAppNotifications.includes(
-        "consumptionAgreementSuspendedUnsuspended"
-      ),
+    agreementSuspendedUnsuspendedToConsumer: enabledInAppNotifications.includes(
+      "agreementSuspendedUnsuspendedToConsumer"
+    ),
   };
   const emailConfig: NotificationConfig = {
-    newEServiceVersionPublished: enabledEmailNotifications.includes(
-      "newEServiceVersionPublished"
+    newEServiceVersionPublishedToConsumer: enabledEmailNotifications.includes(
+      "newEServiceVersionPublishedToConsumer"
     ),
-    productionAgreementSuspendedUnsuspended: enabledEmailNotifications.includes(
-      "productionAgreementSuspendedUnsuspended"
+    agreementSuspendedUnsuspendedToProducer: enabledEmailNotifications.includes(
+      "agreementSuspendedUnsuspendedToProducer"
     ),
-    consumptionAgreementSuspendedUnsuspended:
-      enabledEmailNotifications.includes(
-        "consumptionAgreementSuspendedUnsuspended"
-      ),
+    agreementSuspendedUnsuspendedToConsumer: enabledEmailNotifications.includes(
+      "agreementSuspendedUnsuspendedToConsumer"
+    ),
   };
 
   return {

@@ -45,9 +45,9 @@ describe("Notification config queries", () => {
       const tenantNotificationConfig = {
         ...getMockTenantNotificationConfig(),
         config: {
-          newEServiceVersionPublished: false,
-          productionAgreementSuspendedUnsuspended: false,
-          consumptionAgreementSuspendedUnsuspended: false,
+          newEServiceVersionPublishedToConsumer: false,
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
         },
       };
       await insertTenantNotificationConfig(
@@ -100,14 +100,14 @@ describe("Notification config queries", () => {
       const userNotificationConfig = {
         ...getMockUserNotificationConfig(),
         inAppConfig: {
-          newEServiceVersionPublished: false,
-          productionAgreementSuspendedUnsuspended: false,
-          consumptionAgreementSuspendedUnsuspended: false,
+          newEServiceVersionPublishedToConsumer: false,
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
         },
         emailConfig: {
-          newEServiceVersionPublished: false,
-          productionAgreementSuspendedUnsuspended: false,
-          consumptionAgreementSuspendedUnsuspended: false,
+          newEServiceVersionPublishedToConsumer: false,
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
         },
       };
       await insertUserNotificationConfig(

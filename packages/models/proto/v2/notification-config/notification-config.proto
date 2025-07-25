@@ -3,9 +3,9 @@ syntax = "proto3";
 package notification.config.v2;
 
 message NotificationConfigV2 {
-  bool newEServiceVersionPublished = 1;
-  bool productionAgreementSuspendedUnsuspended = 2;
-  bool consumptionAgreementSuspendedUnsuspended = 3;
+  bool newEServiceVersionPublishedToConsumer = 1;
+  bool agreementSuspendedUnsuspendedToProducer = 2;
+  bool agreementSuspendedUnsuspendedToConsumer = 3;
 }
 
 message TenantNotificationConfigV2 {

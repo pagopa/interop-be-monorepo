@@ -47,10 +47,12 @@ export async function handleNewEServiceVersionPublished(
   const userNotificationConfigs =
     await readModelService.getTenantUsersWithNotificationEnabled(
       consumers.map((consumer) => consumer.id),
-      "newEServiceVersionPublished"
+      "newEServiceVersionPublishedToConsumer"
     );
 
-  const body = inAppTemplates.newEServiceVersionPublished(eservice.name);
+  const body = inAppTemplates.newEServiceVersionPublishedToConsumer(
+    eservice.name
+  );
 
   return userNotificationConfigs.map(({ userId, tenantId }) => ({
     userId,

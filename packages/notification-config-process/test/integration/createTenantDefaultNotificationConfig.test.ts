@@ -23,9 +23,9 @@ describe("createTenantNotificationConfig", () => {
   const tenantId: TenantId = generateId();
 
   const defaultConfig: NotificationConfig = {
-    newEServiceVersionPublished: true,
-    productionAgreementSuspendedUnsuspended: true,
-    consumptionAgreementSuspendedUnsuspended: true,
+    newEServiceVersionPublishedToConsumer: true,
+    agreementSuspendedUnsuspendedToProducer: true,
+    agreementSuspendedUnsuspendedToConsumer: true,
   };
 
   beforeAll(async () => {

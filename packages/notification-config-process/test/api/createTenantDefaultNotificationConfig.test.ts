@@ -19,9 +19,9 @@ import { tenantNotificationConfigAlreadyExists } from "../../src/model/domain/er
 describe("API POST /internal/tenantNotificationConfigs test", () => {
   const defaultTenantId: TenantId = generateId();
   const defaultConfig: NotificationConfig = {
-    newEServiceVersionPublished: true,
-    productionAgreementSuspendedUnsuspended: true,
-    consumptionAgreementSuspendedUnsuspended: true,
+    newEServiceVersionPublishedToConsumer: true,
+    agreementSuspendedUnsuspendedToProducer: true,
+    agreementSuspendedUnsuspendedToConsumer: true,
   };
   const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigSeed =
     {

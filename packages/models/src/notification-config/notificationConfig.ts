@@ -7,9 +7,9 @@ import {
 } from "../brandedIds.js";
 
 export const NotificationConfig = z.object({
-  newEServiceVersionPublished: z.boolean(),
-  productionAgreementSuspendedUnsuspended: z.boolean(),
-  consumptionAgreementSuspendedUnsuspended: z.boolean(),
+  newEServiceVersionPublishedToConsumer: z.boolean(),
+  agreementSuspendedUnsuspendedToProducer: z.boolean(),
+  agreementSuspendedUnsuspendedToConsumer: z.boolean(),
 });
 export type NotificationConfig = z.infer<typeof NotificationConfig>;
 

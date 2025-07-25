@@ -95,9 +95,9 @@ describe("database test", async () => {
         id: generateId(),
         tenantId: generateId(),
         config: {
-          newEServiceVersionPublished: false,
-          productionAgreementSuspendedUnsuspended: false,
-          consumptionAgreementSuspendedUnsuspended: false,
+          newEServiceVersionPublishedToConsumer: false,
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
         },
         createdAt: generateMock(z.coerce.date()),
         updatedAt: generateMock(z.coerce.date().optional()),
@@ -110,9 +110,9 @@ describe("database test", async () => {
       const updatedTenantNotificationConfig: TenantNotificationConfig = {
         ...tenantNotificationConfig,
         config: {
-          newEServiceVersionPublished: true,
-          productionAgreementSuspendedUnsuspended: true,
-          consumptionAgreementSuspendedUnsuspended: true,
+          newEServiceVersionPublishedToConsumer: true,
+          agreementSuspendedUnsuspendedToProducer: true,
+          agreementSuspendedUnsuspendedToConsumer: true,
         },
       };
 
@@ -150,14 +150,14 @@ describe("database test", async () => {
         userId: generateId(),
         tenantId: generateId(),
         inAppConfig: {
-          newEServiceVersionPublished: false,
-          productionAgreementSuspendedUnsuspended: false,
-          consumptionAgreementSuspendedUnsuspended: false,
+          newEServiceVersionPublishedToConsumer: false,
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
         },
         emailConfig: {
-          newEServiceVersionPublished: true,
-          productionAgreementSuspendedUnsuspended: true,
-          consumptionAgreementSuspendedUnsuspended: true,
+          newEServiceVersionPublishedToConsumer: true,
+          agreementSuspendedUnsuspendedToProducer: true,
+          agreementSuspendedUnsuspendedToConsumer: true,
         },
         createdAt: generateMock(z.coerce.date()),
         updatedAt: generateMock(z.coerce.date().optional()),
@@ -170,14 +170,14 @@ describe("database test", async () => {
       const updatedUserNotificationConfig: UserNotificationConfig = {
         ...userNotificationConfig,
         inAppConfig: {
-          newEServiceVersionPublished: true,
-          productionAgreementSuspendedUnsuspended: true,
-          consumptionAgreementSuspendedUnsuspended: true,
+          newEServiceVersionPublishedToConsumer: true,
+          agreementSuspendedUnsuspendedToProducer: true,
+          agreementSuspendedUnsuspendedToConsumer: true,
         },
         emailConfig: {
-          newEServiceVersionPublished: false,
-          productionAgreementSuspendedUnsuspended: false,
-          consumptionAgreementSuspendedUnsuspended: false,
+          newEServiceVersionPublishedToConsumer: false,
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
         },
       };
 

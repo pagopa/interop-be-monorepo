@@ -8,9 +8,9 @@ export function tenantNotificationConfigToApiTenantNotificationConfig({
   id,
   tenantId,
   config: {
-    newEServiceVersionPublished,
-    productionAgreementSuspendedUnsuspended,
-    consumptionAgreementSuspendedUnsuspended,
+    newEServiceVersionPublishedToConsumer,
+    agreementSuspendedUnsuspendedToProducer,
+    agreementSuspendedUnsuspendedToConsumer,
     ...rest
   },
   createdAt,
@@ -21,9 +21,9 @@ export function tenantNotificationConfigToApiTenantNotificationConfig({
     id,
     tenantId,
     config: {
-      newEServiceVersionPublished,
-      productionAgreementSuspendedUnsuspended,
-      consumptionAgreementSuspendedUnsuspended,
+      newEServiceVersionPublishedToConsumer,
+      agreementSuspendedUnsuspendedToProducer,
+      agreementSuspendedUnsuspendedToConsumer,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),
@@ -35,19 +35,19 @@ export function userNotificationConfigToApiUserNotificationConfig({
   userId,
   tenantId,
   inAppConfig: {
-    newEServiceVersionPublished: newEServiceVersionPublishedInApp,
-    productionAgreementSuspendedUnsuspended:
-      productionAgreementSuspendedUnsuspendedInApp,
-    consumptionAgreementSuspendedUnsuspended:
-      consumptionAgreementSuspendedUnsuspendedInApp,
+    newEServiceVersionPublishedToConsumer: newEServiceVersionPublishedInApp,
+    agreementSuspendedUnsuspendedToProducer:
+      agreementSuspendedUnsuspendedToProducerInApp,
+    agreementSuspendedUnsuspendedToConsumer:
+      agreementSuspendedUnsuspendedToConsumerInApp,
     ...inAppRest
   },
   emailConfig: {
-    newEServiceVersionPublished: newEServiceVersionPublishedEmail,
-    productionAgreementSuspendedUnsuspended:
-      productionAgreementSuspendedUnsuspendedEmail,
-    consumptionAgreementSuspendedUnsuspended:
-      consumptionAgreementSuspendedUnsuspendedEmail,
+    newEServiceVersionPublishedToConsumer: newEServiceVersionPublishedEmail,
+    agreementSuspendedUnsuspendedToProducer:
+      agreementSuspendedUnsuspendedToProducerEmail,
+    agreementSuspendedUnsuspendedToConsumer:
+      agreementSuspendedUnsuspendedToConsumerEmail,
     ...emailRest
   },
   createdAt,
@@ -60,18 +60,18 @@ export function userNotificationConfigToApiUserNotificationConfig({
     userId,
     tenantId,
     inAppConfig: {
-      newEServiceVersionPublished: newEServiceVersionPublishedInApp,
-      productionAgreementSuspendedUnsuspended:
-        productionAgreementSuspendedUnsuspendedInApp,
-      consumptionAgreementSuspendedUnsuspended:
-        consumptionAgreementSuspendedUnsuspendedInApp,
+      newEServiceVersionPublishedToConsumer: newEServiceVersionPublishedInApp,
+      agreementSuspendedUnsuspendedToProducer:
+        agreementSuspendedUnsuspendedToProducerInApp,
+      agreementSuspendedUnsuspendedToConsumer:
+        agreementSuspendedUnsuspendedToConsumerInApp,
     },
     emailConfig: {
-      newEServiceVersionPublished: newEServiceVersionPublishedEmail,
-      productionAgreementSuspendedUnsuspended:
-        productionAgreementSuspendedUnsuspendedEmail,
-      consumptionAgreementSuspendedUnsuspended:
-        consumptionAgreementSuspendedUnsuspendedEmail,
+      newEServiceVersionPublishedToConsumer: newEServiceVersionPublishedEmail,
+      agreementSuspendedUnsuspendedToProducer:
+        agreementSuspendedUnsuspendedToProducerEmail,
+      agreementSuspendedUnsuspendedToConsumer:
+        agreementSuspendedUnsuspendedToConsumerEmail,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),
