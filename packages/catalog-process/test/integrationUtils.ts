@@ -34,6 +34,7 @@ import {
   upsertAgreement,
   upsertAttribute,
   upsertEService,
+  upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -141,7 +142,7 @@ export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
-  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
+  await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {

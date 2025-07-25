@@ -3,6 +3,7 @@ import {
   Attribute,
   ClientJWKKey,
   EService,
+  Tenant,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
@@ -29,6 +30,14 @@ import {
   userEnabledInAppNotificationInReadmodelNotificationConfig,
   userEnabledEmailNotificationInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
+  tenantCertifiedAttributeInReadmodelTenant,
+  tenantDeclaredAttributeInReadmodelTenant,
+  tenantFeatureInReadmodelTenant,
+  tenantInReadmodelTenant,
+  tenantMailInReadmodelTenant,
+  tenantVerifiedAttributeInReadmodelTenant,
+  tenantVerifiedAttributeRevokerInReadmodelTenant,
+  tenantVerifiedAttributeVerifierInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { and, eq } from "drizzle-orm";
 import {
@@ -40,6 +49,7 @@ import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
+import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -304,5 +314,78 @@ export const upsertClientJWKKey = async (
     await tx
       .insert(clientJwkKeyInReadmodelClientJwkKey)
       .values(clientJWKKeySQL);
+  });
+};
+export const upsertTenant = async (
+  readModelDB: DrizzleReturnType,
+  tenant: Tenant,
+  metadataVersion: number
+): Promise<void> => {
+  const {
+    tenantSQL,
+    mailsSQL,
+    certifiedAttributesSQL,
+    declaredAttributesSQL,
+    verifiedAttributesSQL,
+    verifiedAttributeVerifiersSQL,
+    verifiedAttributeRevokersSQL,
+    featuresSQL,
+  } = splitTenantIntoObjectsSQL(tenant, metadataVersion);
+
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      tenantInReadmodelTenant,
+      metadataVersion,
+      tenant.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(tenantInReadmodelTenant)
+      .where(eq(tenantInReadmodelTenant.id, tenant.id));
+
+    await tx.insert(tenantInReadmodelTenant).values(tenantSQL);
+
+    for (const mailSQL of mailsSQL) {
+      await tx.insert(tenantMailInReadmodelTenant).values(mailSQL);
+    }
+
+    for (const certifiedAttributeSQL of certifiedAttributesSQL) {
+      await tx
+        .insert(tenantCertifiedAttributeInReadmodelTenant)
+        .values(certifiedAttributeSQL);
+    }
+
+    for (const declaredAttributeSQL of declaredAttributesSQL) {
+      await tx
+        .insert(tenantDeclaredAttributeInReadmodelTenant)
+        .values(declaredAttributeSQL);
+    }
+
+    for (const verifiedAttributeSQL of verifiedAttributesSQL) {
+      await tx
+        .insert(tenantVerifiedAttributeInReadmodelTenant)
+        .values(verifiedAttributeSQL);
+    }
+
+    for (const verifierSQL of verifiedAttributeVerifiersSQL) {
+      await tx
+        .insert(tenantVerifiedAttributeVerifierInReadmodelTenant)
+        .values(verifierSQL);
+    }
+
+    for (const revokerSQL of verifiedAttributeRevokersSQL) {
+      await tx
+        .insert(tenantVerifiedAttributeRevokerInReadmodelTenant)
+        .values(revokerSQL);
+    }
+
+    for (const featureSQL of featuresSQL) {
+      await tx.insert(tenantFeatureInReadmodelTenant).values(featureSQL);
+    }
   });
 };

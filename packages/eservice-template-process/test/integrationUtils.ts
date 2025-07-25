@@ -27,6 +27,7 @@ import {
 import {
   upsertAttribute,
   upsertEService,
+  upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -137,5 +138,5 @@ export const readLastEserviceTemplateEvent = async (
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
 
-  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
+  await upsertTenant(readModelDB, tenant, 0);
 };

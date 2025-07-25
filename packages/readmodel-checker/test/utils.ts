@@ -29,7 +29,6 @@ import {
   delegationReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
   producerJWKKeyReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -56,8 +55,6 @@ export const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
 export const eserviceTemplateReadModelServiceSQL =
   eserviceTemplateReadModelServiceBuilder(readModelDB);
-export const tenantReadModelServiceSQL =
-  tenantReadModelServiceBuilder(readModelDB);
 export const purposeReadModelServiceSQL =
   purposeReadModelServiceBuilder(readModelDB);
 export const delegationReadModelServiceSQL =
