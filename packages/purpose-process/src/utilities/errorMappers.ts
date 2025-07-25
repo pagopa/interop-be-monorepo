@@ -126,7 +126,11 @@ export const suspendPurposeVersionErrorMapper = (
       "purposeVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "tenantNotAllowed",
+      "tenantIsNotTheDelegatedProducer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -228,6 +232,7 @@ export const activatePurposeVersionErrorMapper = (
       "tenantIsNotTheConsumer",
       "tenantIsNotTheProducer",
       "tenantNotAllowed",
+      "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with(

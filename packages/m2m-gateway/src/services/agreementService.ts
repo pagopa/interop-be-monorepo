@@ -187,7 +187,7 @@ export function agreementServiceBuilder(
       assertAgreementIsPending(agreement.data);
 
       const response = await clients.agreementProcessClient.activateAgreement(
-        undefined,
+        { delegationId: undefined }, // TBD APIv2
         {
           params: { agreementId },
           headers,
@@ -243,7 +243,7 @@ export function agreementServiceBuilder(
       logger.info(`Suspending agreement with id ${agreementId}`);
 
       const response = await clients.agreementProcessClient.suspendAgreement(
-        undefined,
+        { delegationId: undefined }, // TBD APIv2
         {
           params: { agreementId },
           headers,
@@ -265,7 +265,7 @@ export function agreementServiceBuilder(
       assertAgreementIsSuspended(agreement.data);
 
       const response = await clients.agreementProcessClient.activateAgreement(
-        undefined,
+        { delegationId: undefined }, // TBD APIv2
         {
           params: { agreementId },
           headers,

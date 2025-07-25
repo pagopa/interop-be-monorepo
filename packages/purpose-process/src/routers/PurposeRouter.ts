@@ -9,7 +9,12 @@ import {
   validateAuthorization,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
-import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DelegationId,
+  EServiceId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
   apiPurposeVersionStateToPurposeVersionState,
@@ -409,6 +414,9 @@ const purposeRouter = (
               {
                 purposeId: unsafeBrandId(purposeId),
                 versionId: unsafeBrandId(versionId),
+                delegationId: req.body.delegationId
+                  ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                  : undefined,
               },
               ctx
             );
@@ -467,6 +475,9 @@ const purposeRouter = (
             {
               purposeId: unsafeBrandId(req.params.purposeId),
               versionId: unsafeBrandId(req.params.versionId),
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                : undefined,
             },
             ctx
           );

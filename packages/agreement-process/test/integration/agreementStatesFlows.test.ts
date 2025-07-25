@@ -144,7 +144,7 @@ describe("Agreeement states flows", () => {
     ================================= */
     const { data: suspendedAgreement } =
       await agreementService.suspendAgreement(
-        submittedAgreement.id,
+        { agreementId: submittedAgreement.id, delegationId: undefined },
         getMockContext({ authData: consumerAuthData })
       );
 
@@ -258,7 +258,7 @@ describe("Agreeement states flows", () => {
 
     const { data: activatedAgreement } =
       await agreementService.activateAgreement(
-        submittedUpgradedAgreement.id,
+        { agreementId: submittedUpgradedAgreement.id, delegationId: undefined },
         getMockContext({ authData: producerAuthData })
       );
 
@@ -463,7 +463,7 @@ describe("Agreeement states flows", () => {
 
     const { data: activatedAgreement } =
       await agreementService.activateAgreement(
-        submittedUpgradedAgreement.id,
+        { agreementId: submittedUpgradedAgreement.id, delegationId: undefined },
         getMockContext({ authData: producerAuthData })
       );
 

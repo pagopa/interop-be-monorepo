@@ -112,6 +112,17 @@ paths:
     post:
       summary: Agreement Activation
       operationId: activateAgreement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Pending agreement activated.
@@ -325,6 +336,17 @@ paths:
     post:
       summary: Suspend Agreement
       operationId: suspendAgreement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Active agreement suspended.

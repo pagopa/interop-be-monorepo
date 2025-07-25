@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  ActiveDelegations,
   AppContext,
   CreateEvent,
   DB,
@@ -12,6 +13,7 @@ import {
   UIAuthData,
   WithLogger,
   eventRepository,
+  validateDelegationConstraints,
 } from "pagopa-interop-commons";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -61,7 +63,6 @@ import {
   unexpectedVersionFormat,
 } from "../model/domain/errors.js";
 import {
-  ActiveDelegations,
   CompactEService,
   CompactOrganization,
   UpdateAgreementSeed,
@@ -1007,14 +1008,21 @@ export function agreementServiceBuilder(
       return retrieveAgreementDocument(agreement.data, documentId);
     },
     async suspendAgreement(
-      agreementId: AgreementId,
+      {
+        agreementId,
+        delegationId,
+      }: { agreementId: AgreementId; delegationId: DelegationId | undefined },
       {
         authData,
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
-      logger.info(`Suspending agreement ${agreementId}`);
+      logger.info(
+        `Suspending agreement ${agreementId} ${
+          delegationId ? `with delegation ${delegationId}` : ""
+        }`
+      );
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
@@ -1028,10 +1036,19 @@ export function agreementServiceBuilder(
         agreement.data,
         readModelService
       );
+
+      const delegation = await validateDelegationConstraints({
+        delegationId,
+        consumerId: agreement.data.consumerId,
+        producerId: agreement.data.producerId,
+        authData,
+        activeDelegations,
+      });
+
       assertRequesterCanActAsConsumerOrProducer(
         agreement.data,
-        authData,
-        activeDelegations
+        delegation,
+        authData
       );
 
       const eservice = await retrieveEService(
@@ -1229,14 +1246,24 @@ export function agreementServiceBuilder(
       return { data: rejectedAgreement, metadata: { version: newVersion } };
     },
     async activateAgreement(
-      agreementId: AgreementId,
+      {
+        agreementId,
+        delegationId,
+      }: {
+        agreementId: AgreementId;
+        delegationId: DelegationId | undefined;
+      },
       {
         authData,
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
-      logger.info(`Activating agreement ${agreementId}`);
+      logger.info(
+        `Activating agreement ${agreementId} ${
+          delegationId ? `with delegation ${delegationId}` : ""
+        }`
+      );
 
       const contractBuilderInstance = contractBuilder(
         readModelService,
@@ -1255,17 +1282,21 @@ export function agreementServiceBuilder(
         readModelService
       );
 
+      const delegation = await validateDelegationConstraints({
+        delegationId,
+        consumerId: agreement.data.consumerId,
+        producerId: agreement.data.producerId,
+        authData,
+        activeDelegations,
+      });
+
       if (agreement.data.state === agreementState.pending) {
-        assertRequesterCanActAsProducer(
-          agreement.data,
-          authData,
-          activeDelegations.producerDelegation
-        );
+        assertRequesterCanActAsProducer(agreement.data, authData, delegation);
       } else {
         assertRequesterCanActAsConsumerOrProducer(
           agreement.data,
-          authData,
-          activeDelegations
+          delegation,
+          authData
         );
       }
 
@@ -1389,7 +1420,7 @@ export function agreementServiceBuilder(
         agreement.metadata.version,
         authData,
         correlationId,
-        activeDelegations
+        delegation
       );
 
       const archiveEvents = await archiveRelatedToAgreements(

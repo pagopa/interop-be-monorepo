@@ -880,6 +880,17 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Agreement flagged as activated. It could still be Suspended if other parties have suspended the agreement
@@ -1789,6 +1800,17 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Agreement suspended
@@ -9335,6 +9357,17 @@ paths:
         - purposes
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Purpose Version Suspended
@@ -9442,6 +9475,17 @@ paths:
     post:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Purpose Version Activated

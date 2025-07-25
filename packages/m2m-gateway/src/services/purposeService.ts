@@ -275,10 +275,13 @@ export function purposeServiceBuilder(
       );
 
       const { metadata } =
-        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
-          params: { purposeId, versionId: versionToActivate.id },
-          headers,
-        });
+        await clients.purposeProcessClient.activatePurposeVersion(
+          { delegationId: undefined }, // TBD APIv2
+          {
+            params: { purposeId, versionId: versionToActivate.id },
+            headers,
+          }
+        );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
@@ -323,10 +326,13 @@ export function purposeServiceBuilder(
       );
 
       const { metadata } =
-        await clients.purposeProcessClient.suspendPurposeVersion(undefined, {
-          params: { purposeId, versionId: versionToSuspend.id },
-          headers,
-        });
+        await clients.purposeProcessClient.suspendPurposeVersion(
+          { delegationId: undefined }, // TBD APIv2
+          {
+            params: { purposeId, versionId: versionToSuspend.id },
+            headers,
+          }
+        );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
@@ -350,10 +356,14 @@ export function purposeServiceBuilder(
       );
 
       const { metadata } =
-        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
-          params: { purposeId, versionId: versionToApprove.id },
-          headers,
-        });
+        await clients.purposeProcessClient.activatePurposeVersion(
+          { delegationId: undefined }, // TBD APIv2
+          {
+            // TBD APIv2
+            params: { purposeId, versionId: versionToApprove.id },
+            headers,
+          }
+        );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
@@ -377,10 +387,13 @@ export function purposeServiceBuilder(
       );
 
       const { metadata } =
-        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
-          params: { purposeId, versionId: versionToApprove.id },
-          headers,
-        });
+        await clients.purposeProcessClient.activatePurposeVersion(
+          { delegationId: undefined }, // TBD APIv2
+          {
+            params: { purposeId, versionId: versionToApprove.id },
+            headers,
+          }
+        );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);

@@ -92,6 +92,9 @@ describe("unsuspendPurposeVersion", () => {
         purposeId: mockApiPurpose.data.id,
         versionId: mockApiPurposeVersion1.id,
       },
+      body: {
+        delegationId: undefined, // TBD APIv2
+      },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
