@@ -17,14 +17,14 @@ message PurposeTemplateV2 {
   string creatorId = 4;
   repeated EserviceDescriptorVersionPurposeTemplateV2 eservicesVersions = 5;
   PurposeTemplateStateV2 state = 6;
-  string title = 7;
-  string description = 8;
-  optional PurposeRiskAnalysisFormTemplateV2 riskAnalysisForm = 9;
   int64 createdAt = 10;
   optional int64 updatedAt = 11;
-  bool isFreeOfCharge = 12;
-  optional string freeOfChargeReason = 13;
-  optional int32 dailyCalls = 14;
+  string purposeTitle = 7;
+  string purposeDescription = 8;
+  optional PurposeRiskAnalysisFormTemplateV2 purposeRiskAnalysisForm = 9;
+  bool purposeIsFreeOfCharge = 12;
+  optional string purposeFreeOfChargeReason = 13;
+  optional int32 purposeDailyCalls = 14;
 }
 
 message EserviceDescriptorVersionPurposeTemplateV2 {

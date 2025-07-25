@@ -5,15 +5,15 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template (
   metadata_version INTEGER NOT NULL,
   "name" VARCHAR NOT NULL,
   "target" VARCHAR NOT NULL,
-  creatorId UUID NOT NULL,
+  creator_id UUID NOT NULL,
   "state" VARCHAR NOT NULL,
-  title VARCHAR NOT NULL,
-  "description" VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE,
-  is_free_of_charge BOOLEAN NOT NULL,
-  free_of_charge_reason VARCHAR,
-  daily_calls INTEGER,
+  purpose_title VARCHAR NOT NULL,
+  purpose_description VARCHAR NOT NULL,
+  purpose_is_free_of_charge BOOLEAN NOT NULL,
+  purpose_free_of_charge_reason VARCHAR,
+  purpose_daily_calls INTEGER,
   PRIMARY KEY (id),
   UNIQUE (id, metadata_version)
 );
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_eservice_
   metadata_version INTEGER NOT NULL,
   purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
   eservice_id UUID, --> readmodel_catalog.eservice.id  
-  eservice_descriptor_id UUID, --> readmodel_catalog.eservice_descriptor.id
+  descriptor_id UUID, --> readmodel_catalog.eservice_descriptor.id
   PRIMARY KEY (purpose_template_id, eservice_id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
