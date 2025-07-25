@@ -66,9 +66,10 @@ describe("API /producerKeychains/{producerKeychainId} authorization test", () =>
       const mockProducerKeychain = getMockProducerKeychain({
         producerId: mockTokenOrganizationId,
       });
+      const serviceResponse = getMockWithMetadata(mockProducerKeychain);
       authorizationService.getProducerKeychainById = vi
         .fn()
-        .mockResolvedValueOnce(mockProducerKeychain);
+        .mockResolvedValueOnce(serviceResponse);
       const token = generateToken(role);
       const res = await makeRequest(token, mockProducerKeychain.id);
       expect(res.status).toBe(200);
