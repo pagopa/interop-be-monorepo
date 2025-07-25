@@ -10,9 +10,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   ClientId,
-  clientKind,
   ClientKindTokenGenStates,
-  clientKindTokenGenStates,
   Problem,
   TenantId,
   tooManyRequestsError,
@@ -20,7 +18,6 @@ import {
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { match } from "ts-pattern";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
 import { TokenService } from "../services/tokenService.js";
@@ -55,10 +52,7 @@ const authorizationServerRouter = (
       tokenGenClientKind: ClientKindTokenGenStates
     ): void => {
       // eslint-disable-next-line functional/immutable-data
-      req.ctx.clientKind = match(tokenGenClientKind)
-        .with(clientKindTokenGenStates.api, () => clientKind.api)
-        .with(clientKindTokenGenStates.consumer, () => clientKind.consumer)
-        .exhaustive();
+      req.ctx.clientKind = tokenGenClientKind;
     };
 
     const ctx: WithLogger<AuthServerAppContext> = {

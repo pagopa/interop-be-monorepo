@@ -5,7 +5,7 @@ import {
 } from "@zodios/express";
 import {
   ClientId,
-  ClientKind,
+  ClientKindTokenGenStates,
   CorrelationId,
   generateId,
   makeApiProblemBuilder,
@@ -28,7 +28,7 @@ export type AppContext<A extends AuthData = AuthData> = {
 
 export type AuthServerAppContext = AppContext & {
   clientId?: ClientId;
-  clientKind?: ClientKind;
+  clientKind?: ClientKindTokenGenStates;
   organizationId?: TenantId;
 };
 
