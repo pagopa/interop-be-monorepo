@@ -65,6 +65,9 @@ export const RiskAnalysisTemplateAnnotationDocument = z.object({
   path: z.string(),
   createdAt: z.coerce.date(),
 });
+export type RiskAnalysisTemplateAnnotationDocument = z.infer<
+  typeof RiskAnalysisTemplateAnnotationDocument
+>;
 
 // TODO: move to commons if needed
 export const Link = z.object({
