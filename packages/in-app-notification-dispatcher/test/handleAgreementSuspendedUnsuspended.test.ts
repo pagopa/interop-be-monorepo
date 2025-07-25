@@ -176,11 +176,11 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         .fn()
         .mockImplementation(async (_, notificationConfig) => {
           if (
-            notificationConfig === "productionAgreementSuspendedUnsuspended"
+            notificationConfig === "agreementSuspendedUnsuspendedToProducer"
           ) {
             return producerUsers;
           } else if (
-            notificationConfig === "consumptionAgreementSuspendedUnsuspended"
+            notificationConfig === "agreementSuspendedUnsuspendedToConsumer"
           ) {
             return consumerUsers;
           }

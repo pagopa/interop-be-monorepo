@@ -517,9 +517,9 @@ components:
           type: boolean
         clientKeyAddedDeletedToClientUsers:
           type: boolean
-        productionAgreementSuspendedUnsuspended:
+        agreementSuspendedUnsuspendedToProducer:
           type: boolean
-        consumptionAgreementSuspendedUnsuspended:
+        agreementSuspendedUnsuspendedToConsumer:
           type: boolean
     TenantNotificationConfigSeed:
       type: object
@@ -560,15 +560,15 @@ components:
       type: object
       additionalProperties: false
       required:
-        - newEServiceVersionPublished
-        - productionAgreementSuspendedUnsuspended
-        - consumptionAgreementSuspendedUnsuspended
+        - newEServiceVersionPublishedToConsumer
+        - agreementSuspendedUnsuspendedToProducer
+        - agreementSuspendedUnsuspendedToConsumer
       properties:
-        newEServiceVersionPublished:
+        newEServiceVersionPublishedToConsumer:
           type: boolean
-        productionAgreementSuspendedUnsuspended:
+        agreementSuspendedUnsuspendedToProducer:
           type: boolean
-        consumptionAgreementSuspendedUnsuspended:
+        agreementSuspendedUnsuspendedToConsumer:
           type: boolean
     Problem:
       properties:
