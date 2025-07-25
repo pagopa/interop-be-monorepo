@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_analysis_answer (
-  id UUID UNIQUE,
+  id UUID,
   purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   risk_analysis_form_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_form (id) ON DELETE CASCADE,
@@ -47,30 +47,30 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
   editable BOOLEAN NOT NULL,
   instruction VARCHAR,
   suggestedValues VARCHAR ARRAY,
-  PRIMARY KEY (id, purpose_template_id),
+  PRIMARY KEY (id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_annotation (
-  id UUID UNIQUE,
+  id UUID,
   purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  answer_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_answer (id) ON DELETE CASCADE,
+  answer_id UUID UNIQUE NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_answer (id) ON DELETE CASCADE,
   "text" VARCHAR,
   "urls" JSON,
-  PRIMARY KEY (id, purpose_template_id, answer_id),
+  PRIMARY KEY (id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_annotation_document (
-  id UUID UNIQUE,
-  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
+  id UUID,
+  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template,
   metadata_version INTEGER NOT NULL,
-  annotation_id UUID UNIQUE NOT NULL REFERENCES readmodel_purpose_template.purpose_template_annotation (id) ON DELETE CASCADE,
+  annotation_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_annotation (id) ON DELETE CASCADE,
   "name" VARCHAR NOT NULL,
   content_type VARCHAR NOT NULL,
   "path" VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (id, purpose_template_id, annotation_id),
+  PRIMARY KEY (id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
