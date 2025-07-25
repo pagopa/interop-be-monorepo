@@ -23,7 +23,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.19.3",
+    "@types/node": "20.19.9",
     "axios": "1.8.2",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
