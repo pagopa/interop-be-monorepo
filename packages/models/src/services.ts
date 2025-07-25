@@ -5,6 +5,7 @@ export const serviceName = {
   AGREEMENT_PROCESS: "agreement-process",
   ATTRIBUTE_REGISTRY_PROCESS: "attribute-registry-process",
   PURPOSE_PROCESS: "purpose-process",
+  PURPOSE_TEMPLATE_PROCESS: "purpose-template-process",
   TENANT_PROCESS: "tenant-process",
   AUTHORIZATION_PROCESS: "authorization-process",
   AUTHORIZATION_SERVER: "authorization-server",
@@ -38,4 +39,5 @@ export const serviceErrorCode: Record<ServiceName, string> = {
   [serviceName.M2M_GATEWAY]: "012",
   [serviceName.IN_APP_NOTIFICATION_MANAGER]: "013",
   [serviceName.NOTIFICATION_CONFIG_PROCESS]: "014",
+  [serviceName.PURPOSE_TEMPLATE_PROCESS]: "015",
 };

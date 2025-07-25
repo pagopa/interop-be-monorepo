@@ -4889,6 +4889,82 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.4)
 
+  packages/purpose-template-process:
+    dependencies:
+      '@zodios/core':
+        specifier: 10.9.6
+        version: 10.9.6(axios@1.8.2)(zod@3.23.8)
+      '@zodios/express':
+        specifier: 10.6.1
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.8.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+      axios:
+        specifier: 1.8.2
+        version: 1.8.2
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      express:
+        specifier: 4.20.0
+        version: 4.20.0
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      pg-promise:
+        specifier: 11.8.0
+        version: 11.8.0
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/express':
+        specifier: 4.17.21
+        version: 4.17.21
+      '@types/node':
+        specifier: 20.19.4
+        version: 20.19.4
+      '@types/supertest':
+        specifier: 6.0.3
+        version: 6.0.3
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.19.4)
+
   packages/readmodel:
     dependencies:
       connection-string:
@@ -9091,10 +9167,6 @@ packages:
     resolution: {integrity: sha512-G6NsmEW15s0Uw9XnCg+33H3ViYRyiM0hMrMhhqQOR8NFc5GhYrI+6I3u7OTw7b91J2g8rtvMBZJDbcGb2YUniw==}
     engines: {node: '>= 18'}
 
-  form-data@4.0.0:
-    resolution: {integrity: sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==}
-    engines: {node: '>= 6'}
-
   form-data@4.0.3:
     resolution: {integrity: sha512-qsITQPfmvMOSAdeyZ+12I1c+CKSstAFAwu+97zrnWAbIr5u8wfsExUzCesVLC8NgHuRUqNN4Zy6UPWUTRGslcA==}
     engines: {node: '>= 6'}
@@ -10823,6 +10895,7 @@ packages:
   superagent@9.0.2:
     resolution: {integrity: sha512-xuW7dzkUpcJq7QnhOsnNUgtYp3xRwpt2F7abdRYIpCsAt0hhUqia0EdxyXZQQpNmGtsCzYHryaKSV3q3GJnq7w==}
     engines: {node: '>=14.18.0'}
+    deprecated: Please upgrade to superagent v10.2.2+, see release notes at https://github.com/forwardemail/superagent/releases/tag/v10.2.2 - maintenance is supported by Forward Email @ https://forwardemail.net
 
   supertest@7.0.0:
     resolution: {integrity: sha512-qlsr7fIC0lSddmA3tzojvzubYxvlGtzumcdHgPwbFWMISQwL22MhM2Y3LNt+6w9Yyx7559VW5ab70dgphm8qQA==}
@@ -15227,7 +15300,7 @@ snapshots:
   axios@1.8.2:
     dependencies:
       follow-redirects: 1.15.6
-      form-data: 4.0.0
+      form-data: 4.0.3
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
@@ -16533,12 +16606,6 @@ snapshots:
       signal-exit: 4.1.0
 
   form-data-encoder@4.1.0: {}
-
-  form-data@4.0.0:
-    dependencies:
-      asynckit: 0.4.0
-      combined-stream: 1.0.8
-      mime-types: 2.1.35
 
   form-data@4.0.3:
     dependencies:
