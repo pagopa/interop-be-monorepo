@@ -1261,7 +1261,9 @@ export function createDummyStub<T>(): T {
 }
 
 export const getMockNotificationConfig = (): NotificationConfig => ({
-  newEServiceVersionPublished: generateMock(z.boolean()),
+  newEServiceVersionPublishedToConsumer: generateMock(z.boolean()),
+  agreementSuspendedUnsuspendedToProducer: generateMock(z.boolean()),
+  agreementSuspendedUnsuspendedToConsumer: generateMock(z.boolean()),
 });
 
 export const getMockTenantNotificationConfig =

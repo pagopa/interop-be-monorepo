@@ -456,9 +456,15 @@ components:
       type: object
       additionalProperties: false
       required:
-        - newEServiceVersionPublished
+        - newEServiceVersionPublishedToConsumer
+        - agreementSuspendedUnsuspendedToProducer
+        - agreementSuspendedUnsuspendedToConsumer
       properties:
-        newEServiceVersionPublished:
+        newEServiceVersionPublishedToConsumer:
+          type: boolean
+        agreementSuspendedUnsuspendedToProducer:
+          type: boolean
+        agreementSuspendedUnsuspendedToConsumer:
           type: boolean
     TenantNotificationConfigSeed:
       type: object
@@ -494,7 +500,21 @@ components:
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
-          $ref: "#/components/schemas/NotificationConfig"
+          $ref: "#/components/schemas/NotificationConfigSeed"
+    NotificationConfigSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - newEServiceVersionPublishedToConsumer
+        - agreementSuspendedUnsuspendedToProducer
+        - agreementSuspendedUnsuspendedToConsumer
+      properties:
+        newEServiceVersionPublishedToConsumer:
+          type: boolean
+        agreementSuspendedUnsuspendedToProducer:
+          type: boolean
+        agreementSuspendedUnsuspendedToConsumer:
+          type: boolean
     Problem:
       properties:
         type:

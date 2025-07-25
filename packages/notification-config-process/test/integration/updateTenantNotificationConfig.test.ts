@@ -29,8 +29,14 @@ describe("updateTenantNotificationConfig", () => {
   };
   const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigUpdateSeed =
     {
-      newEServiceVersionPublished:
-        !tenantNotificationConfig.config.newEServiceVersionPublished,
+      newEServiceVersionPublishedToConsumer:
+        !tenantNotificationConfig.config.newEServiceVersionPublishedToConsumer,
+      agreementSuspendedUnsuspendedToProducer:
+        !tenantNotificationConfig.config
+          .agreementSuspendedUnsuspendedToProducer,
+      agreementSuspendedUnsuspendedToConsumer:
+        !tenantNotificationConfig.config
+          .agreementSuspendedUnsuspendedToConsumer,
     };
 
   beforeAll(async () => {

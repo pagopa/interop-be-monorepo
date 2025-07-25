@@ -36,14 +36,20 @@ import {
 
 const defaultNotificationConfigs = {
   tenant: {
-    newEServiceVersionPublished: true,
+    newEServiceVersionPublishedToConsumer: true,
+    agreementSuspendedUnsuspendedToProducer: true,
+    agreementSuspendedUnsuspendedToConsumer: true,
   } satisfies NotificationConfig,
   user: {
     inApp: {
-      newEServiceVersionPublished: true,
+      newEServiceVersionPublishedToConsumer: true,
+      agreementSuspendedUnsuspendedToProducer: true,
+      agreementSuspendedUnsuspendedToConsumer: true,
     } satisfies NotificationConfig,
     email: {
-      newEServiceVersionPublished: true,
+      newEServiceVersionPublishedToConsumer: true,
+      agreementSuspendedUnsuspendedToProducer: true,
+      agreementSuspendedUnsuspendedToConsumer: true,
     } satisfies NotificationConfig,
   },
 };

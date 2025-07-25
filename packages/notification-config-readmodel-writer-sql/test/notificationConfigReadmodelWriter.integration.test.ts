@@ -94,7 +94,11 @@ describe("database test", async () => {
       const tenantNotificationConfig: TenantNotificationConfig = {
         id: generateId(),
         tenantId: generateId(),
-        config: { newEServiceVersionPublished: false },
+        config: {
+          newEServiceVersionPublishedToConsumer: false,
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
+        },
         createdAt: generateMock(z.coerce.date()),
         updatedAt: generateMock(z.coerce.date().optional()),
       };
@@ -105,7 +109,11 @@ describe("database test", async () => {
 
       const updatedTenantNotificationConfig: TenantNotificationConfig = {
         ...tenantNotificationConfig,
-        config: { newEServiceVersionPublished: true },
+        config: {
+          newEServiceVersionPublishedToConsumer: true,
+          agreementSuspendedUnsuspendedToProducer: true,
+          agreementSuspendedUnsuspendedToConsumer: true,
+        },
       };
 
       const payload: TenantNotificationConfigUpdatedV2 = {
@@ -141,8 +149,16 @@ describe("database test", async () => {
         id: generateId(),
         userId: generateId(),
         tenantId: generateId(),
-        inAppConfig: { newEServiceVersionPublished: false },
-        emailConfig: { newEServiceVersionPublished: true },
+        inAppConfig: {
+          newEServiceVersionPublishedToConsumer: false,
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
+        },
+        emailConfig: {
+          newEServiceVersionPublishedToConsumer: true,
+          agreementSuspendedUnsuspendedToProducer: true,
+          agreementSuspendedUnsuspendedToConsumer: true,
+        },
         createdAt: generateMock(z.coerce.date()),
         updatedAt: generateMock(z.coerce.date().optional()),
       };
@@ -153,8 +169,16 @@ describe("database test", async () => {
 
       const updatedUserNotificationConfig: UserNotificationConfig = {
         ...userNotificationConfig,
-        inAppConfig: { newEServiceVersionPublished: true },
-        emailConfig: { newEServiceVersionPublished: false },
+        inAppConfig: {
+          newEServiceVersionPublishedToConsumer: true,
+          agreementSuspendedUnsuspendedToProducer: true,
+          agreementSuspendedUnsuspendedToConsumer: true,
+        },
+        emailConfig: {
+          newEServiceVersionPublishedToConsumer: false,
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
+        },
       };
 
       const payload: UserNotificationConfigUpdatedV2 = {
