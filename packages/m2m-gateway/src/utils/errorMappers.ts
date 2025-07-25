@@ -129,3 +129,10 @@ export function downloadAgreementConsumerContractErrorMapper(
     .with("agreementContractNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 }
+
+export const addDeclaredAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("pollingMaxRetriesExceeded", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

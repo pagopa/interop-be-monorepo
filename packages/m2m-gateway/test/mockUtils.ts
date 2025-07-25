@@ -1,37 +1,56 @@
-import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
-import { CorrelationId, TenantId, generateId } from "pagopa-interop-models";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
+import { WithLogger, logger } from "pagopa-interop-commons";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 import { DownloadedDocument } from "../src/utils/fileDownload.js";
 
 export const m2mTestToken = generateMock(z.string().base64());
 
-export const getMockM2MAdminAppContext = ({
-  organizationId,
-  serviceName,
-}: {
-  organizationId?: TenantId;
-  serviceName?: string;
-} = {}): WithLogger<M2MGatewayAppContext> => {
-  const correlationId = generateId<CorrelationId>();
-  return {
+export const getMockM2MAdminAppContext =
+  (): WithLogger<M2MGatewayAppContext> => {
+    const baseContext: M2MGatewayAppContext = {
+      correlationId: unsafeBrandId(generateId()),
+      serviceName: "testService",
+      authData: {
+        systemRole: "m2m-admin" as const,
+        organizationId: unsafeBrandId(generateId()),
+        userId: unsafeBrandId(generateId()),
+        clientId: unsafeBrandId(generateId()),
+      },
+      spanId: generateId(),
+      requestTimestamp: Date.now(),
+      headers: {
+        "X-Correlation-Id": unsafeBrandId(generateId()),
+        Authorization: `Bearer ${m2mTestToken}`,
+        "X-Forwarded-For": undefined,
+      },
+    };
+    return {
+      ...baseContext,
+      logger: logger(baseContext),
+    };
+  };
+
+export const getMockM2MAppContext = (): WithLogger<M2MGatewayAppContext> => {
+  const baseContext: M2MGatewayAppContext = {
+    correlationId: unsafeBrandId(generateId()),
+    serviceName: "testService",
     authData: {
-      systemRole: systemRole.M2M_ADMIN_ROLE,
-      organizationId: organizationId || generateId(),
-      userId: generateId(),
-      clientId: generateId(),
+      systemRole: "m2m" as const,
+      organizationId: unsafeBrandId(generateId()),
     },
-    serviceName: serviceName || generateMock(z.string()),
     spanId: generateId(),
-    logger: genericLogger,
     requestTimestamp: Date.now(),
-    correlationId,
     headers: {
-      "X-Correlation-Id": correlationId,
+      "X-Correlation-Id": unsafeBrandId(generateId()),
       Authorization: `Bearer ${m2mTestToken}`,
       "X-Forwarded-For": undefined,
     },
+  };
+  return {
+    ...baseContext,
+    logger: logger(baseContext),
   };
 };
 
