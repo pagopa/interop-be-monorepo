@@ -12,7 +12,7 @@ message PurposeTemplateAddedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
 }
 
-message PurposeTemplateActivatedV2 {
+message PurposeTemplateUnsuspendedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
 }
 
