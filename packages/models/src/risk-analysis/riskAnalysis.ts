@@ -70,7 +70,7 @@ export const RiskAnalysisTemplateAnnotationDocument = z.object({
 export const Link = z.object({
   id: LinkId,
   url: z.string().url(),
-  name: z.string(),
+  text: z.string(),
 });
 export type Link = z.infer<typeof Link>;
 
