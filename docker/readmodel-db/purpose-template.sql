@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_annotation (
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_analysis_answer_annotation (
   id UUID,
   purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_annotatio
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_annotation_document (
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_analysis_answer_annotation_document (
   id UUID,
   purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template,
   metadata_version INTEGER NOT NULL,
