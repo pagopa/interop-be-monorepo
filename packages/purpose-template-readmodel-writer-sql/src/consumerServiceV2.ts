@@ -15,10 +15,11 @@ export async function handleMessageV2(
   }
   await match(message)
     .with(
+      { type: "PurposeTemplatePublished" },
       { type: "PurposeTemplateAdded" },
-      { type: "PurposeTemplateArchived" },
+      { type: "PurposeTemplateUnsuspended" },
       { type: "PurposeTemplateSuspended" },
-      { type: "PurposeTemplateActivated" },
+      { type: "PurposeTemplateArchived" },
       { type: "PurposeTemplateDraftUpdated" },
       { type: "PurposeTemplateDraftDeleted" },
       async (_msg) => {
