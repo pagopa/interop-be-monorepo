@@ -40,7 +40,10 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertClient,
+  upsertClientJWKKey,
   upsertDelegation,
+  upsertEService,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
@@ -138,7 +141,7 @@ export const writeClientInEventstore = async (
 export const addOneKey = async (key: ClientJWKKey): Promise<void> => {
   await writeInReadmodel(key, keys);
 
-  await clientJWKKeyReadModelServiceSQL.upsertClientJWKKey(key, 0);
+  await upsertClientJWKKey(readModelDB, key, 0);
 };
 
 export const addOneProducerKey = async (key: ProducerJWKKey): Promise<void> => {
@@ -151,7 +154,7 @@ export const addOneClient = async (client: Client): Promise<void> => {
   await writeClientInEventstore(client);
   await writeInReadmodel(toReadModelClient(client), clients);
 
-  await clientReadModelServiceSQL.upsertClient(client, 0);
+  await upsertClient(readModelDB, client, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
@@ -163,7 +166,7 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
 
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
