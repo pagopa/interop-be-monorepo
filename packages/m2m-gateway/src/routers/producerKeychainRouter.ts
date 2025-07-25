@@ -70,6 +70,51 @@ const producerKeychainRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .get("/producerKeychains/:keychainId/eservices", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const eservices =
+          await producerKeychainService.getProducerKeychainEServices(
+            unsafeBrandId(req.params.keychainId),
+            req.query,
+            ctx
+          );
+        return res.status(200).send(m2mGatewayApi.EServices.parse(eservices));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving e-services for producer keychain with id ${req.params.keychainId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/producerKeychains/:keychainId/keys", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const keys = await producerKeychainService.getProducerKeychainKeys(
+          unsafeBrandId(req.params.keychainId),
+          req.query,
+          ctx
+        );
+        return res.status(200).send(m2mGatewayApi.JWKs.parse(keys));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving keys for producer keychain with id ${req.params.keychainId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return producerKeychainRouter;

@@ -8,6 +8,9 @@ import {
   toGetProducerKeychainsApiQueryParams,
   toM2MGatewayApiProducerKeychain,
 } from "../api/producerKeychainApiConverter.js";
+import { assertProducerKeychainVisibilityIsFull } from "../utils/validators/validators.js";
+import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
+import { toM2MJWK } from "../api/keysApiConverter.js";
 
 export type ProducerKeychainService = ReturnType<
   typeof producerKeychainServiceBuilder
@@ -63,6 +66,80 @@ export function producerKeychainServiceBuilder(
           offset,
           totalCount,
         },
+      };
+    },
+    async getProducerKeychainEServices(
+      keychainId: ProducerKeychainId,
+      { limit, offset }: m2mGatewayApi.GetProducerKeychainEServicesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServices> {
+      logger.info(
+        `Retrieving e-services for producer keychain with id ${keychainId}`
+      );
+
+      const { data: keychain } = await retrieveProducerKeychainById(
+        keychainId,
+        headers
+      );
+
+      assertProducerKeychainVisibilityIsFull(keychain);
+
+      const paginatedEServiceIds = keychain.eservices.slice(
+        offset,
+        offset + limit
+      );
+
+      const paginatedEServices = await clients.catalogProcessClient
+        .getEServices({
+          queries: { eservicesIds: paginatedEServiceIds, offset: 0, limit },
+          headers,
+        })
+        .then(({ data: eService }) => eService.results);
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: keychain.eservices.length,
+        },
+        results: paginatedEServices.map(toM2MGatewayApiEService),
+      };
+    },
+    async getProducerKeychainKeys(
+      keychainId: ProducerKeychainId,
+      { limit, offset }: m2mGatewayApi.GetProducerKeychainKeysQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.JWKs> {
+      logger.info(
+        `Retrieving keys for producer keychain with id ${keychainId}`
+      );
+
+      const {
+        data: { keys, totalCount },
+      } = await clients.authorizationClient.producerKeychain.getProducerKeys({
+        params: { producerKeychainId: keychainId },
+        queries: { limit, offset },
+        headers,
+      });
+
+      const jwks = await Promise.all(
+        keys.map((key) =>
+          clients.authorizationClient.key
+            .getJWKByKid({
+              params: { kid: key.kid },
+              headers,
+            })
+            .then(({ data: jwk }) => jwk.jwk)
+        )
+      );
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+        results: jwks.map(toM2MJWK),
       };
     },
   };
