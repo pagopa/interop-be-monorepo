@@ -1,4 +1,4 @@
-import { and, eq, lte, SQL } from "drizzle-orm";
+import { eq, SQL } from "drizzle-orm";
 import {
   Client,
   ClientId,
@@ -12,56 +12,16 @@ import {
   clientUserInReadmodelClient,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
 import {
   aggregateClient,
   aggregateClientArray,
   toClientAggregator,
   toClientAggregatorArray,
 } from "./authorization/clientAggregators.js";
-import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
-    async upsertClient(client: Client, metadataVersion: number): Promise<void> {
-      await db.transaction(async (tx) => {
-        const shouldUpsert = await checkMetadataVersion(
-          tx,
-          clientInReadmodelClient,
-          metadataVersion,
-          client.id
-        );
-
-        if (!shouldUpsert) {
-          return;
-        }
-
-        await tx
-          .delete(clientInReadmodelClient)
-          .where(eq(clientInReadmodelClient.id, client.id));
-
-        const { clientSQL, usersSQL, purposesSQL, keysSQL } =
-          splitClientIntoObjectsSQL(client, metadataVersion);
-
-        await tx.insert(clientInReadmodelClient).values(clientSQL);
-
-        for (const userSQL of usersSQL) {
-          await tx
-            .insert(clientUserInReadmodelClient)
-            .values(userSQL)
-            .onConflictDoNothing();
-        }
-
-        for (const purposeSQL of purposesSQL) {
-          await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
-        }
-
-        for (const keySQL of keysSQL) {
-          await tx.insert(clientKeyInReadmodelClient).values(keySQL);
-        }
-      });
-    },
     async getClientById(
       clientId: ClientId
     ): Promise<WithMetadata<Client> | undefined> {
@@ -103,19 +63,6 @@ export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
       }
 
       return aggregateClient(toClientAggregator(queryResult));
-    },
-    async deleteClientById(
-      clientId: ClientId,
-      metadataVersion: number
-    ): Promise<void> {
-      await db
-        .delete(clientInReadmodelClient)
-        .where(
-          and(
-            eq(clientInReadmodelClient.id, clientId),
-            lte(clientInReadmodelClient.metadataVersion, metadataVersion)
-          )
-        );
     },
     async getClients(
       filter: SQL | undefined

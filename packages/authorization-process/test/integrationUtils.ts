@@ -40,6 +40,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertClient,
   upsertClientJWKKey,
   upsertEService,
 } from "pagopa-interop-readmodel/testUtils";
@@ -152,7 +153,7 @@ export const addOneClient = async (client: Client): Promise<void> => {
   await writeClientInEventstore(client);
   await writeInReadmodel(toReadModelClient(client), clients);
 
-  await clientReadModelServiceSQL.upsertClient(client, 0);
+  await upsertClient(readModelDB, client, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {

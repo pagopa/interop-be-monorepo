@@ -415,6 +415,7 @@ export const getMockClient = ({
   purposes = [],
   keys = [],
   adminId = undefined,
+  description = "Client description",
 }: {
   consumerId?: TenantId;
   users?: UserId[];
@@ -422,12 +423,13 @@ export const getMockClient = ({
   purposes?: PurposeId[];
   keys?: Key[];
   adminId?: UserId;
+  description?: string;
 } = {}): Client => ({
   id: generateId(),
   consumerId,
   name: "Test client",
   purposes,
-  description: "Client description",
+  ...(description ? { description } : {}),
   users,
   kind,
   createdAt: new Date(),
