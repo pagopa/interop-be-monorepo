@@ -1,8 +1,11 @@
 import {
+  EService,
+  EServiceId,
   PurposeTemplate,
   PurposeTemplateId,
   WithMetadata,
 } from "pagopa-interop-models";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   AppContext,
   DB,
@@ -28,6 +31,9 @@ export function purposeTemplateServiceBuilder(
       _ctx: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeTemplate> | undefined> {
       return readModelService.getPurposeTemplateById(id);
+    },
+    async getEServiceById(id: EServiceId): Promise<EService | undefined> {
+      return readModelService.getEServiceById(id);
     },
   };
 }

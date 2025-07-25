@@ -9,9 +9,13 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
+import { PurposeTemplateService } from "../services/purposeTemplateService.js";
+import { ZodiosRouter } from "@zodios/express";
+import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
