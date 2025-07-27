@@ -29,7 +29,6 @@ import {
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
   producerJWKKeyReadModelServiceBuilder,
-  eserviceTemplateReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -52,8 +51,6 @@ afterEach(cleanup);
 export const readModelService = readModelServiceBuilder(readModelRepository);
 export const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
-export const eserviceTemplateReadModelServiceSQL =
-  eserviceTemplateReadModelServiceBuilder(readModelDB);
 export const tenantReadModelServiceSQL =
   tenantReadModelServiceBuilder(readModelDB);
 export const purposeReadModelServiceSQL =
