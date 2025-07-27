@@ -1,6 +1,10 @@
 import {
   Agreement,
-  EServiceTemplate,
+  Attribute,
+  Client,
+  ClientJWKKey,
+  Delegation,
+  EService,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
@@ -10,39 +14,65 @@ import {
   agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
+  attributeInReadmodelAttribute,
+  clientJwkKeyInReadmodelClientJwkKey,
   DrizzleReturnType,
-  eserviceTemplateInReadmodelEserviceTemplate,
-  eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-  eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-  eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-  eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-  eserviceTemplateVersionInReadmodelEserviceTemplate,
-  eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+  eserviceDescriptorAttributeInReadmodelCatalog,
+  eserviceDescriptorDocumentInReadmodelCatalog,
+  eserviceDescriptorInReadmodelCatalog,
+  eserviceDescriptorInterfaceInReadmodelCatalog,
+  eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceInReadmodelCatalog,
+  eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eserviceRiskAnalysisInReadmodelCatalog,
+  tenantEnabledNotificationInReadmodelNotificationConfig,
   tenantNotificationConfigInReadmodelNotificationConfig,
+  userEnabledInAppNotificationInReadmodelNotificationConfig,
+  userEnabledEmailNotificationInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
+  clientInReadmodelClient,
+  clientKeyInReadmodelClient,
+  clientPurposeInReadmodelClient,
+  clientUserInReadmodelClient,
+  delegationContractDocumentInReadmodelDelegation,
+  delegationInReadmodelDelegation,
+  delegationStampInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
 } from "./notification-config/splitters.js";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
-import { checkMetadataVersion } from "./utils.js";
-import { splitEServiceTemplateIntoObjectsSQL } from "./eservice-template/splitters.js";
+import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
+import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
+import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
+import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
+import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
+import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
   tenantNotificationConfig: TenantNotificationConfig,
   metadataVersion: number
 ): Promise<void> => {
-  await readModelDB
-    .insert(tenantNotificationConfigInReadmodelNotificationConfig)
-    .values(
-      splitTenantNotificationConfigIntoObjectsSQL(
-        tenantNotificationConfig,
-        metadataVersion
-      )
+  const { tenantNotificationConfigSQL, enabledNotificationsSQL } =
+    splitTenantNotificationConfigIntoObjectsSQL(
+      tenantNotificationConfig,
+      metadataVersion
     );
+
+  await readModelDB.transaction(async (tx) => {
+    await tx
+      .insert(tenantNotificationConfigInReadmodelNotificationConfig)
+      .values(tenantNotificationConfigSQL);
+    if (enabledNotificationsSQL.length > 0) {
+      await tx
+        .insert(tenantEnabledNotificationInReadmodelNotificationConfig)
+        .values(enabledNotificationsSQL);
+    }
+  });
 };
 
 export const insertUserNotificationConfig = async (
@@ -50,14 +80,30 @@ export const insertUserNotificationConfig = async (
   userNotificationConfig: UserNotificationConfig,
   metadataVersion: number
 ): Promise<void> => {
-  await readModelDB
-    .insert(userNotificationConfigInReadmodelNotificationConfig)
-    .values(
-      splitUserNotificationConfigIntoObjectsSQL(
-        userNotificationConfig,
-        metadataVersion
-      )
-    );
+  const {
+    userNotificationConfigSQL,
+    enabledInAppNotificationsSQL,
+    enabledEmailNotificationsSQL,
+  } = splitUserNotificationConfigIntoObjectsSQL(
+    userNotificationConfig,
+    metadataVersion
+  );
+
+  await readModelDB.transaction(async (tx) => {
+    await tx
+      .insert(userNotificationConfigInReadmodelNotificationConfig)
+      .values(userNotificationConfigSQL);
+    if (enabledInAppNotificationsSQL.length > 0) {
+      await tx
+        .insert(userEnabledInAppNotificationInReadmodelNotificationConfig)
+        .values(enabledInAppNotificationsSQL);
+    }
+    if (enabledEmailNotificationsSQL.length > 0) {
+      await tx
+        .insert(userEnabledEmailNotificationInReadmodelNotificationConfig)
+        .values(enabledEmailNotificationsSQL);
+    }
+  });
 };
 
 export const upsertAgreement = async (
@@ -114,17 +160,17 @@ export const upsertAgreement = async (
   });
 };
 
-export const upsertEServiceTemplate = async (
+export const upsertAttribute = async (
   readModelDB: DrizzleReturnType,
-  eserviceTemplate: EServiceTemplate,
+  attribute: Attribute,
   metadataVersion: number
 ): Promise<void> => {
   await readModelDB.transaction(async (tx) => {
     const shouldUpsert = await checkMetadataVersion(
       tx,
-      eserviceTemplateInReadmodelEserviceTemplate,
+      attributeInReadmodelAttribute,
       metadataVersion,
-      eserviceTemplate.id
+      attribute.id
     );
 
     if (!shouldUpsert) {
@@ -132,59 +178,223 @@ export const upsertEServiceTemplate = async (
     }
 
     await tx
-      .delete(eserviceTemplateInReadmodelEserviceTemplate)
-      .where(
-        eq(eserviceTemplateInReadmodelEserviceTemplate.id, eserviceTemplate.id)
-      );
+      .delete(attributeInReadmodelAttribute)
+      .where(eq(attributeInReadmodelAttribute.id, attribute.id));
+
+    const attributeSQL = splitAttributeIntoObjectsSQL(
+      attribute,
+      metadataVersion
+    );
+
+    await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
+  });
+};
+
+export const upsertEService = async (
+  readModelDB: DrizzleReturnType,
+  eservice: EService,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      eserviceInReadmodelCatalog,
+      metadataVersion,
+      eservice.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(eserviceInReadmodelCatalog)
+      .where(eq(eserviceInReadmodelCatalog.id, eservice.id));
 
     const {
-      eserviceTemplateSQL,
+      eserviceSQL,
       riskAnalysesSQL,
       riskAnalysisAnswersSQL,
-      versionsSQL,
+      descriptorsSQL,
       attributesSQL,
       interfacesSQL,
       documentsSQL,
-    } = splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, metadataVersion);
+      rejectionReasonsSQL,
+      templateVersionRefsSQL,
+    } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
-    await tx
-      .insert(eserviceTemplateInReadmodelEserviceTemplate)
-      .values(eserviceTemplateSQL);
+    await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
 
-    for (const versionSQL of versionsSQL) {
+    for (const descriptorSQL of descriptorsSQL) {
       await tx
-        .insert(eserviceTemplateVersionInReadmodelEserviceTemplate)
-        .values(versionSQL);
+        .insert(eserviceDescriptorInReadmodelCatalog)
+        .values(descriptorSQL);
     }
 
     for (const interfaceSQL of interfacesSQL) {
       await tx
-        .insert(eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate)
+        .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
         .values(interfaceSQL);
     }
 
     for (const docSQL of documentsSQL) {
       await tx
-        .insert(eserviceTemplateVersionDocumentInReadmodelEserviceTemplate)
+        .insert(eserviceDescriptorDocumentInReadmodelCatalog)
         .values(docSQL);
     }
 
     for (const attributeSQL of attributesSQL) {
       await tx
-        .insert(eserviceTemplateVersionAttributeInReadmodelEserviceTemplate)
+        .insert(eserviceDescriptorAttributeInReadmodelCatalog)
         .values(attributeSQL);
     }
 
     for (const riskAnalysisSQL of riskAnalysesSQL) {
       await tx
-        .insert(eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate)
+        .insert(eserviceRiskAnalysisInReadmodelCatalog)
         .values(riskAnalysisSQL);
     }
 
     for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
       await tx
-        .insert(eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate)
+        .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
         .values(riskAnalysisAnswerSQL);
+    }
+
+    for (const rejectionReasonSQL of rejectionReasonsSQL) {
+      await tx
+        .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
+        .values(rejectionReasonSQL);
+    }
+
+    for (const templateVersionRefSQL of templateVersionRefsSQL) {
+      await tx
+        .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
+        .values(templateVersionRefSQL);
+    }
+  });
+};
+
+export const upsertClientJWKKey = async (
+  readModelDB: DrizzleReturnType,
+  clientJWKKey: ClientJWKKey,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersionByFilter(
+      tx,
+      clientJwkKeyInReadmodelClientJwkKey,
+      metadataVersion,
+      and(
+        eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid),
+        eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientJWKKey.clientId)
+      )
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(clientJwkKeyInReadmodelClientJwkKey)
+      .where(
+        and(
+          eq(
+            clientJwkKeyInReadmodelClientJwkKey.clientId,
+            clientJWKKey.clientId
+          ),
+          eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
+        )
+      );
+
+    const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(
+      clientJWKKey,
+      metadataVersion
+    );
+
+    await tx
+      .insert(clientJwkKeyInReadmodelClientJwkKey)
+      .values(clientJWKKeySQL);
+  });
+};
+
+export const upsertClient = async (
+  readModelDB: DrizzleReturnType,
+  client: Client,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      clientInReadmodelClient,
+      metadataVersion,
+      client.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(clientInReadmodelClient)
+      .where(eq(clientInReadmodelClient.id, client.id));
+
+    const { clientSQL, usersSQL, purposesSQL, keysSQL } =
+      splitClientIntoObjectsSQL(client, metadataVersion);
+
+    await tx.insert(clientInReadmodelClient).values(clientSQL);
+
+    for (const userSQL of usersSQL) {
+      await tx
+        .insert(clientUserInReadmodelClient)
+        .values(userSQL)
+        .onConflictDoNothing();
+    }
+
+    for (const purposeSQL of purposesSQL) {
+      await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
+    }
+
+    for (const keySQL of keysSQL) {
+      await tx.insert(clientKeyInReadmodelClient).values(keySQL);
+    }
+  });
+};
+
+export const upsertDelegation = async (
+  readModelDB: DrizzleReturnType,
+  delegation: Delegation,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      delegationInReadmodelDelegation,
+      metadataVersion,
+      delegation.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(delegationInReadmodelDelegation)
+      .where(eq(delegationInReadmodelDelegation.id, delegation.id));
+
+    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+      splitDelegationIntoObjectsSQL(delegation, metadataVersion);
+
+    await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
+
+    for (const stampSQL of stampsSQL) {
+      await tx.insert(delegationStampInReadmodelDelegation).values(stampSQL);
+    }
+
+    for (const docSQL of contractDocumentsSQL) {
+      await tx
+        .insert(delegationContractDocumentInReadmodelDelegation)
+        .values(docSQL);
     }
   });
 };
