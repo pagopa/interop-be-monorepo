@@ -3,6 +3,7 @@ import {
   Attribute,
   Client,
   ClientJWKKey,
+  Delegation,
   EService,
   TenantNotificationConfig,
   UserNotificationConfig,
@@ -34,6 +35,9 @@ import {
   clientKeyInReadmodelClient,
   clientPurposeInReadmodelClient,
   clientUserInReadmodelClient,
+  delegationContractDocumentInReadmodelDelegation,
+  delegationInReadmodelDelegation,
+  delegationStampInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
 import { and, eq } from "drizzle-orm";
 import {
@@ -46,6 +50,7 @@ import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
 import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
+import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -352,6 +357,44 @@ export const upsertClient = async (
 
     for (const keySQL of keysSQL) {
       await tx.insert(clientKeyInReadmodelClient).values(keySQL);
+    }
+  });
+};
+
+export const upsertDelegation = async (
+  readModelDB: DrizzleReturnType,
+  delegation: Delegation,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      delegationInReadmodelDelegation,
+      metadataVersion,
+      delegation.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(delegationInReadmodelDelegation)
+      .where(eq(delegationInReadmodelDelegation.id, delegation.id));
+
+    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+      splitDelegationIntoObjectsSQL(delegation, metadataVersion);
+
+    await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
+
+    for (const stampSQL of stampsSQL) {
+      await tx.insert(delegationStampInReadmodelDelegation).values(stampSQL);
+    }
+
+    for (const docSQL of contractDocumentsSQL) {
+      await tx
+        .insert(delegationContractDocumentInReadmodelDelegation)
+        .values(docSQL);
     }
   });
 };

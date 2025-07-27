@@ -42,6 +42,7 @@ import {
   upsertAgreement,
   upsertClient,
   upsertClientJWKKey,
+  upsertDelegation,
   upsertEService,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -212,7 +213,7 @@ export const addOneDelegation = async (
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
 
-  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 export const readLastAuthorizationEvent = async (
