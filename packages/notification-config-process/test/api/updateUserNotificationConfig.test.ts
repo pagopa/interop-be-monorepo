@@ -13,11 +13,12 @@ import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { api, notificationConfigService } from "../vitest.api.setup.js";
 import { userNotificationConfigToApiUserNotificationConfig } from "../../src/model/domain/apiConverter.js";
 import { expectedUserIdAndOrganizationId } from "../utils.js";
+import { userNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 
 describe("API POST /userNotificationConfigs test", () => {
   const userId = mockTokenUserId;
   const tenantId = mockTokenOrganizationId;
-  const notificationConfigSeed: notificationConfigApi.UserNotificationConfigSeed =
+  const notificationConfigSeed: notificationConfigApi.UserNotificationConfigUpdateSeed =
     {
       inAppConfig: getMockNotificationConfig(),
       emailConfig: getMockNotificationConfig(),
@@ -33,7 +34,7 @@ describe("API POST /userNotificationConfigs test", () => {
 
   const makeRequest = async (
     token: string,
-    body: notificationConfigApi.UserNotificationConfigSeed = notificationConfigSeed
+    body: notificationConfigApi.UserNotificationConfigUpdateSeed = notificationConfigSeed
   ) =>
     request(api)
       .post("/userNotificationConfigs")
@@ -65,6 +66,21 @@ describe("API POST /userNotificationConfigs test", () => {
     }
   );
 
+  it("Should return 404 for userNotificationConfigNotFound", async () => {
+    notificationConfigService.updateUserNotificationConfig = vi
+      .fn()
+      .mockRejectedValue(userNotificationConfigNotFound(userId, tenantId));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+    expect(
+      notificationConfigService.updateUserNotificationConfig
+    ).toHaveBeenCalledWith(
+      notificationConfigSeed,
+      expectedUserIdAndOrganizationId(userId, tenantId)
+    );
+  });
+
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
@@ -94,7 +110,7 @@ describe("API POST /userNotificationConfigs test", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      body as notificationConfigApi.UserNotificationConfigSeed
+      body as notificationConfigApi.UserNotificationConfigUpdateSeed
     );
     expect(res.status).toBe(400);
     expect(
