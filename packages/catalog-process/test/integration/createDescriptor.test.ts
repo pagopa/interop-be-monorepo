@@ -85,7 +85,7 @@ describe("create descriptor", async () => {
       descriptorSeed,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
-    const newDescriptorId = returnedDescriptor.id;
+    const newDescriptorId = returnedDescriptor.data.id;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
@@ -128,7 +128,7 @@ describe("create descriptor", async () => {
       descriptorId: newDescriptorId,
       eservice: toEServiceV2({
         ...eservice,
-        descriptors: [returnedDescriptor],
+        descriptors: [returnedDescriptor.data],
       }),
     });
   });
@@ -173,7 +173,7 @@ describe("create descriptor", async () => {
       descriptorSeed,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
-    const newDescriptorId = returnedDescriptor.id;
+    const newDescriptorId = returnedDescriptor.data.id;
     const descriptorCreationEvent = await readEventByStreamIdAndVersion(
       eservice.id,
       1,
@@ -293,7 +293,7 @@ describe("create descriptor", async () => {
       descriptorSeed,
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
-    const newDescriptorId = returnedDescriptor.id;
+    const newDescriptorId = returnedDescriptor.data.id;
     const descriptorCreationEvent = await readEventByStreamIdAndVersion(
       eservice.id,
       1,

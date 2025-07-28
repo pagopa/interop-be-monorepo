@@ -1238,8 +1238,12 @@ export function catalogServiceBuilder(
     async createDescriptor(
       eserviceId: EServiceId,
       eserviceDescriptorSeed: catalogApi.EServiceDescriptorSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Descriptor> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Descriptor>> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -1334,7 +1338,10 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvents(events);
-      return descriptorWithDocs;
+      return {
+        data: descriptorWithDocs,
+        metadata: { version: events[events.length - 1].version ?? 0 },
+      };
     },
 
     async deleteDraftDescriptor(

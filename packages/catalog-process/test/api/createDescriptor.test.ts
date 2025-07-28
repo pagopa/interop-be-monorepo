@@ -14,6 +14,7 @@ import {
   generateToken,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { buildCreateDescriptorSeed } from "../mockUtils.js";
@@ -67,11 +68,13 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     descriptors: [newDescriptor],
   };
 
+  const serviceResponse = getMockWithMetadata(newDescriptor);
+
   const apiDescriptor = catalogApi.EServiceDescriptor.parse(
     descriptorToApiDescriptor(newDescriptor)
   );
 
-  catalogService.createDescriptor = vi.fn().mockResolvedValue(newDescriptor);
+  catalogService.createDescriptor = vi.fn().mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -84,7 +87,11 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -93,6 +100,9 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
 
       expect(res.body).toEqual(apiDescriptor);
       expect(res.status).toBe(200);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 

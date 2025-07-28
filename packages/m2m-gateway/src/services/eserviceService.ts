@@ -15,6 +15,10 @@ import {
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
+import {
+  isPolledVersionAtLeastResponseVersion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -56,6 +60,21 @@ export function eserviceServiceBuilder(
       metadata,
     };
   };
+
+  const pollEserviceDescriptor = (
+    eserviceId: EServiceId,
+    response: WithMaybeMetadata<catalogApi.EServiceDescriptor>,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<catalogApi.EServiceDescriptor>> =>
+    pollResourceWithMetadata(() =>
+      retrieveEServiceDescriptorById(
+        headers,
+        eserviceId,
+        response.data.id as DescriptorId
+      )
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
+    });
 
   return {
     async getEService(
@@ -171,6 +190,27 @@ export function eserviceServiceBuilder(
         config.eserviceDocumentsContainer,
         logger
       );
+    },
+    async createDescriptor(
+      eserviceId: EServiceId,
+      eserviceDescriptorSeed: m2mGatewayApi.EServiceDescriptorSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
+      logger.info(`Creating Descriptor for EService ${eserviceId}`);
+
+      const response = await clients.catalogProcessClient.createDescriptor(
+        eserviceDescriptorSeed,
+        {
+          params: { eServiceId: eserviceId },
+          headers,
+        }
+      );
+      const polledResource = await pollEserviceDescriptor(
+        eserviceId,
+        response,
+        headers
+      );
+      return toM2MGatewayApiEServiceDescriptor(polledResource.data);
     },
   };
 }
