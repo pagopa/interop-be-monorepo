@@ -1769,8 +1769,8 @@ export const purposeTemplateInReadmodelPurposeTemplate =
     {
       id: uuid().primaryKey().notNull(),
       metadataVersion: integer("metadata_version").notNull(),
-      name: varchar().notNull(),
-      target: varchar().notNull(),
+      targetDescription: varchar("target_description").notNull(),
+      targetTenantKind: varchar("target_tenant_kind").notNull(),
       creatorId: uuid("creator_id").notNull(),
       state: varchar().notNull(),
       createdAt: timestamp("created_at", {
