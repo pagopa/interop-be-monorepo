@@ -20,6 +20,8 @@ describe("UsersEventPayload", () => {
           email: "john.doe@example.com",
           productRole: "admin" as const,
           relationshipStatus: relationshipStatus.active,
+          role: "admin" as const,
+          mobilePhone: "1234567890",
         },
       };
 
@@ -68,6 +70,8 @@ describe("UsersEventPayload", () => {
           email: "john.doe.updated@example.com",
           productRole: "admin" as const,
           relationshipStatus: relationshipStatus.active,
+          role: "admin" as const,
+          mobilePhone: "1234567890",
         },
       };
 
@@ -103,6 +107,8 @@ describe("UsersEventPayload", () => {
           email: "john.doe@example.com",
           productRole: "admin" as const,
           relationshipStatus: relationshipStatus.deleted,
+          role: "admin" as const,
+          mobilePhone: "1234567890",
         },
       };
 
