@@ -80,7 +80,7 @@ export type Link = z.infer<typeof Link>;
 export const RiskAnalysisTemplateAnswerAnnotation = z.object({
   id: RiskAnalysisTemplateAnswerAnnotationId,
   text: z.string().optional(),
-  docs: z.array(RiskAnalysisTemplateAnswerAnnotationDocument).optional(),
+  docs: z.array(RiskAnalysisTemplateAnswerAnnotationDocument),
   urls: z.array(Link).optional(),
 });
 export type RiskAnalysisTemplateAnswerAnnotation = z.infer<
