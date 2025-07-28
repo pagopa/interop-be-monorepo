@@ -1255,6 +1255,21 @@ describe("get eservices", () => {
       });
       await addOneEService(eservice7);
       await addOneDelegation(delegation);
+      const eservice8: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [],
+      };
+      const delegation2 = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegateId: organizationId2,
+        eserviceId: eservice8.id,
+        state: delegationState.waitingForApproval,
+      });
+      await addOneEService(eservice8);
+      await addOneDelegation(delegation2);
       const result = await catalogService.getEServices(
         {
           eservicesIds: [],
@@ -1268,7 +1283,7 @@ describe("get eservices", () => {
         50,
         context
       );
-      expect(result.totalCount).toBe(7);
+      expect(result.totalCount).toBe(8);
       expect(sortEServices(result.results)).toEqual(
         sortEServices([
           eservice1,
@@ -1278,6 +1293,7 @@ describe("get eservices", () => {
           eservice5,
           eservice6,
           eservice7,
+          eservice8,
         ])
       );
     }
