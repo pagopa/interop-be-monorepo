@@ -33,7 +33,9 @@ export function emailSenderProcessorBuilder(
         success,
         error,
         data: jsonPayload,
-      } = EmailNotificationPayload.safeParse(message.value.toString());
+      } = EmailNotificationPayload.safeParse(
+        JSON.parse(message.value.toString())
+      );
 
       if (!success) {
         // Log and skip message
