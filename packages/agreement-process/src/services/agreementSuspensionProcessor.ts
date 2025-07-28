@@ -13,7 +13,10 @@ import {
   agreementState,
   genericError,
 } from "pagopa-interop-models";
-import { ActiveDelegations, UpdateAgreementSeed } from "../model/domain/models.js";
+import {
+  ActiveDelegations,
+  UpdateAgreementSeed,
+} from "../model/domain/models.js";
 import {
   toCreateEventAgreementSuspendedByProducer,
   toCreateEventAgreementSuspendedByConsumer,

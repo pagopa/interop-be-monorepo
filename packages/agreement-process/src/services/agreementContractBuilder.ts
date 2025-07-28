@@ -34,7 +34,10 @@ import {
 import { attributeNotFound } from "../model/domain/errors.js";
 import { AgreementProcessConfig } from "../config/config.js";
 import { assertStampExists } from "../model/domain/agreement-validators.js";
-import { ActiveDelegations, AgreementContractPDFPayload } from "../model/domain/models.js";
+import {
+  ActiveDelegations,
+  AgreementContractPDFPayload,
+} from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 

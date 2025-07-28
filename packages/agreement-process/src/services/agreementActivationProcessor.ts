@@ -26,7 +26,10 @@ import {
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
 } from "../model/domain/agreement-validators.js";
-import { ActiveDelegations, UpdateAgreementSeed } from "../model/domain/models.js";
+import {
+  ActiveDelegations,
+  UpdateAgreementSeed,
+} from "../model/domain/models.js";
 import {
   toCreateEventAgreementActivated,
   toCreateEventAgreementSuspendedByPlatform,
