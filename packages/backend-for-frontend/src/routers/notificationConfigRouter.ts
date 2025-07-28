@@ -18,16 +18,16 @@ const notificationConfigRouter = (
   );
 
   notificationConfigRouter
-    .get("/notification-config/tenantNotificationConfigs", (_, res) =>
+    .get("/notification-configs/tenantNotificationConfigs", (_, res) =>
       res.status(501).send()
     )
-    .post("/notification-config/tenantNotificationConfigs", (_, res) =>
+    .post("/notification-configs/tenantNotificationConfigs", (_, res) =>
       res.status(501).send()
     )
-    .get("/notification-config/userNotificationConfigs", (_, res) =>
+    .get("/notification-configs/userNotificationConfigs", (_, res) =>
       res.status(501).send()
     )
-    .post("/notification-config/userNotificationConfigs", (_, res) =>
+    .post("/notification-configs/userNotificationConfigs", (_, res) =>
       res.status(501).send()
     );
 
