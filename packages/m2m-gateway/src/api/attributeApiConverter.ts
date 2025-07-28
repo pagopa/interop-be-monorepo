@@ -132,7 +132,7 @@ export function toM2MGatewayApiVerifiedAttribute({
 
 export function toGetCertifiedAttributesApiQueryParams(
   params: m2mGatewayApi.GetCertifiedAttributesQueryParams
-): attributeRegistryApi.GetCertifiedAttributesQueryParams {
+): attributeRegistryApi.GetAttributesQueryParams {
   return {
     limit: params.limit,
     offset: params.offset,
