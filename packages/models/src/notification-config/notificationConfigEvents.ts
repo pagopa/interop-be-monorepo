@@ -2,8 +2,12 @@ import { z } from "zod";
 import { match } from "ts-pattern";
 
 import {
+  TenantNotificationConfigCreatedV2,
   TenantNotificationConfigUpdatedV2,
+  TenantNotificationConfigDeletedV2,
+  UserNotificationConfigCreatedV2,
   UserNotificationConfigUpdatedV2,
+  UserNotificationConfigDeletedV2,
 } from "../gen/v2/notification-config/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import { EventEnvelope } from "../events/events.js";
@@ -11,13 +15,33 @@ import { EventEnvelope } from "../events/events.js";
 export const NotificationConfigEventV2 = z.discriminatedUnion("type", [
   z.object({
     event_version: z.literal(2),
+    type: z.literal("TenantNotificationConfigCreated"),
+    data: protobufDecoder(TenantNotificationConfigCreatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
     type: z.literal("TenantNotificationConfigUpdated"),
     data: protobufDecoder(TenantNotificationConfigUpdatedV2),
   }),
   z.object({
     event_version: z.literal(2),
+    type: z.literal("TenantNotificationConfigDeleted"),
+    data: protobufDecoder(TenantNotificationConfigDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("UserNotificationConfigCreated"),
+    data: protobufDecoder(UserNotificationConfigCreatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
     type: z.literal("UserNotificationConfigUpdated"),
     data: protobufDecoder(UserNotificationConfigUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("UserNotificationConfigDeleted"),
+    data: protobufDecoder(UserNotificationConfigDeletedV2),
   }),
 ]);
 
@@ -29,11 +53,23 @@ export function notificationConfigEventToBinaryDataV2(
   event: NotificationConfigEventV2
 ): Uint8Array {
   return match(event)
+    .with({ type: "TenantNotificationConfigCreated" }, ({ data }) =>
+      TenantNotificationConfigCreatedV2.toBinary(data)
+    )
     .with({ type: "TenantNotificationConfigUpdated" }, ({ data }) =>
       TenantNotificationConfigUpdatedV2.toBinary(data)
     )
+    .with({ type: "TenantNotificationConfigDeleted" }, ({ data }) =>
+      TenantNotificationConfigDeletedV2.toBinary(data)
+    )
+    .with({ type: "UserNotificationConfigCreated" }, ({ data }) =>
+      UserNotificationConfigCreatedV2.toBinary(data)
+    )
     .with({ type: "UserNotificationConfigUpdated" }, ({ data }) =>
       UserNotificationConfigUpdatedV2.toBinary(data)
+    )
+    .with({ type: "UserNotificationConfigDeleted" }, ({ data }) =>
+      UserNotificationConfigDeletedV2.toBinary(data)
     )
     .exhaustive();
 }

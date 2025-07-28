@@ -2,7 +2,6 @@ import {
   getMockContext,
   getMockAuthData,
   decodeProtobufPayload,
-  getMockNotificationConfig,
   getMockTenantNotificationConfig,
 } from "pagopa-interop-commons-test";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
@@ -19,9 +18,20 @@ import {
   notificationConfigService,
   readLastNotificationConfigEvent,
 } from "../integrationUtils.js";
+import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 
 describe("updateTenantNotificationConfig", () => {
   const tenantId: TenantId = generateId();
+
+  const tenantNotificationConfig: TenantNotificationConfig = {
+    ...getMockTenantNotificationConfig(),
+    tenantId,
+  };
+  const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigUpdateSeed =
+    {
+      newEServiceVersionPublished:
+        !tenantNotificationConfig.config.newEServiceVersionPublished,
+    };
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -30,50 +40,8 @@ describe("updateTenantNotificationConfig", () => {
     await addOneTenantNotificationConfig(getMockTenantNotificationConfig());
   });
 
-  it("should write on event-store for the first creation of a tenant's notification configuration", async () => {
-    const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed =
-      getMockNotificationConfig();
-    const serviceReturnValue =
-      await notificationConfigService.updateTenantNotificationConfig(
-        notificationConfigSeed,
-        getMockContext({
-          authData: getMockAuthData(tenantId),
-        })
-      );
-    const writtenEvent = await readLastNotificationConfigEvent(
-      serviceReturnValue.id
-    );
-    expect(writtenEvent.stream_id).toBe(serviceReturnValue.id);
-    expect(writtenEvent.version).toBe("0");
-    expect(writtenEvent.type).toBe("TenantNotificationConfigUpdated");
-    expect(writtenEvent.event_version).toBe(2);
-    const writtenPayload = decodeProtobufPayload({
-      messageType: TenantNotificationConfigUpdatedV2,
-      payload: writtenEvent.data,
-    });
-    const expectedTenantNotificationConfig = {
-      id: serviceReturnValue.id,
-      tenantId,
-      config: notificationConfigSeed,
-      createdAt: new Date(),
-    };
-    expect(serviceReturnValue).toEqual(expectedTenantNotificationConfig);
-    expect(writtenPayload.tenantNotificationConfig).toEqual(
-      toTenantNotificationConfigV2(expectedTenantNotificationConfig)
-    );
-  });
-
   it("should write on event-store for the update of a tenant's existing notification configuration", async () => {
-    const tenantNotificationConfig: TenantNotificationConfig = {
-      ...getMockTenantNotificationConfig(),
-      tenantId,
-    };
-    addOneTenantNotificationConfig(tenantNotificationConfig);
-    const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed =
-      {
-        newEServiceVersionPublished:
-          !tenantNotificationConfig.config.newEServiceVersionPublished,
-      };
+    await addOneTenantNotificationConfig(tenantNotificationConfig);
     const serviceReturnValue =
       await notificationConfigService.updateTenantNotificationConfig(
         notificationConfigSeed,
@@ -102,6 +70,20 @@ describe("updateTenantNotificationConfig", () => {
     expect(serviceReturnValue).toEqual(expectedTenantNotificationConfig);
     expect(writtenPayload.tenantNotificationConfig).toEqual(
       toTenantNotificationConfigV2(expectedTenantNotificationConfig)
+    );
+  });
+
+  it("should throw tenantNotificationConfigNotFound if no notification config exists for the tenant", async () => {
+    const notExistingTenantId: TenantId = generateId();
+    expect(
+      notificationConfigService.updateTenantNotificationConfig(
+        notificationConfigSeed,
+        getMockContext({
+          authData: getMockAuthData(notExistingTenantId),
+        })
+      )
+    ).rejects.toThrowError(
+      tenantNotificationConfigNotFound(notExistingTenantId)
     );
   });
 });
