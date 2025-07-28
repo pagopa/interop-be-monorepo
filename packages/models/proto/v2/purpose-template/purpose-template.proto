@@ -14,8 +14,8 @@ enum PurposeTemplateStateV2 {
 // TODO: the purpose template is not final
 message PurposeTemplateV2 {
   string id = 1;
-  string target = 2;
-  tenant.v2.TenantKindV2 tenantKind = 3;
+  string targetDescription = 2;
+  tenant.v2.TenantKindV2 targetTenantKind = 3;
   string creatorId = 4;
   repeated EserviceDescriptorVersionPurposeTemplateV2 eservicesVersions = 5;
   PurposeTemplateStateV2 state = 6;
