@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { agreementApi } from "pagopa-interop-api-clients";
+import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   pollingMaxRetriesExceeded,
   unsafeBrandId,
@@ -46,11 +46,22 @@ describe("cloneAgreement", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    await agreementService.cloneAgreement(
+    const m2mAgreementResponse: m2mGatewayApi.Agreement = {
+      id: mockAgreementProcessResponse.data.id,
+      eserviceId: mockAgreementProcessResponse.data.eserviceId,
+      descriptorId: mockAgreementProcessResponse.data.descriptorId,
+      producerId: mockAgreementProcessResponse.data.producerId,
+      consumerId: mockAgreementProcessResponse.data.consumerId,
+      state: mockAgreementProcessResponse.data.state,
+      createdAt: mockAgreementProcessResponse.data.createdAt,
+    };
+
+    const result = await agreementService.cloneAgreement(
       unsafeBrandId(mockAgreementProcessResponse.data.id),
       getMockM2MAdminAppContext()
     );
 
+    expect(result).toEqual(m2mAgreementResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.agreementProcessClient.cloneAgreement,
       params: {
