@@ -15,8 +15,8 @@ enum PurposeTemplateStateV2 {
 message PurposeTemplateV2 {
   string id = 1;
   string target = 2;
-  string creatorId = 3;
-  tenant.v2.TenantKindV2 tenantKind = 4;
+  tenant.v2.TenantKindV2 tenantKind = 3;
+  string creatorId = 4;
   repeated EserviceDescriptorVersionPurposeTemplateV2 eservicesVersions = 5;
   PurposeTemplateStateV2 state = 6;
   int64 createdAt = 7;

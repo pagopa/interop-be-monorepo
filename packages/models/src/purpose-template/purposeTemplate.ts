@@ -31,8 +31,8 @@ export type EServiceDescriptorVersionPurposeTemplate = z.infer<
 export const PurposeTemplate = z.object({
   id: PurposeTemplateId,
   target: z.string(),
-  creatorId: TenantId,
   tenantKind: TenantKind,
+  creatorId: TenantId,
   eservicesVersions: z.array(EServiceDescriptorVersionPurposeTemplate),
   state: PurposeTemplateState,
   createdAt: z.coerce.date(),
