@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
-  UsersEventPayload,
   selfcareUserEventType,
   relationshipStatus,
-} from "../src/model/UsersEventPayload.js";
+} from "pagopa-interop-models";
+import { UsersEventPayload } from "../src/model/UsersEventPayload.js";
 
 describe("UsersEventPayload", () => {
   describe("ADD event", () => {
