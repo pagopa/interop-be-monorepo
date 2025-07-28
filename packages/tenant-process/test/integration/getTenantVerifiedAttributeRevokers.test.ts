@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   Tenant,
   TenantRevoker,
@@ -51,6 +50,17 @@ describe("getTenantVerifiedAttributeRevokers", () => {
     id: tenantId,
     attributes: [verifiedAttribute],
   };
+
+  beforeEach(async () => {
+    await addOneTenant({
+      ...getMockTenant(),
+      ...revoker1,
+    });
+    await addOneTenant({
+      ...getMockTenant(),
+      ...revoker2,
+    });
+  });
 
   it("should retrieve revokers for a verified attribute", async () => {
     await addOneTenant(tenant);

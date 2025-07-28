@@ -45,6 +45,7 @@ import {
   upsertDelegation,
   upsertEService,
   upsertProducerJWKKey,
+  upsertProducerKeychain,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
@@ -203,10 +204,7 @@ export const addOneProducerKeychain = async (
     producerKeychains
   );
 
-  await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
-    producerKeychain,
-    0
-  );
+  await upsertProducerKeychain(readModelDB, producerKeychain, 0);
 };
 
 export const addOneDelegation = async (

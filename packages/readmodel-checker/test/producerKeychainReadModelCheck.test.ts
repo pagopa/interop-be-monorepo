@@ -6,10 +6,11 @@ import {
   ProducerKeychain,
   WithMetadata,
 } from "pagopa-interop-models";
+import { upsertProducerKeychain } from "pagopa-interop-readmodel/testUtils";
 import { compare } from "../src/utils.js";
 import {
   addOneProducerKeychain,
-  producerKeychainReadModelServiceSQL,
+  readModelDB,
   readModelService,
   readModelServiceSQL,
 } from "./utils.js";
@@ -47,7 +48,8 @@ describe("Check producerKeychain readmodels", () => {
 
     await addOneProducerKeychain(producerKeychain);
 
-    await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
+    await upsertProducerKeychain(
+      readModelDB,
       producerKeychain.data,
       producerKeychain.metadata.version
     );
@@ -82,7 +84,8 @@ describe("Check producerKeychain readmodels", () => {
     await addOneProducerKeychain(producerKeychain1);
     await addOneProducerKeychain(producerKeychain2);
 
-    await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
+    await upsertProducerKeychain(
+      readModelDB,
       producerKeychain2.data,
       producerKeychain2.metadata.version
     );
@@ -116,11 +119,13 @@ describe("Check producerKeychain readmodels", () => {
 
     await addOneProducerKeychain(producerKeychain1);
 
-    await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
+    await upsertProducerKeychain(
+      readModelDB,
       producerKeychain1.data,
       producerKeychain1.metadata.version
     );
-    await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
+    await upsertProducerKeychain(
+      readModelDB,
       producerKeychain2.data,
       producerKeychain2.metadata.version
     );
@@ -159,7 +164,8 @@ describe("Check producerKeychain readmodels", () => {
 
     await addOneProducerKeychain(producerKeychain1);
 
-    await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
+    await upsertProducerKeychain(
+      readModelDB,
       producerKeychain1InPostgresDb.data,
       producerKeychain1InPostgresDb.metadata.version
     );
@@ -195,7 +201,8 @@ describe("Check producerKeychain readmodels", () => {
 
     await addOneProducerKeychain(producerKeychain1);
 
-    await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
+    await upsertProducerKeychain(
+      readModelDB,
       producerKeychain1InPostgresDb.data,
       producerKeychain1InPostgresDb.metadata.version
     );
