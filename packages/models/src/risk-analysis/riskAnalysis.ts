@@ -6,7 +6,7 @@ import {
   RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
-  RiskAnalysisTemplateAnnotationDocumentId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
 } from "../brandedIds.js";
 
@@ -57,16 +57,16 @@ export const RiskAnalysis = z.object({
 });
 export type RiskAnalysis = z.infer<typeof RiskAnalysis>;
 
-export const RiskAnalysisTemplateAnnotationDocument = z.object({
-  id: RiskAnalysisTemplateAnnotationDocumentId,
+export const RiskAnalysisTemplateAnswerAnnotationDocument = z.object({
+  id: RiskAnalysisTemplateAnswerAnnotationDocumentId,
   name: z.string(),
   contentType: z.string(),
   prettyName: z.string(),
   path: z.string(),
   createdAt: z.coerce.date(),
 });
-export type RiskAnalysisTemplateAnnotationDocument = z.infer<
-  typeof RiskAnalysisTemplateAnnotationDocument
+export type RiskAnalysisTemplateAnswerAnnotationDocument = z.infer<
+  typeof RiskAnalysisTemplateAnswerAnnotationDocument
 >;
 
 // TODO: move to commons if needed
@@ -80,7 +80,7 @@ export type Link = z.infer<typeof Link>;
 export const RiskAnalysisTemplateAnswerAnnotation = z.object({
   id: RiskAnalysisTemplateAnswerAnnotationId,
   text: z.string().optional(),
-  docs: z.array(RiskAnalysisTemplateAnnotationDocument).optional(),
+  docs: z.array(RiskAnalysisTemplateAnswerAnnotationDocument).optional(),
   urls: z.array(Link).optional(),
 });
 export type RiskAnalysisTemplateAnswerAnnotation = z.infer<
