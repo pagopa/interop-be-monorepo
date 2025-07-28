@@ -54,36 +54,15 @@ const BaseUser = z.object({
   email: z.string(),
   role: z.string(),
   productRole: UserRole,
+  relationshipStatus: RelationshipStatus,
   mobilePhone: z.string().nullish(),
 });
 
-// Base event with common fields
-const BaseEvent = z.object({
+export const BaseUsersEventPayload = z.object({
   id: z.string(),
   institutionId: z.string().trim().min(1), // Selfcare ID
   productId: z.string().trim().min(1),
+  eventType: SelfcareUserEventType,
+  user: BaseUser,
 });
-
-// Add user event (only with active status)
-const AddUserEvent = BaseEvent.extend({
-  eventType: z.literal(selfcareUserEventType.add),
-  user: BaseUser.extend({
-    relationshipStatus: z.literal(relationshipStatus.active),
-  }),
-});
-
-// Update user event (can be active or deleted status)
-const UpdateUserEvent = BaseEvent.extend({
-  eventType: z.literal(selfcareUserEventType.update),
-  user: BaseUser.extend({
-    relationshipStatus: z.union([
-      z.literal(relationshipStatus.active),
-      z.literal(relationshipStatus.deleted),
-    ]),
-  }),
-});
-
-// Combined schema
-// Base payload type before transformation
-export const BaseUsersEventPayload = z.union([AddUserEvent, UpdateUserEvent]);
 export type BaseUsersEventPayload = z.infer<typeof BaseUsersEventPayload>;

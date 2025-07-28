@@ -6,6 +6,7 @@ import {
   unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
 
 // Transformed payload with simplified event type
@@ -28,12 +29,17 @@ export const UsersEventPayload = BaseUsersEventPayload.transform((data) => {
     },
   };
 
-  const eventType: "add" | "update" | "delete" =
-    data.eventType === selfcareUserEventType.add
-      ? "add"
-      : data.user.relationshipStatus === relationshipStatus.deleted
-      ? "delete"
-      : "update";
+  const eventType = match([data.eventType, data.user.relationshipStatus])
+    .with([selfcareUserEventType.add, P.any], () => "add")
+    .with(
+      [selfcareUserEventType.update, P.not(relationshipStatus.deleted)],
+      () => "update"
+    )
+    .with(
+      [selfcareUserEventType.update, relationshipStatus.deleted],
+      () => "delete"
+    )
+    .exhaustive();
 
   return {
     ...baseEvent,
