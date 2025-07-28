@@ -10,7 +10,7 @@ import { handleAgreementSuspendedUnsuspended } from "./handleAgreementSuspendedU
 export async function handleAgreementEvent(
   decodedMessage: AgreementEventEnvelopeV2,
   logger: Logger,
-  _readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
@@ -26,7 +26,7 @@ export async function handleAgreementEvent(
         handleAgreementSuspendedUnsuspended(
           agreement,
           logger,
-          _readModelService,
+          readModelService,
           type
         )
     )
