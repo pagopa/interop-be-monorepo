@@ -1,4 +1,4 @@
-import { and, eq, lte, SQL } from "drizzle-orm";
+import { eq, SQL } from "drizzle-orm";
 import {
   Delegation,
   DelegationId,
@@ -11,56 +11,16 @@ import {
   delegationStampInReadmodelDelegation,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 import {
   aggregateDelegation,
   aggregateDelegationArray,
   toDelegationAggregator,
   toDelegationAggregatorArray,
 } from "./delegation/aggregators.js";
-import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
-    async upsertDelegation(
-      delegation: Delegation,
-      metadataVersion: number
-    ): Promise<void> {
-      await db.transaction(async (tx) => {
-        const shouldUpsert = await checkMetadataVersion(
-          tx,
-          delegationInReadmodelDelegation,
-          metadataVersion,
-          delegation.id
-        );
-
-        if (!shouldUpsert) {
-          return;
-        }
-
-        await tx
-          .delete(delegationInReadmodelDelegation)
-          .where(eq(delegationInReadmodelDelegation.id, delegation.id));
-
-        const { delegationSQL, stampsSQL, contractDocumentsSQL } =
-          splitDelegationIntoObjectsSQL(delegation, metadataVersion);
-
-        await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
-
-        for (const stampSQL of stampsSQL) {
-          await tx
-            .insert(delegationStampInReadmodelDelegation)
-            .values(stampSQL);
-        }
-
-        for (const docSQL of contractDocumentsSQL) {
-          await tx
-            .insert(delegationContractDocumentInReadmodelDelegation)
-            .values(docSQL);
-        }
-      });
-    },
     async getDelegationById(
       delegationId: DelegationId
     ): Promise<WithMetadata<Delegation> | undefined> {
@@ -143,22 +103,6 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
         );
 
       return aggregateDelegationArray(toDelegationAggregatorArray(queryResult));
-    },
-    async deleteDelegationById(
-      delegationId: DelegationId,
-      metadataVersion: number
-    ): Promise<void> {
-      await db
-        .delete(delegationInReadmodelDelegation)
-        .where(
-          and(
-            eq(delegationInReadmodelDelegation.id, delegationId),
-            lte(
-              delegationInReadmodelDelegation.metadataVersion,
-              metadataVersion
-            )
-          )
-        );
     },
   };
 }

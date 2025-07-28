@@ -4,36 +4,53 @@ import {
   UserNotificationConfig,
 } from "pagopa-interop-models";
 
-export function tenantNotificationConfigToApiTenantNotificationConfig(
-  input: TenantNotificationConfig
-): notificationConfigApi.TenantNotificationConfig {
+export function tenantNotificationConfigToApiTenantNotificationConfig({
+  id,
+  tenantId,
+  config: { newEServiceVersionPublished, ...rest },
+  createdAt,
+  updatedAt,
+}: TenantNotificationConfig): notificationConfigApi.TenantNotificationConfig {
+  void (rest satisfies Record<string, never>);
   return {
-    id: input.id,
-    tenantId: input.tenantId,
+    id,
+    tenantId,
     config: {
-      newEServiceVersionPublished: input.config.newEServiceVersionPublished,
+      newEServiceVersionPublished,
     },
-    createdAt: input.createdAt.toJSON(),
-    updatedAt: input.updatedAt?.toJSON(),
+    createdAt: createdAt.toJSON(),
+    updatedAt: updatedAt?.toJSON(),
   };
 }
 
-export function userNotificationConfigToApiUserNotificationConfig(
-  input: UserNotificationConfig
-): notificationConfigApi.UserNotificationConfig {
+export function userNotificationConfigToApiUserNotificationConfig({
+  id,
+  userId,
+  tenantId,
+  inAppConfig: {
+    newEServiceVersionPublished: newEServiceVersionPublishedInApp,
+    ...inAppRest
+  },
+  emailConfig: {
+    newEServiceVersionPublished: newEServiceVersionPublishedEmail,
+    ...emailRest
+  },
+  createdAt,
+  updatedAt,
+}: UserNotificationConfig): notificationConfigApi.UserNotificationConfig {
+  void (inAppRest satisfies Record<string, never>);
+  void (emailRest satisfies Record<string, never>);
   return {
-    id: input.id,
-    userId: input.userId,
-    tenantId: input.tenantId,
+    id,
+    userId,
+    tenantId,
     inAppConfig: {
-      newEServiceVersionPublished:
-        input.inAppConfig.newEServiceVersionPublished,
+      newEServiceVersionPublished: newEServiceVersionPublishedInApp,
     },
     emailConfig: {
-      newEServiceVersionPublished:
-        input.emailConfig.newEServiceVersionPublished,
+      newEServiceVersionPublished: newEServiceVersionPublishedEmail,
     },
-    createdAt: input.createdAt.toJSON(),
-    updatedAt: input.updatedAt?.toJSON(),
+    createdAt: createdAt.toJSON(),
+    updatedAt: updatedAt?.toJSON(),
   };
 }

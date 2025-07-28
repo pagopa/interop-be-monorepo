@@ -17,7 +17,10 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/delegationConsumerServiceV2.js";
-import { readModelService } from "./utils.js";
+import {
+  delegationReadModelService,
+  delegationWriterService,
+} from "./utils.js";
 
 describe("Events V2", async () => {
   const mockDelegation = getMockDelegation({
@@ -42,11 +45,10 @@ describe("Events V2", async () => {
       data: payload,
     };
 
-    await handleMessageV2(message, readModelService);
+    await handleMessageV2(message, delegationWriterService);
 
-    const retrievedDelegation = await readModelService.getDelegationById(
-      mockDelegation.id
-    );
+    const retrievedDelegation =
+      await delegationReadModelService.getDelegationById(mockDelegation.id);
 
     expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
@@ -66,11 +68,10 @@ describe("Events V2", async () => {
       data: payload,
     };
 
-    await handleMessageV2(message, readModelService);
+    await handleMessageV2(message, delegationWriterService);
 
-    const retrievedDelegation = await readModelService.getDelegationById(
-      mockDelegation.id
-    );
+    const retrievedDelegation =
+      await delegationReadModelService.getDelegationById(mockDelegation.id);
 
     expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
@@ -90,11 +91,10 @@ describe("Events V2", async () => {
       data: payload,
     };
 
-    await handleMessageV2(message, readModelService);
+    await handleMessageV2(message, delegationWriterService);
 
-    const retrievedDelegation = await readModelService.getDelegationById(
-      mockDelegation.id
-    );
+    const retrievedDelegation =
+      await delegationReadModelService.getDelegationById(mockDelegation.id);
 
     expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
@@ -114,11 +114,10 @@ describe("Events V2", async () => {
       data: payload,
     };
 
-    await handleMessageV2(message, readModelService);
+    await handleMessageV2(message, delegationWriterService);
 
-    const retrievedDelegation = await readModelService.getDelegationById(
-      mockDelegation.id
-    );
+    const retrievedDelegation =
+      await delegationReadModelService.getDelegationById(mockDelegation.id);
 
     expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
@@ -138,11 +137,10 @@ describe("Events V2", async () => {
       data: payload,
     };
 
-    await handleMessageV2(message, readModelService);
+    await handleMessageV2(message, delegationWriterService);
 
-    const retrievedDelegation = await readModelService.getDelegationById(
-      mockDelegation.id
-    );
+    const retrievedDelegation =
+      await delegationReadModelService.getDelegationById(mockDelegation.id);
 
     expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
@@ -162,11 +160,10 @@ describe("Events V2", async () => {
       data: payload,
     };
 
-    await handleMessageV2(message, readModelService);
+    await handleMessageV2(message, delegationWriterService);
 
-    const retrievedDelegation = await readModelService.getDelegationById(
-      mockDelegation.id
-    );
+    const retrievedDelegation =
+      await delegationReadModelService.getDelegationById(mockDelegation.id);
 
     expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
@@ -186,11 +183,10 @@ describe("Events V2", async () => {
       data: payload,
     };
 
-    await handleMessageV2(message, readModelService);
+    await handleMessageV2(message, delegationWriterService);
 
-    const retrievedDelegation = await readModelService.getDelegationById(
-      mockDelegation.id
-    );
+    const retrievedDelegation =
+      await delegationReadModelService.getDelegationById(mockDelegation.id);
 
     expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
@@ -210,11 +206,10 @@ describe("Events V2", async () => {
       data: payload,
     };
 
-    await handleMessageV2(message, readModelService);
+    await handleMessageV2(message, delegationWriterService);
 
-    const retrievedDelegation = await readModelService.getDelegationById(
-      mockDelegation.id
-    );
+    const retrievedDelegation =
+      await delegationReadModelService.getDelegationById(mockDelegation.id);
 
     expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 

@@ -13,13 +13,11 @@ import {
   toReadModelEService,
   toReadModelPurpose,
 } from "pagopa-interop-models";
-import {
-  clientReadModelServiceBuilder,
-  purposeReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
+import { purposeReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { afterEach, inject } from "vitest";
 import {
   upsertAgreement,
+  upsertClient,
   upsertEService,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -46,7 +44,6 @@ if (!config) {
 }
 
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
-const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
@@ -94,5 +91,5 @@ export const addOneClient = async (client: Client): Promise<void> => {
     readModelRepository.clients
   );
 
-  await clientReadModelServiceSQL.upsertClient(client, 0);
+  await upsertClient(readModelDB, client, 0);
 };

@@ -471,8 +471,8 @@ const tenantsRouter = (
 
           const result =
             await tenantService.getTenantVerifiedAttributeVerifiers(
-              unsafeBrandId(req.params.tenantId as string),
-              unsafeBrandId(req.params.attributeId as string),
+              unsafeBrandId(req.params.tenantId),
+              unsafeBrandId(req.params.attributeId),
               {
                 offset: Number(req.query.offset) || 0,
                 limit: Number(req.query.limit) || 50,

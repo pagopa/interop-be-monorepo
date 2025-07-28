@@ -11,7 +11,7 @@ import { match } from "ts-pattern";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
-import { notificationConfigReadModelWriteServiceBuilder } from "./readModelService.js";
+import { notificationConfigReadModelWriteServiceBuilder } from "./readModelWriteService.js";
 
 const db = makeDrizzleConnection(config);
 const notificationConfigReadModelWriteService =
