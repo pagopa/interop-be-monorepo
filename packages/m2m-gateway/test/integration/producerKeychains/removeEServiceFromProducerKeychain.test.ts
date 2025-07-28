@@ -37,7 +37,7 @@ describe("removeEServiceFromProducerKeychain", () => {
   mockInteropBeClients.authorizationClient = {
     producerKeychain: {
       getProducerKeychain: mockGetProducerKeychain,
-      removeEServiceFromProducerKeychain: mockRemoveProducerKeychainPurpose,
+      removeProducerKeychainEService: mockRemoveProducerKeychainPurpose,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
