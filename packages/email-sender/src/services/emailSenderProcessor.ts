@@ -2,7 +2,6 @@
 import { genericInternalError } from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { delay, EmailManagerSES, logger } from "pagopa-interop-commons";
-import Mail from "nodemailer/lib/mailer/index.js";
 import { TooManyRequestsException } from "@aws-sdk/client-sesv2";
 import { EmailNotificationPayload } from "../model/emailNotificationPayload.js";
 import { config } from "../config/config.js";
@@ -30,30 +29,33 @@ export function emailSenderProcessorBuilder(
         return;
       }
 
-      let jsonPayload: EmailNotificationPayload;
-      let mailOptions: Mail.Options;
-      try {
-        jsonPayload = JSON.parse(message.value.toString());
-        loggerInstance = logger({
-          serviceName: "email-sender",
-          correlationId: jsonPayload.correlationId,
-        });
-        loggerInstance.info(
-          `Consuming message for partition ${partition} with offset ${message.offset}`
-        );
-        mailOptions = {
-          from: { name: sesSenderData.label, address: sesSenderData.mail },
-          subject: jsonPayload.subject,
-          to: [jsonPayload.address],
-          html: jsonPayload.body,
-        };
-      } catch (err) {
+      const {
+        success,
+        error,
+        data: jsonPayload,
+      } = EmailNotificationPayload.safeParse(message.value.toString());
+
+      if (!success) {
         // Log and skip message
         loggerInstance.warn(
-          `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
+          `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${error}`
         );
         return;
       }
+
+      loggerInstance = logger({
+        serviceName: "email-sender",
+        correlationId: jsonPayload.correlationId,
+      });
+      loggerInstance.info(
+        `Consuming message for partition ${partition} with offset ${message.offset}`
+      );
+      const mailOptions = {
+        from: { name: sesSenderData.label, address: sesSenderData.mail },
+        subject: jsonPayload.subject,
+        to: [jsonPayload.address],
+        html: jsonPayload.body,
+      };
 
       let sent = false;
       while (!sent) {
