@@ -1,7 +1,12 @@
 import {
   Agreement,
   Attribute,
-  ProducerKeychain,
+  Client,
+  ClientJWKKey,
+  Delegation,
+  EService,
+  EServiceTemplate,
+  ProducerJWKKey,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
@@ -12,37 +17,74 @@ import {
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   attributeInReadmodelAttribute,
+  clientJwkKeyInReadmodelClientJwkKey,
   DrizzleReturnType,
-  producerKeychainEserviceInReadmodelProducerKeychain,
-  producerKeychainInReadmodelProducerKeychain,
-  producerKeychainKeyInReadmodelProducerKeychain,
-  producerKeychainUserInReadmodelProducerKeychain,
+  eserviceDescriptorAttributeInReadmodelCatalog,
+  eserviceDescriptorDocumentInReadmodelCatalog,
+  eserviceDescriptorInReadmodelCatalog,
+  eserviceDescriptorInterfaceInReadmodelCatalog,
+  eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceInReadmodelCatalog,
+  eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eserviceRiskAnalysisInReadmodelCatalog,
+  tenantEnabledNotificationInReadmodelNotificationConfig,
   tenantNotificationConfigInReadmodelNotificationConfig,
+  userEnabledInAppNotificationInReadmodelNotificationConfig,
+  userEnabledEmailNotificationInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
+  clientInReadmodelClient,
+  clientKeyInReadmodelClient,
+  clientPurposeInReadmodelClient,
+  clientUserInReadmodelClient,
+  delegationContractDocumentInReadmodelDelegation,
+  delegationInReadmodelDelegation,
+  delegationStampInReadmodelDelegation,
+  eserviceTemplateInReadmodelEserviceTemplate,
+  eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+  eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
+  eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+  eserviceTemplateVersionInReadmodelEserviceTemplate,
+  eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+  producerJwkKeyInReadmodelProducerJwkKey,
 } from "pagopa-interop-readmodel-models";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
 } from "./notification-config/splitters.js";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
-import { checkMetadataVersion } from "./utils.js";
+import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
-import { splitProducerKeychainIntoObjectsSQL } from "./authorization/producerKeychainSplitters.js";
+import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
+import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
+import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
+import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
+import { splitEServiceTemplateIntoObjectsSQL } from "./eservice-template/splitters.js";
+import { splitProducerJWKKeyIntoObjectsSQL } from "./authorization/producerJWKKeySplitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
   tenantNotificationConfig: TenantNotificationConfig,
   metadataVersion: number
 ): Promise<void> => {
-  await readModelDB
-    .insert(tenantNotificationConfigInReadmodelNotificationConfig)
-    .values(
-      splitTenantNotificationConfigIntoObjectsSQL(
-        tenantNotificationConfig,
-        metadataVersion
-      )
+  const { tenantNotificationConfigSQL, enabledNotificationsSQL } =
+    splitTenantNotificationConfigIntoObjectsSQL(
+      tenantNotificationConfig,
+      metadataVersion
     );
+
+  await readModelDB.transaction(async (tx) => {
+    await tx
+      .insert(tenantNotificationConfigInReadmodelNotificationConfig)
+      .values(tenantNotificationConfigSQL);
+    if (enabledNotificationsSQL.length > 0) {
+      await tx
+        .insert(tenantEnabledNotificationInReadmodelNotificationConfig)
+        .values(enabledNotificationsSQL);
+    }
+  });
 };
 
 export const insertUserNotificationConfig = async (
@@ -50,14 +92,30 @@ export const insertUserNotificationConfig = async (
   userNotificationConfig: UserNotificationConfig,
   metadataVersion: number
 ): Promise<void> => {
-  await readModelDB
-    .insert(userNotificationConfigInReadmodelNotificationConfig)
-    .values(
-      splitUserNotificationConfigIntoObjectsSQL(
-        userNotificationConfig,
-        metadataVersion
-      )
-    );
+  const {
+    userNotificationConfigSQL,
+    enabledInAppNotificationsSQL,
+    enabledEmailNotificationsSQL,
+  } = splitUserNotificationConfigIntoObjectsSQL(
+    userNotificationConfig,
+    metadataVersion
+  );
+
+  await readModelDB.transaction(async (tx) => {
+    await tx
+      .insert(userNotificationConfigInReadmodelNotificationConfig)
+      .values(userNotificationConfigSQL);
+    if (enabledInAppNotificationsSQL.length > 0) {
+      await tx
+        .insert(userEnabledInAppNotificationInReadmodelNotificationConfig)
+        .values(enabledInAppNotificationsSQL);
+    }
+    if (enabledEmailNotificationsSQL.length > 0) {
+      await tx
+        .insert(userEnabledEmailNotificationInReadmodelNotificationConfig)
+        .values(enabledEmailNotificationsSQL);
+    }
+  });
 };
 
 export const upsertAgreement = async (
@@ -144,17 +202,17 @@ export const upsertAttribute = async (
   });
 };
 
-export const upsertProducerKeychain = async (
+export const upsertEService = async (
   readModelDB: DrizzleReturnType,
-  producerKeychain: ProducerKeychain,
+  eservice: EService,
   metadataVersion: number
 ): Promise<void> => {
   await readModelDB.transaction(async (tx) => {
     const shouldUpsert = await checkMetadataVersion(
       tx,
-      producerKeychainInReadmodelProducerKeychain,
+      eserviceInReadmodelCatalog,
       metadataVersion,
-      producerKeychain.id
+      eservice.id
     );
 
     if (!shouldUpsert) {
@@ -162,34 +220,314 @@ export const upsertProducerKeychain = async (
     }
 
     await tx
-      .delete(producerKeychainInReadmodelProducerKeychain)
-      .where(
-        eq(producerKeychainInReadmodelProducerKeychain.id, producerKeychain.id)
-      );
+      .delete(eserviceInReadmodelCatalog)
+      .where(eq(eserviceInReadmodelCatalog.id, eservice.id));
 
-    const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
-      splitProducerKeychainIntoObjectsSQL(producerKeychain, metadataVersion);
+    const {
+      eserviceSQL,
+      riskAnalysesSQL,
+      riskAnalysisAnswersSQL,
+      descriptorsSQL,
+      attributesSQL,
+      interfacesSQL,
+      documentsSQL,
+      rejectionReasonsSQL,
+      templateVersionRefsSQL,
+    } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
+
+    await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
+
+    for (const descriptorSQL of descriptorsSQL) {
+      await tx
+        .insert(eserviceDescriptorInReadmodelCatalog)
+        .values(descriptorSQL);
+    }
+
+    for (const interfaceSQL of interfacesSQL) {
+      await tx
+        .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+        .values(interfaceSQL);
+    }
+
+    for (const docSQL of documentsSQL) {
+      await tx
+        .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+        .values(docSQL);
+    }
+
+    for (const attributeSQL of attributesSQL) {
+      await tx
+        .insert(eserviceDescriptorAttributeInReadmodelCatalog)
+        .values(attributeSQL);
+    }
+
+    for (const riskAnalysisSQL of riskAnalysesSQL) {
+      await tx
+        .insert(eserviceRiskAnalysisInReadmodelCatalog)
+        .values(riskAnalysisSQL);
+    }
+
+    for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+      await tx
+        .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
+        .values(riskAnalysisAnswerSQL);
+    }
+
+    for (const rejectionReasonSQL of rejectionReasonsSQL) {
+      await tx
+        .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
+        .values(rejectionReasonSQL);
+    }
+
+    for (const templateVersionRefSQL of templateVersionRefsSQL) {
+      await tx
+        .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
+        .values(templateVersionRefSQL);
+    }
+  });
+};
+
+export const upsertClientJWKKey = async (
+  readModelDB: DrizzleReturnType,
+  clientJWKKey: ClientJWKKey,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersionByFilter(
+      tx,
+      clientJwkKeyInReadmodelClientJwkKey,
+      metadataVersion,
+      and(
+        eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid),
+        eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientJWKKey.clientId)
+      )
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
 
     await tx
-      .insert(producerKeychainInReadmodelProducerKeychain)
-      .values(producerKeychainSQL);
+      .delete(clientJwkKeyInReadmodelClientJwkKey)
+      .where(
+        and(
+          eq(
+            clientJwkKeyInReadmodelClientJwkKey.clientId,
+            clientJWKKey.clientId
+          ),
+          eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
+        )
+      );
+
+    const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(
+      clientJWKKey,
+      metadataVersion
+    );
+
+    await tx
+      .insert(clientJwkKeyInReadmodelClientJwkKey)
+      .values(clientJWKKeySQL);
+  });
+};
+
+export const upsertClient = async (
+  readModelDB: DrizzleReturnType,
+  client: Client,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      clientInReadmodelClient,
+      metadataVersion,
+      client.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(clientInReadmodelClient)
+      .where(eq(clientInReadmodelClient.id, client.id));
+
+    const { clientSQL, usersSQL, purposesSQL, keysSQL } =
+      splitClientIntoObjectsSQL(client, metadataVersion);
+
+    await tx.insert(clientInReadmodelClient).values(clientSQL);
 
     for (const userSQL of usersSQL) {
       await tx
-        .insert(producerKeychainUserInReadmodelProducerKeychain)
-        .values(userSQL);
+        .insert(clientUserInReadmodelClient)
+        .values(userSQL)
+        .onConflictDoNothing();
     }
 
-    for (const eserviceSQL of eservicesSQL) {
-      await tx
-        .insert(producerKeychainEserviceInReadmodelProducerKeychain)
-        .values(eserviceSQL);
+    for (const purposeSQL of purposesSQL) {
+      await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
     }
 
     for (const keySQL of keysSQL) {
-      await tx
-        .insert(producerKeychainKeyInReadmodelProducerKeychain)
-        .values(keySQL);
+      await tx.insert(clientKeyInReadmodelClient).values(keySQL);
     }
+  });
+};
+
+export const upsertDelegation = async (
+  readModelDB: DrizzleReturnType,
+  delegation: Delegation,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      delegationInReadmodelDelegation,
+      metadataVersion,
+      delegation.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(delegationInReadmodelDelegation)
+      .where(eq(delegationInReadmodelDelegation.id, delegation.id));
+
+    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+      splitDelegationIntoObjectsSQL(delegation, metadataVersion);
+
+    await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
+
+    for (const stampSQL of stampsSQL) {
+      await tx.insert(delegationStampInReadmodelDelegation).values(stampSQL);
+    }
+
+    for (const docSQL of contractDocumentsSQL) {
+      await tx
+        .insert(delegationContractDocumentInReadmodelDelegation)
+        .values(docSQL);
+    }
+  });
+};
+
+export const upsertEServiceTemplate = async (
+  readModelDB: DrizzleReturnType,
+  eserviceTemplate: EServiceTemplate,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      eserviceTemplateInReadmodelEserviceTemplate,
+      metadataVersion,
+      eserviceTemplate.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(eserviceTemplateInReadmodelEserviceTemplate)
+      .where(
+        eq(eserviceTemplateInReadmodelEserviceTemplate.id, eserviceTemplate.id)
+      );
+
+    const {
+      eserviceTemplateSQL,
+      riskAnalysesSQL,
+      riskAnalysisAnswersSQL,
+      versionsSQL,
+      attributesSQL,
+      interfacesSQL,
+      documentsSQL,
+    } = splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, metadataVersion);
+
+    await tx
+      .insert(eserviceTemplateInReadmodelEserviceTemplate)
+      .values(eserviceTemplateSQL);
+
+    for (const versionSQL of versionsSQL) {
+      await tx
+        .insert(eserviceTemplateVersionInReadmodelEserviceTemplate)
+        .values(versionSQL);
+    }
+
+    for (const interfaceSQL of interfacesSQL) {
+      await tx
+        .insert(eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate)
+        .values(interfaceSQL);
+    }
+
+    for (const docSQL of documentsSQL) {
+      await tx
+        .insert(eserviceTemplateVersionDocumentInReadmodelEserviceTemplate)
+        .values(docSQL);
+    }
+
+    for (const attributeSQL of attributesSQL) {
+      await tx
+        .insert(eserviceTemplateVersionAttributeInReadmodelEserviceTemplate)
+        .values(attributeSQL);
+    }
+
+    for (const riskAnalysisSQL of riskAnalysesSQL) {
+      await tx
+        .insert(eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate)
+        .values(riskAnalysisSQL);
+    }
+
+    for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+      await tx
+        .insert(eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate)
+        .values(riskAnalysisAnswerSQL);
+    }
+  });
+};
+
+export const upsertProducerJWKKey = async (
+  readModelDB: DrizzleReturnType,
+  jwkKey: ProducerJWKKey,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersionByFilter(
+      tx,
+      producerJwkKeyInReadmodelProducerJwkKey,
+      metadataVersion,
+      and(
+        eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid),
+        eq(
+          producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+          jwkKey.producerKeychainId
+        )
+      )
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(producerJwkKeyInReadmodelProducerJwkKey)
+      .where(
+        and(
+          eq(
+            producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+            jwkKey.producerKeychainId
+          ),
+          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+        )
+      );
+
+    const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
+      jwkKey,
+      metadataVersion
+    );
+
+    await tx
+      .insert(producerJwkKeyInReadmodelProducerJwkKey)
+      .values(producerJWKKeySQL);
   });
 };

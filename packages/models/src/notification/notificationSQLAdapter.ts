@@ -22,3 +22,15 @@ export const fromNotificationSQL = (
   createdAt: new Date(notification.createdAt),
   readAt: notification.readAt ? new Date(notification.readAt) : undefined,
 });
+
+export const toNotificationSQL = (
+  notification: Notification
+): NotificationSQL => ({
+  id: notification.id,
+  userId: notification.userId,
+  tenantId: notification.tenantId,
+  body: notification.body,
+  deepLink: notification.deepLink,
+  createdAt: notification.createdAt.toISOString(),
+  readAt: notification.readAt ? notification.readAt.toISOString() : null,
+});

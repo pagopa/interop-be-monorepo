@@ -48,6 +48,8 @@ import {
 import {
   upsertAgreement,
   upsertAttribute,
+  upsertDelegation,
+  upsertEService,
 } from "pagopa-interop-readmodel/testUtils";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -162,7 +164,7 @@ export const writeOnlyOneAgreement = async (
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 export const updateOneEService = async (eservice: EService): Promise<void> => {
   await eservices.updateOne(
@@ -179,7 +181,7 @@ export const updateOneEService = async (eservice: EService): Promise<void> => {
       },
     }
   );
-  await catalogReadModelServiceSQL.upsertEService(eservice, 1);
+  await upsertEService(readModelDB, eservice, 1);
 };
 
 export const updateOneTenant = async (tenant: Tenant): Promise<void> => {
@@ -214,7 +216,7 @@ export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
-  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 export const readLastAgreementEvent = async (
