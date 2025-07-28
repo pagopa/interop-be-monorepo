@@ -277,7 +277,7 @@ const tenantRouter = (
             unsafeBrandId(req.params.tenantId),
             unsafeBrandId(req.params.attributeId),
             req.query.agreementId
-              ? unsafeBrandId(req.query.agreementId as string)
+              ? unsafeBrandId(req.query.agreementId)
               : undefined,
             ctx
           );
