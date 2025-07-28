@@ -23,9 +23,11 @@ export const kafkaMessagePayload: EachMessagePayload = {
 };
 
 export const kafkaMessagePayloadWithValue = (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  value: any
+  value: unknown
 ): EachMessagePayload => ({
   ...kafkaMessagePayload,
-  message: { ...kafkaMessagePayload.message, value },
+  message: {
+    ...kafkaMessagePayload.message,
+    value: Buffer.from(JSON.stringify(value)),
+  },
 });
