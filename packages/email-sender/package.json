@@ -15,7 +15,7 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "tsx -r 'dotenv-flow/config' --watch  ./src/index.ts",
-    "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources'",
+    "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
@@ -25,7 +25,6 @@
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.14.6",
     "@types/nodemailer": "6.4.17",
-    "cpx2": "7.0.1",
     "axios": "1.8.2",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
