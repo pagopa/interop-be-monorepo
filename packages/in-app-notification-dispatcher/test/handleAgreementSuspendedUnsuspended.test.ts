@@ -212,13 +212,10 @@ describe("handleAgreementSuspendedUnsuspended", () => {
       );
 
       const expectedNotifications = expectedUsers.map((user) => ({
-        id: expect.any(String),
-        createdAt: expect.any(Date),
         userId: user.userId,
         tenantId: user.tenantId,
         body: expectedBody,
         deepLink: `https://${config.interopFeBaseUrl}/ui/it/fruizione/sottoscrizione-eservice/${agreement.id}`,
-        readAt: undefined,
       }));
 
       expect(notifications).toEqual(
