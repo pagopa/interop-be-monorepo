@@ -12,13 +12,11 @@ import {
   UserId,
   unsafeBrandId,
   SelfcareId,
+  selfcareUserEventType,
+  relationshipStatus,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import {
-  selfcareUserEventType,
-  UsersEventPayload,
-  relationshipStatus,
-} from "../model/UsersEventPayload.js";
+import { UsersEventPayload } from "../model/UsersEventPayload.js";
 import { AuthorizationProcessClient } from "../clients/authorizationProcessClient.js";
 import { ReadModelService } from "./readModelService.js";
 

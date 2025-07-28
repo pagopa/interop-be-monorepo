@@ -1,77 +1,26 @@
-import { UserRole } from "pagopa-interop-commons";
-import { SelfcareId, unsafeBrandId, UserId } from "pagopa-interop-models";
+import {
+  BaseUsersEventPayload,
+  relationshipStatus,
+  SelfcareId,
+  selfcareUserEventType,
+  unsafeBrandId,
+  UserId,
+} from "pagopa-interop-models";
 import { z } from "zod";
-
-export const selfcareUserEventType = {
-  add: "ADD",
-  update: "UPDATE",
-} as const;
-
-export const SelfcareUserEventType = z.enum([
-  selfcareUserEventType.add,
-  selfcareUserEventType.update,
-]);
-export type SelfcareUserEventType = z.infer<typeof SelfcareUserEventType>;
-
-export const relationshipStatus = {
-  active: "ACTIVE",
-  suspended: "SUSPENDED",
-  deleted: "DELETED",
-  rejected: "REJECTED",
-} as const;
-export const RelationshipStatus = z.enum([
-  Object.values(relationshipStatus)[0],
-  ...Object.values(relationshipStatus).slice(1),
-]);
-export type RelationshipStatus = z.infer<typeof RelationshipStatus>;
-
-const BaseUser = z.object({
-  userId: z.string().uuid(),
-  name: z.string(),
-  familyName: z.string(),
-  email: z.string(),
-  productRole: UserRole,
-});
-
-// Base event with common fields
-const BaseEvent = z.object({
-  id: z.string(),
-  institutionId: z.string().trim().min(1), // Selfcare ID
-  productId: z.string().trim().min(1),
-});
-
-// Add user event (only with active status)
-const AddUserEvent = BaseEvent.extend({
-  eventType: z.literal(selfcareUserEventType.add),
-  user: BaseUser.extend({
-    relationshipStatus: z.literal(relationshipStatus.active),
-  }),
-});
-
-// Update user event (can be active or deleted status)
-const UpdateUserEvent = BaseEvent.extend({
-  eventType: z.literal(selfcareUserEventType.update),
-  user: BaseUser.extend({
-    relationshipStatus: z.union([
-      z.literal(relationshipStatus.active),
-      z.literal(relationshipStatus.deleted),
-    ]),
-  }),
-});
-
-// Combined schema
-// Base payload type before transformation
-export const BaseUsersEventPayload = z.union([AddUserEvent, UpdateUserEvent]);
-type BaseUsersEventPayload = z.infer<typeof BaseUsersEventPayload>;
 
 // Transformed payload with simplified event type
 export const UsersEventPayload = BaseUsersEventPayload.transform((data) => {
+  const { userId } = data.user;
+  if (userId == null || userId === undefined) {
+    throw new Error("UserId is required and cannot be null or undefined.");
+  }
+
   const baseEvent = {
     id: data.id,
     institutionId: unsafeBrandId<SelfcareId>(data.institutionId),
     productId: data.productId,
     user: {
-      userId: unsafeBrandId<UserId>(data.user.userId),
+      userId: unsafeBrandId<UserId>(userId),
       name: data.user.name,
       familyName: data.user.familyName,
       email: data.user.email,
@@ -85,6 +34,7 @@ export const UsersEventPayload = BaseUsersEventPayload.transform((data) => {
       : data.user.relationshipStatus === relationshipStatus.deleted
       ? "delete"
       : "update";
+
   return {
     ...baseEvent,
     eventType,
