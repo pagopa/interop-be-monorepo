@@ -1,4 +1,8 @@
-import { ProducerKeychainId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  EServiceId,
+  ProducerKeychainId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { WithLogger } from "pagopa-interop-commons";
 import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -11,6 +15,10 @@ import {
 import { assertProducerKeychainVisibilityIsFull } from "../utils/validators/validators.js";
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MJWK } from "../api/keysApiConverter.js";
+import {
+  isPolledVersionAtLeastResponseVersion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
 
 export type ProducerKeychainService = ReturnType<
   typeof producerKeychainServiceBuilder
@@ -27,6 +35,16 @@ export function producerKeychainServiceBuilder(
     clients.authorizationClient.producerKeychain.getProducerKeychain({
       params: { producerKeychainId: unsafeBrandId(keychainId) },
       headers,
+    });
+
+  const pollProducerKeychain = (
+    response: WithMaybeMetadata<authorizationApi.ProducerKeychain>,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<authorizationApi.ProducerKeychain>> =>
+    pollResourceWithMetadata(() =>
+      retrieveProducerKeychainById(unsafeBrandId(response.data.id), headers)
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
     });
 
   return {
@@ -141,6 +159,48 @@ export function producerKeychainServiceBuilder(
         },
         results: jwks.map(toM2MJWK),
       };
+    },
+    async addEServiceToProducerKeychain(
+      producerKeychainId: ProducerKeychainId,
+      seed: m2mGatewayApi.ProducerKeychainAddEService,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Adding e-service ${seed.eserviceId} to producer keychain with id ${producerKeychainId}`
+      );
+
+      const response =
+        await clients.authorizationClient.producerKeychain.addProducerKeychainEService(
+          seed,
+          {
+            params: {
+              producerKeychainId,
+            },
+            headers,
+          }
+        );
+
+      await pollProducerKeychain(response, headers);
+    },
+    async removeEServiceFromProducerKeychain(
+      producerKeychainId: ProducerKeychainId,
+      eserviceId: EServiceId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Removing e-service ${eserviceId} from producer keychain with id ${producerKeychainId}`
+      );
+
+      const response =
+        await clients.authorizationClient.producerKeychain.removeProducerKeychainEService(
+          undefined,
+          {
+            params: { producerKeychainId, eserviceId },
+            headers,
+          }
+        );
+
+      await pollProducerKeychain(response, headers);
     },
   };
 }
