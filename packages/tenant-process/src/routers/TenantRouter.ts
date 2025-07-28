@@ -496,8 +496,8 @@ const tenantsRouter = (
           validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
           const result = await tenantService.getTenantVerifiedAttributeRevokers(
-            unsafeBrandId(req.params.tenantId as string),
-            unsafeBrandId(req.params.attributeId as string),
+            unsafeBrandId(req.params.tenantId),
+            unsafeBrandId(req.params.attributeId),
             {
               offset: Number(req.query.offset) || 0,
               limit: Number(req.query.limit) || 50,

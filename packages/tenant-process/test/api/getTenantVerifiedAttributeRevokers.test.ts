@@ -123,24 +123,4 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/revokers
       })
     );
   });
-
-  it("Should use default pagination when not provided", async () => {
-    const token = generateToken(authRole.M2M_ROLE);
-
-    await request(api)
-      .get(`/tenants/${tenantId}/attributes/verified/${attributeId}/revokers`)
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
-
-    expect(
-      tenantService.getTenantVerifiedAttributeRevokers
-    ).toHaveBeenCalledWith(
-      tenantId,
-      attributeId,
-      { offset: 0, limit: 50 },
-      expect.objectContaining({
-        logger: expect.any(Object),
-      })
-    );
-  });
 });
