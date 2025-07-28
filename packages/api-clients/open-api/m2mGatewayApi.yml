@@ -260,7 +260,7 @@ paths:
     parameters:
       - name: agreementId
         in: path
-        description: The ID of the Agreement to retrieve
+        description: The ID of the Agreement
         required: true
         schema:
           type: string
@@ -353,8 +353,8 @@ paths:
     delete:
       tags:
         - agreements
-      summary: Delete an agreement
-      description: Deletes an agreement for a given agreementId
+      summary: Delete an Agreement
+      description: Delete an Agreement in Draft, Pending, or MissingCertifiedAttributes state
       operationId: deleteAgreement
       responses:
         "204":
