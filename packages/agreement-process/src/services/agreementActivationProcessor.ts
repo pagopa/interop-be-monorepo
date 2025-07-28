@@ -1,6 +1,5 @@
 /* eslint-disable max-params */
 import {
-  ActiveDelegations,
   CreateEvent,
   M2MAdminAuthData,
   UIAuthData,
@@ -27,7 +26,7 @@ import {
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
 } from "../model/domain/agreement-validators.js";
-import { UpdateAgreementSeed } from "../model/domain/models.js";
+import { ActiveDelegations, UpdateAgreementSeed } from "../model/domain/models.js";
 import {
   toCreateEventAgreementActivated,
   toCreateEventAgreementSuspendedByPlatform,

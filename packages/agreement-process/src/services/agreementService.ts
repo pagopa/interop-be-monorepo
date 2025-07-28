@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-  ActiveDelegations,
   AppContext,
   CreateEvent,
   DB,
@@ -13,7 +12,6 @@ import {
   UIAuthData,
   WithLogger,
   eventRepository,
-  validateDelegationConstraints,
 } from "pagopa-interop-commons";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -63,6 +61,7 @@ import {
   unexpectedVersionFormat,
 } from "../model/domain/errors.js";
 import {
+  ActiveDelegations,
   CompactEService,
   CompactOrganization,
   UpdateAgreementSeed,
@@ -1026,17 +1025,10 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const delegation = await validateDelegationConstraints({
-        delegationId,
-        consumerId: agreement.data.consumerId,
-        producerId: agreement.data.producerId,
-        authData,
-        activeDelegations,
-      });
-
       assertRequesterCanActAsConsumerOrProducer(
         agreement.data,
-        delegation,
+        delegationId,
+        activeDelegations,
         authData
       );
 
@@ -1271,20 +1263,17 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const delegation = await validateDelegationConstraints({
-        delegationId,
-        consumerId: agreement.data.consumerId,
-        producerId: agreement.data.producerId,
-        authData,
-        activeDelegations,
-      });
-
       if (agreement.data.state === agreementState.pending) {
-        assertRequesterCanActAsProducer(agreement.data, authData, delegation);
+        assertRequesterCanActAsProducer(
+          agreement.data,
+          authData,
+          activeDelegations.producerDelegation
+        );
       } else {
         assertRequesterCanActAsConsumerOrProducer(
           agreement.data,
-          delegation,
+          delegationId,
+          activeDelegations,
           authData
         );
       }
@@ -1400,6 +1389,11 @@ export function agreementServiceBuilder(
       const suspendedByPlatformChanged =
         agreement.data.suspendedByPlatform !==
         updatedAgreement.suspendedByPlatform;
+
+      const delegation = [
+        activeDelegations.consumerDelegation,
+        activeDelegations.producerDelegation,
+      ].find((d) => d?.id === delegationId);
 
       const activationEvents = await createActivationEvent(
         isFirstActivation,

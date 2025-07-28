@@ -4,7 +4,6 @@ import {
   CreateEvent,
   UIAuthData,
   M2MAdminAuthData,
-  ActiveDelegations,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -29,6 +28,7 @@ import {
   toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementUpgraded,
 } from "../model/domain/toEvent.js";
+import { ActiveDelegations } from "../model/domain/models.js";
 import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { ReadModelService } from "./readModelService.js";

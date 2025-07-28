@@ -32,4 +32,3 @@ export * from "./eservice-documents/index.js";
 export * from "./sqs/index.js";
 export * from "./utils/regexpUtils.js";
 export * from "./repositories/dbHelper.js";
-export * from "./delegation/validators.js";

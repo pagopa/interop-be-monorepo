@@ -22,6 +22,7 @@ import {
   agreementNotFound,
   agreementNotInExpectedState,
   descriptorNotInExpectedState,
+  missingDelegationId,
   notLatestEServiceDescriptor,
   tenantIsNotTheDelegateProducer,
   tenantIsNotTheProducer,
@@ -106,6 +107,10 @@ describe("API POST /agreements/{agreementId}/activate test", () => {
     {
       error: agreementAlreadyExists(generateId(), generateId()),
       expectedStatus: 409,
+    },
+    {
+      error: missingDelegationId(generateId()),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

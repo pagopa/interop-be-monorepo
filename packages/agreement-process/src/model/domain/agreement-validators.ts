@@ -19,6 +19,7 @@ import {
   delegationKind,
   Delegation,
   delegationState,
+  DelegationId,
 } from "pagopa-interop-models";
 import {
   M2MAdminAuthData,
@@ -31,7 +32,6 @@ import {
   filterDeclaredAttributes,
   filterVerifiedAttributes,
 } from "pagopa-interop-agreement-lifecycle";
-import { match } from "ts-pattern";
 import { ReadModelService } from "../../services/readModelService.js";
 import {
   agreementActivationFailed,
@@ -43,6 +43,7 @@ import {
   descriptorNotInExpectedState,
   documentChangeNotAllowed,
   missingCertifiedAttributesError,
+  missingDelegationId,
   notLatestEServiceDescriptor,
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegateConsumer,
@@ -51,6 +52,7 @@ import {
   tenantNotAllowed,
 } from "./errors.js";
 import {
+  ActiveDelegations,
   CertifiedAgreementAttribute,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
@@ -155,23 +157,37 @@ const assertRequesterIsProducer = (
 
 export const assertRequesterCanActAsConsumerOrProducer = (
   agreement: Agreement,
-  delegation: Delegation | undefined,
+  delegationId: DelegationId | undefined,
+  activeDelegations: ActiveDelegations,
   authData: UIAuthData | M2MAdminAuthData
 ): void => {
-  if (delegation) {
-    return match(delegation.kind)
-      .with(delegationKind.delegatedProducer, () => {
-        assertRequesterIsDelegateProducer(agreement, authData, delegation);
-      })
-      .with(delegationKind.delegatedConsumer, () => {
-        assertRequesterIsDelegateConsumer(
-          agreement.consumerId,
-          agreement.eserviceId,
-          authData,
-          delegation
-        );
-      })
-      .exhaustive();
+  if (delegationId) {
+    if (delegationId === activeDelegations.producerDelegation?.id) {
+      return assertRequesterIsDelegateProducer(
+        agreement,
+        authData,
+        activeDelegations.producerDelegation
+      );
+    } else if (delegationId === activeDelegations.consumerDelegation?.id) {
+      return assertRequesterIsDelegateConsumer(
+        agreement.consumerId,
+        agreement.eserviceId,
+        authData,
+        activeDelegations.consumerDelegation
+      );
+    } else {
+      throw tenantNotAllowed(authData.organizationId);
+    }
+  }
+
+  const hasDelegation =
+    (authData.organizationId === agreement.consumerId &&
+      activeDelegations.consumerDelegation) ||
+    (authData.organizationId === agreement.producerId &&
+      activeDelegations.producerDelegation);
+
+  if (hasDelegation) {
+    throw missingDelegationId(authData.organizationId);
   }
 
   try {

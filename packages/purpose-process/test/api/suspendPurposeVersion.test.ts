@@ -23,6 +23,7 @@ import {
   purposeNotFound,
   purposeVersionNotFound,
   tenantIsNotTheDelegatedProducer,
+  missingDelegationId,
 } from "../../src/model/domain/errors.js";
 import { purposeVersionToApiPurposeVersion } from "../../src/model/domain/apiConverter.js";
 
@@ -99,6 +100,10 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/suspend test", () 
         generateId<DelegationId>()
       ),
       expectedStatus: 403,
+    },
+    {
+      error: missingDelegationId(generateId()),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

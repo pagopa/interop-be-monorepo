@@ -23,7 +23,6 @@ import {
   M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
-import { match } from "ts-pattern";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
@@ -36,6 +35,7 @@ import {
   tenantNotAllowed,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
+  missingDelegationId,
 } from "../model/domain/errors.js";
 import { Ownership, ownership } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
@@ -408,17 +408,19 @@ export const verifyRequesterIsConsumerOrDelegateConsumer = async (
   }
 };
 
-export const getOrganizationRole = ({
+export const getOrganizationRole = async ({
   purpose,
   producerId,
-  delegation,
+  delegationId,
+  readModelService,
   authData,
 }: {
   purpose: Purpose;
   producerId: TenantId;
-  delegation: Delegation | undefined;
+  delegationId: DelegationId | undefined;
+  readModelService: ReadModelService;
   authData: UIAuthData | M2MAdminAuthData;
-}): Ownership => {
+}): Promise<Ownership> => {
   if (
     producerId === purpose.consumerId &&
     authData.organizationId === producerId
@@ -426,21 +428,37 @@ export const getOrganizationRole = ({
     return ownership.SELF_CONSUMER;
   }
 
-  if (delegation) {
-    return match(delegation.kind)
-      .with(delegationKind.delegatedProducer, () => {
-        assertRequesterIsDelegateProducer(
-          { id: purpose.eserviceId, producerId },
-          authData,
-          delegation
-        );
-        return ownership.PRODUCER;
-      })
-      .with(delegationKind.delegatedConsumer, () => {
-        assertRequesterIsDelegateConsumer(purpose, authData, delegation);
-        return ownership.CONSUMER;
-      })
-      .exhaustive();
+  const producerDelegation =
+    await readModelService.getActiveProducerDelegationByEserviceId(
+      purpose.eserviceId
+    );
+
+  if (delegationId) {
+    if (delegationId === purpose.delegationId) {
+      assertRequesterIsDelegateConsumer(
+        purpose,
+        authData,
+        await retrievePurposeDelegation(purpose, readModelService)
+      );
+      return ownership.CONSUMER;
+    } else if (delegationId === producerDelegation?.id) {
+      assertRequesterIsDelegateProducer(
+        { id: purpose.eserviceId, producerId },
+        authData,
+        producerDelegation
+      );
+      return ownership.PRODUCER;
+    } else {
+      throw tenantNotAllowed(authData.organizationId);
+    }
+  }
+
+  const hasDelegation =
+    (authData.organizationId === purpose.consumerId && purpose.delegationId) ||
+    (authData.organizationId === producerId && producerDelegation);
+
+  if (hasDelegation) {
+    throw missingDelegationId(authData.organizationId);
   }
 
   try {

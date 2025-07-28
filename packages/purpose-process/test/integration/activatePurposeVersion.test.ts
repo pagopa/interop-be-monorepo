@@ -45,8 +45,6 @@ import {
   tenantKind,
   TenantId,
   DelegationId,
-  badRequestError,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -66,7 +64,7 @@ import {
   tenantIsNotTheConsumer,
   tenantNotAllowed,
   tenantIsNotTheDelegatedConsumer,
-  purposeDelegationNotFound,
+  missingDelegationId,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import { RiskAnalysisDocumentPDFPayload } from "../../src/model/domain/models.js";
@@ -1374,7 +1372,7 @@ describe("activatePurposeVersion", () => {
     }
   );
 
-  it("should throw unauthorizedError if the caller is neither the producer or the consumer of the purpose, nor the delegate", async () => {
+  it("should throw tenantNotAllowed if the caller is neither the producer or the consumer of the purpose, nor the delegate", async () => {
     const anotherTenant: Tenant = { ...getMockTenant(), kind: "PA" };
 
     await addOnePurpose(mockPurpose);
@@ -1393,14 +1391,10 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(anotherTenant.id) })
       );
-    }).rejects.toThrowError(
-      unauthorizedError(
-        `Tenant ${anotherTenant.id} is not allowed to perform the operation because is neither producer/consumer nor delegate`
-      )
-    );
+    }).rejects.toThrowError(tenantNotAllowed(anotherTenant.id));
   });
 
-  it("should throw badRequestError if the caller is the producer but the purpose e-service has an active delegation", async () => {
+  it("should throw missingDelegationId if the caller is the producer but the purpose e-service has an active delegation", async () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
     await addOneAgreement(mockAgreement);
@@ -1425,11 +1419,7 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(mockProducer.id) })
       );
-    }).rejects.toThrowError(
-      badRequestError(
-        `Tenant ${mockProducer.id} is not allowed to perform the operation because the delegation ID is missing`
-      )
-    );
+    }).rejects.toThrowError(missingDelegationId(mockProducer.id));
   });
 
   it.each(
@@ -1775,7 +1765,7 @@ describe("activatePurposeVersion", () => {
     }).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
   });
 
-  it("should throw purposeDelegationNotFound if the the requester is a delegate for the purpose but there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+  it("should throw tenantNotAllowed if the the requester is a delegate for the purpose but there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
     const purposeVersionMock: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,
@@ -1818,8 +1808,6 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
-    }).rejects.toThrowError(
-      purposeDelegationNotFound(purpose.id, purpose.delegationId!)
-    );
+    }).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
   });
 });

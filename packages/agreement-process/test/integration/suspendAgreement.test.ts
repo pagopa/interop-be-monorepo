@@ -34,12 +34,10 @@ import {
   TenantId,
   VerifiedTenantAttribute,
   agreementState,
-  badRequestError,
   delegationKind,
   delegationState,
   generateId,
   toAgreementV2,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
@@ -49,6 +47,8 @@ import {
   agreementNotInExpectedState,
   descriptorNotFound,
   eServiceNotFound,
+  missingDelegationId,
+  tenantNotAllowed,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -558,7 +558,7 @@ describe("suspend agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw unauthorizedError when the requester is not the Consumer or the Producer", async () => {
+  it("should throw tenantNotAllowed when the requester is not the Consumer or the Producer", async () => {
     const authData = getMockAuthData();
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
@@ -571,11 +571,7 @@ describe("suspend agreement", () => {
         { agreementId: agreement.id, delegationId: undefined },
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(
-      unauthorizedError(
-        `Tenant ${authData.organizationId} is not allowed to perform the operation because is neither producer/consumer nor delegate`
-      )
-    );
+    ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in a rejectable state", async () => {
@@ -720,16 +716,12 @@ describe("suspend agreement", () => {
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(
-        badRequestError(
-          `Tenant ${authData.organizationId} is not allowed to perform the operation because the delegation ID is missing`
-        )
-      );
+      ).rejects.toThrowError(missingDelegationId(authData.organizationId));
     }
   );
 
   it.each([delegationKind.delegatedProducer, delegationKind.delegatedConsumer])(
-    "should throw a unauthorizedError when the requester is the %s but the delegation in not active",
+    "should throw a tenantNotAllowed when the requester is the %s but the delegation in not active",
     async (kind) => {
       const eservice: EService = {
         ...getMockEService(),
@@ -766,11 +758,7 @@ describe("suspend agreement", () => {
           { agreementId: agreement.id, delegationId: delegation.id },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(
-        unauthorizedError(
-          `Tenant ${authData.organizationId} is not allowed to perform the operation because is neither producer/consumer nor delegate`
-        )
-      );
+      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
     }
   );
 });

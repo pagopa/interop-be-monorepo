@@ -19,6 +19,7 @@ import { agreementToApiAgreement } from "../../src/model/domain/apiConverter.js"
 import {
   agreementNotFound,
   agreementNotInExpectedState,
+  missingDelegationId,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -83,6 +84,7 @@ describe("API POST /agreements/{agreementId}/suspend test", () => {
       ),
       expectedStatus: 400,
     },
+    { error: missingDelegationId(generateId()), expectedStatus: 400 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

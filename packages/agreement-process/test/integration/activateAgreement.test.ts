@@ -50,13 +50,11 @@ import {
   TenantId,
   VerifiedTenantAttribute,
   agreementState,
-  badRequestError,
   delegationKind,
   delegationState,
   descriptorState,
   fromAgreementV2,
   generateId,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { addDays } from "date-fns";
@@ -75,8 +73,10 @@ import {
   descriptorNotFound,
   descriptorNotInExpectedState,
   eServiceNotFound,
+  missingDelegationId,
   tenantIsNotTheDelegateProducer,
   tenantIsNotTheProducer,
+  tenantNotAllowed,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
@@ -717,7 +717,7 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
     });
 
-    it("Agreement Pending, Requester === DelegateConsumer -- error case: throws tenantIsNotTheDelegateProducer", async () => {
+    it("Agreement Pending, Requester === DelegateConsumer -- error case: throws tenantIsNotTheProducer", async () => {
       const delegateId = generateId<TenantId>();
       const authData = getMockAuthData(delegateId);
       const agreement: Agreement = {
@@ -742,15 +742,10 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: consumerDelegation.id },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(
-        tenantIsNotTheDelegateProducer(
-          authData.organizationId,
-          consumerDelegation.id
-        )
-      );
+      ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
     });
 
-    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws missingDelegationId", async () => {
+    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws tenantIsNotTheDelegateProducer", async () => {
       const producerId = generateId<TenantId>();
       const authData = getMockAuthData(producerId);
       const agreement: Agreement = {
@@ -777,8 +772,9 @@ describe("activate agreement", () => {
           getMockContext({ authData })
         )
       ).rejects.toThrowError(
-        badRequestError(
-          `Tenant ${authData.organizationId} is not allowed to perform the operation because the delegation ID is missing`
+        tenantIsNotTheDelegateProducer(
+          authData.organizationId,
+          producerDelegation.id
         )
       );
     });
@@ -1867,11 +1863,7 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(
-        badRequestError(
-          `Tenant ${authData.organizationId} is not allowed to perform the operation because the delegation ID is missing`
-        )
-      );
+      ).rejects.toThrowError(missingDelegationId(authData.organizationId));
     });
 
     it("Agreement Suspended, Requester === Consumer and active consumer delegation exists -- error case: throws missingDelegationId", async () => {
@@ -1900,11 +1892,7 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(
-        badRequestError(
-          `Tenant ${authData.organizationId} is not allowed to perform the operation because the delegation ID is missing`
-        )
-      );
+      ).rejects.toThrowError(missingDelegationId(authData.organizationId));
     });
   });
 
@@ -1921,7 +1909,7 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
 
-    it("should throw an unauthorizedError error when the requester is not the Consumer or Producer or Delegated Consumer or Delegate Producer or Delegate Consumer", async () => {
+    it("should throw an tenantNotAllowed error when the requester is not the Consumer or Producer or Delegated Consumer or Delegate Producer or Delegate Consumer", async () => {
       const authData = getMockAuthData();
       const agreement: Agreement = getMockAgreement(
         generateId<EServiceId>(),
@@ -1954,11 +1942,7 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(
-        unauthorizedError(
-          `Tenant ${authData.organizationId} is not allowed to perform the operation because is neither producer/consumer nor delegate`
-        )
-      );
+      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
     });
 
     it.each(

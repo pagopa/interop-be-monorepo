@@ -1,6 +1,5 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import {
-  ActiveDelegations,
   AppContext,
   CreateEvent,
   DB,
@@ -19,7 +18,6 @@ import {
   getIpaCode,
   getLatestVersionFormRules,
   riskAnalysisFormToRiskAnalysisFormToValidate,
-  validateDelegationConstraints,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -693,28 +691,11 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const activeDelegations: ActiveDelegations = await Promise.all([
-        retrievePurposeDelegation(purpose.data, readModelService),
-        readModelService.getActiveProducerDelegationByEserviceId(
-          purpose.data.eserviceId
-        ),
-      ]).then((delegations) => ({
-        consumerDelegation: delegations[0],
-        producerDelegation: delegations[1],
-      }));
-
-      const delegation = await validateDelegationConstraints({
-        delegationId,
-        consumerId: purpose.data.consumerId,
-        producerId: eservice.producerId,
-        authData,
-        activeDelegations,
-      });
-
-      const suspender = getOrganizationRole({
+      const suspender = await getOrganizationRole({
         purpose: purpose.data,
         producerId: eservice.producerId,
-        delegation,
+        delegationId,
+        readModelService,
         authData,
       });
 
@@ -1003,28 +984,11 @@ export function purposeServiceBuilder(
         });
       }
 
-      const activeDelegations: ActiveDelegations = await Promise.all([
-        retrievePurposeDelegation(purpose.data, readModelService),
-        readModelService.getActiveProducerDelegationByEserviceId(
-          purpose.data.eserviceId
-        ),
-      ]).then((values) => ({
-        consumerDelegation: values[0],
-        producerDelegation: values[1],
-      }));
-
-      const delegation = await validateDelegationConstraints({
-        delegationId,
-        consumerId: purpose.data.consumerId,
-        producerId: eservice.producerId,
-        authData,
-        activeDelegations,
-      });
-
-      const purposeOwnership = getOrganizationRole({
+      const purposeOwnership = await getOrganizationRole({
         purpose: purpose.data,
         producerId: eservice.producerId,
-        delegation,
+        delegationId,
+        readModelService,
         authData,
       });
 

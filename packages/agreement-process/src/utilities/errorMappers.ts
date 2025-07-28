@@ -149,7 +149,11 @@ export const suspendAgreementErrorMapper = (
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
-    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "agreementNotInExpectedState",
+      "missingDelegationId",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const removeConsumerDocumentErrorMapper = (
@@ -187,6 +191,7 @@ export const activateAgreementErrorMapper = (
       "agreementNotInExpectedState",
       "agreementActivationFailed",
       "descriptorNotInExpectedState",
+      "missingDelegationId",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)

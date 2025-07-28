@@ -42,6 +42,7 @@ export const errorCodes = {
   tenantIsNotTheDelegateConsumer: "0028",
   tenantIsNotTheProducer: "0029",
   tenantIsNotTheDelegateProducer: "0030",
+  missingDelegationId: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -337,5 +338,13 @@ export function tenantIsNotTheDelegateProducer(
     }`,
     code: "tenantIsNotTheDelegateProducer",
     title: "Tenant not allowed",
+  });
+}
+
+export function missingDelegationId(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because the delegation ID is missing`,
+    code: "missingDelegationId",
+    title: "Missing delegation ID",
   });
 }
