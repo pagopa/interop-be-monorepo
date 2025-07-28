@@ -57,7 +57,7 @@ async function processMessage({
       loggerInstance.info(
         `Processing ${decodedMessage.type} message - Partition number: ${partition}. Offset: ${message.offset}`
       );
-      return notificationTenantLifecycleConsumerService.processMessage(
+      return notificationTenantLifecycleConsumerService.handleMessage(
         msg,
         correlationId,
         loggerInstance

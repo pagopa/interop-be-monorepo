@@ -73,7 +73,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
       data: { tenant },
       event_version: 2,
     });
-    await notificationTenantLifecycleConsumerService.processMessage(
+    await notificationTenantLifecycleConsumerService.handleMessage(
       message,
       correlationId,
       loggerInstance
@@ -101,7 +101,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
       data: { tenantId },
       event_version: 2,
     });
-    await notificationTenantLifecycleConsumerService.processMessage(
+    await notificationTenantLifecycleConsumerService.handleMessage(
       message,
       correlationId,
       loggerInstance
@@ -127,7 +127,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
       event_version: 2,
     });
     await expect(
-      notificationTenantLifecycleConsumerService.processMessage(
+      notificationTenantLifecycleConsumerService.handleMessage(
         message,
         correlationId,
         loggerInstance
@@ -156,7 +156,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
       data: { tenant },
       event_version: 2,
     });
-    await notificationTenantLifecycleConsumerService.processMessage(
+    await notificationTenantLifecycleConsumerService.handleMessage(
       message,
       correlationId,
       loggerInstance
@@ -192,7 +192,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
       event_version: 2,
     });
     await expect(
-      notificationTenantLifecycleConsumerService.processMessage(
+      notificationTenantLifecycleConsumerService.handleMessage(
         message,
         correlationId,
         loggerInstance
@@ -228,7 +228,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
       data: { tenantId },
       event_version: 2,
     });
-    await notificationTenantLifecycleConsumerService.processMessage(
+    await notificationTenantLifecycleConsumerService.handleMessage(
       message,
       correlationId,
       loggerInstance
@@ -262,7 +262,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
       event_version: 2,
     });
     await expect(
-      notificationTenantLifecycleConsumerService.processMessage(
+      notificationTenantLifecycleConsumerService.handleMessage(
         message,
         correlationId,
         loggerInstance
@@ -307,7 +307,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
       data: {} as never,
       event_version: 2,
     });
-    await notificationTenantLifecycleConsumerService.processMessage(
+    await notificationTenantLifecycleConsumerService.handleMessage(
       message,
       correlationId,
       loggerInstance

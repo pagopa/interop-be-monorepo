@@ -21,7 +21,7 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
   { notificationConfigProcess }: PagoPAInteropBeClients
 ) {
   return {
-    async processMessage(
+    async handleMessage(
       message: TenantEventEnvelopeV2,
       correlationId: CorrelationId,
       logger: Logger
