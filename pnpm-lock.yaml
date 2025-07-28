@@ -25,8 +25,8 @@ importers:
         version: link:../models
     devDependencies:
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       eslint:
         specifier: 8.57.1
         version: 8.57.1
@@ -80,8 +80,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -99,7 +99,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/agreement-platformstate-writer:
     dependencies:
@@ -141,8 +141,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -160,7 +160,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/agreement-process:
     dependencies:
@@ -226,8 +226,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/supertest':
         specifier: 6.0.3
         version: 6.0.3
@@ -263,7 +263,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/agreement-readmodel-writer:
     dependencies:
@@ -305,8 +305,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -324,7 +324,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/agreement-readmodel-writer-sql:
     dependencies:
@@ -375,8 +375,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -394,7 +394,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/anac-certified-attributes-importer:
     dependencies:
@@ -433,8 +433,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/ssh2-sftp-client':
         specifier: 9.0.4
         version: 9.0.4
@@ -455,7 +455,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/api-clients:
     dependencies:
@@ -494,8 +494,8 @@ importers:
         specifier: 6.15.0
         version: 6.15.0
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/qs':
         specifier: 6.9.15
         version: 6.9.15
@@ -573,8 +573,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -589,7 +589,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/application-audit:
     dependencies:
@@ -613,8 +613,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       eslint:
         specifier: 8.57.1
         version: 8.57.1
@@ -656,8 +656,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -675,7 +675,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/attribute-registry-process:
     dependencies:
@@ -750,8 +750,8 @@ importers:
         specifier: 9.0.10
         version: 9.0.10
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/supertest':
         specifier: 6.0.3
         version: 6.0.3
@@ -778,7 +778,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/attribute-registry-readmodel-writer:
     dependencies:
@@ -814,8 +814,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -833,7 +833,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/attribute-registry-readmodel-writer-sql:
     dependencies:
@@ -878,8 +878,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -894,7 +894,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/authorization-platformstate-writer:
     dependencies:
@@ -936,8 +936,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -955,7 +955,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/authorization-process:
     dependencies:
@@ -1024,8 +1024,8 @@ importers:
         specifier: 9.0.10
         version: 9.0.10
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/supertest':
         specifier: 6.0.3
         version: 6.0.3
@@ -1049,7 +1049,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/authorization-server:
     dependencies:
@@ -1118,8 +1118,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/supertest':
         specifier: 6.0.3
         version: 6.0.3
@@ -1143,7 +1143,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/authorization-updater:
     dependencies:
@@ -1188,8 +1188,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1204,7 +1204,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/backend-for-frontend:
     dependencies:
@@ -1294,8 +1294,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/qs':
         specifier: 6.9.15
         version: 6.9.15
@@ -1325,7 +1325,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/catalog-outbound-writer:
     dependencies:
@@ -1370,8 +1370,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1389,7 +1389,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/catalog-platformstate-writer:
     dependencies:
@@ -1431,8 +1431,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -1453,7 +1453,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/catalog-process:
     dependencies:
@@ -1519,8 +1519,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/supertest':
         specifier: 6.0.3
         version: 6.0.3
@@ -1550,7 +1550,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/catalog-readmodel-writer:
     dependencies:
@@ -1586,8 +1586,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -1608,7 +1608,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/catalog-readmodel-writer-sql:
     dependencies:
@@ -1653,8 +1653,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -1675,7 +1675,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/certified-email-sender:
     dependencies:
@@ -1714,8 +1714,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/nodemailer':
         specifier: 6.4.17
         version: 6.4.17
@@ -1742,7 +1742,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/client-assertion-validation:
     dependencies:
@@ -1769,8 +1769,8 @@ importers:
         specifier: 9.0.10
         version: 9.0.10
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       eslint:
         specifier: 8.57.1
         version: 8.57.1
@@ -1785,7 +1785,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/client-purpose-updater:
     dependencies:
@@ -1821,8 +1821,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1840,7 +1840,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/client-readmodel-writer:
     dependencies:
@@ -1873,8 +1873,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1892,7 +1892,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/client-readmodel-writer-sql:
     dependencies:
@@ -1934,8 +1934,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1950,7 +1950,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/commons:
     dependencies:
@@ -2070,8 +2070,8 @@ importers:
         specifier: 9.0.10
         version: 9.0.10
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/nodemailer':
         specifier: 6.4.17
         version: 6.4.17
@@ -2124,8 +2124,8 @@ importers:
         specifier: 9.0.10
         version: 9.0.10
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
@@ -2182,7 +2182,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -2218,8 +2218,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -2264,8 +2264,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2280,7 +2280,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/datalake-interface-exporter:
     dependencies:
@@ -2313,8 +2313,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -2329,7 +2329,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/delegation-items-archiver:
     dependencies:
@@ -2374,8 +2374,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2393,7 +2393,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/delegation-outbound-writer:
     dependencies:
@@ -2438,8 +2438,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -2451,7 +2451,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/delegation-process:
     dependencies:
@@ -2514,8 +2514,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/supertest':
         specifier: 6.0.3
         version: 6.0.3
@@ -2551,7 +2551,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/delegation-readmodel-writer:
     dependencies:
@@ -2584,8 +2584,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2603,7 +2603,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/delegation-readmodel-writer-sql:
     dependencies:
@@ -2631,6 +2631,9 @@ importers:
       pagopa-interop-readmodel:
         specifier: workspace:*
         version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -2642,8 +2645,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2661,7 +2664,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/domains-analytics-writer:
     dependencies:
@@ -2715,8 +2718,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       camelcase-keys:
         specifier: 9.1.3
         version: 9.1.3
@@ -2734,7 +2737,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/dpop-validation:
     dependencies:
@@ -2764,8 +2767,8 @@ importers:
         specifier: 9.0.10
         version: 9.0.10
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       eslint:
         specifier: 8.57.1
         version: 8.57.1
@@ -2780,7 +2783,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/dtd-catalog-exporter:
     dependencies:
@@ -2822,8 +2825,8 @@ importers:
         version: 3.23.8
     devDependencies:
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       eslint:
         specifier: 8.57.1
         version: 8.57.1
@@ -2838,7 +2841,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/eservice-descriptors-archiver:
     dependencies:
@@ -2889,8 +2892,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -2905,7 +2908,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/eservice-template-instances-updater:
     dependencies:
@@ -2950,8 +2953,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -2969,7 +2972,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/eservice-template-outbound-writer:
     dependencies:
@@ -3014,8 +3017,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -3027,7 +3030,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/eservice-template-process:
     dependencies:
@@ -3090,8 +3093,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/supertest':
         specifier: 6.0.3
         version: 6.0.3
@@ -3121,7 +3124,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/eservice-template-readmodel-writer:
     dependencies:
@@ -3157,8 +3160,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -3179,7 +3182,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/eservice-template-readmodel-writer-sql:
     dependencies:
@@ -3192,6 +3195,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -3221,8 +3227,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -3243,7 +3249,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/event-migration:
     dependencies:
@@ -3288,8 +3294,8 @@ importers:
         specifier: 4.5.8
         version: 4.5.8
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       eslint:
         specifier: 8.57.1
         version: 8.57.1
@@ -3304,7 +3310,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/in-app-notification-db-models:
     dependencies:
@@ -3313,8 +3319,8 @@ importers:
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
     devDependencies:
       '@types/node':
-        specifier: 20.14.6
-        version: 20.14.6
+        specifier: 20.19.9
+        version: 20.19.9
       drizzle-kit:
         specifier: 0.30.4
         version: 0.30.4
@@ -3326,10 +3332,80 @@ importers:
         version: 2.8.8
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.19.9)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
+
+  packages/in-app-notification-dispatcher:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-in-app-notification-db-models:
+        specifier: workspace:*
+        version: link:../in-app-notification-db-models
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      pg:
+        specifier: 8.13.1
+        version: 8.13.1
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.19.9
+        version: 20.19.9
+      '@types/pg':
+        specifier: 8.11.11
+        version: 8.11.11
+      axios:
+        specifier: 1.8.2
+        version: 1.8.2
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/in-app-notification-manager:
     dependencies:
@@ -3383,8 +3459,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.3
-        version: 20.19.3
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
@@ -3411,7 +3487,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.3)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/ipa-certified-attributes-importer:
     dependencies:
@@ -3453,8 +3529,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -3466,7 +3542,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/ivass-certified-attributes-importer:
     dependencies:
@@ -3517,8 +3593,8 @@ importers:
         specifier: 0.5.7
         version: 0.5.7
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/ssh2-sftp-client':
         specifier: 9.0.4
         version: 9.0.4
@@ -3539,7 +3615,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/kafka-iam-auth:
     dependencies:
@@ -3600,8 +3676,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -3619,7 +3695,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/key-readmodel-writer-sql:
     dependencies:
@@ -3661,8 +3737,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -3680,7 +3756,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/kpi-domains-readmodel-checker:
     dependencies:
@@ -3734,8 +3810,8 @@ importers:
         specifier: 1.0.3
         version: 1.0.3
       '@types/node':
-        specifier: 20.14.6
-        version: 20.14.6
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
@@ -3756,7 +3832,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.14.6)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/m2m-gateway:
     dependencies:
@@ -3816,8 +3892,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/qs':
         specifier: 6.9.15
         version: 6.9.15
@@ -3841,7 +3917,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/models:
     dependencies:
@@ -3868,8 +3944,8 @@ importers:
         version: 3.3.0(zod@3.23.8)
     devDependencies:
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       eslint:
         specifier: 8.57.1
         version: 8.57.1
@@ -3941,8 +4017,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/supertest':
         specifier: 6.0.2
         version: 6.0.2
@@ -3972,7 +4048,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/notification-config-readmodel-writer-sql:
     dependencies:
@@ -4020,8 +4096,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -4042,7 +4118,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/notification-email-sender:
     dependencies:
@@ -4087,8 +4163,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/nodemailer':
         specifier: 6.4.17
         version: 6.4.17
@@ -4115,7 +4191,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/notifier-seeder:
     dependencies:
@@ -4154,8 +4230,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
@@ -4179,7 +4255,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/one-trust-notices:
     dependencies:
@@ -4218,8 +4294,8 @@ importers:
         specifier: 4.4.9
         version: 4.4.9
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -4267,8 +4343,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/nodemailer':
         specifier: 6.4.17
         version: 6.4.17
@@ -4289,7 +4365,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/producer-key-events-writer:
     dependencies:
@@ -4322,8 +4398,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4338,7 +4414,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/producer-key-readmodel-writer:
     dependencies:
@@ -4371,8 +4447,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4390,7 +4466,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/producer-key-readmodel-writer-sql:
     dependencies:
@@ -4432,8 +4508,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4451,7 +4527,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/producer-keychain-readmodel-writer:
     dependencies:
@@ -4484,8 +4560,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4503,7 +4579,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/producer-keychain-readmodel-writer-sql:
     dependencies:
@@ -4513,6 +4589,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -4542,8 +4621,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4561,7 +4640,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/purpose-outbound-writer:
     dependencies:
@@ -4606,8 +4685,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4625,7 +4704,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/purpose-platformstate-writer:
     dependencies:
@@ -4667,8 +4746,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -4686,7 +4765,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/purpose-process:
     dependencies:
@@ -4749,8 +4828,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/supertest':
         specifier: 6.0.3
         version: 6.0.3
@@ -4780,7 +4859,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/purpose-readmodel-writer:
     dependencies:
@@ -4813,8 +4892,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4832,7 +4911,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/purpose-readmodel-writer-sql:
     dependencies:
@@ -4874,8 +4953,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4893,7 +4972,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/readmodel:
     dependencies:
@@ -4932,8 +5011,8 @@ importers:
         specifier: 3.13.4
         version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.23.8)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
@@ -4951,13 +5030,13 @@ importers:
         version: 2.8.8
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.19.4)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.19.9)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/readmodel-checker:
     dependencies:
@@ -5002,8 +5081,8 @@ importers:
         specifier: 1.0.3
         version: 1.0.3
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
@@ -5027,7 +5106,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/readmodel-models:
     dependencies:
@@ -5048,8 +5127,8 @@ importers:
         version: 8.13.1
     devDependencies:
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
@@ -5064,7 +5143,7 @@ importers:
         version: 2.8.8
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@20.19.4)(typescript@5.4.5)
+        version: 10.9.2(@types/node@20.19.9)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -5112,8 +5191,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -5125,7 +5204,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/selfcare-onboarding-consumer:
     dependencies:
@@ -5161,8 +5240,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -5174,7 +5253,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/tenant-outbound-writer:
     dependencies:
@@ -5219,8 +5298,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -5238,7 +5317,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/tenant-process:
     dependencies:
@@ -5295,8 +5374,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/supertest':
         specifier: 6.0.3
         version: 6.0.3
@@ -5323,7 +5402,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/tenant-readmodel-writer:
     dependencies:
@@ -5359,8 +5438,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -5375,7 +5454,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/tenant-readmodel-writer-sql:
     dependencies:
@@ -5423,8 +5502,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
@@ -5442,7 +5521,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/token-details-persister:
     dependencies:
@@ -5475,8 +5554,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -5494,7 +5573,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/token-generation-readmodel-checker:
     dependencies:
@@ -5539,8 +5618,8 @@ importers:
         specifier: 1.0.3
         version: 1.0.3
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -5558,7 +5637,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/token-generation-readmodel-producer-id-updater:
     dependencies:
@@ -5585,8 +5664,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -5601,7 +5680,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
 packages:
 
@@ -7675,14 +7754,8 @@ packages:
   '@types/node@18.19.39':
     resolution: {integrity: sha512-nPwTRDKUctxw3di5b4TfT3I0sWDiWoPQCZjXhvdkINntwr8lcoVCKsTgnXeRubKIlfnV+eN/HYk6Jb40tbcEAQ==}
 
-  '@types/node@20.14.6':
-    resolution: {integrity: sha512-JbA0XIJPL1IiNnU7PFxDXyfAwcwVVrOoqyzzyQTyMeVhBzkJVMSkC1LlVsRQ2lpqiY4n6Bb9oCS6lzDKVQxbZw==}
-
-  '@types/node@20.19.3':
-    resolution: {integrity: sha512-Zeb0nYmBhczT5Fq2/Yrt5TuF8rfdlFmPG+pUVGd8SdkRGNF1RfUFyzcjj86r6L2ZSRwWuBTcsykiG6Ichbu6HA==}
-
-  '@types/node@20.19.4':
-    resolution: {integrity: sha512-OP+We5WV8Xnbuvw0zC2m4qfB/BJvjyCwtNjhHdJxV1639SGSKrLmJkc3fMnp2Qy8nJyHp8RO6umxELN/dS1/EA==}
+  '@types/node@20.19.9':
+    resolution: {integrity: sha512-cuVNgarYWZqxRJDQHEB58GEONhOK79QVR/qYx4S7kcUObQvUwvFnYxJuuHUKm2aieN9X3yZB4LZsuYNU1Qphsw==}
 
   '@types/nodemailer@6.4.17':
     resolution: {integrity: sha512-I9CCaIp6DTldEg7vyUTZi8+9Vo0hi1/T8gv3C89yk1rSAAzoKQ8H8ki/jBYJSFoH/BisgLP8tkZMlQ91CIquww==}
@@ -9096,10 +9169,6 @@ packages:
   form-data-encoder@4.1.0:
     resolution: {integrity: sha512-G6NsmEW15s0Uw9XnCg+33H3ViYRyiM0hMrMhhqQOR8NFc5GhYrI+6I3u7OTw7b91J2g8rtvMBZJDbcGb2YUniw==}
     engines: {node: '>= 18'}
-
-  form-data@4.0.0:
-    resolution: {integrity: sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==}
-    engines: {node: '>= 6'}
 
   form-data@4.0.3:
     resolution: {integrity: sha512-qsITQPfmvMOSAdeyZ+12I1c+CKSstAFAwu+97zrnWAbIr5u8wfsExUzCesVLC8NgHuRUqNN4Zy6UPWUTRGslcA==}
@@ -10829,10 +10898,12 @@ packages:
   superagent@9.0.2:
     resolution: {integrity: sha512-xuW7dzkUpcJq7QnhOsnNUgtYp3xRwpt2F7abdRYIpCsAt0hhUqia0EdxyXZQQpNmGtsCzYHryaKSV3q3GJnq7w==}
     engines: {node: '>=14.18.0'}
+    deprecated: Please upgrade to superagent v10.2.2+, see release notes at https://github.com/forwardemail/superagent/releases/tag/v10.2.2 - maintenance is supported by Forward Email @ https://forwardemail.net
 
   supertest@7.0.0:
     resolution: {integrity: sha512-qlsr7fIC0lSddmA3tzojvzubYxvlGtzumcdHgPwbFWMISQwL22MhM2Y3LNt+6w9Yyx7559VW5ab70dgphm8qQA==}
     engines: {node: '>=14.18.0'}
+    deprecated: Please upgrade to supertest v7.1.3+, see release notes at https://github.com/forwardemail/supertest/releases/tag/v7.1.3 - maintenance is supported by Forward Email @ https://forwardemail.net
 
   supports-color@5.5.0:
     resolution: {integrity: sha512-QjVjwdXIt408MIiAqCX4oUKsgU2EqAGzs2Ppkm4aQYbjm+ZEWEcW4SfFNTr4uMNZma0ey4f5lgLrkB0aX0QMow==}
@@ -14516,7 +14587,7 @@ snapshots:
       '@stoplight/spectral-rulesets': 1.22.0
       '@stoplight/spectral-runtime': 1.1.4
       '@stoplight/types': 13.20.0
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
       pony-cause: 1.1.1
       rollup: 2.79.2
       tslib: 2.8.1
@@ -14533,7 +14604,7 @@ snapshots:
       '@stoplight/spectral-runtime': 1.1.4
       '@stoplight/types': 13.20.0
       '@stoplight/yaml': 4.2.3
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
       ajv: 8.17.1
       ast-types: 0.14.2
       astring: 1.9.0
@@ -14631,39 +14702,39 @@ snapshots:
 
   '@types/adm-zip@0.5.7':
     dependencies:
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
 
   '@types/aws-lambda@8.10.148': {}
 
   '@types/body-parser@1.19.5':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
 
   '@types/buffers@0.1.31':
     dependencies:
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
 
   '@types/cookiejar@2.1.5': {}
 
   '@types/docker-modem@3.0.6':
     dependencies:
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
       '@types/ssh2': 1.15.0
 
   '@types/dockerode@3.3.29':
     dependencies:
       '@types/docker-modem': 3.0.6
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
       '@types/ssh2': 1.15.0
 
   '@types/es-aggregate-error@1.0.6':
     dependencies:
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
 
   '@types/estree@0.0.39': {}
 
@@ -14671,7 +14742,7 @@ snapshots:
 
   '@types/express-serve-static-core@4.19.5':
     dependencies:
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
       '@types/qs': 6.9.15
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
@@ -14685,7 +14756,7 @@ snapshots:
 
   '@types/fs-extra@9.0.13':
     dependencies:
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
 
   '@types/html2json@1.0.4': {}
 
@@ -14700,7 +14771,7 @@ snapshots:
   '@types/jsonwebtoken@9.0.10':
     dependencies:
       '@types/ms': 2.1.0
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
 
   '@types/lodash.isempty@4.4.9':
     dependencies:
@@ -14728,25 +14799,17 @@ snapshots:
     dependencies:
       undici-types: 5.26.5
 
-  '@types/node@20.14.6':
-    dependencies:
-      undici-types: 5.26.5
-
-  '@types/node@20.19.3':
-    dependencies:
-      undici-types: 6.21.0
-
-  '@types/node@20.19.4':
+  '@types/node@20.19.9':
     dependencies:
       undici-types: 6.21.0
 
   '@types/nodemailer@6.4.17':
     dependencies:
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
 
   '@types/pg@8.11.11':
     dependencies:
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
       pg-protocol: 1.7.0
       pg-types: 4.0.2
 
@@ -14763,12 +14826,12 @@ snapshots:
   '@types/send@0.17.4':
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
 
   '@types/serve-static@1.15.7':
     dependencies:
       '@types/http-errors': 2.0.4
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
       '@types/send': 0.17.4
 
   '@types/sinon@10.0.20':
@@ -14783,11 +14846,11 @@ snapshots:
 
   '@types/ssh2-streams@0.1.12':
     dependencies:
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
 
   '@types/ssh2@0.5.52':
     dependencies:
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
       '@types/ssh2-streams': 0.1.12
 
   '@types/ssh2@1.15.0':
@@ -14798,7 +14861,7 @@ snapshots:
     dependencies:
       '@types/cookiejar': 2.1.5
       '@types/methods': 1.1.4
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
       form-data: 4.0.3
 
   '@types/supertest@6.0.2':
@@ -14830,7 +14893,7 @@ snapshots:
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
     optional: true
 
   '@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)':
@@ -15233,7 +15296,7 @@ snapshots:
   axios@1.8.2:
     dependencies:
       follow-redirects: 1.15.6
-      form-data: 4.0.0
+      form-data: 4.0.3
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
@@ -16539,12 +16602,6 @@ snapshots:
       signal-exit: 4.1.0
 
   form-data-encoder@4.1.0: {}
-
-  form-data@4.0.0:
-    dependencies:
-      asynckit: 0.4.0
-      combined-stream: 1.0.8
-      mime-types: 2.1.35
 
   form-data@4.0.3:
     dependencies:
@@ -18543,32 +18600,14 @@ snapshots:
 
   triple-beam@1.4.1: {}
 
-  ts-node@10.9.2(@types/node@20.14.6)(typescript@5.4.5):
+  ts-node@10.9.2(@types/node@20.19.9)(typescript@5.4.5):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.11
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 20.14.6
-      acorn: 8.12.1
-      acorn-walk: 8.3.3
-      arg: 4.1.3
-      create-require: 1.1.1
-      diff: 4.0.2
-      make-error: 1.3.6
-      typescript: 5.4.5
-      v8-compile-cache-lib: 3.0.1
-      yn: 3.1.1
-
-  ts-node@10.9.2(@types/node@20.19.4)(typescript@5.4.5):
-    dependencies:
-      '@cspotcode/source-map-support': 0.8.1
-      '@tsconfig/node10': 1.0.11
-      '@tsconfig/node12': 1.0.11
-      '@tsconfig/node14': 1.0.3
-      '@tsconfig/node16': 1.0.4
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
       acorn: 8.12.1
       acorn-walk: 8.3.3
       arg: 4.1.3
@@ -18804,13 +18843,13 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite-node@1.6.1(@types/node@20.14.6):
+  vite-node@1.6.1(@types/node@20.19.9):
     dependencies:
       cac: 6.7.14
       debug: 4.3.5
       pathe: 1.1.2
       picocolors: 1.0.1
-      vite: 5.3.3(@types/node@20.14.6)
+      vite: 5.3.3(@types/node@20.19.9)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -18821,68 +18860,16 @@ snapshots:
       - supports-color
       - terser
 
-  vite-node@1.6.1(@types/node@20.19.3):
-    dependencies:
-      cac: 6.7.14
-      debug: 4.3.5
-      pathe: 1.1.2
-      picocolors: 1.0.1
-      vite: 5.3.3(@types/node@20.19.3)
-    transitivePeerDependencies:
-      - '@types/node'
-      - less
-      - lightningcss
-      - sass
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-
-  vite-node@1.6.1(@types/node@20.19.4):
-    dependencies:
-      cac: 6.7.14
-      debug: 4.3.5
-      pathe: 1.1.2
-      picocolors: 1.0.1
-      vite: 5.3.3(@types/node@20.19.4)
-    transitivePeerDependencies:
-      - '@types/node'
-      - less
-      - lightningcss
-      - sass
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-
-  vite@5.3.3(@types/node@20.14.6):
+  vite@5.3.3(@types/node@20.19.9):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.4.39
       rollup: 4.18.1
     optionalDependencies:
-      '@types/node': 20.14.6
+      '@types/node': 20.19.9
       fsevents: 2.3.3
 
-  vite@5.3.3(@types/node@20.19.3):
-    dependencies:
-      esbuild: 0.21.5
-      postcss: 8.4.39
-      rollup: 4.18.1
-    optionalDependencies:
-      '@types/node': 20.19.3
-      fsevents: 2.3.3
-
-  vite@5.3.3(@types/node@20.19.4):
-    dependencies:
-      esbuild: 0.21.5
-      postcss: 8.4.39
-      rollup: 4.18.1
-    optionalDependencies:
-      '@types/node': 20.19.4
-      fsevents: 2.3.3
-
-  vitest@1.6.1(@types/node@20.14.6):
+  vitest@1.6.1(@types/node@20.19.9):
     dependencies:
       '@vitest/expect': 1.6.1
       '@vitest/runner': 1.6.1
@@ -18901,77 +18888,11 @@ snapshots:
       strip-literal: 2.1.0
       tinybench: 2.8.0
       tinypool: 0.8.4
-      vite: 5.3.3(@types/node@20.14.6)
-      vite-node: 1.6.1(@types/node@20.14.6)
+      vite: 5.3.3(@types/node@20.19.9)
+      vite-node: 1.6.1(@types/node@20.19.9)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 20.14.6
-    transitivePeerDependencies:
-      - less
-      - lightningcss
-      - sass
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-
-  vitest@1.6.1(@types/node@20.19.3):
-    dependencies:
-      '@vitest/expect': 1.6.1
-      '@vitest/runner': 1.6.1
-      '@vitest/snapshot': 1.6.1
-      '@vitest/spy': 1.6.1
-      '@vitest/utils': 1.6.1
-      acorn-walk: 8.3.3
-      chai: 4.4.1
-      debug: 4.3.5
-      execa: 8.0.1
-      local-pkg: 0.5.0
-      magic-string: 0.30.10
-      pathe: 1.1.2
-      picocolors: 1.0.1
-      std-env: 3.7.0
-      strip-literal: 2.1.0
-      tinybench: 2.8.0
-      tinypool: 0.8.4
-      vite: 5.3.3(@types/node@20.19.3)
-      vite-node: 1.6.1(@types/node@20.19.3)
-      why-is-node-running: 2.3.0
-    optionalDependencies:
-      '@types/node': 20.19.3
-    transitivePeerDependencies:
-      - less
-      - lightningcss
-      - sass
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-
-  vitest@1.6.1(@types/node@20.19.4):
-    dependencies:
-      '@vitest/expect': 1.6.1
-      '@vitest/runner': 1.6.1
-      '@vitest/snapshot': 1.6.1
-      '@vitest/spy': 1.6.1
-      '@vitest/utils': 1.6.1
-      acorn-walk: 8.3.3
-      chai: 4.4.1
-      debug: 4.3.5
-      execa: 8.0.1
-      local-pkg: 0.5.0
-      magic-string: 0.30.10
-      pathe: 1.1.2
-      picocolors: 1.0.1
-      std-env: 3.7.0
-      strip-literal: 2.1.0
-      tinybench: 2.8.0
-      tinypool: 0.8.4
-      vite: 5.3.3(@types/node@20.19.4)
-      vite-node: 1.6.1(@types/node@20.19.4)
-      why-is-node-running: 2.3.0
-    optionalDependencies:
-      '@types/node': 20.19.4
+      '@types/node': 20.19.9
     transitivePeerDependencies:
       - less
       - lightningcss
