@@ -1018,8 +1018,8 @@ export function agreementServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
       logger.info(
-        `Suspending agreement ${agreementId} ${
-          delegationId ? `with delegation ${delegationId}` : ""
+        `Suspending agreement ${agreementId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
         }`
       );
 
@@ -1252,8 +1252,8 @@ export function agreementServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
       logger.info(
-        `Activating agreement ${agreementId} ${
-          delegationId ? `with delegation ${delegationId}` : ""
+        `Activating agreement ${agreementId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
         }`
       );
 

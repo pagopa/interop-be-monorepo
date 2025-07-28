@@ -674,8 +674,8 @@ export function purposeServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(
-        `Suspending Version ${versionId} in Purpose ${purposeId} ${
-          delegationId ? `with delegation ${delegationId}` : ""
+        `Suspending Version ${versionId} in Purpose ${purposeId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
         }`
       );
 
@@ -950,8 +950,8 @@ export function purposeServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(
-        `Activating Version ${versionId} in Purpose ${purposeId} ${
-          delegationId ? `with delegation ${delegationId}` : ""
+        `Activating Version ${versionId} in Purpose ${purposeId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
         }`
       );
 

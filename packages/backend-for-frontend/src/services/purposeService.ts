@@ -562,8 +562,8 @@ export function purposeServiceBuilder(
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(
-        `Suspending Version ${versionId} of Purpose ${purposeId} ${
-          delegationId ? `with Delegation ${delegationId}` : ""
+        `Suspending Version ${versionId} of Purpose ${purposeId}${
+          delegationId ? ` with Delegation ${delegationId}` : ""
         }`
       );
 
@@ -590,8 +590,8 @@ export function purposeServiceBuilder(
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(
-        `Activating Version ${versionId} of Purpose ${purposeId} ${
-          delegationId ? `with Delegation ${delegationId}` : ""
+        `Activating Version ${versionId} of Purpose ${purposeId}${
+          delegationId ? ` with Delegation ${delegationId}` : ""
         }`
       );
 
