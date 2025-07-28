@@ -162,98 +162,154 @@ export async function createActivationEvent(
       we also create the corresponding suspension/unsuspension by platform event.
     */
 
-    return match<
-      [Delegation | undefined, TenantId | undefined, AgreementState]
-    >([delegation, authData.organizationId, updatedAgreement.state])
-      .with(
-        [undefined, updatedAgreement.producerId, agreementState.active],
-        [
-          { kind: delegationKind.delegatedProducer },
-          delegation?.delegateId, // The delegation is always defined here since we matched the kind
-          agreementState.active,
-        ],
-        () => [
-          toCreateEventAgreementUnsuspendedByProducer(
-            updatedAgreement,
-            agreementEventStoreVersion,
-            correlationId
-          ),
-        ]
-      )
-      .with(
-        [undefined, updatedAgreement.producerId, agreementState.suspended],
-        [
-          {
-            kind: delegationKind.delegatedProducer,
-          },
-          delegation?.delegateId,
-          agreementState.suspended,
-        ],
-        () => [
-          toCreateEventAgreementUnsuspendedByProducer(
-            {
-              ...updatedAgreement,
-              suspendedByPlatform: originalSuspendedByPlatform,
-            },
-            agreementEventStoreVersion,
-            correlationId
-          ),
-          ...maybeCreateSuspensionByPlatformEvents(
-            updatedAgreement,
-            suspendedByPlatformChanged,
-            agreementEventStoreVersion + 1,
-            correlationId
-          ),
-        ]
-      )
-      .with(
-        [undefined, updatedAgreement.consumerId, agreementState.active],
-        [
-          {
-            kind: delegationKind.delegatedConsumer,
-          },
-          delegation?.delegateId,
-          agreementState.active,
-        ],
-        () => [
-          toCreateEventAgreementUnsuspendedByConsumer(
-            updatedAgreement,
-            agreementEventStoreVersion,
-            correlationId
-          ),
-        ]
-      )
-      .with(
-        [undefined, updatedAgreement.consumerId, agreementState.suspended],
-        [
-          {
-            kind: delegationKind.delegatedConsumer,
-          },
-          delegation?.delegateId,
-          agreementState.suspended,
-        ],
-        () => [
-          toCreateEventAgreementUnsuspendedByConsumer(
-            {
-              ...updatedAgreement,
-              suspendedByPlatform: originalSuspendedByPlatform,
-            },
-            agreementEventStoreVersion,
-            correlationId
-          ),
-          ...maybeCreateSuspensionByPlatformEvents(
-            updatedAgreement,
-            suspendedByPlatformChanged,
-            agreementEventStoreVersion + 1,
-            correlationId
-          ),
-        ]
-      )
-      .otherwise(() => {
-        throw genericError(
-          `Unexpected organizationId - nextState pair in activateAgreement. OrganizationId: ${authData.organizationId} - nextState: ${updatedAgreement.state}`
-        );
-      });
+    if (delegation) {
+      return match([
+        delegation.kind,
+        authData.organizationId,
+        updatedAgreement.state,
+      ])
+        .with(
+          [
+            delegationKind.delegatedProducer,
+            delegation.delegateId,
+            agreementState.active,
+          ],
+          () => [
+            toCreateEventAgreementUnsuspendedByProducer(
+              updatedAgreement,
+              agreementEventStoreVersion,
+              correlationId
+            ),
+          ]
+        )
+        .with(
+          [
+            delegationKind.delegatedProducer,
+            delegation.delegateId,
+            agreementState.suspended,
+          ],
+          () => [
+            toCreateEventAgreementUnsuspendedByProducer(
+              {
+                ...updatedAgreement,
+                suspendedByPlatform: originalSuspendedByPlatform,
+              },
+              agreementEventStoreVersion,
+              correlationId
+            ),
+            ...maybeCreateSuspensionByPlatformEvents(
+              updatedAgreement,
+              suspendedByPlatformChanged,
+              agreementEventStoreVersion + 1,
+              correlationId
+            ),
+          ]
+        )
+        .with(
+          [
+            delegationKind.delegatedConsumer,
+            delegation.delegateId,
+            agreementState.active,
+          ],
+          () => [
+            toCreateEventAgreementUnsuspendedByConsumer(
+              updatedAgreement,
+              agreementEventStoreVersion,
+              correlationId
+            ),
+          ]
+        )
+        .with(
+          [
+            delegationKind.delegatedConsumer,
+            delegation.delegateId,
+            agreementState.suspended,
+          ],
+          () => [
+            toCreateEventAgreementUnsuspendedByConsumer(
+              {
+                ...updatedAgreement,
+                suspendedByPlatform: originalSuspendedByPlatform,
+              },
+              agreementEventStoreVersion,
+              correlationId
+            ),
+            ...maybeCreateSuspensionByPlatformEvents(
+              updatedAgreement,
+              suspendedByPlatformChanged,
+              agreementEventStoreVersion + 1,
+              correlationId
+            ),
+          ]
+        )
+        .otherwise(() => {
+          throw genericError(
+            `Unexpected delegation kind or state in activateAgreement. Kind: ${delegation.kind} - State: ${updatedAgreement.state}`
+          );
+        });
+    } else {
+      return (
+        match<[TenantId | undefined, AgreementState]>([
+          authData.organizationId,
+          updatedAgreement.state,
+        ])
+          // eslint-disable-next-line sonarjs/no-identical-functions
+          .with([updatedAgreement.producerId, agreementState.active], () => [
+            toCreateEventAgreementUnsuspendedByProducer(
+              updatedAgreement,
+              agreementEventStoreVersion,
+              correlationId
+            ),
+          ])
+          // eslint-disable-next-line sonarjs/no-identical-functions
+          .with([updatedAgreement.producerId, agreementState.suspended], () => [
+            toCreateEventAgreementUnsuspendedByProducer(
+              {
+                ...updatedAgreement,
+                suspendedByPlatform: originalSuspendedByPlatform,
+              },
+              agreementEventStoreVersion,
+              correlationId
+            ),
+            ...maybeCreateSuspensionByPlatformEvents(
+              updatedAgreement,
+              suspendedByPlatformChanged,
+              agreementEventStoreVersion + 1,
+              correlationId
+            ),
+          ])
+          // eslint-disable-next-line sonarjs/no-identical-functions
+          .with([updatedAgreement.consumerId, agreementState.active], () => [
+            toCreateEventAgreementUnsuspendedByConsumer(
+              updatedAgreement,
+              agreementEventStoreVersion,
+              correlationId
+            ),
+          ])
+          // eslint-disable-next-line sonarjs/no-identical-functions
+          .with([updatedAgreement.consumerId, agreementState.suspended], () => [
+            toCreateEventAgreementUnsuspendedByConsumer(
+              {
+                ...updatedAgreement,
+                suspendedByPlatform: originalSuspendedByPlatform,
+              },
+              agreementEventStoreVersion,
+              correlationId
+            ),
+            ...maybeCreateSuspensionByPlatformEvents(
+              updatedAgreement,
+              suspendedByPlatformChanged,
+              agreementEventStoreVersion + 1,
+              correlationId
+            ),
+          ])
+          .otherwise(() => {
+            throw genericError(
+              `Unexpected organizationId - nextState pair in activateAgreement. OrganizationId: ${authData.organizationId} - nextState: ${updatedAgreement.state}`
+            );
+          })
+      );
+    }
   }
 }
 
