@@ -151,8 +151,11 @@ export function readModelServiceBuilder(
         agreementStates,
         name,
         attributesIds,
+        technology,
         mode,
+        isSignalHubEnabled,
         isConsumerDelegable,
+        isClientAccessDelegable,
         delegated,
         templatesIds,
       } = filters;
@@ -257,7 +260,12 @@ export function readModelServiceBuilder(
                           delegations: {
                             $elemMatch: {
                               "data.delegateId": authData.organizationId,
-                              "data.state": delegationState.active,
+                              "data.state": {
+                                $in: [
+                                  delegationState.active,
+                                  delegationState.waitingForApproval,
+                                ],
+                              },
                               "data.kind": delegationKind.delegatedProducer,
                             },
                           },
@@ -276,7 +284,12 @@ export function readModelServiceBuilder(
                           delegations: {
                             $elemMatch: {
                               "data.delegateId": authData.organizationId,
-                              "data.state": delegationState.active,
+                              "data.state": {
+                                $in: [
+                                  delegationState.active,
+                                  delegationState.waitingForApproval,
+                                ],
+                              },
                               "data.kind": delegationKind.delegatedProducer,
                             },
                           },
@@ -312,6 +325,24 @@ export function readModelServiceBuilder(
       const modeFilter: ReadModelFilter<EService> = mode
         ? { "data.mode": { $eq: mode } }
         : {};
+
+      const technologyFilter: ReadModelFilter<EService> = technology
+        ? { "data.technology": { $eq: technology } }
+        : {};
+
+      const isSignalHubEnabledFilter: ReadModelFilter<EService> =
+        isSignalHubEnabled === true
+          ? { "data.isSignalHubEnabled": { $eq: true } }
+          : isSignalHubEnabled === false
+          ? { "data.isSignalHubEnabled": { $ne: true } }
+          : {};
+
+      const isClientAccessDelegableFilter: ReadModelFilter<EService> =
+        isClientAccessDelegable === true
+          ? { "data.isClientAccessDelegable": { $eq: true } }
+          : isClientAccessDelegable === false
+          ? { "data.isClientAccessDelegable": { $ne: true } }
+          : {};
 
       const isConsumerDelegableFilter: ReadModelFilter<EService> =
         isConsumerDelegable === true
@@ -360,7 +391,10 @@ export function readModelServiceBuilder(
         { $match: attributesFilter },
         { $match: visibilityFilter },
         { $match: modeFilter },
+        { $match: technologyFilter },
+        { $match: isSignalHubEnabledFilter },
         { $match: isConsumerDelegableFilter },
+        { $match: isClientAccessDelegableFilter },
         { $match: delegatedFilter },
         { $match: templatesIdsFilter },
         {

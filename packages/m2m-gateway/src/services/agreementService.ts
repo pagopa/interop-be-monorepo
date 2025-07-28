@@ -4,6 +4,7 @@ import {
   AgreementDocumentId,
   AgreementId,
   generateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -11,6 +12,7 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
+  pollResourceUntilDeletion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import {
@@ -66,6 +68,14 @@ export function agreementServiceBuilder(
         condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
       }
     );
+
+  const pollAgreementUntilDeletion = (
+    agreementId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveAgreementById(headers, unsafeBrandId(agreementId))
+    )({});
 
   return {
     async getAgreements(
@@ -372,6 +382,18 @@ export function agreementServiceBuilder(
         logger
       );
     },
+    async deleteAgreementById(
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting agreement with id ${agreementId}`);
+
+      await clients.agreementProcessClient.deleteAgreement(undefined, {
+        params: { agreementId },
+        headers,
+      });
+      await pollAgreementUntilDeletion(agreementId, headers);
+    },
     async downloadAgreementConsumerContract(
       agreementId: AgreementId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
@@ -412,6 +434,24 @@ export function agreementServiceBuilder(
         );
 
       await pollAgreementById(agreementId, metadata, headers);
+    },
+    async cloneAgreement(
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> {
+      logger.info(`Cloning agreement with id ${agreementId}`);
+
+      const response = await clients.agreementProcessClient.cloneAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreement(polledResource.data);
     },
   };
 }
