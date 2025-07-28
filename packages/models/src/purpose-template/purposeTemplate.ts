@@ -6,6 +6,7 @@ import {
   TenantId,
 } from "../brandedIds.js";
 import { RiskAnalysisFormTemplate } from "../risk-analysis/riskAnalysis.js";
+import { TenantKind } from "../tenant/tenant.js";
 
 export const purposeTemplateState = {
   draft: "Draft",
@@ -29,9 +30,9 @@ export type EServiceDescriptorVersionPurposeTemplate = z.infer<
 
 export const PurposeTemplate = z.object({
   id: PurposeTemplateId,
-  name: z.string(),
   target: z.string(),
   creatorId: TenantId,
+  tenantKind: TenantKind,
   eservicesVersions: z.array(EServiceDescriptorVersionPurposeTemplate),
   state: PurposeTemplateState,
   createdAt: z.coerce.date(),
