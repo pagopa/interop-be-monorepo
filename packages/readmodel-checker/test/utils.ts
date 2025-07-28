@@ -25,7 +25,6 @@ import {
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
-  producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -54,8 +53,6 @@ export const tenantReadModelServiceSQL =
   tenantReadModelServiceBuilder(readModelDB);
 export const purposeReadModelServiceSQL =
   purposeReadModelServiceBuilder(readModelDB);
-export const producerKeychainReadModelServiceSQL =
-  producerKeychainReadModelServiceBuilder(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>
