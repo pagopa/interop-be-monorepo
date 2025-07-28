@@ -6,6 +6,8 @@ import {
   Delegation,
   EService,
   EServiceTemplate,
+  ProducerJWKKey,
+  ProducerKeychain,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
@@ -46,6 +48,11 @@ import {
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+  producerJwkKeyInReadmodelProducerJwkKey,
+  producerKeychainEserviceInReadmodelProducerKeychain,
+  producerKeychainInReadmodelProducerKeychain,
+  producerKeychainKeyInReadmodelProducerKeychain,
+  producerKeychainUserInReadmodelProducerKeychain,
 } from "pagopa-interop-readmodel-models";
 import { and, eq } from "drizzle-orm";
 import {
@@ -60,6 +67,8 @@ import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySpl
 import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
 import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 import { splitEServiceTemplateIntoObjectsSQL } from "./eservice-template/splitters.js";
+import { splitProducerJWKKeyIntoObjectsSQL } from "./authorization/producerJWKKeySplitters.js";
+import { splitProducerKeychainIntoObjectsSQL } from "./authorization/producerKeychainSplitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -479,6 +488,102 @@ export const upsertEServiceTemplate = async (
       await tx
         .insert(eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate)
         .values(riskAnalysisAnswerSQL);
+    }
+  });
+};
+
+export const upsertProducerJWKKey = async (
+  readModelDB: DrizzleReturnType,
+  jwkKey: ProducerJWKKey,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersionByFilter(
+      tx,
+      producerJwkKeyInReadmodelProducerJwkKey,
+      metadataVersion,
+      and(
+        eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid),
+        eq(
+          producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+          jwkKey.producerKeychainId
+        )
+      )
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(producerJwkKeyInReadmodelProducerJwkKey)
+      .where(
+        and(
+          eq(
+            producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+            jwkKey.producerKeychainId
+          ),
+          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+        )
+      );
+
+    const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
+      jwkKey,
+      metadataVersion
+    );
+
+    await tx
+      .insert(producerJwkKeyInReadmodelProducerJwkKey)
+      .values(producerJWKKeySQL);
+  });
+};
+
+export const upsertProducerKeychain = async (
+  readModelDB: DrizzleReturnType,
+  producerKeychain: ProducerKeychain,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      producerKeychainInReadmodelProducerKeychain,
+      metadataVersion,
+      producerKeychain.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(producerKeychainInReadmodelProducerKeychain)
+      .where(
+        eq(producerKeychainInReadmodelProducerKeychain.id, producerKeychain.id)
+      );
+
+    const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
+      splitProducerKeychainIntoObjectsSQL(producerKeychain, metadataVersion);
+
+    await tx
+      .insert(producerKeychainInReadmodelProducerKeychain)
+      .values(producerKeychainSQL);
+
+    for (const userSQL of usersSQL) {
+      await tx
+        .insert(producerKeychainUserInReadmodelProducerKeychain)
+        .values(userSQL);
+    }
+
+    for (const eserviceSQL of eservicesSQL) {
+      await tx
+        .insert(producerKeychainEserviceInReadmodelProducerKeychain)
+        .values(eserviceSQL);
+    }
+
+    for (const keySQL of keysSQL) {
+      await tx
+        .insert(producerKeychainKeyInReadmodelProducerKeychain)
+        .values(keySQL);
     }
   });
 };
