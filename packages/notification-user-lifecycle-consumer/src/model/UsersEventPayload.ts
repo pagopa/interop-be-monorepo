@@ -30,14 +30,14 @@ export const UsersEventPayload = BaseUsersEventPayload.transform((data) => {
   };
 
   const eventType = match([data.eventType, data.user.relationshipStatus])
-    .with([selfcareUserEventType.add, P.any], () => "add")
+    .with([selfcareUserEventType.add, P.any], () => "add" as const)
     .with(
       [selfcareUserEventType.update, P.not(relationshipStatus.deleted)],
-      () => "update"
+      () => "update" as const
     )
     .with(
       [selfcareUserEventType.update, relationshipStatus.deleted],
-      () => "delete"
+      () => "delete" as const
     )
     .exhaustive();
 
