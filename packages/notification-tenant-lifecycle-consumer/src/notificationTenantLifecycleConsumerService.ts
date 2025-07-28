@@ -6,7 +6,10 @@ import {
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
+  TenantEventEnvelopeV1,
   TenantEventEnvelopeV2,
+  TenantId,
+  fromTenantV1,
   fromTenantV2,
   genericInternalError,
   missingKafkaMessageDataError,
@@ -20,8 +23,105 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
   refreshableToken: RefreshableInteropToken,
   { notificationConfigProcess }: PagoPAInteropBeClients
 ) {
+  const createTenantDefaultNotificationConfig = async (
+    tenantId: TenantId,
+    correlationId: CorrelationId,
+    logger: Logger
+  ): Promise<void> => {
+    const token = (await refreshableToken.get()).serialized;
+    const headers = getInteropHeaders({ token, correlationId });
+    logger.info(`Creating default notification config for tenant ${tenantId}`);
+    try {
+      await notificationConfigProcess.client.createTenantDefaultNotificationConfig(
+        { tenantId },
+        {
+          headers,
+        }
+      );
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 409) {
+        logger.info(
+          `Notification config for tenant ${tenantId} already exists, skipping creation`
+        );
+      } else {
+        throw genericInternalError(
+          `Error creating default notification config for tenant ${tenantId}. Reason: ${error}`
+        );
+      }
+    }
+  };
+
+  const deleteTenantNotificationConfig = async (
+    tenantId: TenantId,
+    correlationId: CorrelationId,
+    logger: Logger
+  ): Promise<void> => {
+    const token = (await refreshableToken.get()).serialized;
+    const headers = getInteropHeaders({ token, correlationId });
+    logger.info(`Deleting notification config for tenant ${tenantId}`);
+    try {
+      await notificationConfigProcess.client.deleteTenantNotificationConfig(
+        undefined,
+        {
+          params: { tenantId },
+          headers,
+        }
+      );
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) {
+        logger.info(
+          `Notification config for tenant ${tenantId} not found, skipping deletion`
+        );
+      } else {
+        throw genericInternalError(
+          `Error deleting default notification config for tenant ${tenantId}. Reason: ${error}`
+        );
+      }
+    }
+  };
+
   return {
-    async handleMessage(
+    async handleMessageV1(
+      message: TenantEventEnvelopeV1,
+      correlationId: CorrelationId,
+      logger: Logger
+    ): Promise<void> {
+      await match(message)
+        .with({ type: "TenantCreated" }, async (message) => {
+          if (!message.data.tenant) {
+            throw missingKafkaMessageDataError("tenant", "TenantOnboarded");
+          }
+          await createTenantDefaultNotificationConfig(
+            fromTenantV1(message.data.tenant).id,
+            correlationId,
+            logger
+          );
+        })
+        .with({ type: "TenantDeleted" }, async (message) => {
+          await deleteTenantNotificationConfig(
+            unsafeBrandId(message.data.tenantId),
+            correlationId,
+            logger
+          );
+        })
+        .with(
+          {
+            type: P.union(
+              "TenantUpdated",
+              "SelfcareMappingCreated",
+              "SelfcareMappingDeleted",
+              "TenantMailAdded",
+              "TenantMailDeleted"
+            ),
+          },
+          async (message) => {
+            logger.info(`Ignoring ${message.type} message`);
+          }
+        )
+        .exhaustive();
+    },
+
+    async handleMessageV2(
       message: TenantEventEnvelopeV2,
       correlationId: CorrelationId,
       logger: Logger
@@ -31,55 +131,19 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
           if (!message.data.tenant) {
             throw missingKafkaMessageDataError("tenant", "TenantOnboarded");
           }
-          const token = (await refreshableToken.get()).serialized;
-          const headers = getInteropHeaders({ token, correlationId });
-          logger.info(
-            `Creating default notification config for tenant ${message.data.tenant.id}`
+          await createTenantDefaultNotificationConfig(
+            fromTenantV2(message.data.tenant).id,
+            correlationId,
+            logger
           );
-          try {
-            await notificationConfigProcess.client.createTenantDefaultNotificationConfig(
-              { tenantId: fromTenantV2(message.data.tenant).id },
-              {
-                headers,
-              }
-            );
-          } catch (error) {
-            if (isAxiosError(error) && error.response?.status === 409) {
-              logger.info(
-                `Notification config for tenant ${message.data.tenant.id} already exists, skipping creation`
-              );
-            } else {
-              throw genericInternalError(
-                `Error creating default notification config for tenant ${message.data.tenant.id}. Reason: ${error}`
-              );
-            }
-          }
         })
+        // eslint-disable-next-line sonarjs/no-identical-functions
         .with({ type: "MaintenanceTenantDeleted" }, async (message) => {
-          const token = (await refreshableToken.get()).serialized;
-          const headers = getInteropHeaders({ token, correlationId });
-          logger.info(
-            `Deleting notification config for tenant ${message.data.tenantId}`
+          await deleteTenantNotificationConfig(
+            unsafeBrandId(message.data.tenantId),
+            correlationId,
+            logger
           );
-          try {
-            await notificationConfigProcess.client.deleteTenantNotificationConfig(
-              undefined,
-              {
-                params: { tenantId: unsafeBrandId(message.data.tenantId) },
-                headers,
-              }
-            );
-          } catch (error) {
-            if (isAxiosError(error) && error.response?.status === 404) {
-              logger.info(
-                `Notification config for tenant ${message.data.tenantId} not found, skipping deletion`
-              );
-            } else {
-              throw genericInternalError(
-                `Error deleting default notification config for tenant ${message.data.tenantId}. Reason: ${error}`
-              );
-            }
-          }
         })
         .with(
           {

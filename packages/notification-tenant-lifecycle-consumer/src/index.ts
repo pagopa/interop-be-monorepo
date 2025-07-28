@@ -47,22 +47,25 @@ async function processMessage({
     correlationId,
   });
 
+  loggerInstance.info(
+    `Processing ${decodedMessage.type} message - Partition number: ${partition}. Offset: ${message.offset}`
+  );
+
   await match(decodedMessage)
-    .with({ event_version: 1 }, () => {
-      loggerInstance.info(
-        `Discarding message with event_version = 1. Partition number: ${partition}. Offset: ${message.offset}`
-      );
-    })
-    .with({ event_version: 2 }, (msg) => {
-      loggerInstance.info(
-        `Processing ${decodedMessage.type} message - Partition number: ${partition}. Offset: ${message.offset}`
-      );
-      return notificationTenantLifecycleConsumerService.handleMessage(
+    .with({ event_version: 1 }, (msg) =>
+      notificationTenantLifecycleConsumerService.handleMessageV1(
         msg,
         correlationId,
         loggerInstance
-      );
-    })
+      )
+    )
+    .with({ event_version: 2 }, (msg) =>
+      notificationTenantLifecycleConsumerService.handleMessageV2(
+        msg,
+        correlationId,
+        loggerInstance
+      )
+    )
     .exhaustive();
 }
 
