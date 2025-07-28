@@ -6491,7 +6491,7 @@ paths:
         - tenants
       summary: List Tenant Declared Attributes
       description: Retrieve a list of Declared Attributes assigned to the Tenant
-      operationId: getDeclaredAttributes
+      operationId: getTenantDeclaredAttributes
       parameters:
         - in: query
           name: delegationId
@@ -6596,7 +6596,7 @@ paths:
         - tenants
       summary: List Tenant Certified Attributes
       description: Retrieve a list of Certified Attributes assigned to the Tenant
-      operationId: getCertifiedAttributes
+      operationId: getTenantCertifiedAttributes
       parameters:
         - in: query
           name: offset
@@ -6913,7 +6913,7 @@ paths:
         - tenants
       summary: List Tenant Verified Attributes
       description: Retrieve a list of Verified Attributes assigned to the Tenant
-      operationId: getVerifiedAttributes
+      operationId: getTenantVerifiedAttributes
       parameters:
         - in: query
           name: offset
