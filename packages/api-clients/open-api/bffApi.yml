@@ -885,12 +885,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: false
-              properties:
-                delegationId:
-                  type: string
-                  format: uuid
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Agreement flagged as activated. It could still be Suspended if other parties have suspended the agreement
@@ -1805,12 +1800,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: false
-              properties:
-                delegationId:
-                  type: string
-                  format: uuid
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Agreement suspended
@@ -9362,12 +9352,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: false
-              properties:
-                delegationId:
-                  type: string
-                  format: uuid
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose Version Suspended
@@ -9480,12 +9465,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: false
-              properties:
-                delegationId:
-                  type: string
-                  format: uuid
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose Version Activated
@@ -21988,6 +21968,14 @@ components:
           format: uuid
       required:
         - id
+    DelegationRef:
+      type: object
+      additionalProperties: false
+      description: contains the delegation id of the resource if a delegation is active
+      properties:
+        delegationId:
+          type: string
+          format: uuid
     CreatedEServiceDescriptor:
       type: object
       additionalProperties: false

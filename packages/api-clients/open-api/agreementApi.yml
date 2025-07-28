@@ -117,12 +117,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: false
-              properties:
-                delegationId:
-                  type: string
-                  format: uuid
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Pending agreement activated.
@@ -341,12 +336,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: false
-              properties:
-                delegationId:
-                  type: string
-                  format: uuid
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Active agreement suspended.
@@ -1139,6 +1129,14 @@ components:
       schema:
         type: string
   schemas:
+    DelegationRef:
+      type: object
+      additionalProperties: false
+      description: contains the delegation id of the resource if a delegation is active
+      properties:
+        delegationId:
+          type: string
+          format: uuid
     AgreementPayload:
       type: object
       additionalProperties: false
