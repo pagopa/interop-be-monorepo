@@ -8,7 +8,7 @@ import {
   UserSQLDbConfig,
 } from "pagopa-interop-commons";
 
-export const SelfcareClientUsersUpdaterConsumerConfig = KafkaConsumerConfig.and(
+export const NotificationUserLifecycleConsumerConfig = KafkaConsumerConfig.and(
   TokenGenerationConfig
 )
   .and(ReadModelSQLDbConfig)
@@ -25,9 +25,9 @@ export const SelfcareClientUsersUpdaterConsumerConfig = KafkaConsumerConfig.and(
       }))
   );
 
-export type SelfcareClientUsersUpdaterConsumerConfig = z.infer<
-  typeof SelfcareClientUsersUpdaterConsumerConfig
+export type NotificationUserLifecycleConsumerConfig = z.infer<
+  typeof NotificationUserLifecycleConsumerConfig
 >;
 
-export const config: SelfcareClientUsersUpdaterConsumerConfig =
-  SelfcareClientUsersUpdaterConsumerConfig.parse(process.env);
+export const config: NotificationUserLifecycleConsumerConfig =
+  NotificationUserLifecycleConsumerConfig.parse(process.env);
