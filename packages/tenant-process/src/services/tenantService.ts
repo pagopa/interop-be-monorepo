@@ -337,7 +337,9 @@ export function tenantServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | InternalAuthData>>
     ): Promise<TenantId> {
       logger.info(
-        `Upsert tenant by selfcare with externalId: ${tenantSeed.externalId}`
+        `Upsert tenant by selfcare with externalId: ${JSON.stringify(
+          tenantSeed.externalId
+        )}`
       );
       const existingTenant = await readModelService.getTenantByExternalId(
         tenantSeed.externalId
