@@ -34,6 +34,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertDelegation,
   upsertEService,
 } from "pagopa-interop-readmodel/testUtils";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
@@ -150,7 +151,7 @@ export const addOneDelegation = async (
   await writeSubmitDelegationInEventstore(delegation);
   await writeInReadmodel(delegation, delegations);
 
-  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
