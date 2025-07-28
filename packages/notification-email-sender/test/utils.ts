@@ -24,6 +24,10 @@ import {
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import {
+  upsertAgreement,
+  upsertEService,
+} from "pagopa-interop-readmodel/testUtils";
 import { notificationEmailSenderServiceBuilder } from "../src/services/notificationEmailSenderService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -117,7 +121,7 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
     readModelRepository.agreements
   );
 
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
@@ -126,7 +130,7 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
     readModelRepository.eservices
   );
 
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {

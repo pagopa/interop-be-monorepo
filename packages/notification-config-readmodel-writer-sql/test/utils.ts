@@ -1,7 +1,7 @@
 import { inject, afterEach } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { notificationConfigReadModelServiceBuilder } from "pagopa-interop-readmodel";
-import { notificationConfigReadModelWriteServiceBuilder } from "../src/readModelService.js";
+import { notificationConfigReadModelWriteServiceBuilder } from "../src/readModelWriteService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
