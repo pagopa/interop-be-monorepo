@@ -6004,7 +6004,7 @@ paths:
     post:
       tags:
         - purposes
-      summary: Create a new E-Service Purpose
+      summary: Create a new reverse Purpose
       description: Create a new purpose for an E-Service in receive mode
       operationId: createReversePurpose
       requestBody:
@@ -6015,7 +6015,7 @@ paths:
         required: true
       responses:
         "201":
-          description: E-Service Purpose created
+          description: reverse Purpose created
           content:
             application/json:
               schema:
