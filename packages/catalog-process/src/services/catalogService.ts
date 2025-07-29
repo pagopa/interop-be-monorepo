@@ -2576,8 +2576,12 @@ export function catalogServiceBuilder(
     async approveDelegatedEServiceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Approving EService ${eserviceId} version ${descriptorId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -2599,7 +2603,7 @@ export function catalogServiceBuilder(
         logger
       );
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceDescriptorApprovedByDelegator(
           eservice.metadata.version,
           descriptor.id,
@@ -2607,6 +2611,12 @@ export function catalogServiceBuilder(
           correlationId
         )
       );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async rejectDelegatedEServiceDescriptor(
       eserviceId: EServiceId,
