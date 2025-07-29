@@ -22,7 +22,7 @@
   "devDependencies": {
     "@anatine/zod-mock": "3.13.4",
     "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.19.4",
+    "@types/node": "20.19.9",
     "date-fns": "3.6.0",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",

@@ -14,7 +14,7 @@ import {
   getMockPurposeVersion,
   getMockPurposeVersionDocument,
   getMockValidRiskAnalysisForm,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { aggregatePurpose } from "../src/purpose/aggregators.js";
 import { splitPurposeIntoObjectsSQL } from "../src/purpose/splitters.js";
 
