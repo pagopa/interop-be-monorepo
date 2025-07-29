@@ -178,6 +178,7 @@ export function agreementServiceBuilder(
     },
     async approveAgreement(
       agreementId: AgreementId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Approving pending agreement with id ${agreementId}`);
@@ -187,7 +188,7 @@ export function agreementServiceBuilder(
       assertAgreementIsPending(agreement.data);
 
       const response = await clients.agreementProcessClient.activateAgreement(
-        { delegationId: undefined }, // TBD APIv2
+        { delegationId },
         {
           params: { agreementId },
           headers,
@@ -238,12 +239,13 @@ export function agreementServiceBuilder(
     },
     async suspendAgreement(
       agreementId: AgreementId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Suspending agreement with id ${agreementId}`);
 
       const response = await clients.agreementProcessClient.suspendAgreement(
-        { delegationId: undefined }, // TBD APIv2
+        { delegationId },
         {
           params: { agreementId },
           headers,
@@ -256,6 +258,7 @@ export function agreementServiceBuilder(
     },
     async unsuspendAgreement(
       agreementId: AgreementId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Unsuspending agreement with id ${agreementId}`);
@@ -265,7 +268,7 @@ export function agreementServiceBuilder(
       assertAgreementIsSuspended(agreement.data);
 
       const response = await clients.agreementProcessClient.activateAgreement(
-        { delegationId: undefined }, // TBD APIv2
+        { delegationId },
         {
           params: { agreementId },
           headers,

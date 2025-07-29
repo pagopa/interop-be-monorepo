@@ -258,6 +258,7 @@ export function purposeServiceBuilder(
     },
     async activateDraftPurpose(
       purposeId: PurposeId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
@@ -276,7 +277,7 @@ export function purposeServiceBuilder(
 
       const { metadata } =
         await clients.purposeProcessClient.activatePurposeVersion(
-          { delegationId: undefined }, // TBD APIv2
+          { delegationId },
           {
             params: { purposeId, versionId: versionToActivate.id },
             headers,
@@ -312,6 +313,7 @@ export function purposeServiceBuilder(
     },
     async suspendPurpose(
       purposeId: PurposeId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
@@ -327,7 +329,7 @@ export function purposeServiceBuilder(
 
       const { metadata } =
         await clients.purposeProcessClient.suspendPurposeVersion(
-          { delegationId: undefined }, // TBD APIv2
+          { delegationId },
           {
             params: { purposeId, versionId: versionToSuspend.id },
             headers,
@@ -339,6 +341,7 @@ export function purposeServiceBuilder(
     },
     async approvePurpose(
       purposeId: PurposeId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
@@ -357,9 +360,8 @@ export function purposeServiceBuilder(
 
       const { metadata } =
         await clients.purposeProcessClient.activatePurposeVersion(
-          { delegationId: undefined }, // TBD APIv2
+          { delegationId },
           {
-            // TBD APIv2
             params: { purposeId, versionId: versionToApprove.id },
             headers,
           }
@@ -370,6 +372,7 @@ export function purposeServiceBuilder(
     },
     async unsuspendPurpose(
       purposeId: PurposeId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
@@ -388,7 +391,7 @@ export function purposeServiceBuilder(
 
       const { metadata } =
         await clients.purposeProcessClient.activatePurposeVersion(
-          { delegationId: undefined }, // TBD APIv2
+          { delegationId },
           {
             params: { purposeId, versionId: versionToApprove.id },
             headers,
