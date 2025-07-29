@@ -40,6 +40,7 @@ import {
   upsertAgreement,
   upsertDelegation,
   upsertEService,
+  upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
@@ -122,7 +123,7 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await writePurposeInEventstore(purpose);
   await writeInReadmodel(toReadModelPurpose(purpose), purposes);
 
-  await purposeReadModelServiceSQL.upsertPurpose(purpose, 0);
+  await upsertPurpose(readModelDB, purpose, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {

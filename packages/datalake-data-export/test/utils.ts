@@ -13,14 +13,12 @@ import {
   PurposeCollection,
   TenantCollection,
 } from "pagopa-interop-commons";
-import {
-  purposeReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
+import { tenantReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { Agreement, EService, Purpose, Tenant } from "pagopa-interop-models";
 import {
   upsertAgreement,
   upsertEService,
+  upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -47,7 +45,6 @@ export const purposes: PurposeCollection = readModelRepository.purposes;
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
 
-const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 export const readModelService =
@@ -81,7 +78,7 @@ export const seedAgreements = async (
 
 export const seedPurposes = async (purposes: Purpose[]): Promise<void> => {
   for (const p of purposes) {
-    await purposeReadModelServiceSQL.upsertPurpose(p, 0);
+    await upsertPurpose(readModelDB, p, 0);
   }
 };
 
