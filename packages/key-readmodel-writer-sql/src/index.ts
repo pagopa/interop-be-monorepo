@@ -8,21 +8,14 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  clientJWKKeyReadModelServiceBuilder,
-  makeDrizzleConnection,
-} from "pagopa-interop-readmodel";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { handleMessageV1 } from "./keyConsumerServiceV1.js";
 import { handleMessageV2 } from "./keyConsumerServiceV2.js";
 import { config } from "./config/config.js";
-import { customReadModelServiceBuilder } from "./readModelService.js";
+import { clientJWKKeyWriterServiceBuilder } from "./clientJWKKeyWriterService.js";
 
 const db = makeDrizzleConnection(config);
-const producerJWKKeyReadModelService = clientJWKKeyReadModelServiceBuilder(db);
-const readModelService = customReadModelServiceBuilder(
-  db,
-  producerJWKKeyReadModelService
-);
+const clientJWKKeyWriterService = clientJWKKeyWriterServiceBuilder(db);
 
 async function processMessage({
   message,
@@ -41,8 +34,12 @@ async function processMessage({
       : generateId<CorrelationId>(),
   });
   await match(decodedMessage)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, readModelService))
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, readModelService))
+    .with({ event_version: 1 }, (msg) =>
+      handleMessageV1(msg, clientJWKKeyWriterService)
+    )
+    .with({ event_version: 2 }, (msg) =>
+      handleMessageV2(msg, clientJWKKeyWriterService)
+    )
     .exhaustive();
 
   loggerInstance.info(
@@ -50,4 +47,9 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.authorizationTopic], processMessage);
+await runConsumer(
+  config,
+  [config.authorizationTopic],
+  processMessage,
+  "key-readmodel-writer-sql"
+);

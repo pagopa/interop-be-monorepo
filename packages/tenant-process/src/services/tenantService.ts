@@ -333,7 +333,9 @@ export function tenantServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | InternalAuthData>>
     ): Promise<TenantId> {
       logger.info(
-        `Upsert tenant by selfcare with externalId: ${tenantSeed.externalId}`
+        `Upsert tenant by selfcare with externalId: ${JSON.stringify(
+          tenantSeed.externalId
+        )}`
       );
       const existingTenant = await readModelService.getTenantByExternalId(
         tenantSeed.externalId
@@ -584,7 +586,7 @@ export function tenantServiceBuilder(
             throw delegationNotFound(delegationId);
           }
           logger.info(
-            `Add declared attribute ${tenantAttributeSeed.id} to delegatator tenant ${delegation.delegatorId}`
+            `Add declared attribute ${tenantAttributeSeed.id} to delegator tenant ${delegation.delegatorId}`
           );
 
           if (delegation.delegateId !== authData.organizationId) {
@@ -2198,7 +2200,7 @@ function validateAddress(address: string): string {
     // eslint-disable-next-line no-useless-escape
     /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   if (!emailPattern.test(sanitizedMail)) {
-    throw notValidMailAddress(address);
+    throw notValidMailAddress();
   }
   return sanitizedMail;
 }

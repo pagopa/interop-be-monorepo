@@ -8,18 +8,13 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  makeDrizzleConnection,
-  delegationReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { handleMessageV2 } from "./delegationConsumerServiceV2.js";
 import { config } from "./config/config.js";
-import { readModelServiceBuilder } from "./readModelService.js";
+import { delegationWriterServiceBuilder } from "./delegationWriterService.js";
 
 const db = makeDrizzleConnection(config);
-const readModelService = readModelServiceBuilder(
-  delegationReadModelServiceBuilder(db)
-);
+const delegationWriterService = delegationWriterServiceBuilder(db);
 
 async function processMessage({
   message,
@@ -39,7 +34,9 @@ async function processMessage({
   });
 
   await match(decodedMessage)
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, readModelService))
+    .with({ event_version: 2 }, (msg) =>
+      handleMessageV2(msg, delegationWriterService)
+    )
     .exhaustive();
 
   loggerInstance.info(
@@ -47,4 +44,9 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.delegationTopic], processMessage);
+await runConsumer(
+  config,
+  [config.delegationTopic],
+  processMessage,
+  "delegation-readmodel-writer-sql"
+);

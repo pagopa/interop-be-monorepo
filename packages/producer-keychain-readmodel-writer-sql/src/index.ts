@@ -8,16 +8,13 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  makeDrizzleConnection,
-  producerKeychainReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { handleMessageV2 } from "./producerKeychainConsumerServiceV2.js";
 import { config } from "./config/config.js";
+import { producerKeychainWriterServiceBuilder } from "./producerKeychainWriterService.js";
 
 const db = makeDrizzleConnection(config);
-const producerKeychainReadModelService =
-  producerKeychainReadModelServiceBuilder(db);
+const producerKeychainWriterService = producerKeychainWriterServiceBuilder(db);
 
 async function processMessage({
   message,
@@ -37,7 +34,7 @@ async function processMessage({
   });
   await match(decodedMessage)
     .with({ event_version: 2 }, (msg) =>
-      handleMessageV2(msg, producerKeychainReadModelService)
+      handleMessageV2(msg, producerKeychainWriterService)
     )
     .with({ event_version: 1 }, () => Promise.resolve)
     .exhaustive();
@@ -47,4 +44,9 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.authorizationTopic], processMessage);
+await runConsumer(
+  config,
+  [config.authorizationTopic],
+  processMessage,
+  "producer-keychain-readmodel-writer-sql"
+);

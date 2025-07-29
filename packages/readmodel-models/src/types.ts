@@ -46,9 +46,14 @@ import {
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
+  tenantNotificationConfigInReadmodelNotificationConfig,
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
+  userNotificationConfigInReadmodelNotificationConfig,
+  tenantEnabledNotificationInReadmodelNotificationConfig,
+  userEnabledInAppNotificationInReadmodelNotificationConfig,
+  userEnabledEmailNotificationInReadmodelNotificationConfig,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -261,4 +266,30 @@ export type DelegationItemsSQL = {
   delegationSQL: DelegationSQL;
   stampsSQL: DelegationStampSQL[];
   contractDocumentsSQL: DelegationContractDocumentSQL[];
+};
+
+export type TenantNotificationConfigSQL = InferSelectModel<
+  typeof tenantNotificationConfigInReadmodelNotificationConfig
+>;
+export type TenantEnabledNotificationSQL = InferSelectModel<
+  typeof tenantEnabledNotificationInReadmodelNotificationConfig
+>;
+export type TenantNotificationConfigItemsSQL = {
+  tenantNotificationConfigSQL: TenantNotificationConfigSQL;
+  enabledNotificationsSQL: TenantEnabledNotificationSQL[];
+};
+
+export type UserNotificationConfigSQL = InferSelectModel<
+  typeof userNotificationConfigInReadmodelNotificationConfig
+>;
+export type UserEnabledInAppNotificationSQL = InferSelectModel<
+  typeof userEnabledInAppNotificationInReadmodelNotificationConfig
+>;
+export type UserEnabledEmailNotificationSQL = InferSelectModel<
+  typeof userEnabledEmailNotificationInReadmodelNotificationConfig
+>;
+export type UserNotificationConfigItemsSQL = {
+  userNotificationConfigSQL: UserNotificationConfigSQL;
+  enabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[];
+  enabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[];
 };

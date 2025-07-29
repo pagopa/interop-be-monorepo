@@ -1,4 +1,4 @@
-import { and, eq, lte, SQL } from "drizzle-orm";
+import { eq, SQL } from "drizzle-orm";
 import {
   Attribute,
   AttributeId,
@@ -9,44 +9,14 @@ import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import {
   aggregateAttribute,
   aggregateAttributeArray,
 } from "./attribute/aggregators.js";
-import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
-    async upsertAttribute(
-      attribute: Attribute,
-      metadataVersion: number
-    ): Promise<void> {
-      await db.transaction(async (tx) => {
-        const shouldUpsert = await checkMetadataVersion(
-          tx,
-          attributeInReadmodelAttribute,
-          metadataVersion,
-          attribute.id
-        );
-
-        if (!shouldUpsert) {
-          return;
-        }
-
-        await tx
-          .delete(attributeInReadmodelAttribute)
-          .where(eq(attributeInReadmodelAttribute.id, attribute.id));
-
-        const attributeSQL = splitAttributeIntoObjectsSQL(
-          attribute,
-          metadataVersion
-        );
-
-        await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
-      });
-    },
     async getAttributeById(
       attributeId: AttributeId
     ): Promise<WithMetadata<Attribute> | undefined> {
@@ -86,22 +56,8 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
 
       return aggregateAttributeArray(queryResult);
     },
-    async deleteAttributeById(
-      attributeId: AttributeId,
-      metadataVersion: number
-    ): Promise<void> {
-      await db
-        .delete(attributeInReadmodelAttribute)
-        .where(
-          and(
-            eq(attributeInReadmodelAttribute.id, attributeId),
-            lte(attributeInReadmodelAttribute.metadataVersion, metadataVersion)
-          )
-        );
-    },
   };
 }
-
 export type AttributeReadModelService = ReturnType<
   typeof attributeReadModelServiceBuilder
 >;
