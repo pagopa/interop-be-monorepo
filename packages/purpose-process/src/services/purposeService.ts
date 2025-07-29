@@ -1228,7 +1228,7 @@ export function purposeServiceBuilder(
       };
     },
     async createReversePurpose(
-      seed: purposeApi.EServicePurposeSeed,
+      seed: purposeApi.ReversePurposeSeed,
       {
         authData,
         correlationId,
@@ -1238,10 +1238,10 @@ export function purposeServiceBuilder(
       WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
     > {
       logger.info(
-        `Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`
+        `Creating Purpose for EService ${seed.eserviceId}, Consumer ${seed.consumerId}`
       );
       const riskAnalysisId: RiskAnalysisId = unsafeBrandId(seed.riskAnalysisId);
-      const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
+      const eserviceId: EServiceId = unsafeBrandId(seed.eserviceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
 
       const eservice = await retrieveEService(eserviceId, readModelService);

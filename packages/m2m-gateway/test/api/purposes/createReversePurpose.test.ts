@@ -15,7 +15,7 @@ import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js"
 describe("POST /reversePurposes router test", () => {
   const mockPurpose: purposeApi.Purpose = getMockedApiPurpose();
 
-  const mockEServicePurposeSeed: m2mGatewayApi.EServicePurposeSeed = {
+  const mockReversePurposeSeed: m2mGatewayApi.ReversePurposeSeed = {
     eserviceId: mockPurpose.eserviceId,
     consumerId: mockPurpose.consumerId,
     riskAnalysisId: generateId(),
@@ -30,7 +30,7 @@ describe("POST /reversePurposes router test", () => {
 
   const makeRequest = async (
     token: string,
-    body: m2mGatewayApi.EServicePurposeSeed
+    body: m2mGatewayApi.ReversePurposeSeed
   ) =>
     request(api)
       .post(`${appBasePath}/reversePurposes`)
@@ -46,7 +46,7 @@ describe("POST /reversePurposes router test", () => {
         .mockResolvedValue(mockM2MPurpose);
 
       const token = generateToken(role);
-      const res = await makeRequest(token, mockEServicePurposeSeed);
+      const res = await makeRequest(token, mockReversePurposeSeed);
 
       expect(res.status).toBe(201);
       expect(res.body).toEqual(mockM2MPurpose);
@@ -57,19 +57,19 @@ describe("POST /reversePurposes router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockEServicePurposeSeed);
+    const res = await makeRequest(token, mockReversePurposeSeed);
     expect(res.status).toBe(403);
   });
 
   it.each([
     { invalidParam: "invalidValue" },
-    { ...mockEServicePurposeSeed, extraParam: -1 },
-    { ...mockEServicePurposeSeed, description: "short" },
+    { ...mockReversePurposeSeed, extraParam: -1 },
+    { ...mockReversePurposeSeed, description: "short" },
   ])("Should return 400 if passed invalid delegation seed", async (body) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      body as m2mGatewayApi.EServicePurposeSeed
+      body as m2mGatewayApi.ReversePurposeSeed
     );
 
     expect(res.status).toBe(400);
@@ -82,7 +82,7 @@ describe("POST /reversePurposes router test", () => {
         .fn()
         .mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockEServicePurposeSeed);
+      const res = await makeRequest(token, mockReversePurposeSeed);
 
       expect(res.status).toBe(500);
     }
@@ -98,7 +98,7 @@ describe("POST /reversePurposes router test", () => {
     async (resp) => {
       mockPurposeService.createReversePurpose = vi.fn().mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockEServicePurposeSeed);
+      const res = await makeRequest(token, mockReversePurposeSeed);
 
       expect(res.status).toBe(500);
     }

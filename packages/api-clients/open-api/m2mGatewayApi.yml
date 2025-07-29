@@ -6011,7 +6011,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServicePurposeSeed"
+              $ref: "#/components/schemas/ReversePurposeSeed"
         required: true
       responses:
         "201":
@@ -7963,7 +7963,7 @@ components:
         - description
         - isFreeOfCharge
         - dailyCalls
-    EServicePurposeSeed:
+    ReversePurposeSeed:
       type: object
       additionalProperties: false
       description: contains the expected payload for reverse purpose creation

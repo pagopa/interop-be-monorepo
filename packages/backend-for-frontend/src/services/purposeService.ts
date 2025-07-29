@@ -349,8 +349,8 @@ export function purposeServiceBuilder(
       logger.info(
         `Creating purpose from ESErvice ${createSeed.eserviceId} and Risk Analysis ${createSeed.riskAnalysisId}`
       );
-      const payload: purposeApi.EServicePurposeSeed = {
-        eServiceId: createSeed.eserviceId,
+      const payload: purposeApi.ReversePurposeSeed = {
+        eserviceId: createSeed.eserviceId,
         consumerId: createSeed.consumerId,
         riskAnalysisId: createSeed.riskAnalysisId,
         title: createSeed.title,

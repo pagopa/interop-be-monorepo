@@ -23,7 +23,7 @@ describe("createReversePurpose", () => {
     getMockedApiPurpose()
   );
 
-  const mockEServicePurposeSeed: m2mGatewayApi.EServicePurposeSeed = {
+  const mockReversePurposeSeed: m2mGatewayApi.ReversePurposeSeed = {
     dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,
     description: mockPurposeProcessGetResponse.data.description,
     eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
@@ -74,7 +74,7 @@ describe("createReversePurpose", () => {
     const mockAppContext = getMockM2MAdminAppContext();
 
     const result = await purposeService.createReversePurpose(
-      mockEServicePurposeSeed,
+      mockReversePurposeSeed,
       mockAppContext
     );
 
@@ -83,14 +83,14 @@ describe("createReversePurpose", () => {
       mockPost:
         mockInteropBeClients.purposeProcessClient.createPurposeFromEService,
       body: {
-        consumerId: mockEServicePurposeSeed.consumerId,
-        dailyCalls: mockEServicePurposeSeed.dailyCalls,
-        description: mockEServicePurposeSeed.description,
-        eServiceId: mockEServicePurposeSeed.eserviceId,
-        freeOfChargeReason: mockEServicePurposeSeed.freeOfChargeReason,
-        isFreeOfCharge: mockEServicePurposeSeed.isFreeOfCharge,
-        riskAnalysisId: mockEServicePurposeSeed.riskAnalysisId,
-        title: mockEServicePurposeSeed.title,
+        consumerId: mockReversePurposeSeed.consumerId,
+        dailyCalls: mockReversePurposeSeed.dailyCalls,
+        description: mockReversePurposeSeed.description,
+        eserviceId: mockReversePurposeSeed.eserviceId,
+        freeOfChargeReason: mockReversePurposeSeed.freeOfChargeReason,
+        isFreeOfCharge: mockReversePurposeSeed.isFreeOfCharge,
+        riskAnalysisId: mockReversePurposeSeed.riskAnalysisId,
+        title: mockReversePurposeSeed.title,
       },
     });
     expectApiClientGetToHaveBeenCalledWith({
@@ -115,7 +115,7 @@ describe("createReversePurpose", () => {
 
     await expect(
       purposeService.createReversePurpose(
-        mockEServicePurposeSeed,
+        mockReversePurposeSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -129,7 +129,7 @@ describe("createReversePurpose", () => {
 
     await expect(
       purposeService.createReversePurpose(
-        mockEServicePurposeSeed,
+        mockReversePurposeSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -145,7 +145,7 @@ describe("createReversePurpose", () => {
 
     await expect(
       purposeService.createReversePurpose(
-        mockEServicePurposeSeed,
+        mockReversePurposeSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(

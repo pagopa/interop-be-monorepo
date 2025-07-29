@@ -256,7 +256,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServicePurposeSeed"
+              $ref: "#/components/schemas/ReversePurposeSeed"
         required: true
       responses:
         "200":
@@ -1266,12 +1266,12 @@ components:
           format: uuid
       required:
         - eserviceId
-    EServicePurposeSeed:
+    ReversePurposeSeed:
       type: object
       additionalProperties: false
       description: contains the expected payload for purpose creation.
       properties:
-        eServiceId:
+        eserviceId:
           type: string
           format: uuid
         consumerId:
@@ -1300,7 +1300,7 @@ components:
           type: integer
           format: int32
       required:
-        - eServiceId
+        - eserviceId
         - consumerId
         - title
         - riskAnalysisId

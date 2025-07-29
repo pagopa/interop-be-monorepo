@@ -420,7 +420,7 @@ export function purposeServiceBuilder(
       await pollPurposeById(purposeId, metadata, headers);
     },
     async createReversePurpose(
-      purposeSeed: m2mGatewayApi.EServicePurposeSeed,
+      purposeSeed: m2mGatewayApi.ReversePurposeSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
@@ -431,7 +431,7 @@ export function purposeServiceBuilder(
         await clients.purposeProcessClient.createPurposeFromEService(
           {
             consumerId: purposeSeed.consumerId,
-            eServiceId: purposeSeed.eserviceId,
+            eserviceId: purposeSeed.eserviceId,
             dailyCalls: purposeSeed.dailyCalls,
             description: purposeSeed.description,
             isFreeOfCharge: purposeSeed.isFreeOfCharge,
