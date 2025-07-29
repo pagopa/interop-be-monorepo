@@ -13,6 +13,7 @@ import {
   Delegation,
   delegationState,
   DelegationId,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -21,6 +22,8 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
   M2MAdminAuthData,
+  Ownership,
+  ownership,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
@@ -37,7 +40,6 @@ import {
   riskAnalysisValidationFailed,
   missingDelegationId,
 } from "../model/domain/errors.js";
-import { Ownership, ownership } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   retrieveActiveAgreement,
@@ -447,7 +449,9 @@ export const getOrganizationRole = async ({
       );
       return ownership.PRODUCER;
     } else {
-      throw tenantNotAllowed(authData.organizationId);
+      throw unauthorizedError(
+        `Tenant ${authData.organizationId} cannot perform operation as delegate for the specified delegation ID ${delegationId}`
+      );
     }
   }
 

@@ -1122,10 +1122,6 @@ describe("activate agreement", () => {
         descriptors: [descriptor],
       };
 
-      // At least one of the two is true, they will both become false anyways
-      const suspendedByConsumer = randomBoolean();
-      const suspendedByProducer = !suspendedByConsumer ? true : randomBoolean();
-
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.suspended,
@@ -1133,22 +1129,14 @@ describe("activate agreement", () => {
         descriptorId: descriptor.id,
         producerId: delegateConsumerAndProducer.id,
         consumerId: consumer.id,
-        suspendedByProducer,
-        suspendedByConsumer,
+        suspendedByConsumer: true,
+        suspendedByProducer: false,
         suspendedAt: new Date(),
         stamps: {
-          suspensionByProducer: suspendedByProducer
-            ? {
-                who: authData.userId,
-                when: new Date(),
-              }
-            : undefined,
-          suspensionByConsumer: suspendedByConsumer
-            ? {
-                who: authData.userId,
-                when: new Date(),
-              }
-            : undefined,
+          suspensionByConsumer: {
+            who: authData.userId,
+            when: new Date(),
+          },
         },
 
         // Adding some random attributes to check that they are not modified by the Unsuspension

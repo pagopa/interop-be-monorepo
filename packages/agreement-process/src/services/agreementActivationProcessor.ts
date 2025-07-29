@@ -223,7 +223,11 @@ export async function createActivationEvent(
       ])
       .with(
         [
-          P.any,
+          P.union(
+            ownership.SELF_CONSUMER,
+            ownership.CONSUMER,
+            ownership.PRODUCER
+          ),
           P.union(
             agreementState.pending,
             agreementState.archived,

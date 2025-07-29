@@ -88,10 +88,10 @@ export function createSuspensionUpdatedAgreement({
         stamp,
         activeDelegations.producerDelegation?.delegateId
       ),
-      suspensionByConsumerStamp: undefined,
+      suspensionByConsumerStamp: agreement.stamps.suspensionByConsumer,
     }))
     .with(ownership.CONSUMER, () => ({
-      suspensionByProducerStamp: undefined,
+      suspensionByProducerStamp: agreement.stamps.suspensionByProducer,
       suspensionByConsumerStamp: suspendedByConsumerStamp(
         agreement,
         authData.organizationId,

@@ -39,6 +39,7 @@ import {
   CompactTenant,
   CorrelationId,
   DelegationId,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import {
   certifiedAttributesSatisfied,
@@ -1269,7 +1270,9 @@ export function agreementServiceBuilder(
       const agreementOwnership = ((): Ownership => {
         if (agreement.data.state === agreementState.pending) {
           if (delegationId !== activeDelegations.producerDelegation?.id) {
-            throw tenantNotAllowed(authData.organizationId);
+            throw unauthorizedError(
+              `Tenant ${authData.organizationId} cannot perform operation as delegate for the specified delegation ID ${delegationId}`
+            );
           }
 
           assertRequesterCanActAsProducer(
@@ -1288,16 +1291,20 @@ export function agreementServiceBuilder(
         }
       })();
 
-      const [eservice, consumer, producer] = await Promise.all([
-        retrieveEService(agreement.data.eserviceId, readModelService),
-        retrieveTenant(agreement.data.consumerId, readModelService),
-        retrieveTenant(agreement.data.producerId, readModelService),
-      ]);
+      const eservice = await retrieveEService(
+        agreement.data.eserviceId,
+        readModelService
+      );
 
       const descriptor = validateActivationOnDescriptor(
         eservice,
         agreement.data.descriptorId
       );
+
+      const [consumer, producer] = await Promise.all([
+        retrieveTenant(agreement.data.consumerId, readModelService),
+        retrieveTenant(agreement.data.producerId, readModelService),
+      ]);
 
       /* nextAttributesState VS targetDestinationState
       -- targetDestinationState is the state where the caller wants to go (active, in this case)
@@ -1578,10 +1585,10 @@ export function getSuspensionFlags(
         targetDestinationState,
         activeDelegations.producerDelegation?.delegateId
       ),
-      suspendedByConsumer: undefined,
+      suspendedByConsumer: agreement.suspendedByConsumer,
     }))
     .with(ownership.CONSUMER, () => ({
-      suspendedByProducer: undefined,
+      suspendedByProducer: agreement.suspendedByProducer,
       suspendedByConsumer: suspendedByConsumerFlag(
         agreement,
         authData.organizationId,
