@@ -8,7 +8,6 @@ import {
   timestamp,
   foreignKey,
   primaryKey,
-  json,
 } from "drizzle-orm/pg-core";
 import {
   readmodelAgreement,
@@ -1912,7 +1911,6 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTempla
       metadataVersion: integer("metadata_version").notNull(),
       answerId: uuid("answer_id").notNull(),
       text: varchar(),
-      urls: json(),
     },
     (table) => [
       foreignKey({

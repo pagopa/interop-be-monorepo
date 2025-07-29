@@ -64,21 +64,14 @@ message RiskAnalysisTemplateMultiAnswerV2 {
 message RiskAnalysisTemplateAnswerAnnotationV2 {
   string id = 1;
   optional string text = 2;
-  repeated RiskAnalysisTemplateAnnotationDocumentV2 docs = 3;
-  repeated LinkV2 urls = 4;
+  repeated RiskAnalysisTemplateAnswerAnnotationDocumentV2 docs = 3;
 }
 
-message RiskAnalysisTemplateAnnotationDocumentV2 {
+message RiskAnalysisTemplateAnswerAnnotationDocumentV2 {
   string id = 1;
   string name = 2;
   string contentType = 3;
   string prettyName = 4;
   string path = 5;
   int64 createdAt = 6;
-}
-
-message LinkV2 {
-  string id = 1;
-  string url = 2;
-  string text = 3;
 }

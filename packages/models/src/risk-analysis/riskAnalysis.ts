@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-  LinkId,
   RiskAnalysisFormId,
   RiskAnalysisFormTemplateId,
   RiskAnalysisId,
@@ -69,19 +68,10 @@ export type RiskAnalysisTemplateAnswerAnnotationDocument = z.infer<
   typeof RiskAnalysisTemplateAnswerAnnotationDocument
 >;
 
-// TODO: move to commons if needed
-export const Link = z.object({
-  id: LinkId,
-  url: z.string().url(),
-  text: z.string(),
-});
-export type Link = z.infer<typeof Link>;
-
 export const RiskAnalysisTemplateAnswerAnnotation = z.object({
   id: RiskAnalysisTemplateAnswerAnnotationId,
   text: z.string().optional(),
   docs: z.array(RiskAnalysisTemplateAnswerAnnotationDocument),
-  urls: z.array(Link).optional(),
 });
 export type RiskAnalysisTemplateAnswerAnnotation = z.infer<
   typeof RiskAnalysisTemplateAnswerAnnotation
