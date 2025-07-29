@@ -716,15 +716,21 @@ export function catalogServiceBuilder(
           UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
         >
       >
-    ): Promise<EService> {
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      return await applyVisibilityToEService(
+      const data = await applyVisibilityToEService(
         eservice.data,
         authData,
         readModelService
       );
+      return {
+        data,
+        metadata: {
+          version: eservice.metadata.version,
+        },
+      };
     },
 
     async getEServices(
