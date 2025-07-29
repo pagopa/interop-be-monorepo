@@ -59,6 +59,7 @@ import {
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
+  tenantNotAllowed,
 } from "../model/domain/errors.js";
 import {
   ActiveDelegations,
@@ -1268,6 +1269,10 @@ export function agreementServiceBuilder(
       );
 
       if (agreement.data.state === agreementState.pending) {
+        if (delegationId !== activeDelegations.producerDelegation?.id) {
+          throw tenantNotAllowed(authData.organizationId);
+        }
+
         assertRequesterCanActAsProducer(
           agreement.data,
           authData,

@@ -246,7 +246,7 @@ export async function createActivationEvent(
         )
         .otherwise(() => {
           throw genericError(
-            `Unexpected delegation kind or state in activateAgreement. Kind: ${delegation.kind} - State: ${updatedAgreement.state}`
+            `Unexpected delegation kind, organizationId, or state in activateAgreement. Kind: ${delegation.kind} - OrganizationId: ${authData.organizationId} - State: ${updatedAgreement.state}`
           );
         });
     } else {
