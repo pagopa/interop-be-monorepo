@@ -9,35 +9,34 @@ import {
 export const NotificationConfig = z.object({
   // Erogazione (Producer) notifications
   agreementSuspendedUnsuspendedToProducer: z.boolean(), // 04: Variazione dello stato di una richiesta di fruizione
-  agreementRequestManagementToProducer: z.boolean(), // 03: Gestione richieste di fruizione
-  clientAssociationByConsumerToProducer: z.boolean(), // 05: Associazione di un client da parte del fruitore
-  consumerThresholdAdjustmentRequestToProducer: z.boolean(), // 06: Richiesta adeguamento soglia fruitore
+  agreementManagementToProducer: z.boolean(), // 03: Gestione richieste di fruizione
+  clientAddedRemovedToProducer: z.boolean(), // 05: Associazione di un client da parte del fruitore
   purposeStatusChangedToProducer: z.boolean(), // 07: Variazione stato di una finalità
-  templateInstantiationToProducer: z.boolean(), // 08: Istanziazione del template
+  templateInstantiatedToProducer: z.boolean(), // 08: Istanziazione del template
   templateStatusChangedToProducer: z.boolean(), // 09: Variazione stato template
 
   // Fruizione (Consumer) notifications
   agreementSuspendedUnsuspendedToConsumer: z.boolean(), // 13: Sospensione o riattivazione richiesta di fruizione
   eserviceStatusChangedToConsumer: z.boolean(), // 11: Variazione di stato e-service
-  agreementActivationRejectionToConsumer: z.boolean(), // 12: Attivazione o rifiuto richiesta di fruizione
-  loadThresholdStatusToConsumer: z.boolean(), // 14: Stato delle soglie di carico
-  purposeActivationRejectionToConsumer: z.boolean(), // 15: Attivazione o rifiuto finalità
-  purposeSuspensionReactivationToConsumer: z.boolean(), // 16: Sospensione o riattivazione finalità
-  newTemplateVersionToConsumer: z.boolean(), // 17: Nuova versione di template
-  templatePropertiesChangedToConsumer: z.boolean(), // 18: Variazione proprietà template
-  templateStatusChangedToConsumer: z.boolean(), // 19: Variazione stato template
+  agreementActivatedRejectedToConsumer: z.boolean(), // 12: Attivazione o rifiuto richiesta di fruizione
+  purposeVersionOverQuotaToConsumer: z.boolean(), // 14: Stato delle soglie di carico
+  purposeActivatedRejectedToConsumer: z.boolean(), // 15: Attivazione o rifiuto finalità
+  purposeSuspendedUnsuspendedToConsumer: z.boolean(), // 16: Sospensione o riattivazione finalità
+  newEserviceTemplateVersionToInstatiator: z.boolean(), // 17: Nuova versione di template
+  eserviceTemplateNameChangedToInstatiator: z.boolean(), // 18: Variazione proprietà template
+  eserviceTemplateStatusChangedToInstantiator: z.boolean(), // 19: Variazione stato template
 
   // Deleghe (Delegations) notifications
-  delegationAcceptanceStatusChangedToDelegator: z.boolean(), // 20: Stato di accettazione di una delega
-  eserviceNewVersionPublicationApprovalRequestToDelegator: z.boolean(), // 21: Richiesta approvazione pubblicazione nuova versione e-service
-  eserviceNewVersionPublicationAcceptanceRejectionToDelegate: z.boolean(), // 22: Accettazione o rifiuto pubblicazione nuova versione e-service
-  receivedDelegationsStatusToDelegate: z.boolean(), // 23: Stato delle deleghe ricevute
+  delegationApprovedRejectedToDelegator: z.boolean(), // 20: Stato di accettazione di una delega
+  eserviceNewVersionSubmittedToDelegator: z.boolean(), // 21: Richiesta approvazione pubblicazione nuova versione e-service
+  eserviceNewVersionApprovedRejectedToDelegate: z.boolean(), // 22: Accettazione o rifiuto pubblicazione nuova versione e-service
+  delegationSubmittedRevokedToDelegate: z.boolean(), // 23: Stato delle deleghe ricevute
 
   // Attributi (Attributes) notifications
-  certifiedVerifiedAttributesGrantRevocationToTenant: z.boolean(), // 24: Conferimento o revoca di attributi certificati o verificati
+  certifiedVerifiedAttributeAssignedRevokedToAssignee: z.boolean(), // 24: Conferimento o revoca di attributi certificati o verificati
 
   // Chiavi (Keys) notifications
-  clientKeysStatusChanged: z.boolean(), // 25: Variazioni sullo stato delle chiavi collegate ad un client
+  clientKeyStatusChangedToClientUsers: z.boolean(), // 25: Variazioni sullo stato delle chiavi collegate ad un client
 });
 export type NotificationConfig = z.infer<typeof NotificationConfig>;
 
