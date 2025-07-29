@@ -45,6 +45,12 @@ import {
   attributeReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import {
+  upsertAgreement,
+  upsertAttribute,
+  upsertDelegation,
+  upsertEService,
+} from "pagopa-interop-readmodel/testUtils";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/config/config.js";
@@ -147,18 +153,18 @@ export const writeAgreementInEventstore = async (
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeAgreementInEventstore(agreement);
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await upsertAgreement(readModelDB, agreement, 0);
 };
 export const writeOnlyOneAgreement = async (
   agreement: Agreement
 ): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 export const updateOneEService = async (eservice: EService): Promise<void> => {
   await eservices.updateOne(
@@ -175,7 +181,7 @@ export const updateOneEService = async (eservice: EService): Promise<void> => {
       },
     }
   );
-  await catalogReadModelServiceSQL.upsertEService(eservice, 1);
+  await upsertEService(readModelDB, eservice, 1);
 };
 
 export const updateOneTenant = async (tenant: Tenant): Promise<void> => {
@@ -203,14 +209,14 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-  await attributeReadModelServiceSQL.upsertAttribute(attribute, 0);
+  await upsertAttribute(readModelDB, attribute, 0);
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
-  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 export const readLastAgreementEvent = async (
@@ -346,10 +352,7 @@ const updateOneAgreementRelationalDB = async (
     throw new Error("Agreement not found in read model. Cannot update.");
   }
 
-  await agreementReadModelServiceSQL.upsertAgreement(
-    agreement,
-    currentVersion + 1
-  );
+  await upsertAgreement(readModelDB, agreement, currentVersion + 1);
 };
 
 async function updateOneAgreementDocumentDB(

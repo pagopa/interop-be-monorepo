@@ -206,6 +206,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EService"
+          headers:
+              X-Metadata-Version:
+                $ref: "#/components/headers/MetadataVersionHeader"
         "404":
           description: E-Service not found
           content:
@@ -3048,8 +3051,7 @@ components:
           type: string
           format: uuid
         version:
-          type: integer
-          format: int32
+          type: string
         description:
           type: string
         audience:

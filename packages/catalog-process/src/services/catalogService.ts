@@ -554,7 +554,7 @@ async function innerCreateEService(
   const draftDescriptor: Descriptor = {
     id: generateId(),
     description: seed.descriptor.description,
-    version: 1,
+    version: "1",
     interface: undefined,
     docs: [],
     state: descriptorState.draft,
@@ -744,15 +744,21 @@ export function catalogServiceBuilder(
           UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
         >
       >
-    ): Promise<EService> {
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      return await applyVisibilityToEService(
+      const data = await applyVisibilityToEService(
         eservice.data,
         authData,
         readModelService
       );
+      return {
+        data,
+        metadata: {
+          version: eservice.metadata.version,
+        },
+      };
     },
 
     async getEServices(
@@ -1711,14 +1717,14 @@ export function catalogServiceBuilder(
             d.state === descriptorState.deprecated ||
             d.state === descriptorState.published
         )
-        .map((d: Descriptor) => d.version);
+        .map((d: Descriptor) => parseInt(d.version, 10));
       const recentDescriptorVersion = Math.max(...descriptorVersions);
 
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       const event = () => {
         if (
           recentDescriptorVersion !== null &&
-          descriptor.version === recentDescriptorVersion
+          parseInt(descriptor.version, 10) === recentDescriptorVersion
         ) {
           const newEservice = replaceDescriptor(
             eservice.data,
@@ -1854,7 +1860,7 @@ export function catalogServiceBuilder(
           {
             ...descriptor,
             id: generateId(),
-            version: 1,
+            version: "1",
             interface: clonedInterfaceDocument,
             docs: clonedDocuments,
             state: descriptorState.draft,

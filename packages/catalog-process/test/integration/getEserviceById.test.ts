@@ -81,7 +81,7 @@ describe("get eservice by id", () => {
       eservice1.id,
       getMockContext({ authData })
     );
-    expect(result).toStrictEqual(eservice1);
+    expect(result.data).toStrictEqual(eservice1);
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
@@ -172,12 +172,12 @@ describe("get eservice by id", () => {
         async (context) => {
           const descriptorA: Descriptor = {
             ...getMockDescriptor(),
-            version: 1,
+            version: "1",
             state,
           };
           const descriptorB: Descriptor = {
             ...getMockDescriptor(),
-            version: 2,
+            version: "2",
             state: descriptorState.published,
             interface: mockDocument,
             publishedAt: new Date(),
@@ -191,7 +191,7 @@ describe("get eservice by id", () => {
             eservice.id,
             context
           );
-          expect(result.descriptors).toEqual([descriptorB]);
+          expect(result.data.descriptors).toEqual([descriptorB]);
         }
       );
     }
@@ -203,12 +203,12 @@ describe("get eservice by id", () => {
       it("if the eservice has both of that state and not (requester is the producer, but user role is 'security')", async () => {
         const descriptorA: Descriptor = {
           ...getMockDescriptor(),
-          version: 1,
+          version: "1",
           state,
         };
         const descriptorB: Descriptor = {
           ...getMockDescriptor(),
-          version: 2,
+          version: "2",
           state: descriptorState.published,
           interface: mockDocument,
           publishedAt: new Date(),
@@ -226,18 +226,18 @@ describe("get eservice by id", () => {
           eservice.id,
           getMockContext({ authData })
         );
-        expect(result.descriptors).toEqual([descriptorB]);
+        expect(result.data.descriptors).toEqual([descriptorB]);
       });
 
       it("if the eservice has both of that state and not (requester is delegate, but user role is 'security')", async () => {
         const descriptorA: Descriptor = {
           ...getMockDescriptor(),
-          version: 1,
+          version: "1",
           state,
         };
         const descriptorB: Descriptor = {
           ...getMockDescriptor(),
-          version: 2,
+          version: "2",
           state: descriptorState.published,
           interface: mockDocument,
           publishedAt: new Date(),
@@ -262,7 +262,7 @@ describe("get eservice by id", () => {
           eservice.id,
           getMockContext({ authData })
         );
-        expect(result.descriptors).toEqual([descriptorB]);
+        expect(result.data.descriptors).toEqual([descriptorB]);
       });
     }
   );
@@ -275,12 +275,12 @@ describe("get eservice by id", () => {
         async (context) => {
           const descriptorA: Descriptor = {
             ...getMockDescriptor(),
-            version: 1,
+            version: "1",
             state,
           };
           const descriptorB: Descriptor = {
             ...getMockDescriptor(),
-            version: 2,
+            version: "2",
             state: descriptorState.published,
             interface: mockDocument,
             publishedAt: new Date(),
@@ -295,7 +295,7 @@ describe("get eservice by id", () => {
             eservice.id,
             context
           );
-          expect(result.descriptors).toEqual([descriptorA, descriptorB]);
+          expect(result.data.descriptors).toEqual([descriptorA, descriptorB]);
         }
       );
 
@@ -304,12 +304,12 @@ describe("get eservice by id", () => {
         async (context) => {
           const descriptorA: Descriptor = {
             ...getMockDescriptor(),
-            version: 1,
+            version: "1",
             state,
           };
           const descriptorB: Descriptor = {
             ...getMockDescriptor(),
-            version: 2,
+            version: "2",
             state: descriptorState.published,
             interface: mockDocument,
             publishedAt: new Date(),
@@ -330,7 +330,7 @@ describe("get eservice by id", () => {
             eservice.id,
             context
           );
-          expect(result.descriptors).toEqual([descriptorA, descriptorB]);
+          expect(result.data.descriptors).toEqual([descriptorA, descriptorB]);
         }
       );
     }
