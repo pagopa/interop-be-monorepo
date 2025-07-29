@@ -301,8 +301,8 @@ export type PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL =
 export type PurposeTemplateItemsSQL = {
   purposeTemplateSQL: PurposeTemplateSQL;
   eserviceDescriptorVersionsSQL: PurposeTemplateEServiceDescriptorVersionSQL[];
-  riskAnalysisFormSQL: PurposeTemplateRiskAnalysisFormSQL | undefined;
-  riskAnalysisAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
-  riskAnalysisAnswerAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
-  riskAnalysisAnswerAnnotationDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+  riskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSQL | undefined;
+  riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
+  riskAnalysisTemplateAnswerAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
+  riskAnalysisTemplateAnswerAnnotationDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
 };
