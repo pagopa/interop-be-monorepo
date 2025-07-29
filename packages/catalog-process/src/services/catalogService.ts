@@ -3438,7 +3438,7 @@ async function applyVisibilityToEService(
 
     const producerDelegation = await readModelService.getLatestDelegation({
       eserviceId: eservice.id,
-      states: [delegationState.active, delegationState.waitingForApproval],
+      states: [delegationState.active],
       kind: delegationKind.delegatedProducer,
     });
 

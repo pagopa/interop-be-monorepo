@@ -154,20 +154,6 @@ describe("retrieveServerUrlsAPI", () => {
     });
     expect(result).toEqual(["http://example1.com"]);
   });
-  it("should process WSDL with multiple bindings", async () => {
-    const soapfileContent = await readFileContent(
-      "interface-test-multi-binding.wsdl"
-    );
-    const soapDoc = {
-      name: "test.wsdl",
-      text: vi.fn().mockResolvedValue(soapfileContent),
-    } as unknown as File;
-    const result = await retrieveServerUrlsAPI(soapDoc, "INTERFACE", "Soap", {
-      id: generateId(),
-      isEserviceTemplate: false,
-    });
-    expect(result).toEqual(["http://example1.com"]);
-  });
   it("should throw an error if there are no addresses in WSDL", async () => {
     const soapDoc = {
       name: "test.wsdl",

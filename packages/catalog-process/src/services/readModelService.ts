@@ -257,12 +257,7 @@ export function readModelServiceBuilder(
                           delegations: {
                             $elemMatch: {
                               "data.delegateId": authData.organizationId,
-                              "data.state": {
-                                $in: [
-                                  delegationState.active,
-                                  delegationState.waitingForApproval,
-                                ],
-                              },
+                              "data.state": delegationState.active,
                               "data.kind": delegationKind.delegatedProducer,
                             },
                           },
@@ -281,12 +276,7 @@ export function readModelServiceBuilder(
                           delegations: {
                             $elemMatch: {
                               "data.delegateId": authData.organizationId,
-                              "data.state": {
-                                $in: [
-                                  delegationState.active,
-                                  delegationState.waitingForApproval,
-                                ],
-                              },
+                              "data.state": delegationState.active,
                               "data.kind": delegationKind.delegatedProducer,
                             },
                           },
