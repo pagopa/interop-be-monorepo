@@ -12,7 +12,6 @@ export const NotificationConfig = z.object({
   agreementManagementToProducer: z.boolean(), // 03: Gestione richieste di fruizione
   clientAddedRemovedToProducer: z.boolean(), // 05: Associazione di un client da parte del fruitore
   purposeStatusChangedToProducer: z.boolean(), // 07: Variazione stato di una finalità
-  templateInstantiatedToProducer: z.boolean(), // 08: Istanziazione del template
   templateStatusChangedToProducer: z.boolean(), // 09: Variazione stato template
 
   // Fruizione (Consumer) notifications
