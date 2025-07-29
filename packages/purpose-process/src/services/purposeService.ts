@@ -1036,7 +1036,7 @@ export function purposeServiceBuilder(
             purposeOwnership: ownership.PRODUCER,
           },
           () => {
-            throw tenantIsNotTheConsumer(authData.organizationId);
+            throw tenantIsNotTheConsumer(authData.organizationId, delegationId);
           }
         )
         .with(
@@ -1045,7 +1045,7 @@ export function purposeServiceBuilder(
             purposeOwnership: ownership.CONSUMER,
           },
           () => {
-            throw tenantIsNotTheProducer(authData.organizationId);
+            throw tenantIsNotTheProducer(authData.organizationId, delegationId);
           }
         )
         .with(
