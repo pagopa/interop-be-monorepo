@@ -14,99 +14,15 @@ import {
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, lte, SQL } from "drizzle-orm";
-import { splitEServiceTemplateIntoObjectsSQL } from "./eservice-template/splitters.js";
+import { eq, SQL } from "drizzle-orm";
 import {
   aggregateEServiceTemplate,
   toEServiceTemplateAggregator,
 } from "./eservice-template/aggregators.js";
-import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
-    // eslint-disable-next-line sonarjs/cognitive-complexity
-    async upsertEServiceTemplate(
-      eserviceTemplate: EServiceTemplate,
-      metadataVersion: number
-    ): Promise<void> {
-      await db.transaction(async (tx) => {
-        const shouldUpsert = await checkMetadataVersion(
-          tx,
-          eserviceTemplateInReadmodelEserviceTemplate,
-          metadataVersion,
-          eserviceTemplate.id
-        );
-
-        if (!shouldUpsert) {
-          return;
-        }
-
-        await tx
-          .delete(eserviceTemplateInReadmodelEserviceTemplate)
-          .where(
-            eq(
-              eserviceTemplateInReadmodelEserviceTemplate.id,
-              eserviceTemplate.id
-            )
-          );
-
-        const {
-          eserviceTemplateSQL,
-          riskAnalysesSQL,
-          riskAnalysisAnswersSQL,
-          versionsSQL,
-          attributesSQL,
-          interfacesSQL,
-          documentsSQL,
-        } = splitEServiceTemplateIntoObjectsSQL(
-          eserviceTemplate,
-          metadataVersion
-        );
-
-        await tx
-          .insert(eserviceTemplateInReadmodelEserviceTemplate)
-          .values(eserviceTemplateSQL);
-
-        for (const versionSQL of versionsSQL) {
-          await tx
-            .insert(eserviceTemplateVersionInReadmodelEserviceTemplate)
-            .values(versionSQL);
-        }
-
-        for (const interfaceSQL of interfacesSQL) {
-          await tx
-            .insert(eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate)
-            .values(interfaceSQL);
-        }
-
-        for (const docSQL of documentsSQL) {
-          await tx
-            .insert(eserviceTemplateVersionDocumentInReadmodelEserviceTemplate)
-            .values(docSQL);
-        }
-
-        for (const attributeSQL of attributesSQL) {
-          await tx
-            .insert(eserviceTemplateVersionAttributeInReadmodelEserviceTemplate)
-            .values(attributeSQL);
-        }
-
-        for (const riskAnalysisSQL of riskAnalysesSQL) {
-          await tx
-            .insert(eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate)
-            .values(riskAnalysisSQL);
-        }
-
-        for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
-          await tx
-            .insert(
-              eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate
-            )
-            .values(riskAnalysisAnswerSQL);
-        }
-      });
-    },
     async getEServiceTemplateById(
       eserviceTemplateId: EServiceTemplateId
     ): Promise<WithMetadata<EServiceTemplate> | undefined> {
@@ -199,28 +115,8 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
         toEServiceTemplateAggregator(queryResult)
       );
     },
-    async deleteEServiceTemplateById(
-      eserviceTemplateId: EServiceTemplateId,
-      metadataVersion: number
-    ): Promise<void> {
-      await db
-        .delete(eserviceTemplateInReadmodelEserviceTemplate)
-        .where(
-          and(
-            eq(
-              eserviceTemplateInReadmodelEserviceTemplate.id,
-              eserviceTemplateId
-            ),
-            lte(
-              eserviceTemplateInReadmodelEserviceTemplate.metadataVersion,
-              metadataVersion
-            )
-          )
-        );
-    },
   };
 }
-
 export type EServiceTemplateReadModelService = ReturnType<
   typeof eserviceTemplateReadModelServiceBuilder
 >;
