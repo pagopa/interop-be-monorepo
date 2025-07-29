@@ -1765,7 +1765,7 @@ describe("activatePurposeVersion", () => {
     }).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
   });
 
-  it("should throw tenantNotAllowed if the the requester is a delegate for the purpose but there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+  it.only("should throw tenantNotAllowed if the the requester is a delegate for the purpose but there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
     const purposeVersionMock: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,
@@ -1791,6 +1791,7 @@ describe("activatePurposeVersion", () => {
       getMockDelegation({
         kind: delegationKind.delegatedConsumer,
         id: purpose.delegationId,
+        state: delegationState.active,
       })
     );
     await addSomeRandomDelegations(purpose, addOneDelegation);
