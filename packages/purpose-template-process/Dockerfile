@@ -12,18 +12,11 @@ COPY pnpm-workspace.yaml /app/
 COPY .npmrc /app/
 
 COPY ./packages/purpose-template-process/package.json /app/packages/purpose-template-process/package.json
+COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
+COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
+COPY ./packages/readmodel-models/package.json /app/packages/readmodel-models/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
-
-# Install dependencies for Puppeteer
-RUN apt-get update && \
-  apt-get install -y --no-install-recommends \
-  chromium \
-  ca-certificates 
-
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-
-RUN groupadd -r app && useradd -rm -g app -G audio,video app
 
 COPY --from=build /out /app
 
