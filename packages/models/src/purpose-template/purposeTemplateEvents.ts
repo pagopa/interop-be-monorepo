@@ -7,6 +7,9 @@ import {
   PurposeTemplateArchivedV2,
   PurposeTemplateDraftDeletedV2,
   PurposeTemplateDraftUpdatedV2,
+  PurposeTemplateEserviceLinkedAddedV2,
+  PurposeTemplateEserviceLinkedPublishedV2,
+  PurposeTemplateEserviceLinkedUpdatedV2,
   PurposeTemplatePublishedV2,
   PurposeTemplateSuspendedV2,
   PurposeTemplateUnsuspendedV2,
@@ -15,13 +18,38 @@ import {
 export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
   z.object({
     event_version: z.literal(2),
+    type: z.literal("PurposeTemplateAdded"),
+    data: protobufDecoder(PurposeTemplateAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeTemplateEserviceLinkedAdded"),
+    data: protobufDecoder(PurposeTemplateEserviceLinkedAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeTemplateDraftUpdated"),
+    data: protobufDecoder(PurposeTemplateDraftUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeTemplateDraftDeleted"),
+    data: protobufDecoder(PurposeTemplateDraftDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeTemplateEserviceLinkedUpdated"),
+    data: protobufDecoder(PurposeTemplateEserviceLinkedUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
     type: z.literal("PurposeTemplatePublished"),
     data: protobufDecoder(PurposeTemplatePublishedV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("PurposeTemplateAdded"),
-    data: protobufDecoder(PurposeTemplateAddedV2),
+    type: z.literal("PurposeTemplateEserviceLinkedPublished"),
+    data: protobufDecoder(PurposeTemplateEserviceLinkedPublishedV2),
   }),
   z.object({
     event_version: z.literal(2),
@@ -38,16 +66,6 @@ export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
     type: z.literal("PurposeTemplateArchived"),
     data: protobufDecoder(PurposeTemplateArchivedV2),
   }),
-  z.object({
-    event_version: z.literal(2),
-    type: z.literal("PurposeTemplateDraftUpdated"),
-    data: protobufDecoder(PurposeTemplateDraftUpdatedV2),
-  }),
-  z.object({
-    event_version: z.literal(2),
-    type: z.literal("PurposeTemplateDraftDeleted"),
-    data: protobufDecoder(PurposeTemplateDraftDeletedV2),
-  }),
 ]);
 export type PurposeTemplateEventV2 = z.infer<typeof PurposeTemplateEventV2>;
 
@@ -55,26 +73,35 @@ export function purposeTemplateEventToBinaryDataV2(
   event: PurposeTemplateEventV2
 ): Uint8Array {
   return match(event)
-    .with({ type: "PurposeTemplatePublished" }, ({ data }) =>
-      PurposeTemplatePublishedV2.toBinary(data)
+    .with({ type: "PurposeTemplateAdded" }, (e) =>
+      PurposeTemplateAddedV2.toBinary(e.data)
     )
-    .with({ type: "PurposeTemplateAdded" }, ({ data }) =>
-      PurposeTemplateAddedV2.toBinary(data)
+    .with({ type: "PurposeTemplateEserviceLinkedAdded" }, (e) =>
+      PurposeTemplateEserviceLinkedAddedV2.toBinary(e.data)
     )
-    .with({ type: "PurposeTemplateUnsuspended" }, ({ data }) =>
-      PurposeTemplateUnsuspendedV2.toBinary(data)
+    .with({ type: "PurposeTemplateDraftUpdated" }, (e) =>
+      PurposeTemplateDraftUpdatedV2.toBinary(e.data)
     )
-    .with({ type: "PurposeTemplateSuspended" }, ({ data }) =>
-      PurposeTemplateSuspendedV2.toBinary(data)
+    .with({ type: "PurposeTemplateDraftDeleted" }, (e) =>
+      PurposeTemplateDraftDeletedV2.toBinary(e.data)
     )
-    .with({ type: "PurposeTemplateArchived" }, ({ data }) =>
-      PurposeTemplateArchivedV2.toBinary(data)
+    .with({ type: "PurposeTemplateEserviceLinkedUpdated" }, (e) =>
+      PurposeTemplateEserviceLinkedUpdatedV2.toBinary(e.data)
     )
-    .with({ type: "PurposeTemplateDraftUpdated" }, ({ data }) =>
-      PurposeTemplateDraftUpdatedV2.toBinary(data)
+    .with({ type: "PurposeTemplatePublished" }, (e) =>
+      PurposeTemplatePublishedV2.toBinary(e.data)
     )
-    .with({ type: "PurposeTemplateDraftDeleted" }, ({ data }) =>
-      PurposeTemplateDraftDeletedV2.toBinary(data)
+    .with({ type: "PurposeTemplateEserviceLinkedPublished" }, (e) =>
+      PurposeTemplateEserviceLinkedPublishedV2.toBinary(e.data)
+    )
+    .with({ type: "PurposeTemplateUnsuspended" }, (e) =>
+      PurposeTemplateUnsuspendedV2.toBinary(e.data)
+    )
+    .with({ type: "PurposeTemplateSuspended" }, (e) =>
+      PurposeTemplateSuspendedV2.toBinary(e.data)
+    )
+    .with({ type: "PurposeTemplateArchived" }, (e) =>
+      PurposeTemplateArchivedV2.toBinary(e.data)
     )
     .exhaustive();
 }
