@@ -25,6 +25,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertEService,
   upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
 import { notificationEmailSenderServiceBuilder } from "../src/services/notificationEmailSenderService.js";
@@ -128,7 +129,7 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
     readModelRepository.eservices
   );
 
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
