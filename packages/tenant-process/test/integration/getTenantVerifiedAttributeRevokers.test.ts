@@ -1,48 +1,48 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   Tenant,
-  TenantRevoker,
   generateId,
   TenantId,
   AttributeId,
   VerifiedTenantAttribute,
   tenantAttributeType,
-  DelegationId,
+  TenantRevoker,
 } from "pagopa-interop-models";
 import { getMockContext, getMockTenant } from "pagopa-interop-commons-test";
 import { addOneTenant, tenantService } from "../integrationUtils.js";
+import {
+  getMockVerifiedTenantAttribute,
+  getMockCertifiedTenantAttribute,
+} from "../mockUtils.js";
 
 describe("getTenantVerifiedAttributeRevokers", () => {
   const tenantId: TenantId = generateId();
   const attributeId: AttributeId = generateId();
   const revoker1Id: TenantId = generateId();
   const revoker2Id: TenantId = generateId();
-  const delegationId: DelegationId = generateId();
 
   const revoker1: TenantRevoker = {
     id: revoker1Id,
-    verificationDate: new Date("2024-01-01"),
-    expirationDate: new Date("2025-01-01"),
-    extensionDate: new Date("2025-06-01"),
-    revocationDate: new Date("2024-06-01"),
-    delegationId,
+    verificationDate: new Date("2024-01-01T10:00:00Z"),
+    revocationDate: new Date("2024-06-01T10:00:00Z"),
+    expirationDate: undefined,
+    extensionDate: undefined,
   };
 
   const revoker2: TenantRevoker = {
     id: revoker2Id,
-    verificationDate: new Date("2024-02-01"),
-    expirationDate: new Date("2025-02-01"),
+    verificationDate: new Date("2024-02-01T10:00:00Z"),
+    revocationDate: new Date("2024-07-01T10:00:00Z"),
+    expirationDate: undefined,
     extensionDate: undefined,
-    revocationDate: new Date("2024-07-01"),
-    delegationId: undefined,
   };
 
   const verifiedAttribute: VerifiedTenantAttribute = {
-    type: tenantAttributeType.VERIFIED,
+    ...getMockVerifiedTenantAttribute(),
     id: attributeId,
     assignmentTimestamp: new Date("2024-01-01"),
     verifiedBy: [],
-    revokedBy: [revoker1, revoker2],
+    revokedBy: [],
   };
 
   const tenant: Tenant = {
@@ -54,16 +54,30 @@ describe("getTenantVerifiedAttributeRevokers", () => {
   beforeEach(async () => {
     await addOneTenant({
       ...getMockTenant(),
-      ...revoker1,
+      id: revoker1Id,
     });
     await addOneTenant({
       ...getMockTenant(),
-      ...revoker2,
+      id: revoker2Id,
     });
   });
 
   it("should retrieve revokers for a verified attribute", async () => {
-    await addOneTenant(tenant);
+    const tenantWithRevokers: Tenant = {
+      ...getMockTenant(),
+      id: tenantId,
+      attributes: [
+        {
+          ...getMockVerifiedTenantAttribute(),
+          id: attributeId,
+          assignmentTimestamp: new Date("2024-01-01"),
+          verifiedBy: [],
+          revokedBy: [revoker1, revoker2],
+        },
+      ],
+    };
+
+    await addOneTenant(tenantWithRevokers);
 
     const result = await tenantService.getTenantVerifiedAttributeRevokers(
       tenantId,
@@ -78,24 +92,32 @@ describe("getTenantVerifiedAttributeRevokers", () => {
     expect(result.results[0]).toEqual({
       id: revoker1Id,
       verificationDate: revoker1.verificationDate.toISOString(),
-      expirationDate: revoker1.expirationDate?.toISOString(),
-      extensionDate: revoker1.extensionDate?.toISOString(),
       revocationDate: revoker1.revocationDate.toISOString(),
-      delegationId: revoker1.delegationId,
     });
 
     expect(result.results[1]).toEqual({
       id: revoker2Id,
       verificationDate: revoker2.verificationDate.toISOString(),
-      expirationDate: revoker2.expirationDate?.toISOString(),
-      extensionDate: revoker2.extensionDate,
       revocationDate: revoker2.revocationDate.toISOString(),
-      delegationId: revoker2.delegationId,
     });
   });
 
   it("should handle pagination correctly", async () => {
-    await addOneTenant(tenant);
+    const tenantWithRevokers: Tenant = {
+      ...getMockTenant(),
+      id: tenantId,
+      attributes: [
+        {
+          ...getMockVerifiedTenantAttribute(),
+          id: attributeId,
+          assignmentTimestamp: new Date("2024-01-01"),
+          verifiedBy: [],
+          revokedBy: [revoker1, revoker2],
+        },
+      ],
+    };
+
+    await addOneTenant(tenantWithRevokers);
 
     const firstPage = await tenantService.getTenantVerifiedAttributeRevokers(
       tenantId,
@@ -150,7 +172,7 @@ describe("getTenantVerifiedAttributeRevokers", () => {
 
   it("should return empty results when attribute has no revokers", async () => {
     const attributeWithoutRevokers: VerifiedTenantAttribute = {
-      type: tenantAttributeType.VERIFIED,
+      ...getMockVerifiedTenantAttribute(),
       id: generateId(),
       assignmentTimestamp: new Date("2024-01-01"),
       verifiedBy: [],
@@ -185,10 +207,8 @@ describe("getTenantVerifiedAttributeRevokers", () => {
       id: generateId(),
       attributes: [
         {
-          type: tenantAttributeType.CERTIFIED,
+          ...getMockCertifiedTenantAttribute(),
           id: certifiedAttributeId,
-          assignmentTimestamp: new Date("2024-01-01"),
-          revocationTimestamp: undefined,
         },
         {
           type: tenantAttributeType.DECLARED,
@@ -196,7 +216,13 @@ describe("getTenantVerifiedAttributeRevokers", () => {
           assignmentTimestamp: new Date("2024-01-01"),
           revocationTimestamp: undefined,
         },
-        verifiedAttribute,
+        {
+          ...getMockVerifiedTenantAttribute(),
+          id: attributeId,
+          assignmentTimestamp: new Date("2024-01-01"),
+          verifiedBy: [],
+          revokedBy: [revoker1, revoker2],
+        },
       ],
     };
 
