@@ -50,15 +50,11 @@ const Config = z
     SCALA_READMODEL_DB_USERNAME: z.string(),
     SCALA_READMODEL_DB_PASSWORD: z.string(),
     SCALA_READMODEL_DB_PORT: z.coerce.number().min(1001),
-    SCALA_READMODEL_DB_READ_PREFERENCE: z.string().optional(),
-    SCALA_READMODEL_DB_REPLICA_SET: z.string().optional(),
     NODE_READMODEL_DB_HOST: z.string(),
     NODE_READMODEL_DB_NAME: z.string(),
     NODE_READMODEL_DB_USERNAME: z.string(),
     NODE_READMODEL_DB_PASSWORD: z.string(),
     NODE_READMODEL_DB_PORT: z.coerce.number().min(1001),
-    NODE_READMODEL_DB_READ_PREFERENCE: z.string().optional(),
-    NODE_READMODEL_DB_REPLICA_SET: z.string().optional(),
   })
   .transform((c) => ({
     nodeCollectionName: c.NODE_COLLECTION_NAME,
@@ -69,8 +65,6 @@ const Config = z
       readModelDbUsername: c.SCALA_READMODEL_DB_USERNAME,
       readModelDbPassword: c.SCALA_READMODEL_DB_PASSWORD,
       readModelDbPort: c.SCALA_READMODEL_DB_PORT,
-      readModelDbReadPreference: c.SCALA_READMODEL_DB_READ_PREFERENCE,
-      readModelDbReplicaSet: c.SCALA_READMODEL_DB_REPLICA_SET,
     },
     nodeReadModelConfig: {
       readModelDbHost: c.NODE_READMODEL_DB_HOST,
@@ -78,8 +72,6 @@ const Config = z
       readModelDbUsername: c.NODE_READMODEL_DB_USERNAME,
       readModelDbPassword: c.NODE_READMODEL_DB_PASSWORD,
       readModelDbPort: c.NODE_READMODEL_DB_PORT,
-      readModelDbReadPreference: c.NODE_READMODEL_DB_READ_PREFERENCE,
-      readModelDbReplicaSet: c.NODE_READMODEL_DB_REPLICA_SET,
     },
   }));
 

@@ -7,8 +7,6 @@ export const ReadModelDbConfig = z
     READMODEL_DB_USERNAME: z.string(),
     READMODEL_DB_PASSWORD: z.string(),
     READMODEL_DB_PORT: z.coerce.number().min(1001),
-    READMODEL_DB_READ_PREFERENCE: z.string().optional(),
-    READMODEL_DB_REPLICA_SET: z.string().optional(),
   })
   .transform((c) => ({
     readModelDbHost: c.READMODEL_DB_HOST,
@@ -16,8 +14,6 @@ export const ReadModelDbConfig = z
     readModelDbUsername: c.READMODEL_DB_USERNAME,
     readModelDbPassword: c.READMODEL_DB_PASSWORD,
     readModelDbPort: c.READMODEL_DB_PORT,
-    readModelDbReadPreference: c.READMODEL_DB_READ_PREFERENCE,
-    readModelDbReplicaSet: c.READMODEL_DB_REPLICA_SET,
   }));
 
 export type ReadModelDbConfig = z.infer<typeof ReadModelDbConfig>;

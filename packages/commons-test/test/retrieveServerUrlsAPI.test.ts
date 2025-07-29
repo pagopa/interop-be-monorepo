@@ -102,29 +102,6 @@ describe("retrieveServerUrlsAPI", () => {
       expect.arrayContaining(["https://host.com/TestWS/v1"])
     );
   });
-  it("should process SOAP 1.2 interface with WSDL", async () => {
-    const soapfileContent = await readFileContent("interface-test-soap12.wsdl");
-    const soapDoc = {
-      name: "test.wsdl",
-      text: vi.fn().mockResolvedValue(soapfileContent),
-    } as unknown as File;
-
-    const urls = await retrieveServerUrlsAPI(
-      soapDoc,
-      "INTERFACE",
-      technology.soap,
-      { id: generateId(), isEserviceTemplate: false }
-    );
-
-    expect(urls).toBeInstanceOf(Array);
-    expect(urls.length).toBeGreaterThan(0);
-    expect(urls).toEqual(
-      expect.arrayContaining([
-        "http://example.com/tst/service",
-        "http://example.com/tst/service-2",
-      ])
-    );
-  });
   it("should process WSDL with multiple addresses", async () => {
     const soapfileContent = await readFileContent(
       "interface-test-multi-server-urls.wsdl"
