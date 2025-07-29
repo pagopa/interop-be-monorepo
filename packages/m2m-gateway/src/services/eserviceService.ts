@@ -220,5 +220,22 @@ export function eserviceServiceBuilder(
       await pollEserviceById(eServiceId, metadata, headers);
       return toM2MGatewayApiEService(data);
     },
+    async publishDescriptor(
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Publishing descriptor with id ${descriptorId} for eservice with id ${eServiceId}`
+      );
+
+      const { data, metadata } =
+        await clients.catalogProcessClient.publishDescriptor(undefined, {
+          params: { eServiceId, descriptorId },
+          headers,
+        });
+      await pollEserviceById(eServiceId, metadata, headers);
+      return toM2MGatewayApiEService(data);
+    },
   };
 }
