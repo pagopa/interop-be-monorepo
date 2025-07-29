@@ -20,7 +20,10 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/producerKeychainConsumerServiceV2.js";
-import { producerKeychainReadModelService } from "./utils.js";
+import {
+  producerKeychainReadModelService,
+  producerKeychainWriterService,
+} from "./utils.js";
 
 describe("Events V2", async () => {
   const mockProducerKeychain = getMockProducerKeychain();
@@ -43,7 +46,7 @@ describe("Events V2", async () => {
       data: payload,
     };
 
-    await handleMessageV2(message, producerKeychainReadModelService);
+    await handleMessageV2(message, producerKeychainWriterService);
 
     const retrievedProducerKeychain =
       await producerKeychainReadModelService.getProducerKeychainById(
@@ -57,7 +60,7 @@ describe("Events V2", async () => {
   });
 
   it("ProducerKeychainKeyAdded", async () => {
-    await producerKeychainReadModelService.upsertProducerKeychain(
+    await producerKeychainWriterService.upsertProducerKeychain(
       mockProducerKeychain,
       1
     );
@@ -79,7 +82,7 @@ describe("Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, producerKeychainReadModelService);
+    await handleMessageV2(message, producerKeychainWriterService);
 
     const retrievedProducerKeychain =
       await producerKeychainReadModelService.getProducerKeychainById(
@@ -98,7 +101,7 @@ describe("Events V2", async () => {
       ...mockProducerKeychain,
       keys: [key],
     };
-    await producerKeychainReadModelService.upsertProducerKeychain(
+    await producerKeychainWriterService.upsertProducerKeychain(
       producerKeychain,
       1
     );
@@ -117,7 +120,7 @@ describe("Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, producerKeychainReadModelService);
+    await handleMessageV2(message, producerKeychainWriterService);
 
     const retrievedProducerKeychain =
       await producerKeychainReadModelService.getProducerKeychainById(
@@ -128,7 +131,7 @@ describe("Events V2", async () => {
   });
 
   it("ProducerKeychainUserAdded", async () => {
-    await producerKeychainReadModelService.upsertProducerKeychain(
+    await producerKeychainWriterService.upsertProducerKeychain(
       mockProducerKeychain,
       1
     );
@@ -151,7 +154,7 @@ describe("Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, producerKeychainReadModelService);
+    await handleMessageV2(message, producerKeychainWriterService);
 
     const retrievedProducerKeychain =
       await producerKeychainReadModelService.getProducerKeychainById(
@@ -170,7 +173,7 @@ describe("Events V2", async () => {
       ...mockProducerKeychain,
       users: [userId],
     };
-    await producerKeychainReadModelService.upsertProducerKeychain(
+    await producerKeychainWriterService.upsertProducerKeychain(
       producerKeychain,
       1
     );
@@ -189,7 +192,7 @@ describe("Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, producerKeychainReadModelService);
+    await handleMessageV2(message, producerKeychainWriterService);
 
     const retrievedProducerKeychain =
       await producerKeychainReadModelService.getProducerKeychainById(
@@ -200,7 +203,7 @@ describe("Events V2", async () => {
   });
 
   it("ProducerKeychainEServiceAdded", async () => {
-    await producerKeychainReadModelService.upsertProducerKeychain(
+    await producerKeychainWriterService.upsertProducerKeychain(
       mockProducerKeychain,
       1
     );
@@ -223,7 +226,7 @@ describe("Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, producerKeychainReadModelService);
+    await handleMessageV2(message, producerKeychainWriterService);
 
     const retrievedProducerKeychain =
       await producerKeychainReadModelService.getProducerKeychainById(
@@ -242,7 +245,7 @@ describe("Events V2", async () => {
       ...mockProducerKeychain,
       eservices: [eserviceId],
     };
-    await producerKeychainReadModelService.upsertProducerKeychain(
+    await producerKeychainWriterService.upsertProducerKeychain(
       producerKeychain,
       1
     );
@@ -261,7 +264,7 @@ describe("Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, producerKeychainReadModelService);
+    await handleMessageV2(message, producerKeychainWriterService);
 
     const retrievedProducerKeychain =
       await producerKeychainReadModelService.getProducerKeychainById(
