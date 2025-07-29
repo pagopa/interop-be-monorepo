@@ -8365,7 +8365,7 @@ components:
     DelegationRef:
       type: object
       additionalProperties: false
-      description: Set the delegation ID to operate as a delegate for an active producer or consumer delegation
+      description: Set the delegation ID in order to operate as a delegate for an active producer or consumer delegation
       properties:
         delegationId:
           type: string
