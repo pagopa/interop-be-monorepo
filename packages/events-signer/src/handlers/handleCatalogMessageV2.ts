@@ -11,20 +11,21 @@ import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { CatalogEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
-import { calculateSha256Base64 } from "../utils/checksum.js";
+import { processStoredFilesForSafeStorage } from "../utils/safeStorageProcessor.js";
 
 export const handleCatalogMessageV2 = async (
-  decodedMessages: EServiceEventV2[],
+  eventsWithTimestamp: Array<{
+    eserviceV2: EServiceEventV2;
+    timestamp: string;
+  }>,
   logger: Logger,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
   const allCatalogDataToStore: CatalogEventData[] = [];
-
-  for (const message of decodedMessages) {
-    match(message)
+  for (const { eserviceV2, timestamp } of eventsWithTimestamp) {
+    match(eserviceV2)
       .with(
         {
           type: P.union(
@@ -45,7 +46,6 @@ export const handleCatalogMessageV2 = async (
           const eventName = event.type;
           const eserviceId = eservice.id;
           const descriptorId = event.data.descriptorId;
-
           const state = eservice.descriptors.find(
             (descriptor) => descriptor.id === event.data.descriptorId
           )?.state;
@@ -55,6 +55,7 @@ export const handleCatalogMessageV2 = async (
             id: eserviceId,
             descriptor_id: descriptorId,
             state,
+            eventTimestamp: timestamp,
           });
         }
       )
@@ -108,58 +109,26 @@ export const handleCatalogMessageV2 = async (
   }
 
   if (allCatalogDataToStore.length > 0) {
-    const timestamp = new Date();
-    const documentDestinationPath = `catalog/${timestamp}`;
-
-    const result = await storeNdjsonEventData<CatalogEventData>(
+    const storedFiles = await storeNdjsonEventData<CatalogEventData>(
       allCatalogDataToStore,
-      documentDestinationPath,
       fileManager,
       logger,
       config
     );
 
-    if (!result) {
+    if (!storedFiles) {
       throw genericInternalError(
         `S3 storing didn't return a valid key or content`
       );
     }
 
-    const { fileContentBuffer, s3PresignedUrl, fileName } = result;
-
-    const checksum = await calculateSha256Base64(fileContentBuffer);
-
-    logger.info(
-      `Requesting file creation in Safe Storage for ${s3PresignedUrl}...`
+    await processStoredFilesForSafeStorage(
+      storedFiles,
+      logger,
+      dbService,
+      safeStorage,
+      safeStorageApiConfig
     );
-
-    const safeStorageRequest: FileCreationRequest = {
-      contentType: "application/json",
-      documentType: safeStorageApiConfig.safeStorageDocType,
-      status: safeStorageApiConfig.safeStorageDocStatus,
-      checksumValue: checksum,
-    };
-
-    const { uploadUrl, secret, key } = await safeStorage.createFile(
-      safeStorageRequest
-    );
-
-    await safeStorage.uploadFileContent(
-      uploadUrl,
-      fileContentBuffer,
-      "application/json",
-      secret,
-      checksum
-    );
-
-    logger.info("File uploaded to Safe Storage successfully.");
-
-    await dbService.saveSignatureReference({
-      safeStorageId: key,
-      fileKind: "PLATFORM_EVENTS",
-      fileName,
-    });
-    logger.info("Safe Storage reference saved in DynamoDB.");
   } else {
     logger.info("No managed catalog events to store.");
   }

@@ -10,11 +10,13 @@ import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { AuthorizationEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
-import { calculateSha256Base64 } from "../utils/checksum.js";
+import { processStoredFilesForSafeStorage } from "../utils/safeStorageProcessor.js";
 
 export const handleAuthorizationMessageV2 = async (
-  decodedMessages: AuthorizationEventV2[],
+  eventsWithTimestamp: Array<{
+    authV2: AuthorizationEventV2;
+    timestamp: string;
+  }>,
   logger: Logger,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
@@ -22,8 +24,8 @@ export const handleAuthorizationMessageV2 = async (
 ): Promise<void> => {
   const allAuthorizationDataToStore: AuthorizationEventData[] = [];
 
-  for (const message of decodedMessages) {
-    match(message)
+  for (const { authV2, timestamp } of eventsWithTimestamp) {
+    match(authV2)
       .with({ type: "ClientKeyAdded" }, (event) => {
         if (!event.data.client?.id) {
           logger.warn(
@@ -41,14 +43,12 @@ export const handleAuthorizationMessageV2 = async (
           id: clientId,
           user_id: userId,
           kid,
+          eventTimestamp: timestamp,
         });
       })
       .with({ type: "ClientKeyDeleted" }, (event) => {
         if (!event.data.client?.id) {
-          logger.warn(
-            `Skipping ClientKeyDeleted event due to missing client ID.`
-          );
-          return;
+          throw new Error(`Client id cannot be missing on event ${event.type}`);
         }
 
         const clientId = event.data.client.id;
@@ -58,12 +58,12 @@ export const handleAuthorizationMessageV2 = async (
           event_name: event.type,
           id: clientId,
           kid,
+          eventTimestamp: timestamp,
         });
       })
       .with({ type: "ClientDeleted" }, (event) => {
         if (!event.data.client?.id) {
-          logger.warn(`Skipping ClientDeleted event due to missing client ID.`);
-          return;
+          throw new Error(`Client id cannot be missing on event ${event.type}`);
         }
 
         const clientId = event.data.client.id;
@@ -71,6 +71,7 @@ export const handleAuthorizationMessageV2 = async (
         allAuthorizationDataToStore.push({
           event_name: event.type,
           id: clientId,
+          eventTimestamp: timestamp,
         });
       })
       .with(
@@ -100,58 +101,26 @@ export const handleAuthorizationMessageV2 = async (
   }
 
   if (allAuthorizationDataToStore.length > 0) {
-    const timestamp = new Date();
-    const documentDestinationPath = `authorization/${timestamp}`;
-
-    const result = await storeNdjsonEventData<AuthorizationEventData>(
+    const storedFiles = await storeNdjsonEventData<AuthorizationEventData>(
       allAuthorizationDataToStore,
-      documentDestinationPath,
       fileManager,
       logger,
       config
     );
 
-    if (!result) {
+    if (!storedFiles) {
       throw genericInternalError(
         `S3 storing didn't return a valid key or content`
       );
     }
 
-    const { fileContentBuffer, s3PresignedUrl, fileName } = result;
-
-    const checksum = await calculateSha256Base64(fileContentBuffer);
-
-    logger.info(
-      `Requesting file creation in Safe Storage for ${s3PresignedUrl}...`
+    await processStoredFilesForSafeStorage(
+      storedFiles,
+      logger,
+      dbService,
+      safeStorage,
+      safeStorageApiConfig
     );
-
-    const safeStorageRequest: FileCreationRequest = {
-      contentType: "application/json",
-      documentType: safeStorageApiConfig.safeStorageDocType,
-      status: safeStorageApiConfig.safeStorageDocStatus,
-      checksumValue: checksum,
-    };
-
-    const { uploadUrl, secret, key } = await safeStorage.createFile(
-      safeStorageRequest
-    );
-
-    await safeStorage.uploadFileContent(
-      uploadUrl,
-      fileContentBuffer,
-      "application/json",
-      secret,
-      checksum
-    );
-
-    logger.info("File uploaded to Safe Storage successfully.");
-
-    await dbService.saveSignatureReference({
-      safeStorageId: key,
-      fileKind: "PLATFORM_EVENTS",
-      fileName,
-    });
-    logger.info("Safe Storage reference saved in DynamoDB.");
   } else {
     logger.info("No managed authorization events to store.");
   }

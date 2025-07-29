@@ -22,7 +22,6 @@ const safeStorageService = createSafeStorageApiClient(safeStorageApiConfig);
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   const messages: KafkaMessage[] = batch.messages;
-
   await executeTopicHandler(
     messages,
     batch.topic,

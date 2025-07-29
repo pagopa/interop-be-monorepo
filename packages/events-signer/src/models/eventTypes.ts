@@ -4,6 +4,7 @@ export const BaseEventSchema = z.object({
   event_name: z.string(),
   id: z.string().optional(),
   state: z.string().optional(),
+  eventTimestamp: z.string(),
 });
 
 export const PurposeEventSchema = BaseEventSchema.extend({

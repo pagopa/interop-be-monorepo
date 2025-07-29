@@ -43,9 +43,7 @@ export function createSafeStorageApiClient(
         headers: {
           "x-pagopa-safestorage-cx-id": config.safeStorageClientId,
           "x-checksum": "SHA-256",
-          ...(request.checksumValue && {
-            "x-checksum-value": request.checksumValue,
-          }),
+          "x-checksum-value": request.checksumValue,
         },
       });
       return response.data;

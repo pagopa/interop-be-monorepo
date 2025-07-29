@@ -11,11 +11,13 @@ import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { DelegationEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
-import { calculateSha256Base64 } from "../utils/checksum.js";
+import { processStoredFilesForSafeStorage } from "../utils/safeStorageProcessor.js";
 
 export const handleDelegationMessageV2 = async (
-  decodedMessages: DelegationEventV2[],
+  eventsWithTimestamp: Array<{
+    delegationV2: DelegationEventV2;
+    timestamp: string;
+  }>,
   logger: Logger,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
@@ -23,8 +25,8 @@ export const handleDelegationMessageV2 = async (
 ): Promise<void> => {
   const allDelegationDataToStore: DelegationEventData[] = [];
 
-  for (const message of decodedMessages) {
-    match(message)
+  for (const { delegationV2, timestamp } of eventsWithTimestamp) {
+    match(delegationV2)
       .with(
         {
           type: P.union(
@@ -49,6 +51,7 @@ export const handleDelegationMessageV2 = async (
             event_name: eventName,
             id,
             state,
+            eventTimestamp: timestamp,
           });
         }
       )
@@ -69,60 +72,26 @@ export const handleDelegationMessageV2 = async (
   }
 
   if (allDelegationDataToStore.length > 0) {
-    const timestamp = new Date();
-    const documentDestinationPath = `delegations/${timestamp
-      .toISOString()
-      .slice(0, 10)}`;
-
-    const result = await storeNdjsonEventData<DelegationEventData>(
+    const storedFiles = await storeNdjsonEventData<DelegationEventData>(
       allDelegationDataToStore,
-      documentDestinationPath,
       fileManager,
       logger,
       config
     );
 
-    if (!result) {
+    if (!storedFiles) {
       throw genericInternalError(
         `S3 storing didn't return a valid key or content`
       );
     }
 
-    const { fileContentBuffer, s3PresignedUrl, fileName } = result;
-
-    const checksum = await calculateSha256Base64(fileContentBuffer);
-
-    logger.info(
-      `Requesting file creation in Safe Storage for ${s3PresignedUrl}...`
+    await processStoredFilesForSafeStorage(
+      storedFiles,
+      logger,
+      dbService,
+      safeStorage,
+      safeStorageApiConfig
     );
-
-    const safeStorageRequest: FileCreationRequest = {
-      contentType: "application/json",
-      documentType: safeStorageApiConfig.safeStorageDocType,
-      status: safeStorageApiConfig.safeStorageDocStatus,
-      checksumValue: checksum,
-    };
-
-    const { uploadUrl, secret, key } = await safeStorage.createFile(
-      safeStorageRequest
-    );
-
-    await safeStorage.uploadFileContent(
-      uploadUrl,
-      fileContentBuffer,
-      "application/json",
-      secret,
-      checksum
-    );
-
-    logger.info("File uploaded to Safe Storage successfully.");
-
-    await dbService.saveSignatureReference({
-      safeStorageId: key,
-      fileKind: "PLATFORM_EVENTS",
-      fileName,
-    });
-    logger.info("Safe Storage reference saved in DynamoDB.");
   } else {
     logger.info("No managed delegation events to store.");
   }

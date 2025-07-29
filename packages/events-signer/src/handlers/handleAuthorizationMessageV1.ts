@@ -10,11 +10,13 @@ import { config, safeStorageApiConfig } from "../config/config.js";
 import { AuthorizationEventData } from "../models/eventTypes.js";
 import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
-import { calculateSha256Base64 } from "../utils/checksum.js";
+import { processStoredFilesForSafeStorage } from "../utils/safeStorageProcessor.js";
 
 export const handleAuthorizationMessageV1 = async (
-  messages: AuthorizationEventV1[],
+  eventsWithTimestamp: Array<{
+    authV1: AuthorizationEventV1;
+    timestamp: string;
+  }>,
   logger: Logger,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
@@ -22,8 +24,11 @@ export const handleAuthorizationMessageV1 = async (
 ): Promise<void> => {
   const allDataToStore: AuthorizationEventData[] = [];
 
-  for (const message of messages) {
-    match(message)
+  for (const {
+    authV1,
+    timestamp: kafkaMessageTimestamp,
+  } of eventsWithTimestamp) {
+    match(authV1)
       .with({ type: "KeysAdded" }, (event) => {
         for (const key of event.data.keys) {
           const clientId = event.data.clientId;
@@ -32,24 +37,26 @@ export const handleAuthorizationMessageV1 = async (
           const timestamp = key.value?.createdAt;
 
           allDataToStore.push({
-            event_name: event.type,
+            event_name: authV1.type,
             id: clientId,
             kid,
             user_id: userId,
             timestamp,
+            eventTimestamp: kafkaMessageTimestamp,
           });
         }
       })
       .with({ type: "KeyDeleted" }, (event) => {
         const clientId = event.data.clientId;
         const kid = event.data.keyId;
-        const timestamp = event.data.deactivationTimestamp;
+        const deactivationTimestamp = event.data.deactivationTimestamp;
 
         allDataToStore.push({
-          event_name: event.type,
+          event_name: authV1.type,
           id: clientId,
           kid,
-          timestamp,
+          timestamp: deactivationTimestamp,
+          eventTimestamp: kafkaMessageTimestamp,
         });
       })
       .with(
@@ -72,57 +79,26 @@ export const handleAuthorizationMessageV1 = async (
   }
 
   if (allDataToStore.length > 0) {
-    const timestamp = new Date();
-    const documentDestinationPath = `authorization/events/${timestamp}`;
-
-    const result = await storeNdjsonEventData(
+    const storedFiles = await storeNdjsonEventData(
       allDataToStore,
-      documentDestinationPath,
       fileManager,
       logger,
       config
     );
 
-    if (!result) {
+    if (!storedFiles) {
       throw genericInternalError(
         `S3 storing didn't return a valid key or content`
       );
     }
 
-    const { fileContentBuffer, s3PresignedUrl, fileName } = result;
-
-    const checksum = await calculateSha256Base64(fileContentBuffer);
-
-    logger.info(
-      `Requesting file creation in Safe Storage for ${s3PresignedUrl}...`
+    await processStoredFilesForSafeStorage(
+      storedFiles,
+      logger,
+      dbService,
+      safeStorage,
+      safeStorageApiConfig
     );
-
-    const safeStorageRequest: FileCreationRequest = {
-      contentType: "application/json",
-      documentType: safeStorageApiConfig.safeStorageDocType,
-      status: safeStorageApiConfig.safeStorageDocStatus,
-      checksumValue: checksum,
-    };
-
-    const { uploadUrl, secret, key } = await safeStorage.createFile(
-      safeStorageRequest
-    );
-
-    await safeStorage.uploadFileContent(
-      uploadUrl,
-      fileContentBuffer,
-      "application/json",
-      secret,
-      checksum
-    );
-
-    logger.info("File uploaded to Safe Storage successfully.");
-
-    await dbService.saveSignatureReference({
-      safeStorageId: key,
-      fileKind: "PLATFORM_EVENTS",
-      fileName,
-    });
     logger.info("Safe Storage reference saved in DynamoDB.");
   } else {
     logger.info("No authorization events to store.");

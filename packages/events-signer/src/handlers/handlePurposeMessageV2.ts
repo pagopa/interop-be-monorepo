@@ -15,11 +15,9 @@ import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { PurposeEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
-import { calculateSha256Base64 } from "../utils/checksum.js";
-
+import { processStoredFilesForSafeStorage } from "../utils/safeStorageProcessor.js";
 export const handlePurposeMessageV2 = async (
-  decodedMessages: PurposeEventV2[],
+  eventsWithTimestamp: Array<{ purposeV2: PurposeEventV2; timestamp: string }>,
   logger: Logger,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
@@ -27,8 +25,8 @@ export const handlePurposeMessageV2 = async (
 ): Promise<void> => {
   const allPurposeDataToStore: PurposeEventData[] = [];
 
-  for (const message of decodedMessages) {
-    match(message)
+  for (const { purposeV2, timestamp } of eventsWithTimestamp) {
+    match(purposeV2)
       .with({ type: "PurposeAdded" }, (event) => {
         if (!event.data.purpose?.id) {
           throw genericInternalError(
@@ -45,6 +43,7 @@ export const handlePurposeMessageV2 = async (
           id: event.data.purpose.id,
           state,
           versionId: version?.id,
+          eventTimestamp: timestamp, // Use the timestamp from KafkaMessage
         });
       })
       .with({ type: "PurposeActivated" }, (event) => {
@@ -64,6 +63,7 @@ export const handlePurposeMessageV2 = async (
           id,
           state,
           versionId: version.id,
+          eventTimestamp: timestamp, // Use the timestamp from KafkaMessage
         });
       })
       .with({ type: "PurposeArchived" }, (event) => {
@@ -86,6 +86,7 @@ export const handlePurposeMessageV2 = async (
             id,
             versionId,
             state,
+            eventTimestamp: timestamp, // Use the timestamp from KafkaMessage
           });
         }
       })
@@ -125,6 +126,7 @@ export const handlePurposeMessageV2 = async (
             id,
             versionId,
             state,
+            eventTimestamp: timestamp, // Use the timestamp from KafkaMessage
           });
         }
       )
@@ -149,58 +151,26 @@ export const handlePurposeMessageV2 = async (
   }
 
   if (allPurposeDataToStore.length > 0) {
-    const timestamp = new Date();
-    const documentDestinationPath = `purposes/${timestamp}`;
-
-    const result = await storeNdjsonEventData<PurposeEventData>(
+    const storedFiles = await storeNdjsonEventData<PurposeEventData>(
       allPurposeDataToStore,
-      documentDestinationPath,
       fileManager,
       logger,
       config
     );
 
-    if (!result) {
+    if (!storedFiles) {
       throw genericInternalError(
         `S3 storing didn't return a valid key or content`
       );
     }
 
-    const { fileContentBuffer, s3PresignedUrl, fileName } = result;
-
-    const checksum = await calculateSha256Base64(fileContentBuffer);
-
-    logger.info(
-      `Requesting file creation in Safe Storage for ${s3PresignedUrl}...`
+    await processStoredFilesForSafeStorage(
+      storedFiles,
+      logger,
+      dbService,
+      safeStorage,
+      safeStorageApiConfig
     );
-
-    const safeStorageRequest: FileCreationRequest = {
-      contentType: "application/json",
-      documentType: safeStorageApiConfig.safeStorageDocType,
-      status: safeStorageApiConfig.safeStorageDocStatus,
-      checksumValue: checksum,
-    };
-
-    const { uploadUrl, secret, key } = await safeStorage.createFile(
-      safeStorageRequest
-    );
-
-    await safeStorage.uploadFileContent(
-      uploadUrl,
-      fileContentBuffer,
-      "application/json",
-      secret,
-      checksum
-    );
-
-    logger.info("File uploaded to Safe Storage successfully.");
-
-    await dbService.saveSignatureReference({
-      safeStorageId: key,
-      fileKind: "PLATFORM_EVENTS",
-      fileName,
-    });
-    logger.info("Safe Storage reference saved in DynamoDB.");
   } else {
     logger.info("No managed purpose events to store.");
   }

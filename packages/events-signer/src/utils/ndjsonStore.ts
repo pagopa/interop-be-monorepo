@@ -2,66 +2,92 @@
 
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { generateId, genericInternalError } from "pagopa-interop-models";
+import { format } from "date-fns";
 import { EventsSignerConfig } from "../config/config.js";
 import { BaseEventData } from "../models/eventTypes.js";
 import { compressJson } from "./compression.js";
+import { groupEventsByDate } from "./groupEventsByDate.js";
 
-export const storeNdjsonEventData = async <T extends BaseEventData>(
-  dataToStoreArray: T[],
-  documentDestinationPath: string,
+export const storeNdjsonEventData = async <
+  T extends BaseEventData & { eventTimestamp: string }
+>(
+  eventsToStoreArray: T[],
   fileManager: FileManager,
   logger: Logger,
   config: EventsSignerConfig
 ): Promise<
-  | {
+  | Array<{
       fileContentBuffer: Buffer;
       s3PresignedUrl: string;
       fileName: string;
-    }
+    }>
   | undefined
 > => {
-  if (dataToStoreArray.length === 0) {
+  if (eventsToStoreArray.length === 0) {
     logger.info("No data to store in NDJSON file.");
     return;
   }
 
-  const ndjsonString =
-    dataToStoreArray.map((data) => JSON.stringify(data)).join("\n") + "\n";
+  const groupedEvents = groupEventsByDate(eventsToStoreArray);
+  const results: Array<{
+    fileContentBuffer: Buffer;
+    s3PresignedUrl: string;
+    fileName: string;
+  }> = [];
 
-  const fileContentBuffer = await compressJson(ndjsonString);
+  for (const [dateKey, group] of groupedEvents.entries()) {
+    const [year, month, day] = dateKey.split("-");
 
-  const documentName = `events_${Date.now()}.ndjson`;
+    const ndjsonString =
+      group.map((item) => JSON.stringify(item)).join("\n") + "\n";
 
-  try {
-    const s3filePath = await fileManager.storeBytes(
-      {
-        bucket: config.s3Bucket,
-        path: documentDestinationPath,
-        resourceId: generateId(),
-        name: documentName,
-        content: fileContentBuffer,
-      },
-      logger
-    );
-    logger.info(
-      `Successfully stored ${dataToStoreArray.length} events in file ${documentName} at path ${documentDestinationPath}`
-    );
-    const s3KeyParts = s3filePath.split("/");
-    const fileName = s3KeyParts.pop();
-    const s3PathWithoutFileName = s3KeyParts.join("/");
+    const fileContentBuffer = await compressJson(ndjsonString);
 
-    if (!fileName) {
-      throw new Error(`couldn't extract fileName`);
+    const time = format(new Date(), "hhmmss");
+    const fileName = `${year}${month}${day}_${time}_${generateId()}.ndjson.gz`;
+    const filePath = `year=${year}/month=${month}/day=${day}`;
+
+    try {
+      const s3filePath = await fileManager.storeBytes(
+        {
+          bucket: config.s3Bucket,
+          path: filePath,
+          resourceId: generateId(),
+          name: fileName,
+          content: fileContentBuffer,
+        },
+        logger
+      );
+      logger.info(
+        `Successfully stored ${group.length} events for date ${dateKey} in file ${fileName} at path ${filePath}`
+      );
+
+      const s3KeyParts = s3filePath.split("/");
+      const extractedFileName = s3KeyParts.pop();
+      const s3PathWithoutFileName = s3KeyParts.join("/");
+
+      if (!extractedFileName) {
+        throw new Error(
+          `couldn't extract fileName from S3 path: ${s3filePath}`
+        );
+      }
+
+      const s3PresignedUrl = await fileManager.generateGetPresignedUrl(
+        config.s3Bucket,
+        s3PathWithoutFileName,
+        extractedFileName,
+        1
+      );
+      results.push({
+        fileContentBuffer,
+        s3PresignedUrl,
+        fileName: extractedFileName,
+      });
+    } catch (error) {
+      throw genericInternalError(
+        `Failed to store batch event data for date ${dateKey}: ${error}`
+      );
     }
-
-    const s3PresignedUrl = await fileManager.generateGetPresignedUrl(
-      config.s3Bucket,
-      s3PathWithoutFileName,
-      fileName,
-      1
-    );
-    return { fileContentBuffer, s3PresignedUrl, fileName };
-  } catch (error) {
-    throw genericInternalError(`Failed to store batch event data: ${error}`);
   }
+  return results.length > 0 ? results : undefined;
 };

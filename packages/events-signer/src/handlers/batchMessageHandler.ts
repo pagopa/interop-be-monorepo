@@ -22,15 +22,15 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { config } from "../config/config.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { handleCatalogMessageV2 } from "./handleCatalogMessageV2.js";
+import { config } from "../config/config.js";
 import { handleAgreementMessageV2 } from "./handleAgreementMessageV2.js";
-import { handlePurposeMessageV2 } from "./handlePurposeMessageV2.js";
-import { handleDelegationMessageV2 } from "./handleDelegationMessageV2.js";
 import { handleAuthorizationMessageV1 } from "./handleAuthorizationMessageV1.js";
 import { handleAuthorizationMessageV2 } from "./handleAuthorizationMessageV2.js";
+import { handleCatalogMessageV2 } from "./handleCatalogMessageV2.js";
+import { handleDelegationMessageV2 } from "./handleDelegationMessageV2.js";
+import { handlePurposeMessageV2 } from "./handlePurposeMessageV2.js";
 
 /**
  * Processes a list of Kafka messages for the specified topic by decoding each message and invoking the corresponding handler.
@@ -55,19 +55,26 @@ export async function executeTopicHandler(
 ): Promise<void> {
   await match(topic)
     .with(config.catalogTopic, async () => {
-      const eserviceV2: EServiceEventEnvelopeV2[] = [];
-      const decodedMessages = kafkaMessages.map((message) =>
-        decodeKafkaMessage(message, EServiceEvent)
-      );
-      for (const decoded of decodedMessages) {
+      const eserviceV2WithTimestamp: Array<{
+        eserviceV2: EServiceEventEnvelopeV2;
+        timestamp: string;
+      }> = [];
+
+      for (const message of kafkaMessages) {
+        const decoded = decodeKafkaMessage(message, EServiceEvent);
         match(decoded)
           .with({ event_version: 1 }, () => {})
-          .with({ event_version: 2 }, (msg) => eserviceV2.push(msg))
+          .with({ event_version: 2 }, (msg) =>
+            eserviceV2WithTimestamp.push({
+              eserviceV2: msg,
+              timestamp: message.timestamp,
+            })
+          )
           .exhaustive();
       }
-      if (eserviceV2.length > 0) {
+      if (eserviceV2WithTimestamp.length > 0) {
         await handleCatalogMessageV2(
-          eserviceV2,
+          eserviceV2WithTimestamp,
           logger,
           fileManager,
           dbService,
@@ -76,19 +83,26 @@ export async function executeTopicHandler(
       }
     })
     .with(config.agreementTopic, async () => {
-      const agreementV2: AgreementEventEnvelopeV2[] = [];
-      const decodedMessages = kafkaMessages.map((message) =>
-        decodeKafkaMessage(message, AgreementEvent)
-      );
-      for (const decoded of decodedMessages) {
+      const agreementV2WithTimestamp: Array<{
+        agreementV2: AgreementEventEnvelopeV2;
+        timestamp: string;
+      }> = [];
+
+      for (const message of kafkaMessages) {
+        const decoded = decodeKafkaMessage(message, AgreementEvent);
         match(decoded)
           .with({ event_version: 1 }, () => {})
-          .with({ event_version: 2 }, (msg) => agreementV2.push(msg))
+          .with({ event_version: 2 }, (msg) =>
+            agreementV2WithTimestamp.push({
+              agreementV2: msg,
+              timestamp: message.timestamp,
+            })
+          )
           .exhaustive();
       }
-      if (agreementV2.length > 0) {
+      if (agreementV2WithTimestamp.length > 0) {
         await handleAgreementMessageV2(
-          agreementV2,
+          agreementV2WithTimestamp,
           logger,
           fileManager,
           dbService,
@@ -97,19 +111,26 @@ export async function executeTopicHandler(
       }
     })
     .with(config.purposeTopic, async () => {
-      const purposeV2: PurposeEventEnvelopeV2[] = [];
-      const decodedMessages = kafkaMessages.map((message) =>
-        decodeKafkaMessage(message, PurposeEvent)
-      );
-      for (const decoded of decodedMessages) {
+      const purposeV2WithTimestamp: Array<{
+        purposeV2: PurposeEventEnvelopeV2;
+        timestamp: string;
+      }> = [];
+
+      for (const message of kafkaMessages) {
+        const decoded = decodeKafkaMessage(message, PurposeEvent);
         match(decoded)
           .with({ event_version: 1 }, () => {})
-          .with({ event_version: 2 }, (msg) => purposeV2.push(msg))
+          .with({ event_version: 2 }, (msg) =>
+            purposeV2WithTimestamp.push({
+              purposeV2: msg,
+              timestamp: message.timestamp,
+            })
+          )
           .exhaustive();
       }
-      if (purposeV2.length > 0) {
+      if (purposeV2WithTimestamp.length > 0) {
         await handlePurposeMessageV2(
-          purposeV2,
+          purposeV2WithTimestamp,
           logger,
           fileManager,
           dbService,
@@ -118,29 +139,44 @@ export async function executeTopicHandler(
       }
     })
     .with(config.authorizationTopic, async () => {
-      const authV1: AuthorizationEventEnvelopeV1[] = [];
-      const authV2: AuthorizationEventEnvelopeV2[] = [];
-      const decodedMessages = kafkaMessages.map((message) =>
-        decodeKafkaMessage(message, AuthorizationEvent)
-      );
-      for (const decoded of decodedMessages) {
+      const authV1WithTimestamp: Array<{
+        authV1: AuthorizationEventEnvelopeV1;
+        timestamp: string;
+      }> = [];
+      const authV2WithTimestamp: Array<{
+        authV2: AuthorizationEventEnvelopeV2;
+        timestamp: string;
+      }> = [];
+
+      for (const message of kafkaMessages) {
+        const decoded = decodeKafkaMessage(message, AuthorizationEvent);
         match(decoded)
-          .with({ event_version: 1 }, (msg) => authV1.push(msg))
-          .with({ event_version: 2 }, (msg) => authV2.push(msg))
+          .with({ event_version: 1 }, (msg) =>
+            authV1WithTimestamp.push({
+              authV1: msg,
+              timestamp: message.timestamp,
+            })
+          )
+          .with({ event_version: 2 }, (msg) =>
+            authV2WithTimestamp.push({
+              authV2: msg,
+              timestamp: message.timestamp,
+            })
+          )
           .exhaustive();
       }
-      if (authV1.length > 0) {
+      if (authV1WithTimestamp.length > 0) {
         await handleAuthorizationMessageV1(
-          authV1,
+          authV1WithTimestamp,
           logger,
           fileManager,
           dbService,
           safeStorageService
         );
       }
-      if (authV2.length > 0) {
+      if (authV2WithTimestamp.length > 0) {
         await handleAuthorizationMessageV2(
-          authV2,
+          authV2WithTimestamp,
           logger,
           fileManager,
           dbService,
@@ -149,18 +185,25 @@ export async function executeTopicHandler(
       }
     })
     .with(config.delegationTopic, async () => {
-      const delegationV2: DelegationEventEnvelopeV2[] = [];
-      const decodedMessages = kafkaMessages.map((message) =>
-        decodeKafkaMessage(message, DelegationEvent)
-      );
-      for (const decoded of decodedMessages) {
+      const delegationV2WithTimestamp: Array<{
+        delegationV2: DelegationEventEnvelopeV2;
+        timestamp: string;
+      }> = [];
+
+      for (const message of kafkaMessages) {
+        const decoded = decodeKafkaMessage(message, DelegationEvent);
         match(decoded)
-          .with({ event_version: 2 }, (msg) => delegationV2.push(msg))
+          .with({ event_version: 2 }, (msg) =>
+            delegationV2WithTimestamp.push({
+              delegationV2: msg,
+              timestamp: message.timestamp,
+            })
+          )
           .exhaustive();
       }
-      if (delegationV2.length > 0) {
+      if (delegationV2WithTimestamp.length > 0) {
         await handleDelegationMessageV2(
-          delegationV2,
+          delegationV2WithTimestamp,
           logger,
           fileManager,
           dbService,
