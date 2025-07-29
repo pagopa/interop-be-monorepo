@@ -138,10 +138,10 @@ export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
 /* ========= ASSERTIONS ========= */
 
 const assertRequesterIsConsumer = (
-  consumerId: TenantId,
+  agreement: Pick<Agreement, "consumerId">,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): void => {
-  if (authData.organizationId !== consumerId) {
+  if (authData.organizationId !== agreement.consumerId) {
     throw tenantIsNotTheConsumer(authData.organizationId);
   }
 };
@@ -170,8 +170,7 @@ export const assertRequesterCanActAsConsumerOrProducer = (
       );
     } else if (delegationId === activeDelegations.consumerDelegation?.id) {
       return assertRequesterIsDelegateConsumer(
-        agreement.consumerId,
-        agreement.eserviceId,
+        agreement,
         authData,
         activeDelegations.consumerDelegation
       );
@@ -194,7 +193,7 @@ export const assertRequesterCanActAsConsumerOrProducer = (
     assertRequesterIsProducer(agreement, authData);
   } catch {
     try {
-      assertRequesterIsConsumer(agreement.consumerId, authData);
+      assertRequesterIsConsumer(agreement, authData);
     } catch {
       throw tenantNotAllowed(authData.organizationId);
     }
@@ -211,7 +210,7 @@ export const assertRequesterCanRetrieveAgreement = async (
   // Consumers and producers can retrieve agreements even if delegations exist.
 
   try {
-    assertRequesterIsConsumer(agreement.consumerId, authData);
+    assertRequesterIsConsumer(agreement, authData);
   } catch {
     try {
       assertRequesterIsProducer(agreement, authData);
@@ -227,8 +226,7 @@ export const assertRequesterCanRetrieveAgreement = async (
       } catch {
         try {
           assertRequesterIsDelegateConsumer(
-            agreement.consumerId,
-            agreement.eserviceId,
+            agreement,
             authData,
             await readModelService.getActiveConsumerDelegationByAgreement(
               agreement
@@ -313,15 +311,14 @@ export const assertActivableState = (agreement: Agreement): void => {
 };
 
 export const assertRequesterIsDelegateConsumer = (
-  consumerId: TenantId,
-  eserviceId: EServiceId,
+  agreement: Pick<Agreement, "consumerId" | "eserviceId">,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (
     activeConsumerDelegation?.delegateId !== authData.organizationId ||
-    activeConsumerDelegation?.delegatorId !== consumerId ||
-    activeConsumerDelegation?.eserviceId !== eserviceId ||
+    activeConsumerDelegation?.delegatorId !== agreement.consumerId ||
+    activeConsumerDelegation?.eserviceId !== agreement.eserviceId ||
     activeConsumerDelegation?.kind !== delegationKind.delegatedConsumer ||
     activeConsumerDelegation?.state !== delegationState.active
   ) {
@@ -333,19 +330,17 @@ export const assertRequesterIsDelegateConsumer = (
 };
 
 export const assertRequesterCanActAsConsumer = (
-  consumerId: TenantId,
-  eserviceId: EServiceId,
+  agreement: Pick<Agreement, "consumerId" | "eserviceId">,
   authData: UIAuthData | M2MAdminAuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (!activeConsumerDelegation) {
     // No active consumer delegation, the requester is authorized only if they are the consumer
-    assertRequesterIsConsumer(consumerId, authData);
+    assertRequesterIsConsumer(agreement, authData);
   } else {
     // Active consumer delegation, the requester is authorized only if they are the delegate
     assertRequesterIsDelegateConsumer(
-      consumerId,
-      eserviceId,
+      agreement,
       authData,
       activeConsumerDelegation
     );
