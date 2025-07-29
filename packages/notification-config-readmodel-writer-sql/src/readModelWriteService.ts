@@ -1,7 +1,9 @@
 import { eq } from "drizzle-orm";
 import {
   TenantNotificationConfig,
+  TenantNotificationConfigId,
   UserNotificationConfig,
+  UserNotificationConfigId,
 } from "pagopa-interop-models";
 import {
   checkMetadataVersion,
@@ -10,7 +12,10 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
+  tenantEnabledNotificationInReadmodelNotificationConfig,
   tenantNotificationConfigInReadmodelNotificationConfig,
+  userEnabledEmailNotificationInReadmodelNotificationConfig,
+  userEnabledInAppNotificationInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
 
@@ -41,7 +46,7 @@ export function notificationConfigReadModelWriteServiceBuilder(
               tenantNotificationConfig.id
             )
           );
-        const tenantNotificationConfigSQL =
+        const { tenantNotificationConfigSQL, enabledNotificationsSQL } =
           splitTenantNotificationConfigIntoObjectsSQL(
             tenantNotificationConfig,
             metadataVersion
@@ -49,6 +54,11 @@ export function notificationConfigReadModelWriteServiceBuilder(
         await tx
           .insert(tenantNotificationConfigInReadmodelNotificationConfig)
           .values(tenantNotificationConfigSQL);
+        if (enabledNotificationsSQL.length > 0) {
+          await tx
+            .insert(tenantEnabledNotificationInReadmodelNotificationConfig)
+            .values(enabledNotificationsSQL);
+        }
       });
     },
 
@@ -74,15 +84,54 @@ export function notificationConfigReadModelWriteServiceBuilder(
               userNotificationConfig.id
             )
           );
-        const userNotificationConfigSQL =
-          splitUserNotificationConfigIntoObjectsSQL(
-            userNotificationConfig,
-            metadataVersion
-          );
+        const {
+          userNotificationConfigSQL,
+          enabledInAppNotificationsSQL,
+          enabledEmailNotificationsSQL,
+        } = splitUserNotificationConfigIntoObjectsSQL(
+          userNotificationConfig,
+          metadataVersion
+        );
         await tx
           .insert(userNotificationConfigInReadmodelNotificationConfig)
           .values(userNotificationConfigSQL);
+        if (enabledInAppNotificationsSQL.length > 0) {
+          await tx
+            .insert(userEnabledInAppNotificationInReadmodelNotificationConfig)
+            .values(enabledInAppNotificationsSQL);
+        }
+        if (enabledEmailNotificationsSQL.length > 0) {
+          await tx
+            .insert(userEnabledEmailNotificationInReadmodelNotificationConfig)
+            .values(enabledEmailNotificationsSQL);
+        }
       });
+    },
+
+    async deleteTenantNotificationConfig(
+      tenantNotificationConfigId: TenantNotificationConfigId
+    ): Promise<void> {
+      await db
+        .delete(tenantNotificationConfigInReadmodelNotificationConfig)
+        .where(
+          eq(
+            tenantNotificationConfigInReadmodelNotificationConfig.id,
+            tenantNotificationConfigId
+          )
+        );
+    },
+
+    async deleteUserNotificationConfig(
+      userNotificationConfigId: UserNotificationConfigId
+    ): Promise<void> {
+      await db
+        .delete(userNotificationConfigInReadmodelNotificationConfig)
+        .where(
+          eq(
+            userNotificationConfigInReadmodelNotificationConfig.id,
+            userNotificationConfigId
+          )
+        );
     },
   };
 }
