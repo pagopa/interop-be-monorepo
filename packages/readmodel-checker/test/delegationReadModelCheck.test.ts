@@ -7,10 +7,11 @@ import {
   WithMetadata,
   delegationKind,
 } from "pagopa-interop-models";
+import { upsertDelegation } from "pagopa-interop-readmodel/testUtils";
 import { compare } from "../src/utils.js";
 import {
   addOneDelegation,
-  delegationReadModelServiceSQL,
+  readModelDB,
   readModelService,
   readModelServiceSQL,
 } from "./utils.js";
@@ -49,7 +50,8 @@ describe("Check delegation readmodels", () => {
 
     await addOneDelegation(delegation);
 
-    await delegationReadModelServiceSQL.upsertDelegation(
+    await upsertDelegation(
+      readModelDB,
       delegation.data,
       delegation.metadata.version
     );
@@ -83,7 +85,8 @@ describe("Check delegation readmodels", () => {
     await addOneDelegation(delegation1);
     await addOneDelegation(delegation2);
 
-    await delegationReadModelServiceSQL.upsertDelegation(
+    await upsertDelegation(
+      readModelDB,
       delegation2.data,
       delegation2.metadata.version
     );
@@ -116,11 +119,13 @@ describe("Check delegation readmodels", () => {
 
     await addOneDelegation(delegation1);
 
-    await delegationReadModelServiceSQL.upsertDelegation(
+    await upsertDelegation(
+      readModelDB,
       delegation1.data,
       delegation1.metadata.version
     );
-    await delegationReadModelServiceSQL.upsertDelegation(
+    await upsertDelegation(
+      readModelDB,
       delegation2.data,
       delegation2.metadata.version
     );
@@ -156,7 +161,8 @@ describe("Check delegation readmodels", () => {
 
     await addOneDelegation(delegation1);
 
-    await delegationReadModelServiceSQL.upsertDelegation(
+    await upsertDelegation(
+      readModelDB,
       delegation1InPostgresDb.data,
       delegation1InPostgresDb.metadata.version
     );
@@ -191,7 +197,8 @@ describe("Check delegation readmodels", () => {
 
     await addOneDelegation(delegation1);
 
-    await delegationReadModelServiceSQL.upsertDelegation(
+    await upsertDelegation(
+      readModelDB,
       delegation1InPostgresDb.data,
       delegation1InPostgresDb.metadata.version
     );
