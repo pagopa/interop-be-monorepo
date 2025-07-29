@@ -117,10 +117,15 @@ export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
 }
 
 export function tenantIsNotTheConsumer(
-  tenantId: TenantId
+  tenantId: TenantId,
+  delegationId?: DelegationId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the consumer`,
+    detail: `Tenant ${tenantId}${
+      delegationId
+        ? ` operating as delegate for delegation with ID ${delegationId}`
+        : ""
+    } is not allowed to perform the operation because is not operating as consumer`,
     code: "tenantIsNotTheConsumer",
     title: "Tenant not allowed",
   });
@@ -151,10 +156,15 @@ export function purposeVersionCannotBeDeleted(
 }
 
 export function tenantIsNotTheProducer(
-  tenantId: TenantId
+  tenantId: TenantId,
+  delegationId?: DelegationId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the producer`,
+    detail: `Tenant ${tenantId}${
+      delegationId
+        ? ` operating as delegate for delegation with ID ${delegationId}`
+        : ""
+    } is not allowed to perform the operation because is not operating as producer`,
     code: "tenantIsNotTheProducer",
     title: "Tenant not allowed",
   });
