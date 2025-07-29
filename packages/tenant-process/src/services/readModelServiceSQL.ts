@@ -37,7 +37,16 @@ import {
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, ilike, inArray, isNotNull, isNull, or } from "drizzle-orm";
+import {
+  and,
+  asc,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+} from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   ascLower,
@@ -521,7 +530,7 @@ export function readModelServiceBuilderSQL(
             )
           )
           .orderBy(
-            ascLower(
+            asc(
               tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate
             )
           )
@@ -592,9 +601,7 @@ export function readModelServiceBuilderSQL(
             )
           )
           .orderBy(
-            ascLower(
-              tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate
-            )
+            asc(tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate)
           )
           .offset(offset)
           .limit(limit);

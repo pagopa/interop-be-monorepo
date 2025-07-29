@@ -399,6 +399,7 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
+          // The same check is done in the backend-for-frontend, if you change this check, change it there too
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
           const updatedEServiceTemplate =

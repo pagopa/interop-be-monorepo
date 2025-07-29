@@ -1,45 +1,45 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   Tenant,
-  TenantVerifier,
   generateId,
   TenantId,
   AttributeId,
   VerifiedTenantAttribute,
   tenantAttributeType,
-  DelegationId,
+  TenantVerifier,
 } from "pagopa-interop-models";
 import { getMockContext, getMockTenant } from "pagopa-interop-commons-test";
 import { addOneTenant, tenantService } from "../integrationUtils.js";
+import {
+  getMockVerifiedTenantAttribute,
+  getMockCertifiedTenantAttribute,
+} from "../mockUtils.js";
 
 describe("getTenantVerifiedAttributeVerifiers", () => {
   const tenantId: TenantId = generateId();
   const attributeId: AttributeId = generateId();
   const verifier1Id: TenantId = generateId();
   const verifier2Id: TenantId = generateId();
-  const delegationId: DelegationId = generateId();
 
   const verifier1: TenantVerifier = {
     id: verifier1Id,
-    verificationDate: new Date("2024-01-01"),
-    expirationDate: new Date("2025-01-01"),
-    extensionDate: new Date("2025-06-01"),
-    delegationId,
+    verificationDate: new Date("2024-01-01T10:00:00Z"),
+    expirationDate: undefined,
+    extensionDate: undefined,
   };
 
   const verifier2: TenantVerifier = {
     id: verifier2Id,
-    verificationDate: new Date("2024-02-01"),
-    expirationDate: new Date("2025-02-01"),
+    verificationDate: new Date("2024-01-02T10:00:00Z"),
+    expirationDate: undefined,
     extensionDate: undefined,
-    delegationId: undefined,
   };
 
   const verifiedAttribute: VerifiedTenantAttribute = {
-    type: tenantAttributeType.VERIFIED,
+    ...getMockVerifiedTenantAttribute(),
     id: attributeId,
     assignmentTimestamp: new Date("2024-01-01"),
-    verifiedBy: [verifier1, verifier2],
+    verifiedBy: [],
     revokedBy: [],
   };
 
@@ -52,15 +52,29 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
   beforeEach(async () => {
     await addOneTenant({
       ...getMockTenant(),
-      ...verifier1,
+      id: verifier1Id,
     });
     await addOneTenant({
       ...getMockTenant(),
-      ...verifier2,
+      id: verifier2Id,
     });
   });
   it("should retrieve verifiers for a verified attribute", async () => {
-    await addOneTenant(tenant);
+    const tenantWithVerifiers: Tenant = {
+      ...getMockTenant(),
+      id: tenantId,
+      attributes: [
+        {
+          ...getMockVerifiedTenantAttribute(),
+          id: attributeId,
+          assignmentTimestamp: new Date("2024-01-01"),
+          verifiedBy: [verifier1, verifier2],
+          revokedBy: [],
+        },
+      ],
+    };
+
+    await addOneTenant(tenantWithVerifiers);
 
     const result = await tenantService.getTenantVerifiedAttributeVerifiers(
       tenantId,
@@ -75,22 +89,30 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
     expect(result.results[0]).toEqual({
       id: verifier1Id,
       verificationDate: verifier1.verificationDate.toISOString(),
-      expirationDate: verifier1.expirationDate?.toISOString(),
-      extensionDate: verifier1.extensionDate?.toISOString(),
-      delegationId: verifier1.delegationId,
     });
 
     expect(result.results[1]).toEqual({
       id: verifier2Id,
       verificationDate: verifier2.verificationDate.toISOString(),
-      expirationDate: verifier2.expirationDate?.toISOString(),
-      extensionDate: verifier2.extensionDate,
-      delegationId: verifier2.delegationId,
     });
   });
 
   it("should handle pagination correctly", async () => {
-    await addOneTenant(tenant);
+    const tenantWithVerifiers: Tenant = {
+      ...getMockTenant(),
+      id: tenantId,
+      attributes: [
+        {
+          ...getMockVerifiedTenantAttribute(),
+          id: attributeId,
+          assignmentTimestamp: new Date("2024-01-01"),
+          verifiedBy: [verifier1, verifier2],
+          revokedBy: [],
+        },
+      ],
+    };
+
+    await addOneTenant(tenantWithVerifiers);
 
     const firstPage = await tenantService.getTenantVerifiedAttributeVerifiers(
       tenantId,
@@ -145,7 +167,7 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
 
   it("should return empty results when attribute has no verifiers", async () => {
     const attributeWithoutVerifiers: VerifiedTenantAttribute = {
-      type: tenantAttributeType.VERIFIED,
+      ...getMockVerifiedTenantAttribute(),
       id: generateId(),
       assignmentTimestamp: new Date("2024-01-01"),
       verifiedBy: [],
@@ -180,10 +202,8 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
       id: generateId(),
       attributes: [
         {
-          type: tenantAttributeType.CERTIFIED,
+          ...getMockCertifiedTenantAttribute(),
           id: certifiedAttributeId,
-          assignmentTimestamp: new Date("2024-01-01"),
-          revocationTimestamp: undefined,
         },
         {
           type: tenantAttributeType.DECLARED,
@@ -191,7 +211,13 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
           assignmentTimestamp: new Date("2024-01-01"),
           revocationTimestamp: undefined,
         },
-        verifiedAttribute,
+        {
+          ...getMockVerifiedTenantAttribute(),
+          id: attributeId,
+          assignmentTimestamp: new Date("2024-01-01"),
+          verifiedBy: [verifier1, verifier2],
+          revokedBy: [],
+        },
       ],
     };
 

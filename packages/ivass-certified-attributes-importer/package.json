@@ -22,7 +22,7 @@
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/adm-zip": "0.5.7",
-    "@types/node": "20.19.4",
+    "@types/node": "20.19.9",
     "@types/ssh2-sftp-client": "9.0.4",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
