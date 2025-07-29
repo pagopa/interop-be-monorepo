@@ -42,6 +42,7 @@ import {
   notValidVersionState,
   tenantIsNotTheDelegatedProducer,
   missingDelegationId,
+  purposeDelegationNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -991,7 +992,7 @@ describe("suspendPurposeVersion", () => {
     ).rejects.toThrowError(missingDelegationId(mockPurpose.consumerId));
   });
 
-  it("should throw tenantNotAllowed when the requester is the Consumer, is suspending a purpose version created by a delegate in suspendPurposeVersion, but the delegation cannot be found", async () => {
+  it("should throw purposeDelegationNotFound when the requester is the Consumer, is suspending a purpose version created by a delegate in suspendPurposeVersion, but the delegation cannot be found", async () => {
     const authData = getMockAuthData();
     const mockEService = getMockEService();
 
@@ -1018,7 +1019,9 @@ describe("suspendPurposeVersion", () => {
         },
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(missingDelegationId(authData.organizationId));
+    ).rejects.toThrowError(
+      purposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
+    );
   });
 
   it("should throw tenantNotAllowed when the requester is the Delegate and is suspending a purpose version created by the Consumer", async () => {
@@ -1072,28 +1075,36 @@ describe("suspendPurposeVersion", () => {
       delegationId: generateId<DelegationId>(),
     };
 
-    const delegation = getMockDelegation({
-      id: generateId<DelegationId>(),
+    const purposeDelegation = getMockDelegation({
+      id: mockPurpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: mockEService.id,
-      delegateId: generateId<TenantId>(),
       delegatorId: mockPurpose.consumerId,
+      state: delegationState.active,
+    });
+
+    const anotherDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockEService.id,
       state: delegationState.active,
     });
 
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
-    await addOneDelegation(delegation);
+    await addOneDelegation(anotherDelegation);
+    await addOneDelegation(purposeDelegation);
 
     expect(
       purposeService.suspendPurposeVersion(
         {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
-          delegationId: delegation.id,
+          delegationId: anotherDelegation.id,
         },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({
+          authData: getMockAuthData(anotherDelegation.delegateId),
+        })
       )
-    ).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
+    ).rejects.toThrowError(tenantNotAllowed(anotherDelegation.delegateId));
   });
 });

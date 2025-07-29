@@ -360,7 +360,7 @@ export function purposeCannotBeUpdated(
 
 export function missingDelegationId(tenantId: TenantId): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${tenantId} is not allowed to perform the operation because the delegation ID is missing`,
+    detail: `Tenant ${tenantId} is not allowed to perform the operation: operation is restricted to delegate, but delegation ID parameter is missing`,
     code: "missingDelegationId",
     title: "Missing delegation ID",
   });

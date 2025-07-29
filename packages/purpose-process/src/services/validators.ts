@@ -428,18 +428,16 @@ export const getOrganizationRole = async ({
     return ownership.SELF_CONSUMER;
   }
 
-  const producerDelegation =
-    await readModelService.getActiveProducerDelegationByEserviceId(
+  const [producerDelegation, consumerDelegation] = await Promise.all([
+    readModelService.getActiveProducerDelegationByEserviceId(
       purpose.eserviceId
-    );
+    ),
+    retrievePurposeDelegation(purpose, readModelService),
+  ]);
 
   if (delegationId) {
-    if (delegationId === purpose.delegationId) {
-      assertRequesterIsDelegateConsumer(
-        purpose,
-        authData,
-        await retrievePurposeDelegation(purpose, readModelService)
-      );
+    if (delegationId === consumerDelegation?.id) {
+      assertRequesterIsDelegateConsumer(purpose, authData, consumerDelegation);
       return ownership.CONSUMER;
     } else if (delegationId === producerDelegation?.id) {
       assertRequesterIsDelegateProducer(
@@ -454,7 +452,7 @@ export const getOrganizationRole = async ({
   }
 
   const hasDelegation =
-    (authData.organizationId === purpose.consumerId && purpose.delegationId) ||
+    (authData.organizationId === purpose.consumerId && consumerDelegation) ||
     (authData.organizationId === producerId && producerDelegation);
 
   if (hasDelegation) {

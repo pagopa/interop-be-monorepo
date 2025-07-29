@@ -74,7 +74,6 @@ import {
   descriptorNotInExpectedState,
   eServiceNotFound,
   missingDelegationId,
-  tenantIsNotTheDelegateProducer,
   tenantIsNotTheProducer,
   tenantNotAllowed,
   tenantNotFound,
@@ -717,7 +716,7 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
     });
 
-    it("Agreement Pending, Requester === DelegateConsumer -- error case: throws tenantIsNotTheProducer", async () => {
+    it("Agreement Pending, Requester === DelegateConsumer -- error case: throws tenantNotAllowed", async () => {
       const delegateId = generateId<TenantId>();
       const authData = getMockAuthData(delegateId);
       const agreement: Agreement = {
@@ -742,10 +741,10 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: consumerDelegation.id },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
+      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
     });
 
-    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws tenantIsNotTheDelegateProducer", async () => {
+    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws tenantNotAllowed", async () => {
       const producerId = generateId<TenantId>();
       const authData = getMockAuthData(producerId);
       const agreement: Agreement = {
@@ -771,12 +770,7 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(
-        tenantIsNotTheDelegateProducer(
-          authData.organizationId,
-          producerDelegation.id
-        )
-      );
+      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
     });
   });
 
@@ -1194,7 +1188,7 @@ describe("activate agreement", () => {
 
       const actualAgreementActivated = fromAgreementV2(
         decodeProtobufPayload({
-          messageType: AgreementUnsuspendedByProducerV2,
+          messageType: AgreementUnsuspendedByConsumerV2,
           payload: agreementEvent.data,
         }).agreement!
       );

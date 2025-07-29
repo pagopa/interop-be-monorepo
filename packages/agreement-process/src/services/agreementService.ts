@@ -59,6 +59,7 @@ import {
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
+  tenantNotAllowed,
 } from "../model/domain/errors.js";
 import {
   ActiveDelegations,
@@ -394,8 +395,7 @@ export function agreementServiceBuilder(
           agreementToBeUpdated.data
         );
       assertRequesterCanActAsConsumer(
-        agreementToBeUpdated.data.consumerId,
-        agreementToBeUpdated.data.eserviceId,
+        agreementToBeUpdated.data,
         authData,
         activeConsumerDelegation
       );
@@ -434,8 +434,7 @@ export function agreementServiceBuilder(
       );
 
       assertRequesterCanActAsConsumer(
-        agreement.data.consumerId,
-        agreement.data.eserviceId,
+        agreement.data,
         authData,
         await readModelService.getActiveConsumerDelegationByAgreement(
           agreement.data
@@ -504,8 +503,7 @@ export function agreementServiceBuilder(
         readModelService
       );
       assertRequesterCanActAsConsumer(
-        agreement.data.consumerId,
-        agreement.data.eserviceId,
+        agreement.data,
         authData,
         activeDelegations.consumerDelegation
       );
@@ -703,8 +701,7 @@ export function agreementServiceBuilder(
         readModelService
       );
       assertRequesterCanActAsConsumer(
-        agreementToBeUpgraded.data.consumerId,
-        agreementToBeUpgraded.data.eserviceId,
+        agreementToBeUpgraded.data,
         authData,
         activeDelegations.consumerDelegation
       );
@@ -842,8 +839,7 @@ export function agreementServiceBuilder(
           agreementToBeCloned.data
         );
       assertRequesterCanActAsConsumer(
-        agreementToBeCloned.data.consumerId,
-        agreementToBeCloned.data.eserviceId,
+        agreementToBeCloned.data,
         authData,
         activeConsumerDelegation
       );
@@ -933,8 +929,7 @@ export function agreementServiceBuilder(
           agreement.data
         );
       assertRequesterCanActAsConsumer(
-        agreement.data.consumerId,
-        agreement.data.eserviceId,
+        agreement.data,
         authData,
         activeConsumerDelegation
       );
@@ -1124,8 +1119,7 @@ export function agreementServiceBuilder(
         );
 
       assertRequesterCanActAsConsumer(
-        agreement.data.consumerId,
-        agreement.data.eserviceId,
+        agreement.data,
         authData,
         activeConsumerDelegation
       );
@@ -1275,6 +1269,10 @@ export function agreementServiceBuilder(
       );
 
       if (agreement.data.state === agreementState.pending) {
+        if (delegationId !== activeDelegations.producerDelegation?.id) {
+          throw tenantNotAllowed(authData.organizationId);
+        }
+
         assertRequesterCanActAsProducer(
           agreement.data,
           authData,
@@ -1459,8 +1457,7 @@ export function agreementServiceBuilder(
           agreement.data
         );
       assertRequesterCanActAsConsumer(
-        agreement.data.consumerId,
-        agreement.data.eserviceId,
+        agreement.data,
         authData,
         activeConsumerDelegation
       );
@@ -1556,8 +1553,7 @@ export function agreementServiceBuilder(
       );
 
       assertRequesterCanActAsConsumer(
-        tenantId,
-        eserviceId,
+        { consumerId: tenantId, eserviceId },
         authData,
         await readModelService.getActiveConsumerDelegationByAgreement({
           consumerId: tenantId,
@@ -1718,8 +1714,7 @@ async function getConsumerFromDelegationOrRequester(
     }
 
     assertRequesterIsDelegateConsumer(
-      delegation.delegatorId,
-      eserviceId,
+      { consumerId: delegation.delegatorId, eserviceId },
       authData,
       delegation
     );

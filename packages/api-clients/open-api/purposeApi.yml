@@ -677,7 +677,6 @@ paths:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
       requestBody:
-        required: true
         content:
           application/json:
             schema:
@@ -778,7 +777,6 @@ paths:
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
       requestBody:
-        required: true
         content:
           application/json:
             schema:
@@ -950,7 +948,7 @@ components:
     DelegationRef:
       type: object
       additionalProperties: false
-      description: contains the delegation id of the resource if a delegation is active
+      description: sets the delegation ID in order to operate as a delegate for a specific active delegation
       properties:
         delegationId:
           type: string

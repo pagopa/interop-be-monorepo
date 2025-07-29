@@ -1791,6 +1791,7 @@ describe("activatePurposeVersion", () => {
       getMockDelegation({
         kind: delegationKind.delegatedConsumer,
         id: purpose.delegationId,
+        state: delegationState.active,
       })
     );
     await addSomeRandomDelegations(purpose, addOneDelegation);

@@ -113,7 +113,6 @@ paths:
       summary: Agreement Activation
       operationId: activateAgreement
       requestBody:
-        required: true
         content:
           application/json:
             schema:
@@ -332,7 +331,6 @@ paths:
       summary: Suspend Agreement
       operationId: suspendAgreement
       requestBody:
-        required: true
         content:
           application/json:
             schema:
@@ -1132,7 +1130,7 @@ components:
     DelegationRef:
       type: object
       additionalProperties: false
-      description: contains the delegation id of the resource if a delegation is active
+      description: sets the delegation ID in order to operate as a delegate for a specific active delegation
       properties:
         delegationId:
           type: string
