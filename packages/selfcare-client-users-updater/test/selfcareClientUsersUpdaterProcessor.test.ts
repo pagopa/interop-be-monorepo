@@ -16,11 +16,10 @@ import {
 } from "pagopa-interop-commons";
 import { EachMessagePayload } from "kafkajs";
 import { getMockClient, getMockTenant } from "pagopa-interop-commons-test";
-import { clientKind, Tenant } from "pagopa-interop-models";
+import { clientKind, relationshipStatus, Tenant } from "pagopa-interop-models";
 import { selfcareClientUsersUpdaterProcessorBuilder } from "../src/services/selfcareClientUsersUpdaterProcessor.js";
 import { config } from "../src/config/config.js";
 import { AuthorizationProcessClient } from "../src/clients/authorizationProcessClient.js";
-import { relationshipStatus } from "../src/model/UsersEventPayload.js";
 import {
   addOneClient,
   addOneTenant,

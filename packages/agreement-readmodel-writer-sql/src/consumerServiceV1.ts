@@ -2,9 +2,9 @@ import { match } from "ts-pattern";
 import {
   AgreementEventEnvelopeV1,
   fromAgreementV1,
-  genericInternalError,
   unsafeBrandId,
   fromAgreementDocumentV1,
+  missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { AgreementWriterService } from "./agreementWriterService.js";
 
@@ -23,9 +23,7 @@ export async function handleMessageV1(
       async (msg) => {
         const agreementV1 = msg.data.agreement;
         if (!agreementV1) {
-          throw genericInternalError(
-            "agreement can't be missing in event message"
-          );
+          throw missingKafkaMessageDataError("agreement", message.type);
         }
 
         await agreementWriterService.upsertAgreement(
@@ -43,10 +41,9 @@ export async function handleMessageV1(
     .with({ type: "AgreementConsumerDocumentAdded" }, async (msg) => {
       const consumerDocV1 = msg.data.document;
       if (!consumerDocV1) {
-        throw genericInternalError(
-          "consumer document can't be missing in event message"
-        );
+        throw missingKafkaMessageDataError("document", message.type);
       }
+
       await agreementWriterService.upsertConsumerDocument(
         fromAgreementDocumentV1(consumerDocV1),
         unsafeBrandId(msg.data.agreementId),
@@ -63,10 +60,9 @@ export async function handleMessageV1(
     .with({ type: "AgreementContractAdded" }, async (msg) => {
       const contractV1 = msg.data.contract;
       if (!contractV1) {
-        throw genericInternalError(
-          "contract can't be missing in event message"
-        );
+        throw missingKafkaMessageDataError("contract", message.type);
       }
+
       await agreementWriterService.upsertContractDocument(
         fromAgreementDocumentV1(contractV1),
         unsafeBrandId(msg.data.agreementId),
