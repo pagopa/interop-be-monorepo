@@ -4,7 +4,6 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
 } from "pagopa-interop-models";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   AppContext,
   DB,
@@ -13,7 +12,9 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   _dbInstance: DB,
   readModelService: ReadModelServiceSQL
