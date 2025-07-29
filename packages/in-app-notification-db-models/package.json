@@ -25,7 +25,7 @@
     "dist"
   ],
   "devDependencies": {
-    "@types/node": "20.14.6",
+    "@types/node": "20.19.9",
     "drizzle-kit": "0.30.4",
     "eslint": "8.57.0",
     "prettier": "2.8.8",
