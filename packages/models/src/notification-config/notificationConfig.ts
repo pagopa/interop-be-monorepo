@@ -32,16 +32,13 @@ export const NotificationConfig = z.object({
   delegationAcceptanceStatusChangedToDelegator: z.boolean(), // 20: Stato di accettazione di una delega
   eserviceNewVersionPublicationApprovalRequestToDelegator: z.boolean(), // 21: Richiesta approvazione pubblicazione nuova versione e-service
   eserviceNewVersionPublicationAcceptanceRejectionToDelegate: z.boolean(), // 22: Accettazione o rifiuto pubblicazione nuova versione e-service
-  receivedDelegationsStatusToDelegate: z.boolean(), // 22: Stato delle deleghe ricevute
+  receivedDelegationsStatusToDelegate: z.boolean(), // 23: Stato delle deleghe ricevute
 
   // Attributi (Attributes) notifications
-  certifiedVerifiedAttributesGrantRevocationToAdherent: z.boolean(), // 23: Conferimento o revoca di attributi certificati o verificati
+  certifiedVerifiedAttributesGrantRevocationToAdherent: z.boolean(), // 24: Conferimento o revoca di attributi certificati o verificati
 
   // Chiavi (Keys) notifications
-  clientKeysStatusChanged: z.boolean(), // 24: Variazioni sullo stato delle chiavi collegate ad un client
-
-  // Comunicazioni (Communications) notifications
-  platformCommunications: z.boolean(), // 25: Comunicazioni in piattaforma
+  clientKeysStatusChanged: z.boolean(), // 25: Variazioni sullo stato delle chiavi collegate ad un client
 });
 export type NotificationConfig = z.infer<typeof NotificationConfig>;
 
