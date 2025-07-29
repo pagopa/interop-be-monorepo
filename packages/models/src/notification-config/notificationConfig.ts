@@ -9,7 +9,6 @@ import {
 export const NotificationConfig = z.object({
   // Erogazione (Producer) notifications
   agreementSuspendedUnsuspendedToProducer: z.boolean(), // 04: Variazione dello stato di una richiesta di fruizione
-  agreementSubmittedActivatedToProducer: z.boolean(), // 12: Attivazione o rifiuto richiesta di fruizione
   agreementRequestManagementToProducer: z.boolean(), // 03: Gestione richieste di fruizione
   clientAssociationByConsumerToProducer: z.boolean(), // 05: Associazione di un client da parte del fruitore
   consumerThresholdAdjustmentRequestToProducer: z.boolean(), // 06: Richiesta adeguamento soglia fruitore
@@ -35,7 +34,7 @@ export const NotificationConfig = z.object({
   receivedDelegationsStatusToDelegate: z.boolean(), // 23: Stato delle deleghe ricevute
 
   // Attributi (Attributes) notifications
-  certifiedVerifiedAttributesGrantRevocationToAdherent: z.boolean(), // 24: Conferimento o revoca di attributi certificati o verificati
+  certifiedVerifiedAttributesGrantRevocationToTenant: z.boolean(), // 24: Conferimento o revoca di attributi certificati o verificati
 
   // Chiavi (Keys) notifications
   clientKeysStatusChanged: z.boolean(), // 25: Variazioni sullo stato delle chiavi collegate ad un client
