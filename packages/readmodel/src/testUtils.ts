@@ -8,6 +8,7 @@ import {
   EServiceTemplate,
   ProducerJWKKey,
   ProducerKeychain,
+  Purpose,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
@@ -53,6 +54,11 @@ import {
   producerKeychainInReadmodelProducerKeychain,
   producerKeychainKeyInReadmodelProducerKeychain,
   producerKeychainUserInReadmodelProducerKeychain,
+  purposeInReadmodelPurpose,
+  purposeRiskAnalysisAnswerInReadmodelPurpose,
+  purposeRiskAnalysisFormInReadmodelPurpose,
+  purposeVersionDocumentInReadmodelPurpose,
+  purposeVersionInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import { and, eq } from "drizzle-orm";
 import {
@@ -69,6 +75,7 @@ import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 import { splitEServiceTemplateIntoObjectsSQL } from "./eservice-template/splitters.js";
 import { splitProducerJWKKeyIntoObjectsSQL } from "./authorization/producerJWKKeySplitters.js";
 import { splitProducerKeychainIntoObjectsSQL } from "./authorization/producerKeychainSplitters.js";
+import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -584,6 +591,63 @@ export const upsertProducerKeychain = async (
       await tx
         .insert(producerKeychainKeyInReadmodelProducerKeychain)
         .values(keySQL);
+    }
+  });
+};
+
+export const upsertPurpose = async (
+  readModelDB: DrizzleReturnType,
+  purpose: Purpose,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      purposeInReadmodelPurpose,
+      metadataVersion,
+      purpose.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(purposeInReadmodelPurpose)
+      .where(eq(purposeInReadmodelPurpose.id, purpose.id));
+
+    const {
+      purposeSQL,
+      riskAnalysisFormSQL,
+      riskAnalysisAnswersSQL,
+      versionsSQL,
+      versionDocumentsSQL,
+    } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
+
+    await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
+
+    if (riskAnalysisFormSQL) {
+      await tx
+        .insert(purposeRiskAnalysisFormInReadmodelPurpose)
+        .values(riskAnalysisFormSQL);
+    }
+
+    if (riskAnalysisAnswersSQL) {
+      for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+        await tx
+          .insert(purposeRiskAnalysisAnswerInReadmodelPurpose)
+          .values(riskAnalysisAnswerSQL);
+      }
+    }
+
+    for (const versionSQL of versionsSQL) {
+      await tx.insert(purposeVersionInReadmodelPurpose).values(versionSQL);
+    }
+
+    for (const versionDocumentSQL of versionDocumentsSQL) {
+      await tx
+        .insert(purposeVersionDocumentInReadmodelPurpose)
+        .values(versionDocumentSQL);
     }
   });
 };
