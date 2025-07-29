@@ -168,8 +168,14 @@ export function purposeServiceBuilder(
 
       const purposeResponse = await clients.purposeProcessClient.createPurpose(
         {
-          ...purposeSeed,
-          consumerId: authData.organizationId,
+          consumerId: purposeSeed.consumerId,
+          eserviceId: purposeSeed.eserviceId,
+          dailyCalls: purposeSeed.dailyCalls,
+          description: purposeSeed.description,
+          isFreeOfCharge: purposeSeed.isFreeOfCharge,
+          riskAnalysisForm: purposeSeed.riskAnalysisForm,
+          title: purposeSeed.title,
+          freeOfChargeReason: purposeSeed.freeOfChargeReason,
         },
         { headers }
       );
