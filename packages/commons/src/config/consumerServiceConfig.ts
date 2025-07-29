@@ -39,7 +39,9 @@ export const KafkaBatchConsumerConfig = z
       minBytes,
       maxWaitKafkaBatchMillis: c.MAX_WAIT_KAFKA_BATCH_MILLIS,
       sessionTimeoutMillis: Math.round(c.MAX_WAIT_KAFKA_BATCH_MILLIS * 1.5),
-      heartbeatIntervalMillis: Math.round(c.MAX_WAIT_KAFKA_BATCH_MILLIS * 0.5), // 1/3 of session timeout as per Kafka best practices
+      // heartbeat is 1/3 of session timeout as per Kafka best practices,
+      // since session timeout is 1.5 times the max wait heartbeat will be 0.5 times the max wait
+      heartbeatIntervalMillis: Math.round(c.MAX_WAIT_KAFKA_BATCH_MILLIS * 0.5),
       maxBytes: Math.round(minBytes * 1.25),
     };
   });
