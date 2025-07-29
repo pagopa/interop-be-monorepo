@@ -5,7 +5,6 @@ import {
   PurposeTemplateId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   AppContext,
   DB,
