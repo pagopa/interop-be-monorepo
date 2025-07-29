@@ -1,6 +1,8 @@
 import {
   CreateEvent,
   M2MAdminAuthData,
+  Ownership,
+  ownership,
   UIAuthData,
 } from "pagopa-interop-commons";
 import {
@@ -11,8 +13,8 @@ import {
   Tenant,
   WithMetadata,
   agreementState,
-  genericError,
 } from "pagopa-interop-models";
+import { match, P } from "ts-pattern";
 import {
   ActiveDelegations,
   UpdateAgreementSeed,
@@ -24,14 +26,13 @@ import {
 import {
   agreementStateByFlags,
   nextStateByAttributesFSM,
-  suspendedByConsumerFlag,
-  suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
 import {
   createStamp,
   suspendedByConsumerStamp,
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
+import { getSuspensionFlags } from "./agreementService.js";
 
 export function createSuspensionUpdatedAgreement({
   agreement,
@@ -39,12 +40,14 @@ export function createSuspensionUpdatedAgreement({
   descriptor,
   consumer,
   activeDelegations,
+  agreementOwnership,
 }: {
   agreement: Agreement;
   authData: UIAuthData | M2MAdminAuthData;
   descriptor: Descriptor;
   consumer: Tenant;
   activeDelegations: ActiveDelegations;
+  agreementOwnership: Ownership;
 }): Agreement {
   /* nextAttributesState VS targetDestinationState
   -- targetDestinationState is the state where the caller wants to go (suspended, in this case)
@@ -57,17 +60,12 @@ export function createSuspensionUpdatedAgreement({
     consumer
   );
 
-  const suspendedByConsumer = suspendedByConsumerFlag(
+  const { suspendedByConsumer, suspendedByProducer } = getSuspensionFlags(
+    agreementOwnership,
     agreement,
-    authData.organizationId,
+    authData,
     targetDestinationState,
-    activeDelegations.consumerDelegation?.delegateId
-  );
-  const suspendedByProducer = suspendedByProducerFlag(
-    agreement,
-    authData.organizationId,
-    targetDestinationState,
-    activeDelegations.producerDelegation?.delegateId
+    activeDelegations
   );
 
   const newState = agreementStateByFlags(
@@ -79,21 +77,46 @@ export function createSuspensionUpdatedAgreement({
 
   const stamp = createStamp(authData, activeDelegations);
 
-  const suspensionByProducerStamp = suspendedByProducerStamp(
-    agreement,
-    authData.organizationId,
-    agreementState.suspended,
-    stamp,
-    activeDelegations.producerDelegation?.delegateId
-  );
-
-  const suspensionByConsumerStamp = suspendedByConsumerStamp(
-    agreement,
-    authData.organizationId,
-    agreementState.suspended,
-    stamp,
-    activeDelegations.consumerDelegation?.delegateId
-  );
+  const { suspensionByConsumerStamp, suspensionByProducerStamp } = match(
+    agreementOwnership
+  )
+    .with(ownership.PRODUCER, () => ({
+      suspensionByProducerStamp: suspendedByProducerStamp(
+        agreement,
+        authData.organizationId,
+        agreementState.suspended,
+        stamp,
+        activeDelegations.producerDelegation?.delegateId
+      ),
+      suspensionByConsumerStamp: undefined,
+    }))
+    .with(ownership.CONSUMER, () => ({
+      suspensionByProducerStamp: undefined,
+      suspensionByConsumerStamp: suspendedByConsumerStamp(
+        agreement,
+        authData.organizationId,
+        agreementState.suspended,
+        stamp,
+        activeDelegations.consumerDelegation?.delegateId
+      ),
+    }))
+    .with(ownership.SELF_CONSUMER, () => ({
+      suspensionByConsumerStamp: suspendedByConsumerStamp(
+        agreement,
+        authData.organizationId,
+        agreementState.suspended,
+        stamp,
+        activeDelegations.consumerDelegation?.delegateId
+      ),
+      suspensionByProducerStamp: suspendedByProducerStamp(
+        agreement,
+        authData.organizationId,
+        agreementState.suspended,
+        stamp,
+        activeDelegations.producerDelegation?.delegateId
+      ),
+    }))
+    .exhaustive();
 
   const updateSeed: UpdateAgreementSeed = {
     state: newState,
@@ -115,36 +138,25 @@ export function createSuspensionUpdatedAgreement({
 
 // eslint-disable-next-line max-params
 export function createAgreementSuspendedEvent(
-  authData: UIAuthData | M2MAdminAuthData,
   correlationId: CorrelationId,
   updatedAgreement: Agreement,
   agreement: WithMetadata<Agreement>,
-  activeDelegations: ActiveDelegations
+  agreementOwnership: Ownership
 ): CreateEvent<AgreementEventV2> {
-  const isProducer = authData.organizationId === agreement.data.producerId;
-  const isConsumer = authData.organizationId === agreement.data.consumerId;
-  const isProducerDelegate =
-    activeDelegations.producerDelegation?.delegateId ===
-    authData.organizationId;
-  const isConsumerDelegate =
-    activeDelegations.consumerDelegation?.delegateId ===
-    authData.organizationId;
-
-  if (isProducer || isProducerDelegate) {
-    return toCreateEventAgreementSuspendedByProducer(
-      updatedAgreement,
-      agreement.metadata.version,
-      correlationId
-    );
-  } else if (isConsumer || isConsumerDelegate) {
-    return toCreateEventAgreementSuspendedByConsumer(
-      updatedAgreement,
-      agreement.metadata.version,
-      correlationId
-    );
-  } else {
-    throw genericError(
-      "Agreement can only be suspended by the consumer or producer/delegate producer."
-    );
-  }
+  return match(agreementOwnership)
+    .with(P.union(ownership.PRODUCER, ownership.SELF_CONSUMER), () =>
+      toCreateEventAgreementSuspendedByProducer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      )
+    )
+    .with(ownership.CONSUMER, () =>
+      toCreateEventAgreementSuspendedByConsumer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      )
+    )
+    .exhaustive();
 }

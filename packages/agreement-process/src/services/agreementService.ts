@@ -8,10 +8,12 @@ import {
   Logger,
   M2MAdminAuthData,
   M2MAuthData,
+  Ownership,
   PDFGenerator,
   UIAuthData,
   WithLogger,
   eventRepository,
+  ownership,
 } from "pagopa-interop-commons";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -43,6 +45,7 @@ import {
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
 } from "pagopa-interop-agreement-lifecycle";
+import { match } from "ts-pattern";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementActivationFailed,
@@ -1031,26 +1034,21 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      assertRequesterCanActAsConsumerOrProducer(
+      const agreementOwnership = assertRequesterCanActAsConsumerOrProducer(
         agreement.data,
         delegationId,
         activeDelegations,
         authData
       );
 
-      const eservice = await retrieveEService(
-        agreement.data.eserviceId,
-        readModelService
-      );
+      const [eservice, consumer] = await Promise.all([
+        retrieveEService(agreement.data.eserviceId, readModelService),
+        retrieveTenant(agreement.data.consumerId, readModelService),
+      ]);
 
       const descriptor = retrieveDescriptor(
         agreement.data.descriptorId,
         eservice
-      );
-
-      const consumer = await retrieveTenant(
-        agreement.data.consumerId,
-        readModelService
       );
 
       const updatedAgreement: Agreement = createSuspensionUpdatedAgreement({
@@ -1059,15 +1057,15 @@ export function agreementServiceBuilder(
         descriptor,
         consumer,
         activeDelegations,
+        agreementOwnership,
       });
 
       const createdEvent = await repository.createEvent(
         createAgreementSuspendedEvent(
-          authData,
           correlationId,
           updatedAgreement,
           agreement,
-          activeDelegations
+          agreementOwnership
         )
       );
 
@@ -1268,43 +1266,37 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      if (agreement.data.state === agreementState.pending) {
-        if (delegationId !== activeDelegations.producerDelegation?.id) {
-          throw tenantNotAllowed(authData.organizationId);
+      const agreementOwnership = ((): Ownership => {
+        if (agreement.data.state === agreementState.pending) {
+          if (delegationId !== activeDelegations.producerDelegation?.id) {
+            throw tenantNotAllowed(authData.organizationId);
+          }
+
+          assertRequesterCanActAsProducer(
+            agreement.data,
+            authData,
+            activeDelegations.producerDelegation
+          );
+          return ownership.PRODUCER;
+        } else {
+          return assertRequesterCanActAsConsumerOrProducer(
+            agreement.data,
+            delegationId,
+            activeDelegations,
+            authData
+          );
         }
+      })();
 
-        assertRequesterCanActAsProducer(
-          agreement.data,
-          authData,
-          activeDelegations.producerDelegation
-        );
-      } else {
-        assertRequesterCanActAsConsumerOrProducer(
-          agreement.data,
-          delegationId,
-          activeDelegations,
-          authData
-        );
-      }
-
-      const eservice = await retrieveEService(
-        agreement.data.eserviceId,
-        readModelService
-      );
+      const [eservice, consumer, producer] = await Promise.all([
+        retrieveEService(agreement.data.eserviceId, readModelService),
+        retrieveTenant(agreement.data.consumerId, readModelService),
+        retrieveTenant(agreement.data.producerId, readModelService),
+      ]);
 
       const descriptor = validateActivationOnDescriptor(
         eservice,
         agreement.data.descriptorId
-      );
-
-      const consumer = await retrieveTenant(
-        agreement.data.consumerId,
-        readModelService
-      );
-
-      const producer = await retrieveTenant(
-        agreement.data.producerId,
-        readModelService
       );
 
       /* nextAttributesState VS targetDestinationState
@@ -1339,17 +1331,12 @@ export function agreementServiceBuilder(
         throw agreementActivationFailed(agreement.data.id);
       }
 
-      const suspendedByConsumer = suspendedByConsumerFlag(
+      const { suspendedByConsumer, suspendedByProducer } = getSuspensionFlags(
+        agreementOwnership,
         agreement.data,
-        authData.organizationId,
+        authData,
         targetDestinationState,
-        activeDelegations.consumerDelegation?.delegateId
-      );
-      const suspendedByProducer = suspendedByProducerFlag(
-        agreement.data,
-        authData.organizationId,
-        targetDestinationState,
-        activeDelegations.producerDelegation?.delegateId
+        activeDelegations
       );
 
       const newState = agreementStateByFlags(
@@ -1399,20 +1386,14 @@ export function agreementServiceBuilder(
         agreement.data.suspendedByPlatform !==
         updatedAgreement.suspendedByPlatform;
 
-      const delegation = [
-        activeDelegations.consumerDelegation,
-        activeDelegations.producerDelegation,
-      ].find((d) => d?.id === delegationId);
-
       const activationEvents = await createActivationEvent(
         isFirstActivation,
         updatedAgreement,
         agreement.data.suspendedByPlatform,
         suspendedByPlatformChanged,
         agreement.metadata.version,
-        authData,
-        correlationId,
-        delegation
+        agreementOwnership,
+        correlationId
       );
 
       const archiveEvents = await archiveRelatedToAgreements(
@@ -1578,6 +1559,52 @@ export function agreementServiceBuilder(
 }
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
+
+export function getSuspensionFlags(
+  agreementOwnership: Ownership,
+  agreement: Agreement,
+  authData: UIAuthData | M2MAdminAuthData,
+  targetDestinationState: AgreementState,
+  activeDelegations: ActiveDelegations
+): {
+  suspendedByConsumer: boolean | undefined;
+  suspendedByProducer: boolean | undefined;
+} {
+  return match(agreementOwnership)
+    .with(ownership.PRODUCER, () => ({
+      suspendedByProducer: suspendedByProducerFlag(
+        agreement,
+        authData.organizationId,
+        targetDestinationState,
+        activeDelegations.producerDelegation?.delegateId
+      ),
+      suspendedByConsumer: undefined,
+    }))
+    .with(ownership.CONSUMER, () => ({
+      suspendedByProducer: undefined,
+      suspendedByConsumer: suspendedByConsumerFlag(
+        agreement,
+        authData.organizationId,
+        targetDestinationState,
+        activeDelegations.consumerDelegation?.delegateId
+      ),
+    }))
+    .with(ownership.SELF_CONSUMER, () => ({
+      suspendedByConsumer: suspendedByConsumerFlag(
+        agreement,
+        authData.organizationId,
+        targetDestinationState,
+        activeDelegations.consumerDelegation?.delegateId
+      ),
+      suspendedByProducer: suspendedByProducerFlag(
+        agreement,
+        authData.organizationId,
+        targetDestinationState,
+        activeDelegations.producerDelegation?.delegateId
+      ),
+    }))
+    .exhaustive();
+}
 
 export async function createAndCopyDocumentsForClonedAgreement(
   newAgreementId: AgreementId,

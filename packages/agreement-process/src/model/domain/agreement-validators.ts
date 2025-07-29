@@ -24,6 +24,8 @@ import {
 import {
   M2MAdminAuthData,
   M2MAuthData,
+  ownership,
+  Ownership,
   UIAuthData,
 } from "pagopa-interop-commons";
 import {
@@ -160,20 +162,29 @@ export const assertRequesterCanActAsConsumerOrProducer = (
   delegationId: DelegationId | undefined,
   activeDelegations: ActiveDelegations,
   authData: UIAuthData | M2MAdminAuthData
-): void => {
+): Ownership => {
+  if (
+    agreement.producerId === agreement.consumerId &&
+    authData.organizationId === agreement.producerId
+  ) {
+    return ownership.SELF_CONSUMER;
+  }
+
   if (delegationId) {
     if (delegationId === activeDelegations.producerDelegation?.id) {
-      return assertRequesterIsDelegateProducer(
+      assertRequesterIsDelegateProducer(
         agreement,
         authData,
         activeDelegations.producerDelegation
       );
+      return ownership.PRODUCER;
     } else if (delegationId === activeDelegations.consumerDelegation?.id) {
-      return assertRequesterIsDelegateConsumer(
+      assertRequesterIsDelegateConsumer(
         agreement,
         authData,
         activeDelegations.consumerDelegation
       );
+      return ownership.CONSUMER;
     } else {
       throw tenantNotAllowed(authData.organizationId);
     }
@@ -191,9 +202,11 @@ export const assertRequesterCanActAsConsumerOrProducer = (
 
   try {
     assertRequesterIsProducer(agreement, authData);
+    return ownership.PRODUCER;
   } catch {
     try {
       assertRequesterIsConsumer(agreement, authData);
+      return ownership.CONSUMER;
     } catch {
       throw tenantNotAllowed(authData.organizationId);
     }

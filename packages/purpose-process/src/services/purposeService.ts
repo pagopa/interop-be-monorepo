@@ -8,6 +8,7 @@ import {
   Logger,
   M2MAdminAuthData,
   M2MAuthData,
+  Ownership,
   PDFGenerator,
   RiskAnalysisFormRules,
   UIAuthData,
@@ -17,6 +18,7 @@ import {
   getFormRulesByVersion,
   getIpaCode,
   getLatestVersionFormRules,
+  ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -97,11 +99,7 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
-import {
-  ownership,
-  Ownership,
-  PurposeDocumentEServiceInfo,
-} from "../model/domain/models.js";
+import { PurposeDocumentEServiceInfo } from "../model/domain/models.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertEserviceMode,
@@ -1157,7 +1155,7 @@ export function purposeServiceBuilder(
               correlationId
             )
         )
-        .otherwise(() => {
+        .exhaustive(() => {
           throw tenantNotAllowed(authData.organizationId);
         });
 
@@ -1909,7 +1907,7 @@ function activatePurposeVersionFromSuspendedLogic(
       },
       () => purposeVersionState.suspended
     )
-    .otherwise(() => purposeVersionState.active);
+    .exhaustive(() => purposeVersionState.active);
 
   const updatedPurposeVersion: PurposeVersion = {
     ...purposeVersion,
@@ -1925,6 +1923,8 @@ function activatePurposeVersionFromSuspendedLogic(
     purpose.data,
     updatedPurposeVersion
   );
+
+  // TRADURRE IN UN MATCH ESAUSTIVO
 
   if (
     purposeOwnership === ownership.PRODUCER ||
