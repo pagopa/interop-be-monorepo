@@ -7,8 +7,14 @@ import {
 } from "pagopa-interop-commons";
 import {
   EServiceTemplateRiskAnalysis,
+  generateId,
   RiskAnalysis,
   RiskAnalysisForm,
+  RiskAnalysisFormTemplate,
+  RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswer,
   TenantKind,
   tenantKind,
 } from "pagopa-interop-models";
@@ -189,3 +195,61 @@ export const getMockValidRiskAnalysisForm = (
       )
     )
     .exhaustive();
+
+export const getMockRiskAnalysisTemplateAnswerAnnotationDocument =
+  (): RiskAnalysisTemplateAnswerAnnotationDocument => ({
+    id: generateId(),
+    name: "fileName",
+    prettyName: "prettyName",
+    contentType: "json",
+    path: "filePath",
+    createdAt: new Date(),
+  });
+
+export const getMockRiskAnalysisTemplateAnswerAnnotation =
+  (): RiskAnalysisTemplateAnswerAnnotation => ({
+    id: generateId(),
+    text: "Single answer annotation text",
+    docs: [],
+  });
+
+export const getMockRiskAnalysisFormTemplate = (
+  producerTenantKind: TenantKind
+): RiskAnalysisFormTemplate =>
+  match(producerTenantKind)
+    .with(tenantKind.PA, () =>
+      riskAnalysisValidatedFormToNewRiskAnalysisFormTemplate(
+        validatedRiskAnalysis3_0_Pa
+      )
+    )
+    .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
+      riskAnalysisValidatedFormToNewRiskAnalysisFormTemplate(
+        validatedRiskAnalysis2_0_Private
+      )
+    )
+    .exhaustive();
+
+// TODO: where to put this?
+function riskAnalysisValidatedFormToNewRiskAnalysisFormTemplate(
+  validatedForm: RiskAnalysisValidatedForm
+): RiskAnalysisFormTemplate {
+  return {
+    id: generateId(),
+    version: validatedForm.version,
+    singleAnswers: validatedForm.singleAnswers.map(
+      (a): RiskAnalysisTemplateSingleAnswer => ({
+        ...a,
+        id: generateId(),
+        editable: true,
+        suggestedValues: [],
+      })
+    ),
+    multiAnswers: validatedForm.multiAnswers.map(
+      (a): RiskAnalysisTemplateMultiAnswer => ({
+        ...a,
+        id: generateId(),
+        editable: true,
+      })
+    ),
+  };
+}
