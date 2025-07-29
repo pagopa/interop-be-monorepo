@@ -21,12 +21,12 @@ import { afterEach, inject, vi } from "vitest";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
-  purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
   upsertEService,
+  upsertPurpose,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { notificationEmailSenderServiceBuilder } from "../src/services/notificationEmailSenderService.js";
@@ -56,7 +56,6 @@ export const {
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
-const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
@@ -140,7 +139,7 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
     readModelRepository.purposes
   );
 
-  await purposeReadModelServiceSQL.upsertPurpose(purpose, 0);
+  await upsertPurpose(readModelDB, purpose, 0);
 };
 
 type Mail = {
