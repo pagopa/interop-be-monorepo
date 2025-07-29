@@ -19890,7 +19890,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  "/in-app-notifications":
+  "/inAppNotifications":
     get:
       security: []
       tags:
@@ -20026,7 +20026,7 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/in-app-notifications/bulk/markAsRead":
+  "/inAppNotifications/bulk/markAsRead":
     post:
       tags:
         - inAppNotifications
@@ -20176,7 +20176,7 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/in-app-notifications/:notificationId/markAsRead":
+  "/inAppNotifications/:notificationId/markAsRead":
     post:
       tags:
         - inAppNotifications
@@ -20319,7 +20319,7 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/in-app-notifications/:notificationId":
+  "/inAppNotifications/:notificationId":
     delete:
       tags:
         - inAppNotifications
@@ -20463,7 +20463,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
 
-  "/notification-configs/tenantNotificationConfigs":
+  "/tenantNotificationConfigs":
     get:
       security: []
       tags:
@@ -20702,7 +20702,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
 
-  "/notification-configs/userNotificationConfigs":
+  "/userNotificationConfigs":
     get:
       security: []
       tags:

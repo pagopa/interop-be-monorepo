@@ -15,14 +15,14 @@ const inAppNotificationRouter = (
   });
 
   inAppNotificationRouter
-    .get("/in-app-notifications", (_, res) => res.status(501).send())
-    .post("/in-app-notifications/bulk/markAsRead", (_, res) =>
+    .get("/inAppNotifications", (_, res) => res.status(501).send())
+    .post("/inAppNotifications/bulk/markAsRead", (_, res) =>
       res.status(501).send()
     )
-    .post("/in-app-notifications/:notificationId/markAsRead", (_, res) =>
+    .post("/inAppNotifications/:notificationId/markAsRead", (_, res) =>
       res.status(501).send()
     )
-    .delete("/in-app-notifications/:notificationId", (_, res) =>
+    .delete("/inAppNotifications/:notificationId", (_, res) =>
       res.status(501).send()
     );
 
