@@ -21,6 +21,7 @@ import {
   unsuspendPurposeErrorMapper,
   downloadPurposeVersionRiskAnalysisDocumentErrorMapper,
   getPurposeAgreementErrorMapper,
+  createPurposeErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -133,7 +134,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          createPurposeErrorMapper,
           ctx,
           `Error creating purpose`
         );
@@ -309,7 +310,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          createPurposeErrorMapper,
           ctx,
           `Error creating reverse purpose`
         );

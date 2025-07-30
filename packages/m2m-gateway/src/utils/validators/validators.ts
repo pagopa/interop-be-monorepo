@@ -5,7 +5,10 @@ import {
 } from "pagopa-interop-models";
 import { authorizationApi, delegationApi } from "pagopa-interop-api-clients";
 import { WithMaybeMetadata } from "../../clients/zodiosWithMetadataPatch.js";
-import { missingMetadata } from "../../model/errors.js";
+import {
+  missingMetadata,
+  notAnActiveConsumerDelegation,
+} from "../../model/errors.js";
 
 export function assertMetadataExists<T>(
   resource: WithMaybeMetadata<T>
@@ -47,8 +50,10 @@ export function assertActiveConsumerDelegateForEservice(
     delegation.delegateId !== requesterTenantId ||
     delegation.eserviceId !== eserviceId
   ) {
-    throw unauthorizedError(
-      `Delegation ${delegation.id} is not an active consumer delegation for e-service ${eserviceId} and delegate ${requesterTenantId}`
+    throw notAnActiveConsumerDelegation(
+      requesterTenantId,
+      eserviceId,
+      delegation
     );
   }
 }

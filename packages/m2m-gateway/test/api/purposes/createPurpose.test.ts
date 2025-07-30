@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
+  getMockedApiDelegation,
   getMockedApiPurpose,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -10,7 +11,10 @@ import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  missingMetadata,
+  notAnActiveConsumerDelegation,
+} from "../../../src/model/errors.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("POST /purposes router test", () => {
@@ -68,6 +72,22 @@ describe("POST /purposes router test", () => {
     const res = await makeRequest(token, body as m2mGatewayApi.PurposeSeed);
 
     expect(res.status).toBe(400);
+  });
+
+  it("Should return 403 in case of notAnActiveConsumerDelegation error", async () => {
+    mockPurposeService.createPurpose = vi
+      .fn()
+      .mockRejectedValue(
+        notAnActiveConsumerDelegation(
+          generateId(),
+          generateId(),
+          getMockedApiDelegation()
+        )
+      );
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockPurposeSeed);
+
+    expect(res.status).toBe(403);
   });
 
   it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
