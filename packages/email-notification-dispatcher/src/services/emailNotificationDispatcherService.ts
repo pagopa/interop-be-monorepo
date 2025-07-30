@@ -8,15 +8,13 @@ const producer = await initProducer(config, config.emailSenderTopic);
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function emailNotificationDispatcherServiceBuilder() {
   return {
-    sendMessage: async (
-      messagePayload: EmailNotificationMessagePayload
+    sendMessages: async (
+      messagePayloads: EmailNotificationMessagePayload[]
     ): Promise<void> => {
       await producer.send({
-        messages: [
-          {
-            value: encodeEmailEvent(messagePayload),
-          },
-        ],
+        messages: messagePayloads.map((payload) => ({
+          value: encodeEmailEvent(payload),
+        })),
       });
     },
   };
