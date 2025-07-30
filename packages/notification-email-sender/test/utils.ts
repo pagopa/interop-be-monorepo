@@ -27,6 +27,7 @@ import {
   upsertAgreement,
   upsertEService,
   upsertPurpose,
+  upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { notificationEmailSenderServiceBuilder } from "../src/services/notificationEmailSenderService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -111,7 +112,7 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
     readModelRepository.tenants
   );
 
-  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
+  await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
