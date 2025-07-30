@@ -17,7 +17,10 @@ import {
 import { describe, expect, it } from "vitest";
 import { keyToClientJWKKey } from "pagopa-interop-commons";
 import { handleMessageV1 } from "../src/keyConsumerServiceV1.js";
-import { clientJWKKeyReadModelService, readModelService } from "./utils.js";
+import {
+  clientJWKKeyReadModelService,
+  clientJWKKeyWriterService,
+} from "./utils.js";
 
 describe("Events V1", async () => {
   const key = crypto.generateKeyPairSync("rsa", {
@@ -45,7 +48,7 @@ describe("Events V1", async () => {
       const mockKey = { ...getMockKey(), encodedPem: base64Key };
       const jwkKey = keyToClientJWKKey(mockKey, mockClient.id);
 
-      await readModelService.upsertClientJWKKey(jwkKey, 1);
+      await clientJWKKeyWriterService.upsertClientJWKKey(jwkKey, 1);
 
       const addedKey: Key = {
         ...getMockKey(),
@@ -72,7 +75,7 @@ describe("Events V1", async () => {
         log_date: new Date(),
       };
 
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, clientJWKKeyWriterService);
 
       const retrievedKey =
         await clientJWKKeyReadModelService.getClientJWKKeyByClientIdAndKid(
@@ -99,7 +102,7 @@ describe("Events V1", async () => {
       id: clientId,
       keys: [mockKey],
     };
-    await readModelService.upsertClientJWKKey(jwkKey, 1);
+    await clientJWKKeyWriterService.upsertClientJWKKey(jwkKey, 1);
 
     const payload: KeyDeletedV1 = {
       clientId: mockClient.id,
@@ -117,7 +120,7 @@ describe("Events V1", async () => {
       log_date: new Date(),
     };
 
-    await handleMessageV1(message, readModelService);
+    await handleMessageV1(message, clientJWKKeyWriterService);
 
     const retrievedKey =
       await clientJWKKeyReadModelService.getClientJWKKeyByClientIdAndKid(
@@ -140,8 +143,8 @@ describe("Events V1", async () => {
       keys: [mockKey1, mockKey2],
     };
 
-    await readModelService.upsertClientJWKKey(jwkKey1, 1);
-    await readModelService.upsertClientJWKKey(jwkKey2, 1);
+    await clientJWKKeyWriterService.upsertClientJWKKey(jwkKey1, 1);
+    await clientJWKKeyWriterService.upsertClientJWKKey(jwkKey2, 1);
 
     const payload: ClientDeletedV1 = {
       clientId: mockClient.id,
@@ -157,7 +160,7 @@ describe("Events V1", async () => {
       log_date: new Date(),
     };
 
-    await handleMessageV1(message, readModelService);
+    await handleMessageV1(message, clientJWKKeyWriterService);
 
     const retrievedKey1 =
       await clientJWKKeyReadModelService.getClientJWKKeyByClientIdAndKid(

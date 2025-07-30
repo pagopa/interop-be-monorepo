@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   ClientId,
+  ClientKindTokenGenStates,
   Problem,
   TenantId,
   tooManyRequestsError,
@@ -47,6 +48,13 @@ const authorizationServerRouter = (
       req.ctx.organizationId = organizationId;
     };
 
+    const setCtxClientKind = (
+      tokenGenClientKind: ClientKindTokenGenStates
+    ): void => {
+      // eslint-disable-next-line functional/immutable-data
+      req.ctx.clientKind = tokenGenClientKind;
+    };
+
     const ctx: WithLogger<AuthServerAppContext> = {
       ...req.ctx,
       logger: logger({ ...req.ctx }),
@@ -58,6 +66,7 @@ const authorizationServerRouter = (
         req.body,
         ctx,
         setCtxClientId,
+        setCtxClientKind,
         setCtxOrganizationId
       );
 
