@@ -61,12 +61,12 @@ describe("updateUserNotificationConfig", () => {
         purposeSuspendedUnsuspendedToConsumer:
           !userNotificationConfig.inAppConfig
             .purposeSuspendedUnsuspendedToConsumer,
-        newEserviceTemplateVersionToInstatiator:
+        newEserviceTemplateVersionToInstantiator:
           !userNotificationConfig.inAppConfig
-            .newEserviceTemplateVersionToInstatiator,
-        eserviceTemplateNameChangedToInstatiator:
+            .newEserviceTemplateVersionToInstantiator,
+        eserviceTemplateNameChangedToInstantiator:
           !userNotificationConfig.inAppConfig
-            .eserviceTemplateNameChangedToInstatiator,
+            .eserviceTemplateNameChangedToInstantiator,
         eserviceTemplateStatusChangedToInstantiator:
           !userNotificationConfig.inAppConfig
             .eserviceTemplateStatusChangedToInstantiator,

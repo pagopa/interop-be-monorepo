@@ -64,11 +64,11 @@ export const aggregateTenantNotificationConfig = ({
     purposeSuspendedUnsuspendedToConsumer: enabledNotifications.includes(
       "purposeSuspendedUnsuspendedToConsumer"
     ),
-    newEserviceTemplateVersionToInstatiator: enabledNotifications.includes(
-      "newEserviceTemplateVersionToInstatiator"
+    newEserviceTemplateVersionToInstantiator: enabledNotifications.includes(
+      "newEserviceTemplateVersionToInstantiator"
     ),
-    eserviceTemplateNameChangedToInstatiator: enabledNotifications.includes(
-      "eserviceTemplateNameChangedToInstatiator"
+    eserviceTemplateNameChangedToInstantiator: enabledNotifications.includes(
+      "eserviceTemplateNameChangedToInstantiator"
     ),
     eserviceTemplateStatusChangedToInstantiator: enabledNotifications.includes(
       "eserviceTemplateStatusChangedToInstantiator"
@@ -163,12 +163,13 @@ export const aggregateUserNotificationConfig = ({
     purposeSuspendedUnsuspendedToConsumer: enabledInAppNotifications.includes(
       "purposeSuspendedUnsuspendedToConsumer"
     ),
-    newEserviceTemplateVersionToInstatiator: enabledInAppNotifications.includes(
-      "newEserviceTemplateVersionToInstatiator"
-    ),
-    eserviceTemplateNameChangedToInstatiator:
+    newEserviceTemplateVersionToInstantiator:
       enabledInAppNotifications.includes(
-        "eserviceTemplateNameChangedToInstatiator"
+        "newEserviceTemplateVersionToInstantiator"
+      ),
+    eserviceTemplateNameChangedToInstantiator:
+      enabledInAppNotifications.includes(
+        "eserviceTemplateNameChangedToInstantiator"
       ),
     eserviceTemplateStatusChangedToInstantiator:
       enabledInAppNotifications.includes(
@@ -229,12 +230,13 @@ export const aggregateUserNotificationConfig = ({
     purposeSuspendedUnsuspendedToConsumer: enabledEmailNotifications.includes(
       "purposeSuspendedUnsuspendedToConsumer"
     ),
-    newEserviceTemplateVersionToInstatiator: enabledEmailNotifications.includes(
-      "newEserviceTemplateVersionToInstatiator"
-    ),
-    eserviceTemplateNameChangedToInstatiator:
+    newEserviceTemplateVersionToInstantiator:
       enabledEmailNotifications.includes(
-        "eserviceTemplateNameChangedToInstatiator"
+        "newEserviceTemplateVersionToInstantiator"
+      ),
+    eserviceTemplateNameChangedToInstantiator:
+      enabledEmailNotifications.includes(
+        "eserviceTemplateNameChangedToInstantiator"
       ),
     eserviceTemplateStatusChangedToInstantiator:
       enabledEmailNotifications.includes(

@@ -53,12 +53,12 @@ describe("updateTenantNotificationConfig", () => {
         !tenantNotificationConfig.config.purposeActivatedRejectedToConsumer,
       purposeSuspendedUnsuspendedToConsumer:
         !tenantNotificationConfig.config.purposeSuspendedUnsuspendedToConsumer,
-      newEserviceTemplateVersionToInstatiator:
+      newEserviceTemplateVersionToInstantiator:
         !tenantNotificationConfig.config
-          .newEserviceTemplateVersionToInstatiator,
-      eserviceTemplateNameChangedToInstatiator:
+          .newEserviceTemplateVersionToInstantiator,
+      eserviceTemplateNameChangedToInstantiator:
         !tenantNotificationConfig.config
-          .eserviceTemplateNameChangedToInstatiator,
+          .eserviceTemplateNameChangedToInstantiator,
       eserviceTemplateStatusChangedToInstantiator:
         !tenantNotificationConfig.config
           .eserviceTemplateStatusChangedToInstantiator,

@@ -14,7 +14,7 @@ import {
   retrieveTenant,
 } from "../handlerCommons.js";
 
-export async function handleNewEServiceVersionPublished(
+export async function handleEserviceStatusChangedToConsumer(
   eserviceV2Msg: EServiceV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL
@@ -26,7 +26,7 @@ export async function handleNewEServiceVersionPublished(
     );
   }
   logger.info(
-    `Sending in-app notification for handleNewEServiceVersionPublished ${eserviceV2Msg.id}`
+    `Sending in-app notification for handleEserviceStatusChangedToConsumer ${eserviceV2Msg.id}`
   );
 
   const eservice = fromEServiceV2(eserviceV2Msg);

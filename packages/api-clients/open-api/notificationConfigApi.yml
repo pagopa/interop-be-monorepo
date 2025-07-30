@@ -467,8 +467,8 @@ components:
         - purposeVersionOverQuotaToConsumer
         - purposeActivatedRejectedToConsumer
         - purposeSuspendedUnsuspendedToConsumer
-        - newEserviceTemplateVersionToInstatiator
-        - eserviceTemplateNameChangedToInstatiator
+        - newEserviceTemplateVersionToInstantiator
+        - eserviceTemplateNameChangedToInstantiator
         - eserviceTemplateStatusChangedToInstantiator
         - delegationApprovedRejectedToDelegator
         - eserviceNewVersionSubmittedToDelegator
@@ -499,9 +499,9 @@ components:
           type: boolean
         purposeSuspendedUnsuspendedToConsumer:
           type: boolean
-        newEserviceTemplateVersionToInstatiator:
+        newEserviceTemplateVersionToInstantiator:
           type: boolean
-        eserviceTemplateNameChangedToInstatiator:
+        eserviceTemplateNameChangedToInstantiator:
           type: boolean
         eserviceTemplateStatusChangedToInstantiator:
           type: boolean

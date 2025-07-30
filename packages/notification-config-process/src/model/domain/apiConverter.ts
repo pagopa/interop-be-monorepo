@@ -19,8 +19,8 @@ export function tenantNotificationConfigToApiTenantNotificationConfig({
     purposeVersionOverQuotaToConsumer,
     purposeActivatedRejectedToConsumer,
     purposeSuspendedUnsuspendedToConsumer,
-    newEserviceTemplateVersionToInstatiator,
-    eserviceTemplateNameChangedToInstatiator,
+    newEserviceTemplateVersionToInstantiator,
+    eserviceTemplateNameChangedToInstantiator,
     eserviceTemplateStatusChangedToInstantiator,
     delegationApprovedRejectedToDelegator,
     eserviceNewVersionSubmittedToDelegator,
@@ -48,8 +48,8 @@ export function tenantNotificationConfigToApiTenantNotificationConfig({
       purposeVersionOverQuotaToConsumer,
       purposeActivatedRejectedToConsumer,
       purposeSuspendedUnsuspendedToConsumer,
-      newEserviceTemplateVersionToInstatiator,
-      eserviceTemplateNameChangedToInstatiator,
+      newEserviceTemplateVersionToInstantiator,
+      eserviceTemplateNameChangedToInstantiator,
       eserviceTemplateStatusChangedToInstantiator,
       delegationApprovedRejectedToDelegator,
       eserviceNewVersionSubmittedToDelegator,
@@ -83,10 +83,10 @@ export function userNotificationConfigToApiUserNotificationConfig({
     purposeActivatedRejectedToConsumer: purposeActivatedRejectedToConsumerInApp,
     purposeSuspendedUnsuspendedToConsumer:
       purposeSuspendedUnsuspendedToConsumerInApp,
-    newEserviceTemplateVersionToInstatiator:
-      newEserviceTemplateVersionToInstatiatorInApp,
-    eserviceTemplateNameChangedToInstatiator:
-      eserviceTemplateNameChangedToInstatiatorInApp,
+    newEserviceTemplateVersionToInstantiator:
+      newEserviceTemplateVersionToInstantiatorInApp,
+    eserviceTemplateNameChangedToInstantiator:
+      eserviceTemplateNameChangedToInstantiatorInApp,
     eserviceTemplateStatusChangedToInstantiator:
       eserviceTemplateStatusChangedToInstantiatorInApp,
     delegationApprovedRejectedToDelegator:
@@ -118,10 +118,10 @@ export function userNotificationConfigToApiUserNotificationConfig({
     purposeActivatedRejectedToConsumer: purposeActivatedRejectedToConsumerEmail,
     purposeSuspendedUnsuspendedToConsumer:
       purposeSuspendedUnsuspendedToConsumerEmail,
-    newEserviceTemplateVersionToInstatiator:
-      newEserviceTemplateVersionToInstatiatorEmail,
-    eserviceTemplateNameChangedToInstatiator:
-      eserviceTemplateNameChangedToInstatiatorEmail,
+    newEserviceTemplateVersionToInstantiator:
+      newEserviceTemplateVersionToInstantiatorEmail,
+    eserviceTemplateNameChangedToInstantiator:
+      eserviceTemplateNameChangedToInstantiatorEmail,
     eserviceTemplateStatusChangedToInstantiator:
       eserviceTemplateStatusChangedToInstantiatorEmail,
     delegationApprovedRejectedToDelegator:
@@ -162,10 +162,10 @@ export function userNotificationConfigToApiUserNotificationConfig({
         purposeActivatedRejectedToConsumerInApp,
       purposeSuspendedUnsuspendedToConsumer:
         purposeSuspendedUnsuspendedToConsumerInApp,
-      newEserviceTemplateVersionToInstatiator:
-        newEserviceTemplateVersionToInstatiatorInApp,
-      eserviceTemplateNameChangedToInstatiator:
-        eserviceTemplateNameChangedToInstatiatorInApp,
+      newEserviceTemplateVersionToInstantiator:
+        newEserviceTemplateVersionToInstantiatorInApp,
+      eserviceTemplateNameChangedToInstantiator:
+        eserviceTemplateNameChangedToInstantiatorInApp,
       eserviceTemplateStatusChangedToInstantiator:
         eserviceTemplateStatusChangedToInstantiatorInApp,
       delegationApprovedRejectedToDelegator:
@@ -198,10 +198,10 @@ export function userNotificationConfigToApiUserNotificationConfig({
         purposeActivatedRejectedToConsumerEmail,
       purposeSuspendedUnsuspendedToConsumer:
         purposeSuspendedUnsuspendedToConsumerEmail,
-      newEserviceTemplateVersionToInstatiator:
-        newEserviceTemplateVersionToInstatiatorEmail,
-      eserviceTemplateNameChangedToInstatiator:
-        eserviceTemplateNameChangedToInstatiatorEmail,
+      newEserviceTemplateVersionToInstantiator:
+        newEserviceTemplateVersionToInstantiatorEmail,
+      eserviceTemplateNameChangedToInstantiator:
+        eserviceTemplateNameChangedToInstantiatorEmail,
       eserviceTemplateStatusChangedToInstantiator:
         eserviceTemplateStatusChangedToInstantiatorEmail,
       delegationApprovedRejectedToDelegator:

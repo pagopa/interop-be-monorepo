@@ -15,8 +15,8 @@ message NotificationConfigV2 {
   bool purposeVersionOverQuotaToConsumer = 9;
   bool purposeActivatedRejectedToConsumer = 10;
   bool purposeSuspendedUnsuspendedToConsumer = 11;
-  bool newEserviceTemplateVersionToInstatiator = 12;
-  bool eserviceTemplateNameChangedToInstatiator = 13;
+  bool newEserviceTemplateVersionToInstantiator = 12;
+  bool eserviceTemplateNameChangedToInstantiator = 13;
   bool eserviceTemplateStatusChangedToInstantiator = 14;
 
   bool delegationApprovedRejectedToDelegator = 15;

@@ -21,8 +21,8 @@ export const NotificationConfig = z.object({
   purposeVersionOverQuotaToConsumer: z.boolean(), // 14: Stato delle soglie di carico
   purposeActivatedRejectedToConsumer: z.boolean(), // 15: Attivazione o rifiuto finalità
   purposeSuspendedUnsuspendedToConsumer: z.boolean(), // 16: Sospensione o riattivazione finalità
-  newEserviceTemplateVersionToInstatiator: z.boolean(), // 17: Nuova versione di template
-  eserviceTemplateNameChangedToInstatiator: z.boolean(), // 18: Variazione proprietà template
+  newEserviceTemplateVersionToInstantiator: z.boolean(), // 17: Nuova versione di template
+  eserviceTemplateNameChangedToInstantiator: z.boolean(), // 18: Variazione proprietà template
   eserviceTemplateStatusChangedToInstantiator: z.boolean(), // 19: Variazione stato template
 
   // Deleghe (Delegations) notifications
