@@ -12,7 +12,7 @@ import {
   EventEnvelope,
   generateId,
   genericInternalError,
-  Notification,
+  NewNotification,
   PurposeEventV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -20,6 +20,7 @@ import { match } from "ts-pattern";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
   makeDrizzleConnection,
   notificationConfigReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
@@ -53,6 +54,8 @@ const readModelDB = makeDrizzleConnection(config);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
@@ -60,6 +63,7 @@ const notificationConfigReadModelServiceSQL =
 const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
+  delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
 });
@@ -94,8 +98,8 @@ function processMessage(topicNames: TopicNames) {
         decodedMessage: EventEnvelope<z.infer<T>>,
         logger: Logger,
         readModelService: ReadModelServiceSQL
-      ) => Promise<Notification[]>
-    ): Promise<Notification[]> => {
+      ) => Promise<NewNotification[]>
+    ): Promise<NewNotification[]> => {
       const decodedMessage = decodeKafkaMessage(
         messagePayload.message,
         eventType

@@ -25,10 +25,14 @@ describe("createUserNotificationConfig", () => {
   const tenantId: TenantId = generateId();
 
   const defaultInAppConfig: NotificationConfig = {
-    newEServiceVersionPublished: true,
+    newEServiceVersionPublishedToConsumer: true,
+    agreementSuspendedUnsuspendedToProducer: true,
+    agreementSuspendedUnsuspendedToConsumer: true,
   };
   const defaultEmailConfig: NotificationConfig = {
-    newEServiceVersionPublished: true,
+    newEServiceVersionPublishedToConsumer: true,
+    agreementSuspendedUnsuspendedToProducer: true,
+    agreementSuspendedUnsuspendedToConsumer: true,
   };
   beforeAll(async () => {
     vi.useFakeTimers();
