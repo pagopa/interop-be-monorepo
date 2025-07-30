@@ -4,6 +4,7 @@ import { afterEach, inject } from "vitest";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -28,6 +29,8 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
@@ -35,6 +38,7 @@ const notificationConfigReadModelServiceSQL =
 export const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
+  delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
 });
