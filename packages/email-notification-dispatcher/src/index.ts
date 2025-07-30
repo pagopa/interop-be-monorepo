@@ -7,6 +7,8 @@ import { EachMessagePayload } from "kafkajs";
 import {
   buildHTMLTemplateService,
   decodeKafkaMessage,
+  HtmlTemplateService,
+  Logger,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -20,6 +22,8 @@ import {
   unsafeBrandId,
   AuthorizationEventV2,
   AttributeEvent,
+  EventEnvelope,
+  EmailNotificationMessagePayload,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -28,10 +32,19 @@ import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import { z } from "zod";
 import { config } from "./config/config.js";
 import { emailNotificationDispatcherServiceBuilder } from "./services/emailNotificationDispatcherService.js";
-import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-import { handleEvent } from "./handlers/eventHandler.js";
+import {
+  readModelServiceBuilderSQL,
+  ReadModelServiceSQL,
+} from "./services/readModelServiceSQL.js";
+import { handleEServiceEvent } from "./handlers/eservices/handleEserviceEvent.js";
+import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent.js";
+import { handleAttributeEvent } from "./handlers/attributes/handleAttributeEvent.js";
+import { handleAuthorizationEvent } from "./handlers/authorization/handleAuthorizationEvent.js";
+import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
+import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -86,50 +99,70 @@ function processMessage(topicHandlers: TopicNames) {
       attributeTopic,
     } = topicHandlers;
 
-    const eventType = match(messagePayload.topic)
-      .with(catalogTopic, () => EServiceEventV2)
-      .with(agreementTopic, () => AgreementEventV2)
-      .with(purposeTopic, () => PurposeEventV2)
-      .with(delegationTopic, () => DelegationEventV2)
-      .with(authorizationTopic, () => AuthorizationEventV2)
-      .with(attributeTopic, () => AttributeEvent)
+    const handleWith = <T extends z.ZodType>(
+      eventType: T,
+      handler: (
+        decodedMessage: EventEnvelope<z.infer<T>>,
+        correlationId: CorrelationId,
+        loggerInstance: Logger,
+        readModelService: ReadModelServiceSQL,
+        templateService: HtmlTemplateService
+      ) => Promise<EmailNotificationMessagePayload[]>
+    ): Promise<EmailNotificationMessagePayload[]> => {
+      const decodedMessage = decodeKafkaMessage(
+        messagePayload.message,
+        eventType
+      );
+      const correlationId = decodedMessage.correlation_id
+        ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
+        : generateId<CorrelationId>();
+      const loggerInstance = logger({
+        serviceName: "email-notification-dispatcher",
+        eventType: decodedMessage.type,
+        eventVersion: decodedMessage.event_version,
+        streamId: decodedMessage.stream_id,
+        streamVersion: decodedMessage.version,
+        correlationId,
+      });
+
+      loggerInstance.info(
+        `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
+      );
+
+      return handler(
+        decodedMessage,
+        correlationId,
+        loggerInstance,
+        readModelService,
+        templateService
+      );
+    };
+
+    const emailNotificationPayloads = await match(messagePayload.topic)
+      .with(catalogTopic, async () =>
+        handleWith(EServiceEventV2, handleEServiceEvent)
+      )
+      .with(agreementTopic, async () =>
+        handleWith(AgreementEventV2, handleAgreementEvent)
+      )
+      .with(purposeTopic, async () =>
+        handleWith(PurposeEventV2, handlePurposeEvent)
+      )
+      .with(delegationTopic, async () =>
+        handleWith(DelegationEventV2, handleDelegationEvent)
+      )
+      .with(authorizationTopic, async () =>
+        handleWith(AuthorizationEventV2, handleAuthorizationEvent)
+      )
+      .with(attributeTopic, async () =>
+        handleWith(AttributeEvent, handleAttributeEvent)
+      )
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
 
-    const decodedMessage = decodeKafkaMessage(
-      messagePayload.message,
-      eventType
-    );
-
-    const correlationId = decodedMessage.correlation_id
-      ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
-      : generateId<CorrelationId>();
-    const loggerInstance = logger({
-      serviceName: "email-notification-dispatcher",
-      eventType: decodedMessage.type,
-      eventVersion: decodedMessage.event_version,
-      streamId: decodedMessage.stream_id,
-      streamVersion: decodedMessage.version,
-      correlationId,
-    });
-    loggerInstance.info(
-      `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
-    );
-
-    const emailNotificationMessagePayloads = await handleEvent(
-      decodedMessage,
-      correlationId,
-      loggerInstance,
-      readModelService,
-      templateService
-    );
-
-    emailNotificationMessagePayloads.forEach((messagePayload) =>
-      emailNotificationDispatcherService.sendMessage(
-        decodedMessage.stream_id,
-        messagePayload
-      )
+    emailNotificationPayloads.forEach((messagePayload) =>
+      emailNotificationDispatcherService.sendMessage(messagePayload)
     );
   };
 }
