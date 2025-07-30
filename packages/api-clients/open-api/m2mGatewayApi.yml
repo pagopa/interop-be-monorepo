@@ -558,6 +558,11 @@ paths:
       summary: Approve an Agreement in Pending state
       description: Approve an Agreement that is in Pending state, transitioning it to Active state
       operationId: approveAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Agreement approved
@@ -881,6 +886,11 @@ paths:
         Suspend an Agreement that is in Active or Suspended state, transitioning it to Suspended state
         An Agreement may already be in Suspended state when previously suspended by the consumer or the producer
       operationId: suspendAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Active agreement suspended
@@ -977,6 +987,11 @@ paths:
         Unsuspend an Agreement that is in Suspended state, transitioning it to Active or Suspended state
         An Agreement may remain in Suspended state when suspended also by the consumer or the producer
       operationId: unsuspendAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Agreement unsuspended
@@ -5486,6 +5501,11 @@ paths:
         Activate a Purpose that is in Draft states
         The new state will be Active if daily calls are under the E-Service threshold, Waiting for Approval otherwise
       operationId: activateDraftPurpose
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose activated
@@ -5703,6 +5723,11 @@ paths:
       summary: Approve a Purpose in Waiting for Approval state
       description: Approve a Purpose that is in Waiting for Approval state, transitioning it to Active state
       operationId: approvePurpose
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose approved
@@ -5799,6 +5824,11 @@ paths:
         Suspend a Purpose that is in Active or Suspended state, transitioning it to Suspended state
         A Purpose may already be in Suspended state when previously suspended by the consumer or the producer
       operationId: suspendPurpose
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose suspended
@@ -5908,6 +5938,11 @@ paths:
         Unsuspend a Purpose that is in Suspended state, transitioning it to Active or Suspended state
         A Purpose may remain in Suspended state when suspended also by the consumer or the producer
       operationId: unsuspendPurpose
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose unsuspended
@@ -7931,11 +7966,10 @@ components:
         eserviceId:
           type: string
           format: uuid
-        consumerId:
+        delegationId:
           description: |
-            The ID of the tenant that will consume the e-service. It can be:
-            - the ID of your tenant
-            - the ID of a tenant for which you are the consumer delegate
+            Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
+            If not set, the Purpose will be created for your Tenant.
           type: string
           format: uuid
         riskAnalysisForm:
@@ -7958,7 +7992,6 @@ components:
           minimum: 0
       required:
         - eserviceId
-        - consumerId
         - title
         - description
         - isFreeOfCharge
@@ -7971,11 +8004,10 @@ components:
         eserviceId:
           type: string
           format: uuid
-        consumerId:
+        delegationId:
           description: |
-            The ID of the tenant that will consume the e-service. It can be:
-            - the ID of your tenant
-            - the ID of a tenant for which you are the consumer delegate
+            Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
+            If not set, the Purpose will be created for your Tenant.
           type: string
           format: uuid
         riskAnalysisId:
@@ -7998,7 +8030,6 @@ components:
           format: int32
       required:
         - eserviceId
-        - consumerId
         - title
         - riskAnalysisId
         - description
@@ -8337,6 +8368,14 @@ components:
           type: string
           format: date-time
           description: The date and time when the file was uploaded
+    DelegationRef:
+      type: object
+      additionalProperties: false
+      description: Set the delegation ID in order to operate as a delegate for an active producer or consumer delegation
+      properties:
+        delegationId:
+          type: string
+          format: uuid
     Problem:
       properties:
         type:

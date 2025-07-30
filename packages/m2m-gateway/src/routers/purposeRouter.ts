@@ -21,6 +21,7 @@ import {
   unsuspendPurposeErrorMapper,
   downloadPurposeVersionRiskAnalysisDocumentErrorMapper,
   getPurposeAgreementErrorMapper,
+  createPurposeErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -133,7 +134,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          createPurposeErrorMapper,
           ctx,
           `Error creating purpose`
         );
@@ -171,6 +172,7 @@ const purposeRouter = (
 
         const purpose = await purposeService.activateDraftPurpose(
           unsafeBrandId(req.params.purposeId),
+          req.body,
           ctx
         );
 
@@ -192,6 +194,7 @@ const purposeRouter = (
 
         const purpose = await purposeService.approvePurpose(
           unsafeBrandId(req.params.purposeId),
+          req.body,
           ctx
         );
 
@@ -234,6 +237,7 @@ const purposeRouter = (
 
         const purpose = await purposeService.suspendPurpose(
           unsafeBrandId(req.params.purposeId),
+          req.body,
           ctx
         );
 
@@ -255,6 +259,7 @@ const purposeRouter = (
 
         const purpose = await purposeService.unsuspendPurpose(
           unsafeBrandId(req.params.purposeId),
+          req.body,
           ctx
         );
 
@@ -309,7 +314,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          createPurposeErrorMapper,
           ctx,
           `Error creating reverse purpose`
         );

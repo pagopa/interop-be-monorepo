@@ -132,6 +132,7 @@ const agreementRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
         const agreement = await agreementService.approveAgreement(
           unsafeBrandId(req.params.agreementId),
+          req.body,
           ctx
         );
 
@@ -194,6 +195,7 @@ const agreementRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
         const agreement = await agreementService.suspendAgreement(
           unsafeBrandId(req.params.agreementId),
+          req.body,
           ctx
         );
 
@@ -214,6 +216,7 @@ const agreementRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
         const agreement = await agreementService.unsuspendAgreement(
           unsafeBrandId(req.params.agreementId),
+          req.body,
           ctx
         );
 
