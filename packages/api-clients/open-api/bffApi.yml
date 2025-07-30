@@ -14547,13 +14547,6 @@ paths:
               format: uuid
             default: []
           explode: false
-        - name: producerId
-          in: query
-          description: ID of producer that MUST be related to the keychain
-          required: true
-          schema:
-            type: string
-            format: uuid
         - name: eserviceId
           in: query
           description: ID of e-service that MUST be related to the Producer Keychain
