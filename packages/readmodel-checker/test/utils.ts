@@ -24,10 +24,6 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
-import {
-  purposeReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
@@ -48,11 +44,6 @@ afterEach(cleanup);
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 export const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-
-export const tenantReadModelServiceSQL =
-  tenantReadModelServiceBuilder(readModelDB);
-export const purposeReadModelServiceSQL =
-  purposeReadModelServiceBuilder(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>

@@ -69,7 +69,7 @@ export type GetClientsFilters = {
 export type GetProducerKeychainsFilters = {
   name?: string;
   userIds: UserId[];
-  producerId: TenantId;
+  producerId?: TenantId;
   eserviceId: EServiceId | undefined;
 };
 
@@ -330,10 +330,12 @@ export function readModelServiceBuilderSQL({
                 )
               : undefined,
             // CONSUMER FILTER
-            eq(
-              producerKeychainInReadmodelProducerKeychain.producerId,
-              producerId
-            ),
+            producerId
+              ? eq(
+                  producerKeychainInReadmodelProducerKeychain.producerId,
+                  producerId
+                )
+              : undefined,
             // E-SERVICE FILTER
             eserviceId
               ? eq(
