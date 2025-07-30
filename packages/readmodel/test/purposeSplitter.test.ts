@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   getMockPurpose,
   getMockPurposeVersion,
@@ -10,6 +11,7 @@ import {
   generateId,
   Purpose,
   PurposeRiskAnalysisForm,
+  PurposeTemplateId,
   PurposeVersion,
   PurposeVersionDocument,
   riskAnalysisAnswerKind,
@@ -61,6 +63,7 @@ describe("Purpose splitter", () => {
       freeOfChargeReason,
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [purposeVersion],
+      purposeTemplateId: generateId<PurposeTemplateId>(),
     };
 
     const {
@@ -85,6 +88,7 @@ describe("Purpose splitter", () => {
       title: purpose.title,
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
+      purposeTemplateId: purpose.purposeTemplateId!,
     };
 
     const expectedPurposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
@@ -207,6 +211,7 @@ describe("Purpose splitter", () => {
       title: purpose.title,
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
+      purposeTemplateId: null,
     };
 
     const expectedPurposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
