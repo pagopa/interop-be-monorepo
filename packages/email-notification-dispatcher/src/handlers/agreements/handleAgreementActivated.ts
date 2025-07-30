@@ -28,7 +28,7 @@ export type AgreementActivatedData = {
   logger: Logger;
   templateService: HtmlTemplateService;
   interopFeBaseUrl: string;
-  correlationId?: CorrelationId;
+  correlationId: CorrelationId;
 };
 
 export async function handleAgreementActivated(
