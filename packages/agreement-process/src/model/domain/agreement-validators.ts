@@ -20,7 +20,6 @@ import {
   Delegation,
   delegationState,
   DelegationId,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import {
   M2MAdminAuthData,
@@ -46,7 +45,7 @@ import {
   descriptorNotInExpectedState,
   documentChangeNotAllowed,
   missingCertifiedAttributesError,
-  missingDelegationId,
+  tenantIsNotTheDelegate,
   notLatestEServiceDescriptor,
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegateConsumer,
@@ -187,9 +186,7 @@ export const assertRequesterCanActAsConsumerOrProducer = (
       );
       return ownership.CONSUMER;
     } else {
-      throw unauthorizedError(
-        `Tenant ${authData.organizationId} cannot perform operation as delegate for the specified delegation ID ${delegationId}`
-      );
+      throw tenantIsNotTheDelegate(authData.organizationId);
     }
   }
 
@@ -200,7 +197,7 @@ export const assertRequesterCanActAsConsumerOrProducer = (
       activeDelegations.producerDelegation);
 
   if (hasDelegation) {
-    throw missingDelegationId(authData.organizationId);
+    throw tenantIsNotTheDelegate(authData.organizationId);
   }
 
   try {

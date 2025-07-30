@@ -27,7 +27,7 @@ import {
   purposeVersionNotFound,
   riskAnalysisValidationFailed,
   tenantIsNotTheDelegatedConsumer,
-  missingDelegationId,
+  tenantIsNotTheDelegate,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", () => {
@@ -106,7 +106,7 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", ()
       expectedStatus: 403,
     },
     {
-      error: missingDelegationId(generateId()),
+      error: tenantIsNotTheDelegate(generateId()),
       expectedStatus: 400,
     },
   ])(

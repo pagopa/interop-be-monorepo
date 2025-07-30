@@ -13,7 +13,6 @@ import {
   Delegation,
   delegationState,
   DelegationId,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -38,7 +37,7 @@ import {
   tenantNotAllowed,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
-  missingDelegationId,
+  tenantIsNotTheDelegate,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -449,9 +448,7 @@ export const getOrganizationRole = async ({
       );
       return ownership.PRODUCER;
     } else {
-      throw unauthorizedError(
-        `Tenant ${authData.organizationId} cannot perform operation as delegate for the specified delegation ID ${delegationId}`
-      );
+      throw tenantIsNotTheDelegate(authData.organizationId);
     }
   }
 
@@ -460,7 +457,7 @@ export const getOrganizationRole = async ({
     (authData.organizationId === producerId && producerDelegation);
 
   if (hasDelegation) {
-    throw missingDelegationId(authData.organizationId);
+    throw tenantIsNotTheDelegate(authData.organizationId);
   }
 
   try {

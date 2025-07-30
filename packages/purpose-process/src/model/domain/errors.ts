@@ -46,7 +46,7 @@ export const errorCodes = {
   tenantIsNotTheDelegatedProducer: "0028",
   purposeDelegationNotFound: "0029",
   purposeCannotBeUpdated: "0030",
-  missingDelegationId: "0031",
+  tenantIsNotTheDelegate: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -368,10 +368,12 @@ export function purposeCannotBeUpdated(
   });
 }
 
-export function missingDelegationId(tenantId: TenantId): ApiError<ErrorCodes> {
+export function tenantIsNotTheDelegate(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} is not allowed to perform the operation: operation is restricted to delegate, but delegation ID parameter is missing`,
-    code: "missingDelegationId",
+    code: "tenantIsNotTheDelegate",
     title: "Missing delegation ID",
   });
 }

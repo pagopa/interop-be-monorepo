@@ -38,7 +38,6 @@ import {
   delegationState,
   generateId,
   toAgreementV2,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
@@ -48,7 +47,7 @@ import {
   agreementNotInExpectedState,
   descriptorNotFound,
   eServiceNotFound,
-  missingDelegationId,
+  tenantIsNotTheDelegate,
   tenantNotAllowed,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
@@ -673,7 +672,7 @@ describe("suspend agreement", () => {
     { kind: delegationKind.delegatedConsumer, desc: "consumer" },
     { kind: delegationKind.delegatedProducer, desc: "producer" },
   ])(
-    "should throw missingDelegationId a error when the requester is the $desc but not the $kind",
+    "should throw tenantIsNotTheDelegate a error when the requester is the $desc but not the $kind",
     async ({ kind }) => {
       const eservice: EService = {
         ...getMockEService(),
@@ -717,12 +716,12 @@ describe("suspend agreement", () => {
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(missingDelegationId(authData.organizationId));
+      ).rejects.toThrowError(tenantIsNotTheDelegate(authData.organizationId));
     }
   );
 
   it.each([delegationKind.delegatedProducer, delegationKind.delegatedConsumer])(
-    "should throw a unauthorizedError when the requester is the %s but the delegation in not active",
+    "should throw a tenantIsNotTheDelegate when the requester is the %s but the delegation in not active",
     async (kind) => {
       const eservice: EService = {
         ...getMockEService(),
@@ -759,11 +758,7 @@ describe("suspend agreement", () => {
           { agreementId: agreement.id, delegationId: delegation.id },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(
-        unauthorizedError(
-          `Tenant ${authData.organizationId} cannot perform operation as delegate for the specified delegation ID ${delegation.id}`
-        )
-      );
+      ).rejects.toThrowError(tenantIsNotTheDelegate(authData.organizationId));
     }
   );
 });

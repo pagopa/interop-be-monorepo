@@ -23,7 +23,7 @@ import {
   purposeNotFound,
   purposeVersionNotFound,
   tenantIsNotTheDelegatedProducer,
-  missingDelegationId,
+  tenantIsNotTheDelegate,
 } from "../../src/model/domain/errors.js";
 import { purposeVersionToApiPurposeVersion } from "../../src/model/domain/apiConverter.js";
 
@@ -102,7 +102,7 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/suspend test", () 
       expectedStatus: 403,
     },
     {
-      error: missingDelegationId(generateId()),
+      error: tenantIsNotTheDelegate(generateId()),
       expectedStatus: 400,
     },
   ])(

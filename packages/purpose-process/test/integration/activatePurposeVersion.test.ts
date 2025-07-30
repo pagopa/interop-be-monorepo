@@ -45,7 +45,6 @@ import {
   tenantKind,
   TenantId,
   DelegationId,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -65,7 +64,7 @@ import {
   tenantIsNotTheConsumer,
   tenantNotAllowed,
   tenantIsNotTheDelegatedConsumer,
-  missingDelegationId,
+  tenantIsNotTheDelegate,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import { RiskAnalysisDocumentPDFPayload } from "../../src/model/domain/models.js";
@@ -1395,7 +1394,7 @@ describe("activatePurposeVersion", () => {
     }).rejects.toThrowError(tenantNotAllowed(anotherTenant.id));
   });
 
-  it("should throw missingDelegationId if the caller is the producer but the purpose e-service has an active delegation", async () => {
+  it("should throw tenantIsNotTheDelegate if the caller is the producer but the purpose e-service has an active delegation", async () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
     await addOneAgreement(mockAgreement);
@@ -1420,13 +1419,13 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(mockProducer.id) })
       );
-    }).rejects.toThrowError(missingDelegationId(mockProducer.id));
+    }).rejects.toThrowError(tenantIsNotTheDelegate(mockProducer.id));
   });
 
   it.each(
     Object.values(delegationState).filter((s) => s !== delegationState.active)
   )(
-    "should throw unauthorizedError if the caller is the purpose e-service delegate but the delegation is in %s state",
+    "should throw tenantIsNotTheDelegate if the caller is the purpose e-service delegate but the delegation is in %s state",
     async (delegationState) => {
       await addOnePurpose(mockPurpose);
       await addOneEService(mockEService);
@@ -1452,11 +1451,7 @@ describe("activatePurposeVersion", () => {
           },
           getMockContext({ authData: getMockAuthData(delegation.delegateId) })
         );
-      }).rejects.toThrowError(
-        unauthorizedError(
-          `Tenant ${delegation.delegateId} cannot perform operation as delegate for the specified delegation ID ${delegation.id}`
-        )
-      );
+      }).rejects.toThrowError(tenantIsNotTheDelegate(delegation.delegateId));
     }
   );
 
@@ -1731,7 +1726,7 @@ describe("activatePurposeVersion", () => {
     );
   });
 
-  it("should throw unauthorizedError if the requester is a delegate for the purpose but there is no delegationId in the purpose", async () => {
+  it("should throw tenantIsNotTheDelegate if the requester is a delegate for the purpose but there is no delegationId in the purpose", async () => {
     const purposeVersion: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,
@@ -1767,14 +1762,10 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
-    }).rejects.toThrowError(
-      unauthorizedError(
-        `Tenant ${delegation.delegateId} cannot perform operation as delegate for the specified delegation ID ${delegation.id}`
-      )
-    );
+    }).rejects.toThrowError(tenantIsNotTheDelegate(delegation.delegateId));
   });
 
-  it("should throw unauthorizedError if the the requester is a delegate for the purpose but there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+  it("should throw tenantIsNotTheDelegate if the the requester is a delegate for the purpose but there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
     const purposeVersionMock: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,
@@ -1818,10 +1809,6 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
-    }).rejects.toThrowError(
-      unauthorizedError(
-        `Tenant ${delegation.delegateId} cannot perform operation as delegate for the specified delegation ID ${delegation.id}`
-      )
-    );
+    }).rejects.toThrowError(tenantIsNotTheDelegate(delegation.delegateId));
   });
 });
