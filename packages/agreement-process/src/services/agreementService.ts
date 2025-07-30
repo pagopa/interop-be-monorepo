@@ -63,7 +63,6 @@ import {
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
-  tenantNotAllowed,
 } from "../model/domain/errors.js";
 import {
   ActiveDelegations,
