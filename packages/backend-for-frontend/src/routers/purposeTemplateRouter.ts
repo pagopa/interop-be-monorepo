@@ -96,31 +96,6 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/purposeTemplates/riskAnalysis", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-
-      try {
-        const result = await purposeTemplateService.getRiskAnalysis(
-          {
-            eserviceIds: req.query.eserviceIds,
-            purposeTemplateIds: req.query.purposeTemplateIds,
-          },
-          req.query.offset,
-          req.query.limit,
-          ctx
-        );
-
-        return res.status(200).send(result);
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error retrieving Risk Analysis for eserviceIds ${req.query.eserviceIds}, purposeTemplateIds ${req.query.purposeTemplateIds}, offset ${req.query.offset}, limit ${req.query.limit}`
-        );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
     .get("/purposeTemplates/:id", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -178,49 +153,6 @@ const purposeTemplateRouter = (
           emptyErrorMapper,
           ctx,
           `Error deleting purpose template ${req.params.id}`
-        );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
-    .get("/purposeTemplates/:id/riskAnalysis", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-
-      try {
-        const result =
-          await purposeTemplateService.getPurposeTemplateRiskAnalysis(
-            unsafeBrandId(req.params.id),
-            ctx
-          );
-
-        return res.status(200).send(result);
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error retrieving risk analysis for purpose template ${req.params.id}`
-        );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
-    .post("/purposeTemplates/:id/riskAnalysis", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-
-      try {
-        const result =
-          await purposeTemplateService.updatePurposeTemplateRiskAnalysis(
-            unsafeBrandId(req.params.id),
-            req.body,
-            ctx
-          );
-
-        return res.status(200).send(result);
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error updating risk analysis for purpose template ${req.params.id}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
