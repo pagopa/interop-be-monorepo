@@ -4,13 +4,21 @@ import { describe, expect, it } from "vitest";
 import {
   NotificationConfigEventEnvelope,
   TenantNotificationConfig,
+  TenantNotificationConfigCreatedV2,
+  TenantNotificationConfigDeletedV2,
   TenantNotificationConfigUpdatedV2,
   UserNotificationConfig,
+  UserNotificationConfigCreatedV2,
+  UserNotificationConfigDeletedV2,
   UserNotificationConfigUpdatedV2,
   generateId,
   toTenantNotificationConfigV2,
   toUserNotificationConfigV2,
 } from "pagopa-interop-models";
+import {
+  getMockTenantNotificationConfig,
+  getMockUserNotificationConfig,
+} from "pagopa-interop-commons-test/index.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   notificationConfigReadModelService,
@@ -19,6 +27,69 @@ import {
 
 describe("database test", async () => {
   describe("Events V2", async () => {
+    it("TenantNotificationConfigCreated", async () => {
+      const tenantNotificationConfig = getMockTenantNotificationConfig();
+
+      const payload: TenantNotificationConfigCreatedV2 = {
+        tenantNotificationConfig: toTenantNotificationConfigV2(
+          tenantNotificationConfig
+        ),
+      };
+
+      const message: NotificationConfigEventEnvelope = {
+        sequence_num: 1,
+        stream_id: tenantNotificationConfig.id,
+        version: 0,
+        type: "TenantNotificationConfigCreated",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, notificationConfigReadModelWriteService);
+
+      const retrievedConfig =
+        await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
+          tenantNotificationConfig.tenantId
+        );
+
+      expect(retrievedConfig).toStrictEqual({
+        data: tenantNotificationConfig,
+        metadata: { version: 0 },
+      });
+    });
+
+    it("UserNotificationConfigCreated", async () => {
+      const userNotificationConfig = getMockUserNotificationConfig();
+
+      const payload: UserNotificationConfigCreatedV2 = {
+        userNotificationConfig: toUserNotificationConfigV2(
+          userNotificationConfig
+        ),
+      };
+
+      const message: NotificationConfigEventEnvelope = {
+        sequence_num: 1,
+        stream_id: userNotificationConfig.id,
+        version: 0,
+        type: "UserNotificationConfigCreated",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, notificationConfigReadModelWriteService);
+
+      const retrievedConfig =
+        await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+          userNotificationConfig.userId,
+          userNotificationConfig.tenantId
+        );
+
+      expect(retrievedConfig).toStrictEqual({
+        data: userNotificationConfig,
+        metadata: { version: 0 },
+      });
+    });
+
     it("TenantNotificationConfigUpdated", async () => {
       const tenantNotificationConfig: TenantNotificationConfig = {
         id: generateId(),
@@ -113,6 +184,71 @@ describe("database test", async () => {
         data: updatedUserNotificationConfig,
         metadata: { version: 2 },
       });
+    });
+
+    it("TenantNotificationConfigDeleted", async () => {
+      const tenantNotificationConfig = getMockTenantNotificationConfig();
+      await notificationConfigReadModelWriteService.upsertTenantNotificationConfig(
+        tenantNotificationConfig,
+        1
+      );
+
+      const payload: TenantNotificationConfigDeletedV2 = {
+        tenantNotificationConfig: toTenantNotificationConfigV2(
+          tenantNotificationConfig
+        ),
+      };
+
+      const message: NotificationConfigEventEnvelope = {
+        sequence_num: 1,
+        stream_id: tenantNotificationConfig.id,
+        version: 2,
+        type: "TenantNotificationConfigDeleted",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, notificationConfigReadModelWriteService);
+
+      const retrievedConfig =
+        await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
+          tenantNotificationConfig.tenantId
+        );
+
+      expect(retrievedConfig).toBeUndefined();
+    });
+
+    it("UserNotificationConfigDeleted", async () => {
+      const userNotificationConfig = getMockUserNotificationConfig();
+      await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
+        userNotificationConfig,
+        1
+      );
+
+      const payload: UserNotificationConfigDeletedV2 = {
+        userNotificationConfig: toUserNotificationConfigV2(
+          userNotificationConfig
+        ),
+      };
+
+      const message: NotificationConfigEventEnvelope = {
+        sequence_num: 1,
+        stream_id: userNotificationConfig.id,
+        version: 2,
+        type: "UserNotificationConfigDeleted",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, notificationConfigReadModelWriteService);
+
+      const retrievedConfig =
+        await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+          userNotificationConfig.userId,
+          userNotificationConfig.tenantId
+        );
+
+      expect(retrievedConfig).toBeUndefined();
     });
   });
 });

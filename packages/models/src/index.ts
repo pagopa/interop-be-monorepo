@@ -144,3 +144,6 @@ export * from "./gen/v2/eservice-template/eservice-template.js";
 export * from "./gen/v2/eservice-template/events.js";
 export * from "./gen/v2/notification-config/notification-config.js";
 export * from "./gen/v2/notification-config/events.js";
+
+// Selfcare User model
+export * from "./user/user.js";

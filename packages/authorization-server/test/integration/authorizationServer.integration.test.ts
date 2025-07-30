@@ -120,6 +120,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(
@@ -152,6 +153,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )
@@ -188,6 +190,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )
@@ -236,6 +239,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(
@@ -281,6 +285,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )
@@ -338,6 +343,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(
@@ -394,6 +400,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(
@@ -447,6 +454,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       );
       expect(response.limitReached).toBe(false);
@@ -459,6 +467,7 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({}),
+      () => {},
       () => {},
       () => {}
     );
@@ -529,6 +538,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(
@@ -580,6 +590,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )
@@ -641,6 +652,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(fallbackAuditFailed(clientId));
@@ -672,6 +684,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )
@@ -711,6 +724,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )
@@ -758,6 +772,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )
@@ -824,6 +839,7 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({ correlationId }),
+      () => {},
       () => {},
       () => {}
     );
@@ -969,6 +985,7 @@ describe("authorization server tests", () => {
       request.body,
       getMockContext({ correlationId }),
       () => {},
+      () => {},
       () => {}
     );
 
@@ -1091,6 +1108,7 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({ correlationId }),
+      () => {},
       () => {},
       () => {}
     );
@@ -1253,6 +1271,7 @@ describe("authorization server tests", () => {
       request.body,
       getMockContext({ correlationId }),
       () => {},
+      () => {},
       () => {}
     );
 
@@ -1368,6 +1387,7 @@ describe("authorization server tests", () => {
       request.body,
       getMockContext({}),
       () => {},
+      () => {},
       () => {}
     );
 
@@ -1438,6 +1458,7 @@ describe("authorization server tests", () => {
       request.body,
       getMockContext({}),
       () => {},
+      () => {},
       () => {}
     );
 
@@ -1497,6 +1518,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )
