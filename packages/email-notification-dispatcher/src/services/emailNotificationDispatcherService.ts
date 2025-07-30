@@ -9,13 +9,11 @@ const producer = await initProducer(config, config.emailSenderTopic);
 export function emailNotificationDispatcherServiceBuilder() {
   return {
     sendMessage: async (
-      streamId: string,
       messagePayload: EmailNotificationMessagePayload
     ): Promise<void> => {
       await producer.send({
         messages: [
           {
-            key: streamId,
             value: encodeEmailEvent(messagePayload),
           },
         ],

@@ -24,7 +24,7 @@ import {
   eServiceNotFound,
   tenantNotFound,
 } from "../src/models/errors.js";
-import { handleAgreementActivated } from "../src/handlers/handleAgreementActivated.js";
+import { handleAgreementActivated } from "../src/handlers/agreements/handleAgreementActivated.js";
 import {
   addOneAgreement,
   addOneEService,
