@@ -125,7 +125,7 @@ export function producerKeychainServiceBuilder(
       const jwks = await Promise.all(
         keys.map((key) =>
           clients.authorizationClient.key
-            .getJWKByKid({
+            .getProducerJWKByKid({
               params: { kid: key.kid },
               headers,
             })

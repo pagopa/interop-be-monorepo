@@ -52,7 +52,7 @@ describe("getProducerKeychainKeys", () => {
     metadata: undefined,
   });
 
-  const mockGetJWKByKid = vi.fn(({ params: { kid } }) => {
+  const mockGetProducerJWKByKid = vi.fn(({ params: { kid } }) => {
     const jwk = mockApiProducerKeychainJWKs.find((key) => key.kid === kid);
     if (jwk) {
       return Promise.resolve(getMockWithMetadata({ jwk }));
@@ -65,7 +65,7 @@ describe("getProducerKeychainKeys", () => {
       getProducerKeys: mockGetProducerKeychainKeys,
     },
     key: {
-      getJWKByKid: mockGetJWKByKid,
+      getProducerJWKByKid: mockGetProducerJWKByKid,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
@@ -121,7 +121,7 @@ describe("getProducerKeychainKeys", () => {
 
   beforeEach(() => {
     mockGetProducerKeychainKeys.mockClear();
-    mockGetJWKByKid.mockClear();
+    mockGetProducerJWKByKid.mockClear();
   });
 
   it("Should succeed and perform API producerKeychains calls", async () => {
@@ -152,7 +152,7 @@ describe("getProducerKeychainKeys", () => {
     mockApiProducerKeychainKeys.forEach((key, index) => {
       expectApiClientGetToHaveBeenNthCalledWith({
         nthCall: index + 1,
-        mockGet: mockGetJWKByKid,
+        mockGet: mockGetProducerJWKByKid,
         params: {
           kid: key.kid,
         },
