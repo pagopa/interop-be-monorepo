@@ -6,7 +6,8 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
@@ -21,6 +22,8 @@ describe("POST /purposes router test", () => {
     eserviceId: mockPurpose.eserviceId,
     isFreeOfCharge: mockPurpose.isFreeOfCharge,
     title: mockPurpose.title,
+    delegationId: generateId(),
+    riskAnalysisForm: generateMock(m2mGatewayApi.RiskAnalysisFormSeed),
   };
 
   const mockM2MPurpose: m2mGatewayApi.Purpose =
@@ -60,7 +63,7 @@ describe("POST /purposes router test", () => {
     { invalidParam: "invalidValue" },
     { ...mockPurposeSeed, extraParam: -1 },
     { ...mockPurposeSeed, description: "short" },
-  ])("Should return 400 if passed invalid delegation seed", async (body) => {
+  ])("Should return 400 if passed invalid purpose seed", async (body) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, body as m2mGatewayApi.PurposeSeed);
 

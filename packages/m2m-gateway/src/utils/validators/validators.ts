@@ -1,5 +1,9 @@
-import { WithMetadata, unauthorizedError } from "pagopa-interop-models";
-import { authorizationApi } from "pagopa-interop-api-clients";
+import {
+  TenantId,
+  WithMetadata,
+  unauthorizedError,
+} from "pagopa-interop-models";
+import { authorizationApi, delegationApi } from "pagopa-interop-api-clients";
 import { WithMaybeMetadata } from "../../clients/zodiosWithMetadataPatch.js";
 import { missingMetadata } from "../../model/errors.js";
 
@@ -27,6 +31,24 @@ export function assertClientVisibilityIsFull(
   if (client.visibility !== authorizationApi.Visibility.Values.FULL) {
     throw unauthorizedError(
       `Tenant is not the owner of the client with id ${client.id}`
+    );
+  }
+}
+
+export function assertActiveConsumerDelegateForEservice(
+  requesterTenantId: TenantId,
+  eserviceId: string,
+  delegation: delegationApi.Delegation
+): void {
+  if (
+    delegation.kind !==
+      delegationApi.DelegationKind.Values.DELEGATED_CONSUMER ||
+    delegation.state !== delegationApi.DelegationState.Values.ACTIVE ||
+    delegation.delegateId !== requesterTenantId ||
+    delegation.eserviceId !== eserviceId
+  ) {
+    throw unauthorizedError(
+      `Delegation ${delegation.id} is not an active consumer delegation for e-service ${eserviceId} and delegate ${requesterTenantId}`
     );
   }
 }

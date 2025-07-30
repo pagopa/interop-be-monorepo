@@ -4,6 +4,7 @@ import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   PurposeId,
   PurposeVersionId,
+  TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -33,6 +34,7 @@ import {
 import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
+import { assertActiveConsumerDelegateForEservice } from "../utils/validators/validators.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -121,6 +123,35 @@ export function purposeServiceBuilder(
     return currentVersion;
   };
 
+  const getConsumerIdForPurposeCreation = async (
+    purposeSeed: m2mGatewayApi.PurposeSeed | m2mGatewayApi.EServicePurposeSeed,
+    requesterTenantId: TenantId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<TenantId> => {
+    const delegation = purposeSeed.delegationId
+      ? (
+          await clients.delegationProcessClient.delegation.getDelegation({
+            params: {
+              delegationId: purposeSeed.delegationId,
+            },
+            headers,
+          })
+        ).data
+      : undefined;
+
+    if (delegation) {
+      assertActiveConsumerDelegateForEservice(
+        requesterTenantId,
+        purposeSeed.eserviceId,
+        delegation
+      );
+    }
+
+    return delegation
+      ? unsafeBrandId<TenantId>(delegation.delegatorId)
+      : requesterTenantId;
+  };
+
   return {
     async getPurposes(
       queryParams: m2mGatewayApi.GetPurposesQueryParams,
@@ -168,7 +199,11 @@ export function purposeServiceBuilder(
 
       const purposeResponse = await clients.purposeProcessClient.createPurpose(
         {
-          consumerId: purposeSeed.consumerId,
+          consumerId: await getConsumerIdForPurposeCreation(
+            purposeSeed,
+            authData.organizationId,
+            headers
+          ),
           eserviceId: purposeSeed.eserviceId,
           dailyCalls: purposeSeed.dailyCalls,
           description: purposeSeed.description,
@@ -421,7 +456,7 @@ export function purposeServiceBuilder(
     },
     async createReversePurpose(
       purposeSeed: m2mGatewayApi.EServicePurposeSeed,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
         `Creating reverse purpose for e-service ${purposeSeed.eserviceId}`
@@ -430,7 +465,11 @@ export function purposeServiceBuilder(
       const purposeResponse =
         await clients.purposeProcessClient.createPurposeFromEService(
           {
-            consumerId: purposeSeed.consumerId,
+            consumerId: await getConsumerIdForPurposeCreation(
+              purposeSeed,
+              authData.organizationId,
+              headers
+            ),
             eServiceId: purposeSeed.eserviceId,
             dailyCalls: purposeSeed.dailyCalls,
             description: purposeSeed.description,

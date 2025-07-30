@@ -7931,11 +7931,10 @@ components:
         eserviceId:
           type: string
           format: uuid
-        consumerId:
+        delegationId:
           description: |
-            The ID of the tenant that will consume the e-service. It can be:
-            - the ID of your tenant
-            - the ID of a tenant for which you are the consumer delegate
+            Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
+            If not set, the Purpose will be created for your Tenant.
           type: string
           format: uuid
         riskAnalysisForm:
@@ -7958,7 +7957,6 @@ components:
           minimum: 0
       required:
         - eserviceId
-        - consumerId
         - title
         - description
         - isFreeOfCharge
@@ -7971,11 +7969,10 @@ components:
         eserviceId:
           type: string
           format: uuid
-        consumerId:
+        delegationId:
           description: |
-            The ID of the tenant that will consume the e-service. It can be:
-            - the ID of your tenant
-            - the ID of a tenant for which you are the consumer delegate
+            Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
+            If not set, the Purpose will be created for your Tenant.
           type: string
           format: uuid
         riskAnalysisId:
@@ -7998,7 +7995,6 @@ components:
           format: int32
       required:
         - eserviceId
-        - consumerId
         - title
         - riskAnalysisId
         - description

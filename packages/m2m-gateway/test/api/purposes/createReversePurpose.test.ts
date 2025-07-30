@@ -17,7 +17,7 @@ describe("POST /reversePurposes router test", () => {
 
   const mockEServicePurposeSeed: m2mGatewayApi.EServicePurposeSeed = {
     eserviceId: mockPurpose.eserviceId,
-    consumerId: mockPurpose.consumerId,
+    delegationId: generateId(),
     riskAnalysisId: generateId(),
     description: mockPurpose.description,
     dailyCalls: mockPurpose.versions[0].dailyCalls,
@@ -65,7 +65,7 @@ describe("POST /reversePurposes router test", () => {
     { invalidParam: "invalidValue" },
     { ...mockEServicePurposeSeed, extraParam: -1 },
     { ...mockEServicePurposeSeed, description: "short" },
-  ])("Should return 400 if passed invalid delegation seed", async (body) => {
+  ])("Should return 400 if passed invalid purpose seed", async (body) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,

@@ -27,10 +27,10 @@ describe("createReversePurpose", () => {
     dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,
     description: mockPurposeProcessGetResponse.data.description,
     eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
-    consumerId: mockPurposeProcessGetResponse.data.consumerId,
     riskAnalysisId: generateId(),
     isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
     title: mockPurposeProcessGetResponse.data.title,
+    // TODO test delegation and test that purpose process is called with the right consumerId
   };
 
   const mockCreatePurposeFromEService = vi
@@ -83,7 +83,7 @@ describe("createReversePurpose", () => {
       mockPost:
         mockInteropBeClients.purposeProcessClient.createPurposeFromEService,
       body: {
-        consumerId: mockEServicePurposeSeed.consumerId,
+        consumerId: mockPurposeProcessGetResponse.data.consumerId,
         dailyCalls: mockEServicePurposeSeed.dailyCalls,
         description: mockEServicePurposeSeed.description,
         eServiceId: mockEServicePurposeSeed.eserviceId,

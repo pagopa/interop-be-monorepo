@@ -5,6 +5,7 @@ import {
   getMockedApiPurpose,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { generateMock } from "@anatine/zod-mock";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientGetToHaveBeenNthCalledWith,
@@ -29,6 +30,8 @@ describe("createPurpose", () => {
     eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
     isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
     title: mockPurposeProcessGetResponse.data.title,
+    riskAnalysisForm: generateMock(m2mGatewayApi.RiskAnalysisFormSeed),
+    // TODO test delegation and test that purpose process is called with the right consumerId
   };
 
   const mockCreatePurpose = vi
