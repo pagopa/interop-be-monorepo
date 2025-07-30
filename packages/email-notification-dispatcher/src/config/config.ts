@@ -23,7 +23,7 @@ export const SESEmailSenderConfig = z
   }));
 export type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
 
-export const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
+export const EmailNotificationDispatcherConfig = KafkaConsumerConfig.and(
   KafkaProducerConfig
 )
   .and(AgreementTopicConfig)
@@ -38,9 +38,9 @@ export const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
   .and(ReadModelSQLDbConfig)
   .and(EmailSenderTopicConfig);
 
-export type NotificationEmailSenderConfig = z.infer<
-  typeof NotificationEmailSenderConfig
+export type EmailNotificationDispatcherConfig = z.infer<
+  typeof EmailNotificationDispatcherConfig
 >;
 
-export const config: NotificationEmailSenderConfig =
-  NotificationEmailSenderConfig.parse(process.env);
+export const config: EmailNotificationDispatcherConfig =
+  EmailNotificationDispatcherConfig.parse(process.env);
