@@ -17,7 +17,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEServiceDescriptorPublished";
+import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEServiceDescriptorPublished.js";
 import {
   descriptorPublishedNotFound,
   tenantNotFound,
