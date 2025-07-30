@@ -161,8 +161,8 @@ function processMessage(topicHandlers: TopicNames) {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
 
-    emailNotificationPayloads.forEach((messagePayload) =>
-      emailNotificationDispatcherService.sendMessage(messagePayload)
+    await emailNotificationDispatcherService.sendMessages(
+      emailNotificationPayloads
     );
   };
 }
