@@ -7,9 +7,7 @@ import {
   DelegationEventEnvelopeV2,
   EmailNotificationMessagePayload,
   EServiceEventEnvelopeV2,
-  generateId,
   PurposeEventEnvelopeV2,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
@@ -27,6 +25,7 @@ export async function handleEvent(
     | DelegationEventEnvelopeV2
     | AuthorizationEventEnvelopeV2
     | AttributeEventEnvelope,
+  correlationId: CorrelationId,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
   templateService: HtmlTemplateService
@@ -34,29 +33,25 @@ export async function handleEvent(
   return match(decodedMessage)
     .with(
       { type: "EServiceDescriptorPublished" },
-      async ({ correlation_id, data: { eservice } }) =>
+      async ({ data: { eservice } }) =>
         await handleEserviceDescriptorPublished({
           eserviceV2Msg: eservice,
           interopFeBaseUrl,
           logger,
           readModelService,
-          correlationId: correlation_id
-            ? unsafeBrandId<CorrelationId>(correlation_id)
-            : generateId<CorrelationId>(),
+          correlationId,
           templateService,
         })
     )
     .with(
       { type: "AgreementActivated" },
-      async ({ correlation_id, data: { agreement } }) =>
+      async ({ data: { agreement } }) =>
         await handleAgreementActivated({
           agreementV2Msg: agreement,
           interopFeBaseUrl,
           logger,
           readModelService,
-          correlationId: correlation_id
-            ? unsafeBrandId<CorrelationId>(correlation_id)
-            : generateId<CorrelationId>(),
+          correlationId,
           templateService,
         })
     )
