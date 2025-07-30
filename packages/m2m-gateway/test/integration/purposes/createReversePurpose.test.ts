@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import {
+  getMockedApiDelegation,
   getMockedApiPurpose,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
@@ -15,7 +16,10 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  missingMetadata,
+  notAnActiveConsumerDelegation,
+} from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("createReversePurpose", () => {
@@ -27,51 +31,66 @@ describe("createReversePurpose", () => {
     dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,
     description: mockPurposeProcessGetResponse.data.description,
     eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
-    consumerId: mockPurposeProcessGetResponse.data.consumerId,
     riskAnalysisId: generateId(),
     isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
+    freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
     title: mockPurposeProcessGetResponse.data.title,
+    delegationId: undefined,
   };
 
   const mockCreatePurposeFromEService = vi
     .fn()
     .mockResolvedValue(mockPurposeProcessGetResponse);
-  const mockGetPurpose = vi.fn(
-    mockPollingResponse(mockPurposeProcessGetResponse, 2)
-  );
+  const mockGetPurpose = vi.fn();
+  const mockGetDelegation = vi.fn();
 
   mockInteropBeClients.purposeProcessClient = {
     getPurpose: mockGetPurpose,
     createPurposeFromEService: mockCreatePurposeFromEService,
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
+  mockInteropBeClients.delegationProcessClient = {
+    delegation: { getDelegation: mockGetDelegation },
+  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
+
   beforeEach(() => {
     mockCreatePurposeFromEService.mockClear();
     mockGetPurpose.mockClear();
+    mockGetDelegation.mockClear();
   });
 
-  it("Should succeed and perform service calls", async () => {
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockPurposeProcessGetResponse.data.consumerId,
-      createdAt: mockPurposeProcessGetResponse.data.createdAt,
-      description: mockPurposeProcessGetResponse.data.description,
-      eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
-      id: mockPurposeProcessGetResponse.data.id,
-      isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
-      isRiskAnalysisValid:
-        mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
-      title: mockPurposeProcessGetResponse.data.title,
-      currentVersion: mockPurposeProcessGetResponse.data.versions.at(0),
-      delegationId: mockPurposeProcessGetResponse.data.delegationId,
-      freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
-      rejectedVersion: undefined,
-      suspendedByConsumer: undefined,
-      suspendedByProducer: undefined,
-      updatedAt: mockPurposeProcessGetResponse.data.updatedAt,
-      waitingForApprovalVersion: undefined,
-    };
+  const expectedM2MPurpose: m2mGatewayApi.Purpose = {
+    consumerId: mockPurposeProcessGetResponse.data.consumerId,
+    createdAt: mockPurposeProcessGetResponse.data.createdAt,
+    description: mockPurposeProcessGetResponse.data.description,
+    eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
+    id: mockPurposeProcessGetResponse.data.id,
+    isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
+    isRiskAnalysisValid: mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
+    title: mockPurposeProcessGetResponse.data.title,
+    currentVersion: mockPurposeProcessGetResponse.data.versions.at(0),
+    delegationId: mockPurposeProcessGetResponse.data.delegationId,
+    freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
+    rejectedVersion: undefined,
+    suspendedByConsumer: undefined,
+    suspendedByProducer: undefined,
+    updatedAt: mockPurposeProcessGetResponse.data.updatedAt,
+    waitingForApprovalVersion: undefined,
+  };
 
-    const mockAppContext = getMockM2MAdminAppContext();
+  const mockAppContext = getMockM2MAdminAppContext();
+  const mockConsumerDelegation: delegationApi.Delegation =
+    getMockedApiDelegation({
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+      eserviceId: mockEServicePurposeSeed.eserviceId,
+      state: delegationApi.DelegationState.Values.ACTIVE,
+      delegateId: mockAppContext.authData.organizationId,
+    });
+
+  it("Should succeed and perform service calls without delegationId", async () => {
+    mockGetPurpose.mockImplementation(
+      mockPollingResponse(mockPurposeProcessGetResponse, 2)
+    );
 
     const result = await purposeService.createReversePurpose(
       mockEServicePurposeSeed,
@@ -83,14 +102,14 @@ describe("createReversePurpose", () => {
       mockPost:
         mockInteropBeClients.purposeProcessClient.createPurposeFromEService,
       body: {
-        consumerId: mockEServicePurposeSeed.consumerId,
         dailyCalls: mockEServicePurposeSeed.dailyCalls,
         description: mockEServicePurposeSeed.description,
         eServiceId: mockEServicePurposeSeed.eserviceId,
-        freeOfChargeReason: mockEServicePurposeSeed.freeOfChargeReason,
-        isFreeOfCharge: mockEServicePurposeSeed.isFreeOfCharge,
         riskAnalysisId: mockEServicePurposeSeed.riskAnalysisId,
+        isFreeOfCharge: mockEServicePurposeSeed.isFreeOfCharge,
+        freeOfChargeReason: mockEServicePurposeSeed.freeOfChargeReason,
         title: mockEServicePurposeSeed.title,
+        consumerId: mockAppContext.authData.organizationId,
       },
     });
     expectApiClientGetToHaveBeenCalledWith({
@@ -105,7 +124,113 @@ describe("createReversePurpose", () => {
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
     ).toHaveBeenCalledTimes(2);
+    expect(
+      mockInteropBeClients.delegationProcessClient.delegation.getDelegation
+    ).toHaveBeenCalledTimes(0);
   });
+
+  it("Should succeed and perform service calls with delegationId", async () => {
+    mockGetPurpose.mockImplementation(
+      mockPollingResponse(mockPurposeProcessGetResponse, 2)
+    );
+
+    mockGetDelegation.mockResolvedValue(
+      getMockWithMetadata(mockConsumerDelegation)
+    );
+
+    const mockPurposeSeedWithDelegation: m2mGatewayApi.EServicePurposeSeed = {
+      ...mockEServicePurposeSeed,
+      delegationId: mockConsumerDelegation.id,
+    };
+
+    const result = await purposeService.createReversePurpose(
+      mockPurposeSeedWithDelegation,
+      mockAppContext
+    );
+
+    expect(result).toEqual(expectedM2MPurpose);
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost:
+        mockInteropBeClients.purposeProcessClient.createPurposeFromEService,
+      body: {
+        dailyCalls: mockEServicePurposeSeed.dailyCalls,
+        description: mockEServicePurposeSeed.description,
+        eServiceId: mockEServicePurposeSeed.eserviceId,
+        riskAnalysisId: mockEServicePurposeSeed.riskAnalysisId,
+        isFreeOfCharge: mockEServicePurposeSeed.isFreeOfCharge,
+        freeOfChargeReason: mockEServicePurposeSeed.freeOfChargeReason,
+        title: mockEServicePurposeSeed.title,
+        consumerId: mockConsumerDelegation.delegatorId,
+      },
+    });
+
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
+      params: { id: expectedM2MPurpose.id },
+    });
+    expect(
+      mockInteropBeClients.purposeProcessClient.getPurpose
+    ).toHaveBeenCalledTimes(2);
+    expect(
+      mockInteropBeClients.delegationProcessClient.delegation.getDelegation
+    ).toHaveBeenCalledTimes(1);
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet:
+        mockInteropBeClients.delegationProcessClient.delegation.getDelegation,
+      params: { delegationId: mockConsumerDelegation.id },
+    });
+  });
+
+  it.each([
+    {
+      ...mockConsumerDelegation,
+      state: delegationApi.DelegationState.Values.REJECTED,
+    },
+    {
+      ...mockConsumerDelegation,
+      state: delegationApi.DelegationState.Values.REVOKED,
+    },
+    {
+      ...mockConsumerDelegation,
+      state: delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL,
+    },
+    {
+      ...mockConsumerDelegation,
+      kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
+    },
+    {
+      ...mockConsumerDelegation,
+      eserviceId: generateId(),
+    },
+    {
+      ...mockConsumerDelegation,
+      delegateId: generateId(),
+    },
+  ] satisfies delegationApi.Delegation[])(
+    `Should throw notAnActiveConsumerDelegation if the specified delegation
+    is not an active consumer delegation for requester tenant and e-service`,
+    async (mockDelegation) => {
+      mockGetDelegation.mockResolvedValue(getMockWithMetadata(mockDelegation));
+
+      const mockPurposeSeedWithDelegation: m2mGatewayApi.EServicePurposeSeed = {
+        ...mockEServicePurposeSeed,
+        delegationId: mockDelegation.id,
+      };
+
+      await expect(
+        purposeService.createReversePurpose(
+          mockPurposeSeedWithDelegation,
+          mockAppContext
+        )
+      ).rejects.toThrowError(
+        notAnActiveConsumerDelegation(
+          mockAppContext.authData.organizationId,
+          mockEServicePurposeSeed.eserviceId,
+          mockDelegation
+        )
+      );
+    }
+  );
 
   it("Should throw missingMetadata in case the purpose returned by the creation POST call has no metadata", async () => {
     mockCreatePurposeFromEService.mockResolvedValueOnce({

@@ -7967,6 +7967,9 @@ components:
           type: string
           format: uuid
         delegationId:
+          description: |
+            Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
+            If not set, the Purpose will be created for your Tenant.
           type: string
           format: uuid
         riskAnalysisForm:
@@ -7996,11 +7999,15 @@ components:
     EServicePurposeSeed:
       type: object
       additionalProperties: false
+      description: contains the expected payload for reverse purpose creation
       properties:
         eserviceId:
           type: string
           format: uuid
-        consumerId:
+        delegationId:
+          description: |
+            Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
+            If not set, the Purpose will be created for your Tenant.
           type: string
           format: uuid
         riskAnalysisId:
@@ -8023,7 +8030,6 @@ components:
           format: int32
       required:
         - eserviceId
-        - consumerId
         - title
         - riskAnalysisId
         - description

@@ -1293,6 +1293,10 @@ components:
           type: string
           format: uuid
         consumerId:
+          description: |
+            The ID of the tenant that will consume the e-service. It can be:
+            - the ID of your tenant
+            - the ID of a tenant for which you are the consumer delegate
           type: string
           format: uuid
         riskAnalysisId:
@@ -1330,6 +1334,10 @@ components:
           type: string
           format: uuid
         consumerId:
+          description: |
+            The ID of the tenant that will consume the e-service. It can be:
+            - the ID of your tenant
+            - the ID of a tenant for which you are the consumer delegate
           type: string
           format: uuid
         riskAnalysisForm:
