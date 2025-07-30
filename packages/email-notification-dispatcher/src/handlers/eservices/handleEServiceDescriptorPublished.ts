@@ -27,7 +27,7 @@ export type EServiceDescriptorPublishedData = {
   logger: Logger;
   templateService: HtmlTemplateService;
   interopFeBaseUrl: string;
-  correlationId?: CorrelationId;
+  correlationId: CorrelationId;
 };
 
 export async function handleEserviceDescriptorPublished(
