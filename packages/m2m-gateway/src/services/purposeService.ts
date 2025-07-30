@@ -258,6 +258,7 @@ export function purposeServiceBuilder(
     },
     async activateDraftPurpose(
       purposeId: PurposeId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
@@ -275,10 +276,13 @@ export function purposeServiceBuilder(
       );
 
       const { metadata } =
-        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
-          params: { purposeId, versionId: versionToActivate.id },
-          headers,
-        });
+        await clients.purposeProcessClient.activatePurposeVersion(
+          { delegationId },
+          {
+            params: { purposeId, versionId: versionToActivate.id },
+            headers,
+          }
+        );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
@@ -309,6 +313,7 @@ export function purposeServiceBuilder(
     },
     async suspendPurpose(
       purposeId: PurposeId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
@@ -323,16 +328,20 @@ export function purposeServiceBuilder(
       );
 
       const { metadata } =
-        await clients.purposeProcessClient.suspendPurposeVersion(undefined, {
-          params: { purposeId, versionId: versionToSuspend.id },
-          headers,
-        });
+        await clients.purposeProcessClient.suspendPurposeVersion(
+          { delegationId },
+          {
+            params: { purposeId, versionId: versionToSuspend.id },
+            headers,
+          }
+        );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
     },
     async approvePurpose(
       purposeId: PurposeId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
@@ -350,16 +359,20 @@ export function purposeServiceBuilder(
       );
 
       const { metadata } =
-        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
-          params: { purposeId, versionId: versionToApprove.id },
-          headers,
-        });
+        await clients.purposeProcessClient.activatePurposeVersion(
+          { delegationId },
+          {
+            params: { purposeId, versionId: versionToApprove.id },
+            headers,
+          }
+        );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
     },
     async unsuspendPurpose(
       purposeId: PurposeId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
@@ -377,10 +390,13 @@ export function purposeServiceBuilder(
       );
 
       const { metadata } =
-        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
-          params: { purposeId, versionId: versionToApprove.id },
-          headers,
-        });
+        await clients.purposeProcessClient.activatePurposeVersion(
+          { delegationId },
+          {
+            params: { purposeId, versionId: versionToApprove.id },
+            headers,
+          }
+        );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
