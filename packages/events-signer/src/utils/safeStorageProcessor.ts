@@ -11,7 +11,7 @@ import { calculateSha256Base64 } from "./checksum.js";
 /**
  * Processes a list of stored file details by interacting with Safe Storage and saving references in DynamoDB.
  *
- * @param storedFiles - An array of objects containing file details (buffer, presigned URL, name).
+ * @param storedFiles - An array of objects containing file details (buffer, name).
  * @param fileManager - The file manager instance.
  * @param logger - The logger instance.
  * @param dbService - The DB service instance.
@@ -21,7 +21,6 @@ import { calculateSha256Base64 } from "./checksum.js";
 export const processStoredFilesForSafeStorage = async (
   storedFiles: Array<{
     fileContentBuffer: Buffer;
-    s3PresignedUrl: string;
     fileName: string;
   }>,
   logger: Logger,
@@ -35,13 +34,11 @@ export const processStoredFilesForSafeStorage = async (
   }
 
   for (const file of storedFiles) {
-    const { fileContentBuffer, s3PresignedUrl, fileName } = file;
+    const { fileContentBuffer, fileName } = file;
 
     const checksum = await calculateSha256Base64(fileContentBuffer);
 
-    logger.info(
-      `Requesting file creation in Safe Storage for ${s3PresignedUrl}...`
-    );
+    logger.info(`Requesting file creation in Safe Storage for ${fileName}`);
 
     const safeStorageRequest: FileCreationRequest = {
       contentType: "application/json",

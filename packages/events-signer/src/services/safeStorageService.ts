@@ -7,25 +7,8 @@ import {
 } from "../models/safeStorageServiceSchema.js";
 import { SafeStorageApiConfig } from "../config/config.js";
 
-interface SafeStorageApiClient {
-  createFile: (request: FileCreationRequest) => Promise<FileCreationResponse>;
-  uploadFileContent: (
-    uploadUrl: string,
-    fileContent: Buffer,
-    contentType: string,
-    secret: string,
-    checksumValue: string
-  ) => Promise<void>;
-  getFile: (
-    fileKey: string,
-    metadataOnly?: boolean
-  ) => Promise<FileDownloadResponse>;
-  downloadFileContent: (downloadUrl: string) => Promise<Buffer>;
-}
-
-export function createSafeStorageApiClient(
-  config: SafeStorageApiConfig
-): SafeStorageApiClient {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function createSafeStorageApiClient(config: SafeStorageApiConfig) {
   const apiClient: AxiosInstance = axios.create({
     baseURL: config.safeStorageBaseUrl,
     headers: {

@@ -18,7 +18,6 @@ export const storeNdjsonEventData = async <
 ): Promise<
   | Array<{
       fileContentBuffer: Buffer;
-      s3PresignedUrl: string;
       fileName: string;
     }>
   | undefined
@@ -31,7 +30,6 @@ export const storeNdjsonEventData = async <
   const groupedEvents = groupEventsByDate(eventsToStoreArray);
   const results: Array<{
     fileContentBuffer: Buffer;
-    s3PresignedUrl: string;
     fileName: string;
   }> = [];
 
@@ -64,7 +62,6 @@ export const storeNdjsonEventData = async <
 
       const s3KeyParts = s3filePath.split("/");
       const extractedFileName = s3KeyParts.pop();
-      const s3PathWithoutFileName = s3KeyParts.join("/");
 
       if (!extractedFileName) {
         throw new Error(
@@ -72,15 +69,8 @@ export const storeNdjsonEventData = async <
         );
       }
 
-      const s3PresignedUrl = await fileManager.generateGetPresignedUrl(
-        config.s3Bucket,
-        s3PathWithoutFileName,
-        extractedFileName,
-        1
-      );
       results.push({
         fileContentBuffer,
-        s3PresignedUrl,
         fileName: extractedFileName,
       });
     } catch (error) {
