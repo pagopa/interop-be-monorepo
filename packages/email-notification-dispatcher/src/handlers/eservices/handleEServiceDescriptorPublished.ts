@@ -18,8 +18,8 @@ import {
   retrieveHTMLTemplate,
   retrieveLatestPublishedDescriptor,
   retrieveTenant,
-} from "../services/utils.js";
-import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
+} from "../../services/utils.js";
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export type EServiceDescriptorPublishedData = {
   eserviceV2Msg?: EServiceV2;
