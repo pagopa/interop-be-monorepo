@@ -55,6 +55,7 @@ import {
   descriptorState,
   fromAgreementV2,
   generateId,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { addDays } from "date-fns";
@@ -74,6 +75,7 @@ import {
   descriptorNotInExpectedState,
   eServiceNotFound,
   missingDelegationId,
+  tenantIsNotTheDelegateProducer,
   tenantIsNotTheProducer,
   tenantNotAllowed,
   tenantNotFound,
@@ -716,7 +718,7 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
     });
 
-    it("Agreement Pending, Requester === DelegateConsumer -- error case: throws tenantNotAllowed", async () => {
+    it("Agreement Pending, Requester === DelegateConsumer -- error case: throws unauthorizedError", async () => {
       const delegateId = generateId<TenantId>();
       const authData = getMockAuthData(delegateId);
       const agreement: Agreement = {
@@ -741,10 +743,14 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: consumerDelegation.id },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(
+        unauthorizedError(
+          `Tenant ${authData.organizationId} cannot perform operation as delegate for the specified delegation ID ${consumerDelegation.id}`
+        )
+      );
     });
 
-    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws tenantNotAllowed", async () => {
+    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws tenantIsNotTheDelegateProducer", async () => {
       const producerId = generateId<TenantId>();
       const authData = getMockAuthData(producerId);
       const agreement: Agreement = {
@@ -770,7 +776,12 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(
+        tenantIsNotTheDelegateProducer(
+          authData.organizationId,
+          producerDelegation.id
+        )
+      );
     });
   });
 
@@ -2055,8 +2066,8 @@ describe("activate agreement", () => {
 
     it("should throw a tenantNotFound error when the Consumer does not exist", async () => {
       const consumerId = generateId<TenantId>();
-      const producerId = generateId<TenantId>();
-      const authData = getMockAuthData(producerId);
+      const producer = getMockTenant();
+      const authData = getMockAuthData(producer.id);
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
@@ -2065,7 +2076,7 @@ describe("activate agreement", () => {
 
       const eservice: EService = {
         ...getMockEService(),
-        producerId,
+        producerId: producer.id,
         descriptors: [descriptor],
       };
 
@@ -2074,12 +2085,13 @@ describe("activate agreement", () => {
         state: randomArrayItem(agreementActivableStates),
         eserviceId: eservice.id,
         descriptorId: descriptor.id,
-        producerId,
+        producerId: producer.id,
         consumerId,
       };
 
       await addOneEService(eservice);
       await addOneAgreement(agreement);
+      await addOneTenant(producer);
 
       await expect(
         agreementService.activateAgreement(

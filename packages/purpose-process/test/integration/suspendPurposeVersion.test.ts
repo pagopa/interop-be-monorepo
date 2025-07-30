@@ -34,6 +34,7 @@ import {
   tenantKind,
   agreementState,
   DelegationId,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import {
   purposeNotFound,
@@ -842,7 +843,7 @@ describe("suspendPurposeVersion", () => {
   it.each(
     Object.values(delegationState).filter((s) => s !== delegationState.active)
   )(
-    "should throw tenantNotAllowed if the requester is the e-service delegate but the delegation is in %s state",
+    "should throw unauthorizedError if the requester is the e-service delegate but the delegation is in %s state",
     async (delegationState) => {
       const mockEService = getMockEService();
       const mockPurposeVersion: PurposeVersion = {
@@ -877,7 +878,11 @@ describe("suspendPurposeVersion", () => {
           },
           getMockContext({ authData: delegateAuthData })
         )
-      ).rejects.toThrowError(tenantNotAllowed(delegateAuthData.organizationId));
+      ).rejects.toThrowError(
+        unauthorizedError(
+          `Tenant ${delegateAuthData.organizationId} cannot perform operation as delegate for the specified delegation ID ${delegation.id}`
+        )
+      );
     }
   );
   it("should throw missingDelegationId if the requester is the producer but the purpose e-service has an active delegation", async () => {
@@ -1024,7 +1029,7 @@ describe("suspendPurposeVersion", () => {
     );
   });
 
-  it("should throw tenantNotAllowed when the requester is the Delegate and is suspending a purpose version created by the Consumer", async () => {
+  it("should throw unauthorizedError when the requester is the Delegate and is suspending a purpose version created by the Consumer", async () => {
     const authData = getMockAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
@@ -1060,9 +1065,13 @@ describe("suspendPurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
-    ).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
+    ).rejects.toThrowError(
+      unauthorizedError(
+        `Tenant ${delegation.delegateId} cannot perform operation as delegate for the specified delegation ID ${delegation.id}`
+      )
+    );
   });
-  it("should throw tenantNotAllowed when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in suspendPurposeVersion", async () => {
+  it("should throw unauthorizedError when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in suspendPurposeVersion", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -1105,6 +1114,10 @@ describe("suspendPurposeVersion", () => {
           authData: getMockAuthData(anotherDelegation.delegateId),
         })
       )
-    ).rejects.toThrowError(tenantNotAllowed(anotherDelegation.delegateId));
+    ).rejects.toThrowError(
+      unauthorizedError(
+        `Tenant ${anotherDelegation.delegateId} cannot perform operation as delegate for the specified delegation ID ${anotherDelegation.id}`
+      )
+    );
   });
 });

@@ -45,6 +45,7 @@ import {
   tenantKind,
   TenantId,
   DelegationId,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -1425,7 +1426,7 @@ describe("activatePurposeVersion", () => {
   it.each(
     Object.values(delegationState).filter((s) => s !== delegationState.active)
   )(
-    "should throw tenantNotAllowed if the caller is the purpose e-service delegate but the delegation is in %s state",
+    "should throw unauthorizedError if the caller is the purpose e-service delegate but the delegation is in %s state",
     async (delegationState) => {
       await addOnePurpose(mockPurpose);
       await addOneEService(mockEService);
@@ -1451,7 +1452,11 @@ describe("activatePurposeVersion", () => {
           },
           getMockContext({ authData: getMockAuthData(delegation.delegateId) })
         );
-      }).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
+      }).rejects.toThrowError(
+        unauthorizedError(
+          `Tenant ${delegation.delegateId} cannot perform operation as delegate for the specified delegation ID ${delegation.id}`
+        )
+      );
     }
   );
 
@@ -1726,7 +1731,7 @@ describe("activatePurposeVersion", () => {
     );
   });
 
-  it("should throw tenantNotAllowed if the requester is a delegate for the purpose but there is no delegationId in the purpose", async () => {
+  it("should throw unauthorizedError if the requester is a delegate for the purpose but there is no delegationId in the purpose", async () => {
     const purposeVersion: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,
@@ -1762,10 +1767,14 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
-    }).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
+    }).rejects.toThrowError(
+      unauthorizedError(
+        `Tenant ${delegation.delegateId} cannot perform operation as delegate for the specified delegation ID ${delegation.id}`
+      )
+    );
   });
 
-  it("should throw tenantNotAllowed if the the requester is a delegate for the purpose but there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+  it("should throw unauthorizedError if the the requester is a delegate for the purpose but there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
     const purposeVersionMock: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,
@@ -1809,6 +1818,10 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
-    }).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
+    }).rejects.toThrowError(
+      unauthorizedError(
+        `Tenant ${delegation.delegateId} cannot perform operation as delegate for the specified delegation ID ${delegation.id}`
+      )
+    );
   });
 });

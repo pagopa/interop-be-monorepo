@@ -1268,7 +1268,10 @@ export function agreementServiceBuilder(
 
       const agreementOwnership = ((): Ownership => {
         if (agreement.data.state === agreementState.pending) {
-          if (delegationId !== activeDelegations.producerDelegation?.id) {
+          if (
+            delegationId &&
+            delegationId !== activeDelegations.producerDelegation?.id
+          ) {
             throw unauthorizedError(
               `Tenant ${authData.organizationId} cannot perform operation as delegate for the specified delegation ID ${delegationId}`
             );

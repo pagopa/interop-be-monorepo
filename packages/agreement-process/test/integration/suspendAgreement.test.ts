@@ -38,6 +38,7 @@ import {
   delegationState,
   generateId,
   toAgreementV2,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
@@ -721,7 +722,7 @@ describe("suspend agreement", () => {
   );
 
   it.each([delegationKind.delegatedProducer, delegationKind.delegatedConsumer])(
-    "should throw a tenantNotAllowed when the requester is the %s but the delegation in not active",
+    "should throw a unauthorizedError when the requester is the %s but the delegation in not active",
     async (kind) => {
       const eservice: EService = {
         ...getMockEService(),
@@ -758,7 +759,11 @@ describe("suspend agreement", () => {
           { agreementId: agreement.id, delegationId: delegation.id },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(
+        unauthorizedError(
+          `Tenant ${authData.organizationId} cannot perform operation as delegate for the specified delegation ID ${delegation.id}`
+        )
+      );
     }
   );
 });
