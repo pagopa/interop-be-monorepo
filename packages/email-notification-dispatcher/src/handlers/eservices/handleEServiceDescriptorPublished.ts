@@ -11,7 +11,6 @@ import {
   generateId,
   CorrelationId,
   missingKafkaMessageDataError,
-  TenantMail,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -73,17 +72,18 @@ export async function handleEserviceDescriptorPublished(
 
   return (
     consumers
-      .map((consumer) =>
-        getLatestTenantMailOfKind(consumer.mails, tenantMailKind.ContactEmail)
-      )
-      // Skip and log consumers with no mail
-      .filter((consumerEmail): consumerEmail is TenantMail => {
-        if (!consumerEmail) {
+      .flatMap((consumer) => {
+        const email = getLatestTenantMailOfKind(
+          consumer.mails,
+          tenantMailKind.ContactEmail
+        );
+        if (!email) {
           logger.warn(
-            `Consumer email not found for eservice ${eservice.id}, skipping email`
+            `Consumer email not found for consumer ${consumer.id}, skipping email`
           );
+          return [];
         }
-        return consumerEmail !== undefined;
+        return [email];
       })
       // Map to message payload
       .map((consumerEmail) => ({
