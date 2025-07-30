@@ -5,8 +5,10 @@ import {
 } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
 import { Purpose, Tenant } from "pagopa-interop-models";
-import { tenantReadModelServiceBuilder } from "pagopa-interop-readmodel";
-import { upsertPurpose } from "pagopa-interop-readmodel/testUtils";
+import {
+  upsertPurpose,
+  upsertTenant,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { config } from "../src/configs/config.js";
@@ -25,8 +27,6 @@ export const { cleanup, readModelRepository, postgresDB, readModelDB } =
 afterEach(cleanup);
 
 export const { purposes, tenants } = readModelRepository;
-
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
@@ -48,7 +48,7 @@ export async function seedCollection<T>(
 
 export const seedTenants = async (tenants: Tenant[]): Promise<void> => {
   for (const t of tenants) {
-    await tenantReadModelServiceSQL.upsertTenant(t, 0);
+    await upsertTenant(readModelDB, t, 0);
   }
 };
 
