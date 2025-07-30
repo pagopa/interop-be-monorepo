@@ -102,15 +102,16 @@ function processMessage(topicHandlers: TopicNames) {
       eventType
     );
 
+    const correlationId = decodedMessage.correlation_id
+      ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
+      : generateId<CorrelationId>();
     const loggerInstance = logger({
       serviceName: "email-notification-dispatcher",
       eventType: decodedMessage.type,
       eventVersion: decodedMessage.event_version,
       streamId: decodedMessage.stream_id,
       streamVersion: decodedMessage.version,
-      correlationId: decodedMessage.correlation_id
-        ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
-        : generateId<CorrelationId>(),
+      correlationId,
     });
     loggerInstance.info(
       `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
@@ -118,6 +119,7 @@ function processMessage(topicHandlers: TopicNames) {
 
     const emailNotificationMessagePayloads = await handleEvent(
       decodedMessage,
+      correlationId,
       loggerInstance,
       readModelService,
       templateService
