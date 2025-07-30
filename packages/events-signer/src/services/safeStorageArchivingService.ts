@@ -8,70 +8,53 @@ import { calculateSha256Base64 } from "../utils/checksum.js";
 import { SafeStorageService } from "./safeStorageService.js";
 import { DbServiceBuilder } from "./dbService.js";
 
-/**
- * Processes a list of stored file details by interacting with Safe Storage and saving references in DynamoDB.
- *
- * @param storedFiles - An array of objects containing file details (buffer, name).
- * @param fileManager - The file manager instance.
- * @param logger - The logger instance.
- * @param dbService - The DB service instance.
- * @param safeStorage - The Safe Storage service instance.
- * @param config - The application configuration, containing Safe Storage API details and S3 bucket.
- */
-export const processStoredFilesForSafeStorage = async (
-  storedFiles: Array<{
+export const archiveFileToSafeStorage = async (
+  storedFile: {
     fileContentBuffer: Buffer;
     fileName: string;
-  }>,
+  },
   logger: Logger,
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService,
   config: SafeStorageApiConfig
 ): Promise<void> => {
-  if (storedFiles.length === 0) {
-    logger.info("No files to process for Safe Storage or DynamoDB.");
-    return;
-  }
+  const { fileContentBuffer, fileName } = storedFile;
 
-  for (const file of storedFiles) {
-    const { fileContentBuffer, fileName } = file;
+  const checksum = await calculateSha256Base64(fileContentBuffer);
 
-    const checksum = await calculateSha256Base64(fileContentBuffer);
+  logger.info(`Requesting file creation in Safe Storage for ${fileName}`);
 
-    logger.info(`Requesting file creation in Safe Storage for ${fileName}`);
+  const safeStorageRequest: FileCreationRequest = {
+    contentType: "application/json",
+    documentType: config.safeStorageDocType,
+    status: config.safeStorageDocStatus,
+    checksumValue: checksum,
+  };
 
-    const safeStorageRequest: FileCreationRequest = {
-      contentType: "application/json",
-      documentType: config.safeStorageDocType,
-      status: config.safeStorageDocStatus,
-      checksumValue: checksum,
-    };
+  try {
+    const { uploadUrl, secret, key } = await safeStorage.createFile(
+      safeStorageRequest
+    );
 
-    try {
-      const { uploadUrl, secret, key } = await safeStorage.createFile(
-        safeStorageRequest
-      );
+    await safeStorage.uploadFileContent(
+      uploadUrl,
+      fileContentBuffer,
+      "application/json",
+      secret,
+      checksum
+    );
 
-      await safeStorage.uploadFileContent(
-        uploadUrl,
-        fileContentBuffer,
-        "application/json",
-        secret,
-        checksum
-      );
+    logger.info(`File ${fileName} uploaded to Safe Storage successfully.`);
 
-      logger.info(`File ${fileName} uploaded to Safe Storage successfully.`);
-
-      await dbService.saveSignatureReference({
-        safeStorageId: key,
-        fileKind: "PLATFORM_EVENTS",
-        fileName,
-      });
-      logger.info(`Safe Storage reference for ${fileName} saved in DynamoDB.`);
-    } catch (error) {
-      throw genericInternalError(
-        `Failed to process Safe Storage/DynamoDB for file ${fileName}: ${error}`
-      );
-    }
+    await dbService.saveSignatureReference({
+      safeStorageId: key,
+      fileKind: "PLATFORM_EVENTS",
+      fileName,
+    });
+    logger.info(`Safe Storage reference for ${fileName} saved in DynamoDB.`);
+  } catch (error) {
+    throw genericInternalError(
+      `Failed to process Safe Storage/DynamoDB for file ${fileName}: ${error}`
+    );
   }
 };

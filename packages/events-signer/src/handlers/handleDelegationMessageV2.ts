@@ -7,11 +7,12 @@ import {
 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
-import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { DelegationEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { processStoredFilesForSafeStorage } from "../services/safeStorageArchivingService.js";
+import { archiveFileToSafeStorage } from "../services/safeStorageArchivingService.js";
+import { prepareNdjsonEventData } from "../utils/ndjsonStore.js";
+import { uploadPreparedFileToS3 } from "../utils/s3Uploader.js";
 
 export const handleDelegationMessageV2 = async (
   eventsWithTimestamp: Array<{
@@ -72,26 +73,30 @@ export const handleDelegationMessageV2 = async (
   }
 
   if (allDelegationDataToStore.length > 0) {
-    const storedFiles = await storeNdjsonEventData<DelegationEventData>(
+    const preparedFiles = await prepareNdjsonEventData<DelegationEventData>(
       allDelegationDataToStore,
-      fileManager,
-      logger,
-      config
+      logger
     );
 
-    if (storedFiles.length === 0) {
-      throw genericInternalError(
-        `S3 storing didn't return a valid key or content`
-      );
+    if (preparedFiles.length === 0) {
+      throw genericInternalError(`NDJSON preparation didn't return any files.`);
     }
 
-    await processStoredFilesForSafeStorage(
-      storedFiles,
-      logger,
-      dbService,
-      safeStorage,
-      safeStorageApiConfig
-    );
+    for (const preparedFile of preparedFiles) {
+      const result = await uploadPreparedFileToS3(
+        preparedFile,
+        fileManager,
+        logger,
+        config
+      );
+      await archiveFileToSafeStorage(
+        result,
+        logger,
+        dbService,
+        safeStorage,
+        safeStorageApiConfig
+      );
+    }
   } else {
     logger.info("No managed delegation events to store.");
   }

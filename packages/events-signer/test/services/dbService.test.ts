@@ -7,7 +7,7 @@ import {
 import { generateId } from "pagopa-interop-models";
 import { readSignatureReference } from "../utils/dbServiceUtils";
 import { dbServiceBuilder } from "../../src/services/dbService";
-import { dynamoDBClient } from "../utils";
+import { dynamoDBClient } from "../utils/utils";
 
 describe("dbServiceBuilder - Integration Tests", () => {
   beforeEach(async () => {

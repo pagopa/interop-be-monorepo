@@ -8,9 +8,10 @@ import { P, match } from "ts-pattern";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { config, safeStorageApiConfig } from "../config/config.js";
 import { AuthorizationEventData } from "../models/eventTypes.js";
-import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
+import { prepareNdjsonEventData } from "../utils/ndjsonStore.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { processStoredFilesForSafeStorage } from "../services/safeStorageArchivingService.js";
+import { archiveFileToSafeStorage } from "../services/safeStorageArchivingService.js";
+import { uploadPreparedFileToS3 } from "../utils/s3Uploader.js";
 
 export const handleAuthorizationMessageV1 = async (
   eventsWithTimestamp: Array<{
@@ -22,7 +23,7 @@ export const handleAuthorizationMessageV1 = async (
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
-  const allDataToStore: AuthorizationEventData[] = [];
+  const allAuthorizationDataToStore: AuthorizationEventData[] = [];
 
   for (const {
     authV1,
@@ -36,7 +37,7 @@ export const handleAuthorizationMessageV1 = async (
           const userId = key.value?.userId;
           const timestamp = key.value?.createdAt;
 
-          allDataToStore.push({
+          allAuthorizationDataToStore.push({
             event_name: authV1.type,
             id: clientId,
             kid,
@@ -51,7 +52,7 @@ export const handleAuthorizationMessageV1 = async (
         const kid = event.data.keyId;
         const deactivationTimestamp = event.data.deactivationTimestamp;
 
-        allDataToStore.push({
+        allAuthorizationDataToStore.push({
           event_name: authV1.type,
           id: clientId,
           kid,
@@ -78,28 +79,31 @@ export const handleAuthorizationMessageV1 = async (
       .exhaustive();
   }
 
-  if (allDataToStore.length > 0) {
-    const storedFiles = await storeNdjsonEventData(
-      allDataToStore,
-      fileManager,
-      logger,
-      config
+  if (allAuthorizationDataToStore.length > 0) {
+    const preparedFiles = await prepareNdjsonEventData<AuthorizationEventData>(
+      allAuthorizationDataToStore,
+      logger
     );
 
-    if (storedFiles.length === 0) {
-      throw genericInternalError(
-        `S3 storing didn't return a valid key or content`
-      );
+    if (preparedFiles.length === 0) {
+      throw genericInternalError(`NDJSON preparation didn't return any files.`);
     }
 
-    await processStoredFilesForSafeStorage(
-      storedFiles,
-      logger,
-      dbService,
-      safeStorage,
-      safeStorageApiConfig
-    );
-    logger.info("Safe Storage reference saved in DynamoDB.");
+    for (const preparedFile of preparedFiles) {
+      const result = await uploadPreparedFileToS3(
+        preparedFile,
+        fileManager,
+        logger,
+        config
+      );
+      await archiveFileToSafeStorage(
+        result,
+        logger,
+        dbService,
+        safeStorage,
+        safeStorageApiConfig
+      );
+    }
   } else {
     logger.info("No authorization events to store.");
   }

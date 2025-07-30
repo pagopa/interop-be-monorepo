@@ -13,16 +13,15 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const EventSignerConfig = EventsSignerConfig.and(CatalogTopicConfig)
-  .and(AgreementTopicConfig)
+export const EventSignerConfig = CatalogTopicConfig.and(AgreementTopicConfig)
   .and(AuthorizationTopicConfig)
   .and(PurposeTopicConfig)
   .and(DelegationTopicConfig)
-  .and(CatalogTopicConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(LoggerConfig)
-  .and(KafkaBatchConsumerConfig);
+  .and(KafkaBatchConsumerConfig)
+  .and(EventsSignerConfig);
 
 export const safeStorageApiConfigSchema = z
   .object({

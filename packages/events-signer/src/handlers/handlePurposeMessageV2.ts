@@ -11,11 +11,12 @@ import {
 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
-import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
+import { prepareNdjsonEventData } from "../utils/ndjsonStore.js";
 import { PurposeEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { processStoredFilesForSafeStorage } from "../services/safeStorageArchivingService.js";
+import { archiveFileToSafeStorage } from "../services/safeStorageArchivingService.js";
+import { uploadPreparedFileToS3 } from "../utils/s3Uploader.js";
 export const handlePurposeMessageV2 = async (
   eventsWithTimestamp: Array<{ purposeV2: PurposeEventV2; timestamp: string }>,
   logger: Logger,
@@ -43,7 +44,7 @@ export const handlePurposeMessageV2 = async (
           id: event.data.purpose.id,
           state,
           versionId: version?.id,
-          eventTimestamp: timestamp, // Use the timestamp from KafkaMessage
+          eventTimestamp: timestamp,
         });
       })
       .with({ type: "PurposeActivated" }, (event) => {
@@ -63,7 +64,7 @@ export const handlePurposeMessageV2 = async (
           id,
           state,
           versionId: version.id,
-          eventTimestamp: timestamp, // Use the timestamp from KafkaMessage
+          eventTimestamp: timestamp,
         });
       })
       .with({ type: "PurposeArchived" }, (event) => {
@@ -86,7 +87,7 @@ export const handlePurposeMessageV2 = async (
             id,
             versionId,
             state,
-            eventTimestamp: timestamp, // Use the timestamp from KafkaMessage
+            eventTimestamp: timestamp,
           });
         }
       })
@@ -126,7 +127,7 @@ export const handlePurposeMessageV2 = async (
             id,
             versionId,
             state,
-            eventTimestamp: timestamp, // Use the timestamp from KafkaMessage
+            eventTimestamp: timestamp,
           });
         }
       )
@@ -151,26 +152,30 @@ export const handlePurposeMessageV2 = async (
   }
 
   if (allPurposeDataToStore.length > 0) {
-    const storedFiles = await storeNdjsonEventData<PurposeEventData>(
+    const preparedFiles = await prepareNdjsonEventData<PurposeEventData>(
       allPurposeDataToStore,
-      fileManager,
-      logger,
-      config
+      logger
     );
 
-    if (storedFiles.length === 0) {
-      throw genericInternalError(
-        `S3 storing didn't return a valid key or content`
-      );
+    if (preparedFiles.length === 0) {
+      throw genericInternalError(`NDJSON preparation didn't return any files.`);
     }
 
-    await processStoredFilesForSafeStorage(
-      storedFiles,
-      logger,
-      dbService,
-      safeStorage,
-      safeStorageApiConfig
-    );
+    for (const preparedFile of preparedFiles) {
+      const result = await uploadPreparedFileToS3(
+        preparedFile,
+        fileManager,
+        logger,
+        config
+      );
+      await archiveFileToSafeStorage(
+        result,
+        logger,
+        dbService,
+        safeStorage,
+        safeStorageApiConfig
+      );
+    }
   } else {
     logger.info("No managed purpose events to store.");
   }
