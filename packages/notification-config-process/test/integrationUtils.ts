@@ -14,7 +14,10 @@ import {
   toTenantNotificationConfigV2,
   toUserNotificationConfigV2,
 } from "pagopa-interop-models";
-import { notificationConfigReadModelServiceBuilder } from "pagopa-interop-readmodel";
+import {
+  notificationConfigReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import {
   insertTenantNotificationConfig,
   insertUserNotificationConfig,
@@ -38,9 +41,12 @@ afterEach(cleanup);
 const notificationConfigReadModelService =
   notificationConfigReadModelServiceBuilder(readModelDB);
 
+const tenantReadModelService = tenantReadModelServiceBuilder(readModelDB);
+
 export const notificationConfigService = notificationConfigServiceBuilder(
   postgresDB,
-  notificationConfigReadModelService
+  notificationConfigReadModelService,
+  tenantReadModelService
 );
 
 export const readLastNotificationConfigEvent = async (
