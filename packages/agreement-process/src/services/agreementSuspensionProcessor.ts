@@ -27,8 +27,8 @@ import {
   agreementStateByFlags,
   nextStateByAttributesFSM,
 } from "./agreementStateProcessor.js";
-import { createStamp } from "./agreementStampUtils.js";
-import { getSuspensionFlags, getSuspensionStamps } from "./agreementService.js";
+import { createStamp, getSuspensionStamps } from "./agreementStampUtils.js";
+import { getSuspensionFlags } from "./agreementService.js";
 
 export function createSuspensionUpdatedAgreement({
   agreement,

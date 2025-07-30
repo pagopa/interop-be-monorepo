@@ -36,11 +36,8 @@ import {
   toCreateEventAgreementUnsuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
-import {
-  createAgreementArchivedByUpgradeEvent,
-  getSuspensionStamps,
-} from "./agreementService.js";
-import { createStamp } from "./agreementStampUtils.js";
+import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
+import { createStamp, getSuspensionStamps } from "./agreementStampUtils.js";
 import { ReadModelService } from "./readModelService.js";
 
 export function createActivationUpdateAgreementSeed({

@@ -39,7 +39,6 @@ import {
   CompactTenant,
   CorrelationId,
   DelegationId,
-  AgreementStamp,
 } from "pagopa-interop-models";
 import {
   certifiedAttributesSatisfied,
@@ -126,11 +125,7 @@ import {
   ContractBuilder,
   contractBuilder,
 } from "./agreementContractBuilder.js";
-import {
-  createStamp,
-  suspendedByConsumerStamp,
-  suspendedByProducerStamp,
-} from "./agreementStampUtils.js";
+import { createStamp } from "./agreementStampUtils.js";
 import {
   agreementStateByFlags,
   computeAgreementsStateByAttribute,
@@ -1613,64 +1608,6 @@ export function getSuspensionFlags(
         agreement,
         authData.organizationId,
         targetDestinationState,
-        activeDelegations.producerDelegation?.delegateId
-      ),
-    }))
-    .exhaustive();
-}
-
-export function getSuspensionStamps({
-  agreementOwnership,
-  agreement,
-  newAgreementState,
-  authData,
-  stamp,
-  activeDelegations,
-}: {
-  agreementOwnership: Ownership;
-  agreement: Agreement;
-  newAgreementState: AgreementState;
-  authData: UIAuthData | M2MAdminAuthData;
-  stamp: AgreementStamp;
-  activeDelegations: ActiveDelegations;
-}): {
-  suspensionByConsumer: AgreementStamp | undefined;
-  suspensionByProducer: AgreementStamp | undefined;
-} {
-  return match(agreementOwnership)
-    .with(ownership.PRODUCER, () => ({
-      suspensionByProducer: suspendedByProducerStamp(
-        agreement,
-        authData.organizationId,
-        newAgreementState,
-        stamp,
-        activeDelegations.producerDelegation?.delegateId
-      ),
-      suspensionByConsumer: agreement.stamps.suspensionByConsumer,
-    }))
-    .with(ownership.CONSUMER, () => ({
-      suspensionByProducer: agreement.stamps.suspensionByProducer,
-      suspensionByConsumer: suspendedByConsumerStamp(
-        agreement,
-        authData.organizationId,
-        newAgreementState,
-        stamp,
-        activeDelegations.consumerDelegation?.delegateId
-      ),
-    }))
-    .with(ownership.SELF_CONSUMER, () => ({
-      suspensionByConsumer: suspendedByConsumerStamp(
-        agreement,
-        authData.organizationId,
-        newAgreementState,
-        stamp,
-        activeDelegations.consumerDelegation?.delegateId
-      ),
-      suspensionByProducer: suspendedByProducerStamp(
-        agreement,
-        authData.organizationId,
-        newAgreementState,
-        stamp,
         activeDelegations.producerDelegation?.delegateId
       ),
     }))
