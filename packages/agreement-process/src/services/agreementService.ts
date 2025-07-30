@@ -97,7 +97,6 @@ import {
   agreementUpgradableStates,
   assertActivableState,
   assertRequesterCanActAsProducer,
-  assertRequesterCanActAsConsumerOrProducer,
   assertRequesterCanRetrieveAgreement,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
@@ -115,6 +114,7 @@ import {
   verifyCreationConflictingAgreements,
   verifySubmissionConflictingAgreements,
   assertRequesterCanActAsConsumer,
+  getOrganizationRole,
 } from "../model/domain/agreement-validators.js";
 import { config } from "../config/config.js";
 import {
@@ -1039,7 +1039,7 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const agreementOwnership = assertRequesterCanActAsConsumerOrProducer(
+      const agreementOwnership = getOrganizationRole(
         agreement.data,
         delegationId,
         activeDelegations,
@@ -1287,7 +1287,7 @@ export function agreementServiceBuilder(
           );
           return ownership.PRODUCER;
         } else {
-          return assertRequesterCanActAsConsumerOrProducer(
+          return getOrganizationRole(
             agreement.data,
             delegationId,
             activeDelegations,

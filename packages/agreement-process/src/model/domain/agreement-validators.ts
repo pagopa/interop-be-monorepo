@@ -157,7 +157,7 @@ const assertRequesterIsProducer = (
   }
 };
 
-export const assertRequesterCanActAsConsumerOrProducer = (
+export const getOrganizationRole = (
   agreement: Agreement,
   delegationId: DelegationId | undefined,
   activeDelegations: ActiveDelegations,
