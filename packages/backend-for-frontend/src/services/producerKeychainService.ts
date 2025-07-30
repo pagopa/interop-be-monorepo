@@ -22,17 +22,19 @@ export function producerKeychainServiceBuilder(
       {
         limit,
         offset,
+        producerId,
         userIds,
         name,
         eserviceId,
       }: {
+        producerId: string;
         offset: number;
         limit: number;
         userIds: string[];
         name?: string;
         eserviceId?: string;
       },
-      { logger, headers, authData }: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactProducerKeychains> {
       logger.info(`Retrieving producer keychains`);
 
@@ -42,7 +44,7 @@ export function producerKeychainServiceBuilder(
             offset,
             limit,
             userIds,
-            producerId: authData.organizationId,
+            producerId,
             name,
             eserviceId,
           },
