@@ -1237,12 +1237,16 @@ export function authorizationServiceBuilder(
       {
         producerKeychainId,
         userIds,
+        offset,
+        limit,
       }: {
         producerKeychainId: ProducerKeychainId;
         userIds: UserId[];
+        offset: number;
+        limit: number;
       },
       { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
-    ): Promise<Key[]> {
+    ): Promise<ListResult<Key>> {
       logger.info(
         `Retrieving keys for producer keychain ${producerKeychainId}`
       );
@@ -1254,12 +1258,17 @@ export function authorizationServiceBuilder(
         authData,
         producerKeychain.data
       );
-      if (userIds.length > 0) {
-        return producerKeychain.data.keys.filter((k) =>
-          userIds.includes(k.userId)
-        );
-      }
-      return producerKeychain.data.keys;
+      const allKeys = producerKeychain.data.keys;
+
+      const filteredKeys =
+        userIds && userIds.length > 0
+          ? allKeys.filter((key) => userIds.includes(key.userId))
+          : allKeys;
+
+      return {
+        results: filteredKeys.slice(offset, offset + limit),
+        totalCount: filteredKeys.length,
+      };
     },
     async getProducerKeychainKeyById(
       {
