@@ -29,9 +29,10 @@ describe("createPurpose", () => {
     description: mockPurposeProcessGetResponse.data.description,
     eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
     isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
+    freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
     title: mockPurposeProcessGetResponse.data.title,
     riskAnalysisForm: generateMock(m2mGatewayApi.RiskAnalysisFormSeed),
-    // TODO test delegation and test that purpose process is called with the right consumerId
+    delegationId: undefined,
   };
 
   const mockCreatePurpose = vi
@@ -40,18 +41,23 @@ describe("createPurpose", () => {
   const mockGetPurpose = vi.fn(
     mockPollingResponse(mockPurposeProcessGetResponse, 2)
   );
+  const mockGetDelegation = vi.fn();
 
   mockInteropBeClients.purposeProcessClient = {
     getPurpose: mockGetPurpose,
     createPurpose: mockCreatePurpose,
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
+  mockInteropBeClients.delegationProcessClient = {
+    delegation: { getDelegation: mockGetDelegation },
+  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
+
   beforeEach(() => {
     mockCreatePurpose.mockClear();
     mockGetPurpose.mockClear();
   });
 
-  it("Should succeed and perform service calls", async () => {
+  it("Should succeed and perform service calls without delegationId", async () => {
     const expectedM2MPurpose: m2mGatewayApi.Purpose = {
       consumerId: mockPurposeProcessGetResponse.data.consumerId,
       createdAt: mockPurposeProcessGetResponse.data.createdAt,
@@ -82,7 +88,13 @@ describe("createPurpose", () => {
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.createPurpose,
       body: {
-        ...mockPurposeSeed,
+        dailyCalls: mockPurposeSeed.dailyCalls,
+        description: mockPurposeSeed.description,
+        eServiceId: mockPurposeSeed.eserviceId,
+        RiskAnalysisForm: mockPurposeSeed.riskAnalysisForm,
+        isFreeOfCharge: mockPurposeSeed.isFreeOfCharge,
+        freeOfChargeReason: mockPurposeSeed.freeOfChargeReason,
+        title: mockPurposeSeed.title,
         consumerId: mockAppContext.authData.organizationId,
       },
     });
@@ -98,7 +110,12 @@ describe("createPurpose", () => {
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
     ).toHaveBeenCalledTimes(2);
+    expect(
+      mockInteropBeClients.delegationProcessClient.delegation.getDelegation
+    ).toHaveBeenCalledTimes(0);
   });
+
+  // TODO test delegation and test that purpose process is called with the right consumerId
 
   it("Should throw missingMetadata in case the purpose returned by the creation POST call has no metadata", async () => {
     mockCreatePurpose.mockResolvedValueOnce({
