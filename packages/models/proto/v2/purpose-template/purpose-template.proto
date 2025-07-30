@@ -11,30 +11,22 @@ enum PurposeTemplateStateV2 {
   ARCHIVED = 3;
 }
 
-// TODO: the purpose template is not final
 message PurposeTemplateV2 {
   string id = 1;
   string targetDescription = 2;
   tenant.v2.TenantKindV2 targetTenantKind = 3;
   string creatorId = 4;
-  repeated EserviceDescriptorVersionPurposeTemplateV2 eservicesVersions = 5;
-  PurposeTemplateStateV2 state = 6;
-  int64 createdAt = 7;
-  optional int64 updatedAt = 8;
-  string purposeTitle = 9;
-  string purposeDescription = 10;
-  optional RiskAnalysisFormTemplateV2 purposeRiskAnalysisForm = 11;
-  bool purposeIsFreeOfCharge = 12;
-  optional string purposeFreeOfChargeReason = 13;
-  optional int32 purposeDailyCalls = 14;
+  PurposeTemplateStateV2 state = 5;
+  int64 createdAt = 6;
+  optional int64 updatedAt = 7;
+  string purposeTitle = 8;
+  string purposeDescription = 9;
+  optional RiskAnalysisFormTemplateV2 purposeRiskAnalysisForm = 10;
+  bool purposeIsFreeOfCharge = 11;
+  optional string purposeFreeOfChargeReason = 12;
+  optional int32 purposeDailyCalls = 13;
 }
 
-message EserviceDescriptorVersionPurposeTemplateV2 {
-  string eserviceId = 1;
-  string descriptorId = 2;
-}
-
-// TODO: move the risk analysis template to a separate file if it's needed
 message RiskAnalysisFormTemplateV2 {
   string id = 1;
   string version = 2;

@@ -8,7 +8,13 @@ message PurposeTemplateAddedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
 }
 
-message PurposeTemplateEserviceLinkedAddedV2 {
+message PurposeTemplateEServiceLinkedV2 {
+  string purposeTemplateId = 1;
+  string eserviceId = 2;
+  string descriptorId = 3;
+}
+
+message PurposeTemplateEServiceUnlinkedV2 {
   string purposeTemplateId = 1;
   string eserviceId = 2;
   string descriptorId = 3;
@@ -22,20 +28,8 @@ message PurposeTemplateDraftDeletedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
 }
 
-message PurposeTemplateEserviceLinkedUpdatedV2 {
-  string purposeTemplateId = 1;
-  string eserviceId = 2;
-  string descriptorId = 3;
-}
-
 message PurposeTemplatePublishedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
-}
-
-message PurposeTemplateEserviceLinkedPublishedV2 {
-  string purposeTemplateId = 1;
-  string eserviceId = 2;
-  string descriptorId = 3;
 }
 
 message PurposeTemplateUnsuspendedV2 {

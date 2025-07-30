@@ -7,9 +7,8 @@ import {
   PurposeTemplateArchivedV2,
   PurposeTemplateDraftDeletedV2,
   PurposeTemplateDraftUpdatedV2,
-  PurposeTemplateEserviceLinkedAddedV2,
-  PurposeTemplateEserviceLinkedPublishedV2,
-  PurposeTemplateEserviceLinkedUpdatedV2,
+  PurposeTemplateEServiceLinkedV2,
+  PurposeTemplateEServiceUnlinkedV2,
   PurposeTemplatePublishedV2,
   PurposeTemplateSuspendedV2,
   PurposeTemplateUnsuspendedV2,
@@ -23,8 +22,13 @@ export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("PurposeTemplateEserviceLinkedAdded"),
-    data: protobufDecoder(PurposeTemplateEserviceLinkedAddedV2),
+    type: z.literal("PurposeTemplateEServiceLinked"),
+    data: protobufDecoder(PurposeTemplateEServiceLinkedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeTemplateEServiceUnlinked"),
+    data: protobufDecoder(PurposeTemplateEServiceUnlinkedV2),
   }),
   z.object({
     event_version: z.literal(2),
@@ -38,18 +42,8 @@ export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("PurposeTemplateEserviceLinkedUpdated"),
-    data: protobufDecoder(PurposeTemplateEserviceLinkedUpdatedV2),
-  }),
-  z.object({
-    event_version: z.literal(2),
     type: z.literal("PurposeTemplatePublished"),
     data: protobufDecoder(PurposeTemplatePublishedV2),
-  }),
-  z.object({
-    event_version: z.literal(2),
-    type: z.literal("PurposeTemplateEserviceLinkedPublished"),
-    data: protobufDecoder(PurposeTemplateEserviceLinkedPublishedV2),
   }),
   z.object({
     event_version: z.literal(2),
@@ -76,8 +70,11 @@ export function purposeTemplateEventToBinaryDataV2(
     .with({ type: "PurposeTemplateAdded" }, (e) =>
       PurposeTemplateAddedV2.toBinary(e.data)
     )
-    .with({ type: "PurposeTemplateEserviceLinkedAdded" }, (e) =>
-      PurposeTemplateEserviceLinkedAddedV2.toBinary(e.data)
+    .with({ type: "PurposeTemplateEServiceLinked" }, (e) =>
+      PurposeTemplateEServiceLinkedV2.toBinary(e.data)
+    )
+    .with({ type: "PurposeTemplateEServiceUnlinked" }, (e) =>
+      PurposeTemplateEServiceUnlinkedV2.toBinary(e.data)
     )
     .with({ type: "PurposeTemplateDraftUpdated" }, (e) =>
       PurposeTemplateDraftUpdatedV2.toBinary(e.data)
@@ -85,14 +82,8 @@ export function purposeTemplateEventToBinaryDataV2(
     .with({ type: "PurposeTemplateDraftDeleted" }, (e) =>
       PurposeTemplateDraftDeletedV2.toBinary(e.data)
     )
-    .with({ type: "PurposeTemplateEserviceLinkedUpdated" }, (e) =>
-      PurposeTemplateEserviceLinkedUpdatedV2.toBinary(e.data)
-    )
     .with({ type: "PurposeTemplatePublished" }, (e) =>
       PurposeTemplatePublishedV2.toBinary(e.data)
-    )
-    .with({ type: "PurposeTemplateEserviceLinkedPublished" }, (e) =>
-      PurposeTemplateEserviceLinkedPublishedV2.toBinary(e.data)
     )
     .with({ type: "PurposeTemplateUnsuspended" }, (e) =>
       PurposeTemplateUnsuspendedV2.toBinary(e.data)
