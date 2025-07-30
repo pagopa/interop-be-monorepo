@@ -10,7 +10,7 @@ import { config, safeStorageApiConfig } from "../config/config.js";
 import { AuthorizationEventData } from "../models/eventTypes.js";
 import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { processStoredFilesForSafeStorage } from "../utils/safeStorageProcessor.js";
+import { processStoredFilesForSafeStorage } from "../services/safeStorageArchivingService.js";
 
 export const handleAuthorizationMessageV1 = async (
   eventsWithTimestamp: Array<{
@@ -86,7 +86,7 @@ export const handleAuthorizationMessageV1 = async (
       config
     );
 
-    if (!storedFiles) {
+    if (storedFiles.length === 0) {
       throw genericInternalError(
         `S3 storing didn't return a valid key or content`
       );

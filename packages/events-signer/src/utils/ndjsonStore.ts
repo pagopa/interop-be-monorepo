@@ -3,7 +3,7 @@
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { generateId, genericInternalError } from "pagopa-interop-models";
 import { format } from "date-fns";
-import { EventsSignerConfig } from "../config/config.js";
+import { EventSignerConfig } from "../config/config.js";
 import { BaseEventData } from "../models/eventTypes.js";
 import { compressJson } from "./compression.js";
 import { groupEventsByDate } from "./groupEventsByDate.js";
@@ -14,17 +14,16 @@ export const storeNdjsonEventData = async <
   eventsToStoreArray: T[],
   fileManager: FileManager,
   logger: Logger,
-  config: EventsSignerConfig
+  config: EventSignerConfig
 ): Promise<
-  | Array<{
-      fileContentBuffer: Buffer;
-      fileName: string;
-    }>
-  | undefined
+  Array<{
+    fileContentBuffer: Buffer;
+    fileName: string;
+  }>
 > => {
   if (eventsToStoreArray.length === 0) {
     logger.info("No data to store in NDJSON file.");
-    return;
+    return [];
   }
 
   const groupedEvents = groupEventsByDate(eventsToStoreArray);
@@ -57,7 +56,7 @@ export const storeNdjsonEventData = async <
         logger
       );
       logger.info(
-        `Successfully stored ${group.length} events for date ${dateKey} in file ${fileName} at path ${filePath}`
+        `Successfully stored ${group.length} events for date ${dateKey} at path ${filePath}`
       );
 
       const s3KeyParts = s3filePath.split("/");
@@ -75,9 +74,9 @@ export const storeNdjsonEventData = async <
       });
     } catch (error) {
       throw genericInternalError(
-        `Failed to store batch event data for date ${dateKey}: ${error}`
+        `Failed to store batch event data for ${fileName}: ${error}`
       );
     }
   }
-  return results.length > 0 ? results : undefined;
+  return results;
 };

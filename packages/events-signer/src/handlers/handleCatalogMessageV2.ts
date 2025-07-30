@@ -11,7 +11,7 @@ import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { CatalogEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { processStoredFilesForSafeStorage } from "../utils/safeStorageProcessor.js";
+import { processStoredFilesForSafeStorage } from "../services/safeStorageArchivingService.js";
 
 export const handleCatalogMessageV2 = async (
   eventsWithTimestamp: Array<{
@@ -37,10 +37,9 @@ export const handleCatalogMessageV2 = async (
         },
         (event) => {
           if (!event.data.eservice?.id || !event.data.descriptorId) {
-            logger.warn(
+            throw genericInternalError(
               `Skipping managed Catalog event ${event.type} due to missing e-service ID or descriptor ID.`
             );
-            return;
           }
           const eservice = fromEServiceV2(event.data.eservice);
           const eventName = event.type;
@@ -116,7 +115,7 @@ export const handleCatalogMessageV2 = async (
       config
     );
 
-    if (!storedFiles) {
+    if (storedFiles.length === 0) {
       throw genericInternalError(
         `S3 storing didn't return a valid key or content`
       );

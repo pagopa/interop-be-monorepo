@@ -1,72 +1,47 @@
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  beforeAll,
-  afterAll,
-} from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { config } from "../../src/config/config";
 import {
-  buildDynamoDBTable,
-  deleteDynamoDBTable,
-  readSignatureReference,
-} from "../utils/dbServiceUtils";
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
+} from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
+import { readSignatureReference } from "../utils/dbServiceUtils";
 import { dbServiceBuilder } from "../../src/services/dbService";
+import { dynamoDBClient } from "../utils";
 
 describe("dbServiceBuilder - Integration Tests", () => {
-  let dynamoDBClient: DynamoDBClient;
-  const testTableName = config.dbTableName;
-
-  beforeAll(() => {
-    dynamoDBClient = new DynamoDBClient({
-      region: "eu-south-1",
-      endpoint: "http://localhost:8085",
-      credentials: {
-        accessKeyId: "test",
-        secretAccessKey: "test",
-      },
-    });
-  });
-
   beforeEach(async () => {
-    await buildDynamoDBTable(dynamoDBClient, testTableName);
+    await buildDynamoDBTables(dynamoDBClient);
   });
-
   afterEach(async () => {
-    await deleteDynamoDBTable(dynamoDBClient, testTableName);
-  });
-
-  afterAll(() => {
-    dynamoDBClient.destroy();
+    await deleteDynamoDBTables(dynamoDBClient);
   });
 
   it("should successfully save a signature reference and retrieve it", async () => {
+    const safeStorageId = generateId();
     const dbService = dbServiceBuilder(dynamoDBClient);
     const mockReference = {
-      safeStorageId: "test-id-integration-1",
-      fileKind: "INTEGRATION_TEST_KIND",
-      fileName: "integration-test-file.txt",
+      safeStorageId,
+      fileKind: "INTEROP_LEGAL_FACTS",
+      fileName: "multa.pdf",
     };
 
     await dbService.saveSignatureReference(mockReference);
 
     const retrievedItem = await readSignatureReference(
       mockReference.safeStorageId,
-      dynamoDBClient,
+      dynamoDBClient
     );
 
     expect(retrievedItem).toEqual(mockReference);
   });
 
   it("should return undefined if a signature reference does not exist", async () => {
-    const nonExistentId = "non-existent-id";
+    const nonExistentId = generateId();
 
     const retrievedItem = await readSignatureReference(
       nonExistentId,
-      dynamoDBClient,
+      dynamoDBClient
     );
 
     expect(retrievedItem).toBeUndefined();
@@ -83,7 +58,7 @@ describe("dbServiceBuilder - Integration Tests", () => {
     });
 
     await expect(
-      readSignatureReference("any-id-for-error-read", brokenDynamoDBClient),
+      readSignatureReference(generateId(), brokenDynamoDBClient)
     ).rejects.toThrow();
   });
 });

@@ -11,7 +11,7 @@ import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { DelegationEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { processStoredFilesForSafeStorage } from "../utils/safeStorageProcessor.js";
+import { processStoredFilesForSafeStorage } from "../services/safeStorageArchivingService.js";
 
 export const handleDelegationMessageV2 = async (
   eventsWithTimestamp: Array<{
@@ -79,7 +79,7 @@ export const handleDelegationMessageV2 = async (
       config
     );
 
-    if (!storedFiles) {
+    if (storedFiles.length === 0) {
       throw genericInternalError(
         `S3 storing didn't return a valid key or content`
       );

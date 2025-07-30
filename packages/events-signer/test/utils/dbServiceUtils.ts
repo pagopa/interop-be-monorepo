@@ -1,10 +1,8 @@
+// test/utils.ts
 import {
   DynamoDBClient,
-  CreateTableCommand,
-  DeleteTableCommand,
   GetItemCommand,
   GetItemInput,
-  ListTablesCommand,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
@@ -27,7 +25,7 @@ export const readSignatureReference = async (
     Key: {
       PK: { S: safeStorageId },
     },
-    TableName: config.dbTableName,
+    TableName: config.signatureReferencesTableName,
     ConsistentRead: true,
   };
 
@@ -52,49 +50,6 @@ export const readSignatureReference = async (
   } catch (error) {
     throw genericInternalError(
       `Error reading signature reference with ID '${safeStorageId}': ${error}`
-    );
-  }
-};
-
-export const buildDynamoDBTable = async (
-  dynamoDBClient: DynamoDBClient,
-  tableName: string
-): Promise<void> => {
-  try {
-    const listTablesCommand = new ListTablesCommand({});
-    const existingTables = await dynamoDBClient.send(listTablesCommand);
-
-    if (existingTables.TableNames?.includes(tableName)) {
-      await deleteDynamoDBTable(dynamoDBClient, tableName);
-    }
-
-    const createTableCommand = new CreateTableCommand({
-      TableName: tableName,
-      AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
-      KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
-      ProvisionedThroughput: {
-        ReadCapacityUnits: 1,
-        WriteCapacityUnits: 1,
-      },
-    });
-    await dynamoDBClient.send(createTableCommand);
-  } catch (error) {
-    throw genericInternalError(
-      `Error building DynamoDB table ${tableName}: ${error}`
-    );
-  }
-};
-
-export const deleteDynamoDBTable = async (
-  dynamoDBClient: DynamoDBClient,
-  tableName: string
-): Promise<void> => {
-  try {
-    const deleteTableCommand = new DeleteTableCommand({ TableName: tableName });
-    await dynamoDBClient.send(deleteTableCommand);
-  } catch (error) {
-    throw genericInternalError(
-      `Error deleting DynamoDB table ${tableName}: ${error}`
     );
   }
 };

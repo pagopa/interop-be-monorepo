@@ -15,7 +15,7 @@ import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { PurposeEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { processStoredFilesForSafeStorage } from "../utils/safeStorageProcessor.js";
+import { processStoredFilesForSafeStorage } from "../services/safeStorageArchivingService.js";
 export const handlePurposeMessageV2 = async (
   eventsWithTimestamp: Array<{ purposeV2: PurposeEventV2; timestamp: string }>,
   logger: Logger,
@@ -158,7 +158,7 @@ export const handlePurposeMessageV2 = async (
       config
     );
 
-    if (!storedFiles) {
+    if (storedFiles.length === 0) {
       throw genericInternalError(
         `S3 storing didn't return a valid key or content`
       );

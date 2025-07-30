@@ -19,9 +19,8 @@ export function dbServiceBuilder(dynamoDBClient: DynamoDBClient) {
       reference: SignatureReference
     ): Promise<void> => {
       const item: SignatureReference = reference;
-
       const input: PutItemInput = {
-        TableName: config.dbTableName,
+        TableName: config.signatureReferencesTableName,
         Item: {
           PK: { S: item.safeStorageId },
           safeStorageId: { S: item.safeStorageId },

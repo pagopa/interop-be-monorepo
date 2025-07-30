@@ -9,10 +9,12 @@ import {
   LoggerConfig,
   S3Config,
   KafkaBatchConsumerConfig,
+  EventsSignerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const EventsSignerConfig = CatalogTopicConfig.and(AgreementTopicConfig)
+export const EventSignerConfig = EventsSignerConfig.and(CatalogTopicConfig)
+  .and(AgreementTopicConfig)
   .and(AuthorizationTopicConfig)
   .and(PurposeTopicConfig)
   .and(DelegationTopicConfig)
@@ -20,16 +22,7 @@ export const EventsSignerConfig = CatalogTopicConfig.and(AgreementTopicConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(LoggerConfig)
-  .and(KafkaBatchConsumerConfig)
-  .and(
-    z
-      .object({
-        DB_TABLE_NAME: z.string(),
-      })
-      .transform((c) => ({
-        dbTableName: c.DB_TABLE_NAME,
-      }))
-  );
+  .and(KafkaBatchConsumerConfig);
 
 export const safeStorageApiConfigSchema = z
   .object({
@@ -51,9 +44,9 @@ export const safeStorageApiConfigSchema = z
 
 export type SafeStorageApiConfig = z.infer<typeof safeStorageApiConfigSchema>;
 
-export type EventsSignerConfig = z.infer<typeof EventsSignerConfig>;
+export type EventSignerConfig = z.infer<typeof EventSignerConfig>;
 
-export const config: EventsSignerConfig = EventsSignerConfig.parse(process.env);
+export const config: EventSignerConfig = EventSignerConfig.parse(process.env);
 
 export const baseConsumerConfig: KafkaConsumerConfig =
   KafkaConsumerConfig.parse(process.env);

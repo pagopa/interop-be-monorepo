@@ -16,6 +16,7 @@ import {
   S3Config,
   TokenGenerationReadModelDbConfig,
   InAppNotificationDBConfig,
+  EventsSignerConfig,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
 import type {} from "vitest";
@@ -45,6 +46,7 @@ import {
   EnhancedDPoPConfig,
   EnhancedTokenGenerationReadModelDbConfig,
   PecEmailManagerConfigTest,
+  EnhancedEventsSignerConfig,
 } from "./testConfig.js";
 
 declare module "vitest" {
@@ -60,6 +62,7 @@ declare module "vitest" {
     analyticsSQLDbConfig?: AnalyticsSQLDbConfig;
     dpopConfig?: EnhancedDPoPConfig;
     inAppNotificationDbConfig?: InAppNotificationDBConfig;
+    eventsSignerConfig?: EnhancedEventsSignerConfig;
   }
 }
 
@@ -87,6 +90,7 @@ export function setupTestContainersVitestGlobal() {
   const inAppNotificationDbConfig = InAppNotificationDBConfig.safeParse(
     process.env
   );
+  const eventsSignerConfig = EventsSignerConfig.safeParse(process.env);
 
   return async function ({
     provide,
@@ -245,6 +249,16 @@ export function setupTestContainersVitestGlobal() {
           startedInAppNotificationContainer.getMappedPort(
             TEST_IN_APP_NOTIFICATION_DB_PORT
           ),
+      });
+    }
+
+    if (eventsSignerConfig.success) {
+      startedDynamoDbContainer = await dynamoDBContainer().start();
+
+      provide("eventsSignerConfig", {
+        ...eventsSignerConfig.data,
+        safeStoragePort:
+          startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT),
       });
     }
 

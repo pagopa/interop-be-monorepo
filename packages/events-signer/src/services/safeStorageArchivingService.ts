@@ -3,10 +3,10 @@
 import { Logger } from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
 import { SafeStorageApiConfig } from "../config/config.js";
-import { SafeStorageService } from "../services/safeStorageService.js";
-import { DbServiceBuilder } from "../services/dbService.js";
 import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
-import { calculateSha256Base64 } from "./checksum.js";
+import { calculateSha256Base64 } from "../utils/checksum.js";
+import { SafeStorageService } from "./safeStorageService.js";
+import { DbServiceBuilder } from "./dbService.js";
 
 /**
  * Processes a list of stored file details by interacting with Safe Storage and saving references in DynamoDB.

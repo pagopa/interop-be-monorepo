@@ -10,7 +10,7 @@ import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { AuthorizationEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { processStoredFilesForSafeStorage } from "../utils/safeStorageProcessor.js";
+import { processStoredFilesForSafeStorage } from "../services/safeStorageArchivingService.js";
 
 export const handleAuthorizationMessageV2 = async (
   eventsWithTimestamp: Array<{
@@ -28,10 +28,9 @@ export const handleAuthorizationMessageV2 = async (
     match(authV2)
       .with({ type: "ClientKeyAdded" }, (event) => {
         if (!event.data.client?.id) {
-          logger.warn(
+          throw genericInternalError(
             `Skipping ClientKeyAdded event due to missing client ID.`
           );
-          return;
         }
 
         const clientId = event.data.client.id;
@@ -48,7 +47,9 @@ export const handleAuthorizationMessageV2 = async (
       })
       .with({ type: "ClientKeyDeleted" }, (event) => {
         if (!event.data.client?.id) {
-          throw new Error(`Client id cannot be missing on event ${event.type}`);
+          throw genericInternalError(
+            `Client id cannot be missing on event ${event.type}`
+          );
         }
 
         const clientId = event.data.client.id;
@@ -108,7 +109,7 @@ export const handleAuthorizationMessageV2 = async (
       config
     );
 
-    if (!storedFiles) {
+    if (storedFiles.length === 0) {
       throw genericInternalError(
         `S3 storing didn't return a valid key or content`
       );
