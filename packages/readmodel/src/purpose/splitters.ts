@@ -35,8 +35,6 @@ export const splitPurposeIntoObjectsSQL = (
     freeOfChargeReason,
     riskAnalysisForm,
     versions,
-    // TODO: add purposeTemplateId to purpose SQL
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     purposeTemplateId,
     ...rest
   }: Purpose,
@@ -60,6 +58,7 @@ export const splitPurposeIntoObjectsSQL = (
     updatedAt: dateToString(updatedAt),
     isFreeOfCharge,
     freeOfChargeReason: freeOfChargeReason || null,
+    purposeTemplateId: purposeTemplateId ?? null,
   };
 
   const splitPurposeRiskAnalysisSQL = splitRiskAnalysisFormIntoObjectsSQL(

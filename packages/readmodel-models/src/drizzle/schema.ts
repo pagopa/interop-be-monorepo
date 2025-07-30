@@ -764,6 +764,7 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
     updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }),
     isFreeOfCharge: boolean("is_free_of_charge").notNull(),
     freeOfChargeReason: varchar("free_of_charge_reason"),
+    purposeTemplateId: uuid("purpose_template_id"),
   },
   (table) => [
     unique("purpose_id_metadata_version_unique").on(
