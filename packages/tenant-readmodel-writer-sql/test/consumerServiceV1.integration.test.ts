@@ -13,7 +13,7 @@ import {
 } from "pagopa-interop-models";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { toTenantV1 } from "./converterV1.js";
-import { readModelService } from "./utils.js";
+import { tenantReadModelService, tenantWriterService } from "./utils.js";
 
 describe("Integration tests", async () => {
   describe("Events V1", async () => {
@@ -32,9 +32,9 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, tenantWriterService);
 
-      const retrievedTenant = await readModelService.getTenantById(
+      const retrievedTenant = await tenantReadModelService.getTenantById(
         mockTenant.id
       );
 
@@ -46,7 +46,7 @@ describe("Integration tests", async () => {
     });
 
     it("TenantDeleted", async () => {
-      await readModelService.upsertTenant(mockTenant, 1);
+      await tenantWriterService.upsertTenant(mockTenant, 1);
 
       const payload: TenantDeletedV1 = {
         tenantId: mockTenant.id,
@@ -60,16 +60,16 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, tenantWriterService);
 
-      const retrievedTenant = await readModelService.getTenantById(
+      const retrievedTenant = await tenantReadModelService.getTenantById(
         mockTenant.id
       );
       expect(retrievedTenant?.data).toBeUndefined();
     });
 
     it("TenantUpdated", async () => {
-      await readModelService.upsertTenant(mockTenant, 1);
+      await tenantWriterService.upsertTenant(mockTenant, 1);
 
       const updatedTenant: Tenant = {
         ...mockTenant,
@@ -87,9 +87,9 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, tenantWriterService);
 
-      const retrievedTenant = await readModelService.getTenantById(
+      const retrievedTenant = await tenantReadModelService.getTenantById(
         mockTenant.id
       );
 
@@ -104,7 +104,7 @@ describe("Integration tests", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
 
-      await readModelService.upsertTenant(mockTenant, 1);
+      await tenantWriterService.upsertTenant(mockTenant, 1);
 
       const selfcareId = generateId();
 
@@ -125,9 +125,9 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, tenantWriterService);
 
-      const retrievedTenant = await readModelService.getTenantById(
+      const retrievedTenant = await tenantReadModelService.getTenantById(
         mockTenant.id
       );
 
@@ -138,7 +138,7 @@ describe("Integration tests", async () => {
     });
 
     it("TenantMailAdded", async () => {
-      await readModelService.upsertTenant(mockTenant, 1);
+      await tenantWriterService.upsertTenant(mockTenant, 1);
 
       const mailId = generateId();
       const updatedTenant: Tenant = {
@@ -167,9 +167,9 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, tenantWriterService);
 
-      const retrievedTenant = await readModelService.getTenantById(
+      const retrievedTenant = await tenantReadModelService.getTenantById(
         mockTenant.id
       );
 
@@ -193,7 +193,7 @@ describe("Integration tests", async () => {
           },
         ],
       };
-      await readModelService.upsertTenant(tenantWithMail, 1);
+      await tenantWriterService.upsertTenant(tenantWithMail, 1);
 
       const updatedTenant: Tenant = {
         ...mockTenant,
@@ -212,9 +212,9 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, tenantWriterService);
 
-      const retrievedTenant = await readModelService.getTenantById(
+      const retrievedTenant = await tenantReadModelService.getTenantById(
         mockTenant.id
       );
 
