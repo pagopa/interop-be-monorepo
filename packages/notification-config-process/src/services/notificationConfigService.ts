@@ -18,7 +18,10 @@ import {
   NotificationConfig,
 } from "pagopa-interop-models";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
-import { NotificationConfigReadModelService } from "pagopa-interop-readmodel";
+import {
+  NotificationConfigReadModelService,
+  TenantReadModelService,
+} from "pagopa-interop-readmodel";
 import {
   toCreateEventTenantNotificationConfigCreated,
   toCreateEventTenantNotificationConfigDeleted,
@@ -108,7 +111,8 @@ const defaultNotificationConfigs = {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function notificationConfigServiceBuilder(
   dbInstance: DB,
-  readModelService: NotificationConfigReadModelService
+  readModelService: NotificationConfigReadModelService,
+  tenantReadModelService: TenantReadModelService
 ) {
   const repository = eventRepository(
     dbInstance,
@@ -246,6 +250,14 @@ export function notificationConfigServiceBuilder(
         throw tenantNotificationConfigAlreadyExists(tenantId);
       }
 
+      if (
+        (await tenantReadModelService.getTenantById(tenantId)) === undefined
+      ) {
+        logger.warn(
+          `Tenant ${tenantId} not found, creating default notification configuration anyway (assuming the readmodel is not yet updated with the new tenant)`
+        );
+      }
+
       const tenantNotificationConfig: TenantNotificationConfig = {
         id: generateId<TenantNotificationConfigId>(),
         tenantId,
@@ -312,6 +324,14 @@ export function notificationConfigServiceBuilder(
 
       if (existingConfig === undefined) {
         throw tenantNotificationConfigNotFound(tenantId);
+      }
+
+      if (
+        (await tenantReadModelService.getTenantById(tenantId)) !== undefined
+      ) {
+        logger.warn(
+          `Tenant ${tenantId} still exists, deleting notification configuration anyway (assuming the readmodel is not yet updated with the deletion)`
+        );
       }
 
       const event = toCreateEventTenantNotificationConfigDeleted(
