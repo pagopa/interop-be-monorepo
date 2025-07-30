@@ -36,12 +36,11 @@ import {
   toCreateEventAgreementUnsuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
-import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import {
-  createStamp,
-  suspendedByConsumerStamp,
-  suspendedByProducerStamp,
-} from "./agreementStampUtils.js";
+  createAgreementArchivedByUpgradeEvent,
+  getSuspensionStamps,
+} from "./agreementService.js";
+import { createStamp } from "./agreementStampUtils.js";
 import { ReadModelService } from "./readModelService.js";
 
 export function createActivationUpdateAgreementSeed({
@@ -56,6 +55,7 @@ export function createActivationUpdateAgreementSeed({
   suspendedByProducer,
   suspendedByPlatform,
   activeDelegations,
+  agreementOwnership,
 }: {
   isFirstActivation: boolean;
   newState: AgreementState;
@@ -68,8 +68,18 @@ export function createActivationUpdateAgreementSeed({
   suspendedByProducer: boolean | undefined;
   suspendedByPlatform: boolean | undefined;
   activeDelegations: ActiveDelegations;
+  agreementOwnership: Ownership;
 }): UpdateAgreementSeed {
   const stamp = createStamp(authData, activeDelegations);
+
+  const { suspensionByConsumer, suspensionByProducer } = getSuspensionStamps({
+    agreementOwnership,
+    agreement,
+    newAgreementState: agreementState.active,
+    authData,
+    stamp,
+    activeDelegations,
+  });
 
   return isFirstActivation
     ? {
@@ -95,20 +105,8 @@ export function createActivationUpdateAgreementSeed({
         suspendedByProducer,
         stamps: {
           ...agreement.stamps,
-          suspensionByConsumer: suspendedByConsumerStamp(
-            agreement,
-            authData.organizationId,
-            agreementState.active,
-            stamp,
-            activeDelegations.consumerDelegation?.delegateId
-          ),
-          suspensionByProducer: suspendedByProducerStamp(
-            agreement,
-            authData.organizationId,
-            agreementState.active,
-            stamp,
-            activeDelegations.producerDelegation?.delegateId
-          ),
+          suspensionByConsumer,
+          suspensionByProducer,
         },
         suspendedByPlatform,
         suspendedAt:

@@ -27,12 +27,8 @@ import {
   agreementStateByFlags,
   nextStateByAttributesFSM,
 } from "./agreementStateProcessor.js";
-import {
-  createStamp,
-  suspendedByConsumerStamp,
-  suspendedByProducerStamp,
-} from "./agreementStampUtils.js";
-import { getSuspensionFlags } from "./agreementService.js";
+import { createStamp } from "./agreementStampUtils.js";
+import { getSuspensionFlags, getSuspensionStamps } from "./agreementService.js";
 
 export function createSuspensionUpdatedAgreement({
   agreement,
@@ -77,46 +73,14 @@ export function createSuspensionUpdatedAgreement({
 
   const stamp = createStamp(authData, activeDelegations);
 
-  const { suspensionByConsumerStamp, suspensionByProducerStamp } = match(
-    agreementOwnership
-  )
-    .with(ownership.PRODUCER, () => ({
-      suspensionByProducerStamp: suspendedByProducerStamp(
-        agreement,
-        authData.organizationId,
-        agreementState.suspended,
-        stamp,
-        activeDelegations.producerDelegation?.delegateId
-      ),
-      suspensionByConsumerStamp: agreement.stamps.suspensionByConsumer,
-    }))
-    .with(ownership.CONSUMER, () => ({
-      suspensionByProducerStamp: agreement.stamps.suspensionByProducer,
-      suspensionByConsumerStamp: suspendedByConsumerStamp(
-        agreement,
-        authData.organizationId,
-        agreementState.suspended,
-        stamp,
-        activeDelegations.consumerDelegation?.delegateId
-      ),
-    }))
-    .with(ownership.SELF_CONSUMER, () => ({
-      suspensionByConsumerStamp: suspendedByConsumerStamp(
-        agreement,
-        authData.organizationId,
-        agreementState.suspended,
-        stamp,
-        activeDelegations.consumerDelegation?.delegateId
-      ),
-      suspensionByProducerStamp: suspendedByProducerStamp(
-        agreement,
-        authData.organizationId,
-        agreementState.suspended,
-        stamp,
-        activeDelegations.producerDelegation?.delegateId
-      ),
-    }))
-    .exhaustive();
+  const { suspensionByConsumer, suspensionByProducer } = getSuspensionStamps({
+    agreementOwnership,
+    agreement,
+    newAgreementState: agreementState.suspended,
+    authData,
+    stamp,
+    activeDelegations,
+  });
 
   const updateSeed: UpdateAgreementSeed = {
     state: newState,
@@ -124,8 +88,8 @@ export function createSuspensionUpdatedAgreement({
     suspendedByProducer,
     stamps: {
       ...agreement.stamps,
-      suspensionByConsumer: suspensionByConsumerStamp,
-      suspensionByProducer: suspensionByProducerStamp,
+      suspensionByConsumer,
+      suspensionByProducer,
     },
     suspendedAt: agreement.suspendedAt ?? new Date(),
   };
