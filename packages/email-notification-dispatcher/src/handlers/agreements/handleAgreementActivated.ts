@@ -19,8 +19,8 @@ import {
   retrieveAgreementEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../services/utils.js";
-import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
+} from "../../services/utils.js";
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export type AgreementActivatedData = {
   agreementV2Msg?: AgreementV2;
