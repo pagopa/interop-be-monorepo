@@ -78,6 +78,17 @@ export type PurposeProcessServerConfig = z.infer<
   typeof PurposeProcessServerConfig
 >;
 
+export const PurposeTemplateProcessServerConfig = z
+  .object({
+    PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    purposeTemplateProcessUrl: c.PURPOSE_TEMPLATE_PROCESS_URL,
+  }));
+export type PurposeTemplateProcessServerConfig = z.infer<
+  typeof PurposeTemplateProcessServerConfig
+>;
+
 export const AuthorizationProcessServerConfig = z
   .object({
     AUTHORIZATION_PROCESS_URL: APIEndpoint,
@@ -243,6 +254,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(SelfCareClientConfig)
   .and(PurposeProcessServerConfig)
+  .and(PurposeTemplateProcessServerConfig)
   .and(RedisRateLimiterConfig)
   .and(AuthorizationProcessServerConfig)
   .and(DelegationProcessServerConfig)
