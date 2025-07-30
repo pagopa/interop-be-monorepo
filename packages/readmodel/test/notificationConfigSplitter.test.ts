@@ -47,7 +47,28 @@ describe("Notification config splitters", () => {
       };
 
       const expectedEnabledNotificationsSQL: TenantEnabledNotificationSQL[] = (
-        ["newEServiceVersionPublished"] as const
+        [
+          "agreementSuspendedUnsuspendedToProducer",
+          "agreementManagementToProducer",
+          "clientAddedRemovedToProducer",
+          "purposeStatusChangedToProducer",
+          "templateStatusChangedToProducer",
+          "agreementSuspendedUnsuspendedToConsumer",
+          "eserviceStatusChangedToConsumer",
+          "agreementActivatedRejectedToConsumer",
+          "purposeVersionOverQuotaToConsumer",
+          "purposeActivatedRejectedToConsumer",
+          "purposeSuspendedUnsuspendedToConsumer",
+          "newEserviceTemplateVersionToInstatiator",
+          "eserviceTemplateNameChangedToInstatiator",
+          "eserviceTemplateStatusChangedToInstantiator",
+          "delegationApprovedRejectedToDelegator",
+          "eserviceNewVersionSubmittedToDelegator",
+          "eserviceNewVersionApprovedRejectedToDelegate",
+          "delegationSubmittedRevokedToDelegate",
+          "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+          "clientKeyStatusChangedToClientUsers",
+        ] as const
       )
         .filter(
           (notificationType) =>
@@ -94,7 +115,30 @@ describe("Notification config splitters", () => {
       };
 
       const expectedEnabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[] =
-        (["newEServiceVersionPublished"] as const)
+        (
+          [
+            "agreementSuspendedUnsuspendedToProducer",
+            "agreementManagementToProducer",
+            "clientAddedRemovedToProducer",
+            "purposeStatusChangedToProducer",
+            "templateStatusChangedToProducer",
+            "agreementSuspendedUnsuspendedToConsumer",
+            "eserviceStatusChangedToConsumer",
+            "agreementActivatedRejectedToConsumer",
+            "purposeVersionOverQuotaToConsumer",
+            "purposeActivatedRejectedToConsumer",
+            "purposeSuspendedUnsuspendedToConsumer",
+            "newEserviceTemplateVersionToInstatiator",
+            "eserviceTemplateNameChangedToInstatiator",
+            "eserviceTemplateStatusChangedToInstantiator",
+            "delegationApprovedRejectedToDelegator",
+            "eserviceNewVersionSubmittedToDelegator",
+            "eserviceNewVersionApprovedRejectedToDelegate",
+            "delegationSubmittedRevokedToDelegate",
+            "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+            "clientKeyStatusChangedToClientUsers",
+          ] as const
+        )
           .filter(
             (notificationType) =>
               userNotificationConfig.inAppConfig[notificationType]
@@ -105,7 +149,30 @@ describe("Notification config splitters", () => {
             notificationType,
           }));
       const expectedEnabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[] =
-        (["newEServiceVersionPublished"] as const)
+        (
+          [
+            "agreementSuspendedUnsuspendedToProducer",
+            "agreementManagementToProducer",
+            "clientAddedRemovedToProducer",
+            "purposeStatusChangedToProducer",
+            "templateStatusChangedToProducer",
+            "agreementSuspendedUnsuspendedToConsumer",
+            "eserviceStatusChangedToConsumer",
+            "agreementActivatedRejectedToConsumer",
+            "purposeVersionOverQuotaToConsumer",
+            "purposeActivatedRejectedToConsumer",
+            "purposeSuspendedUnsuspendedToConsumer",
+            "newEserviceTemplateVersionToInstatiator",
+            "eserviceTemplateNameChangedToInstatiator",
+            "eserviceTemplateStatusChangedToInstantiator",
+            "delegationApprovedRejectedToDelegator",
+            "eserviceNewVersionSubmittedToDelegator",
+            "eserviceNewVersionApprovedRejectedToDelegate",
+            "delegationSubmittedRevokedToDelegate",
+            "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+            "clientKeyStatusChangedToClientUsers",
+          ] as const
+        )
           .filter(
             (notificationType) =>
               userNotificationConfig.emailConfig[notificationType]

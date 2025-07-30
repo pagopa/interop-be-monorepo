@@ -3,7 +3,30 @@ syntax = "proto3";
 package notification.config.v2;
 
 message NotificationConfigV2 {
-  bool newEServiceVersionPublished = 1;
+  bool agreementSuspendedUnsuspendedToProducer = 1;
+  bool agreementManagementToProducer = 2;
+  bool clientAddedRemovedToProducer = 3;
+  bool purposeStatusChangedToProducer = 4;
+  bool templateStatusChangedToProducer = 5;
+
+  bool agreementSuspendedUnsuspendedToConsumer = 6;
+  bool eserviceStatusChangedToConsumer = 7;
+  bool agreementActivatedRejectedToConsumer = 8;
+  bool purposeVersionOverQuotaToConsumer = 9;
+  bool purposeActivatedRejectedToConsumer = 10;
+  bool purposeSuspendedUnsuspendedToConsumer = 11;
+  bool newEserviceTemplateVersionToInstatiator = 12;
+  bool eserviceTemplateNameChangedToInstatiator = 13;
+  bool eserviceTemplateStatusChangedToInstantiator = 14;
+
+  bool delegationApprovedRejectedToDelegator = 15;
+  bool eserviceNewVersionSubmittedToDelegator = 16;
+  bool eserviceNewVersionApprovedRejectedToDelegate = 17;
+  bool delegationSubmittedRevokedToDelegate = 18;
+
+  bool certifiedVerifiedAttributeAssignedRevokedToAssignee = 19;
+
+  bool clientKeyStatusChangedToClientUsers = 20;
 }
 
 message TenantNotificationConfigV2 {

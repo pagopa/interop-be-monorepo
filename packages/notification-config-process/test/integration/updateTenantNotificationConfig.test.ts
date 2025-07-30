@@ -29,8 +29,53 @@ describe("updateTenantNotificationConfig", () => {
   };
   const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigUpdateSeed =
     {
-      newEServiceVersionPublished:
-        !tenantNotificationConfig.config.newEServiceVersionPublished,
+      agreementSuspendedUnsuspendedToProducer:
+        !tenantNotificationConfig.config
+          .agreementSuspendedUnsuspendedToProducer,
+      agreementManagementToProducer:
+        !tenantNotificationConfig.config.agreementManagementToProducer,
+      clientAddedRemovedToProducer:
+        !tenantNotificationConfig.config.clientAddedRemovedToProducer,
+      purposeStatusChangedToProducer:
+        !tenantNotificationConfig.config.purposeStatusChangedToProducer,
+      templateStatusChangedToProducer:
+        !tenantNotificationConfig.config.templateStatusChangedToProducer,
+      agreementSuspendedUnsuspendedToConsumer:
+        !tenantNotificationConfig.config
+          .agreementSuspendedUnsuspendedToConsumer,
+      eserviceStatusChangedToConsumer:
+        !tenantNotificationConfig.config.eserviceStatusChangedToConsumer,
+      agreementActivatedRejectedToConsumer:
+        !tenantNotificationConfig.config.agreementActivatedRejectedToConsumer,
+      purposeVersionOverQuotaToConsumer:
+        !tenantNotificationConfig.config.purposeVersionOverQuotaToConsumer,
+      purposeActivatedRejectedToConsumer:
+        !tenantNotificationConfig.config.purposeActivatedRejectedToConsumer,
+      purposeSuspendedUnsuspendedToConsumer:
+        !tenantNotificationConfig.config.purposeSuspendedUnsuspendedToConsumer,
+      newEserviceTemplateVersionToInstatiator:
+        !tenantNotificationConfig.config
+          .newEserviceTemplateVersionToInstatiator,
+      eserviceTemplateNameChangedToInstatiator:
+        !tenantNotificationConfig.config
+          .eserviceTemplateNameChangedToInstatiator,
+      eserviceTemplateStatusChangedToInstantiator:
+        !tenantNotificationConfig.config
+          .eserviceTemplateStatusChangedToInstantiator,
+      delegationApprovedRejectedToDelegator:
+        !tenantNotificationConfig.config.delegationApprovedRejectedToDelegator,
+      eserviceNewVersionSubmittedToDelegator:
+        !tenantNotificationConfig.config.eserviceNewVersionSubmittedToDelegator,
+      eserviceNewVersionApprovedRejectedToDelegate:
+        !tenantNotificationConfig.config
+          .eserviceNewVersionApprovedRejectedToDelegate,
+      delegationSubmittedRevokedToDelegate:
+        !tenantNotificationConfig.config.delegationSubmittedRevokedToDelegate,
+      certifiedVerifiedAttributeAssignedRevokedToAssignee:
+        !tenantNotificationConfig.config
+          .certifiedVerifiedAttributeAssignedRevokedToAssignee,
+      clientKeyStatusChangedToClientUsers:
+        !tenantNotificationConfig.config.clientKeyStatusChangedToClientUsers,
     };
 
   beforeAll(async () => {

@@ -113,7 +113,9 @@ describe("handleNewEServiceVersionPublished", async () => {
       const expectedNotifications = isNotified ? users.length : 0;
       expect(notifications).toHaveLength(expectedNotifications);
       if (isNotified) {
-        const body = inAppTemplates.newEServiceVersionPublished(eservice.name);
+        const body = inAppTemplates.eserviceStatusChangedToConsumer(
+          eservice.name
+        );
         const expectedNotifications = users.map((user) => ({
           id: expect.any(String),
           createdAt: expect.any(Date),

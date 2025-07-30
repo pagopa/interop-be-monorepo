@@ -456,9 +456,66 @@ components:
       type: object
       additionalProperties: false
       required:
-        - newEServiceVersionPublished
+        - agreementSuspendedUnsuspendedToProducer
+        - agreementManagementToProducer
+        - clientAddedRemovedToProducer
+        - purposeStatusChangedToProducer
+        - templateStatusChangedToProducer
+        - agreementSuspendedUnsuspendedToConsumer
+        - eserviceStatusChangedToConsumer
+        - agreementActivatedRejectedToConsumer
+        - purposeVersionOverQuotaToConsumer
+        - purposeActivatedRejectedToConsumer
+        - purposeSuspendedUnsuspendedToConsumer
+        - newEserviceTemplateVersionToInstatiator
+        - eserviceTemplateNameChangedToInstatiator
+        - eserviceTemplateStatusChangedToInstantiator
+        - delegationApprovedRejectedToDelegator
+        - eserviceNewVersionSubmittedToDelegator
+        - eserviceNewVersionApprovedRejectedToDelegate
+        - delegationSubmittedRevokedToDelegate
+        - certifiedVerifiedAttributeAssignedRevokedToAssignee
+        - clientKeyStatusChangedToClientUsers
       properties:
-        newEServiceVersionPublished:
+        agreementSuspendedUnsuspendedToProducer:
+          type: boolean
+        agreementManagementToProducer:
+          type: boolean
+        clientAddedRemovedToProducer:
+          type: boolean
+        purposeStatusChangedToProducer:
+          type: boolean
+        templateStatusChangedToProducer:
+          type: boolean
+        agreementSuspendedUnsuspendedToConsumer:
+          type: boolean
+        eserviceStatusChangedToConsumer:
+          type: boolean
+        agreementActivatedRejectedToConsumer:
+          type: boolean
+        purposeVersionOverQuotaToConsumer:
+          type: boolean
+        purposeActivatedRejectedToConsumer:
+          type: boolean
+        purposeSuspendedUnsuspendedToConsumer:
+          type: boolean
+        newEserviceTemplateVersionToInstatiator:
+          type: boolean
+        eserviceTemplateNameChangedToInstatiator:
+          type: boolean
+        eserviceTemplateStatusChangedToInstantiator:
+          type: boolean
+        delegationApprovedRejectedToDelegator:
+          type: boolean
+        eserviceNewVersionSubmittedToDelegator:
+          type: boolean
+        eserviceNewVersionApprovedRejectedToDelegate:
+          type: boolean
+        delegationSubmittedRevokedToDelegate:
+          type: boolean
+        certifiedVerifiedAttributeAssignedRevokedToAssignee:
+          type: boolean
+        clientKeyStatusChangedToClientUsers:
           type: boolean
     TenantNotificationConfigSeed:
       type: object
