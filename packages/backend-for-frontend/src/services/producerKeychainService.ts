@@ -150,18 +150,27 @@ export function producerKeychainServiceBuilder(
       });
     },
     async getProducerKeys(
-      producerKeychainId: string,
-      userIds: string[],
+      {
+        producerKeychainId,
+        userIds,
+        limit,
+        offset,
+      }: {
+        producerKeychainId: string;
+        userIds: string[];
+        limit: number;
+        offset: number;
+      },
       { logger, headers, authData, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.PublicKeys> {
       logger.info(`Retrieve keys of producer keychain ${producerKeychainId}`);
 
       const selfcareId = authData.selfcareId;
 
-      const [{ keys }, keychain] = await Promise.all([
+      const [{ keys, totalCount }, keychain] = await Promise.all([
         authorizationClient.producerKeychain.getProducerKeys({
           params: { producerKeychainId },
-          queries: { userIds },
+          queries: { userIds, limit, offset },
           headers,
         }),
         authorizationClient.producerKeychain.getProducerKeychain({
@@ -184,7 +193,14 @@ export function producerKeychainServiceBuilder(
         )
       );
 
-      return { keys: decoratedKeys };
+      return {
+        keys: decoratedKeys,
+        pagination: {
+          offset,
+          limit,
+          totalCount,
+        },
+      };
     },
     async getProducerKeyById(
       producerKeychainId: string,

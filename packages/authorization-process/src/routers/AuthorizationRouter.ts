@@ -879,6 +879,7 @@ const authorizationRouter = (
     })
     .get("/producerKeychains/:producerKeychainId/keys", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
+      const { userIds, offset, limit } = req.query;
 
       try {
         validateAuthorization(ctx, [
@@ -891,15 +892,17 @@ const authorizationRouter = (
         const keys = await authorizationService.getProducerKeychainKeys(
           {
             producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
-            userIds: req.query.userIds.map(unsafeBrandId<UserId>),
+            userIds: userIds.map(unsafeBrandId<UserId>),
+            offset,
+            limit,
           },
           ctx
         );
 
         return res.status(200).send(
           authorizationApi.Keys.parse({
-            keys: keys.map(keyToApiKey),
-            totalCount: keys.length,
+            keys: keys.results.map((key) => keyToApiKey(key)),
+            totalCount: keys.totalCount,
           })
         );
       } catch (error) {
