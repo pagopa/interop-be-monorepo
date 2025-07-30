@@ -5,32 +5,44 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { handleDelegationApprovedRejectedToDelegator } from "./handleDelegationApprovedRejectedToDelegator.js";
+import { handleDelegationSubmittedRevokedToDelegate } from "./handleDelegationSubmittedRevokedToDelegate.js";
 
 export async function handleDelegationEvent(
   decodedMessage: DelegationEventEnvelopeV2,
   logger: Logger,
-  _readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
-      {
-        type: P.union(
-          "ProducerDelegationSubmitted",
-          "ProducerDelegationApproved",
-          "ProducerDelegationRejected",
-          "ProducerDelegationRevoked",
-          "ConsumerDelegationSubmitted",
-          "ConsumerDelegationApproved",
-          "ConsumerDelegationRejected",
-          "ConsumerDelegationRevoked"
-        ),
-      },
-      () => {
-        logger.info(
-          `No need to send an in-app notification for ${decodedMessage.type} message`
-        );
-        return [];
-      }
+      P.union(
+        { type: "ProducerDelegationSubmitted" },
+        { type: "ConsumerDelegationSubmitted" },
+        { type: "ProducerDelegationRevoked" },
+        { type: "ConsumerDelegationRevoked" }
+      ),
+      ({ data: { delegation }, type }) =>
+        handleDelegationSubmittedRevokedToDelegate(
+          delegation,
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
+      P.union(
+        { type: "ProducerDelegationApproved" },
+        { type: "ConsumerDelegationApproved" },
+        { type: "ProducerDelegationRejected" },
+        { type: "ConsumerDelegationRejected" }
+      ),
+      ({ data: { delegation }, type }) =>
+        handleDelegationApprovedRejectedToDelegator(
+          delegation,
+          logger,
+          readModelService,
+          type
+        )
     )
     .exhaustive();
 }
