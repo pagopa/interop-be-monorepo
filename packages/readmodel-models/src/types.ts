@@ -303,6 +303,6 @@ export type PurposeTemplateItemsSQL = {
   eserviceDescriptorVersionsSQL: PurposeTemplateEServiceDescriptorVersionSQL[];
   riskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSQL | undefined;
   riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
-  riskAnalysisTemplateAnswerAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
-  riskAnalysisTemplateAnswerAnnotationDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+  riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
 };
