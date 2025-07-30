@@ -302,7 +302,7 @@ const eservicesRouter = (
         return res.status(200).send(
           catalogApi.EServiceConsumers.parse({
             results: consumers.results.map((c) => ({
-              descriptorVersion: c.descriptorVersion,
+              descriptorVersion: parseInt(c.descriptorVersion, 10),
               descriptorState: descriptorStateToApiEServiceDescriptorState(
                 c.descriptorState
               ),
@@ -362,6 +362,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
+          // The same check is done in the backend-for-frontend, if you change this check, change it there too
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
           const updatedEService = await catalogService.uploadDocument(

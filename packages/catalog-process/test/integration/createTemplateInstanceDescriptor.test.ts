@@ -60,7 +60,7 @@ describe("create descriptor", async () => {
 
     const prevDescriptor: Descriptor = {
       ...getMockDescriptor(),
-      version: 1,
+      version: "1",
       state: descriptorState.published,
       interface: getMockDocument(),
       templateVersionRef: {
@@ -119,7 +119,7 @@ describe("create descriptor", async () => {
           audience: descriptorSeed.audience,
           dailyCallsPerConsumer: descriptorSeed.dailyCallsPerConsumer,
           dailyCallsTotal: descriptorSeed.dailyCallsTotal,
-          version: 2,
+          version: "2",
           serverUrls: [],
           interface: undefined,
         },
@@ -152,7 +152,7 @@ describe("create descriptor", async () => {
 
     const prevDescriptor: Descriptor = {
       ...getMockDescriptor(),
-      version: 1,
+      version: "1",
       state: descriptorState.published,
       interface: getMockDocument(),
       templateVersionRef: {
@@ -218,7 +218,7 @@ describe("create descriptor", async () => {
           audience: descriptorSeed.audience,
           dailyCallsPerConsumer: descriptorSeed.dailyCallsPerConsumer,
           dailyCallsTotal: descriptorSeed.dailyCallsTotal,
-          version: 2,
+          version: "2",
           serverUrls: [],
           interface: undefined,
         },
@@ -253,7 +253,7 @@ describe("create descriptor", async () => {
 
       const prevDescriptor: Descriptor = {
         ...getMockDescriptor(),
-        version: 1,
+        version: "1",
         state,
         interface: getMockDocument(),
         templateVersionRef: {
@@ -298,7 +298,7 @@ describe("create descriptor", async () => {
 
     const prevDescriptor: Descriptor = {
       ...getMockDescriptor(),
-      version: 1,
+      version: "1",
       state: descriptorState.published,
       interface: getMockDocument(),
       templateVersionRef: {
@@ -341,7 +341,7 @@ describe("create descriptor", async () => {
 
     const prevDescriptor: Descriptor = {
       ...getMockDescriptor(),
-      version: 1,
+      version: "1",
       state: descriptorState.published,
       interface: getMockDocument(),
       templateVersionRef: {
@@ -378,7 +378,7 @@ describe("create descriptor", async () => {
 
     const prevDescriptor: Descriptor = {
       ...getMockDescriptor(),
-      version: 1,
+      version: "1",
       state: descriptorState.published,
       interface: getMockDocument(),
       templateVersionRef: {
@@ -422,7 +422,7 @@ describe("create descriptor", async () => {
 
     const prevDescriptor: Descriptor = {
       ...getMockDescriptor(),
-      version: 1,
+      version: "1",
       state: descriptorState.published,
       interface: getMockDocument(),
       templateVersionRef: {

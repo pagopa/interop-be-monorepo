@@ -826,7 +826,7 @@ describe("integration tests V2 events", async () => {
           state: descriptorState.archived,
           audience: ["pagopa.it/test1", "pagopa.it/test2"],
           interface: getMockDocument(),
-          version: 1,
+          version: "1",
           publishedAt: new Date(),
           archivedAt: new Date(),
         };
@@ -836,7 +836,7 @@ describe("integration tests V2 events", async () => {
           state: descriptorState.published,
           audience: ["pagopa.it/test1", "pagopa.it/test2"],
           interface: getMockDocument(),
-          version: 2,
+          version: "2",
         };
 
         const eservice: EService = {

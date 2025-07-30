@@ -57,7 +57,7 @@ import {
 import { format } from "date-fns";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import { catalogReadModelService, readModelService } from "./utils.js";
+import { catalogReadModelService, catalogWriterService } from "./utils.js";
 
 describe("database test", async () => {
   describe("Events V1", async () => {
@@ -76,7 +76,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, catalogWriterService);
 
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
@@ -89,7 +89,7 @@ describe("database test", async () => {
     });
 
     it("ClonedEServiceAdded", async () => {
-      await readModelService.upsertEService(mockEService, 1);
+      await catalogWriterService.upsertEService(mockEService, 1);
 
       const date = new Date();
       const clonedEService: EService = {
@@ -114,7 +114,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, catalogWriterService);
 
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         clonedEService.id
@@ -126,7 +126,7 @@ describe("database test", async () => {
     });
 
     it("EServiceUpdated", async () => {
-      await catalogReadModelService.upsertEService(mockEService, 1);
+      await catalogWriterService.upsertEService(mockEService, 1);
       const updatedEService: EService = {
         ...mockEService,
         description: "updated description",
@@ -143,7 +143,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, catalogWriterService);
 
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
@@ -156,7 +156,7 @@ describe("database test", async () => {
     });
 
     it("EServiceRiskAnalysisAdded", async () => {
-      await catalogReadModelService.upsertEService(mockEService, 1);
+      await catalogWriterService.upsertEService(mockEService, 1);
       const mockRiskAnalysis = getMockValidRiskAnalysis("PA");
       const updatedEService: EService = {
         ...mockEService,
@@ -175,7 +175,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, catalogWriterService);
 
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
@@ -210,7 +210,7 @@ describe("database test", async () => {
         attributes,
         descriptors: [descriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
       const expectedDescriptor = {
         ...descriptor,
         attributes,
@@ -232,7 +232,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, catalogWriterService);
 
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
@@ -251,7 +251,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -270,7 +270,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, catalogWriterService);
 
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
@@ -293,7 +293,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedDocument: Document = {
         ...document,
@@ -319,7 +319,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, catalogWriterService);
 
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
@@ -330,7 +330,7 @@ describe("database test", async () => {
     });
 
     it("EServiceDeleted", async () => {
-      await catalogReadModelService.upsertEService(mockEService, 1);
+      await catalogWriterService.upsertEService(mockEService, 1);
 
       const payload: EServiceDeletedV1 = {
         eserviceId: mockEService.id,
@@ -344,7 +344,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, catalogWriterService);
 
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
@@ -365,7 +365,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await catalogReadModelService.upsertEService(eservice, 1);
+        await catalogWriterService.upsertEService(eservice, 1);
 
         const updatedServerUrls = ["updated.pagopa.it"];
         const updatedEService: EService = {
@@ -394,7 +394,7 @@ describe("database test", async () => {
           data: payload,
           log_date: new Date(),
         };
-        await handleMessageV1(message, readModelService);
+        await handleMessageV1(message, catalogWriterService);
 
         const retrievedEservice = await catalogReadModelService.getEServiceById(
           mockEService.id
@@ -415,7 +415,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await catalogReadModelService.upsertEService(eservice, 1);
+        await catalogWriterService.upsertEService(eservice, 1);
 
         const updatedEService: EService = {
           ...eservice,
@@ -437,7 +437,7 @@ describe("database test", async () => {
           data: payload,
           log_date: new Date(),
         };
-        await handleMessageV1(message, readModelService);
+        await handleMessageV1(message, catalogWriterService);
 
         const retrievedEservice = await catalogReadModelService.getEServiceById(
           mockEService.id
@@ -460,7 +460,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await catalogReadModelService.upsertEService(eservice, 1);
+        await catalogWriterService.upsertEService(eservice, 1);
 
         const updatedEService: EService = {
           ...eservice,
@@ -483,7 +483,7 @@ describe("database test", async () => {
           data: payload,
           log_date: new Date(),
         };
-        await handleMessageV1(message, readModelService);
+        await handleMessageV1(message, catalogWriterService);
 
         const retrievedEservice = await catalogReadModelService.getEServiceById(
           mockEService.id
@@ -504,7 +504,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await catalogReadModelService.upsertEService(eservice, 1);
+        await catalogWriterService.upsertEService(eservice, 1);
 
         const updatedEService: EService = {
           ...eservice,
@@ -525,7 +525,7 @@ describe("database test", async () => {
           data: payload,
           log_date: new Date(),
         };
-        await handleMessageV1(message, readModelService);
+        await handleMessageV1(message, catalogWriterService);
 
         const retrievedEservice = await catalogReadModelService.getEServiceById(
           mockEService.id
@@ -545,7 +545,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -564,7 +564,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, catalogWriterService);
 
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
@@ -584,7 +584,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const publishedDescriptor: Descriptor = {
         ...draftDescriptor,
@@ -608,7 +608,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, catalogWriterService);
 
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
@@ -625,7 +625,7 @@ describe("database test", async () => {
         riskAnalysis: [riskAnalysis],
       };
 
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...mockEService,
@@ -644,7 +644,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, catalogWriterService);
 
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
@@ -660,7 +660,7 @@ describe("database test", async () => {
   describe("Events V2", async () => {
     const mockEService = getMockEService();
     it("EServiceDeleted", async () => {
-      await catalogReadModelService.upsertEService(mockEService, 1);
+      await catalogWriterService.upsertEService(mockEService, 1);
 
       const payload: EServiceDeletedV2 = {
         eserviceId: mockEService.id,
@@ -674,7 +674,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -695,7 +695,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -707,7 +707,7 @@ describe("database test", async () => {
     });
 
     it("DraftEServiceUpdated", async () => {
-      await catalogReadModelService.upsertEService(mockEService, 1);
+      await catalogWriterService.upsertEService(mockEService, 1);
       const updatedEService: EService = {
         ...mockEService,
         description: "updated description",
@@ -724,7 +724,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -747,7 +747,7 @@ describe("database test", async () => {
         descriptors: [sourceDescriptor],
       };
 
-      await catalogReadModelService.upsertEService(sourceEService, 1);
+      await catalogWriterService.upsertEService(sourceEService, 1);
 
       const date = new Date();
       const clonedEService: EService = {
@@ -787,7 +787,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         clonedEService.id
       );
@@ -805,7 +805,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -824,7 +824,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -842,7 +842,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -861,7 +861,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -882,7 +882,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedDraftDescriptor: Descriptor = {
         ...draftDescriptor,
@@ -905,7 +905,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -925,7 +925,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [publishedDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedPublishedDescriptor: Descriptor = {
         ...publishedDescriptor,
@@ -949,7 +949,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -970,7 +970,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [suspendedDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const publishedDescriptor: Descriptor = {
         ...suspendedDescriptor,
@@ -995,7 +995,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1015,7 +1015,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [publishedDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const archivedDescriptor: Descriptor = {
         ...publishedDescriptor,
@@ -1039,7 +1039,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1058,7 +1058,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const publishedDescriptor: Descriptor = {
         ...draftDescriptor,
@@ -1082,7 +1082,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1102,7 +1102,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [publishedDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const suspendedDescriptor: Descriptor = {
         ...publishedDescriptor,
@@ -1126,7 +1126,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1146,7 +1146,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
       const updatedEService: EService = {
         ...eservice,
         descriptors: [{ ...draftDescriptor, interface: descriptorInterface }],
@@ -1165,7 +1165,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1185,7 +1185,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -1205,7 +1205,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1225,7 +1225,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedInterface: Document = {
         ...descriptorInterface,
@@ -1249,7 +1249,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1269,7 +1269,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedDocument: Document = {
         ...document,
@@ -1293,7 +1293,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1313,7 +1313,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -1336,7 +1336,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1356,7 +1356,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -1377,7 +1377,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1387,7 +1387,7 @@ describe("database test", async () => {
     });
 
     it("EServiceRiskAnalysisAdded", async () => {
-      await catalogReadModelService.upsertEService(mockEService, 1);
+      await catalogWriterService.upsertEService(mockEService, 1);
       const mockRiskAnalysis = getMockValidRiskAnalysis("PA");
       const updatedEService: EService = {
         ...mockEService,
@@ -1406,7 +1406,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1423,7 +1423,7 @@ describe("database test", async () => {
         ...mockEService,
         riskAnalysis: [mockRiskAnalysis],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedRiskAnalysis: RiskAnalysis = {
         ...mockRiskAnalysis,
@@ -1455,7 +1455,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1473,7 +1473,7 @@ describe("database test", async () => {
         riskAnalysis: [riskAnalysis],
       };
 
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...mockEService,
@@ -1492,7 +1492,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1515,7 +1515,7 @@ describe("database test", async () => {
         name: "previousName",
         descriptors: [publishedDescriptor],
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
       const updatedEService: EService = {
         ...eservice,
         name: "newName",
@@ -1532,7 +1532,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1551,7 +1551,7 @@ describe("database test", async () => {
         descriptors: [publishedDescriptor],
         isSignalHubEnabled: true,
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
       const updatedEService: EService = {
         ...eservice,
         isSignalHubEnabled: true,
@@ -1568,7 +1568,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1587,7 +1587,7 @@ describe("database test", async () => {
         descriptors: [publishedDescriptor],
         isSignalHubEnabled: false,
       };
-      await catalogReadModelService.upsertEService(eservice, 1);
+      await catalogWriterService.upsertEService(eservice, 1);
       const updatedEService: EService = {
         ...eservice,
         isSignalHubEnabled: false,
@@ -1604,7 +1604,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, catalogWriterService);
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
@@ -1628,7 +1628,7 @@ export const getMockEService = (): EService => ({
 
 export const getMockDescriptor = (): Descriptor => ({
   id: generateId(),
-  version: 1,
+  version: "1",
   docs: [],
   state: descriptorState.draft,
   audience: [],
