@@ -288,7 +288,6 @@ export type TenantNotificationConfigItemsSQL = {
 export type UserNotificationConfigSQL = InferSelectModel<
   typeof userNotificationConfigInReadmodelNotificationConfig
 >;
-
 export type UserEnabledInAppNotificationSQL = InferSelectModel<
   typeof userEnabledInAppNotificationInReadmodelNotificationConfig
 >;
