@@ -22,7 +22,7 @@ import {
   agreementNotFound,
   agreementNotInExpectedState,
   descriptorNotInExpectedState,
-  missingDelegationId,
+  tenantIsNotTheDelegate,
   notLatestEServiceDescriptor,
   tenantIsNotTheDelegateProducer,
   tenantIsNotTheProducer,
@@ -109,8 +109,8 @@ describe("API POST /agreements/{agreementId}/activate test", () => {
       expectedStatus: 409,
     },
     {
-      error: missingDelegationId(generateId()),
-      expectedStatus: 400,
+      error: tenantIsNotTheDelegate(generateId()),
+      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",

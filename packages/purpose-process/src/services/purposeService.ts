@@ -8,6 +8,7 @@ import {
   Logger,
   M2MAdminAuthData,
   M2MAuthData,
+  Ownership,
   PDFGenerator,
   RiskAnalysisFormRules,
   UIAuthData,
@@ -17,6 +18,7 @@ import {
   getFormRulesByVersion,
   getIpaCode,
   getLatestVersionFormRules,
+  ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -97,11 +99,7 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
-import {
-  ownership,
-  Ownership,
-  PurposeDocumentEServiceInfo,
-} from "../model/domain/models.js";
+import { PurposeDocumentEServiceInfo } from "../model/domain/models.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertEserviceMode,
@@ -1157,9 +1155,25 @@ export function purposeServiceBuilder(
               correlationId
             )
         )
-        .otherwise(() => {
-          throw tenantNotAllowed(authData.organizationId);
-        });
+        .with(
+          {
+            state: P.union(
+              purposeVersionState.archived,
+              purposeVersionState.active,
+              purposeVersionState.rejected,
+              purposeVersionState.suspended
+            ),
+            purposeOwnership: P.union(
+              ownership.CONSUMER,
+              ownership.SELF_CONSUMER,
+              ownership.PRODUCER
+            ),
+          },
+          () => {
+            throw tenantNotAllowed(authData.organizationId);
+          }
+        )
+        .exhaustive();
 
       const createdEvent = await repository.createEvent(event);
 
@@ -1909,7 +1923,19 @@ function activatePurposeVersionFromSuspendedLogic(
       },
       () => purposeVersionState.suspended
     )
-    .otherwise(() => purposeVersionState.active);
+    .with(
+      {
+        suspendedByConsumer: P.any,
+        suspendedByProducer: P.any,
+        purposeOwnership: P.union(
+          ownership.SELF_CONSUMER,
+          ownership.CONSUMER,
+          ownership.PRODUCER
+        ),
+      },
+      () => purposeVersionState.active
+    )
+    .exhaustive();
 
   const updatedPurposeVersion: PurposeVersion = {
     ...purposeVersion,
@@ -1926,11 +1952,8 @@ function activatePurposeVersionFromSuspendedLogic(
     updatedPurposeVersion
   );
 
-  if (
-    purposeOwnership === ownership.PRODUCER ||
-    purposeOwnership === ownership.SELF_CONSUMER
-  ) {
-    return {
+  return match(purposeOwnership)
+    .with(P.union(ownership.PRODUCER, ownership.SELF_CONSUMER), () => ({
       event: toCreateEventPurposeVersionUnsuspenedByProducer({
         purpose: { ...updatedPurpose, suspendedByProducer: false },
         versionId: purposeVersion.id,
@@ -1938,9 +1961,8 @@ function activatePurposeVersionFromSuspendedLogic(
         correlationId,
       }),
       updatedPurposeVersion,
-    };
-  } else {
-    return {
+    }))
+    .with(ownership.CONSUMER, () => ({
       event: toCreateEventPurposeVersionUnsuspenedByConsumer({
         purpose: { ...updatedPurpose, suspendedByConsumer: false },
         versionId: purposeVersion.id,
@@ -1948,6 +1970,6 @@ function activatePurposeVersionFromSuspendedLogic(
         correlationId,
       }),
       updatedPurposeVersion,
-    };
-  }
+    }))
+    .exhaustive();
 }

@@ -21,6 +21,8 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
   M2MAdminAuthData,
+  Ownership,
+  ownership,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
@@ -35,9 +37,8 @@ import {
   tenantNotAllowed,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
-  missingDelegationId,
+  tenantIsNotTheDelegate,
 } from "../model/domain/errors.js";
-import { Ownership, ownership } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   retrieveActiveAgreement,
@@ -447,7 +448,7 @@ export const getOrganizationRole = async ({
       );
       return ownership.PRODUCER;
     } else {
-      throw tenantNotAllowed(authData.organizationId);
+      throw tenantIsNotTheDelegate(authData.organizationId);
     }
   }
 
@@ -456,7 +457,7 @@ export const getOrganizationRole = async ({
     (authData.organizationId === producerId && producerDelegation);
 
   if (hasDelegation) {
-    throw missingDelegationId(authData.organizationId);
+    throw tenantIsNotTheDelegate(authData.organizationId);
   }
 
   try {

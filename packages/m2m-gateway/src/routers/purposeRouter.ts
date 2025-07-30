@@ -315,7 +315,7 @@ const purposeRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error creating e-service purpose`
+          `Error creating reverse purpose`
         );
         return res.status(errorRes.status).send(errorRes);
       }

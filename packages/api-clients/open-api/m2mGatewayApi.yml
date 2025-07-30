@@ -260,7 +260,7 @@ paths:
     parameters:
       - name: agreementId
         in: path
-        description: The ID of the Agreement to retrieve
+        description: The ID of the Agreement
         required: true
         schema:
           type: string
@@ -353,8 +353,8 @@ paths:
     delete:
       tags:
         - agreements
-      summary: Delete an agreement
-      description: Deletes an agreement for a given agreementId
+      summary: Delete an Agreement
+      description: Delete an Agreement in Draft, Pending, or MissingCertifiedAttributes state
       operationId: deleteAgreement
       responses:
         "204":
@@ -6039,7 +6039,7 @@ paths:
     post:
       tags:
         - purposes
-      summary: Create a new E-Service Purpose
+      summary: Create a new reverse Purpose
       description: Create a new purpose for an E-Service in receive mode
       operationId: createReversePurpose
       requestBody:
@@ -6050,7 +6050,7 @@ paths:
         required: true
       responses:
         "201":
-          description: E-Service Purpose created
+          description: reverse Purpose created
           content:
             application/json:
               schema:
@@ -6526,7 +6526,7 @@ paths:
         - tenants
       summary: List Tenant Declared Attributes
       description: Retrieve a list of Declared Attributes assigned to the Tenant
-      operationId: getDeclaredAttributes
+      operationId: getTenantDeclaredAttributes
       parameters:
         - in: query
           name: delegationId
@@ -6631,7 +6631,7 @@ paths:
         - tenants
       summary: List Tenant Certified Attributes
       description: Retrieve a list of Certified Attributes assigned to the Tenant
-      operationId: getCertifiedAttributes
+      operationId: getTenantCertifiedAttributes
       parameters:
         - in: query
           name: offset
@@ -6948,7 +6948,7 @@ paths:
         - tenants
       summary: List Tenant Verified Attributes
       description: Retrieve a list of Verified Attributes assigned to the Tenant
-      operationId: getVerifiedAttributes
+      operationId: getTenantVerifiedAttributes
       parameters:
         - in: query
           name: offset

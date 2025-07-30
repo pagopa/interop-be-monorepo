@@ -73,7 +73,8 @@ import {
   descriptorNotFound,
   descriptorNotInExpectedState,
   eServiceNotFound,
-  missingDelegationId,
+  tenantIsNotTheDelegate,
+  tenantIsNotTheDelegateProducer,
   tenantIsNotTheProducer,
   tenantNotAllowed,
   tenantNotFound,
@@ -716,7 +717,7 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
     });
 
-    it("Agreement Pending, Requester === DelegateConsumer -- error case: throws tenantNotAllowed", async () => {
+    it("Agreement Pending, Requester === DelegateConsumer -- error case: throws tenantIsNotTheDelegate", async () => {
       const delegateId = generateId<TenantId>();
       const authData = getMockAuthData(delegateId);
       const agreement: Agreement = {
@@ -741,10 +742,10 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: consumerDelegation.id },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(tenantIsNotTheDelegate(authData.organizationId));
     });
 
-    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws tenantNotAllowed", async () => {
+    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws tenantIsNotTheDelegateProducer", async () => {
       const producerId = generateId<TenantId>();
       const authData = getMockAuthData(producerId);
       const agreement: Agreement = {
@@ -770,7 +771,12 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(
+        tenantIsNotTheDelegateProducer(
+          authData.organizationId,
+          producerDelegation.id
+        )
+      );
     });
   });
 
@@ -1122,10 +1128,6 @@ describe("activate agreement", () => {
         descriptors: [descriptor],
       };
 
-      // At least one of the two is true, they will both become false anyways
-      const suspendedByConsumer = randomBoolean();
-      const suspendedByProducer = !suspendedByConsumer ? true : randomBoolean();
-
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.suspended,
@@ -1133,22 +1135,14 @@ describe("activate agreement", () => {
         descriptorId: descriptor.id,
         producerId: delegateConsumerAndProducer.id,
         consumerId: consumer.id,
-        suspendedByProducer,
-        suspendedByConsumer,
+        suspendedByConsumer: true,
+        suspendedByProducer: false,
         suspendedAt: new Date(),
         stamps: {
-          suspensionByProducer: suspendedByProducer
-            ? {
-                who: authData.userId,
-                when: new Date(),
-              }
-            : undefined,
-          suspensionByConsumer: suspendedByConsumer
-            ? {
-                who: authData.userId,
-                when: new Date(),
-              }
-            : undefined,
+          suspensionByConsumer: {
+            who: authData.userId,
+            when: new Date(),
+          },
         },
 
         // Adding some random attributes to check that they are not modified by the Unsuspension
@@ -1831,7 +1825,7 @@ describe("activate agreement", () => {
       }
     );
 
-    it("Agreement Suspended, Requester === Producer and active producer delegation exists -- error case: throws missingDelegationId", async () => {
+    it("Agreement Suspended, Requester === Producer and active producer delegation exists -- error case: throws tenantIsNotTheDelegate", async () => {
       const producerId = generateId<TenantId>();
       const authData = getMockAuthData(producerId);
       const agreement: Agreement = {
@@ -1857,10 +1851,10 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(missingDelegationId(authData.organizationId));
+      ).rejects.toThrowError(tenantIsNotTheDelegate(authData.organizationId));
     });
 
-    it("Agreement Suspended, Requester === Consumer and active consumer delegation exists -- error case: throws missingDelegationId", async () => {
+    it("Agreement Suspended, Requester === Consumer and active consumer delegation exists -- error case: throws tenantIsNotTheDelegate", async () => {
       const consumerId = generateId<TenantId>();
       const authData = getMockAuthData(consumerId);
       const agreement: Agreement = {
@@ -1886,7 +1880,7 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(missingDelegationId(authData.organizationId));
+      ).rejects.toThrowError(tenantIsNotTheDelegate(authData.organizationId));
     });
   });
 
@@ -2067,8 +2061,8 @@ describe("activate agreement", () => {
 
     it("should throw a tenantNotFound error when the Consumer does not exist", async () => {
       const consumerId = generateId<TenantId>();
-      const producerId = generateId<TenantId>();
-      const authData = getMockAuthData(producerId);
+      const producer = getMockTenant();
+      const authData = getMockAuthData(producer.id);
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
@@ -2077,7 +2071,7 @@ describe("activate agreement", () => {
 
       const eservice: EService = {
         ...getMockEService(),
-        producerId,
+        producerId: producer.id,
         descriptors: [descriptor],
       };
 
@@ -2086,12 +2080,13 @@ describe("activate agreement", () => {
         state: randomArrayItem(agreementActivableStates),
         eserviceId: eservice.id,
         descriptorId: descriptor.id,
-        producerId,
+        producerId: producer.id,
         consumerId,
       };
 
       await addOneEService(eservice);
       await addOneAgreement(agreement);
+      await addOneTenant(producer);
 
       await expect(
         agreementService.activateAgreement(
