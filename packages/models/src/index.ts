@@ -74,6 +74,8 @@ export * from "./notification/notificationSQLAdapter.js";
 
 export * from "./purpose-template/purposeTemplate.js";
 export * from "./purpose-template/purposeTemplateEvents.js";
+export * from "./purpose-template/protobufConverterFromV2.js";
+export * from "./purpose-template/protobufConverterToV2.js";
 
 // Token generation read model
 export * from "./token-generation-readmodel/platform-states-entry.js";
