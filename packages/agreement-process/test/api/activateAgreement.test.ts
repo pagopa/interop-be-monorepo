@@ -110,7 +110,7 @@ describe("API POST /agreements/{agreementId}/activate test", () => {
     },
     {
       error: tenantIsNotTheDelegate(generateId()),
-      expectedStatus: 400,
+      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",

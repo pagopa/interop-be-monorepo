@@ -84,7 +84,7 @@ describe("API POST /agreements/{agreementId}/suspend test", () => {
       ),
       expectedStatus: 400,
     },
-    { error: tenantIsNotTheDelegate(generateId()), expectedStatus: 400 },
+    { error: tenantIsNotTheDelegate(generateId()), expectedStatus: 403 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
