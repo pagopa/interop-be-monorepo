@@ -35,7 +35,7 @@ export function emailSenderProcessorBuilder(
         success,
         error,
         data: jsonPayload,
-      } = EmailNotificationPayload.safeParse(
+      } = EmailNotificationMessagePayload.safeParse(
         JSON.parse(message.value.toString())
       );
 
@@ -56,62 +56,10 @@ export function emailSenderProcessorBuilder(
       );
       const mailOptions = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
-        subject: jsonPayload.subject,
+        subject: jsonPayload.email.subject,
         to: [jsonPayload.address],
-        html: jsonPayload.body,
+        html: jsonPayload.email.body,
       };
-
-      let sent = false;
-      while (!sent) {
-        try {
-          await sesEmailManager.send(mailOptions, loggerInstance);
-          sent = true;
-          loggerInstance.info(
-            `Email sent for message in partition ${partition} with offset ${message.offset}.`
-          );
-          await delay(config.successDelayInMillis);
-        } catch (err) {
-          if (err instanceof TooManyRequestsException) {
-            loggerInstance.error(
-              `Email sending attempt failed for message in partition ${partition} with offset ${message.offset}. Reason: ${err}. Attempting retry in ${config.retryDelayInMillis}ms`
-            );
-            await delay(config.retryDelayInMillis);
-          } else {
-            throw genericInternalError(
-              `Email sending attempt failed for message in partition ${partition} with offset ${message.offset}. Reason: ${err} `
-            );
-          }
-        }
-
-        const jsonPayload: EmailNotificationPayload = JSON.parse(
-          message.value.toString()
-        );
-      }
-
-      let jsonPayload: EmailNotificationPayload;
-      let mailOptions: Mail.Options;
-      try {
-        jsonPayload = JSON.parse(message.value.toString());
-        loggerInstance = logger({
-          serviceName: "email-sender",
-          correlationId: jsonPayload.correlationId,
-        });
-        loggerInstance.info(
-          `Consuming message for partition ${partition} with offset ${message.offset}`
-        );
-        mailOptions = {
-          from: { name: sesSenderData.label, address: sesSenderData.mail },
-          subject: jsonPayload.email.subject,
-          to: [jsonPayload.address],
-          html: jsonPayload.email.body,
-        };
-      } catch (err) {
-        // Log and skip message
-        loggerInstance.warn(
-          `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
-        );
-        return;
-      }
 
       let sent = false;
       while (!sent) {
