@@ -99,7 +99,12 @@ const agreementRouter = (
 
         const { data: agreement, metadata } =
           await agreementService.activateAgreement(
-            unsafeBrandId(req.params.agreementId),
+            {
+              agreementId: unsafeBrandId(req.params.agreementId),
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                : undefined,
+            },
             ctx
           );
 
@@ -250,7 +255,12 @@ const agreementRouter = (
 
         const { data: agreement, metadata } =
           await agreementService.suspendAgreement(
-            unsafeBrandId(req.params.agreementId),
+            {
+              agreementId: unsafeBrandId(req.params.agreementId),
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                : undefined,
+            },
             ctx
           );
 
