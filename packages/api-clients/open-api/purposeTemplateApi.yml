@@ -52,8 +52,13 @@ paths:
       description: Retrieve Purpose Templates with pagination and filters
       parameters:
         - in: query
-          name: eserviceIds
-          description: comma separated sequence of EService IDs
+          name: purposeTitle
+          description: filter by purpose title
+          schema:
+            type: string
+        - in: query
+          name: creatorIds
+          description: filter by creator id
           schema:
             type: array
             items:
@@ -62,21 +67,20 @@ paths:
             default: []
           explode: false
         - in: query
-          name: creatorId
-          description: filter by creator id
-          schema:
-            type: string
-            format: uuid
-        - in: query
-          name: name
-          description: filter by template name
-          schema:
-            type: string
-        - in: query
-          name: state
+          name: states
           description: filter by template state
           schema:
-            $ref: "#/components/schemas/PurposeTemplateState"
+            type: array
+            items:
+              $ref: "#/components/schemas/PurposeTemplateState"
+            default: []
+          explode: false
+        - in: query
+          name: excludeDraft
+          description: exclude draft templates
+          schema:
+            type: boolean
+            default: false
         - in: query
           name: offset
           required: true
@@ -149,6 +153,138 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/eservices:
+    get:
+      tags:
+        - purposeTemplate
+      operationId: getEservices
+      description: Retrieve associations between all purpose templates and all their linked eservices.
+      parameters:
+        - in: query
+          name: eserviceIds
+          description: comma separated sequence of EService IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: purposeTemplateIds
+          description: comma separated sequence of Purpose Template IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Eservices requested
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EserviceDescriptorVersionPurposeTemplate"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/riskAnalysis:
+    get:
+      tags:
+        - purposeTemplate
+      operationId: getRiskAnalysis
+      description: Retrieve the Risk Analysis for all purpose templates.
+      parameters:
+        - in: query
+          name: eserviceIds
+          description: comma separated sequence of EService IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: purposeTemplateIds
+          description: comma separated sequence of Purpose Template IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Risk Analysis requested
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{id}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -174,6 +310,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PurposeTemplate"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Template Not Found
           content:
@@ -189,7 +331,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PurposeTemplateSeed"
+              $ref: "#/components/schemas/PurposeTemplateUpdatePayload"
         required: true
       responses:
         "200":
@@ -263,11 +405,38 @@ paths:
         schema:
           type: string
           format: uuid
+    get:
+      tags:
+        - purposeTemplate
+      operationId: getPurposeTemplateRiskAnalysis
+      description: Retrieve the purpose template risk analysis
+      responses:
+        "200":
+          description: Purpose Template Risk Analysis requested
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       tags:
         - purposeTemplate
       operationId: updatePurposeTemplateRiskAnalysis
-      description: Updates the purpose template risk analysis
+      description: Updates the purpose template (in Draft state) risk analysis
       requestBody:
         content:
           application/json:
@@ -283,7 +452,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PurposeTemplate"
+                $ref: "#/components/schemas/RiskAnalysisFormTemplate"
         "400":
           description: Bad Request
           content:
@@ -304,6 +473,44 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{id}/eservices:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purposeTemplate
+      operationId: getPurposeTemplateEservices
+      description: Retrieve the purpose template eservices
+      responses:
+        "200":
+          description: Purpose Template Eservices requested
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EserviceDescriptorVersionPurposeTemplate"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
           content:
             application/problem+json:
               schema:
@@ -341,6 +548,55 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{id}/unsuspend:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Unsuspend Purpose Template
+      description: Unsuspends the purpose template by id (from Suspended State to Active State)
+      operationId: unsuspendPurposeTemplate
+      tags:
+        - purposeTemplate
+      responses:
+        "200":
+          description: Purpose Template Unsuspended
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -472,6 +728,7 @@ components:
   schemas:
     PurposeTemplate:
       type: object
+      description: Business representation of a purpose template
       additionalProperties: false
       properties:
         id:
@@ -484,10 +741,6 @@ components:
         creatorId:
           type: string
           format: uuid
-        eservicesVersions:
-          type: array
-          items:
-            $ref: "#/components/schemas/EserviceDescriptorVersionPurposeTemplate"
         state:
           $ref: "#/components/schemas/PurposeTemplateState"
         createdAt:
@@ -502,30 +755,27 @@ components:
           type: string
         purposeRiskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormTemplate"
-          required: false
         purposeIsFreeOfCharge:
           type: boolean
-          required: true
         purposeFreeOfChargeReason:
           type: string
-          required: false
         purposeDailyCalls:
           type: integer
           format: int32
-          required: false
       required:
         - id
+        - targetDescription
+        - targetTenantKind
         - creatorId
-        - name
         - state
-        - eserviceId
-      description: business representation of a purpose template
+        - createdAt
+        - purposeTitle
+        - purposeDescription
+        - purposeIsFreeOfCharge
     PurposeTemplateSeed:
       type: object
       additionalProperties: false
       properties:
-        name:
-          type: string
         targetDescription:
           type: string
         targetTenantKind:
@@ -533,10 +783,40 @@ components:
         creatorId:
           type: string
           format: uuid
-        eservices:
-          type: array
-          items:
-            $ref: "#/components/schemas/EserviceDescriptorVersionPurposeTemplate"
+        state:
+          $ref: "#/components/schemas/PurposeTemplateState"
+        purposeTitle:
+          type: string
+        purposeDescription:
+          type: string
+        purposeIsFreeOfCharge:
+          type: boolean
+    PurposeTemplateUpdatePayload:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        targetDescription:
+          type: string
+        targetTenantKind:
+          $ref: "#/components/schemas/TenantKind"
+        state:
+          $ref: "#/components/schemas/PurposeTemplateState"
+        purposeTitle:
+          type: string
+        purposeDescription:
+          type: string
+        purposeRiskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+        purposeIsFreeOfCharge:
+          type: boolean
+        purposeFreeOfChargeReason:
+          type: string
+        purposeDailyCalls:
+          type: integer
+          format: int32
     PurposeTemplateState:
       type: string
       description: Purpose Template State
@@ -557,12 +837,36 @@ components:
       type: object
       additionalProperties: false
       properties:
+        purposeTemplateId:
+          type: string
+          format: uuid
         eserviceId:
           type: string
           format: uuid
         descriptorId:
           type: string
           format: uuid
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - purposeTemplateId
+        - eserviceId
+        - descriptorId
+        - createdAt
+    EServiceDescriptorVersionPurposeTemplateUpdatePayload:
+      type: object
+      additionalProperties: false
+      properties:
+        eserviceId:
+          type: string
+          format: uuid
+        descriptorId:
+          type: string
+          format: uuid
+      required:
+        - eserviceId
+        - descriptorId
     RiskAnalysisFormTemplate:
       type: object
       additionalProperties: false
@@ -580,6 +884,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RiskAnalysisTemplateMultiAnswer"
+      required:
+        - id
+        - version
+        - singleAnswers
+        - multiAnswers
     RiskAnalysisTemplateSingleAnswer:
       type: object
       additionalProperties: false
@@ -589,23 +898,23 @@ components:
           format: uuid
         key:
           type: string
-          required: true
         value:
           type: string
-          required: false
         editable:
           type: boolean
-          required: true
         annotation:
           $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotation"
-          required: false
         assistiveText:
           type: string
-          required: false
         suggestedValues:
           type: array
           items:
             type: string
+      required:
+        - id
+        - key
+        - editable
+        - suggestedValues
     RiskAnalysisTemplateMultiAnswer:
       type: object
       additionalProperties: false
@@ -615,19 +924,18 @@ components:
           format: uuid
         key:
           type: string
-          required: true
         value:
           type: string
-          required: false
         editable:
           type: boolean
-          required: true
         annotation:
           $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotation"
-          required: false
         assistiveText:
           type: string
-          required: false
+      required:
+        - id
+        - key
+        - editable
     RiskAnalysisTemplateAnswerAnnotation:
       type: object
       additionalProperties: false
@@ -637,11 +945,13 @@ components:
           format: uuid
         text:
           type: string
-          required: false
         docs:
           type: array
           items:
             $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+      required:
+        - id
+        - docs
     RiskAnalysisTemplateAnswerAnnotationDocument:
       type: object
       additionalProperties: false
@@ -660,6 +970,13 @@ components:
         createdAt:
           type: string
           format: date-time
+      required:
+        - id
+        - name
+        - contentType
+        - prettyName
+        - path
+        - createdAt
     Problem:
       properties:
         type:
