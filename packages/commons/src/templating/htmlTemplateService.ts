@@ -3,7 +3,7 @@ import { htmlTemplateInterpolationError } from "pagopa-interop-models";
 
 export type HtmlTemplateService = {
   compileHtml: (html: string, context: Record<string, unknown>) => string;
-  registerPartial: (name: string, header: string) => void;
+  registerPartial: (name: string, partial: string) => void;
 };
 
 export function buildHTMLTemplateService(): HtmlTemplateService {
