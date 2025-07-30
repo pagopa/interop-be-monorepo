@@ -104,7 +104,7 @@ describe("upgrade eservice template instance", () => {
         {
           ...mockDescriptor,
           templateVersionRef: { id: firstTemplateVersion.id },
-          version: "1",
+          version: 1,
           state: descriptorState.published,
           interface: undefined,
           docs: [],
@@ -176,7 +176,7 @@ describe("upgrade eservice template instance", () => {
 
     const expectedDescriptor: Descriptor = {
       id: unsafeBrandId(writtenPayload.eservice!.descriptors[1].id),
-      version: "2",
+      version: 2,
       interface: undefined,
       createdAt: new Date(
         Number(writtenPayload.eservice?.descriptors[1].createdAt)
@@ -275,7 +275,7 @@ describe("upgrade eservice template instance", () => {
         {
           ...mockDescriptor,
           templateVersionRef: { id: firstTemplateVersion.id },
-          version: "1",
+          version: 1,
           state: descriptorState.published,
           interface: undefined,
           docs: [],
@@ -355,7 +355,7 @@ describe("upgrade eservice template instance", () => {
 
     const expectedDescriptor: Descriptor = {
       id: unsafeBrandId(writtenPayload.eservice!.descriptors[1].id),
-      version: "2",
+      version: 2,
       interface: undefined,
       createdAt: new Date(
         Number(writtenPayload.eservice?.descriptors[1].createdAt)
@@ -442,7 +442,7 @@ describe("upgrade eservice template instance", () => {
         {
           ...mockDescriptor,
           templateVersionRef: { id: firstTemplateVersion.id },
-          version: "1",
+          version: 1,
           state: descriptorState.published,
           interface: undefined,
           docs: [],
@@ -539,7 +539,7 @@ describe("upgrade eservice template instance", () => {
         {
           ...getMockDescriptor(),
           templateVersionRef: { id: firstTemplateVersion.id },
-          version: "1",
+          version: 1,
           state: descriptorState.published,
           interface: undefined,
           docs: [],
@@ -547,7 +547,7 @@ describe("upgrade eservice template instance", () => {
         {
           ...getMockDescriptor(),
           templateVersionRef: { id: secondTemplateVersion.id },
-          version: "2",
+          version: 1,
           state: descriptorState.draft,
           interface: undefined,
           docs: [],

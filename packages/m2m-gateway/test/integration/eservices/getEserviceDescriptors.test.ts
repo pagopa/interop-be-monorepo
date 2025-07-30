@@ -51,7 +51,7 @@ describe("getEserviceDescriptors", () => {
     descriptor: catalogApi.EServiceDescriptor
   ): m2mGatewayApi.EServiceDescriptor => ({
     id: descriptor.id,
-    version: descriptor.version,
+    version: descriptor.version.toString(),
     description: descriptor.description,
     audience: descriptor.audience,
     voucherLifespan: descriptor.voucherLifespan,

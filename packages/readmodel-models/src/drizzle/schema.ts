@@ -381,7 +381,7 @@ export const eserviceDescriptorInReadmodelCatalog = readmodelCatalog.table(
     id: uuid().primaryKey().notNull(),
     eserviceId: uuid("eservice_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
-    version: varchar().notNull(),
+    version: integer("version").notNull(),
     description: varchar(),
     state: varchar().notNull(),
     audience: varchar().array().notNull(),

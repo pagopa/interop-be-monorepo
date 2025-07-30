@@ -140,7 +140,7 @@ describe("Authorization Updater processMessage", () => {
     async (eventType) => {
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        version: "1",
+        version: 1,
       };
       const eservice: EService = {
         ...getMockEService(),
@@ -206,7 +206,7 @@ describe("Authorization Updater processMessage", () => {
   it("should correctly process a catalog message with type EServiceDescriptorQuotasUpdated and call updateEServiceState", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "1",
+      version: 1,
     };
     const eservice: EService = {
       ...getMockEService(),
@@ -326,7 +326,7 @@ describe("Authorization Updater processMessage", () => {
   it("Should correctly process an agreement message with type AgreementUpgraded and call updateAgreementAndEServiceStates", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "1",
+      version: 1,
       state: randomArrayItem(Object.values(descriptorState)),
     };
     const eservice: EService = {

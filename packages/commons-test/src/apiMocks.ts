@@ -224,7 +224,7 @@ export function getMockedApiEserviceDescriptor({
 } = {}): catalogApi.EServiceDescriptor {
   return {
     id: generateId(),
-    version: generateMock(z.string()),
+    version: generateMock(z.number().int()),
     description: generateMock(z.string().length(10)),
     audience: generateMock(z.array(z.string())),
     voucherLifespan: generateMock(z.number().int().min(60).max(86400)),

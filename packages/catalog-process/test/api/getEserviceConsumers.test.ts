@@ -57,7 +57,7 @@ describe("API /eservices/{eServiceId}/consumers authorization test", () => {
 
   const apiResponse = catalogApi.EServiceConsumers.parse({
     results: mockResponse.results.map((c) => ({
-      descriptorVersion: parseInt(c.descriptorVersion, 10),
+      descriptorVersion: c.descriptorVersion,
       descriptorState: descriptorStateToApiEServiceDescriptorState(
         c.descriptorState
       ),

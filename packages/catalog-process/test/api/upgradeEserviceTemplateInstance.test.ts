@@ -54,7 +54,7 @@ describe("API /templates/eservices/{eServiceId}/upgrade authorization test", () 
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
     templateVersionRef: { id: firstTemplateVersion.id },
-    version: "1",
+    version: 1,
     state: descriptorState.published,
     interface: undefined,
     docs: [],

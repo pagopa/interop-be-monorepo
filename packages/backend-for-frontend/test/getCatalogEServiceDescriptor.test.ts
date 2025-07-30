@@ -77,7 +77,7 @@ describe("getCatalogEServiceDescriptor", () => {
         ],
       ],
     },
-    version: "",
+    version: 0,
     serverUrls: [],
     audience: [],
     voucherLifespan: 0,
