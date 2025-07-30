@@ -7,7 +7,7 @@ import {
 } from "pagopa-interop-models";
 import {
   checkMetadataVersion,
-  PurposeReadModelService,
+  splitPurposeIntoObjectsSQL,
   splitPurposeVersionIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
 import {
@@ -21,10 +21,7 @@ import {
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function customReadModelServiceBuilder(
-  db: DrizzleReturnType,
-  purposeReadModelService: PurposeReadModelService
-) {
+export function purposeWriterServiceBuilder(db: DrizzleReturnType) {
   const updateMetadataVersionInPurposeTables = async (
     tx: DrizzleTransactionType,
     purposeId: PurposeId,
@@ -56,16 +53,70 @@ export function customReadModelServiceBuilder(
       purpose: Purpose,
       metadataVersion: number
     ): Promise<void> {
-      await purposeReadModelService.upsertPurpose(purpose, metadataVersion);
-    },
+      await db.transaction(async (tx) => {
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          purposeInReadmodelPurpose,
+          metadataVersion,
+          purpose.id
+        );
 
+        if (!shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(purposeInReadmodelPurpose)
+          .where(eq(purposeInReadmodelPurpose.id, purpose.id));
+
+        const {
+          purposeSQL,
+          riskAnalysisFormSQL,
+          riskAnalysisAnswersSQL,
+          versionsSQL,
+          versionDocumentsSQL,
+        } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
+
+        await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
+
+        if (riskAnalysisFormSQL) {
+          await tx
+            .insert(purposeRiskAnalysisFormInReadmodelPurpose)
+            .values(riskAnalysisFormSQL);
+        }
+
+        if (riskAnalysisAnswersSQL) {
+          for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+            await tx
+              .insert(purposeRiskAnalysisAnswerInReadmodelPurpose)
+              .values(riskAnalysisAnswerSQL);
+          }
+        }
+
+        for (const versionSQL of versionsSQL) {
+          await tx.insert(purposeVersionInReadmodelPurpose).values(versionSQL);
+        }
+
+        for (const versionDocumentSQL of versionDocumentsSQL) {
+          await tx
+            .insert(purposeVersionDocumentInReadmodelPurpose)
+            .values(versionDocumentSQL);
+        }
+      });
+    },
     async deletePurposeById(
       purposeId: PurposeId,
       version: number
     ): Promise<void> {
-      await purposeReadModelService.deletePurposeById(purposeId, version);
+      await db
+        .delete(purposeInReadmodelPurpose)
+        .where(
+          and(
+            eq(purposeInReadmodelPurpose.id, purposeId),
+            lte(purposeInReadmodelPurpose.metadataVersion, version)
+          )
+        );
     },
-
     async upsertPurposeVersion(
       purposeId: PurposeId,
       purposeVersion: PurposeVersion,
@@ -108,7 +159,6 @@ export function customReadModelServiceBuilder(
         );
       });
     },
-
     async deletePurposeVersionById(
       purposeId: PurposeId,
       purposeVersionId: PurposeVersionId,
@@ -136,6 +186,6 @@ export function customReadModelServiceBuilder(
     },
   };
 }
-export type CustomReadModelService = ReturnType<
-  typeof customReadModelServiceBuilder
+export type PurposeWriterService = ReturnType<
+  typeof purposeWriterServiceBuilder
 >;

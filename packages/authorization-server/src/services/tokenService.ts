@@ -105,11 +105,13 @@ export function tokenServiceBuilder({
   fileManager: FileManager;
 }) {
   return {
+    // eslint-disable-next-line max-params
     async generateToken(
       headers: IncomingHttpHeaders & HttpDPoPHeader,
       body: authorizationServerApi.AccessTokenRequest,
       { logger, correlationId }: WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
+      setCtxClientKind: (tokenGenClientKind: ClientKindTokenGenStates) => void,
       setCtxOrganizationId: (organizationId: TenantId) => void
     ): Promise<GeneratedTokenData> {
       logger.info(`[CLIENTID=${body.client_id}] Token requested`);
@@ -181,6 +183,7 @@ export function tokenServiceBuilder({
       const key = await retrieveKey(dynamoDBClient, pk);
 
       setCtxOrganizationId(key.consumerId);
+      setCtxClientKind(key.clientKind);
 
       logTokenGenerationInfo({
         validatedJwt: clientAssertionJWT,

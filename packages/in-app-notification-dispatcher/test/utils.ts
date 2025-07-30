@@ -4,13 +4,14 @@ import { afterEach, inject } from "vitest";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
-  purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
   upsertEService,
+  upsertPurpose,
+  upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
@@ -27,7 +28,6 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
-const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
@@ -42,7 +42,7 @@ export const readModelService = readModelServiceBuilderSQL({
 export const interopFeBaseUrl = "http://localhost/fe";
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
+  await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
@@ -54,7 +54,7 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
-  await purposeReadModelServiceSQL.upsertPurpose(purpose, 0);
+  await upsertPurpose(readModelDB, purpose, 0);
 };
 
 afterEach(cleanup);

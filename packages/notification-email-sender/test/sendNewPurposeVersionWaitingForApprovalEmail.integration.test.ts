@@ -88,7 +88,10 @@ describe("sendNewPurposeVersionWaitingForApprovalEmail", () => {
       }),
     };
 
-    expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions);
+    expect(sesEmailManager.send).toHaveBeenCalledWith(
+      mailOptions,
+      expect.anything()
+    );
 
     const response: AxiosResponse = await axios.get(
       `${sesEmailManagerConfig?.awsSesEndpoint}/store`

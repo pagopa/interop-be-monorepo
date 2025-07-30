@@ -1,5 +1,28 @@
-import { UserRole } from "pagopa-interop-commons";
 import { z } from "zod";
+import { UserId, TenantId } from "../brandedIds.js";
+
+export const userRole = {
+  ADMIN_ROLE: "admin",
+  SECURITY_ROLE: "security",
+  API_ROLE: "api",
+  SUPPORT_ROLE: "support",
+} as const;
+
+export const UserRole = z.enum([
+  Object.values(userRole)[0],
+  ...Object.values(userRole).slice(1),
+]);
+export type UserRole = z.infer<typeof UserRole>;
+
+export const User = z.object({
+  id: UserId,
+  tenantId: TenantId,
+  name: z.string(),
+  familyName: z.string(),
+  email: z.string().email(),
+  productRole: UserRole,
+});
+export type User = z.infer<typeof User>;
 
 export const selfcareUserEventType = {
   add: "ADD",
@@ -7,8 +30,8 @@ export const selfcareUserEventType = {
 } as const;
 
 export const SelfcareUserEventType = z.enum([
-  Object.values(selfcareUserEventType)[0],
-  ...Object.values(selfcareUserEventType).slice(1),
+  selfcareUserEventType.add,
+  selfcareUserEventType.update,
 ]);
 export type SelfcareUserEventType = z.infer<typeof SelfcareUserEventType>;
 
@@ -24,25 +47,22 @@ export const RelationshipStatus = z.enum([
 ]);
 export type RelationshipStatus = z.infer<typeof RelationshipStatus>;
 
-const SCUser = z.object({
+const BaseUser = z.object({
   userId: z.string().uuid().nullish(),
   name: z.string(),
   familyName: z.string(),
   email: z.string(),
   role: z.string(),
   productRole: UserRole,
-  relationshipStatus: z.string(),
+  relationshipStatus: RelationshipStatus,
   mobilePhone: z.string().nullish(),
 });
 
-export const UsersEventPayload = z.object({
+export const BaseUsersEventPayload = z.object({
   id: z.string(),
   institutionId: z.string().trim().min(1), // Selfcare ID
   productId: z.string().trim().min(1),
-  onboardingTokenId: z.string().nullish(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
   eventType: SelfcareUserEventType,
-  user: SCUser,
+  user: BaseUser,
 });
-export type UsersEventPayload = z.infer<typeof UsersEventPayload>;
+export type BaseUsersEventPayload = z.infer<typeof BaseUsersEventPayload>;

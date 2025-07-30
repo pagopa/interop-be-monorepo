@@ -12,13 +12,11 @@ import {
   UserId,
   unsafeBrandId,
   SelfcareId,
+  selfcareUserEventType,
+  relationshipStatus,
+  BaseUsersEventPayload,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import {
-  selfcareUserEventType,
-  UsersEventPayload,
-  relationshipStatus,
-} from "../model/UsersEventPayload.js";
 import { AuthorizationProcessClient } from "../clients/authorizationProcessClient.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -64,7 +62,7 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
           return;
         }
 
-        const userEventPayload = UsersEventPayload.parse(jsonPayload);
+        const userEventPayload = BaseUsersEventPayload.parse(jsonPayload);
 
         return match(userEventPayload)
           .with({ user: { userId: P.nullish } }, () => {

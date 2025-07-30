@@ -2,10 +2,11 @@ import { getMockProducerJWKKey } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { ProducerJWKKey, WithMetadata } from "pagopa-interop-models";
+import { upsertProducerJWKKey } from "pagopa-interop-readmodel/testUtils";
 import { compare } from "../src/utils.js";
 import {
   addOneProducerJWKKey,
-  producerKeychainKeyReadModelServiceSQL,
+  readModelDB,
   readModelService,
   readModelServiceSQL,
 } from "./utils.js";
@@ -42,10 +43,7 @@ describe("Check producerKeychain key readmodels", () => {
       metadata: { version: 1 },
     });
 
-    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
-      jwkKey,
-      1
-    );
+    await upsertProducerJWKKey(readModelDB, jwkKey, 1);
 
     const collectionKeys =
       await readModelService.getAllReadModelProducerJWKKeys();
@@ -76,10 +74,7 @@ describe("Check producerKeychain key readmodels", () => {
       metadata: { version: 1 },
     });
 
-    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
-      jwkKey2,
-      1
-    );
+    await upsertProducerJWKKey(readModelDB, jwkKey2, 1);
 
     const collectionKeys =
       await readModelService.getAllReadModelProducerJWKKeys();
@@ -105,14 +100,8 @@ describe("Check producerKeychain key readmodels", () => {
       metadata: { version: 1 },
     });
 
-    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
-      jwkKey1,
-      1
-    );
-    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
-      jwkKey2,
-      1
-    );
+    await upsertProducerJWKKey(readModelDB, jwkKey1, 1);
+    await upsertProducerJWKKey(readModelDB, jwkKey2, 1);
 
     const collectionKeys =
       await readModelService.getAllReadModelProducerJWKKeys();
@@ -142,7 +131,8 @@ describe("Check producerKeychain key readmodels", () => {
 
     await addOneProducerJWKKey(producerKeychainKey1);
 
-    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
+    await upsertProducerJWKKey(
+      readModelDB,
       producerKeychainKey1InPostgresDb.data,
       producerKeychainKey1InPostgresDb.metadata.version
     );
@@ -175,7 +165,8 @@ describe("Check producerKeychain key readmodels", () => {
 
     await addOneProducerJWKKey(producerKeychainKey1);
 
-    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
+    await upsertProducerJWKKey(
+      readModelDB,
       producerKeychainKey1InPostgresDb.data,
       producerKeychainKey1InPostgresDb.metadata.version
     );
