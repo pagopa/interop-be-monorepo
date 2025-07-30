@@ -127,7 +127,7 @@ export function producerKeychainServiceBuilder(
         `Removing e-service ${eserviceId} from producer keychain ${producerKeychainId}`
       );
 
-      return authorizationClient.producerKeychain.removeProducerKeychainEService(
+      await authorizationClient.producerKeychain.removeProducerKeychainEService(
         undefined,
         {
           params: { producerKeychainId, eserviceId },
