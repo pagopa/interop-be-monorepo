@@ -22,12 +22,6 @@ import {
 describe("Notification config splitters", () => {
   const updatedAt = generateMock(z.coerce.date());
 
-  const notificationTypes = [
-    "newEServiceVersionPublishedToConsumer",
-    "agreementSuspendedUnsuspendedToProducer",
-    "agreementSuspendedUnsuspendedToConsumer",
-  ] as const;
-
   it.each([
     ["", updatedAt, updatedAt.toISOString()],
     [" (converting undefined to null)", undefined, null],
