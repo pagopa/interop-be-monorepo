@@ -3,6 +3,7 @@ import {
   DelegationId,
   EServiceId,
   PurposeId,
+  PurposeTemplateId,
   PurposeVersionDocumentId,
   PurposeVersionId,
   TenantId,
@@ -59,5 +60,6 @@ export const Purpose = z.object({
   updatedAt: z.coerce.date().optional(),
   isFreeOfCharge: z.boolean(),
   freeOfChargeReason: z.string().optional(),
+  purposeTemplateId: PurposeTemplateId.optional(),
 });
 export type Purpose = z.infer<typeof Purpose>;

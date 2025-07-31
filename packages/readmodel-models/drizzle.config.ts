@@ -27,6 +27,7 @@ export default defineConfig({
     readmodelDBConfig.readModelSQLDbSchemaProducerJwkKey,
     readmodelDBConfig.readModelSQLDbSchemaProducerKeychain,
     readmodelDBConfig.readModelSQLDbSchemaPurpose,
+    readmodelDBConfig.readModelSQLDbSchemaPurposeTemplate,
     readmodelDBConfig.readModelSQLDbSchemaTenant,
   ],
 });
