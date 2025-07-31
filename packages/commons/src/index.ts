@@ -1,4 +1,5 @@
 export * from "./auth/index.js";
+export * from "./sanitization/index.js";
 export * from "./config/index.js";
 export * from "./context/index.js";
 export * from "./file-manager/index.js";
