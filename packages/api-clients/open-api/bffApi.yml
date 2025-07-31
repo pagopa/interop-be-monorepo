@@ -22030,6 +22030,7 @@ components:
         - description
         - producer
         - isMine
+        - mode
       properties:
         id:
           type: string
@@ -22044,6 +22045,8 @@ components:
           $ref: "#/components/schemas/CompactAgreement"
         isMine:
           type: boolean
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
     ClientKind:
@@ -22203,12 +22206,15 @@ components:
         - id
         - name
         - producer
+        - mode
       properties:
         id:
           type: string
           format: uuid
         name:
           type: string
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
         producer:
           $ref: "#/components/schemas/CompactOrganization"
     CompactEServices:

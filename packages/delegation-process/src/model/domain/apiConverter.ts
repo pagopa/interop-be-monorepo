@@ -6,8 +6,10 @@ import {
   DelegationStamp,
   DelegationStamps,
   DelegationState,
+  EServiceMode,
   delegationKind,
   delegationState,
+  eserviceMode,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -135,4 +137,12 @@ export const apiDelegationStateToDelegationState = (
       delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL,
       () => delegationState.waitingForApproval
     )
+    .exhaustive();
+
+export const eserviceModeToApiEServiceMode = (
+  mode: EServiceMode
+): delegationApi.EServiceMode =>
+  match<EServiceMode, delegationApi.EServiceMode>(mode)
+    .with(eserviceMode.deliver, () => delegationApi.EServiceMode.Values.DELIVER)
+    .with(eserviceMode.receive, () => delegationApi.EServiceMode.Values.RECEIVE)
     .exhaustive();
