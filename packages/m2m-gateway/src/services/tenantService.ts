@@ -316,5 +316,131 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
+    async addDeclaredAttribute(
+      tenantId: TenantId,
+      seed: m2mGatewayApi.TenantDeclaredAttributeSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
+      logger.info(`Adding declared attribute ${seed.id} to tenant ${tenantId}`);
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.addDeclaredAttribute(
+          { id: seed.id },
+          {
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+      const declaredAttribute = retrieveDeclaredAttributes(polledTenant).find(
+        (attr) => attr.id === seed.id
+      );
+
+      if (!declaredAttribute) {
+        throw new Error(
+          `Declared attribute ${seed.id} not found after assignment`
+        );
+      }
+
+      return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
+    },
+    async revokeDeclaredAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
+      logger.info(
+        `Revoking declared attribute ${attributeId} from tenant ${tenantId}`
+      );
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.revokeDeclaredAttribute(
+          undefined,
+          {
+            params: { attributeId },
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+      const declaredAttribute = retrieveDeclaredAttributes(polledTenant).find(
+        (attr) => attr.id === attributeId
+      );
+
+      if (!declaredAttribute) {
+        throw new Error(
+          `Declared attribute ${attributeId} not found after revocation`
+        );
+      }
+
+      return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
+    },
+    async addVerifiedAttribute(
+      tenantId: TenantId,
+      seed: m2mGatewayApi.TenantVerifiedAttributeSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantVerifiedAttribute> {
+      logger.info(`Adding verified attribute ${seed.id} to tenant ${tenantId}`);
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.verifyVerifiedAttribute(
+          { id: seed.id, agreementId: seed.agreementId },
+          {
+            params: { tenantId },
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+      const verifiedAttribute = retrieveVerifiedAttributes(polledTenant).find(
+        (attr) => attr.id === seed.id
+      );
+
+      if (!verifiedAttribute) {
+        throw new Error(
+          `Verified attribute ${seed.id} not found after assignment`
+        );
+      }
+
+      return toM2MGatewayApiTenantVerifiedAttribute(verifiedAttribute);
+    },
+    async revokeVerifiedAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      agreementId: string | undefined,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantVerifiedAttribute> {
+      logger.info(
+        `Revoking verified attribute ${attributeId} from tenant ${tenantId}`
+      );
+
+      if (!agreementId) {
+        throw new Error(
+          "Agreement ID is required for verified attribute revocation"
+        );
+      }
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(
+          { agreementId },
+          {
+            params: { tenantId, attributeId },
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+      const verifiedAttribute = retrieveVerifiedAttributes(polledTenant).find(
+        (attr) => attr.id === attributeId
+      );
+
+      if (!verifiedAttribute) {
+        throw new Error(
+          `Verified attribute ${attributeId} not found after revocation`
+        );
+      }
+
+      return toM2MGatewayApiTenantVerifiedAttribute(verifiedAttribute);
+    },
   };
 }

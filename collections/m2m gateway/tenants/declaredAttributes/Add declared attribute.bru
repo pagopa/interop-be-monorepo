@@ -1,0 +1,26 @@
+meta {
+  name: Add tenant declared attribute
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host-m2m-gw}}/tenants/:tenantId/declaredAttributes
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "{{attributeId}}"
+  }
+}
