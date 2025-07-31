@@ -565,6 +565,12 @@ paths:
         - purposeTemplate
       operationId: removeEserviceFromPurposeTemplate
       description: Remove an eservice from a purpose template (in Draft state)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorVersionPurposeTemplateUpdatePayload"
+        required: true
       responses:
         "204":
           description: Eservice removed from purpose template
