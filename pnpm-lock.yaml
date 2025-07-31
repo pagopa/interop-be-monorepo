@@ -436,8 +436,8 @@ importers:
         specifier: 20.19.9
         version: 20.19.9
       '@types/ssh2-sftp-client':
-        specifier: 9.0.4
-        version: 9.0.4
+        specifier: 9.0.5
+        version: 9.0.5
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -3660,8 +3660,8 @@ importers:
         specifier: 20.19.9
         version: 20.19.9
       '@types/ssh2-sftp-client':
-        specifier: 9.0.4
-        version: 9.0.4
+        specifier: 9.0.5
+        version: 9.0.5
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -8113,8 +8113,8 @@ packages:
   '@types/sinonjs__fake-timers@8.1.5':
     resolution: {integrity: sha512-mQkU2jY8jJEF7YHjHvsQO8+3ughTL1mcnn96igfhONmR+fUPSKIkefQYpSe8bsly2Ep7oQbn/6VG5/9/0qcArQ==}
 
-  '@types/ssh2-sftp-client@9.0.4':
-    resolution: {integrity: sha512-gnIn56MTB9W3A3hPL/1sHI23t8YwcE3eVYa1O2XjT9vaqimFdtNHxyQiy5Y78+ociQTKazMSD8YyMEO4QjNMrg==}
+  '@types/ssh2-sftp-client@9.0.5':
+    resolution: {integrity: sha512-cpUO6okDusnfLw2hnmaBiomlSchIWNVcCdpywLRsg/h9Q1TTiUSrzhkn5sJeeyTM8h6xRbZEZZjgWtUXFDogHg==}
 
   '@types/ssh2-streams@0.1.12':
     resolution: {integrity: sha512-Sy8tpEmCce4Tq0oSOYdfqaBpA3hDM8SoxoFh5vzFsu2oL+znzGz8oVWW7xb4K920yYMUY+PIG31qZnFMfPWNCg==}
@@ -15508,7 +15508,7 @@ snapshots:
 
   '@types/sinonjs__fake-timers@8.1.5': {}
 
-  '@types/ssh2-sftp-client@9.0.4':
+  '@types/ssh2-sftp-client@9.0.5':
     dependencies:
       '@types/ssh2': 1.15.0
 
