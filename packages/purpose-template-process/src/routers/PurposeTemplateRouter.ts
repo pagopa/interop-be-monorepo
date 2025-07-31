@@ -9,8 +9,6 @@ import {
 } from "pagopa-interop-commons";
 import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
-import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
-import { makeApiProblem } from "../model/errors.js";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 

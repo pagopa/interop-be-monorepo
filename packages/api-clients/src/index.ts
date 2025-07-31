@@ -17,4 +17,3 @@ export * as eserviceTemplateApi from "./generated/eserviceTemplateApi.js";
 export * as m2mGatewayApi from "./m2mGatewayApi.js";
 export * as inAppNotificationApi from "./generated/inAppNotificationApi.js";
 export * as notificationConfigApi from "./generated/notificationConfigApi.js";
-export * as purposeTemplateApi from "./purposeTemplateApi.js";
