@@ -440,7 +440,29 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       purposeUpdateContent: purposeApi.PurposeUpdateContent,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
+      logger.info(`Updating Purpose ${purposeId}`);
+      return await performUpdatePurpose(
+        purposeId,
+        {
+          updateContent: purposeUpdateContent,
+          mode: eserviceMode.deliver,
+        },
+        authData,
+        readModelService,
+        correlationId,
+        repository
+      );
+    },
+    async PATCH_updatePurpose(
+      purposeId: PurposeId,
+      purposeUpdateContent: purposeApi.PATCH_PurposeUpdateContent,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
       logger.info(`Updating Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -458,7 +480,9 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       reversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
       logger.info(`Updating Reverse Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -1591,7 +1615,12 @@ const performUpdatePurpose = async (
     mode,
     updateContent,
   }:
-    | { mode: "Deliver"; updateContent: purposeApi.PurposeUpdateContent }
+    | {
+        mode: "Deliver";
+        updateContent:
+          | purposeApi.PurposeUpdateContent
+          | purposeApi.PATCH_PurposeUpdateContent;
+      }
     | {
         mode: "Receive";
         updateContent: purposeApi.ReversePurposeUpdateContent;
@@ -1599,15 +1628,15 @@ const performUpdatePurpose = async (
   authData: UIAuthData,
   readModelService: ReadModelService,
   correlationId: CorrelationId,
-  repository: {
-    createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<unknown>;
-  }
+  repository: ReturnType<typeof eventRepository<PurposeEvent>>
+): Promise<
+  WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
   // eslint-disable-next-line max-params
-): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
+> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
   assertPurposeIsDraft(purpose.data);
 
-  if (updateContent.title !== purpose.data.title) {
+  if (updateContent.title && updateContent.title !== purpose.data.title) {
     await assertPurposeTitleIsNotDuplicated({
       readModelService,
       eserviceId: purpose.data.eserviceId,
@@ -1641,23 +1670,25 @@ const performUpdatePurpose = async (
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver
-      ? validateAndTransformRiskAnalysis(
-          updateContent.riskAnalysisForm,
-          true,
-          tenantKind
-        )
+      ? match(updateContent.riskAnalysisForm)
+          .with(null, () => undefined)
+          .otherwise((f) =>
+            validateAndTransformRiskAnalysis(f, true, tenantKind)
+          )
       : purpose.data.riskAnalysisForm;
 
   const updatedPurpose: Purpose = {
     ...purpose.data,
-    title: updateContent.title,
-    description: updateContent.description,
-    isFreeOfCharge: updateContent.isFreeOfCharge,
-    freeOfChargeReason: updateContent.freeOfChargeReason,
+    title: updateContent.title ?? purpose.data.title,
+    description: updateContent.description ?? purpose.data.description,
+    isFreeOfCharge: updateContent.isFreeOfCharge ?? purpose.data.isFreeOfCharge,
+    freeOfChargeReason:
+      updateContent.freeOfChargeReason ?? purpose.data.freeOfChargeReason,
     versions: [
       {
         ...purpose.data.versions[0],
-        dailyCalls: updateContent.dailyCalls,
+        dailyCalls:
+          updateContent.dailyCalls ?? purpose.data.versions[0].dailyCalls,
         updatedAt: new Date(),
       },
     ],
@@ -1670,15 +1701,18 @@ const performUpdatePurpose = async (
     version: purpose.metadata.version,
     correlationId,
   });
-  await repository.createEvent(event);
+  const createdEvent = await repository.createEvent(event);
 
   return {
-    purpose: updatedPurpose,
-    isRiskAnalysisValid: isRiskAnalysisFormValid(
-      updatedPurpose.riskAnalysisForm,
-      false,
-      tenantKind
-    ),
+    data: {
+      purpose: updatedPurpose,
+      isRiskAnalysisValid: isRiskAnalysisFormValid(
+        updatedPurpose.riskAnalysisForm,
+        false,
+        tenantKind
+      ),
+    },
+    metadata: { version: createdEvent.newVersion },
   };
 };
 

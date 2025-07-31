@@ -474,10 +474,10 @@ export function purposeServiceBuilder(
         logger
       );
     },
-    getPurposeAgreement: async (
+    async getPurposeAgreement(
       purposeId: PurposeId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Agreement> => {
+    ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Retrieving agreement for purpose with id ${purposeId}`);
 
       const { data: purpose } = await retrievePurposeById(purposeId, headers);
@@ -495,6 +495,23 @@ export function purposeServiceBuilder(
       }
 
       return toM2MGatewayApiAgreement(agreement);
+    },
+    async updateDraftPurpose(
+      purposeId: PurposeId,
+      updateSeed: m2mGatewayApi.PurposeDraftUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Purpose> {
+      logger.info(`Updating draft purpose with id ${purposeId}`);
+
+      const updatedPurpose =
+        await clients.purposeProcessClient.PATCH_updatePurpose(updateSeed, {
+          params: { id: purposeId },
+          headers,
+        });
+
+      const polledResource = await pollPurpose(updatedPurpose, headers);
+
+      return toM2MGatewayApiPurpose(polledResource.data);
     },
   };
 }
