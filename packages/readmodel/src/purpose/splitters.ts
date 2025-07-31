@@ -58,7 +58,7 @@ export const splitPurposeIntoObjectsSQL = (
     updatedAt: dateToString(updatedAt),
     isFreeOfCharge,
     freeOfChargeReason: freeOfChargeReason || null,
-    purposeTemplateId: purposeTemplateId ?? null,
+    purposeTemplateId: purposeTemplateId || null,
   };
 
   const splitPurposeRiskAnalysisSQL = splitRiskAnalysisFormIntoObjectsSQL(
