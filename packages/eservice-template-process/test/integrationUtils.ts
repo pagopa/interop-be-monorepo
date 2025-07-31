@@ -21,10 +21,15 @@ import {
 } from "pagopa-interop-models";
 import {
   attributeReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import {
+  upsertAttribute,
+  upsertEService,
+  upsertEServiceTemplate,
+  upsertTenant,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplateService.js";
@@ -56,7 +61,6 @@ const eserviceTemplateReadModelServiceSQL =
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const attributeReadModelServiceSQL =
   attributeReadModelServiceBuilder(readModelDB);
-const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL({
@@ -105,22 +109,19 @@ export const addOneEServiceTemplate = async (
   await writeEServiceTemplateInEventstore(eserviceTemplate);
   await writeInReadmodel(eserviceTemplate, eserviceTemplates);
 
-  await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
-    eserviceTemplate,
-    0
-  );
+  await upsertEServiceTemplate(readModelDB, eserviceTemplate, 0);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 
-  await attributeReadModelServiceSQL.upsertAttribute(attribute, 0);
+  await upsertAttribute(readModelDB, attribute, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
 
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const readLastEserviceTemplateEvent = async (
@@ -135,5 +136,5 @@ export const readLastEserviceTemplateEvent = async (
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
 
-  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
+  await upsertTenant(readModelDB, tenant, 0);
 };

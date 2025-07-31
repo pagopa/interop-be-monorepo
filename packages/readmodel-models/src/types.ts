@@ -57,6 +57,9 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   userNotificationConfigInReadmodelNotificationConfig,
+  tenantEnabledNotificationInReadmodelNotificationConfig,
+  userEnabledInAppNotificationInReadmodelNotificationConfig,
+  userEnabledEmailNotificationInReadmodelNotificationConfig,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -274,10 +277,28 @@ export type DelegationItemsSQL = {
 export type TenantNotificationConfigSQL = InferSelectModel<
   typeof tenantNotificationConfigInReadmodelNotificationConfig
 >;
+export type TenantEnabledNotificationSQL = InferSelectModel<
+  typeof tenantEnabledNotificationInReadmodelNotificationConfig
+>;
+export type TenantNotificationConfigItemsSQL = {
+  tenantNotificationConfigSQL: TenantNotificationConfigSQL;
+  enabledNotificationsSQL: TenantEnabledNotificationSQL[];
+};
 
 export type UserNotificationConfigSQL = InferSelectModel<
   typeof userNotificationConfigInReadmodelNotificationConfig
 >;
+export type UserEnabledInAppNotificationSQL = InferSelectModel<
+  typeof userEnabledInAppNotificationInReadmodelNotificationConfig
+>;
+export type UserEnabledEmailNotificationSQL = InferSelectModel<
+  typeof userEnabledEmailNotificationInReadmodelNotificationConfig
+>;
+export type UserNotificationConfigItemsSQL = {
+  userNotificationConfigSQL: UserNotificationConfigSQL;
+  enabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[];
+  enabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[];
+};
 
 export type PurposeTemplateSQL = InferSelectModel<
   typeof purposeTemplateInReadmodelPurposeTemplate
@@ -301,8 +322,8 @@ export type PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL =
 export type PurposeTemplateItemsSQL = {
   purposeTemplateSQL: PurposeTemplateSQL;
   eserviceDescriptorVersionsSQL: PurposeTemplateEServiceDescriptorVersionSQL[];
-  riskAnalysisFormSQL: PurposeTemplateRiskAnalysisFormSQL | undefined;
-  riskAnalysisAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
-  riskAnalysisAnswerAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
-  riskAnalysisAnswerAnnotationDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+  riskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSQL | undefined;
+  riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
+  riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
 };

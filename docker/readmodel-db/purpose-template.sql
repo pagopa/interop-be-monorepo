@@ -3,8 +3,8 @@ CREATE SCHEMA IF NOT EXISTS readmodel_purpose_template;
 CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template (
   id UUID,
   metadata_version INTEGER NOT NULL,
-  "name" VARCHAR NOT NULL,
-  "target" VARCHAR NOT NULL,
+  target_description VARCHAR NOT NULL,
+  target_tenant_kind VARCHAR NOT NULL,
   creator_id UUID NOT NULL,
   "state" VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -58,7 +58,6 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
   metadata_version INTEGER NOT NULL,
   answer_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_answer (id) ON DELETE CASCADE,
   "text" VARCHAR,
-  "urls" JSON,
   UNIQUE (answer_id),
   PRIMARY KEY (id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED

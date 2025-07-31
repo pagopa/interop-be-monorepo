@@ -1,12 +1,11 @@
 import { z } from "zod";
 import {
-  LinkId,
   RiskAnalysisFormId,
   RiskAnalysisFormTemplateId,
   RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
-  RiskAnalysisTemplateAnnotationDocumentId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
 } from "../brandedIds.js";
 
@@ -57,28 +56,22 @@ export const RiskAnalysis = z.object({
 });
 export type RiskAnalysis = z.infer<typeof RiskAnalysis>;
 
-export const RiskAnalysisTemplateAnnotationDocument = z.object({
-  id: RiskAnalysisTemplateAnnotationDocumentId,
+export const RiskAnalysisTemplateAnswerAnnotationDocument = z.object({
+  id: RiskAnalysisTemplateAnswerAnnotationDocumentId,
   name: z.string(),
   contentType: z.string(),
   prettyName: z.string(),
   path: z.string(),
   createdAt: z.coerce.date(),
 });
-
-// TODO: move to commons if needed
-export const Link = z.object({
-  id: LinkId,
-  url: z.string().url(),
-  name: z.string(),
-});
-export type Link = z.infer<typeof Link>;
+export type RiskAnalysisTemplateAnswerAnnotationDocument = z.infer<
+  typeof RiskAnalysisTemplateAnswerAnnotationDocument
+>;
 
 export const RiskAnalysisTemplateAnswerAnnotation = z.object({
   id: RiskAnalysisTemplateAnswerAnnotationId,
   text: z.string().optional(),
-  docs: z.array(RiskAnalysisTemplateAnnotationDocument).optional(),
-  urls: z.array(Link).optional(),
+  docs: z.array(RiskAnalysisTemplateAnswerAnnotationDocument),
 });
 export type RiskAnalysisTemplateAnswerAnnotation = z.infer<
   typeof RiskAnalysisTemplateAnswerAnnotation
