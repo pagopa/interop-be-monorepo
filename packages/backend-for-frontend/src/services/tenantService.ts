@@ -72,7 +72,7 @@ export function tenantServiceBuilder(
       return institution.logo;
     } catch (error) {
       logger.warn(
-        `Error retrieving logo for tenant ${selfcareId} from selfcare`
+        `Error retrieving logo for tenant ${selfcareId} from selfcare - ${error}`
       );
       return undefined;
     }
