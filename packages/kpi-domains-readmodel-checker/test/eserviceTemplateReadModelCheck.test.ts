@@ -10,10 +10,11 @@ import {
   EServiceTemplateVersion,
   WithMetadata,
 } from "pagopa-interop-models";
+import { upsertEServiceTemplate } from "pagopa-interop-readmodel/testUtils";
 import { compare } from "../src/utils.js";
 import {
   addOneEServiceTemplate,
-  eserviceTemplateReadModelServiceSQL,
+  readModelDB,
   readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
@@ -60,7 +61,8 @@ describe("Check e-service template read models", () => {
 
     await addOneEServiceTemplate(eserviceTemplate);
 
-    await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
+    await upsertEServiceTemplate(
+      readModelDB,
       eserviceTemplate.data,
       eserviceTemplate.metadata.version
     );
@@ -104,7 +106,8 @@ describe("Check e-service template read models", () => {
     await addOneEServiceTemplate(eserviceTemplate1);
     await addOneEServiceTemplate(eserviceTemplate2);
 
-    await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
+    await upsertEServiceTemplate(
+      readModelDB,
       eserviceTemplate2.data,
       eserviceTemplate2.metadata.version
     );
@@ -147,11 +150,13 @@ describe("Check e-service template read models", () => {
 
     await addOneEServiceTemplate(eserviceTemplate1);
 
-    await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
+    await upsertEServiceTemplate(
+      readModelDB,
       eserviceTemplate1.data,
       eserviceTemplate1.metadata.version
     );
-    await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
+    await upsertEServiceTemplate(
+      readModelDB,
       eserviceTemplate2.data,
       eserviceTemplate2.metadata.version
     );
@@ -197,7 +202,8 @@ describe("Check e-service template read models", () => {
 
     await addOneEServiceTemplate(eserviceTemplate1);
 
-    await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
+    await upsertEServiceTemplate(
+      readModelDB,
       eserviceTemplate1InPostgresDb.data,
       eserviceTemplate1InPostgresDb.metadata.version
     );
@@ -242,7 +248,8 @@ describe("Check e-service template read models", () => {
 
     await addOneEServiceTemplate(eserviceTemplate1);
 
-    await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
+    await upsertEServiceTemplate(
+      readModelDB,
       eserviceTemplate1InPostgresDb.data,
       eserviceTemplate1InPostgresDb.metadata.version
     );

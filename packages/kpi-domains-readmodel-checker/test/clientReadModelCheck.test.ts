@@ -2,10 +2,11 @@ import { getMockClient } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { Client, WithMetadata, clientKind } from "pagopa-interop-models";
+import { upsertClient } from "pagopa-interop-readmodel/testUtils";
 import { compare } from "../src/utils.js";
 import {
   addOneClient,
-  clientReadModelServiceSQL,
+  readModelDB,
   readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
@@ -41,10 +42,7 @@ describe("Check client readmodels", () => {
 
     await addOneClient(client);
 
-    await clientReadModelServiceSQL.upsertClient(
-      client.data,
-      client.metadata.version
-    );
+    await upsertClient(readModelDB, client.data, client.metadata.version);
 
     const clients = await readModelServiceKPI.getAllClients();
 
@@ -74,10 +72,7 @@ describe("Check client readmodels", () => {
     await addOneClient(client1);
     await addOneClient(client2);
 
-    await clientReadModelServiceSQL.upsertClient(
-      client2.data,
-      client2.metadata.version
-    );
+    await upsertClient(readModelDB, client2.data, client2.metadata.version);
 
     const clients = await readModelServiceKPI.getAllClients();
 
@@ -106,14 +101,8 @@ describe("Check client readmodels", () => {
 
     await addOneClient(client1);
 
-    await clientReadModelServiceSQL.upsertClient(
-      client1.data,
-      client1.metadata.version
-    );
-    await clientReadModelServiceSQL.upsertClient(
-      client2.data,
-      client2.metadata.version
-    );
+    await upsertClient(readModelDB, client1.data, client1.metadata.version);
+    await upsertClient(readModelDB, client2.data, client2.metadata.version);
 
     const clients = await readModelServiceKPI.getAllClients();
 
@@ -148,7 +137,8 @@ describe("Check client readmodels", () => {
 
     await addOneClient(client1);
 
-    await clientReadModelServiceSQL.upsertClient(
+    await upsertClient(
+      readModelDB,
       client1InPostgresDb.data,
       client1InPostgresDb.metadata.version
     );
@@ -182,7 +172,8 @@ describe("Check client readmodels", () => {
 
     await addOneClient(client1);
 
-    await clientReadModelServiceSQL.upsertClient(
+    await upsertClient(
+      readModelDB,
       client1InPostgresDb.data,
       client1InPostgresDb.metadata.version
     );

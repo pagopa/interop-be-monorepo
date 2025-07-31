@@ -2,12 +2,13 @@ import { getMockTenant } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { Tenant, WithMetadata, tenantKind } from "pagopa-interop-models";
+import { upsertTenant } from "pagopa-interop-readmodel/testUtils";
 import { compare } from "../src/utils.js";
 import {
   addOneTenant,
-  tenantReadModelServiceSQL,
   readModelServiceKPI,
   readModelServiceSQL,
+  readModelDB,
 } from "./utils.js";
 
 describe("Check tenant readmodels", () => {
@@ -41,10 +42,7 @@ describe("Check tenant readmodels", () => {
 
     await addOneTenant(tenant);
 
-    await tenantReadModelServiceSQL.upsertTenant(
-      tenant.data,
-      tenant.metadata.version
-    );
+    await upsertTenant(readModelDB, tenant.data, tenant.metadata.version);
 
     const tenants = await readModelServiceKPI.getAllTenants();
 
@@ -74,10 +72,7 @@ describe("Check tenant readmodels", () => {
     await addOneTenant(tenant1);
     await addOneTenant(tenant2);
 
-    await tenantReadModelServiceSQL.upsertTenant(
-      tenant2.data,
-      tenant2.metadata.version
-    );
+    await upsertTenant(readModelDB, tenant2.data, tenant2.metadata.version);
 
     const tenants = await readModelServiceKPI.getAllTenants();
 
@@ -106,14 +101,8 @@ describe("Check tenant readmodels", () => {
 
     await addOneTenant(tenant1);
 
-    await tenantReadModelServiceSQL.upsertTenant(
-      tenant1.data,
-      tenant1.metadata.version
-    );
-    await tenantReadModelServiceSQL.upsertTenant(
-      tenant2.data,
-      tenant2.metadata.version
-    );
+    await upsertTenant(readModelDB, tenant1.data, tenant1.metadata.version);
+    await upsertTenant(readModelDB, tenant2.data, tenant2.metadata.version);
 
     const tenants = await readModelServiceKPI.getAllTenants();
 
@@ -148,7 +137,8 @@ describe("Check tenant readmodels", () => {
 
     await addOneTenant(tenant1);
 
-    await tenantReadModelServiceSQL.upsertTenant(
+    await upsertTenant(
+      readModelDB,
       tenant1InPostgresDb.data,
       tenant1InPostgresDb.metadata.version
     );
@@ -182,7 +172,8 @@ describe("Check tenant readmodels", () => {
 
     await addOneTenant(tenant1);
 
-    await tenantReadModelServiceSQL.upsertTenant(
+    await upsertTenant(
+      readModelDB,
       tenant1InPostgresDb.data,
       tenant1InPostgresDb.metadata.version
     );
