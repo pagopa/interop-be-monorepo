@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
@@ -10,11 +11,8 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
-import { ZodiosRouter } from "@zodios/express";
-import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
-import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -49,18 +47,18 @@ const purposeTemplateRouter = (
           SECURITY_ROLE,
         ]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .post("/purposeTemplates", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .get("/purposeTemplates/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -74,9 +72,9 @@ const purposeTemplateRouter = (
           SECURITY_ROLE,
         ]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .get("/purposeTemplates/riskAnalysis", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -90,9 +88,9 @@ const purposeTemplateRouter = (
           SECURITY_ROLE,
         ]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .get("/purposeTemplates/:id", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -123,18 +121,18 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .delete("/purposeTemplates/:id", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .get("/purposeTemplates/:id/riskAnalysis", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -148,18 +146,18 @@ const purposeTemplateRouter = (
           SECURITY_ROLE,
         ]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .post("/purposeTemplates/:id/riskAnalysis", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .get("/purposeTemplates/:id/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -173,63 +171,63 @@ const purposeTemplateRouter = (
           SECURITY_ROLE,
         ]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .post("/purposeTemplates/:id/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .delete("/purposeTemplates/:id/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .post("/purposeTemplates/:id/suspend", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .post("/purposeTemplates/:id/unsuspend", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .post("/purposeTemplates/:id/archive", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     })
     .post("/purposeTemplates/:id/activate", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
       } catch (error) {
-        return res.status(504);
+        return res.status(501);
       }
-      return res.status(504);
+      return res.status(501);
     });
 
   return purposeTemplateRouter;
