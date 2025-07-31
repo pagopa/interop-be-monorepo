@@ -15,7 +15,7 @@ import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
-  _purposeTemplateService: PurposeTemplateService
+  purposeTemplateService: PurposeTemplateService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const purposeTemplateRouter = ctx.router(
     purposeTemplateApi.purposeTemplateApi.api,
@@ -46,12 +46,12 @@ const purposeTemplateRouter = (
         SUPPORT_ROLE,
       ]);
 
-      await _purposeTemplateService.getPurposeTemplateById(
+      await purposeTemplateService.getPurposeTemplateById(
         unsafeBrandId(req.params.id),
         ctx
       );
 
-      return res.status(501);
+      return res.status(501).send(); // Not implemented
     } catch (error) {
       const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
       return res.status(errorRes.status).send(errorRes);
