@@ -5,8 +5,6 @@
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test:api": "vitest --config vitest.api.config.ts",
-    "test:integration": "echo \"SQL readmodel\" && vitest --config vitest.integrationsql.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",

@@ -1,22 +1,23 @@
 import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
+import {
   authenticationMiddleware,
   contextMiddleware,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import healthRouter from "./routers/HealthRouter.js";
-import { PurposeTemplateService } from "./services/purposeTemplateService.js";
-import PurposeTemplateRouter from "./routers/PurposeTemplateRouter.js";
-import {
-  applicationAuditBeginMiddleware,
-  applicationAuditEndMiddleware,
-} from "pagopa-interop-application-audit";
 import { config } from "./config/config.js";
+import healthRouter from "./routers/HealthRouter.js";
+import purposeTemplateRouter from "./routers/PurposeTemplateRouter.js";
+import { PurposeTemplateService } from "./services/purposeTemplateService.js";
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: PurposeTemplateService) {
   const serviceName = modelsServiceName.PURPOSE_TEMPLATE_PROCESS;
-  const router = PurposeTemplateRouter(zodiosCtx, service);
+  const router = purposeTemplateRouter(zodiosCtx, service);
 
   const app = zodiosCtx.app();
 

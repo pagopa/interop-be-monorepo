@@ -1,3 +1,6 @@
+import { ZodiosEndpointDefinitions } from "@zodios/core";
+import { ZodiosRouter } from "@zodios/express";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   ExpressContext,
@@ -6,16 +9,13 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { PurposeTemplateService } from "../services/purposeTemplateService.js";
-import { ZodiosRouter } from "@zodios/express";
-import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 
-const PurposeTemplateRouter = (
+const purposeTemplateRouter = (
   ctx: ZodiosContext,
-  purposeTemplateService: PurposeTemplateService
+  _purposeTemplateService: PurposeTemplateService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const purposeTemplateRouter = ctx.router(
     purposeTemplateApi.purposeTemplateApi.api,
@@ -46,7 +46,7 @@ const PurposeTemplateRouter = (
         SUPPORT_ROLE,
       ]);
 
-      await purposeTemplateService.getPurposeTemplateById(
+      await _purposeTemplateService.getPurposeTemplateById(
         unsafeBrandId(req.params.id),
         ctx
       );
@@ -61,4 +61,4 @@ const PurposeTemplateRouter = (
   return purposeTemplateRouter;
 };
 
-export default PurposeTemplateRouter;
+export default purposeTemplateRouter;

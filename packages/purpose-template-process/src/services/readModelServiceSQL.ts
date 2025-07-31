@@ -3,9 +3,11 @@ import {
   EServiceId,
   PurposeTemplate,
   PurposeTemplateId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { CatalogReadModelService } from "pagopa-interop-readmodel";
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
   catalogReadModelServiceSQL,
 }: {
@@ -18,7 +20,7 @@ export function readModelServiceBuilderSQL({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getPurposeTemplateById(
       _id: PurposeTemplateId
-    ): Promise<PurposeTemplate | undefined> {
+    ): Promise<WithMetadata<PurposeTemplate> | undefined> {
       // TO DO: this is a placeholder function Replace with actual implementation to fetch the purpose template by ID
       return undefined;
     },

@@ -1,10 +1,8 @@
 import {
-  EService,
-  EServiceId,
   PurposeTemplate,
   PurposeTemplateId,
+  WithMetadata,
 } from "pagopa-interop-models";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   AppContext,
   DB,
@@ -13,7 +11,9 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   _dbInstance: DB,
   readModelService: ReadModelServiceSQL
@@ -26,11 +26,8 @@ export function purposeTemplateServiceBuilder(
     async getPurposeTemplateById(
       id: PurposeTemplateId,
       _ctx: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<PurposeTemplate | undefined> {
+    ): Promise<WithMetadata<PurposeTemplate> | undefined> {
       return readModelService.getPurposeTemplateById(id);
-    },
-    async getEServiceById(id: EServiceId): Promise<EService | undefined> {
-      return readModelService.getEServiceById(id);
     },
   };
 }
