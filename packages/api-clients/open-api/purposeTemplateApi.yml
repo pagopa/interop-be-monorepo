@@ -515,6 +515,77 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+    post:
+      tags:
+        - purposeTemplate
+      operationId: addEserviceToPurposeTemplate
+      description: Add an eservice to a purpose template (in Draft state)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorVersionPurposeTemplateUpdatePayload"
+        required: true
+      responses:
+        "200":
+          description: Eservice added to purpose template
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EserviceDescriptorVersionPurposeTemplate"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      tags:
+        - purposeTemplate
+      operationId: removeEserviceFromPurposeTemplate
+      description: Remove an eservice from a purpose template (in Draft state)
+      responses:
+        "204":
+          description: Eservice removed from purpose template
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{id}/suspend:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
