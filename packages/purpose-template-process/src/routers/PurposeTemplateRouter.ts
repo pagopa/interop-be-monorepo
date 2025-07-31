@@ -165,6 +165,24 @@ const purposeTemplateRouter = (
       }
       return res.status(504);
     })
+    .post("/purposeTemplates/:id/eservices", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+      } catch (error) {
+        return res.status(504);
+      }
+      return res.status(504);
+    })
+    .delete("/purposeTemplates/:id/eservices", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+      } catch (error) {
+        return res.status(504);
+      }
+      return res.status(504);
+    })
     .post("/purposeTemplates/:id/suspend", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
