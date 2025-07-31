@@ -12,7 +12,7 @@ import {
   EventEnvelope,
   generateId,
   genericInternalError,
-  Notification,
+  NewNotification,
   PurposeEventV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -94,8 +94,8 @@ function processMessage(topicNames: TopicNames) {
         decodedMessage: EventEnvelope<z.infer<T>>,
         logger: Logger,
         readModelService: ReadModelServiceSQL
-      ) => Promise<Notification[]>
-    ): Promise<Notification[]> => {
+      ) => Promise<NewNotification[]>
+    ): Promise<NewNotification[]> => {
       const decodedMessage = decodeKafkaMessage(
         messagePayload.message,
         eventType
