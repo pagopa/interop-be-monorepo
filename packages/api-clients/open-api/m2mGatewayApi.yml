@@ -7759,9 +7759,7 @@ components:
         freeOfChargeReason:
           type: string
         riskAnalysisForm:
-          oneOf:
-            - $ref: "#/components/schemas/RiskAnalysisFormSeed"
-            - type: "null"
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
         dailyCalls:
           description: Maximum number of daily calls that this version can perform.
           type: integer

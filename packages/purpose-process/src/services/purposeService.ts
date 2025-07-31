@@ -1670,11 +1670,11 @@ const performUpdatePurpose = async (
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver
-      ? match(updateContent.riskAnalysisForm)
-          .with(null, () => undefined)
-          .otherwise((f) =>
-            validateAndTransformRiskAnalysis(f, true, tenantKind)
-          )
+      ? validateAndTransformRiskAnalysis(
+          updateContent.riskAnalysisForm,
+          true,
+          tenantKind
+        )
       : purpose.data.riskAnalysisForm;
 
   const updatedPurpose: Purpose = {
