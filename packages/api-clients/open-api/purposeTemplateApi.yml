@@ -795,15 +795,8 @@ components:
       type: object
       additionalProperties: false
       properties:
-        id:
-          type: string
-          format: uuid
         targetDescription:
           type: string
-        targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
-        state:
-          $ref: "#/components/schemas/PurposeTemplateState"
         purposeTitle:
           type: string
         purposeDescription:
