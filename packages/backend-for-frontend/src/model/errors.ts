@@ -60,6 +60,7 @@ export const errorCodes = {
   noVersionInEServiceTemplate: "0055",
   templateInstanceNotAllowed: "0056",
   tenantBySelfcareIdNotFound: "0057",
+  purposeTemplateNotFound: "0058",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -469,5 +470,15 @@ export function templateInstanceNotAllowed(
     detail: `Operation not allowed on EService ${eserviceId} instance of template ${eServiceTemplateId}`,
     code: "templateInstanceNotAllowed",
     title: "TemplateId must be undefined",
+  });
+}
+
+export function purposeTemplateNotFound(
+  purposeTemplateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template ${purposeTemplateId} not found`,
+    code: "purposeTemplateNotFound",
+    title: "Purpose Template not found",
   });
 }
