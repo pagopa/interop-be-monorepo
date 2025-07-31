@@ -177,6 +177,49 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/purposeTemplates/:id/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result =
+          await purposeTemplateService.addEserviceToPurposeTemplate(
+            unsafeBrandId(req.params.id),
+            req.body,
+            ctx
+          );
+
+        return res.status(200).send(result);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error adding eservice to purpose template ${req.params.id}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/purposeTemplates/:id/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await purposeTemplateService.removeEserviceFromPurposeTemplate(
+          unsafeBrandId(req.params.id),
+          req.body,
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error removing eservice from purpose template ${req.params.id}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/purposeTemplates/:id/suspend", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 

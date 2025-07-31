@@ -213,6 +213,42 @@ export function purposeTemplateServiceBuilder({
       });
     },
 
+    async addEserviceToPurposeTemplate(
+      id: string,
+      payload: bffApi.EServiceDescriptorVersionPurposeTemplateUpdatePayload,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.EserviceDescriptorVersionPurposeTemplate> {
+      logger.info(`Adding eservice to purpose template ${id}`);
+
+      return await purposeTemplateProcessClient.addEserviceToPurposeTemplate(
+        payload,
+        {
+          params: {
+            id,
+          },
+          headers,
+        }
+      );
+    },
+
+    async removeEserviceFromPurposeTemplate(
+      id: string,
+      payload: bffApi.EServiceDescriptorVersionPurposeTemplateUpdatePayload,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Removing eservice from purpose template ${id}`);
+
+      await purposeTemplateProcessClient.removeEserviceFromPurposeTemplate(
+        payload,
+        {
+          params: {
+            id,
+          },
+          headers,
+        }
+      );
+    },
+
     async suspendPurposeTemplate(
       id: string,
       { headers, logger }: WithLogger<BffAppContext>
