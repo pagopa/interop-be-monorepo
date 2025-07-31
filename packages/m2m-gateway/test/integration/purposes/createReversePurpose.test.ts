@@ -27,7 +27,7 @@ describe("createReversePurpose", () => {
     getMockedApiPurpose()
   );
 
-  const mockEServicePurposeSeed: m2mGatewayApi.EServicePurposeSeed = {
+  const mockReversePurposeSeed: m2mGatewayApi.ReversePurposeSeed = {
     dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,
     description: mockPurposeProcessGetResponse.data.description,
     eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
@@ -82,7 +82,7 @@ describe("createReversePurpose", () => {
   const mockConsumerDelegation: delegationApi.Delegation =
     getMockedApiDelegation({
       kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-      eserviceId: mockEServicePurposeSeed.eserviceId,
+      eserviceId: mockReversePurposeSeed.eserviceId,
       state: delegationApi.DelegationState.Values.ACTIVE,
       delegateId: mockAppContext.authData.organizationId,
     });
@@ -93,7 +93,7 @@ describe("createReversePurpose", () => {
     );
 
     const result = await purposeService.createReversePurpose(
-      mockEServicePurposeSeed,
+      mockReversePurposeSeed,
       mockAppContext
     );
 
@@ -102,13 +102,13 @@ describe("createReversePurpose", () => {
       mockPost:
         mockInteropBeClients.purposeProcessClient.createPurposeFromEService,
       body: {
-        dailyCalls: mockEServicePurposeSeed.dailyCalls,
-        description: mockEServicePurposeSeed.description,
-        eServiceId: mockEServicePurposeSeed.eserviceId,
-        riskAnalysisId: mockEServicePurposeSeed.riskAnalysisId,
-        isFreeOfCharge: mockEServicePurposeSeed.isFreeOfCharge,
-        freeOfChargeReason: mockEServicePurposeSeed.freeOfChargeReason,
-        title: mockEServicePurposeSeed.title,
+        dailyCalls: mockReversePurposeSeed.dailyCalls,
+        description: mockReversePurposeSeed.description,
+        eserviceId: mockReversePurposeSeed.eserviceId,
+        riskAnalysisId: mockReversePurposeSeed.riskAnalysisId,
+        isFreeOfCharge: mockReversePurposeSeed.isFreeOfCharge,
+        freeOfChargeReason: mockReversePurposeSeed.freeOfChargeReason,
+        title: mockReversePurposeSeed.title,
         consumerId: mockAppContext.authData.organizationId,
       },
     });
@@ -138,8 +138,8 @@ describe("createReversePurpose", () => {
       getMockWithMetadata(mockConsumerDelegation)
     );
 
-    const mockPurposeSeedWithDelegation: m2mGatewayApi.EServicePurposeSeed = {
-      ...mockEServicePurposeSeed,
+    const mockPurposeSeedWithDelegation: m2mGatewayApi.ReversePurposeSeed = {
+      ...mockReversePurposeSeed,
       delegationId: mockConsumerDelegation.id,
     };
 
@@ -153,13 +153,13 @@ describe("createReversePurpose", () => {
       mockPost:
         mockInteropBeClients.purposeProcessClient.createPurposeFromEService,
       body: {
-        dailyCalls: mockEServicePurposeSeed.dailyCalls,
-        description: mockEServicePurposeSeed.description,
-        eServiceId: mockEServicePurposeSeed.eserviceId,
-        riskAnalysisId: mockEServicePurposeSeed.riskAnalysisId,
-        isFreeOfCharge: mockEServicePurposeSeed.isFreeOfCharge,
-        freeOfChargeReason: mockEServicePurposeSeed.freeOfChargeReason,
-        title: mockEServicePurposeSeed.title,
+        dailyCalls: mockReversePurposeSeed.dailyCalls,
+        description: mockReversePurposeSeed.description,
+        eserviceId: mockReversePurposeSeed.eserviceId,
+        riskAnalysisId: mockReversePurposeSeed.riskAnalysisId,
+        isFreeOfCharge: mockReversePurposeSeed.isFreeOfCharge,
+        freeOfChargeReason: mockReversePurposeSeed.freeOfChargeReason,
+        title: mockReversePurposeSeed.title,
         consumerId: mockConsumerDelegation.delegatorId,
       },
     });
@@ -212,8 +212,8 @@ describe("createReversePurpose", () => {
     async (mockDelegation) => {
       mockGetDelegation.mockResolvedValue(getMockWithMetadata(mockDelegation));
 
-      const mockPurposeSeedWithDelegation: m2mGatewayApi.EServicePurposeSeed = {
-        ...mockEServicePurposeSeed,
+      const mockPurposeSeedWithDelegation: m2mGatewayApi.ReversePurposeSeed = {
+        ...mockReversePurposeSeed,
         delegationId: mockDelegation.id,
       };
 
@@ -225,7 +225,7 @@ describe("createReversePurpose", () => {
       ).rejects.toThrowError(
         notAnActiveConsumerDelegation(
           mockAppContext.authData.organizationId,
-          mockEServicePurposeSeed.eserviceId,
+          mockReversePurposeSeed.eserviceId,
           mockDelegation
         )
       );
@@ -240,7 +240,7 @@ describe("createReversePurpose", () => {
 
     await expect(
       purposeService.createReversePurpose(
-        mockEServicePurposeSeed,
+        mockReversePurposeSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -254,7 +254,7 @@ describe("createReversePurpose", () => {
 
     await expect(
       purposeService.createReversePurpose(
-        mockEServicePurposeSeed,
+        mockReversePurposeSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -270,7 +270,7 @@ describe("createReversePurpose", () => {
 
     await expect(
       purposeService.createReversePurpose(
-        mockEServicePurposeSeed,
+        mockReversePurposeSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(

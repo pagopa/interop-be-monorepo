@@ -124,7 +124,7 @@ export function purposeServiceBuilder(
   };
 
   const getConsumerIdForPurposeCreation = async (
-    purposeSeed: m2mGatewayApi.PurposeSeed | m2mGatewayApi.EServicePurposeSeed,
+    purposeSeed: m2mGatewayApi.PurposeSeed | m2mGatewayApi.ReversePurposeSeed,
     requesterTenantId: TenantId,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<TenantId> => {
@@ -471,7 +471,7 @@ export function purposeServiceBuilder(
       await pollPurposeById(purposeId, metadata, headers);
     },
     async createReversePurpose(
-      purposeSeed: m2mGatewayApi.EServicePurposeSeed,
+      purposeSeed: m2mGatewayApi.ReversePurposeSeed,
       { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
@@ -486,7 +486,7 @@ export function purposeServiceBuilder(
               authData.organizationId,
               headers
             ),
-            eServiceId: purposeSeed.eserviceId,
+            eserviceId: purposeSeed.eserviceId,
             dailyCalls: purposeSeed.dailyCalls,
             description: purposeSeed.description,
             isFreeOfCharge: purposeSeed.isFreeOfCharge,
