@@ -1,7 +1,4 @@
-import {
-  PurposeTemplateEventEnvelopeV2,
-  missingKafkaMessageDataError,
-} from "pagopa-interop-models";
+import { PurposeTemplateEventEnvelopeV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { PurposeTemplateWriterService } from "./purposeTemplateWriterService.js";
 
@@ -9,19 +6,17 @@ export async function handleMessageV2(
   message: PurposeTemplateEventEnvelopeV2,
   _purposeTemplateWriterService: PurposeTemplateWriterService
 ): Promise<void> {
-  const purposeTemplateV2 = message.data.purposeTemplate;
-  if (!purposeTemplateV2) {
-    throw missingKafkaMessageDataError("purposeTemplate", message.type);
-  }
   await match(message)
     .with(
-      { type: "PurposeTemplatePublished" },
       { type: "PurposeTemplateAdded" },
+      { type: "PurposeTemplateEServiceLinked" },
+      { type: "PurposeTemplateEServiceUnlinked" },
+      { type: "PurposeTemplateDraftUpdated" },
+      { type: "PurposeTemplateDraftDeleted" },
+      { type: "PurposeTemplatePublished" },
       { type: "PurposeTemplateUnsuspended" },
       { type: "PurposeTemplateSuspended" },
       { type: "PurposeTemplateArchived" },
-      { type: "PurposeTemplateDraftUpdated" },
-      { type: "PurposeTemplateDraftDeleted" },
       async (_msg) => {
         await Promise.resolve();
       }
