@@ -517,10 +517,6 @@ components:
           type: boolean
         clientKeyAddedDeletedToClientUsers:
           type: boolean
-        agreementSuspendedUnsuspendedToProducer:
-          type: boolean
-        agreementSuspendedUnsuspendedToConsumer:
-          type: boolean
     TenantNotificationConfigSeed:
       type: object
       additionalProperties: false
@@ -555,21 +551,7 @@ components:
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
-          $ref: "#/components/schemas/NotificationConfigSeed"
-    NotificationConfigSeed:
-      type: object
-      additionalProperties: false
-      required:
-        - newEServiceVersionPublishedToConsumer
-        - agreementSuspendedUnsuspendedToProducer
-        - agreementSuspendedUnsuspendedToConsumer
-      properties:
-        newEServiceVersionPublishedToConsumer:
-          type: boolean
-        agreementSuspendedUnsuspendedToProducer:
-          type: boolean
-        agreementSuspendedUnsuspendedToConsumer:
-          type: boolean
+          $ref: "#/components/schemas/NotificationConfig"
     Problem:
       properties:
         type:
