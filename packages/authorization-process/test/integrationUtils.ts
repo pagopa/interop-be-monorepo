@@ -40,7 +40,13 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertClient,
+  upsertClientJWKKey,
+  upsertDelegation,
   upsertEService,
+  upsertProducerJWKKey,
+  upsertProducerKeychain,
+  upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
@@ -138,26 +144,26 @@ export const writeClientInEventstore = async (
 export const addOneKey = async (key: ClientJWKKey): Promise<void> => {
   await writeInReadmodel(key, keys);
 
-  await clientJWKKeyReadModelServiceSQL.upsertClientJWKKey(key, 0);
+  await upsertClientJWKKey(readModelDB, key, 0);
 };
 
 export const addOneProducerKey = async (key: ProducerJWKKey): Promise<void> => {
   await writeInReadmodel(key, producerKeys);
 
-  await producerJWKKeyReadModelServiceSQL.upsertProducerJWKKey(key, 0);
+  await upsertProducerJWKKey(readModelDB, key, 0);
 };
 
 export const addOneClient = async (client: Client): Promise<void> => {
   await writeClientInEventstore(client);
   await writeInReadmodel(toReadModelClient(client), clients);
 
-  await clientReadModelServiceSQL.upsertClient(client, 0);
+  await upsertClient(readModelDB, client, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await writeInReadmodel(toReadModelPurpose(purpose), purposes);
 
-  await purposeReadModelServiceSQL.upsertPurpose(purpose, 0);
+  await upsertPurpose(readModelDB, purpose, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
@@ -199,10 +205,7 @@ export const addOneProducerKeychain = async (
     producerKeychains
   );
 
-  await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
-    producerKeychain,
-    0
-  );
+  await upsertProducerKeychain(readModelDB, producerKeychain, 0);
 };
 
 export const addOneDelegation = async (
@@ -210,7 +213,7 @@ export const addOneDelegation = async (
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
 
-  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 export const readLastAuthorizationEvent = async (
