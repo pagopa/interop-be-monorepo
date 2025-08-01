@@ -3702,7 +3702,7 @@ paths:
               $ref: "#/components/schemas/EServiceDescriptorSeed"
         required: true
       responses:
-        "200":
+        "201":
           description: EService Descriptor created.
           content:
             application/json:

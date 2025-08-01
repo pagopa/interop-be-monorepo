@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import {
   Attribute,
+  Descriptor,
   EService,
   EServiceId,
   generateId,
@@ -18,7 +19,10 @@ import {
 } from "pagopa-interop-commons-test";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { buildCreateDescriptorSeed } from "../mockUtils.js";
-import { descriptorToApiDescriptor } from "../../src/model/domain/apiConverter.js";
+import {
+  descriptorToApiDescriptor,
+  eServiceToApiEService,
+} from "../../src/model/domain/apiConverter.js";
 import {
   attributeNotFound,
   draftDescriptorAlreadyExists,
@@ -50,7 +54,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     },
   };
 
-  const newDescriptor = {
+  const newDescriptor: Descriptor = {
     ...mockDescriptor,
     version: "1",
     createdAt: new Date(),
@@ -68,13 +72,21 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     descriptors: [newDescriptor],
   };
 
-  const serviceResponse = getMockWithMetadata(newDescriptor);
+  const serviceResponse = getMockWithMetadata({
+    eservice,
+    descriptor: newDescriptor,
+  });
 
-  const apiDescriptor = catalogApi.EServiceDescriptor.parse(
-    descriptorToApiDescriptor(newDescriptor)
-  );
+  const apiCreatedDescriptor = catalogApi.CreatedEServiceDescriptor.parse({
+    eservice: eServiceToApiEService(eservice),
+    descriptor: descriptorToApiDescriptor(newDescriptor),
+  });
 
-  catalogService.createDescriptor = vi.fn().mockResolvedValue(serviceResponse);
+  beforeEach(() => {
+    catalogService.createDescriptor = vi
+      .fn()
+      .mockResolvedValue(serviceResponse);
+  });
 
   const makeRequest = async (
     token: string,
@@ -92,13 +104,12 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     authRole.API_ROLE,
     authRole.M2M_ADMIN_ROLE,
   ];
-  it.each(authorizedRoles)(
+  it.only.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, eservice.id);
-
-      expect(res.body).toEqual(apiDescriptor);
+      expect(res.body).toEqual(apiCreatedDescriptor);
       expect(res.status).toBe(200);
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()

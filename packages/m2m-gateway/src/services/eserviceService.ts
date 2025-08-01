@@ -1,6 +1,6 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
+import { DescriptorId, EServiceId, unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
@@ -61,17 +61,12 @@ export function eserviceServiceBuilder(
     };
   };
 
-  const pollEserviceDescriptor = (
-    eserviceId: EServiceId,
-    response: WithMaybeMetadata<catalogApi.EServiceDescriptor>,
+  const pollEservice = (
+    response: WithMaybeMetadata<catalogApi.EService>,
     headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<catalogApi.EServiceDescriptor>> =>
+  ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
     pollResourceWithMetadata(() =>
-      retrieveEServiceDescriptorById(
-        headers,
-        eserviceId,
-        response.data.id as DescriptorId
-      )
+      retrieveEServiceById(headers, unsafeBrandId(response.data.id))
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
@@ -198,19 +193,34 @@ export function eserviceServiceBuilder(
     ): Promise<m2mGatewayApi.EServiceDescriptor> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
-      const response = await clients.catalogProcessClient.createDescriptor(
+      const {
+        data: { eservice, descriptor },
+        metadata,
+      } = await clients.catalogProcessClient.createDescriptor(
         eserviceDescriptorSeed,
         {
           params: { eServiceId: eserviceId },
           headers,
         }
       );
-      const polledResource = await pollEserviceDescriptor(
-        eserviceId,
-        response,
+
+      await pollEservice(
+        {
+          data: eservice,
+          metadata,
+        },
         headers
       );
-      return toM2MGatewayApiEServiceDescriptor(polledResource.data);
+
+      const createdDescriptor = eservice.descriptors.find(
+        (d) => d.id === descriptor.id
+      );
+
+      if (!createdDescriptor) {
+        throw eserviceDescriptorNotFound(eservice.id, descriptor.id);
+      }
+
+      return toM2MGatewayApiEServiceDescriptor(createdDescriptor);
     },
   };
 }

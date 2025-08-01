@@ -90,9 +90,13 @@ describe("createDescriptor", () => {
 
   const mockEserviceProcessResponse = getMockWithMetadata(mockApiEservice);
 
-  const mockcreateDescriptor = vi
-    .fn()
-    .mockResolvedValue(mockEserviceDescriptorProcessResponse);
+  const mockcreateDescriptor = vi.fn().mockResolvedValue({
+    data: {
+      eservice: mockApiEservice,
+      descriptor: mockApiDescriptor,
+    },
+    metadata: { version: 0 },
+  });
 
   const mockGetEservice = vi.fn(
     mockPollingResponse(mockEserviceProcessResponse, 2)
