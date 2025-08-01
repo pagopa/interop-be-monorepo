@@ -221,7 +221,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         userId: user.userId,
         tenantId: user.tenantId,
         body: expectedBody,
-        deepLink: `https://${config.interopFeBaseUrl}/ui/it/fruizione/sottoscrizione-eservice/${agreement.id}`,
+        deepLink: `https://${config.interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
       }));
 
       expect(notifications).toEqual(
