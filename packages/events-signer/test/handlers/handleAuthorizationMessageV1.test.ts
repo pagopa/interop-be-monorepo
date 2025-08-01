@@ -11,11 +11,7 @@ import {
   toKeyV1,
   ClientAddedV1,
 } from "pagopa-interop-models";
-import {
-  FileManager,
-  genericLogger,
-  initFileManager,
-} from "pagopa-interop-commons";
+import { FileManager, initFileManager } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -107,7 +103,6 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
 
     await handleAuthorizationMessageV1(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -119,9 +114,11 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
     );
 
     expect(retrievedReference).toEqual({
+      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "PLATFORM_EVENTS",
       fileName: expect.stringMatching(/.ndjson.gz$/),
+      correlationId: expect.any(String),
     });
   });
 
@@ -157,7 +154,6 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
 
     await handleAuthorizationMessageV1(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -169,9 +165,11 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
     );
 
     expect(retrievedReference).toEqual({
+      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "PLATFORM_EVENTS",
       fileName: expect.stringMatching(/.ndjson.gz$/),
+      correlationId: expect.any(String),
     });
   });
 
@@ -199,7 +197,6 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
 
     await handleAuthorizationMessageV1(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -252,7 +249,6 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
     await expect(
       handleAuthorizationMessageV1(
         eventsWithTimestamp,
-        genericLogger,
         fileManager,
         dbService,
         safeStorageService

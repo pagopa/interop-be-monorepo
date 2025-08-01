@@ -25,9 +25,11 @@ export const handleCatalogMessageV2 = async (
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
+  const correlationId = generateId<CorrelationId>();
+
   const loggerInstance = logger({
     serviceName: config.serviceName,
-    correlationId: generateId<CorrelationId>(),
+    correlationId,
   });
   const allCatalogDataToStore: CatalogEventData[] = [];
   for (const { eserviceV2, timestamp } of eventsWithTimestamp) {
@@ -61,6 +63,7 @@ export const handleCatalogMessageV2 = async (
             descriptor_id: descriptorId,
             state,
             eventTimestamp: timestamp,
+            correlationId,
           });
         }
       )
@@ -137,7 +140,8 @@ export const handleCatalogMessageV2 = async (
         loggerInstance,
         dbService,
         safeStorage,
-        safeStorageApiConfig
+        safeStorageApiConfig,
+        correlationId
       );
     }
   } else {

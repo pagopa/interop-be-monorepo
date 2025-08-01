@@ -24,6 +24,7 @@ describe("dbServiceBuilder - Integration Tests", () => {
       safeStorageId,
       fileKind: "INTEROP_LEGAL_FACTS",
       fileName: "multa.pdf",
+      correlationId: generateId(),
     };
 
     await dbService.saveSignatureReference(mockReference);
@@ -33,7 +34,10 @@ describe("dbServiceBuilder - Integration Tests", () => {
       dynamoDBClient
     );
 
-    expect(retrievedItem).toEqual(mockReference);
+    expect(retrievedItem).toEqual({
+      ...mockReference,
+      PK: mockReference.safeStorageId,
+    });
   });
 
   it("should return undefined if a signature reference does not exist", async () => {

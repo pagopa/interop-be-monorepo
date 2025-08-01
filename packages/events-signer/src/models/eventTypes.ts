@@ -5,6 +5,7 @@ export const BaseEventSchema = z.object({
   id: z.string().optional(),
   state: z.string().optional(),
   eventTimestamp: z.string(),
+  correlationId: z.string(),
 });
 
 export const PurposeEventSchema = BaseEventSchema.extend({

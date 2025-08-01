@@ -13,11 +13,7 @@ import {
   toPurposeV2,
   PurposeVersion,
 } from "pagopa-interop-models";
-import {
-  FileManager,
-  genericLogger,
-  initFileManager,
-} from "pagopa-interop-commons";
+import { FileManager, initFileManager } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -97,7 +93,6 @@ describe("handlePurposeMessageV2 - Integration Test", () => {
 
     await handlePurposeMessageV2(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -109,9 +104,11 @@ describe("handlePurposeMessageV2 - Integration Test", () => {
     );
 
     expect(retrievedReference).toEqual({
+      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "PLATFORM_EVENTS",
       fileName: expect.stringMatching(/.ndjson.gz$/),
+      correlationId: expect.any(String),
     });
   });
 
@@ -156,7 +153,6 @@ describe("handlePurposeMessageV2 - Integration Test", () => {
 
     await handlePurposeMessageV2(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -168,9 +164,11 @@ describe("handlePurposeMessageV2 - Integration Test", () => {
     );
 
     expect(retrievedReference).toEqual({
+      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "PLATFORM_EVENTS",
       fileName: expect.stringMatching(/.ndjson.gz$/),
+      correlationId: expect.any(String),
     });
   });
 
@@ -217,7 +215,6 @@ describe("handlePurposeMessageV2 - Integration Test", () => {
 
     await handlePurposeMessageV2(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -227,11 +224,12 @@ describe("handlePurposeMessageV2 - Integration Test", () => {
       mockSafeStorageId,
       dynamoDBClient
     );
-
     expect(retrievedReference).toEqual({
+      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "PLATFORM_EVENTS",
       fileName: expect.stringMatching(/.ndjson.gz$/),
+      correlationId: expect.any(String),
     });
   });
 
@@ -260,7 +258,6 @@ describe("handlePurposeMessageV2 - Integration Test", () => {
 
     await handlePurposeMessageV2(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -304,7 +301,6 @@ describe("handlePurposeMessageV2 - Integration Test", () => {
     await expect(
       handlePurposeMessageV2(
         eventsWithTimestamp,
-        genericLogger,
         fileManager,
         dbService,
         safeStorageService

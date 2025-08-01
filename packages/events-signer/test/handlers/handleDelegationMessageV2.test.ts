@@ -10,11 +10,7 @@ import {
   TenantId,
   EServiceId,
 } from "pagopa-interop-models";
-import {
-  FileManager,
-  genericLogger,
-  initFileManager,
-} from "pagopa-interop-commons";
+import { FileManager, initFileManager } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -99,7 +95,6 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
 
     await handleDelegationMessageV2(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -111,9 +106,11 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     );
 
     expect(retrievedReference).toEqual({
+      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "PLATFORM_EVENTS",
       fileName: expect.stringMatching(/.ndjson.gz$/),
+      correlationId: expect.any(String),
     });
   });
 
@@ -152,7 +149,6 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
 
     await handleDelegationMessageV2(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -202,7 +198,6 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     await expect(
       handleDelegationMessageV2(
         eventsWithTimestamp,
-        genericLogger,
         fileManager,
         dbService,
         safeStorageService

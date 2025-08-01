@@ -9,11 +9,7 @@ import {
   AgreementEventEnvelopeV2,
   toAgreementV2,
 } from "pagopa-interop-models";
-import {
-  FileManager,
-  genericLogger,
-  initFileManager,
-} from "pagopa-interop-commons";
+import { FileManager, initFileManager } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -87,7 +83,6 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
 
     await handleAgreementMessageV2(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -99,9 +94,11 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     );
 
     expect(retrievedReference).toEqual({
+      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "PLATFORM_EVENTS",
       fileName: expect.stringMatching(/.ndjson.gz$/),
+      correlationId: expect.any(String),
     });
   });
   it("should not process an AgreementAdded event", async () => {
@@ -131,7 +128,6 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
 
     await handleAgreementMessageV2(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -172,7 +168,6 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     await expect(
       handleAgreementMessageV2(
         eventsWithTimestamp,
-        genericLogger,
         fileManager,
         dbService,
         safeStorageService

@@ -10,6 +10,7 @@ interface SignatureReference {
   safeStorageId: string;
   fileKind: string;
   fileName: string;
+  correlationId: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -24,6 +25,7 @@ export function dbServiceBuilder(dynamoDBClient: DynamoDBClient) {
         Item: {
           PK: { S: item.safeStorageId },
           safeStorageId: { S: item.safeStorageId },
+          correlationId: { S: item.correlationId },
           fileKind: { S: item.fileKind },
           fileName: { S: item.fileName },
         },

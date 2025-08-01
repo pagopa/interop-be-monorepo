@@ -24,11 +24,12 @@ export const handleAuthorizationMessageV1 = async (
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
+  const correlationId = generateId<CorrelationId>();
+
   const loggerInstance = logger({
     serviceName: config.serviceName,
-    correlationId: generateId<CorrelationId>(),
+    correlationId,
   });
-
   const allAuthorizationDataToStore: AuthorizationEventData[] = [];
 
   for (const {
@@ -50,6 +51,7 @@ export const handleAuthorizationMessageV1 = async (
             user_id: userId,
             timestamp,
             eventTimestamp: kafkaMessageTimestamp,
+            correlationId,
           });
         }
       })
@@ -64,6 +66,7 @@ export const handleAuthorizationMessageV1 = async (
           kid,
           timestamp: deactivationTimestamp,
           eventTimestamp: kafkaMessageTimestamp,
+          correlationId,
         });
       })
       .with(
@@ -109,7 +112,8 @@ export const handleAuthorizationMessageV1 = async (
         loggerInstance,
         dbService,
         safeStorage,
-        safeStorageApiConfig
+        safeStorageApiConfig,
+        correlationId
       );
     }
   } else {

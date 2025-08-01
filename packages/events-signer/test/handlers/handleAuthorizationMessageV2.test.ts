@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -12,11 +11,7 @@ import {
   UserId,
   toClientV2,
 } from "pagopa-interop-models";
-import {
-  FileManager,
-  genericLogger,
-  initFileManager,
-} from "pagopa-interop-commons";
+import { FileManager, initFileManager } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -107,7 +102,6 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
     await handleAuthorizationMessageV2(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -119,9 +113,11 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
 
     expect(retrievedReference).toEqual({
+      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "PLATFORM_EVENTS",
       fileName: expect.stringMatching(/.ndjson.gz$/),
+      correlationId: expect.any(String),
     });
   });
 
@@ -166,7 +162,6 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
     await handleAuthorizationMessageV2(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -178,9 +173,11 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
 
     expect(retrievedReference).toEqual({
+      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "PLATFORM_EVENTS",
       fileName: expect.stringMatching(/.ndjson.gz$/),
+      correlationId: expect.any(String),
     });
   });
 
@@ -222,7 +219,6 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
     await handleAuthorizationMessageV2(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -234,9 +230,11 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     );
 
     expect(retrievedReference).toEqual({
+      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "PLATFORM_EVENTS",
       fileName: expect.stringMatching(/.ndjson.gz$/),
+      correlationId: expect.any(String),
     });
   });
 
@@ -275,7 +273,6 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
 
     await handleAuthorizationMessageV2(
       eventsWithTimestamp,
-      genericLogger,
       fileManager,
       dbService,
       safeStorageService
@@ -328,7 +325,6 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     await expect(
       handleAuthorizationMessageV2(
         eventsWithTimestamp,
-        genericLogger,
         fileManager,
         dbService,
         safeStorageService

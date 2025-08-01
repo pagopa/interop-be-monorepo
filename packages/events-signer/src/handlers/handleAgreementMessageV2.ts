@@ -26,9 +26,10 @@ export const handleAgreementMessageV2 = async (
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
+  const correlationId = generateId<CorrelationId>();
   const loggerInstance = logger({
     serviceName: config.serviceName,
-    correlationId: generateId<CorrelationId>(),
+    correlationId,
   });
   const allAgreementDataToStore: AgreementEventData[] = [];
 
@@ -66,6 +67,7 @@ export const handleAgreementMessageV2 = async (
             id,
             state,
             eventTimestamp: timestamp,
+            correlationId,
           });
         }
       )
@@ -115,7 +117,8 @@ export const handleAgreementMessageV2 = async (
         loggerInstance,
         dbService,
         safeStorage,
-        safeStorageApiConfig
+        safeStorageApiConfig,
+        correlationId
       );
     }
   } else {

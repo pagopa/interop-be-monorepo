@@ -25,9 +25,11 @@ export const handlePurposeMessageV2 = async (
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
+  const correlationId = generateId<CorrelationId>();
+
   const loggerInstance = logger({
     serviceName: config.serviceName,
-    correlationId: generateId<CorrelationId>(),
+    correlationId,
   });
   const allPurposeDataToStore: PurposeEventData[] = [];
 
@@ -50,6 +52,7 @@ export const handlePurposeMessageV2 = async (
           state,
           versionId: version?.id,
           eventTimestamp: timestamp,
+          correlationId,
         });
       })
       .with({ type: "PurposeActivated" }, (event) => {
@@ -70,6 +73,7 @@ export const handlePurposeMessageV2 = async (
           state,
           versionId: version.id,
           eventTimestamp: timestamp,
+          correlationId,
         });
       })
       .with({ type: "PurposeArchived" }, (event) => {
@@ -93,6 +97,7 @@ export const handlePurposeMessageV2 = async (
             versionId,
             state,
             eventTimestamp: timestamp,
+            correlationId,
           });
         }
       })
@@ -133,6 +138,7 @@ export const handlePurposeMessageV2 = async (
             versionId,
             state,
             eventTimestamp: timestamp,
+            correlationId,
           });
         }
       )
@@ -180,7 +186,8 @@ export const handlePurposeMessageV2 = async (
         loggerInstance,
         dbService,
         safeStorage,
-        safeStorageApiConfig
+        safeStorageApiConfig,
+        correlationId
       );
     }
   } else {

@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+/* eslint-disable max-params */
 
 import { Logger } from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
@@ -16,7 +17,8 @@ export const archiveFileToSafeStorage = async (
   logger: Logger,
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService,
-  config: SafeStorageApiConfig
+  config: SafeStorageApiConfig,
+  correlationId: string
 ): Promise<void> => {
   const { fileContentBuffer, fileName } = storedFile;
 
@@ -50,6 +52,7 @@ export const archiveFileToSafeStorage = async (
       safeStorageId: key,
       fileKind: "PLATFORM_EVENTS",
       fileName,
+      correlationId,
     });
     logger.info(`Safe Storage reference for ${fileName} saved in DynamoDB.`);
   } catch (error) {

@@ -24,9 +24,11 @@ export const handleAuthorizationMessageV2 = async (
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
+  const correlationId = generateId<CorrelationId>();
+
   const loggerInstance = logger({
     serviceName: config.serviceName,
-    correlationId: generateId<CorrelationId>(),
+    correlationId,
   });
 
   const allAuthorizationDataToStore: AuthorizationEventData[] = [];
@@ -50,6 +52,7 @@ export const handleAuthorizationMessageV2 = async (
           user_id: userId,
           kid,
           eventTimestamp: timestamp,
+          correlationId,
         });
       })
       .with({ type: "ClientKeyDeleted" }, (event) => {
@@ -67,6 +70,7 @@ export const handleAuthorizationMessageV2 = async (
           id: clientId,
           kid,
           eventTimestamp: timestamp,
+          correlationId,
         });
       })
       .with({ type: "ClientDeleted" }, (event) => {
@@ -80,6 +84,7 @@ export const handleAuthorizationMessageV2 = async (
           event_name: event.type,
           id: clientId,
           eventTimestamp: timestamp,
+          correlationId,
         });
       })
       .with(
@@ -132,7 +137,8 @@ export const handleAuthorizationMessageV2 = async (
         loggerInstance,
         dbService,
         safeStorage,
-        safeStorageApiConfig
+        safeStorageApiConfig,
+        correlationId
       );
     }
   } else {

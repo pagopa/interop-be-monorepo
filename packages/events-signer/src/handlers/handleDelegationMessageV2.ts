@@ -25,9 +25,11 @@ export const handleDelegationMessageV2 = async (
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
+  const correlationId = generateId<CorrelationId>();
+
   const loggerInstance = logger({
     serviceName: config.serviceName,
-    correlationId: generateId<CorrelationId>(),
+    correlationId,
   });
 
   const allDelegationDataToStore: DelegationEventData[] = [];
@@ -59,6 +61,7 @@ export const handleDelegationMessageV2 = async (
             id,
             state,
             eventTimestamp: timestamp,
+            correlationId,
           });
         }
       )
@@ -102,7 +105,8 @@ export const handleDelegationMessageV2 = async (
         loggerInstance,
         dbService,
         safeStorage,
-        safeStorageApiConfig
+        safeStorageApiConfig,
+        correlationId
       );
     }
   } else {
