@@ -5,6 +5,7 @@ export * as authorizationManagementApi from "./generated/authorizationManagement
 export * as bffApi from "./bffApi.js";
 export * as catalogApi from "./catalogApi.js";
 export * as purposeApi from "./purposeApi.js";
+export * as purposeTemplateApi from "./purposeTemplateApi.js";
 export * as selfcareV2ClientApi from "./generated/selfcareV2ClientApi.js";
 export * as tenantApi from "./tenantApi.js";
 export * as apiGatewayApi from "./apiGatewayApi.js";
@@ -16,4 +17,3 @@ export * as eserviceTemplateApi from "./generated/eserviceTemplateApi.js";
 export * as m2mGatewayApi from "./m2mGatewayApi.js";
 export * as inAppNotificationApi from "./generated/inAppNotificationApi.js";
 export * as notificationConfigApi from "./generated/notificationConfigApi.js";
-export * as purposeTemplateApi from "./purposeTemplateApi.js";

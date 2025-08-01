@@ -9,10 +9,10 @@ import {
   zodiosCtx,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { config } from "./config/config.js";
+import { PurposeTemplateService } from "./services/purposeTemplateService.js";
 import healthRouter from "./routers/HealthRouter.js";
 import purposeTemplateRouter from "./routers/PurposeTemplateRouter.js";
-import { PurposeTemplateService } from "./services/purposeTemplateService.js";
+import { config } from "./config/config.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: PurposeTemplateService) {
