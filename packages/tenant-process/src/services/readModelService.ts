@@ -565,6 +565,104 @@ export function readModelServiceBuilder(
         "data.kind": delegationKind.delegatedConsumer,
       });
     },
+    async getTenantVerifiedAttributeVerifiers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<
+      ListResult<{
+        verifierId: TenantId;
+        verificationDate: Date;
+        expirationDate?: Date;
+        extensionDate?: Date;
+        delegationId?: DelegationId;
+      }>
+    > {
+      const tenant = await tenants.findOne({ "data.id": tenantId });
+      if (!tenant) {
+        return { results: [], totalCount: 0 };
+      }
+
+      const verifiedAttribute = tenant.data.attributes
+        .filter((attr) => attr.type === "PersistentVerifiedAttribute")
+        .find((attr) => attr.id === attributeId);
+
+      if (
+        !verifiedAttribute ||
+        verifiedAttribute.type !== "PersistentVerifiedAttribute"
+      ) {
+        return { results: [], totalCount: 0 };
+      }
+
+      const verifiers = verifiedAttribute.verifiedBy || [];
+      const totalCount = verifiers.length;
+      const paginatedVerifiers = verifiers.slice(offset, offset + limit);
+
+      return {
+        results: paginatedVerifiers.map((verifier) => ({
+          verifierId: verifier.id,
+          verificationDate: new Date(verifier.verificationDate),
+          expirationDate: verifier.expirationDate
+            ? new Date(verifier.expirationDate)
+            : undefined,
+          extensionDate: verifier.extensionDate
+            ? new Date(verifier.extensionDate)
+            : undefined,
+          delegationId: verifier.delegationId,
+        })),
+        totalCount,
+      };
+    },
+    async getTenantVerifiedAttributeRevokers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<
+      ListResult<{
+        revokerId: TenantId;
+        verificationDate: Date;
+        expirationDate?: Date;
+        extensionDate?: Date;
+        revocationDate: Date;
+        delegationId?: DelegationId;
+      }>
+    > {
+      const tenant = await tenants.findOne({ "data.id": tenantId });
+      if (!tenant) {
+        return { results: [], totalCount: 0 };
+      }
+
+      const verifiedAttribute = tenant.data.attributes
+        .filter((attr) => attr.type === "PersistentVerifiedAttribute")
+        .find((attr) => attr.id === attributeId);
+
+      if (
+        !verifiedAttribute ||
+        verifiedAttribute.type !== "PersistentVerifiedAttribute"
+      ) {
+        return { results: [], totalCount: 0 };
+      }
+
+      const revokers = verifiedAttribute.revokedBy || [];
+      const totalCount = revokers.length;
+      const paginatedRevokers = revokers.slice(offset, offset + limit);
+
+      return {
+        results: paginatedRevokers.map((revoker) => ({
+          revokerId: revoker.id,
+          verificationDate: new Date(revoker.verificationDate),
+          expirationDate: revoker.expirationDate
+            ? new Date(revoker.expirationDate)
+            : undefined,
+          extensionDate: revoker.extensionDate
+            ? new Date(revoker.extensionDate)
+            : undefined,
+          revocationDate: new Date(revoker.revocationDate),
+          delegationId: revoker.delegationId,
+        })),
+        totalCount,
+      };
+    },
   };
 }
 
