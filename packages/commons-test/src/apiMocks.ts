@@ -395,6 +395,7 @@ export function getMockedApiEserviceDoc({
     prettyName: "Interface Document",
     path,
     checksum: "mock-checksum",
+    uploadDate: new Date().toISOString(),
     contacts: generateMock(catalogApi.DescriptorInterfaceContacts),
   };
 }

@@ -1,0 +1,78 @@
+import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  FileManager,
+  Logger,
+  verifyAndCreateDocument,
+} from "pagopa-interop-commons";
+import { generateId, technology } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { config } from "../config/config.js";
+import { CatalogProcessClient } from "../clients/clientsProvider.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { Headers } from "./context.js";
+
+export async function uploadEServiceDocument({
+  eservice,
+  descriptorId,
+  documentKind,
+  fileUpload,
+  catalogProcessClient,
+  fileManager,
+  logger,
+  headers,
+}: {
+  eservice: catalogApi.EService;
+  descriptorId: string;
+  documentKind: catalogApi.EServiceDocumentKind;
+  fileUpload: m2mGatewayApi.FileUploadMultipart;
+  catalogProcessClient: CatalogProcessClient;
+  fileManager: FileManager;
+  logger: Logger;
+  headers: Headers;
+}): Promise<WithMaybeMetadata<catalogApi.EServiceDoc>> {
+  return await verifyAndCreateDocument(
+    fileManager,
+    { id: eservice.id, isEserviceTemplate: false },
+    match(eservice.technology)
+      .with("REST", () => technology.rest)
+      .with("SOAP", () => technology.soap)
+      .exhaustive(),
+    documentKind,
+    fileUpload.file,
+    generateId(),
+    config.eserviceDocumentsContainer,
+    config.eserviceDocumentsPath,
+    fileUpload.prettyName,
+    async (
+      documentId,
+      fileName,
+      filePath,
+      prettyName,
+      kind,
+      serverUrls,
+      contentType,
+      checksum
+      // eslint-disable-next-line max-params
+    ) =>
+      await catalogProcessClient.createEServiceDocument(
+        {
+          documentId,
+          prettyName,
+          fileName,
+          filePath,
+          kind,
+          contentType,
+          checksum,
+          serverUrls,
+        },
+        {
+          headers,
+          params: {
+            eServiceId: eservice.id,
+            descriptorId,
+          },
+        }
+      ),
+    logger
+  );
+}

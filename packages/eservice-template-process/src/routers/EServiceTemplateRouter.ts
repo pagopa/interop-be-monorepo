@@ -45,6 +45,7 @@ import {
   eserviceTemplateToApiEServiceTemplate,
   eserviceTemplateVersionToApiEServiceTemplateVersion,
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
+  documentToApiDocument,
 } from "../model/domain/apiConverter.js";
 
 const eserviceTemplatesRouter = (
@@ -445,7 +446,9 @@ const eserviceTemplatesRouter = (
               },
               ctx
             );
-          return res.status(200).send(eServiceTemplateDocument);
+          return res
+            .status(200)
+            .send(documentToApiDocument(eServiceTemplateDocument));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

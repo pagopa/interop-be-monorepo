@@ -15,12 +15,13 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { buildInterfaceSeed } from "../mockUtils.js";
-import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
+import { documentToApiDocument } from "../../src/model/domain/apiConverter.js";
 import {
   documentPrettyNameDuplicate,
   eServiceDescriptorNotFound,
@@ -31,9 +32,11 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents authorization test", () => {
+  const document = getMockDocument();
+
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
-    docs: [getMockDocument()],
+    docs: [document],
     state: descriptorState.archived,
   };
 
@@ -42,11 +45,13 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
     descriptors: [descriptor],
   };
 
-  const apiEservice = catalogApi.EService.parse(
-    eServiceToApiEService(mockEService)
+  const apiDocument = catalogApi.EServiceDoc.parse(
+    documentToApiDocument(document)
   );
 
-  catalogService.uploadDocument = vi.fn().mockResolvedValue(mockEService);
+  const serviceResponse = getMockWithMetadata(document);
+
+  catalogService.uploadDocument = vi.fn().mockResolvedValue(serviceResponse);
 
   const mockCreateEServiceDescriptorDocumentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed =
     buildInterfaceSeed();
@@ -63,14 +68,21 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 201 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockEService.id, descriptor.id);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiEservice);
+      expect(res.status).toBe(201);
+      expect(res.body).toEqual(apiDocument);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
