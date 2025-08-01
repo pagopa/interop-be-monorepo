@@ -1,11 +1,13 @@
 /* eslint-disable functional/immutable-data */
 import { match, P } from "ts-pattern";
 import {
+  CorrelationId,
   DelegationEventV2,
   fromDelegationV2,
+  generateId,
   genericInternalError,
 } from "pagopa-interop-models";
-import { FileManager, Logger } from "pagopa-interop-commons";
+import { FileManager, logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
 import { DelegationEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
@@ -19,11 +21,15 @@ export const handleDelegationMessageV2 = async (
     delegationV2: DelegationEventV2;
     timestamp: string;
   }>,
-  logger: Logger,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
+  const loggerInstance = logger({
+    serviceName: config.serviceName,
+    correlationId: generateId<CorrelationId>(),
+  });
+
   const allDelegationDataToStore: DelegationEventData[] = [];
 
   for (const { delegationV2, timestamp } of eventsWithTimestamp) {
@@ -66,7 +72,9 @@ export const handleDelegationMessageV2 = async (
           ),
         },
         (event) => {
-          logger.info(`Skipping not relevant event type: ${event.type}`);
+          loggerInstance.info(
+            `Skipping not relevant event type: ${event.type}`
+          );
         }
       )
       .exhaustive();
@@ -75,7 +83,7 @@ export const handleDelegationMessageV2 = async (
   if (allDelegationDataToStore.length > 0) {
     const preparedFiles = await prepareNdjsonEventData<DelegationEventData>(
       allDelegationDataToStore,
-      logger
+      loggerInstance
     );
 
     if (preparedFiles.length === 0) {
@@ -86,18 +94,18 @@ export const handleDelegationMessageV2 = async (
       const result = await uploadPreparedFileToS3(
         preparedFile,
         fileManager,
-        logger,
+        loggerInstance,
         config
       );
       await archiveFileToSafeStorage(
         result,
-        logger,
+        loggerInstance,
         dbService,
         safeStorage,
         safeStorageApiConfig
       );
     }
   } else {
-    logger.info("No managed delegation events to store.");
+    loggerInstance.info("No managed delegation events to store.");
   }
 };

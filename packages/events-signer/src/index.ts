@@ -25,7 +25,6 @@ async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   await executeTopicHandler(
     messages,
     batch.topic,
-    genericLogger,
     fileManager,
     dbService,
     safeStorageService

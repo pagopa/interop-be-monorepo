@@ -2,9 +2,11 @@
 import { P, match } from "ts-pattern";
 import {
   AuthorizationEventV2,
+  CorrelationId,
+  generateId,
   genericInternalError,
 } from "pagopa-interop-models";
-import { FileManager, Logger } from "pagopa-interop-commons";
+import { FileManager, logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
 import { prepareNdjsonEventData } from "../utils/ndjsonStore.js";
 import { AuthorizationEventData } from "../models/eventTypes.js";
@@ -18,11 +20,15 @@ export const handleAuthorizationMessageV2 = async (
     authV2: AuthorizationEventV2;
     timestamp: string;
   }>,
-  logger: Logger,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
+  const loggerInstance = logger({
+    serviceName: config.serviceName,
+    correlationId: generateId<CorrelationId>(),
+  });
+
   const allAuthorizationDataToStore: AuthorizationEventData[] = [];
 
   for (const { authV2, timestamp } of eventsWithTimestamp) {
@@ -96,7 +102,9 @@ export const handleAuthorizationMessageV2 = async (
           { type: "ProducerKeychainEServiceRemoved" }
         ),
         (event) => {
-          logger.info(`Skipping not relevant event type: ${event.type}`);
+          loggerInstance.info(
+            `Skipping not relevant event type: ${event.type}`
+          );
         }
       )
       .exhaustive();
@@ -105,7 +113,7 @@ export const handleAuthorizationMessageV2 = async (
   if (allAuthorizationDataToStore.length > 0) {
     const preparedFiles = await prepareNdjsonEventData<AuthorizationEventData>(
       allAuthorizationDataToStore,
-      logger
+      loggerInstance
     );
 
     if (preparedFiles.length === 0) {
@@ -116,18 +124,18 @@ export const handleAuthorizationMessageV2 = async (
       const result = await uploadPreparedFileToS3(
         preparedFile,
         fileManager,
-        logger,
+        loggerInstance,
         config
       );
       await archiveFileToSafeStorage(
         result,
-        logger,
+        loggerInstance,
         dbService,
         safeStorage,
         safeStorageApiConfig
       );
     }
   } else {
-    logger.info("No managed authorization events to store.");
+    loggerInstance.info("No managed authorization events to store.");
   }
 };

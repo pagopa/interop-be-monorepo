@@ -21,7 +21,16 @@ export const EventSignerConfig = CatalogTopicConfig.and(AgreementTopicConfig)
   .and(S3Config)
   .and(LoggerConfig)
   .and(KafkaBatchConsumerConfig)
-  .and(EventsSignerConfig);
+  .and(EventsSignerConfig)
+  .and(
+    z
+      .object({
+        SERVICE_NAME: z.string(),
+      })
+      .transform((c) => ({
+        serviceName: c.SERVICE_NAME,
+      }))
+  );
 
 export const safeStorageApiConfigSchema = z
   .object({

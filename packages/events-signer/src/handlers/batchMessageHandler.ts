@@ -2,11 +2,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 
 import { KafkaMessage } from "kafkajs";
-import {
-  FileManager,
-  Logger,
-  decodeKafkaMessage,
-} from "pagopa-interop-commons";
+import { FileManager, decodeKafkaMessage } from "pagopa-interop-commons";
 import {
   EServiceEventEnvelopeV2,
   EServiceEvent,
@@ -48,7 +44,6 @@ import { handlePurposeMessageV2 } from "./handlePurposeMessageV2.js";
 export async function executeTopicHandler(
   kafkaMessages: KafkaMessage[],
   topic: string,
-  logger: Logger,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
   safeStorageService: SafeStorageService
@@ -75,7 +70,6 @@ export async function executeTopicHandler(
       if (eserviceV2WithTimestamp.length > 0) {
         await handleCatalogMessageV2(
           eserviceV2WithTimestamp,
-          logger,
           fileManager,
           dbService,
           safeStorageService
@@ -103,7 +97,6 @@ export async function executeTopicHandler(
       if (agreementV2WithTimestamp.length > 0) {
         await handleAgreementMessageV2(
           agreementV2WithTimestamp,
-          logger,
           fileManager,
           dbService,
           safeStorageService
@@ -131,7 +124,6 @@ export async function executeTopicHandler(
       if (purposeV2WithTimestamp.length > 0) {
         await handlePurposeMessageV2(
           purposeV2WithTimestamp,
-          logger,
           fileManager,
           dbService,
           safeStorageService
@@ -168,7 +160,6 @@ export async function executeTopicHandler(
       if (authV1WithTimestamp.length > 0) {
         await handleAuthorizationMessageV1(
           authV1WithTimestamp,
-          logger,
           fileManager,
           dbService,
           safeStorageService
@@ -177,7 +168,6 @@ export async function executeTopicHandler(
       if (authV2WithTimestamp.length > 0) {
         await handleAuthorizationMessageV2(
           authV2WithTimestamp,
-          logger,
           fileManager,
           dbService,
           safeStorageService
@@ -204,7 +194,6 @@ export async function executeTopicHandler(
       if (delegationV2WithTimestamp.length > 0) {
         await handleDelegationMessageV2(
           delegationV2WithTimestamp,
-          logger,
           fileManager,
           dbService,
           safeStorageService

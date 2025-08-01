@@ -1,7 +1,9 @@
 /* eslint-disable functional/immutable-data */
-import { FileManager, Logger } from "pagopa-interop-commons";
+import { FileManager, logger } from "pagopa-interop-commons";
 import {
   AuthorizationEventV1,
+  CorrelationId,
+  generateId,
   genericInternalError,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -18,11 +20,15 @@ export const handleAuthorizationMessageV1 = async (
     authV1: AuthorizationEventV1;
     timestamp: string;
   }>,
-  logger: Logger,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
+  const loggerInstance = logger({
+    serviceName: config.serviceName,
+    correlationId: generateId<CorrelationId>(),
+  });
+
   const allAuthorizationDataToStore: AuthorizationEventData[] = [];
 
   for (const {
@@ -73,7 +79,9 @@ export const handleAuthorizationMessageV1 = async (
           { type: "ClientPurposeRemoved" }
         ),
         (event) => {
-          logger.info(`Skipping not relevant event type: ${event.type}`);
+          loggerInstance.info(
+            `Skipping not relevant event type: ${event.type}`
+          );
         }
       )
       .exhaustive();
@@ -82,7 +90,7 @@ export const handleAuthorizationMessageV1 = async (
   if (allAuthorizationDataToStore.length > 0) {
     const preparedFiles = await prepareNdjsonEventData<AuthorizationEventData>(
       allAuthorizationDataToStore,
-      logger
+      loggerInstance
     );
 
     if (preparedFiles.length === 0) {
@@ -93,18 +101,18 @@ export const handleAuthorizationMessageV1 = async (
       const result = await uploadPreparedFileToS3(
         preparedFile,
         fileManager,
-        logger,
+        loggerInstance,
         config
       );
       await archiveFileToSafeStorage(
         result,
-        logger,
+        loggerInstance,
         dbService,
         safeStorage,
         safeStorageApiConfig
       );
     }
   } else {
-    logger.info("No authorization events to store.");
+    loggerInstance.info("No authorization events to store.");
   }
 };

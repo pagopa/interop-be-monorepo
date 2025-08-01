@@ -3,13 +3,15 @@
 
 import { match, P } from "ts-pattern";
 import {
+  CorrelationId,
   fromPurposeV2,
   fromPurposeVersionStateV2,
+  generateId,
   genericInternalError,
   PurposeEventV2,
   PurposeStateV2,
 } from "pagopa-interop-models";
-import { FileManager, Logger } from "pagopa-interop-commons";
+import { FileManager, logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
 import { prepareNdjsonEventData } from "../utils/ndjsonStore.js";
 import { PurposeEventData } from "../models/eventTypes.js";
@@ -19,18 +21,21 @@ import { archiveFileToSafeStorage } from "../services/safeStorageArchivingServic
 import { uploadPreparedFileToS3 } from "../utils/s3Uploader.js";
 export const handlePurposeMessageV2 = async (
   eventsWithTimestamp: Array<{ purposeV2: PurposeEventV2; timestamp: string }>,
-  logger: Logger,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
+  const loggerInstance = logger({
+    serviceName: config.serviceName,
+    correlationId: generateId<CorrelationId>(),
+  });
   const allPurposeDataToStore: PurposeEventData[] = [];
 
   for (const { purposeV2, timestamp } of eventsWithTimestamp) {
     match(purposeV2)
       .with({ type: "PurposeAdded" }, (event) => {
         if (!event.data.purpose?.id) {
-          throw genericInternalError(
+          throw new Error(
             `Skipping PurposeAdded event due to missing purpose ID.`
           );
         }
@@ -49,7 +54,7 @@ export const handlePurposeMessageV2 = async (
       })
       .with({ type: "PurposeActivated" }, (event) => {
         if (!event.data.purpose?.id) {
-          throw genericInternalError(
+          throw new Error(
             `Skipping PurposeActivated event due to missing purpose ID.`
           );
         }
@@ -145,7 +150,9 @@ export const handlePurposeMessageV2 = async (
           ),
         },
         (event) => {
-          logger.info(`Skipping not relevant event type: ${event.type}`);
+          loggerInstance.info(
+            `Skipping not relevant event type: ${event.type}`
+          );
         }
       )
       .exhaustive();
@@ -154,7 +161,7 @@ export const handlePurposeMessageV2 = async (
   if (allPurposeDataToStore.length > 0) {
     const preparedFiles = await prepareNdjsonEventData<PurposeEventData>(
       allPurposeDataToStore,
-      logger
+      loggerInstance
     );
 
     if (preparedFiles.length === 0) {
@@ -165,18 +172,18 @@ export const handlePurposeMessageV2 = async (
       const result = await uploadPreparedFileToS3(
         preparedFile,
         fileManager,
-        logger,
+        loggerInstance,
         config
       );
       await archiveFileToSafeStorage(
         result,
-        logger,
+        loggerInstance,
         dbService,
         safeStorage,
         safeStorageApiConfig
       );
     }
   } else {
-    logger.info("No managed purpose events to store.");
+    loggerInstance.info("No managed purpose events to store.");
   }
 };

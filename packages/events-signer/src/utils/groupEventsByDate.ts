@@ -1,16 +1,10 @@
 /* eslint-disable functional/immutable-data */
-import { format } from "date-fns";
 import { BaseEventData } from "../models/eventTypes.js";
-
-export function formatTimehhmmss(date: Date): string {
-  return format(date, "hhmmss");
-}
 
 /**
  * Groups events by UTC date (YYYY-MM-DD) using a provided function to extract the timestamp.
  *
  * @param events - Array of event objects.
- * @param timestampExtractor - A function that takes an event object and returns its timestamp (number or Date).
  * @returns A Map where each key is a date string (YYYY-MM-DD) and the value is an array of the events.
  */
 export function groupEventsByDate<T extends BaseEventData>(

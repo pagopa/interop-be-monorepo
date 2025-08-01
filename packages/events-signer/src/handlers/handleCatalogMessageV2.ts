@@ -1,11 +1,13 @@
 /* eslint-disable functional/immutable-data */
 import { match, P } from "ts-pattern";
 import {
+  CorrelationId,
   EServiceEventV2,
   fromEServiceV2,
+  generateId,
   genericInternalError,
 } from "pagopa-interop-models";
-import { FileManager, Logger } from "pagopa-interop-commons";
+import { FileManager, logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
 import { prepareNdjsonEventData } from "../utils/ndjsonStore.js";
 import { CatalogEventData } from "../models/eventTypes.js";
@@ -19,11 +21,14 @@ export const handleCatalogMessageV2 = async (
     eserviceV2: EServiceEventV2;
     timestamp: string;
   }>,
-  logger: Logger,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
+  const loggerInstance = logger({
+    serviceName: config.serviceName,
+    correlationId: generateId<CorrelationId>(),
+  });
   const allCatalogDataToStore: CatalogEventData[] = [];
   for (const { eserviceV2, timestamp } of eventsWithTimestamp) {
     match(eserviceV2)
@@ -102,7 +107,9 @@ export const handleCatalogMessageV2 = async (
           ),
         },
         (event) => {
-          logger.info(`Skipping not relevant event type: ${event.type}`);
+          loggerInstance.info(
+            `Skipping not relevant event type: ${event.type}`
+          );
         }
       )
       .exhaustive();
@@ -111,7 +118,7 @@ export const handleCatalogMessageV2 = async (
   if (allCatalogDataToStore.length > 0) {
     const preparedFiles = await prepareNdjsonEventData<CatalogEventData>(
       allCatalogDataToStore,
-      logger
+      loggerInstance
     );
 
     if (preparedFiles.length === 0) {
@@ -122,18 +129,18 @@ export const handleCatalogMessageV2 = async (
       const result = await uploadPreparedFileToS3(
         preparedFile,
         fileManager,
-        logger,
+        loggerInstance,
         config
       );
       await archiveFileToSafeStorage(
         result,
-        logger,
+        loggerInstance,
         dbService,
         safeStorage,
         safeStorageApiConfig
       );
     }
   } else {
-    logger.info("No managed catalog events to store.");
+    loggerInstance.info("No managed catalog events to store.");
   }
 };

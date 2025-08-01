@@ -3,10 +3,12 @@
 import { match, P } from "ts-pattern";
 import {
   AgreementEventV2,
+  CorrelationId,
   fromAgreementV2,
+  generateId,
   genericInternalError,
 } from "pagopa-interop-models";
-import { FileManager, Logger } from "pagopa-interop-commons";
+import { FileManager, logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
 import { AgreementEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
@@ -20,11 +22,14 @@ export const handleAgreementMessageV2 = async (
     agreementV2: AgreementEventV2;
     timestamp: string;
   }>,
-  logger: Logger,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
+  const loggerInstance = logger({
+    serviceName: config.serviceName,
+    correlationId: generateId<CorrelationId>(),
+  });
   const allAgreementDataToStore: AgreementEventData[] = [];
 
   for (const { agreementV2, timestamp } of eventsWithTimestamp) {
@@ -80,7 +85,9 @@ export const handleAgreementMessageV2 = async (
           ),
         },
         (event) => {
-          logger.info(`Skipping not relevant event type: ${event.type}`);
+          loggerInstance.info(
+            `Skipping not relevant event type: ${event.type}`
+          );
         }
       )
       .exhaustive();
@@ -89,7 +96,7 @@ export const handleAgreementMessageV2 = async (
   if (allAgreementDataToStore.length > 0) {
     const preparedFiles = await prepareNdjsonEventData<AgreementEventData>(
       allAgreementDataToStore,
-      logger
+      loggerInstance
     );
 
     if (preparedFiles.length === 0) {
@@ -100,18 +107,18 @@ export const handleAgreementMessageV2 = async (
       const result = await uploadPreparedFileToS3(
         preparedFile,
         fileManager,
-        logger,
+        loggerInstance,
         config
       );
       await archiveFileToSafeStorage(
         result,
-        logger,
+        loggerInstance,
         dbService,
         safeStorage,
         safeStorageApiConfig
       );
     }
   } else {
-    logger.info("No managed agreement events to store.");
+    loggerInstance.info("No managed agreement events to store.");
   }
 };
