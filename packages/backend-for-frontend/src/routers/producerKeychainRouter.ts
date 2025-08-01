@@ -24,7 +24,7 @@ const producerKeychainRouter = (
     .get("/producerKeychains", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        const { limit, offset, userIds, q, eserviceId } = req.query;
+        const { limit, offset, userIds, q, eserviceId, producerId } = req.query;
 
         const producerKeychains =
           await producerKeychainService.getProducerKeychains(
@@ -33,6 +33,7 @@ const producerKeychainRouter = (
               offset,
               userIds,
               name: q,
+              producerId,
               eserviceId,
             },
             ctx
