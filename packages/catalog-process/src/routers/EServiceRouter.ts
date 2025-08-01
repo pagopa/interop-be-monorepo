@@ -399,15 +399,19 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          await catalogService.deleteDocument(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.descriptorId),
-            unsafeBrandId(req.params.documentId),
-            ctx
-          );
-          return res.status(204).send();
+          const { data: eservice, metadata } =
+            await catalogService.deleteDocument(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              unsafeBrandId(req.params.documentId),
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res.status(200).send(eServiceToApiEService(eservice));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

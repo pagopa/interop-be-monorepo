@@ -1085,8 +1085,12 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Deleting Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1153,7 +1157,14 @@ export function catalogServiceBuilder(
             correlationId
           );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: newEservice,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
 
     // eslint-disable-next-line max-params

@@ -1146,8 +1146,15 @@ paths:
           schema:
             type: string
       responses:
-        "204":
+        "200":
           description: Document deleted.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "404":
           description: E-Service descriptor document not found
           content:
