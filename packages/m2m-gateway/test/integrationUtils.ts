@@ -13,6 +13,7 @@ import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplate
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { eserviceServiceBuilder } from "../src/services/eserviceService.js";
 import { keyServiceBuilder } from "../src/services/keyService.js";
+import { producerKeychainServiceBuilder } from "../src/services/producerKeychainService.js";
 import { m2mTestToken } from "./mockUtils.js";
 
 export const { cleanup, fileManager } = await setupTestContainersVitest(
@@ -152,3 +153,5 @@ export const eserviceService = eserviceServiceBuilder(
   fileManager
 );
 export const keyService = keyServiceBuilder(mockInteropBeClients);
+export const producerKeychainService =
+  producerKeychainServiceBuilder(mockInteropBeClients);
