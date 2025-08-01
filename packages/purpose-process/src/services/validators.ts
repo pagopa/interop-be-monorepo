@@ -89,7 +89,7 @@ export const assertEserviceMode = (
 };
 
 export const assertConsistentFreeOfCharge = (
-  isFreeOfCharge: boolean,
+  isFreeOfCharge: boolean | undefined,
   freeOfChargeReason: string | undefined
 ): void => {
   if (isFreeOfCharge && !freeOfChargeReason) {
