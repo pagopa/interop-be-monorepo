@@ -367,6 +367,10 @@ const eservicesRouter = (
         try {
           // The same check is done in the backend-for-frontend, if you change this check, change it there too
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+          // TODO find a different way to handle the fix implemented in
+          // https://github.com/pagopa/interop-be-monorepo/pull/2177/files
+          // Maybe catch and rethrow the visibility error in uploadDocument and avoid replicating
+          // the visibility check in the BFF and M2M gateway?
 
           const { data: document, metadata } =
             await catalogService.uploadDocument(
