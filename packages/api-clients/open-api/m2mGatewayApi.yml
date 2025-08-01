@@ -3498,9 +3498,9 @@ paths:
     post:
       tags:
         - eservices
-      summary: Create a new e-service
+      summary: Create a new E-Service
       operationId: createEService
-      description: Creates a new E-Service
+      description: Create a new E-Service in Draft state
       requestBody:
         description: An E-Service seed
         content:
@@ -3509,8 +3509,8 @@ paths:
               $ref: "#/components/schemas/EServiceSeed"
         required: true
       responses:
-        "200":
-           description: EService created
+        "201":
+           description: E-Service created
            content:
             application/json:
               schema:
@@ -3548,8 +3548,8 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-        "429":
-          description: Too Many Requests
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -3563,6 +3563,19 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "409":
           description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
           content:
             application/problem+json:
               schema:
@@ -7178,12 +7191,12 @@ components:
           type: integer
           format: int32
         dailyCallsPerConsumer:
-          description: "maximum number of daily calls that this descriptor can afford per consumer."
+          description: Maximum number of daily calls that this descriptor can afford per consumer
           type: integer
           format: int32
           minimum: 1
         dailyCallsTotal:
-          description: "total daily calls available for this E-Service."
+          description: Total daily calls available for this E-Service
           type: integer
           format: int32
           minimum: 1
@@ -7317,12 +7330,12 @@ components:
           type: integer
           format: int32
         dailyCallsPerConsumer:
-          description: "maximum number of daily calls that this descriptor can afford per consumer."
+          description: Maximum number of daily calls that this descriptor can afford per consumer
           type: integer
           format: int32
           minimum: 1
         dailyCallsTotal:
-          description: "total daily calls available for this E-Service."
+          description: Total daily calls available for this E-Service
           type: integer
           format: int32
           minimum: 1
@@ -7422,12 +7435,12 @@ components:
           minimum: 60
           maximum: 86400
         dailyCallsPerConsumer:
-          description: "maximum number of daily calls that this descriptor can afford."
+          description: Maximum number of daily calls that this descriptor can afford
           type: integer
           format: int32
           minimum: 1
         dailyCallsTotal:
-          description: "total daily calls available for this e-service."
+          description: Total daily calls available for this e-service
           type: integer
           format: int32
           minimum: 1

@@ -21,7 +21,7 @@ import {
   M2MAdminAuthData,
   interpolateTemplateApiSpec,
   authRole,
-  isUiAuthData,
+  retrieveOriginFromAuthData,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -214,21 +214,6 @@ const retrieveDocument = (
   }
   return document;
 };
-
-const retrieveOriginFromAuthData = async (
-  authData: UIAuthData | M2MAdminAuthData,
-  readModelService: ReadModelService
-): Promise<string> =>
-  await match(authData)
-    .with(P.when(isUiAuthData), ({ externalId }) => externalId.origin)
-    .with(
-      { systemRole: authRole.M2M_ADMIN_ROLE },
-      async ({ organizationId }) =>
-        (
-          await retrieveTenant(organizationId, readModelService)
-        ).externalId.origin
-    )
-    .exhaustive();
 
 const retrieveTenant = async (
   tenantId: TenantId,
@@ -503,10 +488,14 @@ async function innerCreateEService(
     correlationId,
   }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
 ): Promise<{
-  eService: WithMetadata<EService>;
+  eService: EService;
   events: Array<CreateEvent<EServiceEvent>>;
 }> {
-  const origin = await retrieveOriginFromAuthData(authData, readModelService);
+  const origin = await retrieveOriginFromAuthData(
+    authData,
+    readModelService,
+    tenantNotFound
+  );
 
   if (!config.producerAllowedOrigins.includes(origin)) {
     throw originNotCompliant(origin);
@@ -596,10 +585,7 @@ async function innerCreateEService(
   );
 
   return {
-    eService: {
-      data: eserviceWithDescriptor,
-      metadata: { version: 0 },
-    },
+    eService: eserviceWithDescriptor,
     events: [eserviceCreationEvent, descriptorCreationEvent],
   };
 }
@@ -860,8 +846,8 @@ export function catalogServiceBuilder(
       await repository.createEvents(events);
 
       return {
-        data: eService.data,
-        metadata: eService.metadata,
+        data: eService,
+        metadata: { version: events[events.length - 1].version ?? 0 },
       };
     },
 
@@ -3141,7 +3127,7 @@ export function catalogServiceBuilder(
 
       const docEvents = [];
       // eslint-disable-next-line functional/no-let
-      let lastEService = createdEService.data;
+      let lastEService = createdEService;
       for (const [index, doc] of publishedVersion.docs.entries()) {
         const clonedDocumentId = generateId<EServiceDocumentId>();
         const clonedDocumentPath = await fileManager.copy(
@@ -3154,7 +3140,7 @@ export function catalogServiceBuilder(
         );
         const { eService, event } = await innerAddDocumentToEserviceEvent(
           { data: lastEService, metadata: { version: index + 1 } },
-          createdEService.data.descriptors[0].id,
+          createdEService.descriptors[0].id,
           {
             documentId: clonedDocumentId,
             kind: "DOCUMENT",

@@ -39,7 +39,7 @@ describe("createEService", () => {
 
   const mockEserviceProcessResponse = getMockWithMetadata(mockedApiEservice);
 
-  const mockcreateEService = vi
+  const mockCreateEService = vi
     .fn()
     .mockResolvedValue(mockEserviceProcessResponse);
 
@@ -48,13 +48,13 @@ describe("createEService", () => {
   );
 
   mockInteropBeClients.catalogProcessClient = {
-    createEService: mockcreateEService,
+    createEService: mockCreateEService,
     getEServiceById: mockGetEservice,
   } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
   beforeEach(() => {
     // Clear mock counters and call information before each test
-    mockcreateEService.mockClear();
+    mockCreateEService.mockClear();
     mockGetEservice.mockClear();
   });
 
@@ -93,7 +93,7 @@ describe("createEService", () => {
   });
 
   it("Should throw missingMetadata in case the attribute returned by the creation POST call has no metadata", async () => {
-    mockcreateEService.mockResolvedValueOnce({
+    mockCreateEService.mockResolvedValueOnce({
       ...mockEserviceProcessResponse,
       metadata: undefined,
     });

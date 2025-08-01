@@ -163,7 +163,7 @@ const eservicesRouter = (
           await catalogService.createEService(req.body, ctx);
         setMetadataVersionHeader(res, metadata);
         return res
-          .status(200)
+          .status(201)
           .send(catalogApi.EService.parse(eServiceToApiEService(eService)));
       } catch (error) {
         const errorRes = makeApiProblem(error, createEServiceErrorMapper, ctx);
