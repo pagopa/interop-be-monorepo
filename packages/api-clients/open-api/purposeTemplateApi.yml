@@ -16,7 +16,7 @@ servers:
 security:
   - bearerAuth: []
 tags:
-  - name: purposeTeamplate
+  - name: purposeTemplate
     description: Implements purpose template process
     externalDocs:
       description: Find out more
