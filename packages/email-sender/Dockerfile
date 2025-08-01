@@ -1,7 +1,7 @@
 #default value for compatibility
 ARG NODE_REGISTRY="docker.io"
 
-FROM ${NODE_REGISTRY}/node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as build
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:ef358d9fa0734e2c3b42482aa352c28a59245bc3d32e07ef57810cf8ba9092c5 as build
 
 RUN corepack enable
 
@@ -45,7 +45,7 @@ RUN pnpm build && \
       packages/email-sender/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM ${NODE_REGISTRY}/node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as final
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:ef358d9fa0734e2c3b42482aa352c28a59245bc3d32e07ef57810cf8ba9092c5 as final
 
 COPY --from=build /out /app
 
