@@ -5,6 +5,7 @@ import {
   authRole,
   ExpressContext,
   fromAppContext,
+  setMetadataVersionHeader,
   validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
@@ -205,10 +206,12 @@ const eservicesRouter = (
           INTERNAL_ROLE,
         ]);
 
-        const eservice = await catalogService.getEServiceById(
-          unsafeBrandId(req.params.eServiceId),
-          ctx
-        );
+        const { data: eservice, metadata } =
+          await catalogService.getEServiceById(
+            unsafeBrandId(req.params.eServiceId),
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(catalogApi.EService.parse(eServiceToApiEService(eservice)));
