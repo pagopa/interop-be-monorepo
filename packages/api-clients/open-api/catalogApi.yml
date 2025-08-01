@@ -1045,12 +1045,15 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
       responses:
-        "200":
+        "201":
           description: EService Document created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceDoc"
         "400":
           description: Invalid input
           content:
@@ -2972,6 +2975,7 @@ components:
         - prettyName
         - path
         - checksum
+        - uploadDate
       properties:
         id:
           type: string
@@ -2986,6 +2990,9 @@ components:
           type: string
         checksum:
           type: string
+        uploadDate:
+          type: string
+          format: date-time
         contacts:
           $ref: "#/components/schemas/DescriptorInterfaceContacts"
     EServiceDescriptionUpdateSeed:

@@ -581,10 +581,11 @@ async function innerAddDocumentToEserviceEvent(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed,
-  ctx: WithLogger<AppContext<UIAuthData>>
+  ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
 ): Promise<{
   eService: EService;
   descriptor: Descriptor;
+  createdDocument: Document;
   event: CreateEvent<EServiceEvent>;
 }> {
   const descriptor = retrieveDescriptor(descriptorId, eService);
@@ -608,7 +609,7 @@ async function innerAddDocumentToEserviceEvent(
   }
 
   const isInterface = documentSeed.kind === "INTERFACE";
-  const newDocument: Document = {
+  const createdDocument: Document = {
     id: unsafeBrandId(documentSeed.documentId),
     name: documentSeed.fileName,
     contentType: documentSeed.contentType,
@@ -620,8 +621,8 @@ async function innerAddDocumentToEserviceEvent(
 
   const updatedDescriptor: Descriptor = {
     ...descriptor,
-    interface: isInterface ? newDocument : descriptor.interface,
-    docs: isInterface ? descriptor.docs : [...descriptor.docs, newDocument],
+    interface: isInterface ? createdDocument : descriptor.interface,
+    docs: isInterface ? descriptor.docs : [...descriptor.docs, createdDocument],
     serverUrls: isInterface ? documentSeed.serverUrls : descriptor.serverUrls,
     templateVersionRef: evaluateTemplateVersionRef(descriptor, documentSeed),
   };
@@ -653,7 +654,12 @@ async function innerAddDocumentToEserviceEvent(
           ctx.correlationId
         );
 
-  return { eService: updatedEService, descriptor: updatedDescriptor, event };
+  return {
+    eService: updatedEService,
+    descriptor: updatedDescriptor,
+    createdDocument,
+    event,
+  };
 }
 
 function createNextDescriptor(
@@ -1034,8 +1040,8 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       document: catalogApi.CreateEServiceDescriptorDocumentSeed,
-      ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Document>> {
       ctx.logger.info(
         `Creating EService Document ${document.documentId.toString()} of kind ${
           document.kind
@@ -1058,17 +1064,21 @@ export function catalogServiceBuilder(
         eservice.data.templateId
       );
 
-      const { eService: updatedEService, event } =
-        await innerAddDocumentToEserviceEvent(
-          eservice,
-          descriptorId,
-          document,
-          ctx
-        );
+      const { createdDocument, event } = await innerAddDocumentToEserviceEvent(
+        eservice,
+        descriptorId,
+        document,
+        ctx
+      );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return updatedEService;
+      return {
+        data: createdDocument,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
 
     async deleteDocument(
