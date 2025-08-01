@@ -141,7 +141,7 @@ export async function assertRequesterIsDelegateProducerOrProducer(
 
 export function assertRequesterIsProducer(
   producerId: TenantId,
-  authData: UIAuthData | M2MAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): void {
   if (producerId !== authData.organizationId) {
     throw operationForbidden;
