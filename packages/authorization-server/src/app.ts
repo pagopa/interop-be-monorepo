@@ -1,8 +1,8 @@
 import {
   contextMiddleware,
+  errorsToApiProblemsMiddleware,
   loggerMiddleware,
   zodiosCtx,
-  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import express from "express";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
@@ -25,7 +25,6 @@ export async function createApp(service: TokenService) {
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
   app.disable("x-powered-by");
 
-  app.use(zodiosValidationErrorToApiProblem);
   app.use(
     "/authorization-server",
     healthRouter,
@@ -36,6 +35,8 @@ export async function createApp(service: TokenService) {
     loggerMiddleware(serviceName),
     authorizationServerRouter(zodiosCtx, service)
   );
+
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }

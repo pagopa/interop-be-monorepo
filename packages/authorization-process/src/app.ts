@@ -1,6 +1,7 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
+  errorsToApiProblemsMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
 import {
@@ -29,6 +30,7 @@ export async function createApp(service: AuthorizationService) {
   app.use(await applicationAuditEndMiddleware(serviceName, config));
   app.use(authenticationMiddleware(config));
   app.use(authorizationRouter(zodiosCtx, service));
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }
