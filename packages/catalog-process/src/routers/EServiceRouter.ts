@@ -367,6 +367,9 @@ const eservicesRouter = (
         try {
           // The same check is done in the backend-for-frontend, if you change this check, change it there too
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          // TODO find a different way to handle this fix...
+          // Maybe catch and rethrow the visibility error in uploadDocument and avoid replicating
+          // the visibility check in the BFF and M2M gateway?
 
           const updatedEService = await catalogService.uploadDocument(
             unsafeBrandId(req.params.eServiceId),
