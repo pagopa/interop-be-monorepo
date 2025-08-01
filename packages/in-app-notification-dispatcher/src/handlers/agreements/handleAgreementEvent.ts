@@ -5,6 +5,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { handleAgreementManagementToProducer } from "./handleAgreementManagementToProducer.js";
 import { handleAgreementSuspendedUnsuspended } from "./handleAgreementSuspendedUnsuspended.js";
 
 export async function handleAgreementEvent(
@@ -35,13 +36,26 @@ export async function handleAgreementEvent(
         type: P.union(
           "AgreementActivated",
           "AgreementSubmitted",
+          "AgreementUpgraded"
+        ),
+      },
+      ({ data: { agreement }, type }) =>
+        handleAgreementManagementToProducer(
+          agreement,
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
+      {
+        type: P.union(
           "AgreementRejected",
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
           "AgreementArchivedByConsumer",
           "AgreementArchivedByUpgrade",
-          "AgreementUpgraded",
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
