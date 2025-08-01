@@ -5,7 +5,6 @@ export const serviceName = {
   AGREEMENT_PROCESS: "agreement-process",
   ATTRIBUTE_REGISTRY_PROCESS: "attribute-registry-process",
   PURPOSE_PROCESS: "purpose-process",
-  PURPOSE_TEMPLATE_PROCESS: "purpose-template-process",
   TENANT_PROCESS: "tenant-process",
   AUTHORIZATION_PROCESS: "authorization-process",
   AUTHORIZATION_SERVER: "authorization-server",
@@ -16,6 +15,7 @@ export const serviceName = {
   M2M_GATEWAY: "m2m-gateway",
   IN_APP_NOTIFICATION_MANAGER: "in-app-notification-manager",
   NOTIFICATION_CONFIG_PROCESS: "notification-config-process",
+  PURPOSE_TEMPLATE_PROCESS: "purpose-template-process",
 } as const;
 
 export const ServiceName = z.enum([
