@@ -141,7 +141,10 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
       ),
     };
 
-    expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions1);
+    expect(sesEmailManager.send).toHaveBeenCalledWith(
+      mailOptions1,
+      expect.anything()
+    );
 
     const response: AxiosResponse = await axios.get(
       `${sesEmailManagerConfig?.awsSesEndpoint}/store`
@@ -182,7 +185,10 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
       ),
     };
 
-    expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions2);
+    expect(sesEmailManager.send).toHaveBeenCalledWith(
+      mailOptions2,
+      expect.anything()
+    );
 
     const lastEmail2 = emails.find(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
