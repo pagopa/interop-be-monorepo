@@ -37,7 +37,7 @@ export const prepareNdjsonEventData = async <
     const fileContentBuffer = await compressJson(ndjsonString);
 
     const time = format(new Date(), "hhmmss");
-    const fileName = `${year}${month}${day}_${time}_${generateId()}.ndjson.gz`;
+    const fileName = `events_${year}${month}${day}_${time}_${generateId()}.ndjson.gz`;
     const filePath = `year=${year}/month=${month}/day=${day}`;
     const resourceId = generateId();
 

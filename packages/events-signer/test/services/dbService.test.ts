@@ -5,9 +5,9 @@ import {
   deleteDynamoDBTables,
 } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
-import { readSignatureReference } from "../utils/dbServiceUtils";
-import { dbServiceBuilder } from "../../src/services/dbService";
-import { dynamoDBClient } from "../utils/utils";
+import { readSignatureReference } from "../utils/dbServiceUtils.js";
+import { dbServiceBuilder } from "../../src/services/dbService.js";
+import { dynamoDBClient } from "../utils/utils.js";
 
 describe("dbServiceBuilder - Integration Tests", () => {
   beforeEach(async () => {

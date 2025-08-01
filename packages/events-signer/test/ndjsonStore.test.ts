@@ -16,24 +16,28 @@ describe("prepareNdjsonEventData", () => {
         event_name: "ProducerDelegationApproved",
         eventTimestamp: timestamp1,
         state: "ACTIVE",
+        correlationId: generateId(),
       },
       {
         id: generateId(),
         event_name: "ConsumerDelegationRevoked",
         eventTimestamp: timestamp2,
         state: "REVOKED",
+        correlationId: generateId(),
       },
       {
         id: generateId(),
         event_name: "ProducerDelegationApproved",
         eventTimestamp: timestamp3,
         state: "ACTIVE",
+        correlationId: generateId(),
       },
       {
         id: generateId(),
         event_name: "ConsumerDelegationApproved",
         eventTimestamp: timestamp1,
         state: "ACTIVE",
+        correlationId: generateId(),
       },
     ];
 
