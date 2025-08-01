@@ -843,11 +843,16 @@ export function catalogServiceBuilder(
         ctx
       );
 
-      await repository.createEvents(events);
+      const createdEvents = await repository.createEvents(events);
+
+      const newVersion = Math.max(
+        0,
+        ...createdEvents.map((event) => event.newVersion)
+      );
 
       return {
         data: eService,
-        metadata: { version: events[events.length - 1].version ?? 0 },
+        metadata: { version: newVersion },
       };
     },
 
