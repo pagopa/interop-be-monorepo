@@ -670,9 +670,7 @@ const authorizationRouter = (
               filters: {
                 name,
                 userIds: userIds?.map(unsafeBrandId<UserId>),
-                producerId: producerId
-                  ? unsafeBrandId<TenantId>(producerId)
-                  : undefined,
+                producerId: unsafeBrandId<TenantId>(producerId),
                 eserviceId: eserviceId
                   ? unsafeBrandId<EServiceId>(eserviceId)
                   : undefined,

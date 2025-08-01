@@ -37,7 +37,7 @@ export type GetClientsFilters = {
 export type GetProducerKeychainsFilters = {
   name?: string;
   userIds: UserId[];
-  producerId?: TenantId;
+  producerId: TenantId;
   eserviceId: EServiceId | undefined;
 };
 
