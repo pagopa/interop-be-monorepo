@@ -1244,8 +1244,12 @@ export function catalogServiceBuilder(
     async createDescriptor(
       eserviceId: EServiceId,
       eserviceDescriptorSeed: catalogApi.EServiceDescriptorSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Descriptor> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<{ eservice: EService; descriptor: Descriptor }>> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -1298,49 +1302,66 @@ export function catalogServiceBuilder(
         correlationId
       );
 
-      const { events, descriptorWithDocs } = eserviceDescriptorSeed.docs.reduce(
-        (acc, document, index) => {
-          const newDocument: Document = {
-            id: unsafeBrandId(document.documentId),
-            name: document.fileName,
-            contentType: document.contentType,
-            prettyName: document.prettyName,
-            path: document.filePath,
-            checksum: document.checksum,
-            uploadDate: new Date(),
-          };
+      const { events, eserviceWithNewDescriptor } =
+        eserviceDescriptorSeed.docs.reduce(
+          (acc, document, index) => {
+            const newDocument: Document = {
+              id: unsafeBrandId(document.documentId),
+              name: document.fileName,
+              contentType: document.contentType,
+              prettyName: document.prettyName,
+              path: document.filePath,
+              checksum: document.checksum,
+              uploadDate: new Date(),
+            };
 
-          const descriptorWithDocs: Descriptor = {
-            ...acc.descriptorWithDocs,
-            docs: [...acc.descriptorWithDocs.docs, newDocument],
-          };
-          const updatedEService = replaceDescriptor(
-            newEservice,
-            descriptorWithDocs
-          );
-          const version = eserviceVersion + index + 1;
-          const documentEvent = toCreateEventEServiceDocumentAdded(
-            version,
-            {
-              descriptorId: newDescriptor.id,
-              documentId: unsafeBrandId(document.documentId),
-              eservice: updatedEService,
-            },
-            correlationId
-          );
-          return {
-            events: [...acc.events, documentEvent],
-            descriptorWithDocs,
-          };
-        },
-        {
-          events: [descriptorCreationEvent],
-          descriptorWithDocs: newDescriptor,
-        }
+            const currentDescriptor: Descriptor =
+              acc.eserviceWithNewDescriptor.descriptors[
+                acc.eserviceWithNewDescriptor.descriptors.length - 1
+              ];
+            const descriptorWithDocs: Descriptor = {
+              ...currentDescriptor,
+              docs: [...currentDescriptor.docs, newDocument],
+            };
+            const updatedEService = replaceDescriptor(
+              acc.eserviceWithNewDescriptor,
+              descriptorWithDocs
+            );
+            const version = eserviceVersion + index + 1;
+            const documentEvent = toCreateEventEServiceDocumentAdded(
+              version,
+              {
+                descriptorId: newDescriptor.id,
+                documentId: unsafeBrandId(document.documentId),
+                eservice: updatedEService,
+              },
+              correlationId
+            );
+            return {
+              events: [...acc.events, documentEvent],
+              eserviceWithNewDescriptor: updatedEService,
+            };
+          },
+          {
+            events: [descriptorCreationEvent],
+            eserviceWithNewDescriptor: newEservice,
+          }
+        );
+
+      const createdEvents = await repository.createEvents(events);
+
+      const newVersion = Math.max(
+        0,
+        ...createdEvents.map((event) => event.newVersion)
       );
 
-      await repository.createEvents(events);
-      return descriptorWithDocs;
+      return {
+        data: {
+          eservice: eserviceWithNewDescriptor,
+          descriptor: newDescriptor,
+        },
+        metadata: { version: newVersion },
+      };
     },
 
     async deleteDraftDescriptor(

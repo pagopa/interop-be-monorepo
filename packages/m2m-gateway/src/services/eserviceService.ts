@@ -1,6 +1,6 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
+import { DescriptorId, EServiceId, unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
@@ -15,6 +15,10 @@ import {
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
+import {
+  isPolledVersionAtLeastResponseVersion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -56,6 +60,16 @@ export function eserviceServiceBuilder(
       metadata,
     };
   };
+
+  const pollEservice = (
+    response: WithMaybeMetadata<catalogApi.EService>,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
+    pollResourceWithMetadata(() =>
+      retrieveEServiceById(headers, unsafeBrandId(response.data.id))
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
+    });
 
   return {
     async getEService(
@@ -171,6 +185,42 @@ export function eserviceServiceBuilder(
         config.eserviceDocumentsContainer,
         logger
       );
+    },
+    async createDescriptor(
+      eserviceId: EServiceId,
+      eserviceDescriptorSeed: m2mGatewayApi.EServiceDescriptorSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
+      logger.info(`Creating Descriptor for EService ${eserviceId}`);
+
+      const {
+        data: { eservice, descriptor },
+        metadata,
+      } = await clients.catalogProcessClient.createDescriptor(
+        eserviceDescriptorSeed,
+        {
+          params: { eServiceId: eserviceId },
+          headers,
+        }
+      );
+
+      await pollEservice(
+        {
+          data: eservice,
+          metadata,
+        },
+        headers
+      );
+
+      const createdDescriptor = eservice.descriptors.find(
+        (d) => d.id === descriptor.id
+      );
+
+      if (!createdDescriptor) {
+        throw eserviceDescriptorNotFound(eservice.id, descriptor.id);
+      }
+
+      return toM2MGatewayApiEServiceDescriptor(createdDescriptor);
     },
   };
 }
