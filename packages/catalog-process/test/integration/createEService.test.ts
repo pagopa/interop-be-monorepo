@@ -137,7 +137,7 @@ describe("create eservice", () => {
     );
     expect(eservice).toEqual({
       data: expectedEserviceWithDescriptor,
-      metadata: { version: 0 },
+      metadata: { version: 1 },
     });
   });
   it("should assign value inherit from request to isSignalhubEnabled field if signalhub whitelist feature flag is not enabled", async () => {

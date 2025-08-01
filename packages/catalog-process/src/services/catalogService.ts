@@ -217,7 +217,7 @@ const retrieveDocument = (
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: Pick<ReadModelService, "getTenantById">
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
@@ -494,7 +494,7 @@ async function innerCreateEService(
   const origin = await retrieveOriginFromAuthData(
     authData,
     readModelService,
-    tenantNotFound
+    retrieveTenant
   );
 
   if (!config.producerAllowedOrigins.includes(origin)) {
