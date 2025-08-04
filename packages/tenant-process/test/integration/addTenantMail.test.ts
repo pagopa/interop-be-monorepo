@@ -249,7 +249,6 @@ describe("addTenantMail", async () => {
 
   it("Should throw notValidMailAddress if the address doesn't respect the valid pattern", async () => {
     const mockTenant: Tenant = getMockTenant();
-
     const mailSeedWithStrangeCharacters: tenantApi.MailSeed = {
       kind: "CONTACT_EMAIL",
       address: "         test#°¶^            Mail@test.$%*@@it",
@@ -266,8 +265,6 @@ describe("addTenantMail", async () => {
           authData: getMockAuthData(mockTenant.id),
         })
       )
-    ).rejects.toThrowError(
-      notValidMailAddress(mailSeedWithStrangeCharacters.address)
-    );
+    ).rejects.toThrowError(notValidMailAddress());
   });
 });
