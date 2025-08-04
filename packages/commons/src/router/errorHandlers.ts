@@ -41,10 +41,14 @@ export function errorsToApiProblemsMiddleware(
   error: unknown,
   req: WithZodiosContext<express.Request, ExpressContext>,
   res: Response,
-  _next: NextFunction
-): Response {
+  next: NextFunction
+): Response | void {
   const ctx = fromAppContext(req.ctx);
   ctx.logger.error(`Error in request: ${parseErrorMessage(error)}`);
+
+  if (res.headersSent) {
+    return next(error);
+  }
 
   if (error instanceof SyntaxError) {
     return res
