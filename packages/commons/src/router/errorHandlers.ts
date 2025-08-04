@@ -37,7 +37,7 @@ export function zodiosValidationErrorToApiProblem(
 }
 
 export function errorsToApiProblemsMiddleware(
-  error: SyntaxError,
+  error: unknown,
   req: WithZodiosContext<express.Request, ExpressContext>,
   res: Response,
   next: NextFunction
