@@ -10,7 +10,7 @@ import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
-} from "../risk-analysis/riskAnalysis.js";
+} from "../risk-analysis/riskAnalysisTemplate.js";
 import { dateToBigInt } from "../utils.js";
 import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 import {
