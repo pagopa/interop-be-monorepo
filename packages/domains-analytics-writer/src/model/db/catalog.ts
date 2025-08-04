@@ -46,6 +46,23 @@ export const CatalogDbTableReadModel = {
   eservice_risk_analysis: eserviceRiskAnalysisInReadmodelCatalog,
   eservice_risk_analysis_answer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
 } as const;
+export const CatalogDbPartialTableConfig = {
+  descriptor_server_urls: EserviceDescriptorSchema,
+} as const;
+export type CatalogDbPartialTableConfig = typeof CatalogDbPartialTableConfig;
+
+export const CatalogDbPartialTableReadModel = {
+  descriptor_server_urls: eserviceDescriptorInReadmodelCatalog,
+} as const;
+
+export type CatalogDbPartialTableReadModel =
+  typeof CatalogDbPartialTableReadModel;
+
+export type CatalogDbPartialTable = keyof typeof CatalogDbPartialTableReadModel;
+export const CatalogDbPartialTable = Object.fromEntries(
+  Object.keys(CatalogDbPartialTableConfig).map((k) => [k, k])
+) as { [K in CatalogDbPartialTable]: K };
+
 export type CatalogDbTableReadModel = typeof CatalogDbTableReadModel;
 
 export type CatalogDbTable = keyof typeof CatalogDbTableConfig;

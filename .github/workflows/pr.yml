@@ -12,13 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Cache turbo setup
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-check-formatting-${{ github.ref_name }}
+          key: ${{ runner.os }}-turbo-check-formatting-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-check-formatting
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
@@ -34,13 +36,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Cache turbo setup
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-lint-${{ github.ref_name }}
+          key: ${{ runner.os }}-turbo-lint-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-lint-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -56,13 +60,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Cache turbo setup
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-check-${{ github.ref_name }}
+          key: ${{ runner.os }}-turbo-check-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-check
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -77,13 +83,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Cache turbo setup
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-test-${{ github.ref_name }}
+          key: ${{ runner.os }}-turbo-test-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-test
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -101,7 +109,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: stoplightio/spectral-action@2ad0b9302e32a77c1caccf474a9b2191a8060d83 #v0.8.11
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: stoplightio/spectral-action@577bade2d6e0eeb50528c94182a5588bf961ae8f # v0.8.12
         with:
           file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
 
@@ -114,6 +124,8 @@ jobs:
       packages: ${{ steps.set_packages_output.outputs.packages }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Find packages
         id: set_packages_output
         run: |
@@ -138,7 +150,8 @@ jobs:
       DOCKER_BUILD_SUMMARY: "false"
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:

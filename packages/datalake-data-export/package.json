@@ -5,7 +5,8 @@
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "echo \"Old readmodel\" && vitest --config vitest.config.ts && echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
+    "test": "echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
+    "test:old": "echo \"Old readmodel\" && vitest --config vitest.config.ts ",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -18,7 +19,7 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/node": "20.14.6",
+    "@types/node": "20.19.4",
     "@pagopa/eslint-config": "3.0.0",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",

@@ -65,7 +65,7 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
       { id: mock.id }
     );
     expect(storedAgreement).toBeDefined();
-    expect(storedAgreement.metadataVersion).toBe(1);
+    expect(storedAgreement?.metadataVersion).toBe(1);
 
     const storedStamps = await getManyFromDb(
       dbContext,
@@ -165,8 +165,8 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
     const stored = await getOneFromDb(dbContext, AgreementDbTable.agreement, {
       id: mock.id,
     });
-    expect(stored.metadataVersion).toBe(2);
-    expect(stored.state).toBe("Suspended");
+    expect(stored?.metadataVersion).toBe(2);
+    expect(stored?.state).toBe("Suspended");
   });
 
   it("AgreementDeleted: marks agreement and all subobjects deleted", async () => {
@@ -205,7 +205,7 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
       AgreementDbTable.agreement,
       { id: mock.id }
     );
-    expect(storedAgreement.deleted).toBe(true);
+    expect(storedAgreement?.deleted).toBe(true);
 
     const storedStamps = await getManyFromDb(
       dbContext,
@@ -315,7 +315,7 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
       { id: mock.id }
     );
     expect(storedAgreement).toBeDefined();
-    expect(storedAgreement.metadataVersion).toBe(1);
+    expect(storedAgreement?.metadataVersion).toBe(1);
 
     const storedStamps = await getManyFromDb(
       dbContext,
@@ -349,7 +349,7 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
     expect(storedContract[0].metadataVersion).toBe(1);
   });
 
-  it("AgreementConsumerDocumentRemoved: marks consumer document as deleted ", async () => {
+  it("AgreementConsumerDocumentRemoved: should delete consumer document", async () => {
     const doc = getMockAgreementDocument();
     const mock = { ...getMockAgreement(), consumerDocuments: [doc] };
 
@@ -369,7 +369,7 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
       event_version: 2,
       type: "AgreementConsumerDocumentRemoved",
       data: {
-        agreement: toAgreementV2(mock),
+        agreement: toAgreementV2({ ...mock, consumerDocuments: [] }),
         documentId: doc.id,
       } as AgreementConsumerDocumentRemovedV2,
       log_date: new Date(),
@@ -382,8 +382,7 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
       AgreementDbTable.agreement_consumer_document,
       { id: doc.id }
     );
-    expect(stored.length).toBe(1);
-    expect(stored[0].deleted).toBe(true);
+    expect(stored.length).toBe(0);
   });
 
   it("AgreementSuspendedByProducer: applies update", async () => {
@@ -415,8 +414,8 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
     const stored = await getOneFromDb(dbContext, AgreementDbTable.agreement, {
       id: mock.id,
     });
-    expect(stored.metadataVersion).toBe(2);
-    expect(stored.state).toBe("Suspended");
+    expect(stored?.metadataVersion).toBe(2);
+    expect(stored?.state).toBe("Suspended");
   });
 
   it("AgreementDeleted: marks agreement and all subobjects deleted (V2)", async () => {
@@ -455,7 +454,7 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
       AgreementDbTable.agreement,
       { id: mock.id }
     );
-    expect(storedAgreement.deleted).toBe(true);
+    expect(storedAgreement?.deleted).toBe(true);
 
     const storedStamps = await getManyFromDb(
       dbContext,
