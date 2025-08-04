@@ -35,7 +35,7 @@ describe("GET /tenants/:tenantId/verifiedAttributes/:attributeId/revokers route 
     delegationId: generateId(),
   };
 
-  const mockResponse: m2mGatewayApi.TenantRevokers = {
+  const mockResponse: m2mGatewayApi.TenantVerifiedAttributeRevokers = {
     results: [
       toM2MGatewayApiTenantRevoker(mockRevoker1),
       toM2MGatewayApiTenantRevoker(mockRevoker2),
