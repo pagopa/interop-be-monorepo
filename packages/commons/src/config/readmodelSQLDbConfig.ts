@@ -28,9 +28,6 @@ export const ReadModelSQLDbConfig = z
     READMODEL_SQL_DB_SCHEMA_ESERVICE_TEMPLATE: z
       .string()
       .default("readmodel_eservice_template"),
-    READMODEL_SQL_DB_SCHEMA_NOTIFICATION_CONFIG: z
-      .string()
-      .default("readmodel_notification_config"),
     READMODEL_SQL_DB_SCHEMA_PRODUCER_JWK_KEY: z
       .string()
       .default("readmodel_producer_jwk_key"),
@@ -55,8 +52,6 @@ export const ReadModelSQLDbConfig = z
     readModelSQLDbSchemaDelegation: c.READMODEL_SQL_DB_SCHEMA_DELEGATION,
     readModelSQLDbSchemaEServiceTemplate:
       c.READMODEL_SQL_DB_SCHEMA_ESERVICE_TEMPLATE,
-    readModelSQLDbSchemaNotificationConfig:
-      c.READMODEL_SQL_DB_SCHEMA_NOTIFICATION_CONFIG,
     readModelSQLDbSchemaProducerJwkKey:
       c.READMODEL_SQL_DB_SCHEMA_PRODUCER_JWK_KEY,
     readModelSQLDbSchemaProducerKeychain:

@@ -47,7 +47,6 @@ import {
   agreementNotInExpectedState,
   descriptorNotFound,
   eServiceNotFound,
-  tenantIsNotTheDelegate,
   tenantNotAllowed,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
@@ -140,7 +139,7 @@ describe("suspend agreement", () => {
     const authData = getMockAuthData(requesterId);
 
     const suspendAgreementResponse = await agreementService.suspendAgreement(
-      { agreementId: agreement.id, delegationId: undefined },
+      agreement.id,
       getMockContext({ authData })
     );
 
@@ -272,8 +271,7 @@ describe("suspend agreement", () => {
     const authData = getMockAuthData(producerAndConsumerId);
 
     const suspendAgreementResponse = await agreementService.suspendAgreement(
-      { agreementId: agreement.id, delegationId: undefined },
-
+      agreement.id,
       getMockContext({ authData })
     );
 
@@ -362,8 +360,7 @@ describe("suspend agreement", () => {
     await addOneAgreement(agreement);
 
     const suspendAgreementResponse = await agreementService.suspendAgreement(
-      { agreementId: agreement.id, delegationId: undefined },
-
+      agreement.id,
       getMockContext({ authData })
     );
 
@@ -532,7 +529,7 @@ describe("suspend agreement", () => {
 
         const suspendAgreementResponse =
           await agreementService.suspendAgreement(
-            { agreementId: agreement.id, delegationId: delegation.id },
+            agreement.id,
             getMockContext({ authData })
           );
 
@@ -552,7 +549,7 @@ describe("suspend agreement", () => {
     const agreementId = generateId<AgreementId>();
     await expect(
       agreementService.suspendAgreement(
-        { agreementId, delegationId: undefined },
+        agreementId,
         getMockContext({ authData })
       )
     ).rejects.toThrowError(agreementNotFound(agreementId));
@@ -568,7 +565,7 @@ describe("suspend agreement", () => {
     await addOneAgreement(agreement);
     await expect(
       agreementService.suspendAgreement(
-        { agreementId: agreement.id, delegationId: undefined },
+        agreement.id,
         getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
@@ -587,7 +584,7 @@ describe("suspend agreement", () => {
     const authData = getMockAuthData(agreement.producerId);
     await expect(
       agreementService.suspendAgreement(
-        { agreementId: agreement.id, delegationId: undefined },
+        agreement.id,
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
@@ -605,7 +602,7 @@ describe("suspend agreement", () => {
     const authData = getMockAuthData(agreement.producerId);
     await expect(
       agreementService.suspendAgreement(
-        { agreementId: agreement.id, delegationId: undefined },
+        agreement.id,
         getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
@@ -634,7 +631,7 @@ describe("suspend agreement", () => {
 
     await expect(
       agreementService.suspendAgreement(
-        { agreementId: agreement.id, delegationId: undefined },
+        agreement.id,
         getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
@@ -660,7 +657,7 @@ describe("suspend agreement", () => {
 
     await expect(
       agreementService.suspendAgreement(
-        { agreementId: agreement.id, delegationId: undefined },
+        agreement.id,
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
@@ -672,7 +669,7 @@ describe("suspend agreement", () => {
     { kind: delegationKind.delegatedConsumer, desc: "consumer" },
     { kind: delegationKind.delegatedProducer, desc: "producer" },
   ])(
-    "should throw tenantIsNotTheDelegate a error when the requester is the $desc but not the $kind",
+    "should throw tenantNotAllowed a error when the requester is the $desc but not the $kind",
     async ({ kind }) => {
       const eservice: EService = {
         ...getMockEService(),
@@ -713,15 +710,15 @@ describe("suspend agreement", () => {
 
       await expect(
         agreementService.suspendAgreement(
-          { agreementId: agreement.id, delegationId: undefined },
+          agreement.id,
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(tenantIsNotTheDelegate(authData.organizationId));
+      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
     }
   );
 
   it.each([delegationKind.delegatedProducer, delegationKind.delegatedConsumer])(
-    "should throw a tenantIsNotTheDelegate when the requester is the %s but the delegation in not active",
+    "should throw a tenantNotAllowed error when the requester is the %s but the delegation in not active",
     async (kind) => {
       const eservice: EService = {
         ...getMockEService(),
@@ -755,10 +752,10 @@ describe("suspend agreement", () => {
 
       await expect(
         agreementService.suspendAgreement(
-          { agreementId: agreement.id, delegationId: delegation.id },
+          agreement.id,
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(tenantIsNotTheDelegate(authData.organizationId));
+      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
     }
   );
 });

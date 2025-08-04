@@ -20,9 +20,9 @@ import {
   readPlatformPurposeEntry,
   updatePurposeDataInPlatformStatesEntry,
   updatePurposeDataInTokenGenStatesEntries,
+  writePlatformPurposeEntry,
   updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData,
   getLastSuspendedOrActivatedPurposeVersion,
-  upsertPlatformStatesPurposeEntry,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -46,15 +46,24 @@ export async function handleMessageV2(
           purpose.versions
         );
 
-        if (
-          existingPurposeEntry &&
-          existingPurposeEntry.version > msg.version
-        ) {
-          // Stops processing if the message is older than the purpose entry
-          logger.info(
-            `Skipping processing of entry ${existingPurposeEntry.PK}. Reason: a more recent entry already exists`
-          );
-          return Promise.resolve();
+        if (existingPurposeEntry) {
+          if (existingPurposeEntry.version > msg.version) {
+            // Stops processing if the message is older than the purpose entry
+            logger.info(
+              `Skipping processing of entry ${existingPurposeEntry.PK}. Reason: a more recent entry already exists`
+            );
+            return Promise.resolve();
+          } else {
+            // platform-states
+            await updatePurposeDataInPlatformStatesEntry({
+              dynamoDBClient,
+              primaryKey,
+              purposeState,
+              purposeVersionId: purposeVersion.id,
+              version: msg.version,
+              logger,
+            });
+          }
         } else {
           // platform-states
           const purposeEntry: PlatformStatesPurposeEntry = {
@@ -66,21 +75,17 @@ export async function handleMessageV2(
             version: msg.version,
             updatedAt: new Date().toISOString(),
           };
-          await upsertPlatformStatesPurposeEntry(
-            dynamoDBClient,
-            purposeEntry,
-            logger
-          );
-
-          // token-generation-states
-          await updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData(
-            dynamoDBClient,
-            purpose,
-            purposeState,
-            purposeVersion.id,
-            logger
-          );
+          await writePlatformPurposeEntry(dynamoDBClient, purposeEntry, logger);
         }
+
+        // token-generation-states
+        await updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData(
+          dynamoDBClient,
+          purpose,
+          purposeState,
+          purposeVersion.id,
+          logger
+        );
       }
     )
     .with(

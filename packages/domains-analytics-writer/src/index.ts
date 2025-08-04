@@ -14,7 +14,6 @@ import { retryConnection } from "./db/buildColumnSet.js";
 import {
   AgreementDbTable,
   AttributeDbTable,
-  CatalogDbPartialTable,
   CatalogDbTable,
   DelegationDbTable,
   DeletingDbTable,
@@ -22,7 +21,6 @@ import {
   TenantDbPartialTable,
   TenantDbTable,
   ClientDbTable,
-  ProducerKeychainDbTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 import { EserviceTemplateDbTable } from "./model/db/eserviceTemplate.js";
@@ -74,10 +72,6 @@ await retryConnection(
       ClientDbTable.client_purpose,
       ClientDbTable.client_user,
       ClientDbTable.client_key,
-      ProducerKeychainDbTable.producer_keychain,
-      ProducerKeychainDbTable.producer_keychain_eservice,
-      ProducerKeychainDbTable.producer_keychain_user,
-      ProducerKeychainDbTable.producer_keychain_key,
       DelegationDbTable.delegation,
       DelegationDbTable.delegation_stamp,
       DelegationDbTable.delegation_contract_document,
@@ -99,14 +93,14 @@ await retryConnection(
     ]);
     await setupDbService.setupPartialStagingTables([
       TenantDbPartialTable.tenant_self_care_id,
-      CatalogDbPartialTable.descriptor_server_urls,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
       { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
       {
-        name: DeletingDbTable.catalog_descriptor_interface_deleting_table,
-        columns: ["id", "descriptorId", "metadataVersion"],
+        name: DeletingDbTable.catalog_risk_deleting_table,
+        columns: ["id", "eserviceId"],
       },
       { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
       { name: DeletingDbTable.purpose_deleting_table, columns: ["id"] },
@@ -117,6 +111,10 @@ await retryConnection(
       {
         name: DeletingDbTable.tenant_mail_deleting_table,
         columns: ["id", "tenantId"],
+      },
+      {
+        name: DeletingDbTable.tenant_feature_deleting_table,
+        columns: ["tenantId", "kind"],
       },
       { name: DeletingDbTable.client_deleting_table, columns: ["id"] },
       {
@@ -130,10 +128,6 @@ await retryConnection(
       {
         name: DeletingDbTable.client_key_deleting_table,
         columns: ["clientId", "kid"],
-      },
-      {
-        name: DeletingDbTable.producer_keychain_deleting_table,
-        columns: ["id"],
       },
       {
         name: DeletingDbTable.eservice_template_deleting_table,
@@ -169,6 +163,5 @@ await runBatchConsumer(
     config.authorizationTopic,
     config.eserviceTemplateTopic,
   ],
-  processBatch,
-  "domains-analytics-writer"
+  processBatch
 );

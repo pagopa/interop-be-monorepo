@@ -103,9 +103,4 @@ async function processMessage({
     .otherwise(() => undefined);
 }
 
-await runConsumer(
-  config,
-  [config.agreementTopic],
-  processMessage,
-  "eservice-descriptors-archiver"
-);
+await runConsumer(config, [config.agreementTopic], processMessage);

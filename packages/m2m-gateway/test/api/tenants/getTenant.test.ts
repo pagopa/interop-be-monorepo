@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import { generateToken, getMockedApiTenant } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
@@ -26,7 +26,7 @@ describe("GET /tenants/:tenantId route test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      vi.spyOn(mockTenantService, "getTenant").mockResolvedValue(mockResponse);
+      mockTenantService.getTenant = vi.fn().mockResolvedValue(mockResponse);
 
       const token = generateToken(role);
       const res = await makeRequest(token);
@@ -52,9 +52,7 @@ describe("GET /tenants/:tenantId route test", () => {
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      vi.spyOn(mockTenantService, "getTenant").mockResolvedValue(
-        resp as unknown as tenantApi.Tenant
-      );
+      mockTenantService.getTenant = vi.fn().mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token);
 

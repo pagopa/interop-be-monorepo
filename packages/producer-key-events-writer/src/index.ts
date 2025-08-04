@@ -48,9 +48,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.authorizationTopic],
-  processMessage,
-  "producer-key-events-writer"
-);
+await runConsumer(config, [config.authorizationTopic], processMessage);

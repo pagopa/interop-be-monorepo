@@ -94,9 +94,7 @@ export function tenantRepository(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTableName,
-          ["id"],
-          true,
-          false
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -128,13 +126,7 @@ export function tenantRepository(conn: DBConnection) {
           TenantSelfcareIdSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(
-          generateStagingDeleteQuery(
-            tableName,
-            ["id"],
-            tenantSelfcareUpsertTableName
-          )
-        );
+        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTenantSelfcareUpsertTableName}: ${error}`

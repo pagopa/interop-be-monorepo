@@ -6,12 +6,8 @@ import {
   agreementState,
   generateId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockAgreement,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, agreementService } from "../vitest.api.setup.js";
 import {
@@ -25,12 +21,11 @@ import { getMockConsumerDocument } from "../mockUtils.js";
 describe("API DELETE /agreements/{agreementId}/consumer-documents/{documentId} test", () => {
   const mockAgreement = getMockAgreement();
   const mockConsumerDocument = getMockConsumerDocument(mockAgreement.id);
-  const serviceResponse = getMockWithMetadata(mockAgreement);
 
   beforeEach(() => {
     agreementService.removeAgreementConsumerDocument = vi
       .fn()
-      .mockResolvedValue(serviceResponse);
+      .mockResolvedValue(undefined);
   });
 
   const makeRequest = async (
@@ -43,25 +38,14 @@ describe("API DELETE /agreements/{agreementId}/consumer-documents/{documentId} t
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.ADMIN_ROLE,
-    authRole.M2M_ADMIN_ROLE,
-  ];
-
-  it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
-    async (role) => {
-      const token = generateToken(role);
-      const res = await makeRequest(token);
-      expect(res.status).toBe(204);
-      expect(res.headers["x-metadata-version"]).toBe(
-        serviceResponse.metadata.version.toString()
-      );
-    }
-  );
+  it("Should return 204 for user with role Admin", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(204);
+  });
 
   it.each(
-    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);

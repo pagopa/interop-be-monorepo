@@ -15,10 +15,12 @@ import {
   DeleteItemInput,
   DynamoDBClient,
   GetItemCommand,
+  GetItemCommandOutput,
   GetItemInput,
   PutItemCommand,
   PutItemInput,
   QueryCommand,
+  QueryCommandOutput,
   QueryInput,
   UpdateItemCommand,
   UpdateItemInput,
@@ -28,12 +30,13 @@ import { z } from "zod";
 import { Logger } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
 
-export const upsertPlatformStatesCatalogEntry = async (
+export const writeCatalogEntry = async (
   catalogEntry: PlatformStatesCatalogEntry,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
     Item: {
       PK: {
         S: catalogEntry.PK,
@@ -60,7 +63,7 @@ export const upsertPlatformStatesCatalogEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Upserted catalog entry ${catalogEntry.PK}`);
+  logger.info(`Platform-states. Written catalog entry ${catalogEntry.PK}`);
 };
 
 export const readCatalogEntry = async (
@@ -75,7 +78,7 @@ export const readCatalogEntry = async (
     ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
-  const data = await dynamoDBClient.send(command);
+  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
 
   if (!data.Item) {
     return undefined;
@@ -197,11 +200,12 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
   descriptorState: ItemState,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
-): Promise<void> => {
-  // eslint-disable-next-line functional/no-let
-  let exclusiveStartKey: Record<string, AttributeValue> | undefined;
-
-  do {
+): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
+  const runPaginatedQuery = async (
+    eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+    dynamoDBClient: DynamoDBClient,
+    exclusiveStartKey?: Record<string, AttributeValue>
+  ): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Descriptor",
@@ -212,7 +216,7 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
       ExclusiveStartKey: exclusiveStartKey,
     };
     const command = new QueryCommand(input);
-    const data = await dynamoDBClient.send(command);
+    const data: QueryCommandOutput = await dynamoDBClient.send(command);
 
     if (!data.Items) {
       throw genericInternalError(
@@ -242,9 +246,26 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
         logger
       );
 
-      exclusiveStartKey = data.LastEvaluatedKey;
+      if (!data.LastEvaluatedKey) {
+        return tokenGenStatesEntries.data;
+      } else {
+        return [
+          ...tokenGenStatesEntries.data,
+          ...(await runPaginatedQuery(
+            eserviceId_descriptorId,
+            dynamoDBClient,
+            data.LastEvaluatedKey
+          )),
+        ];
+      }
     }
-  } while (exclusiveStartKey);
+  };
+
+  return await runPaginatedQuery(
+    eserviceId_descriptorId,
+    dynamoDBClient,
+    undefined
+  );
 };
 
 export const updateDescriptorInfoInTokenGenerationStatesTable = async (
@@ -255,11 +276,12 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
   dynamoDBClient: DynamoDBClient,
   logger: Logger
   // eslint-disable-next-line max-params
-): Promise<void> => {
-  // eslint-disable-next-line functional/no-let
-  let exclusiveStartKey: Record<string, AttributeValue> | undefined;
-
-  do {
+): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
+  const runPaginatedQuery = async (
+    eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+    dynamoDBClient: DynamoDBClient,
+    exclusiveStartKey?: Record<string, AttributeValue>
+  ): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
     const input: QueryInput = {
       TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
       IndexName: "Descriptor",
@@ -270,7 +292,7 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
       ExclusiveStartKey: exclusiveStartKey,
     };
     const command = new QueryCommand(input);
-    const data = await dynamoDBClient.send(command);
+    const data: QueryCommandOutput = await dynamoDBClient.send(command);
 
     if (!data.Items) {
       throw genericInternalError(
@@ -302,9 +324,26 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
         logger,
       });
 
-      exclusiveStartKey = data.LastEvaluatedKey;
+      if (!data.LastEvaluatedKey) {
+        return tokenGenStatesEntries.data;
+      } else {
+        return [
+          ...tokenGenStatesEntries.data,
+          ...(await runPaginatedQuery(
+            eserviceId_descriptorId,
+            dynamoDBClient,
+            data.LastEvaluatedKey
+          )),
+        ];
+      }
     }
-  } while (exclusiveStartKey);
+  };
+
+  return await runPaginatedQuery(
+    eserviceId_descriptorId,
+    dynamoDBClient,
+    undefined
+  );
 };
 
 export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
@@ -314,10 +353,11 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
     dynamoDBClient: DynamoDBClient,
     logger: Logger
   ): Promise<void> => {
-    // eslint-disable-next-line functional/no-let
-    let exclusiveStartKey: Record<string, AttributeValue> | undefined;
-
-    do {
+    const runPaginatedQuery = async (
+      eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+      dynamoDBClient: DynamoDBClient,
+      exclusiveStartKey?: Record<string, AttributeValue>
+    ): Promise<void> => {
       const input: QueryInput = {
         TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
         IndexName: "Descriptor",
@@ -328,7 +368,7 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
         ExclusiveStartKey: exclusiveStartKey,
       };
       const command = new QueryCommand(input);
-      const data = await dynamoDBClient.send(command);
+      const data: QueryCommandOutput = await dynamoDBClient.send(command);
 
       if (!data.Items) {
         throw genericInternalError(
@@ -358,9 +398,17 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
           logger
         );
 
-        exclusiveStartKey = data.LastEvaluatedKey;
+        if (data.LastEvaluatedKey) {
+          await runPaginatedQuery(
+            eserviceId_descriptorId,
+            dynamoDBClient,
+            data.LastEvaluatedKey
+          );
+        }
       }
-    } while (exclusiveStartKey);
+    };
+
+    await runPaginatedQuery(eserviceId_descriptorId, dynamoDBClient, undefined);
   };
 
 const updateDescriptorStateInTokenGenerationStatesEntries = async (

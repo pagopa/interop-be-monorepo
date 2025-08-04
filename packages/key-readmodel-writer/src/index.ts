@@ -44,9 +44,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.authorizationTopic],
-  processMessage,
-  "key-readmodel-writer"
-);
+await runConsumer(config, [config.authorizationTopic], processMessage);

@@ -13,7 +13,6 @@ import {
 } from "pagopa-interop-commons";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
-  algorithm,
   ClientAssertionDigest,
   ClientId,
   DescriptorId,
@@ -104,7 +103,7 @@ describe("Token Generator", () => {
         1000
       );
       expect(actualToken.header).toEqual({
-        alg: algorithm.RS256,
+        alg: "RS256",
         use: "sig",
         typ: "at+jwt",
         kid: sessionTokenGenerationConfig.generatedKid,
@@ -147,7 +146,7 @@ describe("Token Generator", () => {
           1000
         );
         expect(actualToken.header).toEqual({
-          alg: algorithm.RS256,
+          alg: "RS256",
           use: "sig",
           typ: "at+jwt",
           kid: sessionTokenGenerationConfig.generatedKid,
@@ -200,7 +199,7 @@ describe("Token Generator", () => {
       });
 
       expect(actualToken.header).toEqual({
-        alg: algorithm.RS256,
+        alg: "RS256",
         use: "sig",
         typ: "at+jwt",
         kid: authServerConfig.generatedInteropTokenKid,
@@ -240,7 +239,7 @@ describe("Token Generator", () => {
       });
 
       expect(actualToken.header).toEqual({
-        alg: algorithm.RS256,
+        alg: "RS256",
         use: "sig",
         typ: "at+jwt",
         kid: authServerConfig.generatedInteropTokenKid,
@@ -278,7 +277,7 @@ describe("Token Generator", () => {
       const tokenDurationInSeconds = 1000;
 
       const digest: ClientAssertionDigest = {
-        alg: algorithm.RS256,
+        alg: "RS256",
         value: "valid-digest-value",
       };
 
@@ -302,7 +301,7 @@ describe("Token Generator", () => {
         });
 
       expect(actualToken.header).toEqual({
-        alg: algorithm.RS256,
+        alg: "RS256",
         use: "sig",
         typ: "at+jwt",
         kid: authServerConfig.generatedInteropTokenKid,
@@ -337,7 +336,7 @@ describe("Token Generator", () => {
       const { dpopProofJWT } = await getMockDPoPProof();
 
       const digest: ClientAssertionDigest = {
-        alg: algorithm.RS256,
+        alg: "RS256",
         value: "valid-digest-value",
       };
 
@@ -362,7 +361,7 @@ describe("Token Generator", () => {
         });
 
       expect(actualToken.header).toEqual({
-        alg: algorithm.RS256,
+        alg: "RS256",
         use: "sig",
         typ: "at+jwt",
         kid: authServerConfig.generatedInteropTokenKid,
@@ -399,7 +398,7 @@ describe("Token Generator", () => {
       const actualToken = await interopTokenGenerator.generateInternalToken();
 
       expect(actualToken.header).toEqual({
-        alg: algorithm.RS256,
+        alg: "RS256",
         use: "sig",
         typ: "at+jwt",
         kid: interopTokenGenerationConfig.kid,

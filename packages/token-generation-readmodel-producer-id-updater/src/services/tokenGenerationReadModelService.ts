@@ -8,6 +8,7 @@ import {
   AttributeValue,
   DynamoDBClient,
   ScanCommand,
+  ScanCommandOutput,
   ScanInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
@@ -26,15 +27,15 @@ export function tokenGenerationReadModelServiceBuilder(
         }
       >
     > {
-      // eslint-disable-next-line functional/no-let
-      let exclusiveStartKey: Record<string, AttributeValue> | undefined;
-      const platformStatesAgreementsResult = new Array<
-        Omit<PlatformStatesAgreementEntry, "producerId"> & {
-          producerId?: TenantId;
-        }
-      >();
-
-      do {
+      const runPaginatedQuery = async (
+        exclusiveStartKey?: Record<string, AttributeValue>
+      ): Promise<
+        Array<
+          Omit<PlatformStatesAgreementEntry, "producerId"> & {
+            producerId?: TenantId;
+          }
+        >
+      > => {
         const readInput: ScanInput = {
           TableName: config.tokenGenerationReadModelTableNamePlatform,
           ExclusiveStartKey: exclusiveStartKey,
@@ -42,7 +43,7 @@ export function tokenGenerationReadModelServiceBuilder(
           FilterExpression: "attribute_exists(agreementId)",
         };
         const commandQuery = new ScanCommand(readInput);
-        const data = await dynamoDBClient.send(commandQuery);
+        const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
 
         if (!data.Items) {
           throw genericInternalError(
@@ -69,25 +70,26 @@ export function tokenGenerationReadModelServiceBuilder(
             );
           }
 
-          // eslint-disable-next-line functional/immutable-data
-          platformStatesAgreementsResult.push(...platformStatesAgreements.data);
-
-          exclusiveStartKey = data.LastEvaluatedKey;
+          if (!data.LastEvaluatedKey) {
+            return platformStatesAgreements.data;
+          } else {
+            return [
+              ...platformStatesAgreements.data,
+              ...(await runPaginatedQuery(data.LastEvaluatedKey)),
+            ];
+          }
         }
-      } while (exclusiveStartKey);
+      };
 
-      return platformStatesAgreementsResult;
+      return await runPaginatedQuery();
     },
 
     async readAllTokenGenStatesConsumerClients(): Promise<
       TokenGenerationStatesConsumerClient[]
     > {
-      // eslint-disable-next-line functional/no-let
-      let exclusiveStartKey: Record<string, AttributeValue> | undefined;
-      const tokenGenStatesConsumerClients =
-        new Array<TokenGenerationStatesConsumerClient>();
-
-      do {
+      const runPaginatedQuery = async (
+        exclusiveStartKey?: Record<string, AttributeValue>
+      ): Promise<TokenGenerationStatesConsumerClient[]> => {
         const readInput: ScanInput = {
           TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
           ExclusiveStartKey: exclusiveStartKey,
@@ -95,7 +97,7 @@ export function tokenGenerationReadModelServiceBuilder(
           FilterExpression: "attribute_exists(agreementId)",
         };
         const commandQuery = new ScanCommand(readInput);
-        const data = await dynamoDBClient.send(commandQuery);
+        const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
 
         if (!data.Items) {
           throw genericInternalError(
@@ -118,14 +120,18 @@ export function tokenGenerationReadModelServiceBuilder(
             );
           }
 
-          // eslint-disable-next-line functional/immutable-data
-          tokenGenStatesConsumerClients.push(...tokenGenStatesEntries.data);
-
-          exclusiveStartKey = data.LastEvaluatedKey;
+          if (!data.LastEvaluatedKey) {
+            return tokenGenStatesEntries.data;
+          } else {
+            return [
+              ...tokenGenStatesEntries.data,
+              ...(await runPaginatedQuery(data.LastEvaluatedKey)),
+            ];
+          }
         }
-      } while (exclusiveStartKey);
+      };
 
-      return tokenGenStatesConsumerClients;
+      return await runPaginatedQuery();
     },
   };
 }

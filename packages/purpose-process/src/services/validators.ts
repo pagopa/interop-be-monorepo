@@ -21,8 +21,6 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
   M2MAdminAuthData,
-  Ownership,
-  ownership,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
@@ -37,7 +35,6 @@ import {
   tenantNotAllowed,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
-  tenantIsNotTheDelegate,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -406,69 +403,5 @@ export const verifyRequesterIsConsumerOrDelegateConsumer = async (
     );
 
     return consumerDelegation?.id;
-  }
-};
-
-export const getOrganizationRole = async ({
-  purpose,
-  producerId,
-  delegationId,
-  readModelService,
-  authData,
-}: {
-  purpose: Purpose;
-  producerId: TenantId;
-  delegationId: DelegationId | undefined;
-  readModelService: ReadModelService;
-  authData: UIAuthData | M2MAdminAuthData;
-}): Promise<Ownership> => {
-  if (
-    producerId === purpose.consumerId &&
-    authData.organizationId === producerId
-  ) {
-    return ownership.SELF_CONSUMER;
-  }
-
-  const [producerDelegation, consumerDelegation] = await Promise.all([
-    readModelService.getActiveProducerDelegationByEserviceId(
-      purpose.eserviceId
-    ),
-    retrievePurposeDelegation(purpose, readModelService),
-  ]);
-
-  if (delegationId) {
-    if (delegationId === consumerDelegation?.id) {
-      assertRequesterIsDelegateConsumer(purpose, authData, consumerDelegation);
-      return ownership.CONSUMER;
-    } else if (delegationId === producerDelegation?.id) {
-      assertRequesterIsDelegateProducer(
-        { id: purpose.eserviceId, producerId },
-        authData,
-        producerDelegation
-      );
-      return ownership.PRODUCER;
-    } else {
-      throw tenantIsNotTheDelegate(authData.organizationId);
-    }
-  }
-
-  const hasDelegation =
-    (authData.organizationId === purpose.consumerId && consumerDelegation) ||
-    (authData.organizationId === producerId && producerDelegation);
-
-  if (hasDelegation) {
-    throw tenantIsNotTheDelegate(authData.organizationId);
-  }
-
-  try {
-    assertRequesterIsProducer({ producerId }, authData);
-    return ownership.PRODUCER;
-  } catch {
-    try {
-      assertRequesterIsConsumer(purpose, authData);
-      return ownership.CONSUMER;
-    } catch {
-      throw tenantNotAllowed(authData.organizationId);
-    }
   }
 };

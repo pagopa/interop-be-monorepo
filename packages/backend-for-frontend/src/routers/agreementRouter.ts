@@ -286,7 +286,6 @@ const agreementRouter = (
       try {
         const result = await agreementService.activateAgreement(
           req.params.agreementId,
-          req.body.delegationId,
           ctx
         );
         return res.status(200).send(bffApi.Agreement.parse(result));
@@ -419,7 +418,6 @@ const agreementRouter = (
       try {
         const result = await agreementService.suspendAgreement(
           req.params.agreementId,
-          req.body.delegationId,
           ctx
         );
         return res.status(200).send(bffApi.Agreement.parse(result));

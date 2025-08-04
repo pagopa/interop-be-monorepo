@@ -14,7 +14,6 @@ import {
   toBffApiCompactClient,
 } from "../api/authorizationApiConverter.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
-import { assertClientVisibilityIsFull } from "./validators.js";
 
 export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
   const { authorizationClient, selfcareV2UserClient } = apiClients;
@@ -104,7 +103,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<void> {
       logger.info(`Removing purpose ${purposeId} from client ${clientId}`);
 
-      await authorizationClient.client.removeClientPurpose(undefined, {
+      return authorizationClient.client.removeClientPurpose(undefined, {
         params: { clientId, purposeId },
         headers,
       });
@@ -202,7 +201,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<bffApi.PublicKeys> {
       logger.info(`Retrieve keys of client ${clientId}`);
 
-      const [{ keys, totalCount }, client] = await Promise.all([
+      const [{ keys, totalCount }, { users }] = await Promise.all([
         authorizationClient.client.getClientKeys({
           params: { clientId },
           queries: { userIds, limit, offset },
@@ -213,7 +212,6 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
           headers,
         }),
       ]);
-      assertClientVisibilityIsFull(client);
 
       const decoratedKeys = await Promise.all(
         keys.map((k) =>
@@ -221,7 +219,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
             selfcareV2UserClient,
             k,
             authData.selfcareId,
-            client.users,
+            users,
             correlationId
           )
         )
@@ -282,7 +280,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<bffApi.PublicKey> {
       logger.info(`Retrieve key ${keyId} for client ${clientId}`);
 
-      const [key, client] = await Promise.all([
+      const [key, { users }] = await Promise.all([
         authorizationClient.client.getClientKeyById({
           params: { clientId, keyId },
           headers,
@@ -292,13 +290,12 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
           headers,
         }),
       ]);
-      assertClientVisibilityIsFull(client);
 
       return decorateKey(
         selfcareV2UserClient,
         key,
         selfcareId,
-        client.users,
+        users,
         correlationId
       );
     },
@@ -368,7 +365,6 @@ async function enhanceClient(
   client: authorizationApi.Client,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Client> {
-  assertClientVisibilityIsFull(client);
   const [consumer, admin, ...purposes] = await Promise.all([
     apiClients.tenantProcessClient.tenant.getTenant({
       params: { id: client.consumerId },

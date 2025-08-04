@@ -1,7 +1,6 @@
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
-  algorithm,
   ClientId,
   generateId,
   makeTokenGenerationStatesClientKidPK,
@@ -37,7 +36,7 @@ describe("POST /authorization-server/token.oauth2", () => {
   });
 
   const header: InteropJwtHeader = {
-    alg: algorithm.RS256,
+    alg: "RS256",
     use: "sig",
     typ: "at+jwt",
     kid: generateId(),

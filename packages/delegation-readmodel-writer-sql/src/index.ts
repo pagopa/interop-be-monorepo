@@ -47,9 +47,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.delegationTopic],
-  processMessage,
-  "delegation-readmodel-writer-sql"
-);
+await runConsumer(config, [config.delegationTopic], processMessage);

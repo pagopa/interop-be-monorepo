@@ -87,9 +87,6 @@ paths:
       responses:
         "200":
           description: Declared attribute created
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -131,9 +128,6 @@ paths:
       responses:
         "200":
           description: Verified attribute created
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:

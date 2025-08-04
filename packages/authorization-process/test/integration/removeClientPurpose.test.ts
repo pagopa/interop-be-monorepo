@@ -20,6 +20,7 @@ import {
   clientNotFound,
   tenantNotAllowedOnClient,
   clientKindNotAllowed,
+  purposeNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneClient,
@@ -41,14 +42,13 @@ describe("remove client purpose", () => {
 
     await addOneClient(mockClient);
 
-    const removeClientPurposeResponse =
-      await authorizationService.removeClientPurpose(
-        {
-          clientId: mockClient.id,
-          purposeIdToRemove,
-        },
-        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
-      );
+    await authorizationService.removeClientPurpose(
+      {
+        clientId: mockClient.id,
+        purposeIdToRemove,
+      },
+      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+    );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -64,19 +64,9 @@ describe("remove client purpose", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedClient = {
-      ...mockClient,
-      purposes: [purposeIdToNotRemove],
-    };
     expect(writtenPayload).toEqual({
       purposeId: purposeIdToRemove,
-      client: toClientV2(expectedClient),
-    });
-    expect(removeClientPurposeResponse).toEqual({
-      data: expectedClient,
-      metadata: {
-        version: 1,
-      },
+      client: toClientV2({ ...mockClient, purposes: [purposeIdToNotRemove] }),
     });
   });
   it("should throw clientNotFound if the client doesn't exist", async () => {
@@ -100,6 +90,29 @@ describe("remove client purpose", () => {
         getMockContext({ authData: getMockAuthData(mockConsumer.id) })
       )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
+  });
+  it.skip("should throw purposeNotFound if that purposeId is not related to that client", async () => {
+    const mockConsumer = getMockTenant();
+    const notExistingPurposeId: PurposeId = generateId();
+    const purposeIdToNotRemove: PurposeId = generateId();
+
+    const mockClient: Client = {
+      ...getMockClient(),
+      consumerId: mockConsumer.id,
+      purposes: [purposeIdToNotRemove],
+    };
+
+    await addOneClient(mockClient);
+
+    expect(
+      authorizationService.removeClientPurpose(
+        {
+          clientId: mockClient.id,
+          purposeIdToRemove: notExistingPurposeId,
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      )
+    ).rejects.toThrowError(purposeNotFound(notExistingPurposeId));
   });
   it("should throw tenantNotAllowedOnClient if the requester is not the consumer", async () => {
     const mockConsumer1 = getMockTenant();

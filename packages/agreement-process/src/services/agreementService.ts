@@ -8,12 +8,10 @@ import {
   Logger,
   M2MAdminAuthData,
   M2MAuthData,
-  Ownership,
   PDFGenerator,
   UIAuthData,
   WithLogger,
   eventRepository,
-  ownership,
 } from "pagopa-interop-commons";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -45,7 +43,6 @@ import {
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
 } from "pagopa-interop-agreement-lifecycle";
-import { match } from "ts-pattern";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementActivationFailed,
@@ -62,7 +59,6 @@ import {
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
-  tenantIsNotTheDelegate,
 } from "../model/domain/errors.js";
 import {
   ActiveDelegations,
@@ -96,6 +92,7 @@ import {
   agreementUpgradableStates,
   assertActivableState,
   assertRequesterCanActAsProducer,
+  assertRequesterCanActAsConsumerOrProducer,
   assertRequesterCanRetrieveAgreement,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
@@ -113,7 +110,6 @@ import {
   verifyCreationConflictingAgreements,
   verifySubmissionConflictingAgreements,
   assertRequesterCanActAsConsumer,
-  getOrganizationRole,
 } from "../model/domain/agreement-validators.js";
 import { config } from "../config/config.js";
 import {
@@ -398,7 +394,8 @@ export function agreementServiceBuilder(
           agreementToBeUpdated.data
         );
       assertRequesterCanActAsConsumer(
-        agreementToBeUpdated.data,
+        agreementToBeUpdated.data.consumerId,
+        agreementToBeUpdated.data.eserviceId,
         authData,
         activeConsumerDelegation
       );
@@ -420,11 +417,7 @@ export function agreementServiceBuilder(
     },
     async deleteAgreementById(
       agreementId: AgreementId,
-      {
-        authData,
-        correlationId,
-        logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Deleting agreement ${agreementId}`);
 
@@ -437,7 +430,8 @@ export function agreementServiceBuilder(
       );
 
       assertRequesterCanActAsConsumer(
-        agreement.data,
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
         authData,
         await readModelService.getActiveConsumerDelegationByAgreement(
           agreement.data
@@ -506,7 +500,8 @@ export function agreementServiceBuilder(
         readModelService
       );
       assertRequesterCanActAsConsumer(
-        agreement.data,
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
         authData,
         activeDelegations.consumerDelegation
       );
@@ -704,7 +699,8 @@ export function agreementServiceBuilder(
         readModelService
       );
       assertRequesterCanActAsConsumer(
-        agreementToBeUpgraded.data,
+        agreementToBeUpgraded.data.consumerId,
+        agreementToBeUpgraded.data.eserviceId,
         authData,
         activeDelegations.consumerDelegation
       );
@@ -818,12 +814,8 @@ export function agreementServiceBuilder(
     },
     async cloneAgreement(
       agreementId: AgreementId,
-      {
-        authData,
-        correlationId,
-        logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<Agreement>> {
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<Agreement> {
       logger.info(`Cloning agreement ${agreementId}`);
 
       const agreementToBeCloned = await retrieveAgreement(
@@ -842,7 +834,8 @@ export function agreementServiceBuilder(
           agreementToBeCloned.data
         );
       assertRequesterCanActAsConsumer(
-        agreementToBeCloned.data,
+        agreementToBeCloned.data.consumerId,
+        agreementToBeCloned.data.eserviceId,
         authData,
         activeConsumerDelegation
       );
@@ -895,24 +888,17 @@ export function agreementServiceBuilder(
         stamps: {},
       };
 
-      const createdEvent = await repository.createEvent(
+      await repository.createEvent(
         toCreateEventAgreementAdded(newAgreement, correlationId)
       );
 
-      return {
-        data: newAgreement,
-        metadata: { version: createdEvent.newVersion },
-      };
+      return newAgreement;
     },
     async addConsumerDocument(
       agreementId: AgreementId,
       documentSeed: agreementApi.DocumentSeed,
-      {
-        authData,
-        correlationId,
-        logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<AgreementDocument>> {
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<AgreementDocument> {
       logger.info(`Adding a consumer document to agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -932,7 +918,8 @@ export function agreementServiceBuilder(
           agreement.data
         );
       assertRequesterCanActAsConsumer(
-        agreement.data,
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
         authData,
         activeConsumerDelegation
       );
@@ -944,7 +931,7 @@ export function agreementServiceBuilder(
         consumerDocuments: [...agreement.data.consumerDocuments, newDocument],
       };
 
-      const createdEvent = await repository.createEvent(
+      await repository.createEvent(
         toCreateEventAgreementConsumerDocumentAdded(
           newDocument.id,
           updatedAgreement,
@@ -953,42 +940,12 @@ export function agreementServiceBuilder(
         )
       );
 
-      return {
-        data: newDocument,
-        metadata: { version: createdEvent.newVersion },
-      };
-    },
-    async getAgreementConsumerDocuments(
-      agreementId: AgreementId,
-      { offset, limit }: agreementApi.GetAgreementConsumerDocumentsQueryParams,
-      {
-        authData,
-        logger,
-      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<ListResult<AgreementDocument>> {
-      logger.info(`Retrieving consumer documents for agreement ${agreementId}`);
-
-      const agreement = await retrieveAgreement(agreementId, readModelService);
-
-      await assertRequesterCanRetrieveAgreement(
-        agreement.data,
-        authData,
-        readModelService
-      );
-
-      return readModelService.getAgreementConsumerDocuments(
-        agreementId,
-        offset,
-        limit
-      );
+      return newDocument;
     },
     async getAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
-      {
-        authData,
-        logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData | M2MAuthData>>
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<AgreementDocument> {
       logger.info(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`
@@ -1005,21 +962,14 @@ export function agreementServiceBuilder(
       return retrieveAgreementDocument(agreement.data, documentId);
     },
     async suspendAgreement(
-      {
-        agreementId,
-        delegationId,
-      }: { agreementId: AgreementId; delegationId: DelegationId | undefined },
+      agreementId: AgreementId,
       {
         authData,
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
-      logger.info(
-        `Suspending agreement ${agreementId}${
-          delegationId ? ` with delegation ${delegationId}` : ""
-        }`
-      );
+      logger.info(`Suspending agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
@@ -1033,22 +983,25 @@ export function agreementServiceBuilder(
         agreement.data,
         readModelService
       );
-
-      const agreementOwnership = getOrganizationRole(
+      assertRequesterCanActAsConsumerOrProducer(
         agreement.data,
-        delegationId,
-        activeDelegations,
-        authData
+        authData,
+        activeDelegations
       );
 
-      const [eservice, consumer] = await Promise.all([
-        retrieveEService(agreement.data.eserviceId, readModelService),
-        retrieveTenant(agreement.data.consumerId, readModelService),
-      ]);
+      const eservice = await retrieveEService(
+        agreement.data.eserviceId,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(
         agreement.data.descriptorId,
         eservice
+      );
+
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        readModelService
       );
 
       const updatedAgreement: Agreement = createSuspensionUpdatedAgreement({
@@ -1057,15 +1010,15 @@ export function agreementServiceBuilder(
         descriptor,
         consumer,
         activeDelegations,
-        agreementOwnership,
       });
 
       const createdEvent = await repository.createEvent(
         createAgreementSuspendedEvent(
+          authData,
           correlationId,
           updatedAgreement,
           agreement,
-          agreementOwnership
+          activeDelegations
         )
       );
 
@@ -1097,12 +1050,8 @@ export function agreementServiceBuilder(
     async removeAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
-      {
-        authData,
-        correlationId,
-        logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<Agreement>> {
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<string> {
       logger.info(
         `Removing consumer document ${documentId} from agreement ${agreementId}`
       );
@@ -1115,9 +1064,9 @@ export function agreementServiceBuilder(
         await readModelService.getActiveConsumerDelegationByAgreement(
           agreement.data
         );
-
       assertRequesterCanActAsConsumer(
-        agreement.data,
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
         authData,
         activeConsumerDelegation
       );
@@ -1136,7 +1085,7 @@ export function agreementServiceBuilder(
         ),
       };
 
-      const createdEvent = await repository.createEvent(
+      await repository.createEvent(
         toCreateEventAgreementConsumerDocumentRemoved(
           documentId,
           updatedAgreement,
@@ -1144,11 +1093,7 @@ export function agreementServiceBuilder(
           correlationId
         )
       );
-
-      return {
-        data: updatedAgreement,
-        metadata: { version: createdEvent.newVersion },
-      };
+      return updatedAgreement.id;
     },
     async rejectAgreement(
       agreementId: AgreementId,
@@ -1230,24 +1175,14 @@ export function agreementServiceBuilder(
       return { data: rejectedAgreement, metadata: { version: newVersion } };
     },
     async activateAgreement(
-      {
-        agreementId,
-        delegationId,
-      }: {
-        agreementId: AgreementId;
-        delegationId: DelegationId | undefined;
-      },
+      agreementId: AgreementId,
       {
         authData,
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
-      logger.info(
-        `Activating agreement ${agreementId}${
-          delegationId ? ` with delegation ${delegationId}` : ""
-        }`
-      );
+      logger.info(`Activating agreement ${agreementId}`);
 
       const contractBuilderInstance = contractBuilder(
         readModelService,
@@ -1266,30 +1201,19 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const agreementOwnership = ((): Ownership => {
-        if (agreement.data.state === agreementState.pending) {
-          if (
-            delegationId &&
-            delegationId !== activeDelegations.producerDelegation?.id
-          ) {
-            throw tenantIsNotTheDelegate(authData.organizationId);
-          }
-
-          assertRequesterCanActAsProducer(
-            agreement.data,
-            authData,
-            activeDelegations.producerDelegation
-          );
-          return ownership.PRODUCER;
-        } else {
-          return getOrganizationRole(
-            agreement.data,
-            delegationId,
-            activeDelegations,
-            authData
-          );
-        }
-      })();
+      if (agreement.data.state === agreementState.pending) {
+        assertRequesterCanActAsProducer(
+          agreement.data,
+          authData,
+          activeDelegations.producerDelegation
+        );
+      } else {
+        assertRequesterCanActAsConsumerOrProducer(
+          agreement.data,
+          authData,
+          activeDelegations
+        );
+      }
 
       const eservice = await retrieveEService(
         agreement.data.eserviceId,
@@ -1301,10 +1225,15 @@ export function agreementServiceBuilder(
         agreement.data.descriptorId
       );
 
-      const [consumer, producer] = await Promise.all([
-        retrieveTenant(agreement.data.consumerId, readModelService),
-        retrieveTenant(agreement.data.producerId, readModelService),
-      ]);
+      const consumer = await retrieveTenant(
+        agreement.data.consumerId,
+        readModelService
+      );
+
+      const producer = await retrieveTenant(
+        agreement.data.producerId,
+        readModelService
+      );
 
       /* nextAttributesState VS targetDestinationState
       -- targetDestinationState is the state where the caller wants to go (active, in this case)
@@ -1338,12 +1267,17 @@ export function agreementServiceBuilder(
         throw agreementActivationFailed(agreement.data.id);
       }
 
-      const { suspendedByConsumer, suspendedByProducer } = getSuspensionFlags(
-        agreementOwnership,
+      const suspendedByConsumer = suspendedByConsumerFlag(
         agreement.data,
-        authData,
+        authData.organizationId,
         targetDestinationState,
-        activeDelegations
+        activeDelegations.consumerDelegation?.delegateId
+      );
+      const suspendedByProducer = suspendedByProducerFlag(
+        agreement.data,
+        authData.organizationId,
+        targetDestinationState,
+        activeDelegations.producerDelegation?.delegateId
       );
 
       const newState = agreementStateByFlags(
@@ -1372,7 +1306,6 @@ export function agreementServiceBuilder(
           suspendedByProducer,
           suspendedByPlatform,
           activeDelegations,
-          agreementOwnership,
         });
 
       const updatedAgreementWithoutContract: Agreement = {
@@ -1400,8 +1333,9 @@ export function agreementServiceBuilder(
         agreement.data.suspendedByPlatform,
         suspendedByPlatformChanged,
         agreement.metadata.version,
-        agreementOwnership,
-        correlationId
+        authData,
+        correlationId,
+        activeDelegations
       );
 
       const archiveEvents = await archiveRelatedToAgreements(
@@ -1446,7 +1380,8 @@ export function agreementServiceBuilder(
           agreement.data
         );
       assertRequesterCanActAsConsumer(
-        agreement.data,
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
         authData,
         activeConsumerDelegation
       );
@@ -1542,7 +1477,8 @@ export function agreementServiceBuilder(
       );
 
       assertRequesterCanActAsConsumer(
-        { consumerId: tenantId, eserviceId },
+        tenantId,
+        eserviceId,
         authData,
         await readModelService.getActiveConsumerDelegationByAgreement({
           consumerId: tenantId,
@@ -1567,52 +1503,6 @@ export function agreementServiceBuilder(
 }
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
-
-export function getSuspensionFlags(
-  agreementOwnership: Ownership,
-  agreement: Agreement,
-  authData: UIAuthData | M2MAdminAuthData,
-  targetDestinationState: AgreementState,
-  activeDelegations: ActiveDelegations
-): {
-  suspendedByConsumer: boolean | undefined;
-  suspendedByProducer: boolean | undefined;
-} {
-  return match(agreementOwnership)
-    .with(ownership.PRODUCER, () => ({
-      suspendedByProducer: suspendedByProducerFlag(
-        agreement,
-        authData.organizationId,
-        targetDestinationState,
-        activeDelegations.producerDelegation?.delegateId
-      ),
-      suspendedByConsumer: agreement.suspendedByConsumer,
-    }))
-    .with(ownership.CONSUMER, () => ({
-      suspendedByProducer: agreement.suspendedByProducer,
-      suspendedByConsumer: suspendedByConsumerFlag(
-        agreement,
-        authData.organizationId,
-        targetDestinationState,
-        activeDelegations.consumerDelegation?.delegateId
-      ),
-    }))
-    .with(ownership.SELF_CONSUMER, () => ({
-      suspendedByConsumer: suspendedByConsumerFlag(
-        agreement,
-        authData.organizationId,
-        targetDestinationState,
-        activeDelegations.consumerDelegation?.delegateId
-      ),
-      suspendedByProducer: suspendedByProducerFlag(
-        agreement,
-        authData.organizationId,
-        targetDestinationState,
-        activeDelegations.producerDelegation?.delegateId
-      ),
-    }))
-    .exhaustive();
-}
 
 export async function createAndCopyDocumentsForClonedAgreement(
   newAgreementId: AgreementId,
@@ -1749,7 +1639,8 @@ async function getConsumerFromDelegationOrRequester(
     }
 
     assertRequesterIsDelegateConsumer(
-      { consumerId: delegation.delegatorId, eserviceId },
+      delegation.delegatorId,
+      eserviceId,
       authData,
       delegation
     );

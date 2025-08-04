@@ -1,4 +1,5 @@
 import { constants } from "http2";
+import { randomUUID } from "crypto";
 import {
   ZodiosRouterContextRequestHandler,
   zodiosContext,
@@ -74,11 +75,8 @@ export const contextMiddleware =
       }
 
       setCtx(correlationIdHeader);
-      res.header("X-Correlation-Id", correlationIdHeader);
     } else {
-      const correlationId = generateId<CorrelationId>();
-      setCtx(correlationId);
-      res.header("X-Correlation-Id", correlationId);
+      setCtx(randomUUID());
     }
 
     return next();

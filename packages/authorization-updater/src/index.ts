@@ -627,8 +627,7 @@ try {
       },
       readModelService,
       authService
-    ),
-    "authorization-updater"
+    )
   );
 } catch (e) {
   genericLogger.error(`An error occurred during initialization:\n${e}`);

@@ -20,9 +20,4 @@ const processor = selfcareOnboardingProcessorBuilder(
   config.allowedOrigins
 );
 
-await runConsumer(
-  config,
-  [config.selfcareTopic],
-  processor.processMessage,
-  "selfcare-onboarding-consumer"
-);
+await runConsumer(config, [config.selfcareTopic], processor.processMessage);

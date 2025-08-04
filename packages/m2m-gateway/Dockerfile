@@ -1,9 +1,9 @@
 #default value for compatibility
 ARG NODE_REGISTRY="docker.io"
 
-FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:f8f6771d949ff351c061de64ef9cbfbc5949015883fb3b016b34aca6d0e5b8cc AS build
+FROM ${NODE_REGISTRY}/node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as build
 
-RUN corepack enable
+RUN npm install -g corepack@0.31.0 && corepack enable
 
 WORKDIR /app
 COPY package.json /app/
@@ -30,21 +30,21 @@ COPY ./packages/application-audit /app/packages/application-audit
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
 RUN pnpm build && \
-  rm -rf /app/node_modules/.modules.yaml && \
-  rm -rf /app/node_modules/.cache && \
-  mkdir /out && \
-  cp -a --parents -t /out \
-  node_modules packages/m2m-gateway/node_modules \
-  package*.json packages/m2m-gateway/package*.json \
-  packages/commons \
-  packages/models \
-  packages/api-clients  \
-  packages/application-audit \
-  packages/kafka-iam-auth \
-  packages/m2m-gateway/dist && \
-  find /out -exec touch -h --date=@0 {} \;
+    rm -rf /app/node_modules/.modules.yaml && \
+    rm -rf /app/node_modules/.cache && \
+    mkdir /out && \
+    cp -a --parents -t /out \
+      node_modules packages/m2m-gateway/node_modules \
+      package*.json packages/m2m-gateway/package*.json \
+      packages/commons \
+      packages/models \
+      packages/api-clients  \
+      packages/application-audit \
+      packages/kafka-iam-auth \
+      packages/m2m-gateway/dist && \
+    find /out -exec touch -h --date=@0 {} \;
 
-FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:f8f6771d949ff351c061de64ef9cbfbc5949015883fb3b016b34aca6d0e5b8cc AS final
+FROM ${NODE_REGISTRY}/node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as final 
 
 COPY --from=build /out /app
 

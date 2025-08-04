@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import crypto from "crypto";
 import {
   afterAll,
   afterEach,
@@ -12,6 +13,7 @@ import {
 import {
   PlatformStatesCatalogEntry,
   TokenGenerationStatesConsumerClient,
+  TokenGenStatesConsumerClientGSIDescriptor,
   descriptorState,
   generateId,
   itemState,
@@ -24,10 +26,11 @@ import {
   getMockTokenGenStatesConsumerClient,
   buildDynamoDBTables,
   deleteDynamoDBTables,
+  readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId,
   readAllTokenGenStatesItems,
   writeTokenGenStatesConsumerClient,
-  writePlatformCatalogEntry,
 } from "pagopa-interop-commons-test";
+import { z } from "zod";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   deleteCatalogEntry,
@@ -35,7 +38,7 @@ import {
   readCatalogEntry,
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
-  upsertPlatformStatesCatalogEntry,
+  writeCatalogEntry,
 } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
 
@@ -90,9 +93,10 @@ describe("utils tests", async () => {
       expect(
         await readCatalogEntry(primaryKey, dynamoDBClient)
       ).toBeUndefined();
-      await writePlatformCatalogEntry(
+      await writeCatalogEntry(
         previousCatalogStateEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
       await updateDescriptorStateInPlatformStatesEntry(
         dynamoDBClient,
@@ -114,45 +118,24 @@ describe("utils tests", async () => {
     });
   });
 
-  describe("upsertPlatformStatesCatalogEntry", async () => {
-    it("should update the entry if the previous entry exists", async () => {
+  describe("writeCatalogEntry", async () => {
+    it("should throw error if previous entry exists", async () => {
       const primaryKey = makePlatformStatesEServiceDescriptorPK({
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const wrongCatalogEntry: PlatformStatesCatalogEntry = {
+      const catalogEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.inactive,
-        descriptorAudience: ["wrong-audience-1", "wrong-audience-2"],
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
         descriptorVoucherLifespan: 100,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await upsertPlatformStatesCatalogEntry(
-        wrongCatalogEntry,
-        dynamoDBClient,
-        genericLogger
-      );
-
-      const correctCatalogEntry: PlatformStatesCatalogEntry = {
-        PK: primaryKey,
-        state: itemState.active,
-        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-        descriptorVoucherLifespan: 200,
-        version: 1,
-        updatedAt: new Date().toISOString(),
-      };
-      await upsertPlatformStatesCatalogEntry(
-        correctCatalogEntry,
-        dynamoDBClient,
-        genericLogger
-      );
-
-      const retrievedCatalogEntry = await readCatalogEntry(
-        primaryKey,
-        dynamoDBClient
-      );
-      expect(retrievedCatalogEntry).toEqual(correctCatalogEntry);
+      await writeCatalogEntry(catalogEntry, dynamoDBClient, genericLogger);
+      expect(
+        writeCatalogEntry(catalogEntry, dynamoDBClient, genericLogger)
+      ).rejects.toThrowError(ConditionalCheckFailedException);
     });
 
     it("should write if previous entry doesn't exist", async () => {
@@ -171,11 +154,7 @@ describe("utils tests", async () => {
       expect(
         await readCatalogEntry(primaryKey, dynamoDBClient)
       ).toBeUndefined();
-      await upsertPlatformStatesCatalogEntry(
-        catalogStateEntry,
-        dynamoDBClient,
-        genericLogger
-      );
+      await writeCatalogEntry(catalogStateEntry, dynamoDBClient, genericLogger);
       const retrievedCatalogEntry = await readCatalogEntry(
         primaryKey,
         dynamoDBClient
@@ -208,9 +187,10 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(
+      await writeCatalogEntry(
         previousCatalogStateEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
       const retrievedCatalogEntry = await readCatalogEntry(
         primaryKey,
@@ -245,9 +225,10 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(
+      await writeCatalogEntry(
         previousCatalogStateEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        genericLogger
       );
       await deleteCatalogEntry(primaryKey, dynamoDBClient, genericLogger);
       const retrievedCatalogEntry = await readCatalogEntry(
@@ -342,6 +323,131 @@ describe("utils tests", async () => {
       expect(retrievedTokenGenStatesEntries).toEqual([
         tokenGenStatesConsumerClient,
       ]);
+    });
+  });
+
+  describe("readTokenGenStatesEntriesByEserviceIdAndDescriptorId", async () => {
+    it("should return empty array if entries do not exist", async () => {
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: generateId(),
+        descriptorId: generateId(),
+      });
+      const result =
+        await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
+          eserviceId_descriptorId,
+          dynamoDBClient
+        );
+      expect(result).toEqual([]);
+    });
+
+    it("should return entries if they exist (no need for pagination)", async () => {
+      const tokenGenStatesEntryPK1 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: generateId(),
+        descriptorId: generateId(),
+      });
+      const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient1,
+        dynamoDBClient
+      );
+
+      const tokenGenStatesEntryPK2 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient2,
+        dynamoDBClient
+      );
+
+      const tokenGenStatesConsumerClients =
+        await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
+          eserviceId_descriptorId,
+          dynamoDBClient
+        );
+
+      expect(tokenGenStatesConsumerClients).toEqual(
+        expect.arrayContaining([
+          TokenGenStatesConsumerClientGSIDescriptor.parse(
+            tokenGenStatesConsumerClient1
+          ),
+          TokenGenStatesConsumerClientGSIDescriptor.parse(
+            tokenGenStatesConsumerClient2
+          ),
+        ])
+      );
+    });
+
+    it("should return entries if they exist (with pagination)", async () => {
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: generateId(),
+        descriptorId: generateId(),
+      });
+
+      const tokenEntriesLength = 10;
+
+      const writtenTokenGenStatesConsumerClients: TokenGenerationStatesConsumerClient[] =
+        [];
+      // eslint-disable-next-line functional/no-let
+      for (let i = 0; i < tokenEntriesLength; i++) {
+        const tokenGenStatesEntryPK =
+          makeTokenGenerationStatesClientKidPurposePK({
+            clientId: generateId(),
+            kid: `kid ${Math.random()}`,
+            purposeId: generateId(),
+          });
+        const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+          {
+            ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
+            descriptorState: itemState.inactive,
+            descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+            publicKey: crypto.randomBytes(100000).toString("hex"),
+          };
+        await writeTokenGenStatesConsumerClient(
+          tokenGenStatesConsumerClient,
+          dynamoDBClient
+        );
+        // eslint-disable-next-line functional/immutable-data
+        writtenTokenGenStatesConsumerClients.push(tokenGenStatesConsumerClient);
+      }
+      vi.spyOn(dynamoDBClient, "send");
+      const tokenGenStatesConsumerClients =
+        await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
+          eserviceId_descriptorId,
+          dynamoDBClient
+        );
+
+      expect(dynamoDBClient.send).toHaveBeenCalledTimes(2);
+      expect(tokenGenStatesConsumerClients).toHaveLength(tokenEntriesLength);
+      expect(tokenGenStatesConsumerClients).toEqual(
+        expect.arrayContaining(
+          z
+            .array(TokenGenStatesConsumerClientGSIDescriptor)
+            .parse(writtenTokenGenStatesConsumerClients)
+        )
+      );
     });
   });
 

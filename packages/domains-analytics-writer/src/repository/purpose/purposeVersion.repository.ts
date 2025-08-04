@@ -93,9 +93,7 @@ export function purposeVersionRepo(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTableName,
-          ["id"],
-          true,
-          false
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

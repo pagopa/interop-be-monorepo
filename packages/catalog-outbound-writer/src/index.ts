@@ -56,9 +56,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.catalogTopic],
-  processMessage,
-  "catalog-outbound-writer"
-);
+await runConsumer(config, [config.catalogTopic], processMessage);

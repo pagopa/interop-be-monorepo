@@ -2,9 +2,7 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
 import {
   AgreementState,
-  delegationState,
   DescriptorState,
-  eserviceTemplateVersionState,
   PurposeVersionState,
 } from "pagopa-interop-models";
 import {
@@ -12,21 +10,12 @@ import {
   ExportedEService,
   ExportedPurpose,
   ExportedTenant,
-  ExportedDelegation,
-  ExportedEServiceTemplate,
 } from "../config/models/models.js";
 
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const {
-    eservices,
-    purposes,
-    tenants,
-    agreements,
-    delegations,
-    eserviceTemplates,
-  } = readModelRepository;
+  const { eservices, purposes, tenants, agreements } = readModelRepository;
 
   return {
     async getTenants(): Promise<ExportedTenant[]> {
@@ -104,48 +93,6 @@ export function readModelServiceBuilder(
           ],
         })
         .map(({ data }) => ExportedPurpose.parse(data))
-        .toArray();
-    },
-    async getDelegations(): Promise<ExportedDelegation[]> {
-      return delegations
-        .find({
-          "data.state": { $ne: delegationState.waitingForApproval },
-        })
-        .map(({ data }) => ExportedDelegation.parse(data))
-        .toArray();
-    },
-
-    async getEServiceTemplates(): Promise<ExportedEServiceTemplate[]> {
-      return eserviceTemplates
-        .find({
-          $or: [
-            {
-              "data.versions.1": { $exists: true },
-            },
-            {
-              "data.versions": {
-                $size: 1,
-                $elemMatch: {
-                  state: {
-                    $in: [
-                      eserviceTemplateVersionState.deprecated,
-                      eserviceTemplateVersionState.published,
-                      eserviceTemplateVersionState.suspended,
-                    ],
-                  },
-                },
-              },
-            },
-          ],
-        })
-        .map(({ data }) =>
-          ExportedEServiceTemplate.parse({
-            ...data,
-            versions: data.versions.filter(
-              (version) => version.state !== eserviceTemplateVersionState.draft
-            ),
-          })
-        )
         .toArray();
     },
   };

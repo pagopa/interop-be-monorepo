@@ -14,6 +14,7 @@ import {
   PurposeDeletingSchema,
   PurposeItemsSchema,
 } from "../../model/purpose/purpose.js";
+import { PurposeVersionDeletingSchema } from "../../model/purpose/purposeVersion.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handlePurposeMessageV2(
@@ -24,6 +25,7 @@ export async function handlePurposeMessageV2(
 
   const upsertPurposeBatch: PurposeItemsSchema[] = [];
   const deletePurposeBatch: PurposeDeletingSchema[] = [];
+  const deleteVersionBatch: PurposeVersionDeletingSchema[] = [];
 
   for (const msg of messages) {
     match(msg)
@@ -45,8 +47,7 @@ export async function handlePurposeMessageV2(
             "PurposeVersionOverQuotaUnsuspended",
             "PurposeVersionRejected",
             "PurposeCloned",
-            "PurposeVersionArchivedByRevokedDelegation",
-            "WaitingForApprovalPurposeVersionDeleted"
+            "PurposeVersionArchivedByRevokedDelegation"
           ),
         },
         (msg) => {
@@ -92,7 +93,16 @@ export async function handlePurposeMessageV2(
             } satisfies z.input<typeof PurposeDeletingSchema>)
           );
         }
-      );
+      )
+      .with({ type: "WaitingForApprovalPurposeVersionDeleted" }, (msg) => {
+        deleteVersionBatch.push(
+          PurposeVersionDeletingSchema.parse({
+            id: msg.data.versionId,
+            deleted: true,
+          } satisfies z.input<typeof PurposeDeletingSchema>)
+        );
+      })
+      .exhaustive();
   }
 
   if (upsertPurposeBatch.length > 0) {
@@ -106,5 +116,14 @@ export async function handlePurposeMessageV2(
       ["id"]
     );
     await purposeService.deleteBatchPurpose(dbContext, distinctBatch);
+  }
+
+  if (deleteVersionBatch.length > 0) {
+    const distinctBatch = distinctByKeys(
+      deleteVersionBatch,
+      PurposeVersionDeletingSchema,
+      ["id"]
+    );
+    await purposeService.deleteBatchPurposeVersion(dbContext, distinctBatch);
   }
 }

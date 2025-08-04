@@ -12,11 +12,7 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
-import {
-  getEserviceDescriptorErrorMapper,
-  downloadEServiceDescriptorInterfaceErrorMapper,
-} from "../utils/errorMappers.js";
-import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
+import { getEserviceDescriptorErrorMapper } from "../utils/errorMappers.js";
 
 const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
@@ -118,31 +114,6 @@ const eserviceRouter = (
             getEserviceDescriptorErrorMapper,
             ctx,
             `Error retrieving eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .get(
-      "/eservices/:eserviceId/descriptors/:descriptorId/interface",
-      async (req, res) => {
-        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-        try {
-          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-          const file =
-            await eserviceService.downloadEServiceDescriptorInterface(
-              unsafeBrandId(req.params.eserviceId),
-              unsafeBrandId(req.params.descriptorId),
-              ctx
-            );
-
-          return sendDownloadedDocumentAsFormData(file, res);
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            downloadEServiceDescriptorInterfaceErrorMapper,
-            ctx,
-            `Error retrieving interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

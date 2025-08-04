@@ -56,9 +56,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.purposeTopic],
-  processMessage,
-  "purpose-outbound-writer"
-);
+await runConsumer(config, [config.purposeTopic], processMessage);

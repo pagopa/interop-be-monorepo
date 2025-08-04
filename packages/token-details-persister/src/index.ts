@@ -27,6 +27,5 @@ await runBatchConsumer(
   baseConsumerConfig,
   batchConsumerConfig,
   [config.tokenAuditingTopic],
-  processMessage,
-  "token-details-persister"
+  processMessage
 );

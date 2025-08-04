@@ -148,11 +148,7 @@ export const suspendAgreementErrorMapper = (
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "tenantNotAllowed",
-      "tenantIsNotTheDelegate",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -198,8 +194,6 @@ export const activateAgreementErrorMapper = (
       "tenantIsNotTheDelegateProducer",
       "tenantIsNotTheProducer",
       "tenantNotAllowed",
-      "tenantIsNotTheDelegate",
-
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
@@ -221,14 +215,7 @@ export const archiveAgreementErrorMapper = (
 export const getAgreementErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "tenantNotAllowed",
-      "tenantIsNotTheConsumer",
-      "tenantIsNotTheDelegateConsumer",
-      "tenantIsNotTheProducer",
-      "tenantIsNotTheDelegateProducer",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const computeAgreementsStateErrorMapper = (
@@ -251,21 +238,6 @@ export const verifyTenantCertifiedAttributesErrorMapper = (
     .with(
       "tenantIsNotTheConsumer",
       "tenantIsNotTheDelegateConsumer",
-      () => HTTP_STATUS_FORBIDDEN
-    )
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const getAgreementConsumerDocumentsErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "tenantNotAllowed",
-      "tenantIsNotTheConsumer",
-      "tenantIsNotTheDelegateConsumer",
-      "tenantIsNotTheProducer",
-      "tenantIsNotTheDelegateProducer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -8,9 +8,4 @@ export type GetAgreementsQueryParams = QueryParametersByAlias<
   "getAgreements"
 >;
 
-export type GetAgreementConsumerDocumentsQueryParams = QueryParametersByAlias<
-  Api,
-  "getAgreementConsumerDocuments"
->;
-
 export * from "./generated/agreementApi.js";

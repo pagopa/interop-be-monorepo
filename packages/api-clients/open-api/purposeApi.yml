@@ -256,14 +256,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ReversePurposeSeed"
+              $ref: "#/components/schemas/EServicePurposeSeed"
         required: true
       responses:
         "200":
           description: Purpose created
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -518,9 +515,6 @@ paths:
       operationId: deletePurposeVersion
       responses:
         "204":
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           description: Purpose Version Deleted
         "403":
           description: Organization not allowed
@@ -552,7 +546,6 @@ paths:
       tags:
         - purpose
       summary: Get an Risk Analysis document
-      description: Retrieves a risk analysis document by id
       operationId: getRiskAnalysisDocument
       parameters:
         - name: purposeId
@@ -676,11 +669,6 @@ paths:
     post:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose Version Activated
@@ -776,11 +764,6 @@ paths:
     post:
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose Version Suspended
@@ -945,14 +928,6 @@ components:
       schema:
         type: string
   schemas:
-    DelegationRef:
-      type: object
-      additionalProperties: false
-      description: sets the delegation ID in order to operate as a delegate for a specific active delegation
-      properties:
-        delegationId:
-          type: string
-          format: uuid
     RejectPurposeVersionPayload:
       type: object
       additionalProperties: false
@@ -1284,19 +1259,15 @@ components:
           format: uuid
       required:
         - eserviceId
-    ReversePurposeSeed:
+    EServicePurposeSeed:
       type: object
       additionalProperties: false
       description: contains the expected payload for purpose creation.
       properties:
-        eserviceId:
+        eServiceId:
           type: string
           format: uuid
         consumerId:
-          description: |
-            The ID of the tenant that will consume the e-service. It can be:
-            - the ID of your tenant
-            - the ID of a tenant for which you are the consumer delegate
           type: string
           format: uuid
         riskAnalysisId:
@@ -1318,7 +1289,7 @@ components:
           type: integer
           format: int32
       required:
-        - eserviceId
+        - eServiceId
         - consumerId
         - title
         - riskAnalysisId
@@ -1334,10 +1305,6 @@ components:
           type: string
           format: uuid
         consumerId:
-          description: |
-            The ID of the tenant that will consume the e-service. It can be:
-            - the ID of your tenant
-            - the ID of a tenant for which you are the consumer delegate
           type: string
           format: uuid
         riskAnalysisForm:

@@ -3,7 +3,6 @@ import { describe, it, expect, vi } from "vitest";
 import {
   Client,
   ClientId,
-  clientKind,
   Descriptor,
   descriptorState,
   generateId,
@@ -20,11 +19,10 @@ import {
   getMockEService,
   getMockPurpose,
   getMockPurposeVersion,
-  getMockWithMetadata,
-  mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   clientKindNotAllowed,
@@ -38,7 +36,7 @@ import {
   purposeDelegationNotFound,
   purposeNotFound,
 } from "../../src/model/domain/errors.js";
-import { testToFullClient } from "../apiUtils.js";
+import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
 
 describe("API /clients/{clientId}/purposes authorization test", () => {
   const mockDescriptor: Descriptor = {
@@ -61,14 +59,22 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
     versions: [getMockPurposeVersion(purposeVersionState.active)],
   };
 
-  const mockClient: Client = getMockClient({
-    kind: clientKind.consumer,
-    consumerId: mockTokenOrganizationId,
+  const mockClient: Client = {
+    ...getMockClient(),
+    consumerId: mockConsumerId,
+  };
+
+  authorizationService.addClientPurpose = vi.fn().mockResolvedValue({
+    data: {
+      client: mockClient,
+      showUsers: true,
+    },
+    metadata: { version: 1 },
   });
-  const serviceResponse = getMockWithMetadata(mockClient);
-  authorizationService.addClientPurpose = vi
-    .fn()
-    .mockResolvedValue(serviceResponse);
+
+  const apiClient = authorizationApi.Client.parse(
+    clientToApiClient(mockClient, { showUsers: true })
+  );
 
   const makeRequest = async (
     token: string,
@@ -86,24 +92,13 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
     authRole.M2M_ADMIN_ROLE,
   ];
   it.each(authorizedRoles)(
-    "Should return 200 with a full client for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(testToFullClient(mockClient));
-      expect(res.headers["x-metadata-version"]).toBe(
-        serviceResponse.metadata.version.toString()
-      );
-      expect(authorizationService.addClientPurpose).toHaveBeenCalledWith(
-        {
-          clientId: mockClient.id,
-          seed: {
-            purposeId: mockPurpose.id,
-          },
-        },
-        expect.any(Object)
-      );
+      expect(res.body).toEqual(apiClient);
+      expect(res.headers["x-metadata-version"]).toBe("1");
     }
   );
 

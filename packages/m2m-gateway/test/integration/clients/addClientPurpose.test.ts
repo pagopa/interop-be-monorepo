@@ -6,7 +6,7 @@ import {
 } from "pagopa-interop-models";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
-  getMockedApiConsumerFullClient,
+  getMockedApiClient,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
@@ -27,7 +27,7 @@ describe("addClientPurpose", () => {
   };
 
   const mockAuthorizationProcessResponse = getMockWithMetadata(
-    getMockedApiConsumerFullClient()
+    getMockedApiClient()
   );
 
   const mockAddClientPurpose = vi

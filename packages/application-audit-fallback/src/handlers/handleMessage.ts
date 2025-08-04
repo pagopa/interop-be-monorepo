@@ -1,5 +1,4 @@
-import { logger } from "pagopa-interop-commons";
-import { Message } from "@aws-sdk/client-sqs";
+import { logger, Message } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { decodeSQSMessage } from "../models/queue.js";
 import { KafkaProducer } from "../models/kafka.js";

@@ -6,7 +6,7 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole, Metadata } from "pagopa-interop-commons";
+import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, purposeService } from "../vitest.api.setup.js";
 import {
@@ -20,14 +20,8 @@ describe("API DELETE /purposes/{purposeId}/versions/{versionId} test", () => {
   const mockPurposeVersion = getMockPurposeVersion();
   const mockPurpose = { ...getMockPurpose(), versions: [mockPurposeVersion] };
 
-  const metadata: Metadata = {
-    version: 0,
-  };
-
   beforeEach(() => {
-    purposeService.deletePurposeVersion = vi
-      .fn()
-      .mockResolvedValue({ metadata });
+    purposeService.deletePurposeVersion = vi.fn().mockResolvedValue(undefined);
   });
 
   const makeRequest = async (
@@ -40,25 +34,14 @@ describe("API DELETE /purposes/{purposeId}/versions/{versionId} test", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.ADMIN_ROLE,
-    authRole.M2M_ADMIN_ROLE,
-  ];
-
-  it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
-    async () => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token);
-      expect(res.status).toBe(204);
-      expect(res.headers["x-metadata-version"]).toBe(
-        metadata.version.toString()
-      );
-    }
-  );
+  it("Should return 204 for user with role Admin", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(204);
+  });
 
   it.each(
-    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);

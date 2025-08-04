@@ -4,10 +4,12 @@ import {
   DeleteItemInput,
   DynamoDBClient,
   GetItemCommand,
+  GetItemCommandOutput,
   GetItemInput,
   PutItemCommand,
   PutItemInput,
   QueryCommand,
+  QueryCommandOutput,
   QueryInput,
   UpdateItemCommand,
   UpdateItemInput,
@@ -49,12 +51,13 @@ export const getPurposeStateFromPurposeVersions = (
   }
 };
 
-export const upsertPlatformStatesPurposeEntry = async (
+export const writePlatformPurposeEntry = async (
   dynamoDBClient: DynamoDBClient,
   purposeEntry: PlatformStatesPurposeEntry,
   logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
     Item: {
       PK: {
         S: purposeEntry.PK,
@@ -82,7 +85,7 @@ export const upsertPlatformStatesPurposeEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Upserted purpose entry ${purposeEntry.PK}`);
+  logger.info(`Platform-states. Written purpose entry ${purposeEntry.PK}`);
 };
 
 export const readPlatformPurposeEntry = async (
@@ -97,7 +100,7 @@ export const readPlatformPurposeEntry = async (
     ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
-  const data = await dynamoDBClient.send(command);
+  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
 
   if (!data.Item) {
     return undefined;
@@ -150,7 +153,7 @@ export const readTokenGenStatesEntriesByGSIPKPurposeId = async (
     ExclusiveStartKey: exclusiveStartKey,
   };
   const command = new QueryCommand(input);
-  const data = await dynamoDBClient.send(command);
+  const data: QueryCommandOutput = await dynamoDBClient.send(command);
 
   if (!data.Items) {
     throw genericInternalError(
@@ -230,25 +233,27 @@ export const updatePurposeDataInPlatformStatesEntry = async ({
 };
 
 export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
-  // eslint-disable-next-line complexity
   async (
     dynamoDBClient: DynamoDBClient,
     purpose: Purpose,
     purposeState: ItemState,
     purposeVersionId: PurposeVersionId,
     logger: Logger
-    // eslint-disable-next-line sonarjs/cognitive-complexity
   ): Promise<void> => {
-    // eslint-disable-next-line functional/no-let
-    let exclusiveStartKey: Record<string, AttributeValue> | undefined;
-
-    do {
-      const { tokenGenStatesEntries, lastEvaluatedKey } =
-        await readTokenGenStatesEntriesByGSIPKPurposeId(
-          dynamoDBClient,
-          purpose.id,
-          exclusiveStartKey
-        );
+    // eslint-disable-next-line complexity
+    const runPaginatedUpdateQuery = async (
+      dynamoDBClient: DynamoDBClient,
+      purpose: Purpose,
+      purposeState: ItemState,
+      purposeVersionId: PurposeVersionId,
+      exclusiveStartKey?: Record<string, AttributeValue>
+      // eslint-disable-next-line sonarjs/cognitive-complexity
+    ): Promise<void> => {
+      const result = await readTokenGenStatesEntriesByGSIPKPurposeId(
+        dynamoDBClient,
+        purpose.id,
+        exclusiveStartKey
+      );
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: purpose.consumerId,
         eserviceId: purpose.eserviceId,
@@ -291,7 +296,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
         ? await readCatalogEntry(dynamoDBClient, catalogEntryPK)
         : undefined;
 
-      for (const entry of tokenGenStatesEntries) {
+      for (const entry of result.tokenGenStatesEntries) {
         const tokenEntryPK = entry.PK;
 
         // Agreement data from platform-states
@@ -420,8 +425,23 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
         );
       }
 
-      exclusiveStartKey = lastEvaluatedKey;
-    } while (exclusiveStartKey);
+      if (result.lastEvaluatedKey) {
+        await runPaginatedUpdateQuery(
+          dynamoDBClient,
+          purpose,
+          purposeState,
+          purposeVersionId,
+          result.lastEvaluatedKey
+        );
+      }
+    };
+
+    await runPaginatedUpdateQuery(
+      dynamoDBClient,
+      purpose,
+      purposeState,
+      purposeVersionId
+    );
   };
 
 export const updatePurposeDataInTokenGenStatesEntries = async ({
@@ -439,18 +459,20 @@ export const updatePurposeDataInTokenGenStatesEntries = async ({
   purposeConsumerId: TenantId;
   logger: Logger;
 }): Promise<void> => {
-  // eslint-disable-next-line functional/no-let
-  let exclusiveStartKey: Record<string, AttributeValue> | undefined;
+  const runPaginatedUpdateQuery = async (
+    dynamoDBClient: DynamoDBClient,
+    purposeId: PurposeId,
+    purposeState: ItemState,
+    purposeVersionId: PurposeVersionId,
+    exclusiveStartKey?: Record<string, AttributeValue>
+  ): Promise<void> => {
+    const result = await readTokenGenStatesEntriesByGSIPKPurposeId(
+      dynamoDBClient,
+      purposeId,
+      exclusiveStartKey
+    );
 
-  do {
-    const { tokenGenStatesEntries, lastEvaluatedKey } =
-      await readTokenGenStatesEntriesByGSIPKPurposeId(
-        dynamoDBClient,
-        purposeId,
-        exclusiveStartKey
-      );
-
-    for (const entry of tokenGenStatesEntries) {
+    for (const entry of result.tokenGenStatesEntries) {
       const input: UpdateItemInput = {
         ConditionExpression: "attribute_exists(PK)",
         Key: {
@@ -482,8 +504,23 @@ export const updatePurposeDataInTokenGenStatesEntries = async ({
       logger.info(`Token-generation-states. Updated entry ${entry.PK}`);
     }
 
-    exclusiveStartKey = lastEvaluatedKey;
-  } while (exclusiveStartKey);
+    if (result.lastEvaluatedKey) {
+      await runPaginatedUpdateQuery(
+        dynamoDBClient,
+        purposeId,
+        purposeState,
+        purposeVersionId,
+        result.lastEvaluatedKey
+      );
+    }
+  };
+
+  await runPaginatedUpdateQuery(
+    dynamoDBClient,
+    purposeId,
+    purposeState,
+    purposeVersionId
+  );
 };
 
 export const readAgreementEntry = async (
@@ -498,7 +535,7 @@ export const readAgreementEntry = async (
     ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
-  const data = await dynamoDBClient.send(command);
+  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
 
   if (!data.Item) {
     return undefined;
@@ -529,7 +566,7 @@ export const readCatalogEntry = async (
     ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
-  const data = await dynamoDBClient.send(command);
+  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
 
   if (!data.Item) {
     return undefined;

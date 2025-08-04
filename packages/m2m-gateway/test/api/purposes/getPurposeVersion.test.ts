@@ -10,7 +10,6 @@ import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { purposeVersionNotFound } from "../../../src/model/errors.js";
-import { toM2mGatewayApiPurposeVersion } from "../../../src/api/purposeApiConverter.js";
 
 describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
   const authorizedRoles: AuthRole[] = [
@@ -38,9 +37,7 @@ describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
     async (role) => {
       mockPurposeService.getPurposeVersion = vi
         .fn()
-        .mockResolvedValue(
-          toM2mGatewayApiPurposeVersion(mockApiPurposeVersion)
-        );
+        .mockResolvedValue(mockApiPurposeVersion);
 
       const token = generateToken(role);
       const res = await makeRequest(

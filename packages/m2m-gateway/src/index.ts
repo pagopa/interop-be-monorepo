@@ -1,5 +1,4 @@
 import {
-  initFileManager,
   initRedisRateLimiter,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   startServer,
@@ -18,16 +17,15 @@ import { tenantServiceBuilder } from "./services/tenantService.js";
 import { keyServiceBuilder } from "./services/keyService.js";
 
 const clients = getInteropBeClients();
-const fileManager = initFileManager(config);
 
 const services: M2MGatewayServices = {
-  agreementService: agreementServiceBuilder(clients, fileManager),
+  agreementService: agreementServiceBuilder(clients),
   attributeService: attributeServiceBuilder(clients),
   clientService: clientServiceBuilder(clients),
   delegationService: delegationServiceBuilder(clients),
-  eserviceService: eserviceServiceBuilder(clients, fileManager),
+  eserviceService: eserviceServiceBuilder(clients),
   eserviceTemplateService: eserviceTemplateServiceBuilder(clients),
-  purposeService: purposeServiceBuilder(clients, fileManager),
+  purposeService: purposeServiceBuilder(clients),
   tenantService: tenantServiceBuilder(clients),
   keyService: keyServiceBuilder(clients),
 };

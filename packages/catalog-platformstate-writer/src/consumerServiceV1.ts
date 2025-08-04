@@ -21,7 +21,7 @@ import {
   updateDescriptorInfoInTokenGenerationStatesTable,
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
-  upsertPlatformStatesCatalogEntry,
+  writeCatalogEntry,
 } from "./utils.js";
 
 export async function handleMessageV1(
@@ -48,19 +48,27 @@ export async function handleMessageV1(
               dynamoDBClient
             );
 
-            if (
-              existingCatalogEntry &&
-              existingCatalogEntry.version > msg.version
-            ) {
-              // Stops processing if the message is older than the catalog entry
-              logger.info(
-                `Skipping processing of entry ${existingCatalogEntry.PK}. Reason: a more recent entry already exists`
-              );
-              return Promise.resolve();
+            if (existingCatalogEntry) {
+              if (existingCatalogEntry.version > msg.version) {
+                // Stops processing if the message is older than the catalog entry
+                logger.info(
+                  `Skipping processing of entry ${existingCatalogEntry.PK}. Reason: a more recent entry already exists`
+                );
+                return Promise.resolve();
+              } else {
+                // suspended -> published
+                // suspended -> deprecated
+
+                await updateDescriptorStateInPlatformStatesEntry(
+                  dynamoDBClient,
+                  eserviceDescriptorPK,
+                  descriptorStateToItemState(descriptor.state),
+                  msg.version,
+                  logger
+                );
+              }
             } else {
               // draft -> published
-              // suspended -> published
-              // suspended -> deprecated
 
               const catalogEntry: PlatformStatesCatalogEntry = {
                 PK: eserviceDescriptorPK,
@@ -71,11 +79,7 @@ export async function handleMessageV1(
                 updatedAt: new Date().toISOString(),
               };
 
-              await upsertPlatformStatesCatalogEntry(
-                catalogEntry,
-                dynamoDBClient,
-                logger
-              );
+              await writeCatalogEntry(catalogEntry, dynamoDBClient, logger);
             }
 
             // token-generation-states

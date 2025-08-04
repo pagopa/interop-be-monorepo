@@ -41,16 +41,12 @@
     "start:token-details-persister": "turbo start --filter pagopa-interop-token-details-persister",
     "start:token-generation-readmodel-checker": "turbo start --filter pagopa-interop-token-generation-readmodel-checker",
     "start:process": "turbo start --concurrency 20 --filter pagopa-interop-*-process",
-    "start:readmodel-writer-old": "turbo start --concurrency 20 --filter pagopa-interop-*-readmodel-writer",
-    "start:readmodel-writer-sql": "turbo start --concurrency 20 --filter pagopa-interop-*-readmodel-writer-sql",
+    "start:readmodel-writer": "turbo start --concurrency 20 --filter pagopa-interop-*-readmodel-writer",
     "start:ipa-certified-attributes-importer": "turbo start --filter pagopa-interop-ipa-certified-attributes-importer",
     "start:eservice-template": "turbo start --filter pagopa-interop-eservice-template-process",
     "start:eservice-template-readmodel-writer": "turbo start --filter pagopa-interop-eservice-template-readmodel-writer",
     "start:notification-email-sender": "turbo start --filter pagopa-interop-notification-email-sender",
     "start:m2m-gateway": "turbo start --filter pagopa-interop-m2m-gateway",
-    "start:in-app-notification": "turbo start --filter pagopa-interop-in-app-notification-manager",
-    "start:notification-config": "turbo start --filter pagopa-interop-notification-config-process",
-    "start:notification-config-readmodel-writer-sql": "turbo start --filter pagopa-interop-notification-config-readmodel-writer-sql",
     "test": "turbo test",
     "test:integration": "turbo test:integration",
     "test:api": "turbo test:api",
@@ -77,5 +73,5 @@
   "config": {
     "protocVersion": "26.1"
   },
-  "packageManager": "pnpm@9.15.9"
+  "packageManager": "pnpm@9.15.4"
 }

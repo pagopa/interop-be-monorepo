@@ -8,7 +8,6 @@ import {
   Logger,
   M2MAdminAuthData,
   M2MAuthData,
-  Ownership,
   PDFGenerator,
   RiskAnalysisFormRules,
   UIAuthData,
@@ -18,7 +17,6 @@ import {
   getFormRulesByVersion,
   getIpaCode,
   getLatestVersionFormRules,
-  ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -99,7 +97,11 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
-import { PurposeDocumentEServiceInfo } from "../model/domain/models.js";
+import {
+  ownership,
+  Ownership,
+  PurposeDocumentEServiceInfo,
+} from "../model/domain/models.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertEserviceMode,
@@ -122,7 +124,6 @@ import {
   verifyRequesterIsConsumerOrDelegateConsumer,
   isClonable,
   purposeIsArchived,
-  getOrganizationRole,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
@@ -337,12 +338,8 @@ export function purposeServiceBuilder(
         purposeId: PurposeId;
         versionId: PurposeVersionId;
       },
-      {
-        correlationId,
-        authData,
-        logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<Purpose>> {
+      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
       logger.info(`Deleting Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -367,19 +364,13 @@ export function purposeServiceBuilder(
         updatedAt: new Date(),
       };
 
-      const event = await repository.createEvent(
-        toCreateEventWaitingForApprovalPurposeVersionDeleted({
-          purpose: updatedPurpose,
-          version: purpose.metadata.version,
-          versionId,
-          correlationId,
-        })
-      );
-
-      return {
-        data: updatedPurpose,
-        metadata: { version: event.newVersion },
-      };
+      const event = toCreateEventWaitingForApprovalPurposeVersionDeleted({
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        versionId,
+        correlationId,
+      });
+      await repository.createEvent(event);
     },
     async rejectPurposeVersion(
       {
@@ -473,11 +464,7 @@ export function purposeServiceBuilder(
     },
     async deletePurpose(
       purposeId: PurposeId,
-      {
-        authData,
-        correlationId,
-        logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Deleting Purpose ${purposeId}`);
 
@@ -659,11 +646,9 @@ export function purposeServiceBuilder(
       {
         purposeId,
         versionId,
-        delegationId,
       }: {
         purposeId: PurposeId;
         versionId: PurposeVersionId;
-        delegationId: DelegationId | undefined;
       },
       {
         authData,
@@ -671,11 +656,7 @@ export function purposeServiceBuilder(
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeVersion>> {
-      logger.info(
-        `Suspending Version ${versionId} in Purpose ${purposeId}${
-          delegationId ? ` with delegation ${delegationId}` : ""
-        }`
-      );
+      logger.info(`Suspending Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
@@ -692,9 +673,8 @@ export function purposeServiceBuilder(
       const suspender = await getOrganizationRole({
         purpose: purpose.data,
         producerId: eservice.producerId,
-        delegationId,
-        readModelService,
         authData,
+        readModelService,
       });
 
       const suspendedPurposeVersion: PurposeVersion = {
@@ -935,11 +915,9 @@ export function purposeServiceBuilder(
       {
         purposeId,
         versionId,
-        delegationId,
       }: {
         purposeId: PurposeId;
         versionId: PurposeVersionId;
-        delegationId: DelegationId | undefined;
       },
       {
         authData,
@@ -947,11 +925,7 @@ export function purposeServiceBuilder(
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeVersion>> {
-      logger.info(
-        `Activating Version ${versionId} in Purpose ${purposeId}${
-          delegationId ? ` with delegation ${delegationId}` : ""
-        }`
-      );
+      logger.info(`Activating Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
@@ -985,9 +959,8 @@ export function purposeServiceBuilder(
       const purposeOwnership = await getOrganizationRole({
         purpose: purpose.data,
         producerId: eservice.producerId,
-        delegationId,
-        readModelService,
         authData,
+        readModelService,
       });
 
       const { event, updatedPurposeVersion } = await match({
@@ -1036,7 +1009,7 @@ export function purposeServiceBuilder(
             purposeOwnership: ownership.PRODUCER,
           },
           () => {
-            throw tenantIsNotTheConsumer(authData.organizationId, delegationId);
+            throw tenantIsNotTheConsumer(authData.organizationId);
           }
         )
         .with(
@@ -1045,7 +1018,7 @@ export function purposeServiceBuilder(
             purposeOwnership: ownership.CONSUMER,
           },
           () => {
-            throw tenantIsNotTheProducer(authData.organizationId, delegationId);
+            throw tenantIsNotTheProducer(authData.organizationId);
           }
         )
         .with(
@@ -1155,25 +1128,9 @@ export function purposeServiceBuilder(
               correlationId
             )
         )
-        .with(
-          {
-            state: P.union(
-              purposeVersionState.archived,
-              purposeVersionState.active,
-              purposeVersionState.rejected,
-              purposeVersionState.suspended
-            ),
-            purposeOwnership: P.union(
-              ownership.CONSUMER,
-              ownership.SELF_CONSUMER,
-              ownership.PRODUCER
-            ),
-          },
-          () => {
-            throw tenantNotAllowed(authData.organizationId);
-          }
-        )
-        .exhaustive();
+        .otherwise(() => {
+          throw tenantNotAllowed(authData.organizationId);
+        });
 
       const createdEvent = await repository.createEvent(event);
 
@@ -1257,20 +1214,14 @@ export function purposeServiceBuilder(
       };
     },
     async createReversePurpose(
-      seed: purposeApi.ReversePurposeSeed,
-      {
-        authData,
-        correlationId,
-        logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+      seed: purposeApi.EServicePurposeSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(
-        `Creating Purpose for EService ${seed.eserviceId}, Consumer ${seed.consumerId}`
+        `Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`
       );
       const riskAnalysisId: RiskAnalysisId = unsafeBrandId(seed.riskAnalysisId);
-      const eserviceId: EServiceId = unsafeBrandId(seed.eserviceId);
+      const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -1336,16 +1287,12 @@ export function purposeServiceBuilder(
         },
       };
 
-      const event = await repository.createEvent(
+      await repository.createEvent(
         toCreateEventPurposeAdded(purpose, correlationId)
       );
-
       return {
-        data: {
-          purpose,
-          isRiskAnalysisValid: true,
-        },
-        metadata: { version: event.newVersion },
+        purpose,
+        isRiskAnalysisValid: true,
       };
     },
     async clonePurpose({
@@ -1368,10 +1315,15 @@ export function purposeServiceBuilder(
 
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
 
+      const consumerDelegation = await retrievePurposeDelegation(
+        purposeToClone.data,
+        readModelService
+      );
+
       assertRequesterCanActAsConsumer(
         purposeToClone.data,
         authData,
-        await retrievePurposeDelegation(purposeToClone.data, readModelService)
+        consumerDelegation
       );
 
       if (!isClonable(purposeToClone.data)) {
@@ -1528,6 +1480,47 @@ export function purposeServiceBuilder(
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
+const getOrganizationRole = async ({
+  purpose,
+  producerId,
+  authData,
+  readModelService,
+}: {
+  purpose: Purpose;
+  producerId: TenantId;
+  authData: UIAuthData | M2MAdminAuthData;
+  readModelService: ReadModelService;
+}): Promise<Ownership> => {
+  if (
+    producerId === purpose.consumerId &&
+    authData.organizationId === producerId
+  ) {
+    return ownership.SELF_CONSUMER;
+  }
+
+  try {
+    assertRequesterCanActAsProducer(
+      { id: purpose.eserviceId, producerId },
+      authData,
+      await readModelService.getActiveProducerDelegationByEserviceId(
+        purpose.eserviceId
+      )
+    );
+    return ownership.PRODUCER;
+  } catch {
+    try {
+      assertRequesterCanActAsConsumer(
+        purpose,
+        authData,
+        await retrievePurposeDelegation(purpose, readModelService)
+      );
+      return ownership.CONSUMER;
+    } catch {
+      throw tenantNotAllowed(authData.organizationId);
+    }
+  }
+};
+
 const replacePurposeVersion = (
   purpose: Purpose,
   newVersion: PurposeVersion
@@ -1599,11 +1592,12 @@ const performUpdatePurpose = async (
     });
   }
 
-  assertRequesterCanActAsConsumer(
+  const consumerDelegation = await retrievePurposeDelegation(
     purpose.data,
-    authData,
-    await retrievePurposeDelegation(purpose.data, readModelService)
+    readModelService
   );
+
+  assertRequesterCanActAsConsumer(purpose.data, authData, consumerDelegation);
 
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
@@ -1923,19 +1917,7 @@ function activatePurposeVersionFromSuspendedLogic(
       },
       () => purposeVersionState.suspended
     )
-    .with(
-      {
-        suspendedByConsumer: P.any,
-        suspendedByProducer: P.any,
-        purposeOwnership: P.union(
-          ownership.SELF_CONSUMER,
-          ownership.CONSUMER,
-          ownership.PRODUCER
-        ),
-      },
-      () => purposeVersionState.active
-    )
-    .exhaustive();
+    .otherwise(() => purposeVersionState.active);
 
   const updatedPurposeVersion: PurposeVersion = {
     ...purposeVersion,
@@ -1952,8 +1934,11 @@ function activatePurposeVersionFromSuspendedLogic(
     updatedPurposeVersion
   );
 
-  return match(purposeOwnership)
-    .with(P.union(ownership.PRODUCER, ownership.SELF_CONSUMER), () => ({
+  if (
+    purposeOwnership === ownership.PRODUCER ||
+    purposeOwnership === ownership.SELF_CONSUMER
+  ) {
+    return {
       event: toCreateEventPurposeVersionUnsuspenedByProducer({
         purpose: { ...updatedPurpose, suspendedByProducer: false },
         versionId: purposeVersion.id,
@@ -1961,8 +1946,9 @@ function activatePurposeVersionFromSuspendedLogic(
         correlationId,
       }),
       updatedPurposeVersion,
-    }))
-    .with(ownership.CONSUMER, () => ({
+    };
+  } else {
+    return {
       event: toCreateEventPurposeVersionUnsuspenedByConsumer({
         purpose: { ...updatedPurpose, suspendedByConsumer: false },
         versionId: purposeVersion.id,
@@ -1970,6 +1956,6 @@ function activatePurposeVersionFromSuspendedLogic(
         correlationId,
       }),
       updatedPurposeVersion,
-    }))
-    .exhaustive();
+    };
+  }
 }

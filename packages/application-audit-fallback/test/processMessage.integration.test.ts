@@ -1,8 +1,7 @@
 import { describe, expect, it, vi, afterAll, beforeEach } from "vitest";
 import { InternalError } from "pagopa-interop-models";
 import { CommonErrorCodes, decodeSQSMessageError } from "pagopa-interop-models";
-import { QueueMessage } from "pagopa-interop-commons";
-import { Message } from "@aws-sdk/client-sqs";
+import { Message, QueueMessage } from "pagopa-interop-commons";
 import { handleMessage } from "../src/handlers/handleMessage.js";
 import { ApplicationAuditEventMessageSchema } from "../src/models/queue.js";
 import { KafkaProducer } from "../src/models/kafka.js";

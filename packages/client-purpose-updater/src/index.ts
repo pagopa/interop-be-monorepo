@@ -34,9 +34,4 @@ async function processMessage({
     .exhaustive();
 }
 
-await runConsumer(
-  config,
-  [config.purposeTopic],
-  processMessage,
-  "client-purpose-updater"
-);
+await runConsumer(config, [config.purposeTopic], processMessage);

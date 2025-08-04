@@ -61,42 +61,15 @@ const tenantRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/tenants/:tenantId/declaredAttributes", async (req, res) => {
-      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-      try {
-        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-        const declaredAttributes =
-          await tenantService.getTenantDeclaredAttributes(
-            unsafeBrandId(req.params.tenantId),
-            req.query,
-            ctx
-          );
-
-        return res
-          .status(200)
-          .send(
-            m2mGatewayApi.TenantDeclaredAttributes.parse(declaredAttributes)
-          );
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error retrieving tenant ${req.params.tenantId} declared attributes`
-        );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
     .get("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-        const certifiedAttributes =
-          await tenantService.getTenantCertifiedAttributes(
-            unsafeBrandId(req.params.tenantId),
-            req.query,
-            ctx
-          );
+        const certifiedAttributes = await tenantService.getCertifiedAttributes(
+          unsafeBrandId(req.params.tenantId),
+          req.query,
+          ctx
+        );
 
         return res
           .status(200)
@@ -117,7 +90,7 @@ const tenantRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-        const certifiedAttribute = await tenantService.assignCertifiedAttribute(
+        const certifiedAttribute = await tenantService.addCertifiedAttribute(
           unsafeBrandId(req.params.tenantId),
           req.body,
           ctx
@@ -166,33 +139,7 @@ const tenantRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    )
-    .get("/tenants/:tenantId/verifiedAttributes", async (req, res) => {
-      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-      try {
-        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-        const verifiedAttributes =
-          await tenantService.getTenantVerifiedAttributes(
-            unsafeBrandId(req.params.tenantId),
-            req.query,
-            ctx
-          );
-
-        return res
-          .status(200)
-          .send(
-            m2mGatewayApi.TenantVerifiedAttributes.parse(verifiedAttributes)
-          );
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error retrieving tenant ${req.params.tenantId} verified attributes`
-        );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    });
+    );
 
   return tenantRouter;
 };

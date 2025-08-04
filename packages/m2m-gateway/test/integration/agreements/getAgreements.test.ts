@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, agreementApi } from "pagopa-interop-api-clients";
-import { getMockedApiAgreement } from "pagopa-interop-commons-test";
-import { generateId } from "pagopa-interop-models";
+import {
+  getMockedApiAgreement,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -13,22 +15,18 @@ import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.
 
 describe("getAgreements", () => {
   const mockQueryParams: m2mGatewayApi.GetAgreementsQueryParams = {
-    consumerIds: [generateId(), generateId()],
-    eserviceIds: [generateId(), generateId()],
-    producerIds: [generateId(), generateId()],
-    descriptorIds: [generateId(), generateId()],
-    states: [
-      m2mGatewayApi.AgreementState.Values.ACTIVE,
-      m2mGatewayApi.AgreementState.Values.SUSPENDED,
-    ],
+    consumerIds: [],
+    eserviceIds: [],
+    producerIds: [],
+    states: [],
     offset: 0,
     limit: 10,
   };
 
-  const mockApiAgreement1 = getMockedApiAgreement();
-  const mockApiAgreement2 = getMockedApiAgreement();
+  const mockApiAgreement1 = getMockWithMetadata(getMockedApiAgreement());
+  const mockApiAgreement2 = getMockWithMetadata(getMockedApiAgreement());
 
-  const mockApiAgreements = [mockApiAgreement1, mockApiAgreement2];
+  const mockApiAgreements = [mockApiAgreement1.data, mockApiAgreement2.data];
 
   const mockAgreementProcessResponse: WithMaybeMetadata<agreementApi.Agreements> =
     {
@@ -54,37 +52,37 @@ describe("getAgreements", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const m2mAgreementResponse1: m2mGatewayApi.Agreement = {
-      id: mockApiAgreement1.id,
-      eserviceId: mockApiAgreement1.eserviceId,
-      descriptorId: mockApiAgreement1.descriptorId,
-      producerId: mockApiAgreement1.producerId,
-      consumerId: mockApiAgreement1.consumerId,
-      state: mockApiAgreement1.state,
-      suspendedByConsumer: mockApiAgreement1.suspendedByConsumer,
-      suspendedByProducer: mockApiAgreement1.suspendedByProducer,
-      suspendedByPlatform: mockApiAgreement1.suspendedByPlatform,
-      consumerNotes: mockApiAgreement1.consumerNotes,
-      rejectionReason: mockApiAgreement1.rejectionReason,
-      createdAt: mockApiAgreement1.createdAt,
-      updatedAt: mockApiAgreement1.updatedAt,
-      suspendedAt: mockApiAgreement1.suspendedAt,
+      id: mockApiAgreement1.data.id,
+      eserviceId: mockApiAgreement1.data.eserviceId,
+      descriptorId: mockApiAgreement1.data.descriptorId,
+      producerId: mockApiAgreement1.data.producerId,
+      consumerId: mockApiAgreement1.data.consumerId,
+      state: mockApiAgreement1.data.state,
+      suspendedByConsumer: mockApiAgreement1.data.suspendedByConsumer,
+      suspendedByProducer: mockApiAgreement1.data.suspendedByProducer,
+      suspendedByPlatform: mockApiAgreement1.data.suspendedByPlatform,
+      consumerNotes: mockApiAgreement1.data.consumerNotes,
+      rejectionReason: mockApiAgreement1.data.rejectionReason,
+      createdAt: mockApiAgreement1.data.createdAt,
+      updatedAt: mockApiAgreement1.data.updatedAt,
+      suspendedAt: mockApiAgreement1.data.suspendedAt,
     };
 
     const m2mAgreementResponse2: m2mGatewayApi.Agreement = {
-      id: mockApiAgreement2.id,
-      eserviceId: mockApiAgreement2.eserviceId,
-      descriptorId: mockApiAgreement2.descriptorId,
-      producerId: mockApiAgreement2.producerId,
-      consumerId: mockApiAgreement2.consumerId,
-      state: mockApiAgreement2.state,
-      suspendedByConsumer: mockApiAgreement2.suspendedByConsumer,
-      suspendedByProducer: mockApiAgreement2.suspendedByProducer,
-      suspendedByPlatform: mockApiAgreement2.suspendedByPlatform,
-      consumerNotes: mockApiAgreement2.consumerNotes,
-      rejectionReason: mockApiAgreement2.rejectionReason,
-      createdAt: mockApiAgreement2.createdAt,
-      updatedAt: mockApiAgreement2.updatedAt,
-      suspendedAt: mockApiAgreement2.suspendedAt,
+      id: mockApiAgreement2.data.id,
+      eserviceId: mockApiAgreement2.data.eserviceId,
+      descriptorId: mockApiAgreement2.data.descriptorId,
+      producerId: mockApiAgreement2.data.producerId,
+      consumerId: mockApiAgreement2.data.consumerId,
+      state: mockApiAgreement2.data.state,
+      suspendedByConsumer: mockApiAgreement2.data.suspendedByConsumer,
+      suspendedByProducer: mockApiAgreement2.data.suspendedByProducer,
+      suspendedByPlatform: mockApiAgreement2.data.suspendedByPlatform,
+      consumerNotes: mockApiAgreement2.data.consumerNotes,
+      rejectionReason: mockApiAgreement2.data.rejectionReason,
+      createdAt: mockApiAgreement2.data.createdAt,
+      updatedAt: mockApiAgreement2.data.updatedAt,
+      suspendedAt: mockApiAgreement2.data.suspendedAt,
     };
 
     const m2mAgreementsResponse: m2mGatewayApi.Agreements = {
@@ -108,7 +106,7 @@ describe("getAgreements", () => {
         consumersIds: mockQueryParams.consumerIds,
         eservicesIds: mockQueryParams.eserviceIds,
         producersIds: mockQueryParams.producerIds,
-        descriptorsIds: mockQueryParams.descriptorIds,
+        descriptorsIds: [],
         showOnlyUpgradeable: false,
         states: mockQueryParams.states,
         offset: mockQueryParams.offset,

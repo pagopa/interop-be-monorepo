@@ -6,7 +6,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
-  DelegationId,
   EServiceId,
   PurposeId,
   PurposeVersionDocumentId,
@@ -350,8 +349,8 @@ export function purposeServiceBuilder(
       logger.info(
         `Creating purpose from ESErvice ${createSeed.eserviceId} and Risk Analysis ${createSeed.riskAnalysisId}`
       );
-      const payload: purposeApi.ReversePurposeSeed = {
-        eserviceId: createSeed.eserviceId,
+      const payload: purposeApi.EServicePurposeSeed = {
+        eServiceId: createSeed.eserviceId,
         consumerId: createSeed.consumerId,
         riskAnalysisId: createSeed.riskAnalysisId,
         title: createSeed.title,
@@ -558,17 +557,12 @@ export function purposeServiceBuilder(
     async suspendPurposeVersion(
       purposeId: PurposeId,
       versionId: PurposeVersionId,
-      delegationId: DelegationId | undefined,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
-      logger.info(
-        `Suspending Version ${versionId} of Purpose ${purposeId}${
-          delegationId ? ` with Delegation ${delegationId}` : ""
-        }`
-      );
+      logger.info(`Suspending Version ${versionId} of Purpose ${purposeId}`);
 
       const result = await purposeProcessClient.suspendPurposeVersion(
-        { delegationId },
+        undefined,
         {
           params: {
             purposeId,
@@ -586,17 +580,12 @@ export function purposeServiceBuilder(
     async activatePurposeVersion(
       purposeId: PurposeId,
       versionId: PurposeVersionId,
-      delegationId: DelegationId | undefined,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
-      logger.info(
-        `Activating Version ${versionId} of Purpose ${purposeId}${
-          delegationId ? ` with Delegation ${delegationId}` : ""
-        }`
-      );
+      logger.info(`Activating Version ${versionId} of Purpose ${purposeId}`);
 
       const result = await purposeProcessClient.activatePurposeVersion(
-        { delegationId },
+        undefined,
         {
           params: {
             purposeId,

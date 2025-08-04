@@ -313,16 +313,11 @@ export function agreementServiceBuilder(
 
     async suspendAgreement(
       agreementId: string,
-      delegationId: string | undefined,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
-      ctx.logger.info(
-        `Suspending agreement ${agreementId}${
-          delegationId ? ` with delegation ${delegationId}` : ""
-        }`
-      );
+      ctx.logger.info(`Suspending agreement ${agreementId}`);
       const agreement = await agreementProcessClient.suspendAgreement(
-        { delegationId },
+        undefined,
         {
           params: { agreementId },
           headers: ctx.headers,
@@ -399,16 +394,11 @@ export function agreementServiceBuilder(
 
     async activateAgreement(
       agreementId: string,
-      delegationId: string | undefined,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
-      ctx.logger.info(
-        `Activating agreement ${agreementId}${
-          delegationId ? ` with delegation ${delegationId}` : ""
-        }`
-      );
+      ctx.logger.info(`Activating agreement ${agreementId}`);
       const agreement = await agreementProcessClient.activateAgreement(
-        { delegationId },
+        undefined,
         {
           params: { agreementId },
           headers: ctx.headers,

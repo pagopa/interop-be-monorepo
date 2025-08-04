@@ -140,7 +140,7 @@ describe("clone agreement", () => {
     };
     await addOneAgreement(anotherNonConflictingAgreement);
 
-    const { data: returnedAgreement } = await agreementService.cloneAgreement(
+    const returnedAgreement = await agreementService.cloneAgreement(
       agreementToBeCloned.id,
       getMockContext({ authData })
     );
@@ -288,7 +288,7 @@ describe("clone agreement", () => {
     };
     await addOneAgreement(anotherNonConflictingAgreement);
 
-    const { data: returnedAgreement } = await agreementService.cloneAgreement(
+    const returnedAgreement = await agreementService.cloneAgreement(
       agreementToBeCloned.id,
       getMockContext({ authData })
     );

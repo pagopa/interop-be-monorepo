@@ -33,13 +33,13 @@ export async function handleAttributeMessageV1(
             `Attribute can't be missing in the event message`
           );
         }
-        const attribute = splitAttributeIntoObjectsSQL(
+        const attributeSql = splitAttributeIntoObjectsSQL(
           fromAttributeV1(msg.data.attribute),
           msg.version
         );
         upsertBatch.push(
           AttributeSchema.parse(
-            attribute satisfies z.input<typeof AttributeSchema>
+            attributeSql satisfies z.input<typeof AttributeSchema>
           )
         );
       })

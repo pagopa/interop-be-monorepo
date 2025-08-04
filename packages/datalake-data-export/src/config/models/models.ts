@@ -6,10 +6,6 @@ import {
   Purpose,
   PurposeVersion,
   Tenant,
-  Delegation,
-  EServiceTemplate,
-  EServiceTemplateVersion,
-  EServiceTemplateVersionRef,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -17,9 +13,7 @@ export type ExportedCollection =
   | "tenants"
   | "eservices"
   | "agreements"
-  | "purposes"
-  | "delegations"
-  | "eservice-templates";
+  | "purposes";
 
 /**
  * The pick method used to extract the fields from the original type is not
@@ -45,10 +39,6 @@ const ExportedCatalogDocument = Document.pick({
   checksum: true,
 } satisfies StrictPick<Document>);
 
-const ExportedEServiceTemplateVersionRef = EServiceTemplateVersionRef.pick({
-  id: true,
-});
-
 const ExportedDescriptor = Descriptor.pick({
   id: true,
   description: true,
@@ -64,7 +54,6 @@ const ExportedDescriptor = Descriptor.pick({
 } satisfies StrictPick<Descriptor>).and(
   z.object({
     interface: ExportedCatalogDocument.optional(),
-    templateVersionRef: ExportedEServiceTemplateVersionRef.optional(),
   })
 );
 export const ExportedEService = EService.pick({
@@ -75,7 +64,6 @@ export const ExportedEService = EService.pick({
   mode: true,
   createdAt: true,
   technology: true,
-  templateId: true,
 } satisfies StrictPick<EService>).and(
   z.object({
     descriptors: z.array(ExportedDescriptor),
@@ -123,48 +111,3 @@ export const ExportedPurpose = Purpose.pick({
   z.object({ versions: z.array(ExportedPurposeVersion) })
 );
 export type ExportedPurpose = z.infer<typeof ExportedPurpose>;
-
-export const ExportedDelegation = Delegation.pick({
-  id: true,
-  delegateId: true,
-  delegatorId: true,
-  eserviceId: true,
-  createdAt: true,
-  updatedAt: true,
-  state: true,
-  kind: true,
-  stamps: true,
-} satisfies StrictPick<Delegation>);
-export type ExportedDelegation = z.infer<typeof ExportedDelegation>;
-
-const ExportedEServiceTemplateVersion = EServiceTemplateVersion.pick({
-  id: true,
-  version: true,
-  state: true,
-  publishedAt: true,
-  voucherLifespan: true,
-  description: true,
-  dailyCallsPerConsumer: true,
-  dailyCallsTotal: true,
-  agreementApprovalPolicy: true,
-} satisfies StrictPick<EServiceTemplateVersion>).and(
-  z.object({
-    interface: ExportedCatalogDocument.optional(),
-  })
-);
-
-export const ExportedEServiceTemplate = EServiceTemplate.pick({
-  id: true,
-  creatorId: true,
-  intendedTarget: true,
-  createdAt: true,
-  name: true,
-  description: true,
-  technology: true,
-  mode: true,
-  isSignalHubEnabled: true,
-} satisfies StrictPick<EServiceTemplate>).and(
-  z.object({ versions: z.array(ExportedEServiceTemplateVersion) })
-);
-
-export type ExportedEServiceTemplate = z.infer<typeof ExportedEServiceTemplate>;

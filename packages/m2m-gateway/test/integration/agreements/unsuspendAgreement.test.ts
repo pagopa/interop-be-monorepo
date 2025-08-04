@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
-  generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -30,7 +29,6 @@ describe("unsuspendAgreement", () => {
       state: agreementApi.AgreementState.Values.SUSPENDED,
     })
   );
-  const mockDelegationRef = { delegationId: generateId() };
 
   const pollingTentatives = 2;
   const mockActivateAgreement = vi
@@ -55,7 +53,6 @@ describe("unsuspendAgreement", () => {
 
     await agreementService.unsuspendAgreement(
       unsafeBrandId(mockAgreementProcessResponse.data.id),
-      mockDelegationRef,
       getMockM2MAdminAppContext()
     );
 
@@ -64,7 +61,6 @@ describe("unsuspendAgreement", () => {
       params: {
         agreementId: mockAgreementProcessResponse.data.id,
       },
-      body: mockDelegationRef,
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.agreementProcessClient.getAgreementById,
@@ -86,7 +82,6 @@ describe("unsuspendAgreement", () => {
     await expect(
       agreementService.unsuspendAgreement(
         unsafeBrandId(mockAgreementNotSuspended.data.id),
-        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
@@ -104,7 +99,6 @@ describe("unsuspendAgreement", () => {
     await expect(
       agreementService.unsuspendAgreement(
         unsafeBrandId(mockAgreementProcessResponse.data.id),
-        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -121,7 +115,6 @@ describe("unsuspendAgreement", () => {
     await expect(
       agreementService.unsuspendAgreement(
         unsafeBrandId(mockAgreementProcessResponse.data.id),
-        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -141,7 +134,6 @@ describe("unsuspendAgreement", () => {
     await expect(
       agreementService.unsuspendAgreement(
         unsafeBrandId(mockAgreementProcessResponse.data.id),
-        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(

@@ -67,6 +67,3 @@ packages/**/pnpm-lock.yaml
 
 # IntelliJ
 .idea
-
-# Windsurf
-.windsurf

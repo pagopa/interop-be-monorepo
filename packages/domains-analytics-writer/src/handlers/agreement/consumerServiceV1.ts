@@ -84,22 +84,24 @@ export async function handleAgreementMessageV1(
           );
         }
 
-        const document = agreementDocumentToAgreementDocumentSQL(
+        const doc = agreementDocumentToAgreementDocumentSQL(
           fromAgreementDocumentV1(msg.data.document),
           unsafeBrandId<AgreementId>(msg.data.agreementId),
           msg.version
         );
 
         upsertDocumentBatch.push(
-          AgreementConsumerDocumentSchema.parse(
-            document satisfies z.input<typeof AgreementConsumerDocumentSchema>
-          )
+          AgreementConsumerDocumentSchema.parse({
+            ...doc,
+            deleted: false,
+          } satisfies z.input<typeof AgreementConsumerDocumentSchema>)
         );
       })
       .with({ type: "AgreementConsumerDocumentRemoved" }, (msg) => {
         deleteDocumentBatch.push(
-          AgreementConsumerDocumentDeletingSchema.parse({
+          AgreementConsumerDocumentSchema.parse({
             id: msg.data.documentId,
+            deleted: true,
           } satisfies z.input<typeof AgreementConsumerDocumentDeletingSchema>)
         );
       })
@@ -117,9 +119,10 @@ export async function handleAgreementMessageV1(
         );
 
         upsertContractBatch.push(
-          AgreementContractSchema.parse(
-            contract satisfies z.input<typeof AgreementContractSchema>
-          )
+          AgreementContractSchema.parse({
+            ...contract,
+            deleted: false,
+          } satisfies z.input<typeof AgreementContractSchema>)
         );
       })
       .with({ type: "AgreementDeleted" }, (msg) => {

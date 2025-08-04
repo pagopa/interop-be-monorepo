@@ -109,9 +109,4 @@ async function processMessage({
     .exhaustive();
 }
 
-await runConsumer(
-  config,
-  [config.tenantTopic],
-  processMessage,
-  "compute-agreements-consumer"
-);
+await runConsumer(config, [config.tenantTopic], processMessage);

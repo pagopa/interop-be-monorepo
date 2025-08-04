@@ -47,9 +47,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.eserviceTemplateTopic],
-  processMessage,
-  "eservice-template-readmodel-writer-sql"
-);
+await runConsumer(config, [config.eserviceTemplateTopic], processMessage);

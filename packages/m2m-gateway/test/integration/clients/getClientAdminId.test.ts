@@ -2,9 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
+  getMockedApiClient,
   getMockWithMetadata,
-  getMockedApiConsumerPartialClient,
-  getMockedApiConsumerFullClient,
 } from "pagopa-interop-commons-test";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import {
@@ -17,19 +16,13 @@ import { clientAdminIdNotFound } from "../../../src/model/errors.js";
 
 describe("getClientAdminId", () => {
   const mockAuthProcessResponseWithAdminId = getMockWithMetadata(
-    getMockedApiConsumerFullClient({
+    getMockedApiClient({
       kind: authorizationApi.ClientKind.Values.API,
     })
   );
 
   const mockAuthProcessResponseWithoutAdminId = getMockWithMetadata(
-    getMockedApiConsumerFullClient({
-      kind: authorizationApi.ClientKind.Values.CONSUMER,
-    })
-  );
-
-  const mockAuthProcessResponsePartial = getMockWithMetadata(
-    getMockedApiConsumerPartialClient({
+    getMockedApiClient({
       kind: authorizationApi.ClientKind.Values.CONSUMER,
     })
   );
@@ -75,23 +68,6 @@ describe("getClientAdminId", () => {
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClient,
       params: { clientId: mockAuthProcessResponseWithoutAdminId.data.id },
-    });
-  });
-
-  it("Should throw clientAdminIdNotFound if the client is partial", async () => {
-    mockGetClient.mockResolvedValueOnce(mockAuthProcessResponsePartial);
-    await expect(
-      clientService.getClientAdminId(
-        unsafeBrandId(mockAuthProcessResponsePartial.data.id),
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(
-      clientAdminIdNotFound(mockAuthProcessResponsePartial.data)
-    );
-
-    expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.authorizationClient.client.getClient,
-      params: { clientId: mockAuthProcessResponsePartial.data.id },
     });
   });
 });

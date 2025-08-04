@@ -33,19 +33,6 @@ services:
       POSTGRES_PASSWORD: root
     command: -c 'max_connections=512' -c 'wal_level=logical'
 
-  # POSTGRESQL in-app notification manager
-  in-app-notification-manager-sql:
-    volumes:
-      - ./in-app-notification-db:/docker-entrypoint-initdb.d
-    image: postgres:14
-    ports:
-      - 6004:5433
-    environment:
-      PGPORT: 5433
-      POSTGRES_DB: root
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-
   # analytics POSTGRESQL-15
   domains-analytics-sql:
     volumes:

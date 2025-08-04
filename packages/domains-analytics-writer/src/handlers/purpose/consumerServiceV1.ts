@@ -106,6 +106,7 @@ export async function handlePurposeMessageV1(
         deleteVersionBatch.push(
           PurposeVersionDeletingSchema.parse({
             id: msg.data.versionId,
+            deleted: true,
           } satisfies z.input<typeof PurposeDeletingSchema>)
         );
       })

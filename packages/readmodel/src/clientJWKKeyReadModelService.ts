@@ -9,9 +9,9 @@ import {
   clientJwkKeyInReadmodelClientJwkKey,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { checkMetadataVersionByFilter } from "./utils.js";
 import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
 import { aggregateClientJWKKey } from "./authorization/clientJWKKeyAggregators.js";
+import { checkMetadataVersionByFilter } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {

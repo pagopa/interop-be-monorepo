@@ -46,7 +46,6 @@ export const errorCodes = {
   tenantIsNotTheDelegatedProducer: "0028",
   purposeDelegationNotFound: "0029",
   purposeCannotBeUpdated: "0030",
-  tenantIsNotTheDelegate: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -117,15 +116,10 @@ export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
 }
 
 export function tenantIsNotTheConsumer(
-  tenantId: TenantId,
-  delegationId?: DelegationId
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${tenantId}${
-      delegationId
-        ? ` operating as delegate for delegation with ID ${delegationId}`
-        : ""
-    } is not allowed to perform the operation because is not operating as consumer`,
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the consumer`,
     code: "tenantIsNotTheConsumer",
     title: "Tenant not allowed",
   });
@@ -156,15 +150,10 @@ export function purposeVersionCannotBeDeleted(
 }
 
 export function tenantIsNotTheProducer(
-  tenantId: TenantId,
-  delegationId?: DelegationId
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${tenantId}${
-      delegationId
-        ? ` operating as delegate for delegation with ID ${delegationId}`
-        : ""
-    } is not allowed to perform the operation because is not operating as producer`,
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the producer`,
     code: "tenantIsNotTheProducer",
     title: "Tenant not allowed",
   });
@@ -365,15 +354,5 @@ export function purposeCannotBeUpdated(
     detail: `Archived purpose ${purposeId} cannot be updated`,
     code: "purposeCannotBeUpdated",
     title: "Purpose cannot be updated",
-  });
-}
-
-export function tenantIsNotTheDelegate(
-  tenantId: TenantId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${tenantId} is not allowed to perform the operation: operation is restricted to delegate, but delegation ID parameter is missing`,
-    code: "tenantIsNotTheDelegate",
-    title: "Missing delegation ID",
   });
 }

@@ -2,9 +2,12 @@
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { makeApiProblemBuilder } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { ExpressContext, fromAppContext } from "../context/context.js";
-import { JWTConfig } from "../config/httpServiceConfig.js";
-import { jwtFromAuthHeader } from "./headers.js";
+import {
+  ExpressContext,
+  fromAppContext,
+  JWTConfig,
+  jwtFromAuthHeader,
+} from "../index.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
 
 const makeApiProblem = makeApiProblemBuilder({});

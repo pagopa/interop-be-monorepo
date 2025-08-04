@@ -45,9 +45,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.authorizationTopic],
-  processMessage,
-  "authorization-platformstate-writer"
-);
+await runConsumer(config, [config.authorizationTopic], processMessage);

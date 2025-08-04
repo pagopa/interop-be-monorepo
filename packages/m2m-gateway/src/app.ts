@@ -1,9 +1,7 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
-  fromFilesToBodyMiddleware,
   loggerMiddleware,
-  multerMiddleware,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -76,10 +74,6 @@ export async function createApp(
   app.disable("x-powered-by");
 
   app.disable("etag");
-
-  // parse files from multipart/form-data and put them in req.body
-  app.use(multerMiddleware);
-  app.use(fromFilesToBodyMiddleware);
 
   app.use(loggerMiddleware(serviceName));
 

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
-  generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -27,7 +26,6 @@ describe("suspendAgreement", () => {
       state: agreementApi.AgreementState.Values.PENDING,
     })
   );
-  const mockDelegationRef = { delegationId: generateId() };
 
   const mockSuspendAgreement = vi
     .fn()
@@ -64,7 +62,6 @@ describe("suspendAgreement", () => {
 
     const result = await agreementService.suspendAgreement(
       unsafeBrandId(mockAgreementProcessResponse.data.id),
-      mockDelegationRef,
       getMockM2MAdminAppContext()
     );
 
@@ -77,7 +74,6 @@ describe("suspendAgreement", () => {
       params: {
         agreementId: mockAgreementProcessResponse.data.id,
       },
-      body: mockDelegationRef,
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.agreementProcessClient.getAgreementById,
@@ -94,7 +90,6 @@ describe("suspendAgreement", () => {
     await expect(
       agreementService.suspendAgreement(
         unsafeBrandId(mockAgreementProcessResponse.data.id),
-        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -109,7 +104,6 @@ describe("suspendAgreement", () => {
     await expect(
       agreementService.suspendAgreement(
         unsafeBrandId(mockAgreementProcessResponse.data.id),
-        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -126,7 +120,6 @@ describe("suspendAgreement", () => {
     await expect(
       agreementService.suspendAgreement(
         unsafeBrandId(mockAgreementProcessResponse.data.id),
-        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(

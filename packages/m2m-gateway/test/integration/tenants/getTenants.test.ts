@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
-import { getMockedApiTenant } from "pagopa-interop-commons-test";
+import {
+  getMockedApiTenant,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -20,10 +23,10 @@ describe("getTenants", () => {
     limit: 10,
   };
 
-  const mockApiTenant1 = getMockedApiTenant();
-  const mockApiTenant2 = getMockedApiTenant();
+  const mockApiTenant1 = getMockWithMetadata(getMockedApiTenant());
+  const mockApiTenant2 = getMockWithMetadata(getMockedApiTenant());
 
-  const mockApiTenants = [mockApiTenant1, mockApiTenant2];
+  const mockApiTenants = [mockApiTenant1.data, mockApiTenant2.data];
 
   const mockTenantProcessResponse: WithMaybeMetadata<tenantApi.Tenants> = {
     data: {
@@ -48,31 +51,31 @@ describe("getTenants", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const m2mTenantResponse1: m2mGatewayApi.Tenant = {
-      id: mockApiTenant1.id,
-      createdAt: mockApiTenant1.createdAt,
+      id: mockApiTenant1.data.id,
+      createdAt: mockApiTenant1.data.createdAt,
       externalId: {
-        origin: mockApiTenant1.externalId.origin,
-        value: mockApiTenant1.externalId.value,
+        origin: mockApiTenant1.data.externalId.origin,
+        value: mockApiTenant1.data.externalId.value,
       },
-      name: mockApiTenant1.name,
-      kind: mockApiTenant1.kind,
-      onboardedAt: mockApiTenant1.onboardedAt,
-      subUnitType: mockApiTenant1.subUnitType,
-      updatedAt: mockApiTenant1.updatedAt,
+      name: mockApiTenant1.data.name,
+      kind: mockApiTenant1.data.kind,
+      onboardedAt: mockApiTenant1.data.onboardedAt,
+      subUnitType: mockApiTenant1.data.subUnitType,
+      updatedAt: mockApiTenant1.data.updatedAt,
     };
 
     const m2mTenantResponse2: m2mGatewayApi.Tenant = {
-      id: mockApiTenant2.id,
-      createdAt: mockApiTenant2.createdAt,
+      id: mockApiTenant2.data.id,
+      createdAt: mockApiTenant2.data.createdAt,
       externalId: {
-        origin: mockApiTenant2.externalId.origin,
-        value: mockApiTenant2.externalId.value,
+        origin: mockApiTenant2.data.externalId.origin,
+        value: mockApiTenant2.data.externalId.value,
       },
-      name: mockApiTenant2.name,
-      kind: mockApiTenant2.kind,
-      onboardedAt: mockApiTenant2.onboardedAt,
-      subUnitType: mockApiTenant2.subUnitType,
-      updatedAt: mockApiTenant2.updatedAt,
+      name: mockApiTenant2.data.name,
+      kind: mockApiTenant2.data.kind,
+      onboardedAt: mockApiTenant2.data.onboardedAt,
+      subUnitType: mockApiTenant2.data.subUnitType,
+      updatedAt: mockApiTenant2.data.updatedAt,
     };
 
     const m2mTenantsResponse: m2mGatewayApi.Tenants = {

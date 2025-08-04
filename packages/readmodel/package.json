@@ -5,8 +5,7 @@
   "description": "PagoPA Interoperability readmodel",
   "type": "module",
   "exports": {
-    ".": "./dist/index.js",
-    "./testUtils": "./dist/testUtils.js"
+    ".": "./dist/index.js"
   },
   "scripts": {
     "test": "vitest",
@@ -33,10 +32,9 @@
     "zod": "3.23.8"
   },
   "devDependencies": {
-    "@anatine/zod-mock": "3.13.4",
-    "@types/node": "20.19.4",
+    "@types/node": "20.14.6",
     "@types/pg": "8.11.11",
-    "eslint": "8.57.1",
+    "eslint": "8.57.0",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
     "prettier": "2.8.8",

@@ -223,4 +223,10 @@ export function initQueueManager(
   };
 }
 
-export { QueueMessage, queueManagerSendError, queueManagerReceiveError };
+export {
+  SQSClient,
+  QueueMessage,
+  queueManagerSendError,
+  queueManagerReceiveError,
+};
+export type { SQSClientConfig, Message };

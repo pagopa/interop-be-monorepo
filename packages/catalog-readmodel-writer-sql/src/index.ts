@@ -50,9 +50,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.catalogTopic],
-  processMessage,
-  "catalog-readmodel-writer-sql"
-);
+await runConsumer(config, [config.catalogTopic], processMessage);

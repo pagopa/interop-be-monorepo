@@ -136,7 +136,6 @@ describe("createKey", () => {
     const expectedClient: Client = {
       ...mockClient,
       keys: [
-        ...mockClient.keys,
         {
           name: keySeed.name,
           createdAt: new Date(),

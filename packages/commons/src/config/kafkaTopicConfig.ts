@@ -74,17 +74,6 @@ export type EServiceTemplateTopicConfig = z.infer<
   typeof EServiceTemplateTopicConfig
 >;
 
-export const NotificationConfigTopicConfig = z
-  .object({
-    NOTIFICATION_CONFIG_TOPIC: z.string(),
-  })
-  .transform((c) => ({
-    notificationConfigTopic: c.NOTIFICATION_CONFIG_TOPIC,
-  }));
-export type NotificationConfigTopicConfig = z.infer<
-  typeof NotificationConfigTopicConfig
->;
-
 export const ApplicationAuditTopicConfig = z
   .object({
     APPLICATION_AUDIT_TOPIC: z.string(),
@@ -105,7 +94,6 @@ export const KafkaTopicConfig = z.union([
   AuthorizationTopicConfig,
   DelegationTopicConfig,
   EServiceTemplateTopicConfig,
-  NotificationConfigTopicConfig,
   ApplicationAuditTopicConfig,
 ]);
 export type KafkaTopicConfig = z.infer<typeof KafkaTopicConfig>;

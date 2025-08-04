@@ -45,9 +45,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.agreementTopic],
-  processMessage,
-  "agreement-readmodel-writer"
-);
+await runConsumer(config, [config.agreementTopic], processMessage);

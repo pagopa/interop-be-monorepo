@@ -56,9 +56,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.tenantTopic],
-  processMessage,
-  "tenant-outbound-writer"
-);
+await runConsumer(config, [config.tenantTopic], processMessage);

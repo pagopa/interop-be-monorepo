@@ -39,9 +39,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.attributeTopic],
-  processMessage,
-  "attribute-registry-readmodel-writer"
-);
+await runConsumer(config, [config.attributeTopic], processMessage);

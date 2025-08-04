@@ -8,6 +8,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
@@ -37,14 +38,10 @@ describe("GET /agreements route test", () => {
   ];
 
   const mockQueryParams: m2mGatewayApi.GetAgreementsQueryParams = {
-    consumerIds: [generateId(), generateId()],
-    eserviceIds: [generateId(), generateId()],
-    producerIds: [generateId(), generateId()],
-    descriptorIds: [generateId(), generateId()],
-    states: [
-      m2mGatewayApi.AgreementState.Values.ACTIVE,
-      m2mGatewayApi.AgreementState.Values.SUSPENDED,
-    ],
+    consumerIds: [generateId()],
+    eserviceIds: [generateId()],
+    producerIds: [generateId()],
+    states: [generateMock(m2mGatewayApi.AgreementState)],
     offset: 0,
     limit: 10,
   };
@@ -74,10 +71,6 @@ describe("GET /agreements route test", () => {
 
   it.each([
     {},
-    { ...mockQueryParams, consumerIds: ["INVALID_ID"] },
-    { ...mockQueryParams, eserviceIds: ["INVALID_ID"] },
-    { ...mockQueryParams, producerIds: ["INVALID_ID"] },
-    { ...mockQueryParams, descriptorIds: ["INVALID_ID"] },
     { ...mockQueryParams, states: ["INVALID_STATE"] },
     { ...mockQueryParams, offset: -2 },
     { ...mockQueryParams, limit: 100 },

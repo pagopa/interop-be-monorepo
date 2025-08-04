@@ -151,11 +151,8 @@ export function readModelServiceBuilder(
         agreementStates,
         name,
         attributesIds,
-        technology,
         mode,
-        isSignalHubEnabled,
         isConsumerDelegable,
-        isClientAccessDelegable,
         delegated,
         templatesIds,
       } = filters;
@@ -326,24 +323,6 @@ export function readModelServiceBuilder(
         ? { "data.mode": { $eq: mode } }
         : {};
 
-      const technologyFilter: ReadModelFilter<EService> = technology
-        ? { "data.technology": { $eq: technology } }
-        : {};
-
-      const isSignalHubEnabledFilter: ReadModelFilter<EService> =
-        isSignalHubEnabled === true
-          ? { "data.isSignalHubEnabled": { $eq: true } }
-          : isSignalHubEnabled === false
-          ? { "data.isSignalHubEnabled": { $ne: true } }
-          : {};
-
-      const isClientAccessDelegableFilter: ReadModelFilter<EService> =
-        isClientAccessDelegable === true
-          ? { "data.isClientAccessDelegable": { $eq: true } }
-          : isClientAccessDelegable === false
-          ? { "data.isClientAccessDelegable": { $ne: true } }
-          : {};
-
       const isConsumerDelegableFilter: ReadModelFilter<EService> =
         isConsumerDelegable === true
           ? { "data.isConsumerDelegable": { $eq: true } }
@@ -391,10 +370,7 @@ export function readModelServiceBuilder(
         { $match: attributesFilter },
         { $match: visibilityFilter },
         { $match: modeFilter },
-        { $match: technologyFilter },
-        { $match: isSignalHubEnabledFilter },
         { $match: isConsumerDelegableFilter },
-        { $match: isClientAccessDelegableFilter },
         { $match: delegatedFilter },
         { $match: templatesIdsFilter },
         {

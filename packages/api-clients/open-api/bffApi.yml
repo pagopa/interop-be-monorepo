@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Backend for Frontend Micro Service
   description: Interop BFF implementation
-  version: "1.0"
+  version: "{{version}}"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -83,8 +83,6 @@ tags:
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
-  - name: develop
-    description: Development
 paths:
   "/consumers/agreements":
     get:
@@ -880,11 +878,6 @@ paths:
           schema:
             type: string
             format: uuid
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Agreement flagged as activated. It could still be Suspended if other parties have suspended the agreement
@@ -1794,11 +1787,6 @@ paths:
           schema:
             type: string
             format: uuid
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Agreement suspended
@@ -2713,7 +2701,6 @@ paths:
           type: string
       - in: query
         name: eserviceIds
-        description: comma separated sequence of EService IDs
         schema:
           type: array
           items:
@@ -2727,15 +2714,12 @@ paths:
         schema:
           type: integer
           format: int32
-          minimum: 0
       - in: query
         name: limit
         required: true
         schema:
           type: integer
           format: int32
-          minimum: 1
-          maximum: 50
     get:
       tags:
         - consumerDelegations
@@ -2798,15 +2782,12 @@ paths:
         schema:
           type: integer
           format: int32
-          minimum: 0
       - in: query
         name: limit
         required: true
         schema:
           type: integer
           format: int32
-          minimum: 1
-          maximum: 50
     get:
       tags:
         - consumerDelegations
@@ -4533,21 +4514,18 @@ paths:
           required: true
           schema:
             type: string
-            format: uuid
         - name: descriptorId
           in: path
           description: the descriptor Id
           required: true
           schema:
             type: string
-            format: uuid
         - name: documentId
           in: path
           description: the document id
           required: true
           schema:
             type: string
-            format: uuid
       responses:
         "200":
           description: EService document retrieved
@@ -9345,11 +9323,6 @@ paths:
         - purposes
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose Version Suspended
@@ -9457,11 +9430,6 @@ paths:
     post:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose Version Activated
@@ -11123,6 +11091,7 @@ paths:
             type: array
             items:
               $ref: "#/components/schemas/AttributeKind"
+            default: []
           required: true
           explode: false
       responses:
@@ -14710,7 +14679,6 @@ paths:
           required: true
           schema:
             type: string
-            format: uuid
       responses:
         "200":
           description: Producer keychain retrieved
@@ -14813,7 +14781,6 @@ paths:
           required: true
           schema:
             type: string
-            format: uuid
       responses:
         "204":
           description: Producer keychain deleted
@@ -17028,7 +16995,6 @@ paths:
         required: true
         schema:
           type: string
-          format: uuid
     get:
       description: Retrieves delegation
       summary: Retrieves delegation
@@ -17132,7 +17098,6 @@ paths:
         required: true
         schema:
           type: string
-          format: uuid
     delete:
       description: Revokes a producer delegation
       tags:
@@ -17232,7 +17197,6 @@ paths:
         required: true
         schema:
           type: string
-          format: uuid
     delete:
       description: Revokes a consumer delegation
       tags:
@@ -19900,17 +19864,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  "/apiDocs":
-    get:
-      security: []
-      tags:
-        - develop
-      summary: Swagger docs endpoint
-      description:  Display the API documentation
-      operationId: getDocs
-      responses:
-        "200":
-          description: successful operation
   "/status":
     get:
       security: []
@@ -20212,18 +20165,17 @@ components:
         voucherLifespan:
           type: integer
           format: int32
-          minimum: 60
-          maximum: 86400
+          minimum: 0
         dailyCallsPerConsumer:
           description: "maximum number of daily calls that this descriptor can afford."
           type: integer
           format: int32
-          minimum: 1
+          minimum: 0
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-          minimum: 1
+          minimum: 0
     UpdateEServiceTemplateInstanceDescriptorQuotas:
       required:
         - dailyCallsPerConsumer
@@ -21964,14 +21916,6 @@ components:
           format: uuid
       required:
         - id
-    DelegationRef:
-      type: object
-      additionalProperties: false
-      description: sets the delegation ID in order to operate as a delegate for a specific active delegation
-      properties:
-        delegationId:
-          type: string
-          format: uuid
     CreatedEServiceDescriptor:
       type: object
       additionalProperties: false

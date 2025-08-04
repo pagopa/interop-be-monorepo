@@ -1,7 +1,6 @@
 import {
   AnalyticsSQLDbConfig,
   EventStoreConfig,
-  InAppNotificationDBConfig,
   ReadModelDbConfig,
   ReadModelSQLDbConfig,
   S3Config,
@@ -33,9 +32,6 @@ export const TEST_REDIS_PORT = 6379;
 export const TEST_NODE_IMAGE = "node:20";
 export const TEST_AWS_SES_VERSION = "2.4";
 export const TEST_AWS_SES_PORT = 8021;
-
-export const TEST_IN_APP_NOTIFICATION_DB_PORT = 5432;
-export const TEST_IN_APP_NOTIFICATION_DB_IMAGE = "postgres:14";
 
 /**
  * Starts a MongoDB container for testing purposes.
@@ -187,20 +183,3 @@ export const postgreSQLAnalyticsContainer = (
       },
     ])
     .withExposedPorts(TEST_POSTGRES_DB_PORT);
-
-export const inAppNotificationDBContainer = (
-  config: InAppNotificationDBConfig
-): GenericContainer =>
-  new GenericContainer(TEST_IN_APP_NOTIFICATION_DB_IMAGE)
-    .withEnvironment({
-      POSTGRES_DB: config.inAppNotificationDBName,
-      POSTGRES_USER: config.inAppNotificationDBUsername,
-      POSTGRES_PASSWORD: config.inAppNotificationDBPassword,
-    })
-    .withCopyDirectoriesToContainer([
-      {
-        source: "../../docker/in-app-notification-db",
-        target: "/docker-entrypoint-initdb.d",
-      },
-    ])
-    .withExposedPorts(TEST_IN_APP_NOTIFICATION_DB_PORT);

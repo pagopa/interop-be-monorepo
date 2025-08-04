@@ -15,7 +15,6 @@ import {
   RedisRateLimiterConfig,
   S3Config,
   TokenGenerationReadModelDbConfig,
-  InAppNotificationDBConfig,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
 import type {} from "vitest";
@@ -38,8 +37,6 @@ import {
   postgreSQLContainer,
   redisContainer,
   postgreSQLAnalyticsContainer,
-  inAppNotificationDBContainer,
-  TEST_IN_APP_NOTIFICATION_DB_PORT,
 } from "./containerTestUtils.js";
 import {
   EnhancedDPoPConfig,
@@ -59,7 +56,6 @@ declare module "vitest" {
     sesEmailManagerConfig?: AWSSesConfig;
     analyticsSQLDbConfig?: AnalyticsSQLDbConfig;
     dpopConfig?: EnhancedDPoPConfig;
-    inAppNotificationDbConfig?: InAppNotificationDBConfig;
   }
 }
 
@@ -84,9 +80,6 @@ export function setupTestContainersVitestGlobal() {
   const tokenGenerationReadModelConfig =
     TokenGenerationReadModelDbConfig.safeParse(process.env);
   const dpopConfig = DPoPConfig.safeParse(process.env);
-  const inAppNotificationDbConfig = InAppNotificationDBConfig.safeParse(
-    process.env
-  );
 
   return async function ({
     provide,
@@ -100,7 +93,6 @@ export function setupTestContainersVitestGlobal() {
     let startedRedisContainer: StartedTestContainer | undefined;
     let startedDynamoDbContainer: StartedTestContainer | undefined;
     let startedAWSSesContainer: StartedTestContainer | undefined;
-    let startedInAppNotificationContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -235,19 +227,6 @@ export function setupTestContainersVitestGlobal() {
       });
     }
 
-    if (inAppNotificationDbConfig.success) {
-      startedInAppNotificationContainer = await inAppNotificationDBContainer(
-        inAppNotificationDbConfig.data
-      ).start();
-      provide("inAppNotificationDbConfig", {
-        ...inAppNotificationDbConfig.data,
-        inAppNotificationDBPort:
-          startedInAppNotificationContainer.getMappedPort(
-            TEST_IN_APP_NOTIFICATION_DB_PORT
-          ),
-      });
-    }
-
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedPostgreSqlReadModelContainer?.stop();
@@ -258,7 +237,6 @@ export function setupTestContainersVitestGlobal() {
       await startedDynamoDbContainer?.stop();
       await startedRedisContainer?.stop();
       await startedAWSSesContainer?.stop();
-      await startedInAppNotificationContainer?.stop();
     };
   };
 }

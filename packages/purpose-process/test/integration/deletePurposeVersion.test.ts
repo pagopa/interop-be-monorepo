@@ -69,14 +69,13 @@ describe("deletePurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
 
-    const deletePurposeVersionResponse =
-      await purposeService.deletePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion1.id,
-        },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      );
+    await purposeService.deletePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion1.id,
+      },
+      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+    );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -98,10 +97,6 @@ describe("deletePurposeVersion", () => {
       updatedAt: new Date(),
     };
 
-    expect(deletePurposeVersionResponse).toEqual({
-      data: expectedPurpose,
-      metadata: { version: parseInt(writtenEvent.version, 10) },
-    });
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
 
     vi.useRealTimers();
@@ -140,14 +135,13 @@ describe("deletePurposeVersion", () => {
     await addSomeRandomDelegations(mockPurpose, addOneDelegation);
     await addOneEService(mockEService);
 
-    const deletePurposeVersionResponse =
-      await purposeService.deletePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion1.id,
-        },
-        getMockContext({ authData })
-      );
+    await purposeService.deletePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion1.id,
+      },
+      getMockContext({ authData })
+    );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -169,10 +163,6 @@ describe("deletePurposeVersion", () => {
       updatedAt: new Date(),
     };
 
-    expect(deletePurposeVersionResponse).toEqual({
-      data: expectedPurpose,
-      metadata: { version: parseInt(writtenEvent.version, 10) },
-    });
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
 
     vi.useRealTimers();
@@ -258,14 +248,13 @@ describe("deletePurposeVersion", () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
 
-    const deletePurposeVersionResponse =
-      await purposeService.deletePurposeVersion(
-        {
-          purposeId: delegatePurpose.id,
-          versionId: mockPurposeVersion1.id,
-        },
-        getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
-      );
+    await purposeService.deletePurposeVersion(
+      {
+        purposeId: delegatePurpose.id,
+        versionId: mockPurposeVersion1.id,
+      },
+      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+    );
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
 
@@ -287,10 +276,6 @@ describe("deletePurposeVersion", () => {
       updatedAt: new Date(),
     };
 
-    expect(deletePurposeVersionResponse).toEqual({
-      data: expectedPurpose,
-      metadata: { version: parseInt(writtenEvent.version, 10) },
-    });
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
 
     vi.useRealTimers();

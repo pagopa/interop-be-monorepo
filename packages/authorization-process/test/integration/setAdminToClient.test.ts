@@ -59,7 +59,7 @@ describe("setAdminToClient", () => {
   it("should write on event-store when adding admin to a client", async () => {
     await addOneClient(mockClient);
 
-    const setAdminReturn = await authorizationService.setAdminToClient(
+    await authorizationService.setAdminToClient(
       {
         adminId,
         clientId: mockClient.id,
@@ -81,16 +81,14 @@ describe("setAdminToClient", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedClient = {
-      ...mockClient,
-      adminId,
-    };
     expect(writtenPayload).toEqual({
-      client: toClientV2(expectedClient),
+      client: toClientV2({
+        ...mockClient,
+        adminId,
+      }),
       adminId,
       oldAdminId: mockClient.adminId,
     });
-    expect(setAdminReturn).toEqual(expectedClient);
   });
   it("should throw clientNotFound when client is not found", async () => {
     await addOneClient(mockClient);

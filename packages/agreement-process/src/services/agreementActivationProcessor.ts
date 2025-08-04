@@ -2,8 +2,6 @@
 import {
   CreateEvent,
   M2MAdminAuthData,
-  ownership,
-  Ownership,
   UIAuthData,
 } from "pagopa-interop-commons";
 import {
@@ -15,10 +13,11 @@ import {
   Descriptor,
   EService,
   Tenant,
+  TenantId,
   agreementState,
   genericError,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
+import { match } from "ts-pattern";
 import {
   agreementArchivableStates,
   matchingCertifiedAttributes,
@@ -37,7 +36,11 @@ import {
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
 import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
-import { createStamp, getSuspensionStamps } from "./agreementStampUtils.js";
+import {
+  createStamp,
+  suspendedByConsumerStamp,
+  suspendedByProducerStamp,
+} from "./agreementStampUtils.js";
 import { ReadModelService } from "./readModelService.js";
 
 export function createActivationUpdateAgreementSeed({
@@ -52,7 +55,6 @@ export function createActivationUpdateAgreementSeed({
   suspendedByProducer,
   suspendedByPlatform,
   activeDelegations,
-  agreementOwnership,
 }: {
   isFirstActivation: boolean;
   newState: AgreementState;
@@ -65,18 +67,8 @@ export function createActivationUpdateAgreementSeed({
   suspendedByProducer: boolean | undefined;
   suspendedByPlatform: boolean | undefined;
   activeDelegations: ActiveDelegations;
-  agreementOwnership: Ownership;
 }): UpdateAgreementSeed {
   const stamp = createStamp(authData, activeDelegations);
-
-  const { suspensionByConsumer, suspensionByProducer } = getSuspensionStamps({
-    agreementOwnership,
-    agreement,
-    newAgreementState: agreementState.active,
-    authData,
-    stamp,
-    activeDelegations,
-  });
 
   return isFirstActivation
     ? {
@@ -102,8 +94,20 @@ export function createActivationUpdateAgreementSeed({
         suspendedByProducer,
         stamps: {
           ...agreement.stamps,
-          suspensionByConsumer,
-          suspensionByProducer,
+          suspensionByConsumer: suspendedByConsumerStamp(
+            agreement,
+            authData.organizationId,
+            agreementState.active,
+            stamp,
+            activeDelegations.consumerDelegation?.delegateId
+          ),
+          suspensionByProducer: suspendedByProducerStamp(
+            agreement,
+            authData.organizationId,
+            agreementState.active,
+            stamp,
+            activeDelegations.producerDelegation?.delegateId
+          ),
         },
         suspendedByPlatform,
         suspendedAt:
@@ -119,8 +123,9 @@ export async function createActivationEvent(
   originalSuspendedByPlatform: boolean | undefined,
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,
-  agreementOwnership: Ownership,
-  correlationId: CorrelationId
+  authData: UIAuthData | M2MAdminAuthData,
+  correlationId: CorrelationId,
+  activeDelegations: ActiveDelegations
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (isFirstActivation) {
     // Pending >>> Active
@@ -157,10 +162,14 @@ export async function createActivationEvent(
       we also create the corresponding suspension/unsuspension by platform event.
     */
 
-    return match([agreementOwnership, updatedAgreement.state])
+    return match<[TenantId | undefined, AgreementState]>([
+      authData.organizationId,
+      updatedAgreement.state,
+    ])
       .with(
+        [updatedAgreement.producerId, agreementState.active],
         [
-          P.union(ownership.PRODUCER, ownership.SELF_CONSUMER),
+          activeDelegations.producerDelegation?.delegateId,
           agreementState.active,
         ],
         () => [
@@ -172,8 +181,9 @@ export async function createActivationEvent(
         ]
       )
       .with(
+        [updatedAgreement.producerId, agreementState.suspended],
         [
-          P.union(ownership.PRODUCER, ownership.SELF_CONSUMER),
+          activeDelegations.producerDelegation?.delegateId,
           agreementState.suspended,
         ],
         () => [
@@ -193,51 +203,48 @@ export async function createActivationEvent(
           ),
         ]
       )
-      .with([ownership.CONSUMER, agreementState.active], () => [
-        toCreateEventAgreementUnsuspendedByConsumer(
-          updatedAgreement,
-          agreementEventStoreVersion,
-          correlationId
-        ),
-      ])
-      .with([ownership.CONSUMER, agreementState.suspended], () => [
-        toCreateEventAgreementUnsuspendedByConsumer(
-          {
-            ...updatedAgreement,
-            suspendedByPlatform: originalSuspendedByPlatform,
-          },
-          agreementEventStoreVersion,
-          correlationId
-        ),
-        ...maybeCreateSuspensionByPlatformEvents(
-          updatedAgreement,
-          suspendedByPlatformChanged,
-          agreementEventStoreVersion + 1,
-          correlationId
-        ),
-      ])
       .with(
+        [updatedAgreement.consumerId, agreementState.active],
         [
-          P.union(
-            ownership.SELF_CONSUMER,
-            ownership.CONSUMER,
-            ownership.PRODUCER
-          ),
-          P.union(
-            agreementState.pending,
-            agreementState.archived,
-            agreementState.draft,
-            agreementState.missingCertifiedAttributes,
-            agreementState.rejected
-          ),
+          activeDelegations.consumerDelegation?.delegateId,
+          agreementState.active,
         ],
-        () => {
-          throw genericError(
-            `Unexpected ownership - nextState pair in activateAgreement. Ownership: ${agreementOwnership} - nextState: ${updatedAgreement.state}`
-          );
-        }
+        () => [
+          toCreateEventAgreementUnsuspendedByConsumer(
+            updatedAgreement,
+            agreementEventStoreVersion,
+            correlationId
+          ),
+        ]
       )
-      .exhaustive();
+      .with(
+        [updatedAgreement.consumerId, agreementState.suspended],
+        [
+          activeDelegations.consumerDelegation?.delegateId,
+          agreementState.suspended,
+        ],
+        () => [
+          toCreateEventAgreementUnsuspendedByConsumer(
+            {
+              ...updatedAgreement,
+              suspendedByPlatform: originalSuspendedByPlatform,
+            },
+            agreementEventStoreVersion,
+            correlationId
+          ),
+          ...maybeCreateSuspensionByPlatformEvents(
+            updatedAgreement,
+            suspendedByPlatformChanged,
+            agreementEventStoreVersion + 1,
+            correlationId
+          ),
+        ]
+      )
+      .otherwise(() => {
+        throw genericError(
+          `Unexpected organizationId - nextState pair in activateAgreement. OrganizationId: ${authData.organizationId} - nextState: ${updatedAgreement.state}`
+        );
+      });
   }
 }
 

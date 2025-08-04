@@ -13,7 +13,7 @@ import {
   VerifiedAttributeUpdatedV1,
 } from "../gen/v1/agreement/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
-import { EventEnvelope } from "../events/events.js";
+import { EventEnvelope } from "../index.js";
 import {
   AgreementActivatedV2,
   AgreementAddedV2,

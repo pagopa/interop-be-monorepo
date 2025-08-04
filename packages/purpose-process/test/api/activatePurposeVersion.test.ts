@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  DelegationId,
-  PurposeId,
-  PurposeVersionId,
-  generateId,
-} from "pagopa-interop-models";
+import { PurposeId, PurposeVersionId, generateId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockPurpose,
@@ -26,8 +21,6 @@ import {
   purposeNotFound,
   purposeVersionNotFound,
   riskAnalysisValidationFailed,
-  tenantIsNotTheDelegatedConsumer,
-  tenantIsNotTheDelegate,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", () => {
@@ -48,14 +41,12 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", ()
   const makeRequest = async (
     token: string,
     purposeId: PurposeId = mockPurpose.id,
-    versionId: PurposeVersionId = mockPurposeVersion.id,
-    delegationId?: DelegationId
+    versionId: PurposeVersionId = mockPurposeVersion.id
   ) =>
     request(api)
       .post(`/purposes/${purposeId}/versions/${versionId}/activate`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send({ delegationId });
+      .set("X-Correlation-Id", generateId());
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -98,17 +89,6 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", ()
       error: purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id),
       expectedStatus: 404,
     },
-    {
-      error: tenantIsNotTheDelegatedConsumer(
-        generateId(),
-        generateId<DelegationId>()
-      ),
-      expectedStatus: 403,
-    },
-    {
-      error: tenantIsNotTheDelegate(generateId()),
-      expectedStatus: 403,
-    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -120,18 +100,13 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", ()
   );
 
   it.each([
-    { purposeId: "invalid" as PurposeId, versionId: mockPurposeVersion.id },
-    { purposeId: mockPurpose.id, versionId: "invalid" as PurposeVersionId },
-    {
-      purposeId: mockPurpose.id,
-      versionId: mockPurposeVersion.id,
-      delegationId: "invalid" as DelegationId,
-    },
+    { purposeId: "invalid" as PurposeId },
+    { versionId: "invalid" as PurposeVersionId },
   ])(
     "Should return 400 if passed invalid data: %s",
-    async ({ purposeId, versionId, delegationId }) => {
+    async ({ purposeId, versionId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, purposeId, versionId, delegationId);
+      const res = await makeRequest(token, purposeId, versionId);
       expect(res.status).toBe(400);
     }
   );

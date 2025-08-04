@@ -49,9 +49,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.tenantTopic],
-  processMessage,
-  "tenant-readmodel-writer-sql"
-);
+await runConsumer(config, [config.tenantTopic], processMessage);

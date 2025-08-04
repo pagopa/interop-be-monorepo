@@ -1,4 +1,3 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   authenticationMiddleware,
   contextMiddleware,
@@ -8,8 +7,6 @@ import {
   InteropTokenGenerator,
   RateLimiter,
   FileManager,
-  fromFilesToBodyMiddleware,
-  multerMiddleware,
 } from "pagopa-interop-commons";
 import express from "express";
 import {
@@ -18,11 +15,9 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { bffApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
-import swaggerRouter from "./routers/swaggerRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
 import authorizationRouter from "./routers/authorizationRouter.js";
@@ -32,7 +27,11 @@ import selfcareRouter from "./routers/selfcareRouter.js";
 import supportRouter from "./routers/supportRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import toolRouter from "./routers/toolRouter.js";
-import { uiAuthDataValidationMiddleware } from "./utilities/middlewares.js";
+import {
+  fromFilesToBodyMiddleware,
+  multerMiddleware,
+  uiAuthDataValidationMiddleware,
+} from "./utilities/middlewares.js";
 import clientRouter from "./routers/clientRouter.js";
 import producerKeychainRouter from "./routers/producerKeychainRouter.js";
 import delegationRouter from "./routers/delegationRouter.js";
@@ -86,11 +85,6 @@ import {
 } from "./services/tenantService.js";
 import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
 import { ToolsService, toolsServiceBuilder } from "./services/toolService.js";
-import { privacyNoticeStorageServiceBuilder } from "./services/privacyNoticeStorage.js";
-import {
-  PrivacyNoticeService,
-  privacyNoticeServiceBuilder,
-} from "./services/privacyNoticeService.js";
 
 export type BFFServices = {
   agreementService: AgreementService;
@@ -101,7 +95,6 @@ export type BFFServices = {
   clientService: ClientService;
   delegationService: DelegationService;
   eServiceTemplateService: EServiceTemplateService;
-  privacyNoticeService: PrivacyNoticeService;
   producerKeychainService: ProducerKeychainService;
   purposeService: PurposeService;
   selfcareService: SelfcareService;
@@ -122,16 +115,6 @@ export async function createServices(
   authorizationServiceAllowList: string[]
 ): Promise<BFFServices> {
   const interopTokenGenerator = new InteropTokenGenerator(config);
-
-  const consentTypeMap: Map<bffApi.ConsentType, string> = new Map([
-    [bffApi.ConsentType.Values.PP, config.privacyNoticesPpUuid],
-    [bffApi.ConsentType.Values.TOS, config.privacyNoticesTosUuid],
-  ]);
-  const privacyNoticeStorage = privacyNoticeStorageServiceBuilder(
-    new DynamoDBClient(),
-    config.privacyNoticesDynamoTableName,
-    config.privacyNoticesUsersDynamoTableName
-  );
 
   return {
     agreementService: agreementServiceBuilder(clients, fileManager),
@@ -172,11 +155,6 @@ export async function createServices(
       clients.catalogProcessClient,
       fileManager
     ),
-    privacyNoticeService: privacyNoticeServiceBuilder(
-      privacyNoticeStorage,
-      fileManager,
-      consentTypeMap
-    ),
     producerKeychainService: producerKeychainServiceBuilder(clients),
     purposeService: purposeServiceBuilder(clients, fileManager),
     selfcareService: selfcareServiceBuilder(clients),
@@ -214,7 +192,6 @@ export async function createApp(
   app.use(
     appBasePath,
     healthRouter,
-    swaggerRouter,
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
@@ -234,7 +211,7 @@ export async function createApp(
     consumerDelegationRouter(zodiosCtx, services.delegationService),
     delegationRouter(zodiosCtx, services.delegationService),
     eserviceTemplateRouter(zodiosCtx, services.eServiceTemplateService),
-    privacyNoticeRouter(zodiosCtx, services.privacyNoticeService),
+    privacyNoticeRouter(zodiosCtx),
     producerDelegationRouter(zodiosCtx, services.delegationService),
     producerKeychainRouter(zodiosCtx, services.producerKeychainService),
     purposeRouter(zodiosCtx, services.purposeService),

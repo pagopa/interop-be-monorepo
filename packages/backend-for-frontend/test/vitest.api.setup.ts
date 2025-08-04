@@ -95,19 +95,10 @@ export const clients = {
   catalogProcessClient: {} as CatalogProcessClient,
   agreementProcessClient: {} as AgreementProcessClient,
   purposeProcessClient: {} as PurposeProcessClient,
-  authorizationClient: {
-    client: {},
-    producerKeychain: {},
-    user: {},
-    token: {},
-  } as AuthorizationProcessClient,
+  authorizationClient: {} as AuthorizationProcessClient,
   selfcareV2InstitutionClient: {} as SelfcareV2InstitutionClient,
   selfcareV2UserClient: {} as SelfcareV2UserClient,
-  delegationProcessClient: {
-    producer: {},
-    consumer: {},
-    delegation: {},
-  } as DelegationProcessClient,
+  delegationProcessClient: {} as DelegationProcessClient,
   eserviceTemplateProcessClient: {} as EServiceTemplateProcessClient,
 };
 

@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{host-purpose}}/purposes/:id/versions/:versionId/suspend
-  body: json
+  body: none
   auth: none
 }
 
@@ -18,10 +18,4 @@ params:path {
 headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-}
-
-body:json {
-  {
-    "delegationId": "{{delegationId}}"
-  }
 }

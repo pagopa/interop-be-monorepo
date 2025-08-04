@@ -21,9 +21,7 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { z, ZodError } from "zod";
-import { calculateChecksum } from "../utils/fileUtils.js";
-import { FileManager } from "../file-manager/fileManager.js";
-import { Logger } from "../logging/index.js";
+import { calculateChecksum, FileManager, Logger } from "../index.js";
 import {
   parseOpenApi,
   restApiFileToBuffer,

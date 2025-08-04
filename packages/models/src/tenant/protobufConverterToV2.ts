@@ -9,8 +9,8 @@ import {
   TenantUnitTypeV2,
   TenantV2,
   TenantVerifierV2,
-} from "../gen/v2/tenant/tenant.js";
-import { dateToBigInt } from "../utils.js";
+  dateToBigInt,
+} from "../index.js";
 import {
   Tenant,
   TenantAttribute,

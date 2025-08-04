@@ -9,10 +9,12 @@ import {
   getMockContext,
   getMockKey,
 } from "pagopa-interop-commons-test";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   clientNotFound,
   clientKeyNotFound,
 } from "../../src/model/domain/errors.js";
+import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
 import { addOneClient, authorizationService } from "../integrationUtils.js";
 
 describe("getKeyWithClientByKeyId", async () => {
@@ -34,23 +36,24 @@ describe("getKeyWithClientByKeyId", async () => {
       ...getMockClient(),
       keys: [mockKey1, mockKey2],
     };
-
+    const expectedJwkKey: authorizationApi.JWKKey = {
+      ...jwk,
+      kty: jwk.kty!,
+      kid: mockKey1.kid,
+      use: "sig",
+    };
     await addOneClient(mockClient);
 
-    const result = await authorizationService.getKeyWithClientByKeyId(
-      {
-        clientId: mockClient.id,
-        kid: mockKey1.kid,
-      },
-      getMockContext({})
-    );
-
-    const expectedResult = {
-      client: mockClient,
-      jwk,
-      kid: mockKey1.kid,
-    };
-    expect(result).toEqual(expectedResult);
+    const { key: jwkKey, client } =
+      await authorizationService.getKeyWithClientByKeyId(
+        {
+          clientId: mockClient.id,
+          kid: mockKey1.kid,
+        },
+        getMockContext({})
+      );
+    expect(jwkKey).toEqual(expectedJwkKey);
+    expect(client).toEqual(clientToApiClient(mockClient, { showUsers: false }));
   });
 
   it("should throw clientNotFound if the client doesn't exist", async () => {

@@ -87,11 +87,11 @@ export const getMockPurposeSeed = (
 });
 
 export const getMockReversePurposeSeed = (
-  eserviceId: string = generateId(),
+  eServiceId: string = generateId(),
   consumerId: string = generateId(),
   riskAnalysisId: string = generateId()
-): purposeApi.ReversePurposeSeed => ({
-  eserviceId,
+): purposeApi.EServicePurposeSeed => ({
+  eServiceId,
   consumerId,
   riskAnalysisId,
   title: "test purpose title",

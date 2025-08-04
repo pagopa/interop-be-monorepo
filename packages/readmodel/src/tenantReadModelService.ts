@@ -23,7 +23,7 @@ import {
 import { ascLower } from "pagopa-interop-commons";
 import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
 import { aggregateTenant, aggregateTenantArray } from "./tenant/aggregators.js";
-import { checkMetadataVersion } from "./utils.js";
+import { checkMetadataVersion } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {

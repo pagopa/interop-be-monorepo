@@ -12,7 +12,6 @@ import {
   AttributeId,
   TenantId,
   EServiceTemplateId,
-  Technology,
 } from "pagopa-interop-models";
 
 export type ApiGetEServicesFilters = {
@@ -22,11 +21,8 @@ export type ApiGetEServicesFilters = {
   states: DescriptorState[];
   agreementStates: AgreementState[];
   name?: string;
-  technology?: Technology;
   mode?: EServiceMode;
-  isSignalHubEnabled?: boolean;
   isConsumerDelegable?: boolean;
-  isClientAccessDelegable?: boolean;
   delegated?: boolean;
   templatesIds: EServiceTemplateId[];
 };

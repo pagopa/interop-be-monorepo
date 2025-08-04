@@ -19,7 +19,6 @@ import {
   getMockAuthData,
   addSomeRandomDelegations,
   getMockContext,
-  sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
@@ -208,7 +207,7 @@ describe("createPurposeVersion", () => {
       riskAnalysis: createdPurposeVersion.riskAnalysis,
     };
 
-    const expectedPurpose: Purpose = sortPurpose({
+    const expectedPurpose: Purpose = {
       ...mockPurpose,
       versions: [
         {
@@ -219,7 +218,7 @@ describe("createPurposeVersion", () => {
         expectedPurposeVersion,
       ],
       updatedAt: new Date(),
-    });
+    };
 
     const writtenPayload = decodeProtobufPayload({
       messageType: NewPurposeVersionActivatedV2,
@@ -227,16 +226,8 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
-    expect({
-      ...purposeVersionResponse,
-      data: {
-        ...purposeVersionResponse.data,
-        purpose: sortPurpose(purposeVersionResponse.data.purpose),
-      },
-    } satisfies typeof purposeVersionResponse).toMatchObject({
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(purposeVersionResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
@@ -336,7 +327,7 @@ describe("createPurposeVersion", () => {
       riskAnalysis: createdPurposeVersion.riskAnalysis,
     };
 
-    const expectedPurpose: Purpose = sortPurpose({
+    const expectedPurpose: Purpose = {
       ...mockPurpose,
       versions: [
         {
@@ -347,7 +338,7 @@ describe("createPurposeVersion", () => {
         expectedPurposeVersion,
       ],
       updatedAt: new Date(),
-    });
+    };
 
     const writtenPayload = decodeProtobufPayload({
       messageType: NewPurposeVersionActivatedV2,
@@ -355,16 +346,8 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
-    expect({
-      ...purposeVersionResponse,
-      data: {
-        ...purposeVersionResponse.data,
-        purpose: sortPurpose(purposeVersionResponse.data.purpose),
-      },
-    } satisfies typeof purposeVersionResponse).toMatchObject({
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(purposeVersionResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
@@ -452,7 +435,7 @@ describe("createPurposeVersion", () => {
       riskAnalysis: createdPurposeVersion.riskAnalysis,
     };
 
-    const expectedPurpose: Purpose = sortPurpose({
+    const expectedPurpose: Purpose = {
       ...mockPurpose,
       versions: [
         {
@@ -463,7 +446,7 @@ describe("createPurposeVersion", () => {
         expectedPurposeVersion,
       ],
       updatedAt: new Date(),
-    });
+    };
 
     const writtenPayload = decodeProtobufPayload({
       messageType: NewPurposeVersionActivatedV2,
@@ -471,16 +454,8 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
-    expect({
-      ...purposeVersionResponse,
-      data: {
-        ...purposeVersionResponse.data,
-        purpose: sortPurpose(purposeVersionResponse.data.purpose),
-      },
-    } satisfies typeof purposeVersionResponse).toMatchObject({
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(purposeVersionResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
@@ -536,31 +511,23 @@ describe("createPurposeVersion", () => {
       dailyCalls: 30,
     };
 
-    const expectedPurpose: Purpose = sortPurpose({
+    const expectedPurpose: Purpose = {
       ...mockPurpose,
       versions: [...mockPurpose.versions, expectedPurposeVersion],
       updatedAt: new Date(),
-    });
+    };
 
     const writtenPayload = decodeProtobufPayload({
       messageType: NewPurposeVersionWaitingForApprovalV2,
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(createdPurposeVersion.state).toEqual(
       purposeVersionState.waitingForApproval
     );
-    expect({
-      ...purposeVersionResponse,
-      data: {
-        ...purposeVersionResponse.data,
-        purpose: sortPurpose(purposeVersionResponse.data.purpose),
-      },
-    } satisfies typeof purposeVersionResponse).toMatchObject({
+    expect(purposeVersionResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
@@ -670,7 +637,7 @@ describe("createPurposeVersion", () => {
       riskAnalysis: createdPurposeVersion.riskAnalysis,
     };
 
-    const expectedPurpose: Purpose = sortPurpose({
+    const expectedPurpose: Purpose = {
       ...purpose,
       versions: [
         {
@@ -681,7 +648,7 @@ describe("createPurposeVersion", () => {
         expectedPurposeVersion,
       ],
       updatedAt: new Date(),
-    });
+    };
 
     const writtenPayload = decodeProtobufPayload({
       messageType: NewPurposeVersionActivatedV2,
@@ -689,16 +656,8 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
-    expect({
-      ...purposeVersionResponse,
-      data: {
-        ...purposeVersionResponse.data,
-        purpose: sortPurpose(purposeVersionResponse.data.purpose),
-      },
-    } satisfies typeof purposeVersionResponse).toMatchObject({
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(purposeVersionResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
@@ -849,7 +808,7 @@ describe("createPurposeVersion", () => {
       riskAnalysis: createdPurposeVersion.riskAnalysis,
     };
 
-    const expectedPurpose: Purpose = sortPurpose({
+    const expectedPurpose: Purpose = {
       ...delegatePurpose,
       versions: [
         {
@@ -860,7 +819,7 @@ describe("createPurposeVersion", () => {
         expectedPurposeVersion,
       ],
       updatedAt: new Date(),
-    });
+    };
 
     const writtenPayload = decodeProtobufPayload({
       messageType: NewPurposeVersionActivatedV2,
@@ -868,16 +827,8 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
-    expect({
-      ...purposeVersionResponse,
-      data: {
-        ...purposeVersionResponse.data,
-        purpose: sortPurpose(purposeVersionResponse.data.purpose),
-      },
-    } satisfies typeof purposeVersionResponse).toMatchObject({
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(purposeVersionResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,

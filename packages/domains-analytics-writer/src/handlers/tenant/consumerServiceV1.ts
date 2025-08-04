@@ -75,6 +75,7 @@ export async function handleTenantMessageV1(
           TenantMailDeletingSchema.parse({
             id: msg.data.mailId,
             tenantId: msg.data.tenantId,
+            deleted: true,
           } satisfies z.input<typeof TenantMailDeletingSchema>)
         );
       })
@@ -84,6 +85,7 @@ export async function handleTenantMessageV1(
             id: msg.data.tenantId,
             selfcareId: msg.data.selfcareId,
             metadataVersion: msg.version,
+            deleted: false,
           } satisfies z.input<typeof TenantSelfcareIdSchema>)
         );
       })

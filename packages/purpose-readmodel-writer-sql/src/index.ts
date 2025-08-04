@@ -49,9 +49,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.purposeTopic],
-  processMessage,
-  "purpose-readmodel-writer-sql"
-);
+await runConsumer(config, [config.purposeTopic], processMessage);

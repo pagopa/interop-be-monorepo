@@ -5,14 +5,9 @@ meta {
 }
 
 get {
-  url: {{host-authorization}}/clients/:clientId/keys?offset=0&limit=10
+  url: {{host-authorization}}/clients/:clientId/keys
   body: none
   auth: none
-}
-
-params:query {
-  offset: 0
-  limit: 10
 }
 
 params:path {

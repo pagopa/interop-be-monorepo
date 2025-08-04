@@ -6,8 +6,7 @@
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
-    "test:old": "echo \"Old readmodel\" && vitest --config vitest.config.ts ",
+    "test": "echo \"Old readmodel\" && vitest --config vitest.config.ts && echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
     "test:it": "vitest integration",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
@@ -22,7 +21,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.19.4",
+    "@types/node": "20.14.6",
     "prettier": "2.8.8",
     "tsx": "4.19.1",
     "typescript": "5.4.5",

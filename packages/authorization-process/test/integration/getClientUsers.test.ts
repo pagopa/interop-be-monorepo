@@ -30,7 +30,7 @@ describe("getClientUsers", async () => {
   it("should get from the readModel the users in the specified client", async () => {
     await addOneClient(mockClient);
 
-    const users = await authorizationService.getClientUsers(
+    const { users } = await authorizationService.getClientUsers(
       {
         clientId: mockClient.id,
       },

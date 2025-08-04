@@ -89,9 +89,4 @@ async function processMessage({
     .exhaustive();
 }
 
-await runConsumer(
-  config,
-  [config.delegationTopic],
-  processMessage,
-  "delegation-items-archiver"
-);
+await runConsumer(config, [config.delegationTopic], processMessage);

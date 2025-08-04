@@ -157,22 +157,3 @@ CREATE TABLE eservice_template.events(
     PRIMARY KEY (sequence_num),
     UNIQUE (stream_id, version)
 );
-
-create schema notification_config;
-CREATE TABLE notification_config.events(
-    sequence_num bigserial NOT NULL,
-
-    stream_id uuid NOT NULL,
-    version bigint NOT NULL,
-
-    correlation_id text,
-
-    type text NOT NULL,
-    event_version int NOT NULL,
-    data bytea NOT NULL,
-
-    log_date timestamptz NOT NULL DEFAULT now(),
-
-    PRIMARY KEY (sequence_num),
-    UNIQUE (stream_id, version)
-);

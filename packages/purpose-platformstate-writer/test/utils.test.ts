@@ -44,7 +44,6 @@ import {
   getMockAgreement,
   writePlatformAgreementEntry,
   writePlatformCatalogEntry,
-  writePlatformPurposeEntry,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -55,7 +54,7 @@ import {
   updatePurposeDataInPlatformStatesEntry,
   updatePurposeDataInTokenGenStatesEntries,
   updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData,
-  upsertPlatformStatesPurposeEntry,
+  writePlatformPurposeEntry,
 } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
 
@@ -120,8 +119,9 @@ describe("utils tests", async () => {
         updatedAt: new Date().toISOString(),
       };
       await writePlatformPurposeEntry(
+        dynamoDBClient,
         previousPlatformPurposeEntry,
-        dynamoDBClient
+        genericLogger
       );
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
         dynamoDBClient,
@@ -134,10 +134,10 @@ describe("utils tests", async () => {
     });
   });
 
-  describe("upsertPlatformStatesPurposeEntry", async () => {
-    it("should update the entry if the previous entry exists", async () => {
+  describe("writePlatformPurposeEntry", async () => {
+    it("should throw error if previous entry exists", async () => {
       const primaryKey = makePlatformStatesPurposePK(generateId());
-      const wrongPlatformStatesPurposeEntry: PlatformStatesPurposeEntry = {
+      const platformPurposeEntry: PlatformStatesPurposeEntry = {
         PK: primaryKey,
         state: itemState.inactive,
         purposeVersionId: generateId(),
@@ -146,32 +146,18 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await upsertPlatformStatesPurposeEntry(
+      await writePlatformPurposeEntry(
         dynamoDBClient,
-        wrongPlatformStatesPurposeEntry,
+        platformPurposeEntry,
         genericLogger
       );
-
-      const correctPlatformStatesPurposeEntry: PlatformStatesPurposeEntry = {
-        PK: primaryKey,
-        state: itemState.active,
-        purposeVersionId: generateId(),
-        purposeEserviceId: generateId(),
-        purposeConsumerId: generateId(),
-        version: 1,
-        updatedAt: new Date().toISOString(),
-      };
-      await upsertPlatformStatesPurposeEntry(
-        dynamoDBClient,
-        correctPlatformStatesPurposeEntry,
-        genericLogger
-      );
-
-      const retrievedPlatformStatesPurposeEntry =
-        await readPlatformPurposeEntry(dynamoDBClient, primaryKey);
-      expect(retrievedPlatformStatesPurposeEntry).toEqual(
-        correctPlatformStatesPurposeEntry
-      );
+      await expect(
+        writePlatformPurposeEntry(
+          dynamoDBClient,
+          platformPurposeEntry,
+          genericLogger
+        )
+      ).rejects.toThrowError(ConditionalCheckFailedException);
     });
 
     it("should write if previous entry doesn't exist", async () => {
@@ -188,7 +174,7 @@ describe("utils tests", async () => {
       expect(
         await readPlatformPurposeEntry(dynamoDBClient, primaryKey)
       ).toBeUndefined();
-      await upsertPlatformStatesPurposeEntry(
+      await writePlatformPurposeEntry(
         dynamoDBClient,
         platformPurposeEntry,
         genericLogger
@@ -222,8 +208,9 @@ describe("utils tests", async () => {
         updatedAt: new Date().toISOString(),
       };
       await writePlatformPurposeEntry(
+        dynamoDBClient,
         previousPlatformPurposeEntry,
-        dynamoDBClient
+        genericLogger
       );
       await deletePlatformPurposeEntry(
         dynamoDBClient,
@@ -385,8 +372,9 @@ describe("utils tests", async () => {
         await readPlatformPurposeEntry(dynamoDBClient, primaryKey)
       ).toBeUndefined();
       await writePlatformPurposeEntry(
+        dynamoDBClient,
         previousPlatformPurposeEntry,
-        dynamoDBClient
+        genericLogger
       );
       await updatePurposeDataInPlatformStatesEntry({
         dynamoDBClient,
@@ -430,8 +418,9 @@ describe("utils tests", async () => {
         await readPlatformPurposeEntry(dynamoDBClient, primaryKey)
       ).toBeUndefined();
       await writePlatformPurposeEntry(
+        dynamoDBClient,
         previousPlatformPurposeEntry,
-        dynamoDBClient
+        genericLogger
       );
       const newPurposeVersionId = generateId<PurposeVersionId>();
       await updatePurposeDataInPlatformStatesEntry({

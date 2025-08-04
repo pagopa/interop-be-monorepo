@@ -50,9 +50,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.authorizationTopic],
-  processMessage,
-  "key-readmodel-writer-sql"
-);
+await runConsumer(config, [config.authorizationTopic], processMessage);

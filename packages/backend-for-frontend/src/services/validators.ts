@@ -1,7 +1,6 @@
 import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
-  authorizationApi,
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
@@ -11,7 +10,6 @@ import {
   EServiceId,
   EServiceTemplateId,
   TenantId,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { descriptorAttributesFromApi } from "../api/catalogApiConverter.js";
@@ -221,15 +219,5 @@ export function assertEServiceNotTemplateInstance(
   const templateId = eservice.templateId;
   if (templateId !== undefined) {
     throw templateInstanceNotAllowed(eservice.id, templateId);
-  }
-}
-
-export function assertClientVisibilityIsFull(
-  client: authorizationApi.Client
-): asserts client is authorizationApi.Client & {
-  visibility: typeof authorizationApi.Visibility.Values.FULL;
-} {
-  if (client.visibility !== authorizationApi.Visibility.Values.FULL) {
-    throw unauthorizedError("Tenant is not the owner of the client");
   }
 }
