@@ -157,7 +157,7 @@ paths:
     get:
       tags:
         - purposeTemplate
-      operationId: getEservices
+      operationId: getEServices
       description: Retrieve associations between all purpose templates and all their linked eservices.
       parameters:
         - in: query
@@ -197,7 +197,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: Eservices requested
+          description: EServices requested
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
@@ -206,7 +206,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/EserviceDescriptorVersionPurposeTemplate"
+                  $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -489,11 +489,11 @@ paths:
     get:
       tags:
         - purposeTemplate
-      operationId: getPurposeTemplateEservices
+      operationId: getPurposeTemplateEServices
       description: Retrieve the purpose template eservices
       responses:
         "200":
-          description: Purpose Template Eservices requested
+          description: Purpose Template EServices requested
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
@@ -502,7 +502,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/EserviceDescriptorVersionPurposeTemplate"
+                  $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
         "403":
           description: Forbidden
           content:
@@ -518,24 +518,24 @@ paths:
     post:
       tags:
         - purposeTemplate
-      operationId: addEserviceToPurposeTemplate
+      operationId: addEServiceToPurposeTemplate
       description: Add an eservice to a purpose template (in Draft state)
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEserviceDescriptorVersionPurposeTemplateSeed"
+              $ref: "#/components/schemas/UpdateEServiceDescriptorPurposeTemplateSeed"
         required: true
       responses:
         "200":
-          description: Eservice added to purpose template
+          description: EService added to purpose template
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EserviceDescriptorVersionPurposeTemplate"
+                $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -563,17 +563,17 @@ paths:
     delete:
       tags:
         - purposeTemplate
-      operationId: removeEserviceFromPurposeTemplate
+      operationId: removeEServiceFromPurposeTemplate
       description: Remove an eservice from a purpose template (in Draft state)
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEserviceDescriptorVersionPurposeTemplateSeed"
+              $ref: "#/components/schemas/UpdateEServiceDescriptorPurposeTemplateSeed"
         required: true
       responses:
         "204":
-          description: Eservice removed from purpose template
+          description: EService removed from purpose template
         "403":
           description: Forbidden
           content:
@@ -913,7 +913,7 @@ components:
         - PRIVATE
         - GSP
         - SCP
-    EserviceDescriptorVersionPurposeTemplate:
+    EServiceDescriptorPurposeTemplate:
       type: object
       additionalProperties: false
       properties:
@@ -934,7 +934,7 @@ components:
         - eserviceId
         - descriptorId
         - createdAt
-    UpdateEserviceDescriptorVersionPurposeTemplateSeed:
+    UpdateEServiceDescriptorPurposeTemplateSeed:
       type: object
       additionalProperties: false
       properties:
