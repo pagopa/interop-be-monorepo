@@ -867,7 +867,7 @@ components:
         purposeDescription:
           type: string
         purposeIsFreeOfCharge:
-          type: boolea
+          type: boolean
       required:
         - targetDescription
         - targetTenantKind
