@@ -39,7 +39,7 @@ const dbService: DbServiceBuilder = dbServiceBuilder(dynamoDBClient);
 const mockSafeStorageId = generateId();
 
 describe("handleAgreementMessageV2 - Integration Test", () => {
-  vi.mock("../../src/utils/s3Uploader.js", () => ({
+  vi.mock("../../src/handlers/s3UploaderHandler.js", () => ({
     uploadPreparedFileToS3: vi.fn(() => ({
       fileContentBuffer: Buffer.from("test content"),
       fileName: "test-file.ndjson.gz",
