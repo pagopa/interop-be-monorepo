@@ -26,7 +26,7 @@ export const EServiceDescriptorPurposeTemplate = z.object({
   descriptorId: DescriptorId,
   createdAt: z.coerce.date(),
 });
-export type EServiceDescriptorVersionPurposeTemplate = z.infer<
+export type EServiceDescriptorPurposeTemplate = z.infer<
   typeof EServiceDescriptorPurposeTemplate
 >;
 
