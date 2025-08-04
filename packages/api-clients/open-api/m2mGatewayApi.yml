@@ -6609,9 +6609,9 @@ paths:
     get:
       tags:
         - tenants
-      summary: List Verified Attribute Verifiers
-      description: Retrieve a list of verifiers for a specific verified attribute of a tenant
-      operationId: getVerifiedAttributeVerifiers
+      summary: List Tenant Verified Attribute Verifiers
+      description: Retrieve a list of Verifiers for a specific Verified Attribute of a Tenant
+      operationId: getTenantVerifiedAttributeVerifiers
       parameters:
         - in: query
           name: offset
@@ -6636,7 +6636,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TenantVerifiers"
+                $ref: "#/components/schemas/TenantVerifiedAttributeVerifiers"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -6659,19 +6659,6 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "401":
           description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
-        "403":
-          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -6728,9 +6715,9 @@ paths:
     get:
       tags:
         - tenants
-      summary: List Verified Attribute Revokers
-      description: Retrieve a list of revokers for a specific verified attribute of a tenant
-      operationId: getVerifiedAttributeRevokers
+      summary: List Tenant Verified Attribute Revokers
+      description: Retrieve a list of Revokers for a specific Verified Attribute of a Tenant
+      operationId: getTenantVerifiedAttributeRevokers
       parameters:
         - in: query
           name: offset
@@ -6755,7 +6742,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TenantRevokers"
+                $ref: "#/components/schemas/TenantVerifiedAttributeRevokers"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -6778,19 +6765,6 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "401":
           description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
-        "403":
-          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -8047,20 +8021,20 @@ components:
       required:
         - results
         - pagination
-    TenantVerifier:
+    TenantVerifiedAttributeVerifier:
       type: object
       additionalProperties: false
       properties:
         id:
           type: string
           format: uuid
-        verificationDate:
+        verifiedAt:
           type: string
           format: date-time
-        expirationDate:
+        expiresAt:
           type: string
           format: date-time
-        extensionDate:
+        extendedAt:
           type: string
           format: date-time
         delegationId:
@@ -8068,37 +8042,37 @@ components:
           format: uuid
       required:
         - id
-        - verificationDate
-    TenantVerifiers:
+        - verifiedAt
+    TenantVerifiedAttributeVerifiers:
       type: object
       additionalProperties: false
       properties:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/TenantVerifier"
+            $ref: "#/components/schemas/TenantVerifiedAttributeVerifier"
         pagination:
           $ref: "#/components/schemas/Pagination"
       required:
         - results
         - pagination
-    TenantRevoker:
+    TenantVerifiedAttributeRevoker:
       type: object
       additionalProperties: false
       properties:
         id:
           type: string
           format: uuid
-        verificationDate:
+        verifiedAt:
           type: string
           format: date-time
-        expirationDate:
+        expiresAt:
           type: string
           format: date-time
-        extensionDate:
+        extendedAt:
           type: string
           format: date-time
-        revocationDate:
+        revokedAt:
           type: string
           format: date-time
         delegationId:
@@ -8106,16 +8080,16 @@ components:
           format: uuid
       required:
         - id
-        - verificationDate
-        - revocationDate
-    TenantRevokers:
+        - verifiedAt
+        - revokedAt
+    TenantVerifiedAttributeRevokers:
       type: object
       additionalProperties: false
       properties:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/TenantRevoker"
+            $ref: "#/components/schemas/TenantVerifiedAttributeRevoker"
         pagination:
           $ref: "#/components/schemas/Pagination"
       required:

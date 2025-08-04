@@ -122,4 +122,41 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/verifier
       })
     );
   });
+
+  it("Should return 404 when tenant does not exist", async () => {
+    const { tenantNotFound } = await import("../../src/model/domain/errors.js");
+    tenantService.getTenantVerifiedAttributeVerifiers = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(tenantId));
+
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 404 when attribute does not exist", async () => {
+    const { attributeNotFound } = await import(
+      "../../src/model/domain/errors.js"
+    );
+    tenantService.getTenantVerifiedAttributeVerifiers = vi
+      .fn()
+      .mockRejectedValue(attributeNotFound(attributeId));
+
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 404 when verified attribute does not exist in tenant", async () => {
+    const { attributeNotFoundInTenant } = await import(
+      "../../src/model/domain/errors.js"
+    );
+    tenantService.getTenantVerifiedAttributeVerifiers = vi
+      .fn()
+      .mockRejectedValue(attributeNotFoundInTenant(attributeId, tenantId));
+
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+  });
 });

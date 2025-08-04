@@ -66,7 +66,7 @@ describe("GET /tenants/:tenantId/verifiedAttributes/:attributeId/revokers route 
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockTenantService.getVerifiedAttributeRevokers = vi
+      mockTenantService.getTenantVerifiedAttributeRevokers = vi
         .fn()
         .mockResolvedValue(mockResponse);
 
@@ -128,7 +128,7 @@ describe("GET /tenants/:tenantId/verifiedAttributes/:attributeId/revokers route 
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockTenantService.getVerifiedAttributeRevokers = vi
+      mockTenantService.getTenantVerifiedAttributeRevokers = vi
         .fn()
         .mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);

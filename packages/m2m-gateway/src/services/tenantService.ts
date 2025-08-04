@@ -256,12 +256,15 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async getVerifiedAttributeVerifiers(
+    async getTenantVerifiedAttributeVerifiers(
       tenantId: TenantId,
       attributeId: AttributeId,
-      { limit, offset }: m2mGatewayApi.GetTenantVerifiedAttributesQueryParams,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApi.GetTenantVerifiedAttributeVerifiersQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.TenantVerifiers> {
+    ): Promise<m2mGatewayApi.TenantVerifiedAttributeVerifiers> {
       logger.info(
         `Retrieving verifiers for verified attribute ${attributeId} of tenant ${tenantId}`
       );
@@ -286,12 +289,15 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async getVerifiedAttributeRevokers(
+    async getTenantVerifiedAttributeRevokers(
       tenantId: TenantId,
       attributeId: AttributeId,
-      { limit, offset }: m2mGatewayApi.GetTenantVerifiedAttributesQueryParams,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApi.GetTenantVerifiedAttributeRevokersQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.TenantRevokers> {
+    ): Promise<m2mGatewayApi.TenantVerifiedAttributeRevokers> {
       logger.info(
         `Retrieving revokers for verified attribute ${attributeId} of tenant ${tenantId}`
       );

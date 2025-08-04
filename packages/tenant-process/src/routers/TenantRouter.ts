@@ -14,6 +14,8 @@ import { tenantApi } from "pagopa-interop-api-clients";
 import {
   apiTenantFeatureTypeToTenantFeatureType,
   toApiTenant,
+  toApiTenantRevoker,
+  toApiTenantVerifier,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
@@ -469,18 +471,23 @@ const tenantsRouter = (
         try {
           validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
+          const { offset, limit } = req.query;
           const result =
             await tenantService.getTenantVerifiedAttributeVerifiers(
               unsafeBrandId(req.params.tenantId),
               unsafeBrandId(req.params.attributeId),
               {
-                offset: Number(req.query.offset) || 0,
-                limit: Number(req.query.limit) || 50,
+                offset,
+                limit,
               },
               ctx
             );
-
-          return res.status(200).send(result);
+          return res.status(200).send(
+            tenantApi.TenantVerifiers.parse({
+              results: result.results.map(toApiTenantVerifier),
+              totalCount: result.totalCount,
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
@@ -494,18 +501,22 @@ const tenantsRouter = (
 
         try {
           validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-
+          const { offset, limit } = req.query;
           const result = await tenantService.getTenantVerifiedAttributeRevokers(
             unsafeBrandId(req.params.tenantId),
             unsafeBrandId(req.params.attributeId),
             {
-              offset: Number(req.query.offset) || 0,
-              limit: Number(req.query.limit) || 50,
+              offset,
+              limit,
             },
             ctx
           );
-
-          return res.status(200).send(result);
+          return res.status(200).send(
+            tenantApi.TenantRevokers.parse({
+              results: result.results.map(toApiTenantRevoker),
+              totalCount: result.totalCount,
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);

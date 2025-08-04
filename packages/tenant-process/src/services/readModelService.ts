@@ -26,6 +26,8 @@ import {
   DelegationReadModel,
   delegationKind,
   delegationState,
+  TenantVerifier,
+  TenantRevoker,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
@@ -569,15 +571,7 @@ export function readModelServiceBuilder(
       tenantId: TenantId,
       attributeId: AttributeId,
       { offset, limit }: { offset: number; limit: number }
-    ): Promise<
-      ListResult<{
-        verifierId: TenantId;
-        verificationDate: Date;
-        expirationDate?: Date;
-        extensionDate?: Date;
-        delegationId?: DelegationId;
-      }>
-    > {
+    ): Promise<ListResult<TenantVerifier>> {
       const tenant = await tenants.findOne({ "data.id": tenantId });
       if (!tenant) {
         return { results: [], totalCount: 0 };
@@ -600,7 +594,7 @@ export function readModelServiceBuilder(
 
       return {
         results: paginatedVerifiers.map((verifier) => ({
-          verifierId: verifier.id,
+          id: verifier.id,
           verificationDate: new Date(verifier.verificationDate),
           expirationDate: verifier.expirationDate
             ? new Date(verifier.expirationDate)
@@ -617,16 +611,7 @@ export function readModelServiceBuilder(
       tenantId: TenantId,
       attributeId: AttributeId,
       { offset, limit }: { offset: number; limit: number }
-    ): Promise<
-      ListResult<{
-        revokerId: TenantId;
-        verificationDate: Date;
-        expirationDate?: Date;
-        extensionDate?: Date;
-        revocationDate: Date;
-        delegationId?: DelegationId;
-      }>
-    > {
+    ): Promise<ListResult<TenantRevoker>> {
       const tenant = await tenants.findOne({ "data.id": tenantId });
       if (!tenant) {
         return { results: [], totalCount: 0 };
@@ -649,7 +634,7 @@ export function readModelServiceBuilder(
 
       return {
         results: paginatedRevokers.map((revoker) => ({
-          revokerId: revoker.id,
+          id: revoker.id,
           verificationDate: new Date(revoker.verificationDate),
           expirationDate: revoker.expirationDate
             ? new Date(revoker.expirationDate)

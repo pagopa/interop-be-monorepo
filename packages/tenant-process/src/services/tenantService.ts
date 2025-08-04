@@ -42,6 +42,7 @@ import {
   Agreement,
   AgreementState,
   DelegationId,
+  TenantRevoker,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { bffApi, tenantApi } from "pagopa-interop-api-clients";
@@ -92,10 +93,6 @@ import {
   verifiedAttributeSelfVerificationNotAllowed,
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
-import {
-  toApiTenantVerifier,
-  toApiTenantRevoker,
-} from "../model/domain/apiConverter.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
@@ -152,6 +149,29 @@ export async function retrieveAttribute(
     throw attributeNotFound(attributeId);
   }
   return attribute;
+}
+
+async function retrieveTenantAttribute(
+  tenantId: TenantId,
+  attributeId: AttributeId,
+  readModelService: ReadModelService
+): Promise<{ tenant: WithMetadata<Tenant>; attribute: Attribute }> {
+  const tenant = await retrieveTenant(tenantId, readModelService);
+  const attribute = await retrieveAttribute(attributeId, readModelService);
+  if (attribute.kind !== attributeKind.verified) {
+    throw attributeNotFound(attributeId);
+  }
+
+  const tenantAttribute = tenant.data.attributes.find(
+    (attr): attr is VerifiedTenantAttribute =>
+      attr.type === tenantAttributeType.VERIFIED && attr.id === attributeId
+  );
+
+  if (!tenantAttribute) {
+    throw attributeNotFoundInTenant(attributeId, tenantId);
+  }
+
+  return { tenant, attribute };
 }
 
 async function retrieveCertifiedAttribute({
@@ -1848,32 +1868,19 @@ export function tenantServiceBuilder(
       {
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<{
-      results: tenantApi.TenantVerifier[];
-      totalCount: number;
-    }> {
+    ): Promise<ListResult<TenantVerifier>> {
       logger.info(
         `Retrieving verifiers for verified attribute ${attributeId} of tenant ${tenantId}`
       );
 
-      const result = await readModelService.getTenantVerifiedAttributeVerifiers(
+      // Validate that tenant and verified attribute exist
+      await retrieveTenantAttribute(tenantId, attributeId, readModelService);
+
+      return await readModelService.getTenantVerifiedAttributeVerifiers(
         tenantId,
         attributeId,
         { offset, limit }
       );
-
-      return {
-        results: result.results.map((verifier) =>
-          toApiTenantVerifier({
-            id: verifier.verifierId,
-            verificationDate: verifier.verificationDate,
-            expirationDate: verifier.expirationDate,
-            extensionDate: verifier.extensionDate,
-            delegationId: verifier.delegationId,
-          })
-        ),
-        totalCount: result.totalCount,
-      };
     },
     async getTenantVerifiedAttributeRevokers(
       tenantId: TenantId,
@@ -1882,33 +1889,19 @@ export function tenantServiceBuilder(
       {
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<{
-      results: tenantApi.TenantRevoker[];
-      totalCount: number;
-    }> {
+    ): Promise<ListResult<TenantRevoker>> {
       logger.info(
         `Retrieving revokers for verified attribute ${attributeId} of tenant ${tenantId}`
       );
 
-      const result = await readModelService.getTenantVerifiedAttributeRevokers(
+      // Validate that tenant and verified attribute exist
+      await retrieveTenantAttribute(tenantId, attributeId, readModelService);
+
+      return await readModelService.getTenantVerifiedAttributeRevokers(
         tenantId,
         attributeId,
         { offset, limit }
       );
-
-      return {
-        results: result.results.map((revoker) =>
-          toApiTenantRevoker({
-            id: revoker.revokerId,
-            verificationDate: revoker.verificationDate,
-            expirationDate: revoker.expirationDate,
-            extensionDate: revoker.extensionDate,
-            revocationDate: revoker.revocationDate,
-            delegationId: revoker.delegationId,
-          })
-        ),
-        totalCount: result.totalCount,
-      };
     },
   };
 }

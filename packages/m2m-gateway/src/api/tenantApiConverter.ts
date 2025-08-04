@@ -68,25 +68,25 @@ export function toM2MGatewayApiTenantVerifiedAttribute(
 
 export function toM2MGatewayApiTenantVerifier(
   tenantVerifier: tenantApi.TenantVerifier
-): m2mGatewayApi.TenantVerifier {
+): m2mGatewayApi.TenantVerifiedAttributeVerifier {
   return {
     id: tenantVerifier.id,
-    verificationDate: tenantVerifier.verificationDate,
-    expirationDate: tenantVerifier.expirationDate,
-    extensionDate: tenantVerifier.extensionDate,
+    verifiedAt: tenantVerifier.verificationDate,
+    expiresAt: tenantVerifier.expirationDate,
+    extendedAt: tenantVerifier.extensionDate,
     delegationId: tenantVerifier.delegationId,
   };
 }
 
 export function toM2MGatewayApiTenantRevoker(
   tenantRevoker: tenantApi.TenantRevoker
-): m2mGatewayApi.TenantRevoker {
+): m2mGatewayApi.TenantVerifiedAttributeRevoker {
   return {
     id: tenantRevoker.id,
-    verificationDate: tenantRevoker.verificationDate,
-    expirationDate: tenantRevoker.expirationDate,
-    extensionDate: tenantRevoker.extensionDate,
-    revocationDate: tenantRevoker.revocationDate,
+    verifiedAt: tenantRevoker.verificationDate,
+    expiresAt: tenantRevoker.expirationDate,
+    extendedAt: tenantRevoker.extensionDate,
+    revokedAt: tenantRevoker.revocationDate,
     delegationId: tenantRevoker.delegationId,
   };
 }

@@ -1,35 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { tenantApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
+import { getMockedApiVerifiedTenantAttributeVerifier } from "pagopa-interop-commons-test/index.js";
 import { mockInteropBeClients, tenantService } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("getVerifiedAttributeVerifiers", () => {
+describe("getTenantVerifiedAttributeVerifiers", () => {
   const tenantId = generateId();
   const attributeId = generateId();
   const verifier1Id = generateId();
   const verifier2Id = generateId();
 
   const mockTenantProcessResponse: {
-    results: tenantApi.TenantVerifier[];
+    results: m2mGatewayApi.TenantVerifiedAttributeVerifier[];
     totalCount: number;
   } = {
     results: [
-      {
-        id: verifier1Id,
-        verificationDate: new Date("2024-01-01").toISOString(),
-        expirationDate: new Date("2025-01-01").toISOString(),
-        extensionDate: new Date("2025-06-01").toISOString(),
-        delegationId: generateId(),
-      },
-      {
-        id: verifier2Id,
-        verificationDate: new Date("2024-02-01").toISOString(),
-        expirationDate: new Date("2025-02-01").toISOString(),
-        extensionDate: undefined,
-        delegationId: undefined,
-      },
+      getMockedApiVerifiedTenantAttributeVerifier(verifier1Id, generateId()),
+      getMockedApiVerifiedTenantAttributeVerifier(verifier2Id),
     ],
     totalCount: 2,
   };
@@ -53,7 +42,7 @@ describe("getVerifiedAttributeVerifiers", () => {
     const limit = 10;
     const offset = 0;
 
-    const result = await tenantService.getVerifiedAttributeVerifiers(
+    const result = await tenantService.getTenantVerifiedAttributeVerifiers(
       unsafeBrandId(tenantId),
       unsafeBrandId(attributeId),
       { limit, offset },
@@ -89,60 +78,5 @@ describe("getVerifiedAttributeVerifiers", () => {
         totalCount: 2,
       },
     });
-  });
-
-  it("Should handle pagination parameters correctly", async () => {
-    const limit = 5;
-    const offset = 10;
-
-    await tenantService.getVerifiedAttributeVerifiers(
-      unsafeBrandId(tenantId),
-      unsafeBrandId(attributeId),
-      { limit, offset },
-      getMockM2MAdminAppContext()
-    );
-
-    expect(mockGetTenantVerifiedAttributeVerifiers).toHaveBeenCalledWith({
-      params: { tenantId, attributeId },
-      queries: { limit, offset },
-      headers: expect.any(Object),
-    });
-  });
-
-  it("Should handle empty results", async () => {
-    const emptyResponse = { results: [], totalCount: 0 };
-    mockGetTenantVerifiedAttributeVerifiers.mockResolvedValueOnce({
-      data: emptyResponse,
-    });
-
-    const result = await tenantService.getVerifiedAttributeVerifiers(
-      unsafeBrandId(tenantId),
-      unsafeBrandId(attributeId),
-      { limit: 10, offset: 0 },
-      getMockM2MAdminAppContext()
-    );
-
-    expect(result).toEqual({
-      results: [],
-      pagination: {
-        limit: 10,
-        offset: 0,
-        totalCount: 0,
-      },
-    });
-  });
-
-  it("Should forward API errors from tenant-process", async () => {
-    const apiError = new Error("Tenant not found");
-    mockGetTenantVerifiedAttributeVerifiers.mockRejectedValueOnce(apiError);
-
-    await expect(
-      tenantService.getVerifiedAttributeVerifiers(
-        unsafeBrandId(tenantId),
-        unsafeBrandId(attributeId),
-        { limit: 10, offset: 0 },
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrow("Tenant not found");
   });
 });

@@ -812,12 +812,10 @@ paths:
           format: uuid
         description: Attribute id
     get:
-      security:
-        - bearerAuth: []
       tags:
         - tenant
       operationId: getTenantVerifiedAttributeVerifiers
-      description: Get verifiers for a verified attribute of a tenant
+      description: Retrieve Verifiers for a Verified Attribute of a Tenant
       parameters:
         - in: query
           name: limit
@@ -882,7 +880,7 @@ paths:
       tags:
         - tenant
       operationId: getTenantVerifiedAttributeRevokers
-      description: Get revokers for a verified attribute of a tenant
+      description: Retrieve Revokers for a Verified Attribute of a Tenant
       parameters:
         - in: query
           name: limit

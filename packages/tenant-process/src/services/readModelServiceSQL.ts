@@ -17,6 +17,8 @@ import {
   delegationKind,
   delegationState,
   unsafeBrandId,
+  TenantVerifier,
+  TenantRevoker,
 } from "pagopa-interop-models";
 import {
   AgreementReadModelService,
@@ -491,139 +493,116 @@ export function readModelServiceBuilderSQL(
       tenantId: TenantId,
       attributeId: AttributeId,
       { offset, limit }: { offset: number; limit: number }
-    ): Promise<
-      ListResult<{
-        verifierId: TenantId;
-        verificationDate: Date;
-        expirationDate?: Date;
-        extensionDate?: Date;
-        delegationId?: DelegationId;
-      }>
-    > {
-      return await readModelDB.transaction(async (tx) => {
-        const queryResult = await tx
-          .select(
-            withTotalCount({
-              verifierId:
-                tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifierId,
-              verificationDate:
-                tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate,
-              expirationDate:
-                tenantVerifiedAttributeVerifierInReadmodelTenant.expirationDate,
-              extensionDate:
-                tenantVerifiedAttributeVerifierInReadmodelTenant.extensionDate,
-              delegationId:
-                tenantVerifiedAttributeVerifierInReadmodelTenant.delegationId,
-            })
-          )
-          .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
-          .where(
-            and(
-              eq(
-                tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
-                tenantId
-              ),
-              eq(
-                tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId,
-                attributeId
-              )
+    ): Promise<ListResult<TenantVerifier>> {
+      const queryResult = await readModelDB
+        .select(
+          withTotalCount({
+            verifierId:
+              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifierId,
+            verificationDate:
+              tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate,
+            expirationDate:
+              tenantVerifiedAttributeVerifierInReadmodelTenant.expirationDate,
+            extensionDate:
+              tenantVerifiedAttributeVerifierInReadmodelTenant.extensionDate,
+            delegationId:
+              tenantVerifiedAttributeVerifierInReadmodelTenant.delegationId,
+          })
+        )
+        .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
+        .where(
+          and(
+            eq(
+              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
+              tenantId
+            ),
+            eq(
+              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId,
+              attributeId
             )
           )
-          .orderBy(
-            asc(
-              tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate
-            )
-          )
-          .offset(offset)
-          .limit(limit);
+        )
+        .orderBy(
+          asc(tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate)
+        )
+        .offset(offset)
+        .limit(limit);
 
-        return createListResult(
-          queryResult.map((result) => ({
-            verifierId: unsafeBrandId<TenantId>(result.verifierId),
-            verificationDate: new Date(result.verificationDate),
-            expirationDate: result.expirationDate
-              ? new Date(result.expirationDate)
-              : undefined,
-            extensionDate: result.extensionDate
-              ? new Date(result.extensionDate)
-              : undefined,
-            delegationId: result.delegationId
-              ? unsafeBrandId<DelegationId>(result.delegationId)
-              : undefined,
-          })),
-          queryResult.length > 0 ? queryResult[0].totalCount : 0
-        );
-      });
+      return createListResult(
+        queryResult.map((result) => ({
+          id: unsafeBrandId<TenantId>(result.verifierId),
+          verificationDate: new Date(result.verificationDate),
+          expirationDate: result.expirationDate
+            ? new Date(result.expirationDate)
+            : undefined,
+          extensionDate: result.extensionDate
+            ? new Date(result.extensionDate)
+            : undefined,
+          delegationId: result.delegationId
+            ? unsafeBrandId<DelegationId>(result.delegationId)
+            : undefined,
+        })),
+        queryResult.length > 0 ? queryResult[0].totalCount : 0
+      );
     },
     async getTenantVerifiedAttributeRevokers(
       tenantId: TenantId,
       attributeId: AttributeId,
       { offset, limit }: { offset: number; limit: number }
-    ): Promise<
-      ListResult<{
-        revokerId: TenantId;
-        verificationDate: Date;
-        expirationDate?: Date;
-        extensionDate?: Date;
-        revocationDate: Date;
-        delegationId?: DelegationId;
-      }>
-    > {
-      return await readModelDB.transaction(async (tx) => {
-        const queryResult = await tx
-          .select(
-            withTotalCount({
-              revokerId:
-                tenantVerifiedAttributeRevokerInReadmodelTenant.tenantRevokerId,
-              verificationDate:
-                tenantVerifiedAttributeRevokerInReadmodelTenant.verificationDate,
-              expirationDate:
-                tenantVerifiedAttributeRevokerInReadmodelTenant.expirationDate,
-              extensionDate:
-                tenantVerifiedAttributeRevokerInReadmodelTenant.extensionDate,
-              revocationDate:
-                tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate,
-              delegationId:
-                tenantVerifiedAttributeRevokerInReadmodelTenant.delegationId,
-            })
-          )
-          .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
-          .where(
-            and(
-              eq(
-                tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
-                tenantId
-              ),
-              eq(
-                tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId,
-                attributeId
-              )
+    ): Promise<ListResult<TenantRevoker>> {
+      const queryResult = await readModelDB
+        .select(
+          withTotalCount({
+            revokerId:
+              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantRevokerId,
+            verificationDate:
+              tenantVerifiedAttributeRevokerInReadmodelTenant.verificationDate,
+            expirationDate:
+              tenantVerifiedAttributeRevokerInReadmodelTenant.expirationDate,
+            extensionDate:
+              tenantVerifiedAttributeRevokerInReadmodelTenant.extensionDate,
+            revocationDate:
+              tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate,
+            delegationId:
+              tenantVerifiedAttributeRevokerInReadmodelTenant.delegationId,
+          })
+        )
+        .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
+        .where(
+          and(
+            eq(
+              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
+              tenantId
+            ),
+            eq(
+              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId,
+              attributeId
             )
           )
-          .orderBy(
-            asc(tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate)
-          )
-          .offset(offset)
-          .limit(limit);
+        )
+        .orderBy(
+          asc(tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate)
+        )
+        .offset(offset)
+        .limit(limit);
 
-        return createListResult(
-          queryResult.map((result) => ({
-            revokerId: unsafeBrandId<TenantId>(result.revokerId),
-            verificationDate: new Date(result.verificationDate),
-            expirationDate: result.expirationDate
-              ? new Date(result.expirationDate)
-              : undefined,
-            extensionDate: result.extensionDate
-              ? new Date(result.extensionDate)
-              : undefined,
-            revocationDate: new Date(result.revocationDate),
-            delegationId: result.delegationId
-              ? unsafeBrandId<DelegationId>(result.delegationId)
-              : undefined,
-          })),
-          queryResult.length > 0 ? queryResult[0].totalCount : 0
-        );
-      });
+      return createListResult(
+        queryResult.map((result) => ({
+          id: unsafeBrandId<TenantId>(result.revokerId),
+          verificationDate: new Date(result.verificationDate),
+          expirationDate: result.expirationDate
+            ? new Date(result.expirationDate)
+            : undefined,
+          extensionDate: result.extensionDate
+            ? new Date(result.extensionDate)
+            : undefined,
+          revocationDate: new Date(result.revocationDate),
+          delegationId: result.delegationId
+            ? unsafeBrandId<DelegationId>(result.delegationId)
+            : undefined,
+        })),
+        queryResult.length > 0 ? queryResult[0].totalCount : 0
+      );
     },
   };
 }

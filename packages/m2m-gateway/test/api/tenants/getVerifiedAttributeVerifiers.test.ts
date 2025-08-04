@@ -33,7 +33,7 @@ describe("GET /tenants/:tenantId/verifiedAttributes/:attributeId/verifiers route
     delegationId: generateId(),
   };
 
-  const mockResponse: m2mGatewayApi.TenantVerifiers = {
+  const mockResponse: m2mGatewayApi.TenantVerifiedAttributeVerifiers = {
     results: [
       toM2MGatewayApiTenantVerifier(mockVerifier1),
       toM2MGatewayApiTenantVerifier(mockVerifier2),
@@ -64,7 +64,7 @@ describe("GET /tenants/:tenantId/verifiedAttributes/:attributeId/verifiers route
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockTenantService.getVerifiedAttributeVerifiers = vi
+      mockTenantService.getTenantVerifiedAttributeVerifiers = vi
         .fn()
         .mockResolvedValue(mockResponse);
 
@@ -122,7 +122,7 @@ describe("GET /tenants/:tenantId/verifiedAttributes/:attributeId/verifiers route
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockTenantService.getVerifiedAttributeVerifiers = vi
+      mockTenantService.getTenantVerifiedAttributeVerifiers = vi
         .fn()
         .mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);

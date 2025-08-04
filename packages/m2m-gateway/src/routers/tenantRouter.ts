@@ -196,16 +196,19 @@ const tenantRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-          const verifiers = await tenantService.getVerifiedAttributeVerifiers(
-            unsafeBrandId(req.params.tenantId),
-            unsafeBrandId(req.params.attributeId),
-            req.query,
-            ctx
-          );
+          const verifiers =
+            await tenantService.getTenantVerifiedAttributeVerifiers(
+              unsafeBrandId(req.params.tenantId),
+              unsafeBrandId(req.params.attributeId),
+              req.query,
+              ctx
+            );
 
           return res
             .status(200)
-            .send(m2mGatewayApi.TenantVerifiers.parse(verifiers));
+            .send(
+              m2mGatewayApi.TenantVerifiedAttributeVerifiers.parse(verifiers)
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -223,16 +226,19 @@ const tenantRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-          const revokers = await tenantService.getVerifiedAttributeRevokers(
-            unsafeBrandId(req.params.tenantId),
-            unsafeBrandId(req.params.attributeId),
-            req.query,
-            ctx
-          );
+          const revokers =
+            await tenantService.getTenantVerifiedAttributeRevokers(
+              unsafeBrandId(req.params.tenantId),
+              unsafeBrandId(req.params.attributeId),
+              req.query,
+              ctx
+            );
 
           return res
             .status(200)
-            .send(m2mGatewayApi.TenantRevokers.parse(revokers));
+            .send(
+              m2mGatewayApi.TenantVerifiedAttributeRevokers.parse(revokers)
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
