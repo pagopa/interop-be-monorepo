@@ -178,7 +178,7 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   },
   {
     name: DeletingDbTable.client_key_deleting_table,
-    columns: ["clientId", "kid"],
+    columns: ["clientId", "kid", "deleted_at"],
   },
   {
     name: DeletingDbTable.producer_keychain_deleting_table,
