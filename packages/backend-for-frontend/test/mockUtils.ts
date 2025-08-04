@@ -63,7 +63,7 @@ export const getMockPurposeSeed = (): bffApi.PurposeSeed => ({
   description: generateMock(z.string()),
   isFreeOfCharge: generateMock(z.boolean()),
   freeOfChargeReason: generateMock(z.string().optional()),
-  dailyCalls: generateMock(z.number().int().min(0)),
+  dailyCalls: 1000000000,
 });
 
 export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
@@ -74,7 +74,7 @@ export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
   description: generateMock(z.string()),
   isFreeOfCharge: generateMock(z.boolean()),
   freeOfChargeReason: generateMock(z.string().optional()),
-  dailyCalls: generateMock(z.number().int().min(0)),
+  dailyCalls: 1000000000,
 });
 
 export const getMockBffApiMailSeed = (): bffApi.MailSeed => ({
