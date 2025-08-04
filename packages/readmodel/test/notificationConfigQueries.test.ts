@@ -44,7 +44,11 @@ describe("Notification config queries", () => {
     it("should get a tenant notification config with all notifications disabled", async () => {
       const tenantNotificationConfig = {
         ...getMockTenantNotificationConfig(),
-        config: { newEServiceVersionPublished: false },
+        config: {
+          newEServiceVersionPublishedToConsumer: false,
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
+        },
       };
       await insertTenantNotificationConfig(
         readModelDB,
@@ -95,8 +99,16 @@ describe("Notification config queries", () => {
     it("should get a user notification config with all notifications disabled", async () => {
       const userNotificationConfig = {
         ...getMockUserNotificationConfig(),
-        inAppConfig: { newEServiceVersionPublished: false },
-        emailConfig: { newEServiceVersionPublished: false },
+        inAppConfig: {
+          newEServiceVersionPublishedToConsumer: false,
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
+        },
+        emailConfig: {
+          newEServiceVersionPublishedToConsumer: false,
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
+        },
       };
       await insertUserNotificationConfig(
         readModelDB,

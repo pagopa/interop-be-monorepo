@@ -22,6 +22,12 @@ import {
 describe("Notification config splitters", () => {
   const updatedAt = generateMock(z.coerce.date());
 
+  const notificationTypes = [
+    "newEServiceVersionPublishedToConsumer",
+    "agreementSuspendedUnsuspendedToProducer",
+    "agreementSuspendedUnsuspendedToConsumer",
+  ] as const;
+
   it.each([
     ["", updatedAt, updatedAt.toISOString()],
     [" (converting undefined to null)", undefined, null],
@@ -46,18 +52,17 @@ describe("Notification config splitters", () => {
         updatedAt: expectedUpdatedAt,
       };
 
-      const expectedEnabledNotificationsSQL: TenantEnabledNotificationSQL[] = (
-        ["newEServiceVersionPublished"] as const
-      )
-        .filter(
-          (notificationType) =>
-            tenantNotificationConfig.config[notificationType]
-        )
-        .map((notificationType) => ({
-          tenantNotificationConfigId: tenantNotificationConfig.id,
-          metadataVersion: 1,
-          notificationType,
-        }));
+      const expectedEnabledNotificationsSQL: TenantEnabledNotificationSQL[] =
+        notificationTypes
+          .filter(
+            (notificationType) =>
+              tenantNotificationConfig.config[notificationType]
+          )
+          .map((notificationType) => ({
+            tenantNotificationConfigId: tenantNotificationConfig.id,
+            metadataVersion: 1,
+            notificationType,
+          }));
 
       expect(tenantNotificationConfigSQL).toStrictEqual(
         expectedTenantNotificationConfigSQL
@@ -94,7 +99,7 @@ describe("Notification config splitters", () => {
       };
 
       const expectedEnabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[] =
-        (["newEServiceVersionPublished"] as const)
+        notificationTypes
           .filter(
             (notificationType) =>
               userNotificationConfig.inAppConfig[notificationType]
@@ -105,7 +110,7 @@ describe("Notification config splitters", () => {
             notificationType,
           }));
       const expectedEnabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[] =
-        (["newEServiceVersionPublished"] as const)
+        notificationTypes
           .filter(
             (notificationType) =>
               userNotificationConfig.emailConfig[notificationType]

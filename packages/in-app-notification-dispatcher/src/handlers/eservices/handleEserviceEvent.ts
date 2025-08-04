@@ -1,23 +1,52 @@
-import { EServiceEventEnvelopeV2, Notification } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceEventEnvelopeV2,
+  NewNotification,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleNewEServiceVersionPublished } from "./handleNewEServiceVersionPublished.js";
+import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEserviceNewVersionApprovedRejectedToDelegate.js";
+import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNewVersionSubmittedToDelegator.js";
 
 export async function handleEServiceEvent(
   decodedMessage: EServiceEventEnvelopeV2,
   logger: Logger,
   readModelService: ReadModelServiceSQL
-): Promise<Notification[]> {
+): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with({ type: "EServiceDescriptorPublished" }, ({ data: { eservice } }) =>
       handleNewEServiceVersionPublished(eservice, logger, readModelService)
     )
     .with(
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      ({ data: { eservice } }) =>
+        handleEserviceNewVersionSubmittedToDelegator(
+          eservice,
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      P.union(
+        { type: "EServiceDescriptorApprovedByDelegator" },
+        { type: "EServiceDescriptorRejectedByDelegator" }
+      ),
+      ({ data: { eservice, descriptorId }, type }) =>
+        handleEserviceNewVersionApprovedRejectedToDelegate(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId),
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
       {
         type: P.union(
           "EServiceDescriptorActivated",
-          "EServiceDescriptorApprovedByDelegator",
           "EServiceDescriptorSuspended",
           "EServiceDescriptorArchived",
           "EServiceDescriptorQuotasUpdated",
@@ -41,8 +70,6 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAttributesUpdated",
           "EServiceDescriptionUpdated",
           "EServiceNameUpdated",
-          "EServiceDescriptorSubmittedByDelegate",
-          "EServiceDescriptorRejectedByDelegator",
           "EServiceIsConsumerDelegableEnabled",
           "EServiceIsConsumerDelegableDisabled",
           "EServiceIsClientAccessDelegableEnabled",
