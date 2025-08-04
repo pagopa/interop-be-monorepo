@@ -331,7 +331,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PurposeTemplateUpdatePayload"
+              $ref: "#/components/schemas/UpdatePurposeTemplateSeed"
         required: true
       responses:
         "200":
@@ -524,7 +524,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceDescriptorVersionPurposeTemplateUpdatePayload"
+              $ref: "#/components/schemas/UpdateEserviceDescriptorVersionPurposeTemplateSeed"
         required: true
       responses:
         "200":
@@ -569,7 +569,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceDescriptorVersionPurposeTemplateUpdatePayload"
+              $ref: "#/components/schemas/UpdateEserviceDescriptorVersionPurposeTemplateSeed"
         required: true
       responses:
         "204":
@@ -867,8 +867,14 @@ components:
         purposeDescription:
           type: string
         purposeIsFreeOfCharge:
-          type: boolean
-    PurposeTemplateUpdatePayload:
+          type: boolea
+      required:
+        - targetDescription
+        - targetTenantKind
+        - purposeTitle
+        - purposeDescription
+        - purposeIsFreeOfCharge
+    UpdatePurposeTemplateSeed:
       type: object
       additionalProperties: false
       properties:
@@ -887,6 +893,10 @@ components:
         purposeDailyCalls:
           type: integer
           format: int32
+      required:
+        - purposeTitle
+        - purposeDescription
+        - purposeIsFreeOfCharge
     PurposeTemplateState:
       type: string
       description: Purpose Template State
@@ -924,7 +934,7 @@ components:
         - eserviceId
         - descriptorId
         - createdAt
-    EServiceDescriptorVersionPurposeTemplateUpdatePayload:
+    UpdateEserviceDescriptorVersionPurposeTemplateSeed:
       type: object
       additionalProperties: false
       properties:
