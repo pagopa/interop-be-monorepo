@@ -23,7 +23,7 @@ export const handleCatalogMessageV2 = async (
   }>,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
-  safeStorage: SafeStorageService,
+  safeStorage: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
 
@@ -40,13 +40,13 @@ export const handleCatalogMessageV2 = async (
             "EServiceDescriptorActivated",
             "EServiceDescriptorArchived",
             "EServiceDescriptorPublished",
-            "EServiceDescriptorSuspended",
+            "EServiceDescriptorSuspended"
           ),
         },
         (event) => {
           if (!event.data.eservice?.id || !event.data.descriptorId) {
             throw genericInternalError(
-              `Skipping managed Catalog event ${event.type} due to missing e-service ID or descriptor ID.`,
+              `Skipping managed Catalog event ${event.type} due to missing e-service ID or descriptor ID.`
             );
           }
           const eservice = fromEServiceV2(event.data.eservice);
@@ -54,7 +54,7 @@ export const handleCatalogMessageV2 = async (
           const eserviceId = eservice.id;
           const descriptorId = event.data.descriptorId;
           const state = eservice.descriptors.find(
-            (descriptor) => descriptor.id === event.data.descriptorId,
+            (descriptor) => descriptor.id === event.data.descriptorId
           )?.state;
 
           allCatalogDataToStore.push({
@@ -65,7 +65,7 @@ export const handleCatalogMessageV2 = async (
             eventTimestamp: timestamp,
             correlationId,
           });
-        },
+        }
       )
       .with(
         {
@@ -106,14 +106,14 @@ export const handleCatalogMessageV2 = async (
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorDocumentDeletedByTemplateUpdate",
             "EServiceSignalHubEnabled",
-            "EServiceSignalHubDisabled",
+            "EServiceSignalHubDisabled"
           ),
         },
         (event) => {
           loggerInstance.info(
-            `Skipping not relevant event type: ${event.type}`,
+            `Skipping not relevant event type: ${event.type}`
           );
-        },
+        }
       )
       .exhaustive();
   }
@@ -121,7 +121,7 @@ export const handleCatalogMessageV2 = async (
   if (allCatalogDataToStore.length > 0) {
     const preparedFiles = await prepareNdjsonEventData<CatalogEventData>(
       allCatalogDataToStore,
-      loggerInstance,
+      loggerInstance
     );
 
     if (preparedFiles.length === 0) {
@@ -133,7 +133,7 @@ export const handleCatalogMessageV2 = async (
         preparedFile,
         fileManager,
         loggerInstance,
-        config,
+        config
       );
       await archiveFileToSafeStorage(
         result,
@@ -141,7 +141,7 @@ export const handleCatalogMessageV2 = async (
         dbService,
         safeStorage,
         safeStorageApiConfig,
-        correlationId,
+        correlationId
       );
     }
   } else {

@@ -30,7 +30,7 @@ describe("uploadPreparedFileToS3", () => {
       mockPreparedFile,
       fileManager,
       genericLogger,
-      appConfig,
+      appConfig
     );
 
     expect(fileManagerStoreBytesSpy).toHaveBeenCalledTimes(1);
@@ -42,7 +42,7 @@ describe("uploadPreparedFileToS3", () => {
         name: mockPreparedFile.fileName,
         content: mockPreparedFile.fileContentBuffer,
       },
-      genericLogger,
+      genericLogger
     );
 
     expect(result).toEqual({
@@ -67,10 +67,10 @@ describe("uploadPreparedFileToS3", () => {
         mockPreparedFile,
         fileManager,
         genericLogger,
-        appConfig,
-      ),
+        appConfig
+      )
     ).rejects.toThrow(
-      `Failed to store file ${mockPreparedFile.fileName} in S3: ${mockError}`,
+      `Failed to store file ${mockPreparedFile.fileName} in S3: ${mockError}`
     );
 
     expect(fileManagerStoreBytesSpy).toHaveBeenCalledTimes(1);

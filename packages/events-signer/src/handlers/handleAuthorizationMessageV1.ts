@@ -22,7 +22,7 @@ export const handleAuthorizationMessageV1 = async (
   }>,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
-  safeStorage: SafeStorageService,
+  safeStorage: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
 
@@ -79,13 +79,13 @@ export const handleAuthorizationMessageV1 = async (
           { type: "UserAdded" },
           { type: "UserRemoved" },
           { type: "ClientPurposeAdded" },
-          { type: "ClientPurposeRemoved" },
+          { type: "ClientPurposeRemoved" }
         ),
         (event) => {
           loggerInstance.info(
-            `Skipping not relevant event type: ${event.type}`,
+            `Skipping not relevant event type: ${event.type}`
           );
-        },
+        }
       )
       .exhaustive();
   }
@@ -93,7 +93,7 @@ export const handleAuthorizationMessageV1 = async (
   if (allAuthorizationDataToStore.length > 0) {
     const preparedFiles = await prepareNdjsonEventData<AuthorizationEventData>(
       allAuthorizationDataToStore,
-      loggerInstance,
+      loggerInstance
     );
 
     if (preparedFiles.length === 0) {
@@ -105,7 +105,7 @@ export const handleAuthorizationMessageV1 = async (
         preparedFile,
         fileManager,
         loggerInstance,
-        config,
+        config
       );
       await archiveFileToSafeStorage(
         result,
@@ -113,7 +113,7 @@ export const handleAuthorizationMessageV1 = async (
         dbService,
         safeStorage,
         safeStorageApiConfig,
-        correlationId,
+        correlationId
       );
     }
   } else {

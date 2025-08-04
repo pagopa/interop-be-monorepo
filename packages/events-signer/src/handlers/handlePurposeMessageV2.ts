@@ -23,7 +23,7 @@ export const handlePurposeMessageV2 = async (
   eventsWithTimestamp: Array<{ purposeV2: PurposeEventV2; timestamp: string }>,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
-  safeStorage: SafeStorageService,
+  safeStorage: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
 
@@ -38,7 +38,7 @@ export const handlePurposeMessageV2 = async (
       .with({ type: "PurposeAdded" }, (event) => {
         if (!event.data.purpose?.id) {
           throw new Error(
-            `Skipping PurposeAdded event due to missing purpose ID.`,
+            `Skipping PurposeAdded event due to missing purpose ID.`
           );
         }
 
@@ -58,7 +58,7 @@ export const handlePurposeMessageV2 = async (
       .with({ type: "PurposeActivated" }, (event) => {
         if (!event.data.purpose?.id) {
           throw new Error(
-            `Skipping PurposeActivated event due to missing purpose ID.`,
+            `Skipping PurposeActivated event due to missing purpose ID.`
           );
         }
 
@@ -79,7 +79,7 @@ export const handlePurposeMessageV2 = async (
       .with({ type: "PurposeArchived" }, (event) => {
         if (!event.data.purpose?.id) {
           throw new Error(
-            `Skipping PurposeArchived event due to missing purpose ID.`,
+            `Skipping PurposeArchived event due to missing purpose ID.`
           );
         }
 
@@ -112,13 +112,13 @@ export const handlePurposeMessageV2 = async (
             "PurposeVersionSuspendedByConsumer",
             "PurposeVersionUnsuspendedByProducer",
             "PurposeVersionUnsuspendedByConsumer",
-            "PurposeVersionRejected",
+            "PurposeVersionRejected"
           ),
         },
         (event) => {
           if (!event.data.purpose?.id || !event.data.versionId) {
             throw genericInternalError(
-              `Skipping managed Purpose Version event ${event.type} due to missing purpose ID or version ID.`,
+              `Skipping managed Purpose Version event ${event.type} due to missing purpose ID or version ID.`
             );
           }
 
@@ -128,7 +128,7 @@ export const handlePurposeMessageV2 = async (
           const versionId = event.data.versionId;
 
           const relevantVersion = purpose.versions.find(
-            (version) => version.id === versionId,
+            (version) => version.id === versionId
           );
           const state = relevantVersion?.state;
 
@@ -140,7 +140,7 @@ export const handlePurposeMessageV2 = async (
             eventTimestamp: timestamp,
             correlationId,
           });
-        },
+        }
       )
       .with(
         {
@@ -152,14 +152,14 @@ export const handlePurposeMessageV2 = async (
             "WaitingForApprovalPurposeVersionDeleted",
             "PurposeCloned",
             "PurposeDeletedByRevokedDelegation",
-            "PurposeVersionArchivedByRevokedDelegation",
+            "PurposeVersionArchivedByRevokedDelegation"
           ),
         },
         (event) => {
           loggerInstance.info(
-            `Skipping not relevant event type: ${event.type}`,
+            `Skipping not relevant event type: ${event.type}`
           );
-        },
+        }
       )
       .exhaustive();
   }
@@ -167,7 +167,7 @@ export const handlePurposeMessageV2 = async (
   if (allPurposeDataToStore.length > 0) {
     const preparedFiles = await prepareNdjsonEventData<PurposeEventData>(
       allPurposeDataToStore,
-      loggerInstance,
+      loggerInstance
     );
 
     if (preparedFiles.length === 0) {
@@ -179,7 +179,7 @@ export const handlePurposeMessageV2 = async (
         preparedFile,
         fileManager,
         loggerInstance,
-        config,
+        config
       );
       await archiveFileToSafeStorage(
         result,
@@ -187,7 +187,7 @@ export const handlePurposeMessageV2 = async (
         dbService,
         safeStorage,
         safeStorageApiConfig,
-        correlationId,
+        correlationId
       );
     }
   } else {

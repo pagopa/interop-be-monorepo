@@ -18,7 +18,7 @@ export const archiveFileToSafeStorage = async (
   dbService: DbServiceBuilder,
   safeStorage: SafeStorageService,
   config: SafeStorageApiConfig,
-  correlationId: string,
+  correlationId: string
 ): Promise<void> => {
   const { fileContentBuffer, fileName } = storedFile;
 
@@ -35,7 +35,7 @@ export const archiveFileToSafeStorage = async (
 
   try {
     const { uploadUrl, secret, key } = await safeStorage.createFile(
-      safeStorageRequest,
+      safeStorageRequest
     );
 
     await safeStorage.uploadFileContent(
@@ -43,7 +43,7 @@ export const archiveFileToSafeStorage = async (
       fileContentBuffer,
       "application/json",
       secret,
-      checksum,
+      checksum
     );
 
     logger.info(`File ${fileName} uploaded to Safe Storage successfully.`);
@@ -57,7 +57,7 @@ export const archiveFileToSafeStorage = async (
     logger.info(`Safe Storage reference for ${fileName} saved in DynamoDB.`);
   } catch (error) {
     throw genericInternalError(
-      `Failed to process Safe Storage/DynamoDB for file ${fileName}: ${error}`,
+      `Failed to process Safe Storage/DynamoDB for file ${fileName}: ${error}`
     );
   }
 };
