@@ -4428,11 +4428,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         state:
           $ref: "#/components/schemas/EServiceDescriptorState"
         agreementApprovalPolicy:
@@ -4567,11 +4569,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         state:
           $ref: "#/components/schemas/EServiceTemplateVersionState"
         agreementApprovalPolicy:
