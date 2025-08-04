@@ -104,7 +104,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     authRole.API_ROLE,
     authRole.M2M_ADMIN_ROLE,
   ];
-  it.only.each(authorizedRoles)(
+  it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
