@@ -107,7 +107,7 @@ export const toEserviceCatalogProcessMock = (
         : undefined,
       serverUrls: [],
       state: "DRAFT",
-      version: "1",
+      version: 1,
       agreementApprovalPolicy: "AUTOMATIC",
       publishedAt: new Date().toISOString(),
       suspendedAt: undefined,

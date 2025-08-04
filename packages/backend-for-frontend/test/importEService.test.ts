@@ -43,7 +43,7 @@ describe("importEService", () => {
     descriptors: [
       {
         id: generateId<DescriptorId>(),
-        version: "3.0.0",
+        version: 3,
         audience: [],
         voucherLifespan: 1,
         dailyCallsPerConsumer: 2,

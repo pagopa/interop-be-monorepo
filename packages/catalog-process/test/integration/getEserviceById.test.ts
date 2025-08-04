@@ -175,12 +175,12 @@ describe("get eservice by id", () => {
         async (context) => {
           const descriptorA: Descriptor = {
             ...getMockDescriptor(),
-            version: "1",
+            version: 1,
             state,
           };
           const descriptorB: Descriptor = {
             ...getMockDescriptor(),
-            version: "2",
+            version: 2,
             state: descriptorState.published,
             interface: mockDocument,
             publishedAt: new Date(),
@@ -206,12 +206,12 @@ describe("get eservice by id", () => {
       it("if the eservice has both of that state and not (requester is the producer, but user role is 'security')", async () => {
         const descriptorA: Descriptor = {
           ...getMockDescriptor(),
-          version: "1",
+          version: 1,
           state,
         };
         const descriptorB: Descriptor = {
           ...getMockDescriptor(),
-          version: "2",
+          version: 2,
           state: descriptorState.published,
           interface: mockDocument,
           publishedAt: new Date(),
@@ -235,12 +235,12 @@ describe("get eservice by id", () => {
       it("if the eservice has both of that state and not (requester is delegate, but user role is 'security')", async () => {
         const descriptorA: Descriptor = {
           ...getMockDescriptor(),
-          version: "1",
+          version: 1,
           state,
         };
         const descriptorB: Descriptor = {
           ...getMockDescriptor(),
-          version: "2",
+          version: 2,
           state: descriptorState.published,
           interface: mockDocument,
           publishedAt: new Date(),
@@ -278,12 +278,12 @@ describe("get eservice by id", () => {
         async (context) => {
           const descriptorA: Descriptor = {
             ...getMockDescriptor(),
-            version: "1",
+            version: 1,
             state,
           };
           const descriptorB: Descriptor = {
             ...getMockDescriptor(),
-            version: "2",
+            version: 2,
             state: descriptorState.published,
             interface: mockDocument,
             publishedAt: new Date(),
@@ -307,12 +307,12 @@ describe("get eservice by id", () => {
         async (context) => {
           const descriptorA: Descriptor = {
             ...getMockDescriptor(),
-            version: "1",
+            version: 1,
             state,
           };
           const descriptorB: Descriptor = {
             ...getMockDescriptor(),
-            version: "2",
+            version: 2,
             state: descriptorState.published,
             interface: mockDocument,
             publishedAt: new Date(),
