@@ -2,6 +2,7 @@ import {
   APIEndpoint,
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
+  FileManagerConfig,
   RedisRateLimiterConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -20,9 +21,16 @@ export type TenantProcessServerConfig = z.infer<
 export const AgreementProcessServerConfig = z
   .object({
     AGREEMENT_PROCESS_URL: APIEndpoint,
+    AGREEMENT_CONSUMER_DOCUMENTS_PATH: z.string(),
+    AGREEMENT_CONSUMER_CONTRACTS_PATH: z.string(),
+    AGREEMENT_CONSUMER_DOCUMENTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
     agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
+    agreementConsumerDocumentsPath: c.AGREEMENT_CONSUMER_DOCUMENTS_PATH,
+    agreementConsumerContractsPath: c.AGREEMENT_CONSUMER_CONTRACTS_PATH,
+    agreementConsumerDocumentsContainer:
+      c.AGREEMENT_CONSUMER_DOCUMENTS_CONTAINER,
   }));
 export type AgreementProcessServerConfig = z.infer<
   typeof AgreementProcessServerConfig
@@ -31,9 +39,13 @@ export type AgreementProcessServerConfig = z.infer<
 export const CatalogProcessServerConfig = z
   .object({
     CATALOG_PROCESS_URL: APIEndpoint,
+    ESERVICE_DOCUMENTS_CONTAINER: z.string(),
+    ESERVICE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     catalogProcessUrl: c.CATALOG_PROCESS_URL,
+    eserviceDocumentsContainer: c.ESERVICE_DOCUMENTS_CONTAINER,
+    eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
 export type CatalogProcessServerConfig = z.infer<
   typeof CatalogProcessServerConfig
@@ -53,9 +65,13 @@ export type AttributeRegistryProcessServerConfig = z.infer<
 export const PurposeProcessServerConfig = z
   .object({
     PURPOSE_PROCESS_URL: APIEndpoint,
+    RISK_ANALYSIS_DOCUMENTS_CONTAINER: z.string(),
+    RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     purposeUrl: c.PURPOSE_PROCESS_URL,
+    riskAnalysisDocumentsContainer: c.RISK_ANALYSIS_DOCUMENTS_CONTAINER,
+    riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
   }));
 export type PurposeProcessServerConfig = z.infer<
   typeof PurposeProcessServerConfig
@@ -104,6 +120,7 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(DelegationProcessServerConfig)
   .and(EServiceTemplateProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
+  .and(FileManagerConfig)
   .and(
     z
       .object({

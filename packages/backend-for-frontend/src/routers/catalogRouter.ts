@@ -647,7 +647,7 @@ const catalogRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          bffGetCatalogErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error inserting risk analysis ${req.body.name} to eservice ${req.params.eServiceId} from catalog`
         );
@@ -792,7 +792,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            bffGetCatalogErrorMapper,
+            emptyErrorMapper,
             ctx,
             `Error deleting risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );

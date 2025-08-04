@@ -9,7 +9,12 @@ import {
   validateAuthorization,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
-import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DelegationId,
+  EServiceId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
   apiPurposeVersionStateToPurposeVersionState,
@@ -134,10 +139,15 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { purpose, isRiskAnalysisValid } =
-          await purposeService.createReversePurpose(req.body, ctx);
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.createReversePurpose(req.body, ctx);
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -245,7 +255,7 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         await purposeService.deletePurpose(unsafeBrandId(req.params.id), ctx);
         return res.status(204).send();
@@ -310,15 +320,18 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        await purposeService.deletePurposeVersion(
+        const { metadata } = await purposeService.deletePurposeVersion(
           {
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
           },
           ctx
         );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -401,6 +414,9 @@ const purposeRouter = (
               {
                 purposeId: unsafeBrandId(purposeId),
                 versionId: unsafeBrandId(versionId),
+                delegationId: req.body.delegationId
+                  ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                  : undefined,
               },
               ctx
             );
@@ -459,6 +475,9 @@ const purposeRouter = (
             {
               purposeId: unsafeBrandId(req.params.purposeId),
               versionId: unsafeBrandId(req.params.versionId),
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                : undefined,
             },
             ctx
           );
