@@ -23,6 +23,7 @@ import {
   TenantDbTable,
   ClientDbTable,
   ProducerKeychainDbTable,
+  PurposeTemplateDbTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 import { EserviceTemplateDbTable } from "./model/db/eserviceTemplate.js";
@@ -96,6 +97,12 @@ await retryConnection(
       EserviceTemplateDbTable.eservice_template_version_interface,
       EserviceTemplateDbTable.eservice_template_risk_analysis,
       EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
+      PurposeTemplateDbTable.purpose_template,
+      PurposeTemplateDbTable.purpose_template_eservice_descriptor_version,
+      PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
+      PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation,
+      PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document,
+      PurposeTemplateDbTable.purpose_template_risk_analysis_form,
     ]);
     await setupDbService.setupPartialStagingTables([
       TenantDbPartialTable.tenant_self_care_id,

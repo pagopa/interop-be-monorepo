@@ -25,6 +25,7 @@ import {
   CatalogDbPartialTable,
   ClientDbTable,
   ProducerKeychainDbTable,
+  PurposeTemplateDbTable,
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
@@ -118,6 +119,15 @@ export const producerKeychainTables: ProducerKeychainDbTable[] = [
   ProducerKeychainDbTable.producer_keychain_key,
 ];
 
+export const purposeTemplateTables: PurposeTemplateDbTable[] = [
+  PurposeTemplateDbTable.purpose_template,
+  PurposeTemplateDbTable.purpose_template_eservice_descriptor_version,
+  PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
+  PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation,
+  PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document,
+  PurposeTemplateDbTable.purpose_template_risk_analysis_form,
+];
+
 export const partialTables = [
   TenantDbPartialTable.tenant_self_care_id,
   CatalogDbPartialTable.descriptor_server_urls,
@@ -148,6 +158,7 @@ export const domainTables: DomainDbTable[] = [
   ...clientTables,
   ...producerKeychainTables,
   ...eserviceTemplateTables,
+  ...purposeTemplateTables,
 ];
 
 export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
