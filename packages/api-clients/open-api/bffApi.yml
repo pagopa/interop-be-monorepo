@@ -22272,7 +22272,8 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
     PurposeSeed:
       type: object
       additionalProperties: false
@@ -22297,7 +22298,8 @@ components:
         dailyCalls:
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
       required:
         - eserviceId
         - consumerId
@@ -22330,7 +22332,8 @@ components:
         dailyCalls:
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
       required:
         - eserviceId
         - consumerId
@@ -22804,6 +22807,8 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
         - title
         - description
@@ -22825,7 +22830,9 @@ components:
         dailyCalls:
           description: "maximum number of daily calls that this version can perform."
           type: integer
-          format: int32
+          format: int32          
+          minimum: 1
+          maximum: 1000000000
       required:
         - title
         - description
@@ -22884,6 +22891,8 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
         riskAnalysisDocument:
           $ref: "#/components/schemas/PurposeVersionDocument"
         rejectionReason:
