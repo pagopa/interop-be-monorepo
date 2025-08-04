@@ -12,8 +12,8 @@ import { prepareNdjsonEventData } from "../utils/ndjsonStore.js";
 import { AuthorizationEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { archiveFileToSafeStorage } from "../services/safeStorageArchivingService.js";
-import { uploadPreparedFileToS3 } from "../utils/s3Uploader.js";
+import { archiveFileToSafeStorage } from "./safeStorageArchivingHandler.js";
+import { uploadPreparedFileToS3 } from "./s3UploaderHandler.js";
 
 export const handleAuthorizationMessageV2 = async (
   eventsWithTimestamp: Array<{
@@ -22,7 +22,7 @@ export const handleAuthorizationMessageV2 = async (
   }>,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
-  safeStorage: SafeStorageService
+  safeStorage: SafeStorageService,
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
 
@@ -38,7 +38,7 @@ export const handleAuthorizationMessageV2 = async (
       .with({ type: "ClientKeyAdded" }, (event) => {
         if (!event.data.client?.id) {
           throw genericInternalError(
-            `Skipping ClientKeyAdded event due to missing client ID.`
+            `Skipping ClientKeyAdded event due to missing client ID.`,
           );
         }
 
@@ -58,7 +58,7 @@ export const handleAuthorizationMessageV2 = async (
       .with({ type: "ClientKeyDeleted" }, (event) => {
         if (!event.data.client?.id) {
           throw genericInternalError(
-            `Client id cannot be missing on event ${event.type}`
+            `Client id cannot be missing on event ${event.type}`,
           );
         }
 
@@ -104,13 +104,13 @@ export const handleAuthorizationMessageV2 = async (
           { type: "ProducerKeychainUserAdded" },
           { type: "ProducerKeychainUserDeleted" },
           { type: "ProducerKeychainEServiceAdded" },
-          { type: "ProducerKeychainEServiceRemoved" }
+          { type: "ProducerKeychainEServiceRemoved" },
         ),
         (event) => {
           loggerInstance.info(
-            `Skipping not relevant event type: ${event.type}`
+            `Skipping not relevant event type: ${event.type}`,
           );
-        }
+        },
       )
       .exhaustive();
   }
@@ -118,7 +118,7 @@ export const handleAuthorizationMessageV2 = async (
   if (allAuthorizationDataToStore.length > 0) {
     const preparedFiles = await prepareNdjsonEventData<AuthorizationEventData>(
       allAuthorizationDataToStore,
-      loggerInstance
+      loggerInstance,
     );
 
     if (preparedFiles.length === 0) {
@@ -130,7 +130,7 @@ export const handleAuthorizationMessageV2 = async (
         preparedFile,
         fileManager,
         loggerInstance,
-        config
+        config,
       );
       await archiveFileToSafeStorage(
         result,
@@ -138,7 +138,7 @@ export const handleAuthorizationMessageV2 = async (
         dbService,
         safeStorage,
         safeStorageApiConfig,
-        correlationId
+        correlationId,
       );
     }
   } else {

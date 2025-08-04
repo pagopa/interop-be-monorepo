@@ -12,9 +12,9 @@ import { config, safeStorageApiConfig } from "../config/config.js";
 import { DelegationEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { archiveFileToSafeStorage } from "../services/safeStorageArchivingService.js";
+import { archiveFileToSafeStorage } from "./safeStorageArchivingHandler.js";
 import { prepareNdjsonEventData } from "../utils/ndjsonStore.js";
-import { uploadPreparedFileToS3 } from "../utils/s3Uploader.js";
+import { uploadPreparedFileToS3 } from "./s3UploaderHandler.js";
 
 export const handleDelegationMessageV2 = async (
   eventsWithTimestamp: Array<{
@@ -23,7 +23,7 @@ export const handleDelegationMessageV2 = async (
   }>,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
-  safeStorage: SafeStorageService
+  safeStorage: SafeStorageService,
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
 
@@ -42,13 +42,13 @@ export const handleDelegationMessageV2 = async (
             "ProducerDelegationApproved",
             "ProducerDelegationRevoked",
             "ConsumerDelegationApproved",
-            "ConsumerDelegationRevoked"
+            "ConsumerDelegationRevoked",
           ),
         },
         (event) => {
           if (!event.data.delegation?.id) {
             throw genericInternalError(
-              `Skipping managed Delegation event ${event.type} due to missing delegation ID.`
+              `Skipping managed Delegation event ${event.type} due to missing delegation ID.`,
             );
           }
           const delegation = fromDelegationV2(event.data.delegation);
@@ -63,7 +63,7 @@ export const handleDelegationMessageV2 = async (
             eventTimestamp: timestamp,
             correlationId,
           });
-        }
+        },
       )
       .with(
         {
@@ -71,14 +71,14 @@ export const handleDelegationMessageV2 = async (
             "ProducerDelegationSubmitted",
             "ProducerDelegationRejected",
             "ConsumerDelegationSubmitted",
-            "ConsumerDelegationRejected"
+            "ConsumerDelegationRejected",
           ),
         },
         (event) => {
           loggerInstance.info(
-            `Skipping not relevant event type: ${event.type}`
+            `Skipping not relevant event type: ${event.type}`,
           );
-        }
+        },
       )
       .exhaustive();
   }
@@ -86,7 +86,7 @@ export const handleDelegationMessageV2 = async (
   if (allDelegationDataToStore.length > 0) {
     const preparedFiles = await prepareNdjsonEventData<DelegationEventData>(
       allDelegationDataToStore,
-      loggerInstance
+      loggerInstance,
     );
 
     if (preparedFiles.length === 0) {
@@ -98,7 +98,7 @@ export const handleDelegationMessageV2 = async (
         preparedFile,
         fileManager,
         loggerInstance,
-        config
+        config,
       );
       await archiveFileToSafeStorage(
         result,
@@ -106,7 +106,7 @@ export const handleDelegationMessageV2 = async (
         dbService,
         safeStorage,
         safeStorageApiConfig,
-        correlationId
+        correlationId,
       );
     }
   } else {

@@ -14,8 +14,8 @@ import { AgreementEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
 import { prepareNdjsonEventData } from "../utils/ndjsonStore.js";
-import { archiveFileToSafeStorage } from "../services/safeStorageArchivingService.js";
-import { uploadPreparedFileToS3 } from "../utils/s3Uploader.js";
+import { archiveFileToSafeStorage } from "./safeStorageArchivingHandler.js";
+import { uploadPreparedFileToS3 } from "./s3UploaderHandler.js";
 
 export const handleAgreementMessageV2 = async (
   eventsWithTimestamp: Array<{
@@ -24,7 +24,7 @@ export const handleAgreementMessageV2 = async (
   }>,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
-  safeStorage: SafeStorageService
+  safeStorage: SafeStorageService,
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
   const loggerInstance = logger({
@@ -48,13 +48,13 @@ export const handleAgreementMessageV2 = async (
             "AgreementUnsuspendedByConsumer",
             "AgreementUnsuspendedByPlatform",
             "AgreementArchivedByUpgrade",
-            "AgreementArchivedByConsumer"
+            "AgreementArchivedByConsumer",
           ),
         },
         (event) => {
           if (!event.data.agreement?.id) {
             throw genericInternalError(
-              `Skipping managed Agreement event ${event.type} due to missing agreement ID.`
+              `Skipping managed Agreement event ${event.type} due to missing agreement ID.`,
             );
           }
           const agreement = fromAgreementV2(event.data.agreement);
@@ -69,7 +69,7 @@ export const handleAgreementMessageV2 = async (
             eventTimestamp: timestamp,
             correlationId,
           });
-        }
+        },
       )
       .with(
         {
@@ -83,14 +83,14 @@ export const handleAgreementMessageV2 = async (
             "AgreementSetDraftByPlatform",
             "AgreementSetMissingCertifiedAttributesByPlatform",
             "AgreementDeletedByRevokedDelegation",
-            "AgreementArchivedByRevokedDelegation"
+            "AgreementArchivedByRevokedDelegation",
           ),
         },
         (event) => {
           loggerInstance.info(
-            `Skipping not relevant event type: ${event.type}`
+            `Skipping not relevant event type: ${event.type}`,
           );
-        }
+        },
       )
       .exhaustive();
   }
@@ -98,7 +98,7 @@ export const handleAgreementMessageV2 = async (
   if (allAgreementDataToStore.length > 0) {
     const preparedFiles = await prepareNdjsonEventData<AgreementEventData>(
       allAgreementDataToStore,
-      loggerInstance
+      loggerInstance,
     );
 
     if (preparedFiles.length === 0) {
@@ -110,7 +110,7 @@ export const handleAgreementMessageV2 = async (
         preparedFile,
         fileManager,
         loggerInstance,
-        config
+        config,
       );
       await archiveFileToSafeStorage(
         result,
@@ -118,7 +118,7 @@ export const handleAgreementMessageV2 = async (
         dbService,
         safeStorage,
         safeStorageApiConfig,
-        correlationId
+        correlationId,
       );
     }
   } else {
