@@ -951,71 +951,36 @@ components:
       type: object
       additionalProperties: false
       properties:
-        id:
-          type: string
-          format: uuid
         version:
           type: string
-        singleAnswers:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskAnalysisTemplateSingleAnswer"
-        multiAnswers:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskAnalysisTemplateMultiAnswer"
+          minLength: 1
+          maxLength: 250
+        answers:
+          additionalProperties:
+            $ref: "#/components/schemas/RiskAnalysisTemplateAnswer"
       required:
-        - id
         - version
-        - singleAnswers
-        - multiAnswers
-    RiskAnalysisTemplateSingleAnswer:
+        - answers
+    RiskAnalysisTemplateAnswer:
       type: object
       additionalProperties: false
       properties:
-        id:
-          type: string
-          format: uuid
-        key:
-          type: string
         value:
           type: string
+          minLength: 1
+          maxLength: 2000
         editable:
           type: boolean
         annotation:
           $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotation"
-        assistiveText:
-          type: string
         suggestedValues:
           type: array
           items:
             type: string
       required:
-        - id
-        - key
+        - value
         - editable
         - suggestedValues
-    RiskAnalysisTemplateMultiAnswer:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        key:
-          type: string
-        value:
-          type: string
-        editable:
-          type: boolean
-        annotation:
-          $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotation"
-        assistiveText:
-          type: string
-      required:
-        - id
-        - key
-        - editable
     RiskAnalysisTemplateAnswerAnnotation:
       type: object
       additionalProperties: false
