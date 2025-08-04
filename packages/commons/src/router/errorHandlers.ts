@@ -67,7 +67,7 @@ export function errorsToApiProblemsMiddleware(
       makeApiProblem(
         badRequestError("Unexpected error"),
         () => constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-        fromAppContext(req.ctx)
+        ctx
       )
     );
 }
