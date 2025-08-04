@@ -13,24 +13,17 @@ import { ExpressContext, fromAppContext } from "../context/context.js";
 const makeApiProblem = makeApiProblemBuilder({});
 
 export function zodiosValidationErrorToApiProblem(
-  zodError:
-    | {
-        context: string;
-        error: z.ZodIssue[];
-      }
-    | SyntaxError,
+  zodError: {
+    context: string;
+    error: z.ZodIssue[];
+  },
   req: WithZodiosContext<express.Request, ExpressContext>,
   res: Response,
   _next: NextFunction
 ): Response {
   const ctx = fromAppContext(req.ctx);
-  const { detail, errors } =
-    zodError instanceof SyntaxError
-      ? { detail: zodError.message, errors: [zodError] }
-      : {
-          detail: `Incorrect value for ${zodError.context}`,
-          errors: zodError.error.map((e) => fromZodIssue(e)),
-        };
+  const detail = `Incorrect value for ${zodError.context}`;
+  const errors = zodError.error.map((e) => fromZodIssue(e));
 
   return res
     .status(constants.HTTP_STATUS_BAD_REQUEST)
