@@ -195,15 +195,17 @@ export function getMockedApiConsumerPartialClient({
 
 export function getMockedApiEservice({
   descriptors,
+  technology,
 }: {
   descriptors?: catalogApi.EServiceDescriptor[];
+  technology?: catalogApi.EServiceTechnology;
 } = {}): catalogApi.EService {
   return {
     id: generateId(),
     name: generateMock(z.string().length(10)),
     producerId: generateId(),
     description: generateMock(z.string().length(10)),
-    technology: generateMock(catalogApi.EServiceTechnology),
+    technology: technology ?? generateMock(catalogApi.EServiceTechnology),
     descriptors:
       descriptors ?? generateMock(z.array(catalogApi.EServiceDescriptor)),
     riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
