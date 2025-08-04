@@ -220,7 +220,7 @@ const purposeTemplateRouter = (
       }
       return res.status(501);
     })
-    .post("/purposeTemplates/:id/activate", async (req, res) => {
+    .post("/purposeTemplates/:id/publish", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
