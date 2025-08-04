@@ -39,7 +39,7 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
-  purposeTemplateEserviceDescriptorVersionInReadmodelPurposeTemplate,
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
@@ -303,8 +303,8 @@ export type UserNotificationConfigItemsSQL = {
 export type PurposeTemplateSQL = InferSelectModel<
   typeof purposeTemplateInReadmodelPurposeTemplate
 >;
-export type PurposeTemplateEServiceDescriptorVersionSQL = InferSelectModel<
-  typeof purposeTemplateEserviceDescriptorVersionInReadmodelPurposeTemplate
+export type PurposeTemplateEServiceDescriptorSQL = InferSelectModel<
+  typeof purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
 >;
 export type PurposeTemplateRiskAnalysisFormSQL = InferSelectModel<
   typeof purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate
