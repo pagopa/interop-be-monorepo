@@ -3112,7 +3112,7 @@ paths:
       tags:
         - purposes
       summary: Activate a Purpose in Draft state
-      description: | 
+      description: |
         Activate a Purpose that is in Draft states
         The new state will be Active if daily calls are under the E-Service threshold, Waiting for Approval otherwise
       operationId: activateDraftPurpose
@@ -4829,7 +4829,8 @@ components:
         dailyCalls:
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
       required:
         - eserviceId
         - title
@@ -4874,7 +4875,8 @@ components:
           description: Maximum number of daily calls performed using this version
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
         rejectionReason:
           type: string
       required:
@@ -4906,7 +4908,8 @@ components:
           description: Maximum number of daily calls performed using this version
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
     PurposeVersionState:
       type: string
       description: Purpose State
