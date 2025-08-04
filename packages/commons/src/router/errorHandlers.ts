@@ -2,6 +2,7 @@ import { constants } from "http2";
 import express, { Response, NextFunction } from "express";
 import {
   badRequestError,
+  genericInternalError,
   makeApiProblemBuilder,
   parseErrorMessage,
 } from "pagopa-interop-models";
@@ -62,11 +63,11 @@ export function errorsToApiProblemsMiddleware(
   }
 
   return res
-    .status(constants.HTTP_STATUS_BAD_REQUEST)
+    .status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .send(
       makeApiProblem(
-        badRequestError("Unexpected error"),
-        () => constants.HTTP_STATUS_BAD_REQUEST,
+        genericInternalError("Unexpected error"),
+        () => constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
         fromAppContext(req.ctx)
       )
     );
