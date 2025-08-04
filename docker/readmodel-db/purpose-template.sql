@@ -18,11 +18,12 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template (
   UNIQUE (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_eservice_descriptor_version (
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_eservice_descriptor (
   metadata_version INTEGER NOT NULL,
   purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
   eservice_id UUID,
   descriptor_id UUID,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (purpose_template_id, eservice_id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
