@@ -1340,8 +1340,12 @@ export function catalogServiceBuilder(
     async deleteDraftDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService | void>> {
       logger.info(
         `Deleting draft Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1383,12 +1387,27 @@ export function catalogServiceBuilder(
           eserviceAfterDescriptorDeletion,
           correlationId
         );
-        await repository.createEvents([
+        const createdEvents = await repository.createEvents([
           descriptorDeletionEvent,
           eserviceDeletionEvent,
         ]);
+        const newVersion = Math.max(
+          0,
+          ...createdEvents.map((event) => event.newVersion)
+        );
+        logger.info(
+          `EService ${eserviceId} deleted as last descriptor ${descriptorId} was removed.`
+        );
+        return {
+          data: undefined,
+          metadata: { version: newVersion },
+        };
       } else {
-        await repository.createEvent(descriptorDeletionEvent);
+        const event = await repository.createEvent(descriptorDeletionEvent);
+        return {
+          data: eserviceAfterDescriptorDeletion,
+          metadata: { version: event.newVersion },
+        };
       }
     },
 

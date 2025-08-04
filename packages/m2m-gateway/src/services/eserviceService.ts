@@ -1,6 +1,6 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
+import { DescriptorId, EServiceId, unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
@@ -15,6 +15,11 @@ import {
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
+import {
+  pollResourceUntilDeletion,
+  pollResourceWithMetadata,
+  isPolledVersionAtLeastMetadataTargetVersion,
+} from "../utils/polling.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -56,6 +61,23 @@ export function eserviceServiceBuilder(
       metadata,
     };
   };
+
+  const pollEserviceUntilDeletion = (
+    eServiceId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveEServiceById(headers, unsafeBrandId(eServiceId))
+    )({});
+
+  const pollEserviceById = (
+    eserviceId: EServiceId,
+    metadata: { version: number } | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
+    pollResourceWithMetadata(() => retrieveEServiceById(headers, eserviceId))({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
+    });
 
   return {
     async getEService(
@@ -171,6 +193,32 @@ export function eserviceServiceBuilder(
         config.eserviceDocumentsContainer,
         logger
       );
+    },
+    async deleteDraftDescriptor(
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService | void> {
+      logger.info(
+        `Deleting descriptor ${descriptorId} for eservice with id ${eServiceId}`
+      );
+
+      const { data, metadata } = await clients.catalogProcessClient.deleteDraft(
+        undefined,
+        {
+          params: { eServiceId, descriptorId },
+          headers,
+        }
+      );
+      if (data === undefined) {
+        await pollEserviceUntilDeletion(eServiceId, headers);
+        return undefined;
+        // If the last descriptor is deleted, the EService is deleted as well
+      } else {
+        // If there are still descriptors, return the updated EService
+        await pollEserviceById(eServiceId, metadata, headers);
+        return toM2MGatewayApiEService(data);
+      }
     },
   };
 }

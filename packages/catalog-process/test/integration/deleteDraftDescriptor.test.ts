@@ -42,6 +42,55 @@ import {
 
 describe("delete draft descriptor", () => {
   const mockDocument = getMockDocument();
+
+  it("should write on event-store for the deletion of a draft descriptor (no interface nor documents to delete) and returned the Eservice", async () => {
+    vi.spyOn(fileManager, "delete");
+
+    const publishedDescriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      version: "1",
+    };
+    const descriptorToDelete: Descriptor = {
+      ...getMockDescriptor(descriptorState.draft),
+      version: "2",
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [publishedDescriptor, descriptorToDelete],
+    };
+    await addOneEService(eservice);
+
+    const returnedEservice = await catalogService.deleteDraftDescriptor(
+      eservice.id,
+      descriptorToDelete.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDraftDescriptorDeleted",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorDeletedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedEservice = {
+      ...eservice,
+      descriptors: [publishedDescriptor],
+    };
+
+    expect(returnedEservice.data).toEqual(expectedEservice);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+    expect(writtenPayload.descriptorId).toEqual(descriptorToDelete.id);
+    expect(fileManager.delete).not.toHaveBeenCalled();
+  });
+
   it("should write on event-store for the deletion of a draft descriptor (no interface nor documents to delete)", async () => {
     vi.spyOn(fileManager, "delete");
 

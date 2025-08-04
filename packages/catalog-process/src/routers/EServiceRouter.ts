@@ -5,6 +5,7 @@ import {
   authRole,
   ExpressContext,
   fromAppContext,
+  setMetadataVersionHeader,
   validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
@@ -476,14 +477,22 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          await catalogService.deleteDraftDescriptor(
+          const { data, metadata } = await catalogService.deleteDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).send();
+          if (data === undefined) {
+            // If the last descriptor is deleted, the EService is deleted as well
+            return res.status(204).send();
+          } else {
+            setMetadataVersionHeader(res, metadata);
+            return res
+              .status(200)
+              .send(catalogApi.EService.parse(eServiceToApiEService(data)));
+          }
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
