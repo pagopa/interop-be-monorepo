@@ -41,12 +41,8 @@ export function errorsToApiProblemsMiddleware(
   error: unknown,
   req: WithZodiosContext<express.Request, ExpressContext>,
   res: Response,
-  next: NextFunction
-): Response | void {
-  if (res.headersSent) {
-    return next(error);
-  }
-
+  _next: NextFunction
+): Response {
   const ctx = fromAppContext(req.ctx);
   ctx.logger.error(`Error in request: ${parseErrorMessage(error)}`);
 
