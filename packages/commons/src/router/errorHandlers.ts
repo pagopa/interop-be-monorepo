@@ -40,8 +40,12 @@ export function errorsToApiProblemsMiddleware(
   error: SyntaxError,
   req: WithZodiosContext<express.Request, ExpressContext>,
   res: Response,
-  _next: NextFunction
-): Response {
+  next: NextFunction
+): Response | void {
+  if (res.headersSent) {
+    return next(error);
+  }
+
   const ctx = fromAppContext(req.ctx);
   ctx.logger.error(`Error in request: ${parseErrorMessage(error)}`);
 
