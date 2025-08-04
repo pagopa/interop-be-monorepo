@@ -20,14 +20,14 @@ export const PurposeTemplateState = z.enum([
 ]);
 export type PurposeTemplateState = z.infer<typeof PurposeTemplateState>;
 
-export const EServiceDescriptorVersionPurposeTemplate = z.object({
+export const EServiceDescriptorPurposeTemplate = z.object({
   purposeTemplateId: PurposeTemplateId,
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
   createdAt: z.coerce.date(),
 });
 export type EServiceDescriptorVersionPurposeTemplate = z.infer<
-  typeof EServiceDescriptorVersionPurposeTemplate
+  typeof EServiceDescriptorPurposeTemplate
 >;
 
 export const PurposeTemplate = z.object({
