@@ -70,7 +70,7 @@ export type RiskAnalysisTemplateAnswerAnnotationDocument = z.infer<
 
 export const RiskAnalysisTemplateAnswerAnnotation = z.object({
   id: RiskAnalysisTemplateAnswerAnnotationId,
-  text: z.string().optional(),
+  text: z.string(),
   docs: z.array(RiskAnalysisTemplateAnswerAnnotationDocument),
 });
 export type RiskAnalysisTemplateAnswerAnnotation = z.infer<

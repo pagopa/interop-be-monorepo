@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
   purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   answer_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_answer (id) ON DELETE CASCADE,
-  "text" VARCHAR,
+  "text" VARCHAR NOT NULL,
   UNIQUE (answer_id),
   PRIMARY KEY (id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
