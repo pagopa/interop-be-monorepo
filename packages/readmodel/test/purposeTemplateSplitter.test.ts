@@ -91,20 +91,14 @@ describe("Purpose Template splitter", () => {
     } = splitPurposeTemplateIntoObjectsSQL(purposeTemplate, metadataVersion);
 
     const eservicesDescriptorsSQL: PurposeTemplateEServiceDescriptorSQL[] = [
-      toPurposeTemplateEServiceDescriptorSQL({
-        purposeTemplateId: purposeTemplate.id,
-        eserviceId: eservicesDescriptors[0].eserviceId,
-        descriptorId: eservicesDescriptors[0].descriptorId,
-        metadataVersion,
-        createdAt: eservicesDescriptors[0].createdAt,
-      }),
-      toPurposeTemplateEServiceDescriptorSQL({
-        purposeTemplateId: purposeTemplate.id,
-        eserviceId: eservicesDescriptors[1].eserviceId,
-        descriptorId: eservicesDescriptors[1].descriptorId,
-        metadataVersion,
-        createdAt: eservicesDescriptors[1].createdAt,
-      }),
+      toPurposeTemplateEServiceDescriptorSQL(
+        eservicesDescriptors[0],
+        metadataVersion
+      ),
+      toPurposeTemplateEServiceDescriptorSQL(
+        eservicesDescriptors[1],
+        metadataVersion
+      ),
     ];
 
     const expectedPurposeTemplateSQL: PurposeTemplateSQL = {

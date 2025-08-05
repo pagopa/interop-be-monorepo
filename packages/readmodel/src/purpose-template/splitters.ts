@@ -1,7 +1,6 @@
 import {
   dateToString,
-  DescriptorId,
-  EServiceId,
+  EServiceDescriptorPurposeTemplate,
   PurposeTemplate,
   PurposeTemplateId,
   riskAnalysisAnswerKind,
@@ -316,22 +315,13 @@ const splitRiskAnalysisTemplateAnswerAnnotationsIntoObjectsSQL = (
   };
 };
 
-export const toPurposeTemplateEServiceDescriptorSQL = ({
-  purposeTemplateId,
-  eserviceId,
-  descriptorId,
+export const toPurposeTemplateEServiceDescriptorSQL = (
+  purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate,
+  metadataVersion: number
+): PurposeTemplateEServiceDescriptorSQL => ({
   metadataVersion,
-  createdAt,
-}: {
-  purposeTemplateId: PurposeTemplateId;
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  metadataVersion: number;
-  createdAt: Date;
-}): PurposeTemplateEServiceDescriptorSQL => ({
-  metadataVersion,
-  purposeTemplateId,
-  eserviceId,
-  descriptorId,
-  createdAt: dateToString(createdAt),
+  purposeTemplateId: purposeTemplateEServiceDescriptor.purposeTemplateId,
+  eserviceId: purposeTemplateEServiceDescriptor.eserviceId,
+  descriptorId: purposeTemplateEServiceDescriptor.descriptorId,
+  createdAt: dateToString(purposeTemplateEServiceDescriptor.createdAt),
 });
