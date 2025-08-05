@@ -1,7 +1,7 @@
 #default value for compatibility
 ARG NODE_REGISTRY="docker.io"
 
-FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:fa43945ad45c5f8c50dbea0633d888ddeb739f7d4e06c7696a9d68b54054238a AS build
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:ef358d9fa0734e2c3b42482aa352c28a59245bc3d32e07ef57810cf8ba9092c5 AS build
 
 RUN corepack enable
 
@@ -44,7 +44,7 @@ RUN pnpm build && \
   packages/tenant-readmodel-writer-sql/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
-FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:fa43945ad45c5f8c50dbea0633d888ddeb739f7d4e06c7696a9d68b54054238a AS final
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:ef358d9fa0734e2c3b42482aa352c28a59245bc3d32e07ef57810cf8ba9092c5 AS final
 
 COPY --from=build /out /app
 

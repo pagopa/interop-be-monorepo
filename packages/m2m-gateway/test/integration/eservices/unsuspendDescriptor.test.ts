@@ -20,7 +20,7 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
+import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
 
 describe("unsuspendDescriptor", () => {
   const mockApiDescriptor: catalogApi.EServiceDescriptor = {
@@ -34,7 +34,8 @@ describe("unsuspendDescriptor", () => {
     })
   );
 
-  const mockM2MEserviceResponse = toM2MGatewayApiEService(mockApiEservice.data);
+  const mockM2MEserviceDescriptorResponse =
+    toM2MGatewayApiEServiceDescriptor(mockApiDescriptor);
 
   const mockActivateDescriptor = vi.fn().mockResolvedValue(mockApiEservice);
   const mockGetEservice = vi.fn(mockPollingResponse(mockApiEservice, 2));
@@ -56,7 +57,7 @@ describe("unsuspendDescriptor", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(mockM2MEserviceResponse);
+    expect(result).toEqual(mockM2MEserviceDescriptorResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.catalogProcessClient.activateDescriptor,
       params: {
@@ -73,7 +74,7 @@ describe("unsuspendDescriptor", () => {
     ).toHaveBeenCalledTimes(2);
   });
 
-  it("Should throw missingMetadata in case the eservice returned by the Ununsuspend call has no metadata", async () => {
+  it("Should throw missingMetadata in case the eservice returned by the Unsuspend call has no metadata", async () => {
     mockActivateDescriptor.mockResolvedValueOnce({
       metadata: undefined,
     });

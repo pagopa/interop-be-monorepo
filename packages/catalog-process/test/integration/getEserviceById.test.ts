@@ -81,7 +81,10 @@ describe("get eservice by id", () => {
       eservice1.id,
       getMockContext({ authData })
     );
-    expect(result.data).toStrictEqual(eservice1);
+    expect(result).toStrictEqual({
+      data: eservice1,
+      metadata: { version: 0 },
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {

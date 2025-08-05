@@ -14,7 +14,10 @@ import {
   agreementReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { upsertAgreement } from "pagopa-interop-readmodel/testUtils";
+import {
+  upsertAgreement,
+  upsertPurpose,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/readModelService.js";
 import { config } from "../src/config/config.js";
 import { readModelServiceBuilderSQL } from "../src/readModelServiceSQL.js";
@@ -53,7 +56,7 @@ export const readModelService =
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await writeInReadmodel(toReadModelPurpose(purpose), purposes);
-  await purposeReadModelServiceSQL.upsertPurpose(purpose, 1);
+  await upsertPurpose(readModelDB, purpose, 1);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
