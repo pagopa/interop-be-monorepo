@@ -74,7 +74,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
     authRole.M2M_ADMIN_ROLE,
   ];
   it.each(authorizedRoles)(
-    "Should return 201 for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockEService.id, descriptor.id);
