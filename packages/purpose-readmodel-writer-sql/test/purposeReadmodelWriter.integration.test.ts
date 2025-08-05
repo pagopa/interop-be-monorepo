@@ -43,7 +43,7 @@ import {
 } from "pagopa-interop-models";
 import { handleMessageV1 } from "../src/purposeConsumerServiceV1.js";
 import { handleMessageV2 } from "../src/purposeConsumerServiceV2.js";
-import { purposeReadModelService, readModelService } from "./utils.js";
+import { purposeReadModelService, purposeWriterService } from "./utils.js";
 
 describe("Integration tests", async () => {
   describe("Events V1", () => {
@@ -63,7 +63,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -76,7 +76,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionCreated", async () => {
-      await readModelService.upsertPurpose(mockPurpose, 1);
+      await purposeWriterService.upsertPurpose(mockPurpose, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -95,7 +95,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -110,7 +110,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeUpdated", async () => {
-      await readModelService.upsertPurpose(mockPurpose, 1);
+      await purposeWriterService.upsertPurpose(mockPurpose, 1);
 
       const updatedPurpose = {
         ...mockPurpose,
@@ -128,7 +128,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -147,7 +147,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -167,7 +167,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -186,7 +186,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -206,7 +206,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -225,7 +225,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -245,7 +245,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -264,7 +264,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -287,7 +287,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -306,7 +306,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -330,7 +330,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -349,7 +349,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurposeVersion: PurposeVersion = {
         ...mockPurposeVersion,
@@ -372,7 +372,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -392,8 +392,8 @@ describe("Integration tests", async () => {
         id: generateId(),
         title: "Purpose 2 - test",
       };
-      await readModelService.upsertPurpose(mockPurpose, 1);
-      await readModelService.upsertPurpose(mockPurpose2, 1);
+      await purposeWriterService.upsertPurpose(mockPurpose, 1);
+      await purposeWriterService.upsertPurpose(mockPurpose2, 1);
 
       const payload: PurposeDeletedV1 = {
         purposeId: mockPurpose.id,
@@ -407,7 +407,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -433,7 +433,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion, mockPurposeVersion2],
       };
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -452,7 +452,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -470,7 +470,7 @@ describe("Integration tests", async () => {
   describe("Events V2", async () => {
     const mockPurpose = getMockPurpose();
     it("DraftPurposeDeleted", async () => {
-      await readModelService.upsertPurpose(mockPurpose, 1);
+      await purposeWriterService.upsertPurpose(mockPurpose, 1);
 
       const payload: DraftPurposeDeletedV2 = {
         purpose: toPurposeV2(mockPurpose),
@@ -484,7 +484,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -506,7 +506,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -521,7 +521,7 @@ describe("Integration tests", async () => {
     });
 
     it("DraftPurposeUpdated", async () => {
-      await readModelService.upsertPurpose(mockPurpose, 1);
+      await purposeWriterService.upsertPurpose(mockPurpose, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -539,7 +539,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         mockPurpose.id
@@ -564,7 +564,7 @@ describe("Integration tests", async () => {
         versions: purposeVersions,
       };
 
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const date = new Date();
       const updatedPurpose: Purpose = {
@@ -594,7 +594,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         updatedPurpose.id
@@ -614,7 +614,7 @@ describe("Integration tests", async () => {
         versions: [{ ...getMockPurposeVersion(), state: "Active" }],
       };
 
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const waitingForApprovalVersion: PurposeVersion = {
         ...getMockPurposeVersion(),
@@ -640,7 +640,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         updatedPurpose.id
@@ -662,7 +662,7 @@ describe("Integration tests", async () => {
         versions: [draftVersion],
       };
 
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const date = new Date();
       const updatedPurpose: Purpose = {
@@ -683,7 +683,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         updatedPurpose.id
@@ -705,7 +705,7 @@ describe("Integration tests", async () => {
         versions: [activeVersion],
       };
 
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const date = new Date();
       const updatedPurpose: Purpose = {
@@ -727,7 +727,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         updatedPurpose.id
@@ -752,7 +752,7 @@ describe("Integration tests", async () => {
         versions: purposeVersions,
       };
 
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const date = new Date();
       const updatedPurpose: Purpose = {
@@ -777,7 +777,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         updatedPurpose.id
@@ -802,7 +802,7 @@ describe("Integration tests", async () => {
         versions: [waitingForApprovalVersion],
       };
 
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -823,7 +823,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         updatedPurpose.id
@@ -848,7 +848,7 @@ describe("Integration tests", async () => {
         versions: [activeVersion],
       };
 
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -873,7 +873,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         updatedPurpose.id
@@ -898,7 +898,7 @@ describe("Integration tests", async () => {
         versions: [activeVersion],
       };
 
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -923,7 +923,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         updatedPurpose.id
@@ -951,7 +951,7 @@ describe("Integration tests", async () => {
         suspendedByProducer: false,
       };
 
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurposeVersion: PurposeVersion = {
         ...suspendedVersion,
@@ -983,7 +983,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         updatedPurpose.id
@@ -1011,7 +1011,7 @@ describe("Integration tests", async () => {
         suspendedByProducer: true,
       };
 
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurposeVersion: PurposeVersion = {
         ...suspendedVersion,
@@ -1042,7 +1042,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         updatedPurpose.id
@@ -1063,7 +1063,7 @@ describe("Integration tests", async () => {
         versions: [draftVersion],
       };
 
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1089,7 +1089,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         updatedPurpose.id
@@ -1118,7 +1118,7 @@ describe("Integration tests", async () => {
         versions: purposeVersions,
       };
 
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1139,7 +1139,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         updatedPurpose.id
@@ -1160,7 +1160,7 @@ describe("Integration tests", async () => {
         versions: [draftVersion],
       };
 
-      await readModelService.upsertPurpose(purpose, 1);
+      await purposeWriterService.upsertPurpose(purpose, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1188,7 +1188,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         updatedPurpose.id
@@ -1230,7 +1230,7 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, purposeWriterService);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         clonedPurpose.id
