@@ -23,6 +23,7 @@ import {
   TenantDbTable,
   ClientDbTable,
   ProducerKeychainDbTable,
+  ClientDbTablePartialTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 import { EserviceTemplateDbTable } from "./model/db/eserviceTemplate.js";
@@ -100,6 +101,7 @@ await retryConnection(
     await setupDbService.setupPartialStagingTables([
       TenantDbPartialTable.tenant_self_care_id,
       CatalogDbPartialTable.descriptor_server_urls,
+      ClientDbTablePartialTable.key_relationship_migrated,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },

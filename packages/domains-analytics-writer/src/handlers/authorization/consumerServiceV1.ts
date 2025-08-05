@@ -157,7 +157,6 @@ export async function handleAuthorizationMessageV1(
               createdAt: dateToString(key.createdAt),
             } satisfies z.input<typeof ClientKeySchema>)
           );
-
         upsertClientKeyBatch.push(...keysSQL);
       })
       .with({ type: "KeyDeleted" }, async (msg) => {
