@@ -43,6 +43,8 @@ import {
   m2mUpsertTenantErrorMapper,
   maintenanceTenantUpdatedErrorMapper,
   updateTenantDelegatedFeaturesErrorMapper,
+  getTenantVerifiedAttributeVerifiersErrorMapper,
+  getTenantVerifiedAttributeRevokersErrorMapper,
 } from "../utilities/errorMappers.js";
 import { TenantService } from "../services/tenantService.js";
 
@@ -489,7 +491,11 @@ const tenantsRouter = (
             })
           );
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+          const errorRes = makeApiProblem(
+            error,
+            getTenantVerifiedAttributeVerifiersErrorMapper,
+            ctx
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -518,7 +524,11 @@ const tenantsRouter = (
             })
           );
         } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+          const errorRes = makeApiProblem(
+            error,
+            getTenantVerifiedAttributeRevokersErrorMapper,
+            ctx
+          );
           return res.status(errorRes.status).send(errorRes);
         }
       }

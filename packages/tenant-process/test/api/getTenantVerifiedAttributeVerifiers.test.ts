@@ -5,7 +5,11 @@ import { generateId, TenantId, AttributeId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, tenantService } from "../vitest.api.setup.js";
-
+import {
+  attributeNotFoundInTenant,
+  tenantNotFound,
+  attributeNotFound,
+} from "../../src/model/domain/errors.js";
 describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/verifiers test", () => {
   const tenantId: TenantId = generateId();
   const attributeId: AttributeId = generateId();
@@ -15,8 +19,8 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/verifier
   const mockVerifiers = [
     {
       id: generateId(),
-      verificationDate: new Date().toISOString(),
-      expirationDate: new Date().toISOString(),
+      verificationDate: new Date(),
+      expirationDate: new Date(),
       extensionDate: undefined,
       delegationId: undefined,
     },
@@ -24,6 +28,17 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/verifier
 
   const serviceResponse = {
     results: mockVerifiers,
+    totalCount: 1,
+  };
+
+  const expectedApiResponse = {
+    results: mockVerifiers.map((verifier) => ({
+      id: verifier.id,
+      verificationDate: verifier.verificationDate.toJSON(),
+      expirationDate: verifier.expirationDate?.toJSON(),
+      extensionDate: undefined,
+      delegationId: verifier.delegationId,
+    })),
     totalCount: 1,
   };
 
@@ -66,7 +81,7 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/verifier
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(serviceResponse);
+      expect(res.body).toEqual(expectedApiResponse);
       expect(
         tenantService.getTenantVerifiedAttributeVerifiers
       ).toHaveBeenCalledWith(
@@ -124,7 +139,6 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/verifier
   });
 
   it("Should return 404 when tenant does not exist", async () => {
-    const { tenantNotFound } = await import("../../src/model/domain/errors.js");
     tenantService.getTenantVerifiedAttributeVerifiers = vi
       .fn()
       .mockRejectedValue(tenantNotFound(tenantId));
@@ -135,9 +149,6 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/verifier
   });
 
   it("Should return 404 when attribute does not exist", async () => {
-    const { attributeNotFound } = await import(
-      "../../src/model/domain/errors.js"
-    );
     tenantService.getTenantVerifiedAttributeVerifiers = vi
       .fn()
       .mockRejectedValue(attributeNotFound(attributeId));
@@ -148,9 +159,6 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/verifier
   });
 
   it("Should return 404 when verified attribute does not exist in tenant", async () => {
-    const { attributeNotFoundInTenant } = await import(
-      "../../src/model/domain/errors.js"
-    );
     tenantService.getTenantVerifiedAttributeVerifiers = vi
       .fn()
       .mockRejectedValue(attributeNotFoundInTenant(attributeId, tenantId));

@@ -875,8 +875,6 @@ paths:
           format: uuid
         description: Attribute id
     get:
-      security:
-        - bearerAuth: []
       tags:
         - tenant
       operationId: getTenantVerifiedAttributeRevokers

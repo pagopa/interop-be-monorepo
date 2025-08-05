@@ -151,7 +151,7 @@ export async function retrieveAttribute(
   return attribute;
 }
 
-async function retrieveTenantAttribute(
+async function retrieveTenantVerifiedAttribute(
   tenantId: TenantId,
   attributeId: AttributeId,
   readModelService: ReadModelService
@@ -1874,7 +1874,11 @@ export function tenantServiceBuilder(
       );
 
       // Validate that tenant and verified attribute exist
-      await retrieveTenantAttribute(tenantId, attributeId, readModelService);
+      await retrieveTenantVerifiedAttribute(
+        tenantId,
+        attributeId,
+        readModelService
+      );
 
       return await readModelService.getTenantVerifiedAttributeVerifiers(
         tenantId,
@@ -1895,7 +1899,11 @@ export function tenantServiceBuilder(
       );
 
       // Validate that tenant and verified attribute exist
-      await retrieveTenantAttribute(tenantId, attributeId, readModelService);
+      await retrieveTenantVerifiedAttribute(
+        tenantId,
+        attributeId,
+        readModelService
+      );
 
       return await readModelService.getTenantVerifiedAttributeRevokers(
         tenantId,

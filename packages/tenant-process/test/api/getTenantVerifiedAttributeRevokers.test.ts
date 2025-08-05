@@ -5,6 +5,11 @@ import { generateId, TenantId, AttributeId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, tenantService } from "../vitest.api.setup.js";
+import {
+  tenantNotFound,
+  attributeNotFound,
+  attributeNotFoundInTenant,
+} from "../../src/model/domain/errors.js";
 
 describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/revokers test", () => {
   const tenantId: TenantId = generateId();
@@ -15,16 +20,28 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/revokers
   const mockRevokers = [
     {
       id: generateId(),
-      verificationDate: new Date().toISOString(),
-      expirationDate: new Date().toISOString(),
+      verificationDate: new Date(),
+      expirationDate: new Date(),
       extensionDate: undefined,
-      revocationDate: new Date().toISOString(),
+      revocationDate: new Date(),
       delegationId: undefined,
     },
   ];
 
   const serviceResponse = {
     results: mockRevokers,
+    totalCount: 1,
+  };
+
+  const expectedApiResponse = {
+    results: mockRevokers.map((revoker) => ({
+      id: revoker.id,
+      verificationDate: revoker.verificationDate.toJSON(),
+      expirationDate: revoker.expirationDate?.toJSON(),
+      extensionDate: undefined,
+      revocationDate: revoker.revocationDate.toJSON(),
+      delegationId: revoker.delegationId,
+    })),
     totalCount: 1,
   };
 
@@ -67,7 +84,7 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/revokers
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(serviceResponse);
+      expect(res.body).toEqual(expectedApiResponse);
       expect(
         tenantService.getTenantVerifiedAttributeRevokers
       ).toHaveBeenCalledWith(
@@ -125,7 +142,6 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/revokers
   });
 
   it("Should return 404 when tenant does not exist", async () => {
-    const { tenantNotFound } = await import("../../src/model/domain/errors.js");
     tenantService.getTenantVerifiedAttributeRevokers = vi
       .fn()
       .mockRejectedValue(tenantNotFound(tenantId));
@@ -136,9 +152,6 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/revokers
   });
 
   it("Should return 404 when attribute does not exist", async () => {
-    const { attributeNotFound } = await import(
-      "../../src/model/domain/errors.js"
-    );
     tenantService.getTenantVerifiedAttributeRevokers = vi
       .fn()
       .mockRejectedValue(attributeNotFound(attributeId));
@@ -149,9 +162,6 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/revokers
   });
 
   it("Should return 404 when verified attribute does not exist in tenant", async () => {
-    const { attributeNotFoundInTenant } = await import(
-      "../../src/model/domain/errors.js"
-    );
     tenantService.getTenantVerifiedAttributeRevokers = vi
       .fn()
       .mockRejectedValue(attributeNotFoundInTenant(attributeId, tenantId));
