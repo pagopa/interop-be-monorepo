@@ -1,4 +1,6 @@
 import {
+  EService,
+  EServiceId,
   PurposeTemplate,
   PurposeTemplateId,
   WithMetadata,
@@ -28,6 +30,9 @@ export function purposeTemplateServiceBuilder(
       _ctx: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeTemplate> | undefined> {
       return readModelService.getPurposeTemplateById(id);
+    },
+    async getEServiceById(id: EServiceId): Promise<EService | undefined> {
+      return readModelService.getEServiceById(id);
     },
   };
 }
