@@ -112,7 +112,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiTenant(tenant);
     },
-    async getDeclaredAttributes(
+    async getTenantDeclaredAttributes(
       tenantId: TenantId,
       {
         delegationId,
@@ -150,7 +150,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async getCertifiedAttributes(
+    async getTenantCertifiedAttributes(
       tenantId: TenantId,
       { limit, offset }: m2mGatewayApi.GetTenantCertifiedAttributesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -229,7 +229,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiTenantCertifiedAttribute(certifiedAttribute);
     },
-    async getVerifiedAttributes(
+    async getTenantVerifiedAttributes(
       tenantId: TenantId,
       { limit, offset }: m2mGatewayApi.GetTenantVerifiedAttributesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
