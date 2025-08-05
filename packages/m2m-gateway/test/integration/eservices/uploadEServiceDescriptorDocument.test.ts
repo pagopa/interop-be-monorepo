@@ -121,7 +121,7 @@ describe("uploadEServiceDescriptorDocument", () => {
         prettyName: mockFileUpload.prettyName,
         contentType: mockFileUpload.file.type,
         filePath: matchExpectedPath,
-        kind: catalogApi.EServiceDocumentKind.Values.INTERFACE,
+        kind: catalogApi.EServiceDocumentKind.Values.DOCUMENT,
         serverUrls: [
           // Empty since it's not the interface document
         ],
