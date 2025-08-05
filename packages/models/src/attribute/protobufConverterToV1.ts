@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import { AttributeKindV1, AttributeV1 } from "../index.js";
+import { AttributeKindV1, AttributeV1 } from "../gen/v1/attribute/attribute.js";
 import { Attribute, AttributeKind, attributeKind } from "./attribute.js";
 
 export const toAttributeV1 = (attribute: Attribute): AttributeV1 => ({

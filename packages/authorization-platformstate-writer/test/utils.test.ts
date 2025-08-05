@@ -70,7 +70,6 @@ import {
   setClientPurposeIdsInPlatformStatesEntry,
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
-  readConsumerClientsInTokenGenStatesV1,
   retrievePlatformStatesByPurpose,
   updateTokenGenStatesDataForSecondRetrieval,
   upsertPlatformClientEntry,
@@ -865,51 +864,6 @@ describe("utils", () => {
       const resultAfter = await readAllTokenGenStatesItems(dynamoDBClient);
       expect(resultAfter).toEqual([updatedEntry]);
     });
-  });
-
-  it("readConsumerClientsInTokenGenStatesV1", async () => {
-    const clientId = generateId<ClientId>();
-    const pk1 = makeTokenGenerationStatesClientKidPK({ clientId, kid: "" });
-    const pk2 = makeTokenGenerationStatesClientKidPurposePK({
-      clientId,
-      kid: "",
-      purposeId: generateId<PurposeId>(),
-    });
-
-    const GSIPK_clientId = clientId;
-
-    const tokenGenStatesConsumerClientWithoutPurpose: TokenGenerationStatesConsumerClient =
-      {
-        ...getMockTokenGenStatesConsumerClient(pk1),
-        GSIPK_clientId,
-      };
-
-    const tokenGenStatesConsumerClientWithPurpose: TokenGenerationStatesConsumerClient =
-      {
-        ...getMockTokenGenStatesConsumerClient(pk2),
-        GSIPK_clientId,
-      };
-
-    await writeTokenGenStatesConsumerClient(
-      tokenGenStatesConsumerClientWithoutPurpose,
-      dynamoDBClient
-    );
-    await writeTokenGenStatesConsumerClient(
-      tokenGenStatesConsumerClientWithPurpose,
-      dynamoDBClient
-    );
-
-    const res = await readConsumerClientsInTokenGenStatesV1(
-      GSIPK_clientId,
-      dynamoDBClient
-    );
-
-    expect(res).toEqual(
-      expect.arrayContaining([
-        tokenGenStatesConsumerClientWithoutPurpose,
-        tokenGenStatesConsumerClientWithPurpose,
-      ])
-    );
   });
 
   it("setClientPurposeIdsInPlatformStatesEntry", async () => {

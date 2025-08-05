@@ -1,0 +1,25 @@
+meta {
+  name: List agreements
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-m2m-gw}}/agreements?offset=0&limit=10&eservicesIds=["{{eserviceId}}"]&producersIds=["{{tenantId}}"]&consumersIds=["{{tenantId}}"]&states=["DRAFT","ACTIVE"]&descriptorIds=["{{descriptorId}}"]
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  eservicesIds: ["{{eserviceId}}"]
+  producersIds: ["{{tenantId}}"]
+  consumersIds: ["{{tenantId}}"]
+  states: ["DRAFT","ACTIVE"]
+  descriptorIds: ["{{descriptorId}}"]
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
