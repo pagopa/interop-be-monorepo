@@ -12,8 +12,8 @@ import {
 export const RiskAnalysisTemplateAnswerAnnotationDocument = z.object({
   id: RiskAnalysisTemplateAnswerAnnotationDocumentId,
   name: z.string(),
-  contentType: z.string(),
   prettyName: z.string(),
+  contentType: z.string(),
   path: z.string(),
   createdAt: z.coerce.date(),
 });

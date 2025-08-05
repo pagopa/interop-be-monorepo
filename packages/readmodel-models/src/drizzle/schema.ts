@@ -1958,6 +1958,7 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurpo
       metadataVersion: integer("metadata_version").notNull(),
       annotationId: uuid("annotation_id").notNull(),
       name: varchar().notNull(),
+      prettyName: varchar("pretty_name").notNull(),
       contentType: varchar("content_type").notNull(),
       path: varchar().notNull(),
       createdAt: timestamp("created_at", {
