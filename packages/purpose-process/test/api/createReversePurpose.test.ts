@@ -54,7 +54,7 @@ describe("API POST /reverse/purposes test", () => {
 
   const makeRequest = async (
     token: string,
-    body: purposeApi.EServicePurposeSeed = mockReversePurposeSeed
+    body: purposeApi.ReversePurposeSeed = mockReversePurposeSeed
   ) =>
     request(api)
       .post("/reverse/purposes")
@@ -128,15 +128,12 @@ describe("API POST /reverse/purposes test", () => {
 
   it.each([
     { body: {} },
-    { body: { ...mockReversePurposeSeed, eServiceId: undefined } },
-    { body: { ...mockReversePurposeSeed, eServiceId: "invalid" } },
+    { body: { ...mockReversePurposeSeed, eserviceId: undefined } },
+    { body: { ...mockReversePurposeSeed, eserviceId: "invalid" } },
     { body: { ...mockReversePurposeSeed, extraField: 1 } },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      body as purposeApi.EServicePurposeSeed
-    );
+    const res = await makeRequest(token, body as purposeApi.ReversePurposeSeed);
     expect(res.status).toBe(400);
   });
 });

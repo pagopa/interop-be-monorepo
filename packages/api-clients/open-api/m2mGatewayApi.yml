@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: PDND Interoperability API
   x-summary: PDND Interoperability API
-  version: "2.0.0"
+  version: "2.1.0"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -260,7 +260,7 @@ paths:
     parameters:
       - name: agreementId
         in: path
-        description: The ID of the Agreement to retrieve
+        description: The ID of the Agreement
         required: true
         schema:
           type: string
@@ -278,6 +278,87 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Agreement"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+    delete:
+      tags:
+        - agreements
+      summary: Delete an Agreement
+      description: Delete an Agreement in Draft, Pending, or MissingCertifiedAttributes state
+      operationId: deleteAgreement
+      responses:
+        "204":
+          description: Agreement deleted
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -477,6 +558,11 @@ paths:
       summary: Approve an Agreement in Pending state
       description: Approve an Agreement that is in Pending state, transitioning it to Active state
       operationId: approveAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Agreement approved
@@ -800,6 +886,11 @@ paths:
         Suspend an Agreement that is in Active or Suspended state, transitioning it to Suspended state
         An Agreement may already be in Suspended state when previously suspended by the consumer or the producer
       operationId: suspendAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Active agreement suspended
@@ -896,6 +987,11 @@ paths:
         Unsuspend an Agreement that is in Suspended state, transitioning it to Active or Suspended state
         An Agreement may remain in Suspended state when suspended also by the consumer or the producer
       operationId: unsuspendAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Agreement unsuspended
@@ -1047,6 +1143,115 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /agreements/{agreementId}/clone:
+    parameters:
+      - name: agreementId
+        in: path
+        description: The ID of the Agreement to clone
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - agreements
+      summary: Clone an Agreement
+      description: |
+        Clone a rejected Agreement.
+        A new draft Agreement will be created
+      operationId: cloneAgreement
+      responses:
+        "200":
+          description: Agreement cloned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agreement"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -2702,6 +2907,194 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /verifiedAttributes:
+    post:
+      tags:
+        - attributes
+      summary: Create a verified Attribute
+      description: |
+        Create a verified Attribute
+        The Attribute must have a unique name across all Attributes in the Platform
+      operationId: createVerifiedAttribute
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifiedAttributeSeed"
+      responses:
+        "201":
+          description: Verified Attribute created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifiedAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /declaredAttributes:
+    post:
+      tags:
+        - attributes
+      summary: Create a declared Attribute
+      description: |
+        Create a declared Attribute
+        The Attribute must have a unique name across all Attributes in the Platform
+      operationId: createDeclaredAttribute
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeclaredAttributeSeed"
+      responses:
+        "201":
+          description: Declared Attribute created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeclaredAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /clients:
     get:
       tags:
@@ -3425,6 +3818,36 @@ paths:
               format: uuid
             default: []
           explode: false
+        - in: query
+          name: name
+          description: Filter E-Services by name
+          schema:
+            type: string
+        - in: query
+          name: technology
+          description: Filter E-Services by technology
+          schema:
+            $ref: "#/components/schemas/EServiceTechnology"
+        - in: query
+          name: mode
+          description: Filter E-Services by mode
+          schema:
+            $ref: "#/components/schemas/EServiceMode"
+        - in: query
+          name: isSignalHubEnabled
+          description: Filter E-Services by Signal Hub enabled status
+          schema:
+            type: boolean
+        - in: query
+          name: isConsumerDelegable
+          description: Filter E-Services by consumer delegable status
+          schema:
+            type: boolean
+        - in: query
+          name: isClientAccessDelegable
+          description: Filter E-Services by client access delegable status
+          schema:
+            type: boolean
         - in: query
           name: offset
           description: Pagination starting position
@@ -5078,6 +5501,11 @@ paths:
         Activate a Purpose that is in Draft states
         The new state will be Active if daily calls are under the E-Service threshold, Waiting for Approval otherwise
       operationId: activateDraftPurpose
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose activated
@@ -5295,6 +5723,11 @@ paths:
       summary: Approve a Purpose in Waiting for Approval state
       description: Approve a Purpose that is in Waiting for Approval state, transitioning it to Active state
       operationId: approvePurpose
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose approved
@@ -5391,6 +5824,11 @@ paths:
         Suspend a Purpose that is in Active or Suspended state, transitioning it to Suspended state
         A Purpose may already be in Suspended state when previously suspended by the consumer or the producer
       operationId: suspendPurpose
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose suspended
@@ -5500,6 +5938,11 @@ paths:
         Unsuspend a Purpose that is in Suspended state, transitioning it to Active or Suspended state
         A Purpose may remain in Suspended state when suspended also by the consumer or the producer
       operationId: unsuspendPurpose
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose unsuspended
@@ -5596,18 +6039,18 @@ paths:
     post:
       tags:
         - purposes
-      summary: Create a new E-Service Purpose
+      summary: Create a new reverse Purpose
       description: Create a new purpose for an E-Service in receive mode
       operationId: createReversePurpose
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServicePurposeSeed"
+              $ref: "#/components/schemas/ReversePurposeSeed"
         required: true
       responses:
         "201":
-          description: E-Service Purpose created
+          description: reverse Purpose created
           content:
             application/json:
               schema:
@@ -6083,7 +6526,7 @@ paths:
         - tenants
       summary: List Tenant Declared Attributes
       description: Retrieve a list of Declared Attributes assigned to the Tenant
-      operationId: getDeclaredAttributes
+      operationId: getTenantDeclaredAttributes
       parameters:
         - in: query
           name: delegationId
@@ -6188,7 +6631,7 @@ paths:
         - tenants
       summary: List Tenant Certified Attributes
       description: Retrieve a list of Certified Attributes assigned to the Tenant
-      operationId: getCertifiedAttributes
+      operationId: getTenantCertifiedAttributes
       parameters:
         - in: query
           name: offset
@@ -6505,7 +6948,7 @@ paths:
         - tenants
       summary: List Tenant Verified Attributes
       description: Retrieve a list of Verified Attributes assigned to the Tenant
-      operationId: getVerifiedAttributes
+      operationId: getTenantVerifiedAttributes
       parameters:
         - in: query
           name: offset
@@ -6754,6 +7197,21 @@ components:
         - code
         - origin
         - createdAt
+    DeclaredAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+          minLength: 10
+          maxLength: 500
+      required:
+        - description
+        - name
     CertifiedAttributes:
       type: object
       additionalProperties: false
@@ -6830,6 +7288,21 @@ components:
         - name
         - description
         - createdAt
+    VerifiedAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+          minLength: 10
+          maxLength: 500
+      required:
+        - description
+        - name
     Client:
       description: |
         Models a Client with field visibility based on the requester's permissions.
@@ -7494,6 +7967,9 @@ components:
           type: string
           format: uuid
         delegationId:
+          description: |
+            Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
+            If not set, the Purpose will be created for your Tenant.
           type: string
           format: uuid
         riskAnalysisForm:
@@ -7520,14 +7996,18 @@ components:
         - description
         - isFreeOfCharge
         - dailyCalls
-    EServicePurposeSeed:
+    ReversePurposeSeed:
       type: object
       additionalProperties: false
+      description: contains the expected payload for reverse purpose creation
       properties:
         eserviceId:
           type: string
           format: uuid
-        consumerId:
+        delegationId:
+          description: |
+            Set it to create the Purpose for a Tenant for which you are the e-service consumer delegate.
+            If not set, the Purpose will be created for your Tenant.
           type: string
           format: uuid
         riskAnalysisId:
@@ -7550,7 +8030,6 @@ components:
           format: int32
       required:
         - eserviceId
-        - consumerId
         - title
         - riskAnalysisId
         - description
@@ -7889,6 +8368,14 @@ components:
           type: string
           format: date-time
           description: The date and time when the file was uploaded
+    DelegationRef:
+      type: object
+      additionalProperties: false
+      description: Set the delegation ID in order to operate as a delegate for an active producer or consumer delegation
+      properties:
+        delegationId:
+          type: string
+          format: uuid
     Problem:
       properties:
         type:
