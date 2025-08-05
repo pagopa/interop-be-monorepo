@@ -4313,7 +4313,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptorDocument"
+                $ref: "#/components/schemas/Document"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
