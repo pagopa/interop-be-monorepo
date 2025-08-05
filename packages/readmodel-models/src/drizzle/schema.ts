@@ -2034,7 +2034,7 @@ export const purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate =
       metadataVersion: integer("metadata_version").notNull(),
       purposeTemplateId: uuid("purpose_template_id").notNull(),
       eserviceId: uuid("eservice_id").notNull(),
-      descriptorId: uuid("descriptor_id"),
+      descriptorId: uuid("descriptor_id").notNull(),
       createdAt: timestamp("created_at", {
         withTimezone: true,
         mode: "string",
