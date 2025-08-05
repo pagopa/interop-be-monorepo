@@ -3,7 +3,7 @@ import {
   bffApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { isDefined, WithLogger } from "pagopa-interop-commons";
+import { isDefined, Logger, WithLogger } from "pagopa-interop-commons";
 import {
   AgreementId,
   AttributeId,
@@ -49,25 +49,33 @@ export function tenantServiceBuilder(
 ) {
   async function getLogoUrl(
     selfcareId: tenantApi.Tenant["selfcareId"],
-    correlationId: CorrelationId
+    correlationId: CorrelationId,
+    logger: Logger
   ): Promise<bffApi.CompactTenant["logoUrl"]> {
     if (!selfcareId) {
       return undefined;
     }
 
-    const institution =
-      await selfcareV2InstitutionClient.institution.retrieveInstitutionByIdUsingGET(
-        {
-          params: {
-            id: selfcareId,
-          },
-          headers: {
-            "X-Correlation-Id": correlationId,
-          },
-        }
-      );
+    try {
+      const institution =
+        await selfcareV2InstitutionClient.institution.retrieveInstitutionByIdUsingGET(
+          {
+            params: {
+              id: selfcareId,
+            },
+            headers: {
+              "X-Correlation-Id": correlationId,
+            },
+          }
+        );
 
-    return institution.logo;
+      return institution.logo;
+    } catch (error) {
+      logger.warn(
+        `Error retrieving logo for tenant ${selfcareId} from selfcare - ${error}`
+      );
+      return undefined;
+    }
   }
 
   return {
@@ -134,7 +142,7 @@ export function tenantServiceBuilder(
       const results = await Promise.all(
         pagedResults.results.map((tenant) =>
           toBffApiCompactTenant(tenant, (selfcareId) =>
-            getLogoUrl(selfcareId, correlationId)
+            getLogoUrl(selfcareId, correlationId, logger)
           )
         )
       );

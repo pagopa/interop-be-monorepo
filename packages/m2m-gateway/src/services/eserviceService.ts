@@ -16,7 +16,7 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import {
-  isPolledVersionAtLeastMetadataTargetVersion,
+  isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 
@@ -61,13 +61,14 @@ export function eserviceServiceBuilder(
     };
   };
 
-  const pollEserviceById = (
-    eserviceId: EServiceId,
-    metadata: { version: number } | undefined,
+  const pollEservice = (
+    response: WithMaybeMetadata<catalogApi.EService>,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
-    pollResourceWithMetadata(() => retrieveEServiceById(headers, eserviceId))({
-      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
+    pollResourceWithMetadata(() =>
+      retrieveEServiceById(headers, response.data.id as EServiceId)
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
     });
 
   return {
@@ -190,35 +191,58 @@ export function eserviceServiceBuilder(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EService> {
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
       logger.info(
         `Suspending descriptor with id ${descriptorId} for eservice with id ${eServiceId}`
       );
 
-      const { data, metadata } =
-        await clients.catalogProcessClient.suspendDescriptor(undefined, {
+      const response = await clients.catalogProcessClient.suspendDescriptor(
+        undefined,
+        {
           params: { eServiceId, descriptorId },
           headers,
-        });
-      await pollEserviceById(eServiceId, metadata, headers);
-      return toM2MGatewayApiEService(data);
+        }
+      );
+
+      await pollEservice(response, headers);
+
+      const descriptor = response.data.descriptors.find(
+        (d) => d.id === descriptorId
+      );
+
+      if (!descriptor) {
+        throw eserviceDescriptorNotFound(eServiceId, descriptorId);
+      }
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
     async unsuspendDescriptor(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EService> {
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
       logger.info(
         `Unsuspending descriptor with id ${descriptorId} for eservice with id ${eServiceId}`
       );
 
-      const { data, metadata } =
-        await clients.catalogProcessClient.activateDescriptor(undefined, {
+      const response = await clients.catalogProcessClient.activateDescriptor(
+        undefined,
+        {
           params: { eServiceId, descriptorId },
           headers,
-        });
-      await pollEserviceById(eServiceId, metadata, headers);
-      return toM2MGatewayApiEService(data);
+        }
+      );
+      await pollEservice(response, headers);
+
+      const descriptor = response.data.descriptors.find(
+        (d) => d.id === descriptorId
+      );
+
+      if (!descriptor) {
+        throw eserviceDescriptorNotFound(eServiceId, descriptorId);
+      }
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
     async publishDescriptor(
       eServiceId: EServiceId,
