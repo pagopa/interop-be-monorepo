@@ -238,9 +238,6 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
               value: answerSQL.value[0],
               editable: answerSQL.editable,
               ...(answerAnnotation ? { annotation: answerAnnotation } : {}),
-              ...(answerSQL.assistiveText
-                ? { assistiveText: answerSQL.assistiveText }
-                : {}),
               suggestedValues: answerSQL.suggestedValues || [],
             } satisfies RiskAnalysisTemplateSingleAnswer,
           ],
@@ -260,9 +257,6 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
               values: answerSQL.value,
               editable: answerSQL.editable,
               ...(answerAnnotation ? { annotation: answerAnnotation } : {}),
-              ...(answerSQL.assistiveText
-                ? { assistiveText: answerSQL.assistiveText }
-                : {}),
             } satisfies RiskAnalysisTemplateMultiAnswer,
           ],
         }))
