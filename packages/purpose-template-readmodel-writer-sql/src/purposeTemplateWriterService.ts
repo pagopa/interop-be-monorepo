@@ -111,23 +111,32 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
         }
 
         await tx
-          .delete(purposeTemplateInReadmodelPurposeTemplate)
+          .delete(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
           .where(
-            eq(
-              purposeTemplateInReadmodelPurposeTemplate.id,
-              purposeTemplateEServiceDescriptor.purposeTemplateId
+            and(
+              eq(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+                purposeTemplateEServiceDescriptor.purposeTemplateId
+              ),
+              eq(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+                purposeTemplateEServiceDescriptor.eserviceId
+              ),
+              eq(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.descriptorId,
+                purposeTemplateEServiceDescriptor.descriptorId
+              )
             )
-          );
-
-        const purposeTemplateEServiceDescriptorSQL =
-          toPurposeTemplateEServiceDescriptorSQL(
-            purposeTemplateEServiceDescriptor,
-            metadataVersion
           );
 
         await tx
           .insert(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
-          .values(purposeTemplateEServiceDescriptorSQL);
+          .values(
+            toPurposeTemplateEServiceDescriptorSQL(
+              purposeTemplateEServiceDescriptor,
+              metadataVersion
+            )
+          );
       });
     },
     async deletePurposeTemplateById(
