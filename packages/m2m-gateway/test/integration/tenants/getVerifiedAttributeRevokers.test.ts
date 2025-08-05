@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { getMockedApiVerifiedTenantAttributeRevoker } from "pagopa-interop-commons-test";
 import {
@@ -11,29 +11,47 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getTenantVerifiedAttributeRevokers", () => {
+  // Test data setup
   const tenantId = generateId();
   const attributeId = generateId();
   const revoker1Id = generateId();
   const revoker2Id = generateId();
 
-  const mockTenantM2MResponse: {
-    results: m2mGatewayApi.TenantVerifiedAttributeRevoker[];
-    totalCount: number;
-  } = {
+  // Mock response from tenant-process API
+  const mockTenantProcessResponse = {
     results: [
       getMockedApiVerifiedTenantAttributeRevoker(revoker1Id),
       {
         ...getMockedApiVerifiedTenantAttributeRevoker(revoker2Id),
-        delegationId: undefined,
+        delegationId: undefined, // Test case with no delegation
       },
     ],
     totalCount: 2,
   };
 
+  // Helper function to transform tenant API response to M2M Gateway API format
+  const transformToM2MGatewayFormat = (
+    tenantRevoker: tenantApi.TenantRevoker
+  ): m2mGatewayApi.TenantVerifiedAttributeRevoker => ({
+    id: tenantRevoker.id,
+    verifiedAt: tenantRevoker.verificationDate,
+    expiresAt: tenantRevoker.expirationDate,
+    extendedAt: tenantRevoker.extensionDate,
+    revokedAt: tenantRevoker.revocationDate,
+    delegationId: tenantRevoker.delegationId,
+  });
+
+  // Expected response after transformation
+  const expectedTransformedResults = mockTenantProcessResponse.results.map(
+    transformToM2MGatewayFormat
+  );
+
+  // Mock function for the tenant-process API call
   const mockGetTenantVerifiedAttributeRevokers = vi
     .fn()
-    .mockResolvedValue({ data: mockTenantM2MResponse });
+    .mockResolvedValue({ data: mockTenantProcessResponse });
 
+  // Setup mock client before tests
   mockInteropBeClients.tenantProcessClient = {
     tenant: {
       getTenantVerifiedAttributeRevokers:
@@ -63,7 +81,7 @@ describe("getTenantVerifiedAttributeRevokers", () => {
     });
 
     expect(result).toEqual({
-      results: mockTenantM2MResponse.results,
+      results: expectedTransformedResults,
       pagination: {
         limit,
         offset,

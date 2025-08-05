@@ -7,7 +7,6 @@ import {
   tenantApi,
   authorizationApi,
   eserviceTemplateApi,
-  m2mGatewayApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
 import { ClientId, algorithm, generateId } from "pagopa-interop-models";
@@ -152,7 +151,7 @@ export function getMockedApiAttribute({
 export function getMockedApiVerifiedTenantAttributeRevoker(
   revokerId: tenantApi.TenantRevoker["id"],
   delegationId?: tenantApi.TenantRevoker["delegationId"]
-): m2mGatewayApi.TenantVerifiedAttributeRevoker {
+): tenantApi.TenantRevoker {
   const now = new Date();
   const daysAgo = (min: number, max: number): number =>
     now.getTime() -
@@ -168,10 +167,10 @@ export function getMockedApiVerifiedTenantAttributeRevoker(
 
   return {
     id: revokerId,
-    verifiedAt: verificationDate.toISOString(),
-    expiresAt: expirationDate.toISOString(),
-    extendedAt: extensionDate.toISOString(),
-    revokedAt: revocationDate.toISOString(),
+    verificationDate: verificationDate.toISOString(),
+    expirationDate: expirationDate.toISOString(),
+    extensionDate: extensionDate.toISOString(),
+    revocationDate: revocationDate.toISOString(),
     delegationId: delegationId ?? generateId(),
   };
 }
@@ -179,7 +178,7 @@ export function getMockedApiVerifiedTenantAttributeRevoker(
 export function getMockedApiVerifiedTenantAttributeVerifier(
   verifierId: tenantApi.TenantVerifier["id"],
   delegationId?: tenantApi.TenantVerifier["delegationId"]
-): m2mGatewayApi.TenantVerifiedAttributeVerifier {
+): tenantApi.TenantVerifier {
   const now = new Date();
   const daysAgo = (min: number, max: number): number =>
     now.getTime() -
@@ -194,9 +193,9 @@ export function getMockedApiVerifiedTenantAttributeVerifier(
 
   return {
     id: verifierId,
-    verifiedAt: verificationDate.toISOString(),
-    expiresAt: expirationDate.toISOString(),
-    extendedAt: extensionDate.toISOString(),
+    verificationDate: verificationDate.toISOString(),
+    expirationDate: expirationDate.toISOString(),
+    extensionDate: extensionDate.toISOString(),
     delegationId: delegationId ?? generateId(),
   };
 }
