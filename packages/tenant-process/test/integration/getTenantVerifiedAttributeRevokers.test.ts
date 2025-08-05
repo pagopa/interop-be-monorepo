@@ -100,7 +100,7 @@ describe("getTenantVerifiedAttributeRevokers", () => {
     );
 
     expect(result.results).toHaveLength(2);
-    
+
     const resultIds = result.results.map((revoker) => revoker.id);
     expect(resultIds).toContain(revoker1.id);
     expect(resultIds).toContain(revoker2.id);

@@ -179,7 +179,9 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
         { offset: 0, limit: 10 },
         getMockContext({})
       )
-    ).rejects.toThrowError("Attribute " + nonExistentAttributeId + " not found");
+    ).rejects.toThrowError(
+      "Attribute " + nonExistentAttributeId + " not found"
+    );
   });
 
   it("should return empty results when attribute has no verifiers", async () => {
@@ -262,7 +264,7 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
       )
     ).rejects.toThrowError("Attribute " + certifiedAttributeId + " not found");
 
-    // Should throw error for declared attribute  
+    // Should throw error for declared attribute
     await expect(
       tenantService.getTenantVerifiedAttributeVerifiers(
         tenantWithMixedAttributes.id,
