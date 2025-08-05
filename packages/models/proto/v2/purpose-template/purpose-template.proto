@@ -40,8 +40,7 @@ message RiskAnalysisTemplateSingleAnswerV2 {
   optional string value = 3;
   bool editable = 4;
   optional RiskAnalysisTemplateAnswerAnnotationV2 annotation = 5;
-  optional string assistiveText = 6;
-  repeated string suggestedValues = 7;
+  repeated string suggestedValues = 6;
 }
 
 message RiskAnalysisTemplateMultiAnswerV2 {
@@ -50,7 +49,6 @@ message RiskAnalysisTemplateMultiAnswerV2 {
   repeated string values = 3;
   bool editable = 4;
   optional RiskAnalysisTemplateAnswerAnnotationV2 annotation = 5;
-  optional string assistiveText = 6;
 }
 
 message RiskAnalysisTemplateAnswerAnnotationV2 {
