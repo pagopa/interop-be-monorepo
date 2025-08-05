@@ -817,6 +817,7 @@ components:
       required:
         - id
         - name
+        - mode
         - producerId
       properties:
         id:
@@ -827,6 +828,8 @@ components:
         producerId:
           type: string
           format: uuid
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
     CompactEServices:
       type: object
       additionalProperties: false
@@ -1050,6 +1053,12 @@ components:
         - status
         - title
         - errors
+    EServiceMode:
+      type: string
+      description: Risk Analysis Mode
+      enum:
+        - RECEIVE
+        - DELIVER
     ProblemError:
       properties:
         code:
