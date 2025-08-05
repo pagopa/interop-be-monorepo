@@ -306,12 +306,12 @@ export function eserviceServiceBuilder(
       descriptorId: DescriptorId,
       body: catalogApi.RejectDelegatedEServiceDescriptorSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EService> {
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
       logger.info(
         `Rejecting a delegated eService descriptor with id ${descriptorId} for eservice with id ${eServiceId}`
       );
 
-      const { data, metadata } =
+      const response =
         await clients.catalogProcessClient.rejectDelegatedEServiceDescriptor(
           body,
           {
@@ -319,8 +319,17 @@ export function eserviceServiceBuilder(
             headers,
           }
         );
-      await pollEserviceById(eServiceId, metadata, headers);
-      return toM2MGatewayApiEService(data);
+      await pollEservice(response, headers);
+
+      const descriptor = response.data.descriptors.find(
+        (d) => d.id === descriptorId
+      );
+
+      if (!descriptor) {
+        throw eserviceDescriptorNotFound(eServiceId, descriptorId);
+      }
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
   };
 }

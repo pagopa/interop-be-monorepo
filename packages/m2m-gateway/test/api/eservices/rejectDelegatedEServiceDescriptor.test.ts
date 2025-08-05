@@ -16,7 +16,7 @@ import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
-import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
+import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
 
 describe("POST /eservices/:eServiceId/descriptors/:descriptorId/reject router test", () => {
   const mockApiDescriptor: catalogApi.EServiceDescriptor = {
@@ -28,8 +28,8 @@ describe("POST /eservices/:eServiceId/descriptors/:descriptorId/reject router te
     descriptors: [mockApiDescriptor],
   });
 
-  const mockM2MEserviceResponse: m2mGatewayApi.EService =
-    toM2MGatewayApiEService(mockApiEservice);
+  const mockM2MEserviceDescriptorResponse: m2mGatewayApi.EServiceDescriptor =
+    toM2MGatewayApiEServiceDescriptor(mockApiDescriptor);
 
   const mockRejectionReason: catalogApi.RejectDelegatedEServiceDescriptorSeed =
     {
@@ -56,7 +56,7 @@ describe("POST /eservices/:eServiceId/descriptors/:descriptorId/reject router te
     async (role) => {
       mockEserviceService.rejectDelegatedEServiceDescriptor = vi
         .fn()
-        .mockResolvedValue(mockM2MEserviceResponse);
+        .mockResolvedValue(mockM2MEserviceDescriptorResponse);
 
       const token = generateToken(role);
       const res = await makeRequest(
@@ -66,7 +66,7 @@ describe("POST /eservices/:eServiceId/descriptors/:descriptorId/reject router te
       );
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockM2MEserviceResponse);
+      expect(res.body).toEqual(mockM2MEserviceDescriptorResponse);
     }
   );
 
