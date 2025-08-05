@@ -36,6 +36,17 @@ export function toGetTenantsApiQueryParams(
   };
 }
 
+export function toM2MGatewayApiTenantDeclaredAttribute(
+  tenantDeclaredAttribute: tenantApi.DeclaredTenantAttribute
+): m2mGatewayApi.TenantDeclaredAttribute {
+  return {
+    id: tenantDeclaredAttribute.id,
+    delegationId: tenantDeclaredAttribute.delegationId,
+    assignedAt: tenantDeclaredAttribute.assignmentTimestamp,
+    revokedAt: tenantDeclaredAttribute.revocationTimestamp,
+  };
+}
+
 export function toM2MGatewayApiTenantCertifiedAttribute(
   tenantCertifiedAttribute: tenantApi.CertifiedTenantAttribute
 ): m2mGatewayApi.TenantCertifiedAttribute {
@@ -43,5 +54,14 @@ export function toM2MGatewayApiTenantCertifiedAttribute(
     id: tenantCertifiedAttribute.id,
     assignedAt: tenantCertifiedAttribute.assignmentTimestamp,
     revokedAt: tenantCertifiedAttribute.revocationTimestamp,
+  };
+}
+
+export function toM2MGatewayApiTenantVerifiedAttribute(
+  tenantVerifiedAttribute: tenantApi.VerifiedTenantAttribute
+): m2mGatewayApi.TenantVerifiedAttribute {
+  return {
+    id: tenantVerifiedAttribute.id,
+    assignedAt: tenantVerifiedAttribute.assignmentTimestamp,
   };
 }

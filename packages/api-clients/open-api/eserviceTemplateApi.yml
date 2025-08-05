@@ -37,6 +37,7 @@ paths:
         - process
       summary: Retrieve a list of E-Service templates
       operationId: getEServiceTemplates
+      description: Retrieves a list of E-Service templates with optional filters
       parameters:
         - in: query
           name: name
@@ -106,6 +107,7 @@ paths:
         - process
       summary: Create a new e-service template
       operationId: createEServiceTemplate
+      description: Creates a new E-Service template
       requestBody:
         description: An E-Service template seed
         content:
@@ -148,6 +150,7 @@ paths:
         - process
       summary: Get an e-service template
       operationId: getEServiceTemplateById
+      description: Retrieves an E-Service template by its ID
       parameters:
         - name: templateId
           in: path
@@ -188,6 +191,7 @@ paths:
         - process
       summary: Updates e-service template general information
       operationId: updateEServiceTemplate
+      description: Updates the general information of an E-Service template
       parameters:
         - name: templateId
           in: path
@@ -237,6 +241,7 @@ paths:
         - process
       summary: Adds a version to the specified e-service template
       operationId: createEServiceTemplateVersion
+      description: Adds a new version to the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -280,6 +285,7 @@ paths:
         - process
       summary: Deletes a draft template version
       operationId: deleteDraftTemplateVersion
+      description: Deletes a draft version of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -323,6 +329,7 @@ paths:
         - process
       summary: Updates a draft template version
       operationId: updateDraftTemplateVersion
+      description: Updates a draft version of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -380,6 +387,7 @@ paths:
         - process
       summary: Publish the selected template version.
       operationId: publishTemplateVersion
+      description: Publishes the selected version of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -426,6 +434,7 @@ paths:
         - process
       summary: Suspend the selected template version.
       operationId: suspendTemplateVersion
+      description: Suspends the selected version of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -472,6 +481,7 @@ paths:
         - process
       summary: Activate the selected template version.
       operationId: activateTemplateVersion
+      description: Activates the selected version of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -518,6 +528,7 @@ paths:
         - process
       summary: Update the quotas of the selected template version
       operationId: updateTemplateVersionQuotas
+      description: Updates the quotas for the selected version of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -575,6 +586,7 @@ paths:
         - process
       summary: Add new e-service template document
       operationId: createEServiceTemplateDocument
+      description: Adds a new document to the specified E-Service template version
       parameters:
         - name: templateId
           in: path
@@ -632,6 +644,7 @@ paths:
         - process
       summary: Get an e-service template document
       operationId: getEServiceTemplateDocumentById
+      description: Retrieves a document of the specified E-Service template version by its ID
       parameters:
         - name: templateId
           in: path
@@ -686,6 +699,7 @@ paths:
         - process
       summary: Deletes an e-service template document
       operationId: deleteEServiceTemplateDocumentById
+      description: Deletes a document from the specified E-Service template version by its ID
       parameters:
         - name: templateId
           in: path
@@ -739,6 +753,7 @@ paths:
         - process
       summary: Updates an e-service template document
       operationId: updateEServiceTemplateDocumentById
+      description: Updates a document of the specified E-Service template version by its ID
       parameters:
         - name: templateId
           in: path
@@ -803,6 +818,7 @@ paths:
         - process
       summary: Create an e-service template risk analysis
       operationId: createEServiceTemplateRiskAnalysis
+      description: Creates a new risk analysis for the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -849,6 +865,7 @@ paths:
         - process
       summary: Update an e-service template risk analysis
       operationId: updateEServiceTemplateRiskAnalysis
+      description: Updates the risk analysis for the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -899,6 +916,7 @@ paths:
         - process
       summary: Delete an e-service template risk analysis
       operationId: deleteEServiceTemplateRiskAnalysis
+      description: Deletes the risk analysis from the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -945,6 +963,7 @@ paths:
         - process
       summary: Update a published e-service template intended target description
       operationId: updateEServiceTemplateIntendedTarget
+      description: Updates the intended target description of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -995,6 +1014,7 @@ paths:
         - process
       summary: Update a published e-service template description
       operationId: updateEServiceTemplateDescription
+      description: Updates the description of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -1045,6 +1065,7 @@ paths:
         - process
       summary: Update an e-service published template name
       operationId: updateEServiceTemplateName
+      description: Updates the name of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -1095,6 +1116,7 @@ paths:
         - process
       summary: Update e-service published template version attributes
       operationId: updateTemplateVersionAttributes
+      description: Updates the attributes of the specified E-Service template version
       parameters:
         - name: templateId
           in: path

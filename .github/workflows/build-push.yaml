@@ -63,7 +63,7 @@ jobs:
       - name: (branch) Docker metadata
         id: meta_branch
         if: ${{ github.ref_type == 'branch' }}
-        uses: docker/metadata-action@b798ed8388581f6f002541048b6458ca2c4ba442
+        uses: docker/metadata-action@be19121bfd18b9c1ac415d9571d4f67b9b357886
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.package }}
           flavor: |
@@ -76,7 +76,7 @@ jobs:
       - name: (tag) Docker metadata
         id: meta_tag
         if: ${{ github.ref_type == 'tag' }}
-        uses: docker/metadata-action@b798ed8388581f6f002541048b6458ca2c4ba442
+        uses: docker/metadata-action@be19121bfd18b9c1ac415d9571d4f67b9b357886
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.package }}
           flavor: |

@@ -44,4 +44,9 @@ async function processMessage(payload: EachMessagePayload): Promise<void> {
     .exhaustive();
 }
 
-await runConsumer(config, [config.catalogTopic], processMessage);
+await runConsumer(
+  config,
+  [config.catalogTopic],
+  processMessage,
+  "datalake-interface-exporter"
+);

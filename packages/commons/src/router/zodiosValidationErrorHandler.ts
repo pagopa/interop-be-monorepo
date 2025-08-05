@@ -4,7 +4,7 @@ import { badRequestError, makeApiProblemBuilder } from "pagopa-interop-models";
 import { z } from "zod";
 import { fromZodIssue } from "zod-validation-error";
 import { WithZodiosContext } from "@zodios/express";
-import { ExpressContext, fromAppContext } from "../index.js";
+import { ExpressContext, fromAppContext } from "../context/context.js";
 
 const makeApiProblem = makeApiProblemBuilder({});
 
