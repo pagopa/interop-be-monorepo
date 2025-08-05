@@ -383,12 +383,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{id}/riskAnalysis:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -413,7 +407,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+                $ref: "#/components/schemas/RiskAnalysisFormTemplateSeed"
         "403":
           description: Forbidden
           content:
@@ -435,7 +429,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+              $ref: "#/components/schemas/RiskAnalysisFormTemplateSeed"
         required: true
       responses:
         "200":
@@ -576,12 +570,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Template Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -879,7 +867,7 @@ components:
         purposeDescription:
           type: string
         purposeRiskAnalysisForm:
-          $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+          $ref: "#/components/schemas/RiskAnalysisFormTemplateSeed"
         purposeIsFreeOfCharge:
           type: boolean
         purposeFreeOfChargeReason:
@@ -942,6 +930,20 @@ components:
         - eserviceId
         - descriptorId
     RiskAnalysisFormTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        version:
+          type: string
+          minLength: 1
+          maxLength: 250
+        answers:
+          additionalProperties:
+            $ref: "#/components/schemas/RiskAnalysisTemplateAnswer"
+      required:
+        - version
+        - answers
+    RiskAnalysisFormTemplateSeed:
       type: object
       additionalProperties: false
       properties:
