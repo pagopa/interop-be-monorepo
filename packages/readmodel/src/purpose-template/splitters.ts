@@ -303,6 +303,7 @@ const splitRiskAnalysisTemplateAnswerAnnotationsIntoObjectsSQL = (
           metadataVersion,
           annotationId: riskAnalysisAnswerAnnotation.id,
           name: doc.name,
+          prettyName: doc.prettyName,
           contentType: doc.contentType,
           path: doc.path,
           createdAt: dateToString(doc.createdAt),
