@@ -61,4 +61,5 @@ export * from "./notification-config/splitters.js";
 export * from "./notification-config/aggregators.js";
 
 // PURPOSE TEMPLATE
+export * from "./purposeTemplateReadModelService.js";
 export * from "./purpose-template/splitters.js";
