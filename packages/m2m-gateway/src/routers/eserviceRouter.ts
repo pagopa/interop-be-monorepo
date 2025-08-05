@@ -176,24 +176,26 @@ const eserviceRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/descriptors/:descriptorId/unsuspend",
+      "/eservices/:eserviceId/descriptors/:descriptorId/unsuspend",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-          const eService = await eserviceService.unsuspendDescriptor(
-            unsafeBrandId(req.params.eServiceId),
+          const eserviceDescriptor = await eserviceService.unsuspendDescriptor(
+            unsafeBrandId(req.params.eserviceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
 
-          return res.status(200).send(m2mGatewayApi.EService.parse(eService));
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceDescriptor.parse(eserviceDescriptor));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
             ctx,
-            `Error unsuspending descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eServiceId}`
+            `Error unsuspending descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
