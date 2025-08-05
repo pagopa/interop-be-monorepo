@@ -1,6 +1,7 @@
-import { Message, QueueMessage } from "pagopa-interop-commons";
+import { QueueMessage } from "pagopa-interop-commons";
 import { z } from "zod";
 import { decodeSQSMessageError } from "pagopa-interop-models";
+import { Message } from "@aws-sdk/client-sqs";
 import { ApplicationAuditEvent } from "./application-audit.js";
 
 export const ApplicationAuditEventMessageSchema = z.object({

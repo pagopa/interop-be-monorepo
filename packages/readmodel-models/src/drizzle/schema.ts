@@ -21,6 +21,7 @@ import {
   readmodelClientJwkKey,
   readmodelProducerJwkKey,
   readmodelEserviceTemplate,
+  readmodelNotificationConfig,
 } from "../pgSchema.js";
 
 export const agreementInReadmodelAgreement = readmodelAgreement.table(
@@ -811,7 +812,7 @@ export const purposeRiskAnalysisAnswerInReadmodelPurpose =
       riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
       kind: varchar().notNull(),
       key: varchar().notNull(),
-      value: varchar().array(),
+      value: varchar().array().notNull(),
     },
     (table) => [
       foreignKey({
@@ -1694,5 +1695,68 @@ export const tenantVerifiedAttributeRevokerInReadmodelTenant =
         ],
         name: "tenant_verified_attribute_revok_tenant_id_metadata_version_fkey",
       }),
+    ]
+  );
+
+export const tenantNotificationConfigInReadmodelNotificationConfig =
+  readmodelNotificationConfig.table(
+    "tenant_notification_config",
+    {
+      id: uuid().primaryKey().notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      tenantId: uuid("tenant_id").notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      updatedAt: timestamp("updated_at", {
+        withTimezone: true,
+        mode: "string",
+      }),
+      newEserviceVersionPublished: boolean(
+        "new_eservice_version_published"
+      ).notNull(),
+    },
+    (table) => [
+      unique("tenant_notification_config_id_metadata_version_unique").on(
+        table.id,
+        table.metadataVersion
+      ),
+      unique("tenant_notification_config_tenant_id_unique").on(table.tenantId),
+    ]
+  );
+
+export const userNotificationConfigInReadmodelNotificationConfig =
+  readmodelNotificationConfig.table(
+    "user_notification_config",
+    {
+      id: uuid().primaryKey().notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      userId: uuid("user_id").notNull(),
+      tenantId: uuid("tenant_id").notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      updatedAt: timestamp("updated_at", {
+        withTimezone: true,
+        mode: "string",
+      }),
+      newEserviceVersionPublishedInApp: boolean(
+        "new_eservice_version_published_in_app"
+      ).notNull(),
+      newEserviceVersionPublishedEmail: boolean(
+        "new_eservice_version_published_email"
+      ).notNull(),
+    },
+    (table) => [
+      unique("user_notification_config_id_metadata_version_unique").on(
+        table.id,
+        table.metadataVersion
+      ),
+      unique("user_notification_config_user_id_tenant_id_unique").on(
+        table.userId,
+        table.tenantId
+      ),
     ]
   );

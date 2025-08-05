@@ -118,8 +118,6 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
   const authorizationService = authorizationServiceBuilder(
     authorizationProcessClient,
-    purposeProcessClient,
-    catalogProcessClient,
     readModelService
   );
 

@@ -1,9 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import {
-  getMockedApiPurpose,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
+import { getMockedApiPurpose } from "pagopa-interop-commons-test";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -11,20 +8,21 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { toGetPurposesApiQueryParams } from "../../../src/api/purposeApiConverter.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getPurposes", () => {
   const mockParams: m2mGatewayApi.GetPurposesQueryParams = {
+    consumerIds: [],
+    states: [],
     eserviceIds: [],
     offset: 0,
     limit: 10,
   };
 
-  const mockApiPurpose1 = getMockWithMetadata(getMockedApiPurpose());
-  const mockApiPurpose2 = getMockWithMetadata(getMockedApiPurpose());
+  const mockApiPurpose1 = getMockedApiPurpose();
+  const mockApiPurpose2 = getMockedApiPurpose();
 
-  const mockApiPurposes = [mockApiPurpose1.data, mockApiPurpose2.data];
+  const mockApiPurposes = [mockApiPurpose1, mockApiPurpose2];
 
   const mockPurposeProcessResponse: WithMaybeMetadata<purposeApi.Purposes> = {
     data: {
@@ -46,40 +44,40 @@ describe("getPurposes", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const expectedM2MPurpose1: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose1.data.consumerId,
-      createdAt: mockApiPurpose1.data.createdAt,
-      description: mockApiPurpose1.data.description,
-      eserviceId: mockApiPurpose1.data.eserviceId,
-      id: mockApiPurpose1.data.id,
-      isFreeOfCharge: mockApiPurpose1.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose1.data.isRiskAnalysisValid,
-      title: mockApiPurpose1.data.title,
-      currentVersion: mockApiPurpose1.data.versions.at(0),
-      delegationId: mockApiPurpose1.data.delegationId,
-      freeOfChargeReason: mockApiPurpose1.data.freeOfChargeReason,
+      consumerId: mockApiPurpose1.consumerId,
+      createdAt: mockApiPurpose1.createdAt,
+      description: mockApiPurpose1.description,
+      eserviceId: mockApiPurpose1.eserviceId,
+      id: mockApiPurpose1.id,
+      isFreeOfCharge: mockApiPurpose1.isFreeOfCharge,
+      isRiskAnalysisValid: mockApiPurpose1.isRiskAnalysisValid,
+      title: mockApiPurpose1.title,
+      currentVersion: mockApiPurpose1.versions.at(0),
+      delegationId: mockApiPurpose1.delegationId,
+      freeOfChargeReason: mockApiPurpose1.freeOfChargeReason,
       rejectedVersion: undefined,
       suspendedByConsumer: undefined,
       suspendedByProducer: undefined,
-      updatedAt: mockApiPurpose1.data.updatedAt,
+      updatedAt: mockApiPurpose1.updatedAt,
       waitingForApprovalVersion: undefined,
     };
 
     const expectedM2MPurpose2: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose2.data.consumerId,
-      createdAt: mockApiPurpose2.data.createdAt,
-      description: mockApiPurpose2.data.description,
-      eserviceId: mockApiPurpose2.data.eserviceId,
-      id: mockApiPurpose2.data.id,
-      isFreeOfCharge: mockApiPurpose2.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose2.data.isRiskAnalysisValid,
-      title: mockApiPurpose2.data.title,
-      currentVersion: mockApiPurpose2.data.versions.at(0),
-      delegationId: mockApiPurpose2.data.delegationId,
-      freeOfChargeReason: mockApiPurpose2.data.freeOfChargeReason,
+      consumerId: mockApiPurpose2.consumerId,
+      createdAt: mockApiPurpose2.createdAt,
+      description: mockApiPurpose2.description,
+      eserviceId: mockApiPurpose2.eserviceId,
+      id: mockApiPurpose2.id,
+      isFreeOfCharge: mockApiPurpose2.isFreeOfCharge,
+      isRiskAnalysisValid: mockApiPurpose2.isRiskAnalysisValid,
+      title: mockApiPurpose2.title,
+      currentVersion: mockApiPurpose2.versions.at(0),
+      delegationId: mockApiPurpose2.delegationId,
+      freeOfChargeReason: mockApiPurpose2.freeOfChargeReason,
       rejectedVersion: undefined,
       suspendedByConsumer: undefined,
       suspendedByProducer: undefined,
-      updatedAt: mockApiPurpose2.data.updatedAt,
+      updatedAt: mockApiPurpose2.updatedAt,
       waitingForApprovalVersion: undefined,
     };
 
@@ -100,7 +98,16 @@ describe("getPurposes", () => {
     expect(result).toEqual(m2mPurposeResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurposes,
-      queries: toGetPurposesApiQueryParams(mockParams),
+      queries: {
+        eservicesIds: mockParams.eserviceIds,
+        offset: mockParams.offset,
+        limit: mockParams.limit,
+        consumersIds: [],
+        producersIds: [],
+        states: [],
+        excludeDraft: false,
+        name: undefined,
+      },
     });
   });
 });
