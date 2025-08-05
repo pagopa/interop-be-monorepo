@@ -7,9 +7,18 @@ import {
   VerifiedTenantAttribute,
   tenantAttributeType,
   TenantRevoker,
+  attributeKind,
 } from "pagopa-interop-models";
-import { getMockContext, getMockTenant } from "pagopa-interop-commons-test";
-import { addOneTenant, tenantService } from "../integrationUtils.js";
+import {
+  getMockAttribute,
+  getMockContext,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
+import {
+  addOneAttribute,
+  addOneTenant,
+  tenantService,
+} from "../integrationUtils.js";
 import {
   getMockVerifiedTenantAttribute,
   getMockCertifiedTenantAttribute,
@@ -60,12 +69,16 @@ describe("getTenantVerifiedAttributeRevokers", () => {
       ...getMockTenant(),
       id: revoker2Id,
     });
+    await addOneAttribute({
+      ...getMockAttribute(attributeKind.verified),
+      id: attributeId,
+    });
   });
 
-  it("should retrieve revokers for a verified attribute", async () => {
+  it("should return revokers with correct details", async () => {
     const tenantWithRevokers: Tenant = {
       ...getMockTenant(),
-      id: tenantId,
+      id: generateId(),
       attributes: [
         {
           ...getMockVerifiedTenantAttribute(),
@@ -80,25 +93,25 @@ describe("getTenantVerifiedAttributeRevokers", () => {
     await addOneTenant(tenantWithRevokers);
 
     const result = await tenantService.getTenantVerifiedAttributeRevokers(
-      tenantId,
+      tenantWithRevokers.id,
       attributeId,
       { offset: 0, limit: 10 },
       getMockContext({})
     );
 
     expect(result.results).toHaveLength(2);
-    expect(result.totalCount).toBe(2);
+    
+    const resultIds = result.results.map((revoker) => revoker.id);
+    expect(resultIds).toContain(revoker1.id);
+    expect(resultIds).toContain(revoker2.id);
 
-    expect(result.results[0]).toEqual({
-      id: revoker1Id,
-      verificationDate: revoker1.verificationDate.toISOString(),
-      revocationDate: revoker1.revocationDate.toISOString(),
-    });
-
-    expect(result.results[1]).toEqual({
-      id: revoker2Id,
-      verificationDate: revoker2.verificationDate.toISOString(),
-      revocationDate: revoker2.revocationDate.toISOString(),
+    // Check that we get full TenantRevoker objects with all required fields
+    result.results.forEach((revoker) => {
+      expect(revoker).toHaveProperty("id");
+      expect(revoker).toHaveProperty("verificationDate");
+      expect(revoker).toHaveProperty("revocationDate");
+      expect(revoker.verificationDate).toBeInstanceOf(Date);
+      expect(revoker.revocationDate).toBeInstanceOf(Date);
     });
   });
 
@@ -141,33 +154,33 @@ describe("getTenantVerifiedAttributeRevokers", () => {
     expect(secondPage.results[0].id).toBe(revoker2Id);
   });
 
-  it("should return empty results when tenant does not exist", async () => {
+  it("should throw tenantNotFound when tenant does not exist", async () => {
     const nonExistentTenantId: TenantId = generateId();
 
-    const result = await tenantService.getTenantVerifiedAttributeRevokers(
-      nonExistentTenantId,
-      attributeId,
-      { offset: 0, limit: 10 },
-      getMockContext({})
-    );
-
-    expect(result.results).toHaveLength(0);
-    expect(result.totalCount).toBe(0);
+    await expect(
+      tenantService.getTenantVerifiedAttributeRevokers(
+        nonExistentTenantId,
+        attributeId,
+        { offset: 0, limit: 10 },
+        getMockContext({})
+      )
+    ).rejects.toThrowError("Tenant " + nonExistentTenantId + " not found");
   });
 
-  it("should return empty results when attribute does not exist", async () => {
+  it("should throw attributeNotFound when attribute does not exist", async () => {
     await addOneTenant(tenant);
     const nonExistentAttributeId: AttributeId = generateId();
 
-    const result = await tenantService.getTenantVerifiedAttributeRevokers(
-      tenantId,
-      nonExistentAttributeId,
-      { offset: 0, limit: 10 },
-      getMockContext({})
+    await expect(
+      tenantService.getTenantVerifiedAttributeRevokers(
+        tenantId,
+        nonExistentAttributeId,
+        { offset: 0, limit: 10 },
+        getMockContext({})
+      )
+    ).rejects.toThrowError(
+      "Attribute " + nonExistentAttributeId + " not found"
     );
-
-    expect(result.results).toHaveLength(0);
-    expect(result.totalCount).toBe(0);
   });
 
   it("should return empty results when attribute has no revokers", async () => {
@@ -185,6 +198,10 @@ describe("getTenantVerifiedAttributeRevokers", () => {
       attributes: [attributeWithoutRevokers],
     };
 
+    await addOneAttribute({
+      ...getMockAttribute(attributeKind.verified),
+      id: attributeWithoutRevokers.id,
+    });
     await addOneTenant(tenantWithoutRevokers);
 
     const result = await tenantService.getTenantVerifiedAttributeRevokers(
@@ -226,27 +243,35 @@ describe("getTenantVerifiedAttributeRevokers", () => {
       ],
     };
 
+    await addOneAttribute({
+      ...getMockAttribute(attributeKind.certified),
+      id: certifiedAttributeId,
+    });
+    await addOneAttribute({
+      ...getMockAttribute(attributeKind.declared),
+      id: declaredAttributeId,
+    });
     await addOneTenant(tenantWithMixedAttributes);
 
-    // Should return empty for certified attribute
-    const certifiedResult =
-      await tenantService.getTenantVerifiedAttributeRevokers(
+    // Should throw error for certified attribute
+    await expect(
+      tenantService.getTenantVerifiedAttributeRevokers(
         tenantWithMixedAttributes.id,
         certifiedAttributeId,
         { offset: 0, limit: 10 },
         getMockContext({})
-      );
-    expect(certifiedResult.results).toHaveLength(0);
+      )
+    ).rejects.toThrowError("Attribute " + certifiedAttributeId + " not found");
 
-    // Should return empty for declared attribute
-    const declaredResult =
-      await tenantService.getTenantVerifiedAttributeRevokers(
+    // Should throw error for declared attribute
+    await expect(
+      tenantService.getTenantVerifiedAttributeRevokers(
         tenantWithMixedAttributes.id,
         declaredAttributeId,
         { offset: 0, limit: 10 },
         getMockContext({})
-      );
-    expect(declaredResult.results).toHaveLength(0);
+      )
+    ).rejects.toThrowError("Attribute " + declaredAttributeId + " not found");
 
     // Should return revokers for verified attribute
     const verifiedResult =

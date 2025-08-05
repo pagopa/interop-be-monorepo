@@ -7,9 +7,18 @@ import {
   VerifiedTenantAttribute,
   tenantAttributeType,
   TenantVerifier,
+  attributeKind,
 } from "pagopa-interop-models";
-import { getMockContext, getMockTenant } from "pagopa-interop-commons-test";
-import { addOneTenant, tenantService } from "../integrationUtils.js";
+import {
+  getMockContext,
+  getMockTenant,
+  getMockAttribute,
+} from "pagopa-interop-commons-test";
+import {
+  addOneTenant,
+  addOneAttribute,
+  tenantService,
+} from "../integrationUtils.js";
 import {
   getMockVerifiedTenantAttribute,
   getMockCertifiedTenantAttribute,
@@ -58,6 +67,10 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
       ...getMockTenant(),
       id: verifier2Id,
     });
+    await addOneAttribute({
+      ...getMockAttribute(attributeKind.verified),
+      id: attributeId,
+    });
   });
   it("should retrieve verifiers for a verified attribute", async () => {
     const tenantWithVerifiers: Tenant = {
@@ -88,12 +101,18 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
 
     expect(result.results[0]).toEqual({
       id: verifier1Id,
-      verificationDate: verifier1.verificationDate.toISOString(),
+      verificationDate: verifier1.verificationDate,
+      expirationDate: undefined,
+      extensionDate: undefined,
+      delegationId: undefined,
     });
 
     expect(result.results[1]).toEqual({
       id: verifier2Id,
-      verificationDate: verifier2.verificationDate.toISOString(),
+      verificationDate: verifier2.verificationDate,
+      expirationDate: undefined,
+      extensionDate: undefined,
+      delegationId: undefined,
     });
   });
 
@@ -136,33 +155,31 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
     expect(secondPage.results[0].id).toBe(verifier2Id);
   });
 
-  it("should return empty results when tenant does not exist", async () => {
+  it("should throw tenantNotFound when tenant does not exist", async () => {
     const nonExistentTenantId: TenantId = generateId();
 
-    const result = await tenantService.getTenantVerifiedAttributeVerifiers(
-      nonExistentTenantId,
-      attributeId,
-      { offset: 0, limit: 10 },
-      getMockContext({})
-    );
-
-    expect(result.results).toHaveLength(0);
-    expect(result.totalCount).toBe(0);
+    await expect(
+      tenantService.getTenantVerifiedAttributeVerifiers(
+        nonExistentTenantId,
+        attributeId,
+        { offset: 0, limit: 10 },
+        getMockContext({})
+      )
+    ).rejects.toThrowError("Tenant " + nonExistentTenantId + " not found");
   });
 
-  it("should return empty results when attribute does not exist", async () => {
+  it("should throw attributeNotFound when attribute does not exist", async () => {
     await addOneTenant(tenant);
     const nonExistentAttributeId: AttributeId = generateId();
 
-    const result = await tenantService.getTenantVerifiedAttributeVerifiers(
-      tenantId,
-      nonExistentAttributeId,
-      { offset: 0, limit: 10 },
-      getMockContext({})
-    );
-
-    expect(result.results).toHaveLength(0);
-    expect(result.totalCount).toBe(0);
+    await expect(
+      tenantService.getTenantVerifiedAttributeVerifiers(
+        tenantId,
+        nonExistentAttributeId,
+        { offset: 0, limit: 10 },
+        getMockContext({})
+      )
+    ).rejects.toThrowError("Attribute " + nonExistentAttributeId + " not found");
   });
 
   it("should return empty results when attribute has no verifiers", async () => {
@@ -180,6 +197,10 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
       attributes: [attributeWithoutVerifiers],
     };
 
+    await addOneAttribute({
+      ...getMockAttribute(attributeKind.verified),
+      id: attributeWithoutVerifiers.id,
+    });
     await addOneTenant(tenantWithoutVerifiers);
 
     const result = await tenantService.getTenantVerifiedAttributeVerifiers(
@@ -221,27 +242,35 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
       ],
     };
 
+    await addOneAttribute({
+      ...getMockAttribute(attributeKind.certified),
+      id: certifiedAttributeId,
+    });
+    await addOneAttribute({
+      ...getMockAttribute(attributeKind.declared),
+      id: declaredAttributeId,
+    });
     await addOneTenant(tenantWithMixedAttributes);
 
-    // Should return empty for certified attribute
-    const certifiedResult =
-      await tenantService.getTenantVerifiedAttributeVerifiers(
+    // Should throw error for certified attribute
+    await expect(
+      tenantService.getTenantVerifiedAttributeVerifiers(
         tenantWithMixedAttributes.id,
         certifiedAttributeId,
         { offset: 0, limit: 10 },
         getMockContext({})
-      );
-    expect(certifiedResult.results).toHaveLength(0);
+      )
+    ).rejects.toThrowError("Attribute " + certifiedAttributeId + " not found");
 
-    // Should return empty for declared attribute
-    const declaredResult =
-      await tenantService.getTenantVerifiedAttributeVerifiers(
+    // Should throw error for declared attribute  
+    await expect(
+      tenantService.getTenantVerifiedAttributeVerifiers(
         tenantWithMixedAttributes.id,
         declaredAttributeId,
         { offset: 0, limit: 10 },
         getMockContext({})
-      );
-    expect(declaredResult.results).toHaveLength(0);
+      )
+    ).rejects.toThrowError("Attribute " + declaredAttributeId + " not found");
 
     // Should return verifiers for verified attribute
     const verifiedResult =
