@@ -464,8 +464,8 @@ export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
   suspendedByProducer: generateMock(z.boolean().optional()),
   isFreeOfCharge: generateMock(z.boolean()),
   freeOfChargeReason: generateMock(z.string().optional()),
-  dailyCallsPerConsumer: 1000000000,
-  dailyCallsTotal: 1000000000,
+  dailyCallsPerConsumer: generateMock(z.number().int()),
+  dailyCallsTotal: generateMock(z.number().int()),
   delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
 });
 
@@ -481,7 +481,7 @@ export const getMockBffApiPurposeUpdateContent =
     description: generateMock(z.string()),
     isFreeOfCharge: generateMock(z.boolean()),
     freeOfChargeReason: generateMock(z.string().optional()),
-    dailyCalls: 1000000000,
+    dailyCalls: generateMock(z.number().int().min(0)),
   });
 
 export const getMockBffApiPurposeVersionResource = (
