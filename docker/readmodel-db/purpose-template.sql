@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
   metadata_version INTEGER NOT NULL,
   annotation_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_answer_annotation (id) ON DELETE CASCADE,
   "name" VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
   content_type VARCHAR NOT NULL,
   "path" VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
