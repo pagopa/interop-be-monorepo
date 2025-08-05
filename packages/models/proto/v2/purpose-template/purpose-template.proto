@@ -62,8 +62,8 @@ message RiskAnalysisTemplateAnswerAnnotationV2 {
 message RiskAnalysisTemplateAnswerAnnotationDocumentV2 {
   string id = 1;
   string name = 2;
-  string contentType = 3;
-  string prettyName = 4;
+  string prettyName = 3;
+  string contentType = 4;
   string path = 5;
   int64 createdAt = 6;
 }
