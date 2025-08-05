@@ -842,8 +842,6 @@ components:
         creatorId:
           type: string
           format: uuid
-        state:
-          $ref: "#/components/schemas/PurposeTemplateState"
         purposeTitle:
           type: string
         purposeDescription:
