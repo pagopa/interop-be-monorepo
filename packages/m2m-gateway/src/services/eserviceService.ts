@@ -248,18 +248,29 @@ export function eserviceServiceBuilder(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EService> {
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
       logger.info(
         `Publishing descriptor with id ${descriptorId} for eservice with id ${eServiceId}`
       );
 
-      const { data, metadata } =
-        await clients.catalogProcessClient.publishDescriptor(undefined, {
+      const response = await clients.catalogProcessClient.publishDescriptor(
+        undefined,
+        {
           params: { eServiceId, descriptorId },
           headers,
-        });
-      await pollEserviceById(eServiceId, metadata, headers);
-      return toM2MGatewayApiEService(data);
+        }
+      );
+      await pollEservice(response, headers);
+
+      const descriptor = response.data.descriptors.find(
+        (d) => d.id === descriptorId
+      );
+
+      if (!descriptor) {
+        throw eserviceDescriptorNotFound(eServiceId, descriptorId);
+      }
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
   };
 }
