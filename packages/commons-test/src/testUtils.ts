@@ -112,7 +112,6 @@ import {
   DelegationStamps,
   PurposeTemplate,
   purposeTemplateState,
-  EServiceDescriptorVersionPurposeTemplate,
   tenantKind,
 } from "pagopa-interop-models";
 import {
