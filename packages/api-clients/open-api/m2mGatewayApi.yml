@@ -3856,24 +3856,24 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/suspend:
+  /eservices/{eserviceId}/descriptors/{descriptorId}/suspend:
     post:
       tags:
         - eservices
-      summary: Suspend the selected descriptor.
+      summary: Suspend an E-Service Descriptor in Published or Deprecated state
       operationId: suspendDescriptor
-      description: Suspends the specified descriptor
+      description: Suspend an E-Service Descriptor that is in Published or Deprecated state, transitioning it to Suspended state
       parameters:
-        - name: eServiceId
+        - name: eserviceId
           in: path
-          description: the eservice id
+          description: The E-Service ID of the Descriptor
           required: true
           schema:
             type: string
             format: uuid
         - name: descriptorId
           in: path
-          description: the descriptor Id
+          description: The ID of the Descriptor to suspend
           required: true
           schema:
             type: string
@@ -3884,7 +3884,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceDescriptor"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3893,7 +3893,7 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "400":
-          description: Invalid input
+          description: Bad request
           content:
             application/problem+json:
               schema:
@@ -3906,7 +3906,7 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
-          description: Not found
+          description: Not Found
           content:
             application/problem+json:
               schema:
@@ -3931,6 +3931,19 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "429":
           description: Too Many Requests
           content:
@@ -3944,36 +3957,36 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/unsuspend:
+  /eservices/{eserviceId}/descriptors/{descriptorId}/unsuspend:
     post:
       tags:
         - eservices
-      summary: Unsuspend a descriptor in Suspended state
-      description: |
-        Unsuspend a descriptor that is in Suspended state, transitioning it to Active or Suspended state
+      summary: Unsuspend an E-Service Descriptor in Suspended state
+      description:
+        Unsuspend an E-Service Descriptor that is in Suspended state, transitioning it to Active or Deprecated state
       operationId: unsuspendDescriptor
       parameters:
-        - name: eServiceId
+        - name: eserviceId
           in: path
-          description: the eservice id
+          description: The E-Service ID of the Descriptor
           required: true
           schema:
             type: string
             format: uuid
         - name: descriptorId
           in: path
-          description: the descriptor Id
+          description: The ID of the Descriptor to unsuspend
           required: true
           schema:
             type: string
             format: uuid
       responses:
         "200":
-          description: Eservice unsuspended
+          description: E-Service Descriptor unsuspended
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceDescriptor"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4020,6 +4033,19 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "429":
           description: Too Many Requests
           content:
@@ -4033,7 +4059,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/publish:
+  /eservices/{eserviceId}/descriptors/{descriptorId}/publish:
     post:
       tags:
         - eservices
@@ -4041,16 +4067,16 @@ paths:
       operationId: publishDescriptor
       description: Publishes the specified descriptor
       parameters:
-        - name: eServiceId
+        - name: eserviceId
           in: path
-          description: the eservice id
+          description: The E-Service ID of the Descriptor
           required: true
           schema:
             type: string
             format: uuid
         - name: descriptorId
           in: path
-          description: the descriptor Id
+          description: The ID of the Descriptor to publish
           required: true
           schema:
             type: string
@@ -4061,7 +4087,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceDescriptor"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"

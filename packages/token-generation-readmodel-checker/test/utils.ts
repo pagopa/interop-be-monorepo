@@ -13,12 +13,12 @@ import {
   toReadModelEService,
   toReadModelPurpose,
 } from "pagopa-interop-models";
-import { purposeReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { afterEach, inject } from "vitest";
 import {
   upsertAgreement,
   upsertClient,
   upsertEService,
+  upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -42,8 +42,6 @@ afterEach(cleanup);
 if (!config) {
   throw new Error("Config is not defined");
 }
-
-const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
@@ -73,7 +71,7 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
     readModelRepository.purposes
   );
 
-  await purposeReadModelServiceSQL.upsertPurpose(purpose, 0);
+  await upsertPurpose(readModelDB, purpose, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
