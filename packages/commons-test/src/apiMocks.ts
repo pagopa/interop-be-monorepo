@@ -24,7 +24,7 @@ export function getMockedApiPurposeVersion({
   return {
     id: generateId(),
     createdAt: new Date().toISOString(),
-    dailyCalls: 1000000000,
+    dailyCalls: generateMock(z.number().positive()),
     state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
     riskAnalysis,
   };
@@ -228,8 +228,8 @@ export function getMockedApiEserviceDescriptor({
     description: generateMock(z.string().length(10)),
     audience: generateMock(z.array(z.string())),
     voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
-    dailyCallsPerConsumer: 1000000000,
-    dailyCallsTotal: 1000000000,
+    dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
+    dailyCallsTotal: generateMock(z.number().int().gte(1)),
     interface: interfaceDoc ?? generateMock(catalogApi.EServiceDoc),
     docs: generateMock(z.array(catalogApi.EServiceDoc)),
     state: state ?? generateMock(catalogApi.EServiceDescriptorState),
