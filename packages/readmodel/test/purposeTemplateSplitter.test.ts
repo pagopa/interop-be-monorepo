@@ -6,6 +6,7 @@ import {
   getMockRiskAnalysisTemplateAnswerAnnotation,
 } from "pagopa-interop-commons-test";
 import {
+  EServiceDescriptorPurposeTemplate,
   generateId,
   PurposeTemplate,
   riskAnalysisAnswerKind,
@@ -16,14 +17,17 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
-  PurposeTemplateEServiceDescriptorVersionSQL,
+  PurposeTemplateEServiceDescriptorSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationSQL,
   PurposeTemplateRiskAnalysisAnswerSQL,
   PurposeTemplateRiskAnalysisFormSQL,
   PurposeTemplateSQL,
 } from "pagopa-interop-readmodel-models";
-import { splitPurposeTemplateIntoObjectsSQL } from "../src/purpose-template/splitters.js";
+import {
+  splitPurposeTemplateIntoObjectsSQL,
+  toPurposeTemplateEServiceDescriptorSQL,
+} from "../src/purpose-template/splitters.js";
 
 describe("Purpose Template splitter", () => {
   it("should convert a complete purpose template into purpose template SQL objects", () => {
@@ -57,30 +61,51 @@ describe("Purpose Template splitter", () => {
     };
     const purposeTemplate: PurposeTemplate = {
       ...getMockPurposeTemplate(),
-      eservicesVersions: [
-        {
-          eserviceId: generateId(),
-          descriptorId: generateId(),
-        },
-        {
-          eserviceId: generateId(),
-          descriptorId: generateId(),
-        },
-      ],
       updatedAt: new Date(),
       purposeRiskAnalysisForm: riskAnalysisFormTemplate,
       purposeFreeOfChargeReason: "Free of charge reason",
       purposeDailyCalls: 100,
     };
 
+    const eservicesDescriptors: EServiceDescriptorPurposeTemplate[] = [
+      {
+        purposeTemplateId: purposeTemplate.id,
+        descriptorId: generateId(),
+        eserviceId: generateId(),
+        createdAt: new Date(),
+      },
+      {
+        purposeTemplateId: purposeTemplate.id,
+        descriptorId: generateId(),
+        eserviceId: generateId(),
+        createdAt: new Date(),
+      },
+    ];
+
     const {
       purposeTemplateSQL,
-      eserviceDescriptorVersionsSQL,
       riskAnalysisFormTemplateSQL,
       riskAnalysisTemplateAnswersSQL,
-      riskAnalysisTemplateAnswerAnnotationsSQL,
-      riskAnalysisTemplateAnswerAnnotationDocumentsSQL,
+      riskAnalysisTemplateAnswersAnnotationsSQL,
+      riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
     } = splitPurposeTemplateIntoObjectsSQL(purposeTemplate, metadataVersion);
+
+    const eservicesDescriptorsSQL: PurposeTemplateEServiceDescriptorSQL[] = [
+      toPurposeTemplateEServiceDescriptorSQL({
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eservicesDescriptors[0].eserviceId,
+        descriptorId: eservicesDescriptors[0].descriptorId,
+        metadataVersion,
+        createdAt: eservicesDescriptors[0].createdAt,
+      }),
+      toPurposeTemplateEServiceDescriptorSQL({
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: eservicesDescriptors[1].eserviceId,
+        descriptorId: eservicesDescriptors[1].descriptorId,
+        metadataVersion,
+        createdAt: eservicesDescriptors[1].createdAt,
+      }),
+    ];
 
     const expectedPurposeTemplateSQL: PurposeTemplateSQL = {
       id: purposeTemplate.id,
@@ -98,19 +123,21 @@ describe("Purpose Template splitter", () => {
       purposeDailyCalls: purposeTemplate.purposeDailyCalls!,
     };
 
-    const expectedEServiceDescriptorVersionsSQL: PurposeTemplateEServiceDescriptorVersionSQL[] =
+    const expectedEServicesDescriptorsSQL: PurposeTemplateEServiceDescriptorSQL[] =
       [
         {
           metadataVersion,
           purposeTemplateId: purposeTemplate.id,
-          eserviceId: purposeTemplate.eservicesVersions[0].eserviceId,
-          descriptorId: purposeTemplate.eservicesVersions[0].descriptorId,
+          eserviceId: eservicesDescriptors[0].eserviceId,
+          descriptorId: eservicesDescriptors[0].descriptorId,
+          createdAt: eservicesDescriptors[0].createdAt.toISOString(),
         },
         {
           metadataVersion,
           purposeTemplateId: purposeTemplate.id,
-          eserviceId: purposeTemplate.eservicesVersions[1].eserviceId,
-          descriptorId: purposeTemplate.eservicesVersions[1].descriptorId,
+          eserviceId: eservicesDescriptors[1].eserviceId,
+          descriptorId: eservicesDescriptors[1].descriptorId,
+          createdAt: eservicesDescriptors[1].createdAt.toISOString(),
         },
       ];
 
@@ -162,7 +189,7 @@ describe("Purpose Template splitter", () => {
               purposeTemplateId: purposeTemplate.id,
               metadataVersion,
               answerId: singleAnswer.id,
-              text: singleAnswer.annotation!.text!,
+              text: singleAnswer.annotation!.text,
             } satisfies PurposeTemplateRiskAnalysisAnswerAnnotationSQL,
           ],
           expectedRiskAnalysisTemplateSingleAnswersAnnotationsDocumentsSQL: [
@@ -221,7 +248,7 @@ describe("Purpose Template splitter", () => {
               purposeTemplateId: purposeTemplate.id,
               metadataVersion,
               answerId: multiAnswer.id,
-              text: multiAnswer.annotation!.text!,
+              text: multiAnswer.annotation!.text,
             } satisfies PurposeTemplateRiskAnalysisAnswerAnnotationSQL,
           ],
           expectedRiskAnalysisTemplateMultiAnswersAnnotationsDocumentsSQL: [
@@ -241,8 +268,8 @@ describe("Purpose Template splitter", () => {
     );
 
     expect(purposeTemplateSQL).toStrictEqual(expectedPurposeTemplateSQL);
-    expect(eserviceDescriptorVersionsSQL).toStrictEqual(
-      expect.arrayContaining(expectedEServiceDescriptorVersionsSQL)
+    expect(eservicesDescriptorsSQL).toStrictEqual(
+      expect.arrayContaining(expectedEServicesDescriptorsSQL)
     );
     expect(riskAnalysisFormTemplateSQL).toStrictEqual(
       expectedRiskAnalysisFormTemplateSQL
@@ -253,13 +280,13 @@ describe("Purpose Template splitter", () => {
         ...expectedRiskAnalysisTemplateMultiAnswersSQL,
       ])
     );
-    expect(riskAnalysisTemplateAnswerAnnotationsSQL).toStrictEqual(
+    expect(riskAnalysisTemplateAnswersAnnotationsSQL).toStrictEqual(
       expect.arrayContaining([
         ...expectedRiskAnalysisTemplateSingleAnswersAnnotationsSQL,
         ...expectedRiskAnalysisTemplateMultiAnswersAnnotationsSQL,
       ])
     );
-    expect(riskAnalysisTemplateAnswerAnnotationDocumentsSQL).toStrictEqual(
+    expect(riskAnalysisTemplateAnswersAnnotationsDocumentsSQL).toStrictEqual(
       expect.arrayContaining([
         ...expectedRiskAnalysisTemplateSingleAnswersAnnotationsDocumentsSQL,
         ...expectedRiskAnalysisTemplateMultiAnswersAnnotationsDocumentsSQL,
@@ -274,18 +301,19 @@ describe("Purpose Template splitter", () => {
     );
     const purposeTemplate: PurposeTemplate = {
       ...getMockPurposeTemplate(),
-      eservicesVersions: [],
       purposeRiskAnalysisForm: riskAnalysisFormTemplate,
     };
 
     const {
       purposeTemplateSQL,
-      eserviceDescriptorVersionsSQL,
       riskAnalysisFormTemplateSQL,
       riskAnalysisTemplateAnswersSQL,
-      riskAnalysisTemplateAnswerAnnotationsSQL,
-      riskAnalysisTemplateAnswerAnnotationDocumentsSQL,
+      riskAnalysisTemplateAnswersAnnotationsSQL,
+      riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
     } = splitPurposeTemplateIntoObjectsSQL(purposeTemplate, metadataVersion);
+
+    const eserviceDescriptorVersionsSQL: PurposeTemplateEServiceDescriptorSQL[] =
+      [];
 
     const expectedPurposeTemplateSQL: PurposeTemplateSQL = {
       id: purposeTemplate.id,
@@ -352,7 +380,7 @@ describe("Purpose Template splitter", () => {
         ...expectedRiskAnalysisTemplateMultiAnswersSQL,
       ])
     );
-    expect(riskAnalysisTemplateAnswerAnnotationsSQL).toHaveLength(0);
-    expect(riskAnalysisTemplateAnswerAnnotationDocumentsSQL).toHaveLength(0);
+    expect(riskAnalysisTemplateAnswersAnnotationsSQL).toHaveLength(0);
+    expect(riskAnalysisTemplateAnswersAnnotationsDocumentsSQL).toHaveLength(0);
   });
 });

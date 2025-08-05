@@ -1,5 +1,7 @@
 import {
   dateToString,
+  DescriptorId,
+  EServiceId,
   PurposeTemplate,
   PurposeTemplateId,
   riskAnalysisAnswerKind,
@@ -11,7 +13,7 @@ import {
   RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
 import {
-  PurposeTemplateEServiceDescriptorVersionSQL,
+  PurposeTemplateEServiceDescriptorSQL,
   PurposeTemplateItemsSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationSQL,
@@ -26,7 +28,6 @@ export const splitPurposeTemplateIntoObjectsSQL = (
     targetDescription,
     targetTenantKind,
     creatorId,
-    eservicesVersions,
     state,
     createdAt,
     updatedAt,
@@ -58,14 +59,6 @@ export const splitPurposeTemplateIntoObjectsSQL = (
     purposeDailyCalls: purposeDailyCalls ?? null,
   };
 
-  const eserviceDescriptorVersionsSQL: PurposeTemplateEServiceDescriptorVersionSQL[] =
-    eservicesVersions.map((eserviceDescriptorVersion) => ({
-      metadataVersion: version,
-      purposeTemplateId: id,
-      eserviceId: eserviceDescriptorVersion.eserviceId,
-      descriptorId: eserviceDescriptorVersion.descriptorId,
-    }));
-
   const splitPurposeRiskAnalysisSQL =
     splitRiskAnalysisTemplateFormIntoObjectsSQL(
       id,
@@ -75,16 +68,15 @@ export const splitPurposeTemplateIntoObjectsSQL = (
 
   return {
     purposeTemplateSQL,
-    eserviceDescriptorVersionsSQL,
     riskAnalysisFormTemplateSQL:
       splitPurposeRiskAnalysisSQL?.riskAnalysisFormTemplateSQL,
     riskAnalysisTemplateAnswersSQL:
       splitPurposeRiskAnalysisSQL?.riskAnalysisTemplateAnswersSQL ?? [],
-    riskAnalysisTemplateAnswerAnnotationsSQL:
-      splitPurposeRiskAnalysisSQL?.riskAnalysisTemplateAnswerAnnotationsSQL ??
+    riskAnalysisTemplateAnswersAnnotationsSQL:
+      splitPurposeRiskAnalysisSQL?.riskAnalysisTemplateAnswersAnnotationsSQL ??
       [],
-    riskAnalysisTemplateAnswerAnnotationDocumentsSQL:
-      splitPurposeRiskAnalysisSQL?.riskAnalysisTemplateAnswerAnnotationDocumentsSQL ??
+    riskAnalysisTemplateAnswersAnnotationsDocumentsSQL:
+      splitPurposeRiskAnalysisSQL?.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL ??
       [],
   };
 };
@@ -97,8 +89,8 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
   | {
       riskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSQL;
       riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
-      riskAnalysisTemplateAnswerAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
-      riskAnalysisTemplateAnswerAnnotationDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+      riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
+      riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
     }
   | undefined => {
   if (!riskAnalysisFormTemplate) {
@@ -119,11 +111,11 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
   const {
     riskAnalysisTemplateSingleAnswers,
     riskAnalysisTemplateSingleAnswersAnnotations,
-    riskAnalysisTemplateSingleAnswersAnnotationDocuments,
+    riskAnalysisTemplateSingleAnswersAnnotationsDocuments,
   }: {
     riskAnalysisTemplateSingleAnswers: PurposeTemplateRiskAnalysisAnswerSQL[];
     riskAnalysisTemplateSingleAnswersAnnotations: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
-    riskAnalysisTemplateSingleAnswersAnnotationDocuments: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+    riskAnalysisTemplateSingleAnswersAnnotationsDocuments: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
   } = singleAnswers.reduce(
     (
       acc,
@@ -174,8 +166,8 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
             ? [riskAnalysisAnswerAnnotationSQL]
             : []),
         ],
-        riskAnalysisTemplateSingleAnswersAnnotationDocuments: [
-          ...acc.riskAnalysisTemplateSingleAnswersAnnotationDocuments,
+        riskAnalysisTemplateSingleAnswersAnnotationsDocuments: [
+          ...acc.riskAnalysisTemplateSingleAnswersAnnotationsDocuments,
           ...riskAnalysisAnswerAnnotationDocumentsSQL,
         ],
       };
@@ -185,7 +177,7 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
         new Array<PurposeTemplateRiskAnalysisAnswerSQL>(),
       riskAnalysisTemplateSingleAnswersAnnotations:
         new Array<PurposeTemplateRiskAnalysisAnswerAnnotationSQL>(),
-      riskAnalysisTemplateSingleAnswersAnnotationDocuments:
+      riskAnalysisTemplateSingleAnswersAnnotationsDocuments:
         new Array<PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL>(),
     }
   );
@@ -193,11 +185,11 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
   const {
     riskAnalysisTemplateMultiAnswers,
     riskAnalysisTemplateMultiAnswersAnnotations,
-    riskAnalysisTemplateMultiAnswersAnnotationDocuments,
+    riskAnalysisTemplateMultiAnswersAnnotationsDocuments,
   }: {
     riskAnalysisTemplateMultiAnswers: PurposeTemplateRiskAnalysisAnswerSQL[];
     riskAnalysisTemplateMultiAnswersAnnotations: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
-    riskAnalysisTemplateMultiAnswersAnnotationDocuments: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+    riskAnalysisTemplateMultiAnswersAnnotationsDocuments: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
   } = multiAnswers.reduce(
     (acc, riskAnalysisTemplateMultiAnswer: RiskAnalysisTemplateMultiAnswer) => {
       const {
@@ -244,8 +236,8 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
             ? [riskAnalysisAnswerAnnotationSQL]
             : []),
         ],
-        riskAnalysisTemplateMultiAnswersAnnotationDocuments: [
-          ...acc.riskAnalysisTemplateMultiAnswersAnnotationDocuments,
+        riskAnalysisTemplateMultiAnswersAnnotationsDocuments: [
+          ...acc.riskAnalysisTemplateMultiAnswersAnnotationsDocuments,
           ...riskAnalysisAnswerAnnotationDocumentsSQL,
         ],
       };
@@ -255,7 +247,7 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
         new Array<PurposeTemplateRiskAnalysisAnswerSQL>(),
       riskAnalysisTemplateMultiAnswersAnnotations:
         new Array<PurposeTemplateRiskAnalysisAnswerAnnotationSQL>(),
-      riskAnalysisTemplateMultiAnswersAnnotationDocuments:
+      riskAnalysisTemplateMultiAnswersAnnotationsDocuments:
         new Array<PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL>(),
     }
   );
@@ -266,13 +258,13 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
       ...riskAnalysisTemplateSingleAnswers,
       ...riskAnalysisTemplateMultiAnswers,
     ],
-    riskAnalysisTemplateAnswerAnnotationsSQL: [
+    riskAnalysisTemplateAnswersAnnotationsSQL: [
       ...riskAnalysisTemplateSingleAnswersAnnotations,
       ...riskAnalysisTemplateMultiAnswersAnnotations,
     ],
-    riskAnalysisTemplateAnswerAnnotationDocumentsSQL: [
-      ...riskAnalysisTemplateSingleAnswersAnnotationDocuments,
-      ...riskAnalysisTemplateMultiAnswersAnnotationDocuments,
+    riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: [
+      ...riskAnalysisTemplateSingleAnswersAnnotationsDocuments,
+      ...riskAnalysisTemplateMultiAnswersAnnotationsDocuments,
     ],
   };
 };
@@ -323,3 +315,23 @@ const splitRiskAnalysisTemplateAnswerAnnotationsIntoObjectsSQL = (
     riskAnalysisAnswerAnnotationDocumentsSQL,
   };
 };
+
+export const toPurposeTemplateEServiceDescriptorSQL = ({
+  purposeTemplateId,
+  eserviceId,
+  descriptorId,
+  metadataVersion,
+  createdAt,
+}: {
+  purposeTemplateId: PurposeTemplateId;
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+  metadataVersion: number;
+  createdAt: Date;
+}): PurposeTemplateEServiceDescriptorSQL => ({
+  metadataVersion,
+  purposeTemplateId,
+  eserviceId,
+  descriptorId,
+  createdAt: dateToString(createdAt),
+});

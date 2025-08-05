@@ -1298,16 +1298,11 @@ export const getMockUserNotificationConfig = (): UserNotificationConfig => ({
   updatedAt: generateMock(z.coerce.date().optional()),
 });
 
-export const getMockPurposeTemplate = ({
-  eservicesVersions = [],
-}: {
-  eservicesVersions?: EServiceDescriptorVersionPurposeTemplate[];
-} = {}): PurposeTemplate => ({
+export const getMockPurposeTemplate = (): PurposeTemplate => ({
   id: generateId(),
   targetDescription: "Mock purpose template target",
   targetTenantKind: tenantKind.PA,
   creatorId: generateId(),
-  eservicesVersions,
   state: purposeTemplateState.draft,
   createdAt: new Date(),
   purposeTitle: "Mock purpose template title",
