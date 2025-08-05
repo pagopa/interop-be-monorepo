@@ -1997,7 +1997,7 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTempla
       purposeTemplateId: uuid("purpose_template_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       answerId: uuid("answer_id").notNull(),
-      text: varchar(),
+      text: varchar().notNull(),
     },
     (table) => [
       foreignKey({
@@ -2026,20 +2026,24 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTempla
     ]
   );
 
-export const purposeTemplateEserviceDescriptorVersionInReadmodelPurposeTemplate =
+export const purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate =
   readmodelPurposeTemplate.table(
-    "purpose_template_eservice_descriptor_version",
+    "purpose_template_eservice_descriptor",
     {
       metadataVersion: integer("metadata_version").notNull(),
       purposeTemplateId: uuid("purpose_template_id").notNull(),
       eserviceId: uuid("eservice_id").notNull(),
       descriptorId: uuid("descriptor_id"),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
     },
     (table) => [
       foreignKey({
         columns: [table.purposeTemplateId],
         foreignColumns: [purposeTemplateInReadmodelPurposeTemplate.id],
-        name: "purpose_template_eservice_descriptor_v_purpose_template_id_fkey",
+        name: "purpose_template_eservice_descriptor_purpose_template_id_fkey",
       }).onDelete("cascade"),
       foreignKey({
         columns: [table.metadataVersion, table.purposeTemplateId],
@@ -2051,7 +2055,7 @@ export const purposeTemplateEserviceDescriptorVersionInReadmodelPurposeTemplate 
       }),
       primaryKey({
         columns: [table.purposeTemplateId, table.eserviceId],
-        name: "purpose_template_eservice_descriptor_version_pkey",
+        name: "purpose_template_eservice_descriptor_pkey",
       }),
     ]
   );

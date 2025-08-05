@@ -5,7 +5,7 @@ import {
   PurposeTemplateId,
   TenantId,
 } from "../brandedIds.js";
-import { RiskAnalysisFormTemplate } from "../risk-analysis/riskAnalysis.js";
+import { RiskAnalysisFormTemplate } from "../risk-analysis/riskAnalysisTemplate.js";
 import { TenantKind } from "../tenant/tenant.js";
 
 export const purposeTemplateState = {
@@ -20,14 +20,14 @@ export const PurposeTemplateState = z.enum([
 ]);
 export type PurposeTemplateState = z.infer<typeof PurposeTemplateState>;
 
-export const EServiceDescriptorVersionPurposeTemplate = z.object({
+export const EServiceDescriptorPurposeTemplate = z.object({
   purposeTemplateId: PurposeTemplateId,
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
   createdAt: z.coerce.date(),
 });
-export type EServiceDescriptorVersionPurposeTemplate = z.infer<
-  typeof EServiceDescriptorVersionPurposeTemplate
+export type EServiceDescriptorPurposeTemplate = z.infer<
+  typeof EServiceDescriptorPurposeTemplate
 >;
 
 export const PurposeTemplate = z.object({
