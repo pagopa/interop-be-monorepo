@@ -30,7 +30,6 @@ describe("Purpose template aggregator", () => {
             ...getMockRiskAnalysisTemplateAnswerAnnotation(),
             docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
           },
-          assistiveText: "Single answer assistive text",
           suggestedValues: ["a", "b"],
         })
       ),
@@ -41,7 +40,6 @@ describe("Purpose template aggregator", () => {
             ...getMockRiskAnalysisTemplateAnswerAnnotation(),
             docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
           },
-          assistiveText: "Multi answer assistive text",
         })
       ),
     };

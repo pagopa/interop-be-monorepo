@@ -44,7 +44,6 @@ describe("Purpose Template splitter", () => {
             ...getMockRiskAnalysisTemplateAnswerAnnotation(),
             docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
           },
-          assistiveText: "Single answer assistive text",
           suggestedValues: ["a", "b"],
         })
       ),
@@ -55,7 +54,6 @@ describe("Purpose Template splitter", () => {
             ...getMockRiskAnalysisTemplateAnswerAnnotation(),
             docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
           },
-          assistiveText: "Multi answer assistive text",
         })
       ),
     };
@@ -173,7 +171,6 @@ describe("Purpose Template splitter", () => {
               key: singleAnswer.key,
               value: [singleAnswer.value!],
               editable: singleAnswer.editable,
-              assistiveText: singleAnswer.assistiveText!,
               suggestedValues: singleAnswer.suggestedValues,
             } satisfies PurposeTemplateRiskAnalysisAnswerSQL,
           ],
@@ -233,7 +230,6 @@ describe("Purpose Template splitter", () => {
               key: multiAnswer.key,
               value: multiAnswer.values,
               editable: multiAnswer.editable,
-              assistiveText: multiAnswer.assistiveText!,
               suggestedValues: null,
             } satisfies PurposeTemplateRiskAnalysisAnswerSQL,
           ],
@@ -346,7 +342,6 @@ describe("Purpose Template splitter", () => {
           key: singleAnswer.key,
           value: [singleAnswer.value!],
           editable: singleAnswer.editable,
-          assistiveText: null,
           suggestedValues: singleAnswer.suggestedValues,
         })
       );
@@ -361,7 +356,6 @@ describe("Purpose Template splitter", () => {
         key: multiAnswer.key,
         value: multiAnswer.values,
         editable: multiAnswer.editable,
-        assistiveText: null,
         suggestedValues: null,
       }));
 
