@@ -1922,7 +1922,6 @@ export const purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate =
       key: varchar().notNull(),
       value: varchar().array().notNull(),
       editable: boolean().notNull(),
-      assistiveText: varchar("assistive_text"),
       suggestedValues: varchar("suggested_values").array(),
     },
     (table) => [
