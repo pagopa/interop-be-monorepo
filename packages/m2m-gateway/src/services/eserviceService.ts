@@ -5,6 +5,7 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   toGetEServicesQueryParams,
+  toM2MGatewayApiDocument,
   toM2MGatewayApiEService,
   toM2MGatewayApiEServiceDescriptor,
 } from "../api/eserviceApiConverter.js";
@@ -15,6 +16,11 @@ import {
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
+import { uploadEServiceDocument } from "../utils/fileUpload.js";
+import {
+  pollResourceWithMetadata,
+  isPolledVersionAtLeastMetadataTargetVersion,
+} from "../utils/polling.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -56,6 +62,15 @@ export function eserviceServiceBuilder(
       metadata,
     };
   };
+
+  const pollEServiceById = (
+    eserviceId: EServiceId,
+    metadata: { version: number } | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
+    pollResourceWithMetadata(() => retrieveEServiceById(headers, eserviceId))({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
+    });
 
   return {
     async getEService(
@@ -145,6 +160,36 @@ export function eserviceServiceBuilder(
         },
         results: paginatedDescriptors.map(toM2MGatewayApiEServiceDescriptor),
       };
+    },
+    async uploadEServiceDescriptorDocument(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      fileUpload: m2mGatewayApi.FileUploadMultipart,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Document> {
+      logger.info(
+        `Adding document ${fileUpload.file.name} to descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
+      );
+
+      const { data: document, metadata } = await uploadEServiceDocument({
+        eservice,
+        descriptorId,
+        documentKind: catalogApi.EServiceDocumentKind.Values.DOCUMENT,
+        fileUpload,
+        fileManager,
+        catalogProcessClient: clients.catalogProcessClient,
+        headers,
+        logger,
+      });
+
+      await pollEServiceById(eserviceId, metadata, headers);
+
+      return toM2MGatewayApiDocument(document);
     },
     async downloadEServiceDescriptorInterface(
       eserviceId: EServiceId,

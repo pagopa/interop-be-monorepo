@@ -123,6 +123,34 @@ const eserviceRouter = (
         }
       }
     )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/documents",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const document =
+            await eserviceService.uploadEServiceDescriptorDocument(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+
+          return res.status(201).send(m2mGatewayApi.Document.parse(document));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error uploading document for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get(
       "/eservices/:eserviceId/descriptors/:descriptorId/interface",
       async (req, res) => {
