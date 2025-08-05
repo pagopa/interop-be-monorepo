@@ -76,12 +76,6 @@ paths:
             default: []
           explode: false
         - in: query
-          name: excludeDraft
-          description: exclude draft templates
-          schema:
-            type: boolean
-            default: false
-        - in: query
           name: offset
           required: true
           schema:
