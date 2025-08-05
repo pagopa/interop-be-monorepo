@@ -4147,7 +4147,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/approve:
+  /eservices/{eserviceId}/descriptors/{descriptorId}/approve:
     post:
       tags:
         - eservices
@@ -4155,16 +4155,16 @@ paths:
       operationId: approveDelegatedEServiceDescriptor
       description: Approves a delegated E-Service descriptor
       parameters:
-        - name: eServiceId
+        - name: eserviceId
           in: path
-          description: the eservice id
+          description: The E-Service ID of the Descriptor
           required: true
           schema:
             type: string
             format: uuid
         - name: descriptorId
           in: path
-          description: the descriptor Id
+          description: The ID of the Descriptor to suspend
           required: true
           schema:
             type: string
@@ -4175,7 +4175,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceDescriptor"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"

@@ -229,26 +229,28 @@ const eserviceRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/descriptors/:descriptorId/approve",
+      "/eservices/:eserviceId/descriptors/:descriptorId/approve",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-          const eService =
+          const eserviceDescriptor =
             await eserviceService.approveDelegatedEServiceDescriptor(
-              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.eserviceId),
               unsafeBrandId(req.params.descriptorId),
               ctx
             );
-          return res.status(200).send(m2mGatewayApi.EService.parse(eService));
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceDescriptor.parse(eserviceDescriptor));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
             ctx,
-            `Error retrieving eservice ${req.params.eServiceId} descriptors`
+            `Error retrieving eservice ${req.params.eserviceId} descriptors`
           );
           return res.status(errorRes.status).send(errorRes);
         }
