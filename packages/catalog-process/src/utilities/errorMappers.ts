@@ -112,7 +112,11 @@ export const documentCreateErrorMapper = (
       "interfaceAlreadyExists",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("documentPrettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "documentPrettyNameDuplicate",
+      "checksumDuplicate",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with(
       "templateInstanceNotAllowed",
       "operationForbidden",
