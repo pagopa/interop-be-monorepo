@@ -65,11 +65,12 @@ const tenantRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-        const declaredAttributes = await tenantService.getDeclaredAttributes(
-          unsafeBrandId(req.params.tenantId),
-          req.query,
-          ctx
-        );
+        const declaredAttributes =
+          await tenantService.getTenantDeclaredAttributes(
+            unsafeBrandId(req.params.tenantId),
+            req.query,
+            ctx
+          );
 
         return res
           .status(200)
@@ -90,11 +91,12 @@ const tenantRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-        const certifiedAttributes = await tenantService.getCertifiedAttributes(
-          unsafeBrandId(req.params.tenantId),
-          req.query,
-          ctx
-        );
+        const certifiedAttributes =
+          await tenantService.getTenantCertifiedAttributes(
+            unsafeBrandId(req.params.tenantId),
+            req.query,
+            ctx
+          );
 
         return res
           .status(200)
@@ -169,11 +171,12 @@ const tenantRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-        const verifiedAttributes = await tenantService.getVerifiedAttributes(
-          unsafeBrandId(req.params.tenantId),
-          req.query,
-          ctx
-        );
+        const verifiedAttributes =
+          await tenantService.getTenantVerifiedAttributes(
+            unsafeBrandId(req.params.tenantId),
+            req.query,
+            ctx
+          );
 
         return res
           .status(200)
