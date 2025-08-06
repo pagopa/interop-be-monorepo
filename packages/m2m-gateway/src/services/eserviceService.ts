@@ -32,7 +32,7 @@ export function eserviceServiceBuilder(
 ) {
   const retrieveEServiceById = async (
     headers: M2MGatewayAppContext["headers"],
-    eserviceId: string
+    eserviceId: EServiceId
   ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
     await clients.catalogProcessClient.getEServiceById({
       params: {
