@@ -1689,8 +1689,12 @@ export function catalogServiceBuilder(
     async activateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Activating descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1726,7 +1730,7 @@ export function catalogServiceBuilder(
       const recentDescriptorVersion = Math.max(...descriptorVersions);
 
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      const event = () => {
+      const createActivationEvent = async () => {
         if (
           recentDescriptorVersion !== null &&
           parseInt(descriptor.version, 10) === recentDescriptorVersion
@@ -1736,30 +1740,54 @@ export function catalogServiceBuilder(
             updatedDescriptor
           );
 
-          return toCreateEventEServiceDescriptorActivated(
-            eserviceId,
-            eservice.metadata.version,
-            descriptorId,
-            newEservice,
-            correlationId
+          const event = await repository.createEvent(
+            toCreateEventEServiceDescriptorActivated(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            )
           );
+
+          return {
+            data: newEservice,
+            metadata: {
+              version: event.newVersion,
+            },
+          };
         } else {
           const newEservice = replaceDescriptor(
             eservice.data,
             deprecateDescriptor(eserviceId, descriptor, logger)
           );
 
-          return toCreateEventEServiceDescriptorActivated(
-            eserviceId,
-            eservice.metadata.version,
-            descriptorId,
-            newEservice,
-            correlationId
+          const event = await repository.createEvent(
+            toCreateEventEServiceDescriptorActivated(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            )
           );
+          return {
+            data: newEservice,
+            metadata: {
+              version: event.newVersion,
+            },
+          };
         }
       };
 
-      await repository.createEvent(event());
+      const response = await createActivationEvent();
+
+      return {
+        data: response.data,
+        metadata: {
+          version: response.metadata.version,
+        },
+      };
     },
 
     async cloneDescriptor(
