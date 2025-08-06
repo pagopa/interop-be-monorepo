@@ -8,6 +8,11 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  TestMultipartFileUpload,
+  addMultipartFileToSupertestRequest,
+  fileFromTestMultipartFileUpload,
+} from "../../multipartTestUtils.js";
 
 describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
   const mockFileUpload = {
@@ -28,29 +33,13 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
   const makeRequest = async (
     token: string,
     agreementId: string,
-    file: {
-      fileContent?: Buffer;
-      filename?: string;
-      contentType?: string;
-      prettyName?: string;
-    }
+    file: TestMultipartFileUpload
   ) => {
     const req = request(api)
       .post(`${appBasePath}/agreements/${agreementId}/consumerDocuments`)
       .set("Authorization", `Bearer ${token}`);
 
-    if (file.fileContent) {
-      void req.attach("file", file.fileContent, {
-        filename: file.filename,
-        contentType: file.contentType,
-      });
-    }
-
-    if (file.prettyName) {
-      void req.field("prettyName", file.prettyName);
-    }
-
-    return req;
+    return addMultipartFileToSupertestRequest(req, file);
   };
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
@@ -72,13 +61,7 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
       ).toHaveBeenCalledWith(
         agreementId,
         {
-          file: new File(
-            [mockFileUpload.fileContent],
-            mockFileUpload.filename,
-            {
-              type: mockFileUpload.contentType,
-            }
-          ),
+          file: fileFromTestMultipartFileUpload(mockFileUpload),
           prettyName: mockFileUpload.prettyName,
         },
         expect.any(Object) // Context object
