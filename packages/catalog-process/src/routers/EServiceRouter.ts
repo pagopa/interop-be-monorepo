@@ -388,7 +388,7 @@ const eservicesRouter = (
           setMetadataVersionHeader(res, metadata);
 
           return res
-            .status(201)
+            .status(200)
             .send(
               catalogApi.EServiceDoc.parse(documentToApiDocument(document))
             );

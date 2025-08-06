@@ -1060,7 +1060,7 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
       responses:
-        "201":
+        "200":
           description: EService Document created
           headers:
             X-Metadata-Version:
