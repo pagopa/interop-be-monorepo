@@ -813,6 +813,37 @@ export function catalogServiceBuilder(
       return document;
     },
 
+    async getDocuments(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { offset, limit }: catalogApi.GetEServiceDocumentsQueryParams,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData | M2MAuthData>>
+    ): Promise<ListResult<Document>> {
+      logger.info(
+        `Retrieving EService documents for EService ${eserviceId} and descriptor ${descriptorId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const checkedEService = await applyVisibilityToEService(
+        eservice.data,
+        authData,
+        readModelService
+      );
+      if (!checkedEService.descriptors.find((d) => d.id === descriptorId)) {
+        throw eServiceDescriptorNotFound(eserviceId, descriptorId);
+      }
+
+      return readModelService.getEServiceDescriptorDocuments(
+        eserviceId,
+        descriptorId,
+        offset,
+        limit
+      );
+    },
+
     async createEService(
       seed: catalogApi.EServiceSeed,
       ctx: WithLogger<AppContext<UIAuthData>>

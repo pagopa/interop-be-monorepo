@@ -1081,6 +1081,65 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+    get:
+      tags:
+        - process
+      summary: Retrieve a list of e-service documents
+      operationId: getEServiceDocuments
+      description: Retrieves a list of documents for the specified E-Service
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: EService documents retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDocs"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -3017,6 +3076,20 @@ components:
           format: date-time
         contacts:
           $ref: "#/components/schemas/DescriptorInterfaceContacts"
+    EServiceDocs:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDoc"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     EServiceDescriptionUpdateSeed:
       type: object
       additionalProperties: false

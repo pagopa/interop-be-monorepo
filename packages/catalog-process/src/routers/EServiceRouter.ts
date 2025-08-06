@@ -73,6 +73,7 @@ import {
   updateTemplateInstanceDescriptorErrorMapper,
   updateAgreementApprovalPolicyErrorMapper,
   updateEServiceSignalhubFlagErrorMapper,
+  documentListErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 
@@ -364,6 +365,42 @@ const eservicesRouter = (
             );
         } catch (error) {
           const errorRes = makeApiProblem(error, documentGetErrorMapper, ctx);
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eservices/:eServiceId/descriptors/:descriptorId/documents",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SUPPORT_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
+            M2M_ADMIN_ROLE,
+          ]);
+
+          const { eServiceId, descriptorId } = req.params;
+
+          const documents = await catalogService.getDocuments(
+            unsafeBrandId(eServiceId),
+            unsafeBrandId(descriptorId),
+            req.query,
+            ctx
+          );
+
+          return res.status(200).send(
+            catalogApi.EServiceDocs.parse({
+              results: documents.results.map(documentToApiDocument),
+              totalCount: documents.totalCount,
+            })
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(error, documentListErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
