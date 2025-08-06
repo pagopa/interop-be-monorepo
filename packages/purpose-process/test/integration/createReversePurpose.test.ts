@@ -136,7 +136,7 @@ describe("createReversePurpose", () => {
       ],
       id: purpose.id,
       createdAt: new Date(),
-      eserviceId: unsafeBrandId(reversePurposeSeed.eServiceId),
+      eserviceId: unsafeBrandId(reversePurposeSeed.eserviceId),
       consumerId: unsafeBrandId(reversePurposeSeed.consumerId),
       title: reversePurposeSeed.title,
       description: reversePurposeSeed.description,
@@ -187,8 +187,8 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
-      eServiceId: mockEService.id,
+    const reversePurposeSeed: purposeApi.ReversePurposeSeed = {
+      eserviceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
       title: "test purpose title",
@@ -249,7 +249,7 @@ describe("createReversePurpose", () => {
       ],
       id: purpose.id,
       createdAt: new Date(),
-      eserviceId: unsafeBrandId(reversePurposeSeed.eServiceId),
+      eserviceId: unsafeBrandId(reversePurposeSeed.eserviceId),
       consumerId: unsafeBrandId(reversePurposeSeed.consumerId),
       delegationId: delegation.id,
       title: reversePurposeSeed.title,
@@ -336,8 +336,8 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
-      eServiceId: mockEService.id,
+    const reversePurposeSeed: purposeApi.ReversePurposeSeed = {
+      eserviceId: mockEService.id,
       consumerId: mockAgreement.consumerId,
       riskAnalysisId: mockRiskAnalysis.id,
       title: "test purpose title",
@@ -392,7 +392,7 @@ describe("createReversePurpose", () => {
       ],
       id: purpose.id,
       createdAt: new Date(),
-      eserviceId: unsafeBrandId(reversePurposeSeed.eServiceId),
+      eserviceId: unsafeBrandId(reversePurposeSeed.eserviceId),
       consumerId: unsafeBrandId(reversePurposeSeed.consumerId),
       delegationId: consumerDelegation.id,
       title: reversePurposeSeed.title,
@@ -445,8 +445,8 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
-      eServiceId: mockEService.id,
+    const reversePurposeSeed: purposeApi.ReversePurposeSeed = {
+      eserviceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
       title: "test purpose title",
@@ -495,8 +495,8 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
-      eServiceId: mockEService.id,
+    const reversePurposeSeed: purposeApi.ReversePurposeSeed = {
+      eserviceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
       title: "test purpose title",
@@ -547,8 +547,8 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
-      eServiceId: mockEService.id,
+    const reversePurposeSeed: purposeApi.ReversePurposeSeed = {
+      eserviceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: randomRiskAnalysisId,
       title: "test purpose title",
@@ -599,8 +599,8 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
-      eServiceId: mockEService.id,
+    const reversePurposeSeed: purposeApi.ReversePurposeSeed = {
+      eserviceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
       title: "test purpose title",
@@ -649,8 +649,8 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
-      eServiceId: mockEService.id,
+    const reversePurposeSeed: purposeApi.ReversePurposeSeed = {
+      eserviceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
       title: "test purpose title",
@@ -692,8 +692,8 @@ describe("createReversePurpose", () => {
       mode: eserviceMode.receive,
     };
 
-    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
-      eServiceId: mockEService.id,
+    const reversePurposeSeed: purposeApi.ReversePurposeSeed = {
+      eserviceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
       title: "test purpose title",
@@ -749,8 +749,8 @@ describe("createReversePurpose", () => {
       consumerId: consumer.id,
     };
 
-    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
-      eServiceId: mockEService.id,
+    const reversePurposeSeed: purposeApi.ReversePurposeSeed = {
+      eserviceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
       title: purposeTitle,
@@ -808,8 +808,8 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
-      eServiceId: mockEService.id,
+    const reversePurposeSeed: purposeApi.ReversePurposeSeed = {
+      eserviceId: mockEService.id,
       consumerId: consumer.id,
       riskAnalysisId: mockRiskAnalysis.id,
       title: "test purpose title",
