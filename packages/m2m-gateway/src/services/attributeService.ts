@@ -113,6 +113,24 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
         logger,
       });
     },
+    async createVerifiedAttribute(
+      seed: m2mGatewayApi.VerifiedAttributeSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.VerifiedAttribute> {
+      logger.info(`Creating verified attribute with name ${seed.name}`);
+
+      const response =
+        await clients.attributeProcessClient.createVerifiedAttribute(seed, {
+          headers,
+        });
+
+      const polledResource = await pollAttribute(response, headers);
+
+      return toM2MGatewayApiVerifiedAttribute({
+        attribute: polledResource.data,
+        logger,
+      });
+    },
     async getCertifiedAttributes(
       { limit, offset }: m2mGatewayApi.GetCertifiedAttributesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
@@ -136,6 +154,24 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount: response.data.totalCount,
         },
       };
+    },
+    async createDeclaredAttribute(
+      seed: m2mGatewayApi.DeclaredAttributeSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.DeclaredAttribute> {
+      logger.info(`Creating declared attribute with name ${seed.name}`);
+
+      const response =
+        await clients.attributeProcessClient.createDeclaredAttribute(seed, {
+          headers,
+        });
+
+      const polledResource = await pollAttribute(response, headers);
+
+      return toM2MGatewayApiDeclaredAttribute({
+        attribute: polledResource.data,
+        logger,
+      });
     },
   };
 }
