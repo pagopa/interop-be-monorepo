@@ -255,7 +255,7 @@ export function getMockedApiFullProducerKeychain(): authorizationApi.FullProduce
     producerId: generateId(),
     eservices: [generateId(), generateId()],
     users: [generateId(), generateId()],
-    keys: [],
+    keys: generateMock(z.array(authorizationApi.Key)),
   };
 }
 

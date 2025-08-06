@@ -3707,6 +3707,7 @@ paths:
         - name: producerId
           in: query
           description: Filter Producer Keychains by Producer ID. If not specified, return Producer Keychains for any Producer
+          required: true
           schema:
             type: string
             format: uuid

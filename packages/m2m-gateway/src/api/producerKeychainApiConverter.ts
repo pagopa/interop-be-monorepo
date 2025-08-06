@@ -10,6 +10,7 @@ export function toGetProducerKeychainsApiQueryParams(
     limit: params.limit,
     offset: params.offset,
     userIds: [],
+    eserviceId: undefined,
   };
 }
 

@@ -113,6 +113,7 @@ describe("getProducerKeychains", () => {
         offset: mockParams.offset,
         limit: mockParams.limit,
         userIds: [],
+        eserviceId: undefined,
       },
     });
   });
@@ -158,7 +159,7 @@ describe("getProducerKeychains", () => {
         offset: mockParams.offset,
         limit: mockParams.limit,
         userIds: [],
-        purposeId: undefined,
+        eserviceId: undefined,
       },
     });
   });
