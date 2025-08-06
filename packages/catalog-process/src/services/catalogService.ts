@@ -802,7 +802,10 @@ export function catalogServiceBuilder(
         descriptorId: DescriptorId;
         documentId: EServiceDocumentId;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<Document> {
       logger.info(
         `Retrieving EService document ${documentId} for EService ${eserviceId} and descriptor ${descriptorId}`
