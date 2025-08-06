@@ -88,7 +88,7 @@ describe("unsuspendDescriptor", () => {
       metadata: { version: 0 },
     });
     await expect(
-      eserviceService.suspendDescriptor(
+      eserviceService.unsuspendDescriptor(
         unsafeBrandId(mockApiEservice.data.id),
         unsafeBrandId(mockApiDescriptor.id),
         getMockM2MAdminAppContext()
