@@ -11,7 +11,10 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { purposeTemplateNameConflict } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import { assertConsistentFreeOfCharge } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
@@ -23,6 +26,30 @@ export function purposeTemplateServiceBuilder(
   // const repository = eventRepository(dbInstance, purposeEventToBinaryDataV2);
 
   return {
+    async createPurposeTemplate(
+      seed: purposeTemplateApi.PurposeTemplateSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeTemplate>> {
+      logger.info(`Creating purpose template`);
+
+      assertConsistentFreeOfCharge(
+        seed.purposeIsFreeOfCharge,
+        seed.purposeFreeOfChargeReason
+      );
+
+      const templateNameAlreadyExists =
+        await readModelService.purposeTemplateNameConflict(seed.purposeTitle);
+
+      if (templateNameAlreadyExists) {
+        throw purposeTemplateNameConflict();
+      }
+
+      return readModelService.createPurposeTemplate(id, ctx);
+    },
     async getPurposeTemplateById(
       id: PurposeTemplateId,
       {

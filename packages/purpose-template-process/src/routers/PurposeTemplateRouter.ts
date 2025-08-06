@@ -55,6 +55,12 @@ const purposeTemplateRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const purposeTemplate = await purposeTemplateService.createPurposeTemplate(
+          unsafeBrandId(req.body.id),
+          ctx
+        );
+
       } catch (error) {
         return res.status(501);
       }
