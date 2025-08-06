@@ -12,7 +12,7 @@ import {
   toGetProducerKeychainsApiQueryParams,
   toM2MGatewayApiProducerKeychain,
 } from "../api/producerKeychainApiConverter.js";
-import { assertProducerKeychainVisibilityIsFull } from "../utils/validators/validators.js";
+import { assertProducerKeychainVisibilityIsFull } from "../utils/validators/keychainValidators.js";
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MJWK } from "../api/keysApiConverter.js";
 import {
