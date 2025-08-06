@@ -1,6 +1,10 @@
 import {
+  EService,
+  EServiceId,
+  generateId,
   PurposeTemplate,
   PurposeTemplateId,
+  purposeTemplateState,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -12,9 +16,11 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { purposeTemplateNameConflict } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
-import { assertConsistentFreeOfCharge } from "./validators.js";
+import {
+  assertConsistentFreeOfCharge,
+  assertPurposeTemplateTitleIsNotDuplicated,
+} from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
@@ -41,14 +47,58 @@ export function purposeTemplateServiceBuilder(
         seed.purposeFreeOfChargeReason
       );
 
-      const templateNameAlreadyExists =
-        await readModelService.purposeTemplateNameConflict(seed.purposeTitle);
+      await assertPurposeTemplateTitleIsNotDuplicated({
+        readModelService,
+        title: seed.purposeTitle,
+      });
 
-      if (templateNameAlreadyExists) {
-        throw purposeTemplateNameConflict();
-      }
+      // todo validateAndTransformRiskAnalysis?
 
-      return readModelService.createPurposeTemplate(id, ctx);
+      const purposeTemplate: PurposeTemplate = {
+        id: generateId(),
+        targetDescription: seed.targetDescription,
+        targetTenantKind: seed.targetTenantKind,
+        creatorId: authData.organizationId,
+        state: purposeTemplateState.draft,
+        createdAt: new Date(),
+        purposeTitle: seed.purposeTitle,
+        purposeDescription: seed.purposeDescription,
+        purposeRiskAnalysisForm: seed.purposeRiskAnalysisForm
+          ? {
+              id: generateId(),
+              version: seed.purposeRiskAnalysisForm.version,
+              singleAnswers: seed.purposeRiskAnalysisForm.answers.map(
+                (answer: purposeTemplateApi.RiskAnalysisTemplateAnswer) => ({
+                  value: answer.value,
+                  editable: answer.editable,
+                  annotation: answer.annotation,
+                  suggestedValues: answer.suggestedValues,
+                })
+              ),
+              multiAnswers: seed.purposeRiskAnalysisForm.answers.map(
+                (answer: purposeTemplateApi.RiskAnalysisTemplateAnswer) => ({
+                  id: generateId(),
+                  value: answer.value,
+                  editable: answer.editable,
+                  annotation: answer.annotation,
+                })
+              ),
+            }
+          : undefined,
+        purposeIsFreeOfCharge: seed.purposeIsFreeOfCharge,
+        purposeFreeOfChargeReason: seed.purposeFreeOfChargeReason,
+        purposeDailyCalls: seed.purposeDailyCalls,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateAdded(purposeTemplate, correlationId)
+      );
+      return {
+        data: { purposeTemplate, isRiskAnalysisValid: validatedFormSeed !== undefined },
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async getPurposeTemplateById(
       id: PurposeTemplateId,
