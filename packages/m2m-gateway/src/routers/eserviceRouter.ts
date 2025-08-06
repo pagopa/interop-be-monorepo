@@ -222,7 +222,7 @@ const eserviceRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error retrieving eservice ${req.params.eserviceId} descriptors`
+            `Error publishing descriptor with ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
