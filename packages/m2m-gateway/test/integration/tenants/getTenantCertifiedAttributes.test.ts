@@ -4,7 +4,7 @@ import { unsafeBrandId } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import {
-  getMockedApiDeclaredTenantAttribute,
+  getMockedApiCertifiedTenantAttribute,
   getMockedApiTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
@@ -16,67 +16,66 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("getDeclaredAttributes", () => {
-  const mockDeclaredAttribute1 = getMockedApiDeclaredTenantAttribute({
+describe("getTenantCertifiedAttributes", () => {
+  const mockCertifiedAttribute1 = getMockedApiCertifiedTenantAttribute({
     revoked: true,
   });
-  const mockDeclaredAttribute2 = getMockedApiDeclaredTenantAttribute();
-  const mockDeclaredAttribute3 = getMockedApiDeclaredTenantAttribute();
-  const mockDeclaredAttribute4 = getMockedApiDeclaredTenantAttribute();
-  const mockDeclaredAttribute5 = getMockedApiDeclaredTenantAttribute();
+  const mockCertifiedAttribute2 = getMockedApiCertifiedTenantAttribute();
+  const mockCertifiedAttribute3 = getMockedApiCertifiedTenantAttribute();
+  const mockCertifiedAttribute4 = getMockedApiCertifiedTenantAttribute();
+  const mockCertifiedAttribute5 = getMockedApiCertifiedTenantAttribute();
   const otherMockedAttributes = generateMock(
     z.array(tenantApi.TenantAttribute)
-  ).filter((attr) => attr.declared === undefined);
+  ).filter((attr) => attr.certified === undefined);
 
   const mockTenantProcessResponse = getMockWithMetadata(
     getMockedApiTenant({
       attributes: [
         {
-          declared: mockDeclaredAttribute1,
+          certified: mockCertifiedAttribute1,
         },
         {
-          declared: mockDeclaredAttribute2,
+          certified: mockCertifiedAttribute2,
         },
         {
-          declared: mockDeclaredAttribute3,
+          certified: mockCertifiedAttribute3,
         },
         {
-          declared: mockDeclaredAttribute4,
+          certified: mockCertifiedAttribute4,
         },
         {
-          declared: mockDeclaredAttribute5,
+          certified: mockCertifiedAttribute5,
         },
         ...otherMockedAttributes,
       ],
     })
   );
 
-  const testToM2MGatewayApiDeclaredAttribute = (
-    attribute: tenantApi.DeclaredTenantAttribute
-  ): m2mGatewayApi.TenantDeclaredAttribute => ({
+  const testToM2MGatewayApiCertifiedAttribute = (
+    attribute: tenantApi.CertifiedTenantAttribute
+  ): m2mGatewayApi.TenantCertifiedAttribute => ({
     id: attribute.id,
     assignedAt: attribute.assignmentTimestamp,
     revokedAt: attribute.revocationTimestamp,
-    delegationId: attribute.delegationId,
   });
 
-  const m2mDeclaredAttributeResponse1 = testToM2MGatewayApiDeclaredAttribute(
-    mockDeclaredAttribute1
+  const m2mCertifiedAttributeResponse1 = testToM2MGatewayApiCertifiedAttribute(
+    mockCertifiedAttribute1
   );
 
-  const m2mDeclaredAttributeResponse2 = testToM2MGatewayApiDeclaredAttribute(
-    mockDeclaredAttribute2
+  const m2mCertifiedAttributeResponse2 = testToM2MGatewayApiCertifiedAttribute(
+    mockCertifiedAttribute2
   );
 
-  const m2mDeclaredAttributeResponse3 = testToM2MGatewayApiDeclaredAttribute(
-    mockDeclaredAttribute3
+  const m2mCertifiedAttributeResponse3 = testToM2MGatewayApiCertifiedAttribute(
+    mockCertifiedAttribute3
   );
 
-  const m2mDeclaredAttributeResponse4 = testToM2MGatewayApiDeclaredAttribute(
-    mockDeclaredAttribute4
+  const m2mCertifiedAttributeResponse4 = testToM2MGatewayApiCertifiedAttribute(
+    mockCertifiedAttribute4
   );
-  const m2mDeclaredAttributeResponse5 = testToM2MGatewayApiDeclaredAttribute(
-    mockDeclaredAttribute5
+  const m2mCertifiedAttributeResponse5 = testToM2MGatewayApiCertifiedAttribute(
+    mockCertifiedAttribute5
   );
 
   const mockGetTenant = vi.fn().mockResolvedValue(mockTenantProcessResponse);
@@ -93,22 +92,22 @@ describe("getDeclaredAttributes", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mTenantsResponse: m2mGatewayApi.TenantDeclaredAttributes = {
+    const m2mTenantsResponse: m2mGatewayApi.TenantCertifiedAttributes = {
       pagination: {
         limit: 10,
         offset: 0,
         totalCount: mockTenantProcessResponse.data.attributes.length,
       },
       results: [
-        m2mDeclaredAttributeResponse1,
-        m2mDeclaredAttributeResponse2,
-        m2mDeclaredAttributeResponse3,
-        m2mDeclaredAttributeResponse4,
-        m2mDeclaredAttributeResponse5,
+        m2mCertifiedAttributeResponse1,
+        m2mCertifiedAttributeResponse2,
+        m2mCertifiedAttributeResponse3,
+        m2mCertifiedAttributeResponse4,
+        m2mCertifiedAttributeResponse5,
       ],
     };
 
-    const result = await tenantService.getDeclaredAttributes(
+    const result = await tenantService.getTenantCertifiedAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       {
         offset: 0,
@@ -127,17 +126,20 @@ describe("getDeclaredAttributes", () => {
   });
 
   it("Should apply filters (offset, limit)", async () => {
-    const m2mDeclaredAttributesResponse1: m2mGatewayApi.TenantDeclaredAttributes =
+    const m2mCertifiedAttributesResponse1: m2mGatewayApi.TenantCertifiedAttributes =
       {
         pagination: {
           offset: 0,
           limit: 2,
           totalCount: mockTenantProcessResponse.data.attributes.length,
         },
-        results: [m2mDeclaredAttributeResponse1, m2mDeclaredAttributeResponse2],
+        results: [
+          m2mCertifiedAttributeResponse1,
+          m2mCertifiedAttributeResponse2,
+        ],
       };
 
-    const result1 = await tenantService.getDeclaredAttributes(
+    const result1 = await tenantService.getTenantCertifiedAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       {
         offset: 0,
@@ -145,18 +147,21 @@ describe("getDeclaredAttributes", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result1).toEqual(m2mDeclaredAttributesResponse1);
+    expect(result1).toEqual(m2mCertifiedAttributesResponse1);
 
-    const m2mDeclaredAttributesResponse2: m2mGatewayApi.TenantDeclaredAttributes =
+    const m2mCertifiedAttributesResponse2: m2mGatewayApi.TenantCertifiedAttributes =
       {
         pagination: {
           offset: 2,
           limit: 2,
           totalCount: mockTenantProcessResponse.data.attributes.length,
         },
-        results: [m2mDeclaredAttributeResponse3, m2mDeclaredAttributeResponse4],
+        results: [
+          m2mCertifiedAttributeResponse3,
+          m2mCertifiedAttributeResponse4,
+        ],
       };
-    const result2 = await tenantService.getDeclaredAttributes(
+    const result2 = await tenantService.getTenantCertifiedAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       {
         offset: 2,
@@ -164,18 +169,18 @@ describe("getDeclaredAttributes", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result2).toEqual(m2mDeclaredAttributesResponse2);
+    expect(result2).toEqual(m2mCertifiedAttributesResponse2);
 
-    const m2mDeclaredAttributesResponse3: m2mGatewayApi.TenantDeclaredAttributes =
+    const m2mCertifiedAttributesResponse3: m2mGatewayApi.TenantCertifiedAttributes =
       {
         pagination: {
           offset: 4,
           limit: 2,
           totalCount: mockTenantProcessResponse.data.attributes.length,
         },
-        results: [m2mDeclaredAttributeResponse5],
+        results: [m2mCertifiedAttributeResponse5],
       };
-    const result3 = await tenantService.getDeclaredAttributes(
+    const result3 = await tenantService.getTenantCertifiedAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       {
         offset: 4,
@@ -183,6 +188,6 @@ describe("getDeclaredAttributes", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result3).toEqual(m2mDeclaredAttributesResponse3);
+    expect(result3).toEqual(m2mCertifiedAttributesResponse3);
   });
 });

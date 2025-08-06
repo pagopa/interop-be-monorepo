@@ -1,15 +1,20 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
+  getMockedApiDelegation,
   getMockedApiPurpose,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  missingMetadata,
+  notAnActiveConsumerDelegation,
+} from "../../../src/model/errors.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("POST /purposes router test", () => {
@@ -21,6 +26,8 @@ describe("POST /purposes router test", () => {
     eserviceId: mockPurpose.eserviceId,
     isFreeOfCharge: mockPurpose.isFreeOfCharge,
     title: mockPurpose.title,
+    delegationId: generateId(),
+    riskAnalysisForm: generateMock(m2mGatewayApi.RiskAnalysisFormSeed),
   };
 
   const mockM2MPurpose: m2mGatewayApi.Purpose =
@@ -60,11 +67,27 @@ describe("POST /purposes router test", () => {
     { invalidParam: "invalidValue" },
     { ...mockPurposeSeed, extraParam: -1 },
     { ...mockPurposeSeed, description: "short" },
-  ])("Should return 400 if passed invalid delegation seed", async (body) => {
+  ])("Should return 400 if passed invalid purpose seed", async (body) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, body as m2mGatewayApi.PurposeSeed);
 
     expect(res.status).toBe(400);
+  });
+
+  it("Should return 403 in case of notAnActiveConsumerDelegation error", async () => {
+    mockPurposeService.createPurpose = vi
+      .fn()
+      .mockRejectedValue(
+        notAnActiveConsumerDelegation(
+          generateId(),
+          generateId(),
+          getMockedApiDelegation()
+        )
+      );
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockPurposeSeed);
+
+    expect(res.status).toBe(403);
   });
 
   it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(

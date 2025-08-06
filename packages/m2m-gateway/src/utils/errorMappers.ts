@@ -11,6 +11,7 @@ const {
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_FORBIDDEN,
 } = constants;
 
 export const approveAgreementErrorMapper = (
@@ -129,6 +130,11 @@ export function downloadAgreementConsumerContractErrorMapper(
     .with("agreementContractNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 }
+
+export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("notAnActiveConsumerDelegation", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteEServiceDescriptorInterfaceErrorMapper = (
   error: ApiError<ErrorCodes>
