@@ -1480,11 +1480,7 @@ export function eserviceTemplateServiceBuilder(
         document.kind === "DOCUMENT" &&
         version.docs.some((d) => d.checksum === document.checksum)
       ) {
-        throw checksumDuplicate(
-          document.fileName,
-          eserviceTemplate.data.id,
-          version.id
-        );
+        throw checksumDuplicate(eserviceTemplate.data.id, version.id);
       }
 
       const isInterface = document.kind === "INTERFACE";
