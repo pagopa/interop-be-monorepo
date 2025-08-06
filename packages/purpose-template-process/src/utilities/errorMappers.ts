@@ -1,7 +1,15 @@
+import { constants } from "http2";
+import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
+
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
 
-const { HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_BAD_REQUEST | HTTP_STATUS_CONFLICT} =
-  constants;
+const {
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_CONFLICT,
+} = constants;
 
 export const getPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
