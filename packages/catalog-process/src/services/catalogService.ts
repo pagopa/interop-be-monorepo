@@ -986,7 +986,11 @@ export function catalogServiceBuilder(
 
     async deleteEService(
       eserviceId: EServiceId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(`Deleting EService ${eserviceId}`);
 
