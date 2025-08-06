@@ -241,24 +241,6 @@ export async function handleCatalogMessageV1(
     );
   }
 
-  if (deleteEServiceBatch.length > 0) {
-    const distinctBatch = distinctByKeys(
-      deleteEServiceBatch,
-      EserviceDeletingSchema,
-      ["id"]
-    );
-    await catalogService.deleteBatchEService(dbContext, distinctBatch);
-  }
-
-  if (deleteDescriptorBatch.length > 0) {
-    const distinctBatch = distinctByKeys(
-      deleteDescriptorBatch,
-      EserviceDescriptorDeletingSchema,
-      ["id"]
-    );
-    await catalogService.deleteBatchDescriptor(dbContext, distinctBatch);
-  }
-
   if (deleteEServiceDocumentBatch.length > 0) {
     const distinctBatch = distinctByKeys(
       deleteEServiceDocumentBatch,
@@ -298,5 +280,22 @@ export async function handleCatalogMessageV1(
       dbContext,
       distinctBatch
     );
+  }
+  if (deleteDescriptorBatch.length > 0) {
+    const distinctBatch = distinctByKeys(
+      deleteDescriptorBatch,
+      EserviceDescriptorDeletingSchema,
+      ["id"]
+    );
+    await catalogService.deleteBatchDescriptor(dbContext, distinctBatch);
+  }
+
+  if (deleteEServiceBatch.length > 0) {
+    const distinctBatch = distinctByKeys(
+      deleteEServiceBatch,
+      EserviceDeletingSchema,
+      ["id"]
+    );
+    await catalogService.deleteBatchEService(dbContext, distinctBatch);
   }
 }

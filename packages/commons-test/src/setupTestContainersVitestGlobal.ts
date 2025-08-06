@@ -59,7 +59,7 @@ declare module "vitest" {
     redisRateLimiterConfig?: RedisRateLimiterConfig;
     emailManagerConfig?: PecEmailManagerConfigTest;
     sesEmailManagerConfig?: AWSSesConfig;
-    analyticsSQLDbConfig?: AnalyticsSQLDbConfig;
+    analyticsSQLConfig?: AnalyticsSQLDbConfig;
     dpopConfig?: EnhancedDPoPConfig;
     inAppNotificationDbConfig?: InAppNotificationDBConfig;
     eventsSignerConfig?: EnhancedEventsSignerConfig;
@@ -79,7 +79,7 @@ export function setupTestContainersVitestGlobal() {
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
   const readModelSQLConfig = ReadModelSQLDbConfig.safeParse(process.env);
-  const analyticsSQLDbConfig = AnalyticsSQLDbConfig.safeParse(process.env);
+  const analyticsSQLConfig = AnalyticsSQLDbConfig.safeParse(process.env);
   const fileManagerConfig = FileManagerConfig.safeParse(process.env);
   const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
   const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
@@ -147,16 +147,16 @@ export function setupTestContainersVitestGlobal() {
       provide("readModelSQLConfig", readModelSQLConfig.data);
     }
 
-    if (analyticsSQLDbConfig.success) {
+    if (analyticsSQLConfig.success) {
       startedPostgreSqlAnalyticsContainer = await postgreSQLAnalyticsContainer(
-        analyticsSQLDbConfig.data
+        analyticsSQLConfig.data
       ).start();
-      analyticsSQLDbConfig.data.dbPort =
+      analyticsSQLConfig.data.dbPort =
         startedPostgreSqlAnalyticsContainer.getMappedPort(
           TEST_POSTGRES_DB_PORT
         );
 
-      provide("analyticsSQLDbConfig", analyticsSQLDbConfig.data);
+      provide("analyticsSQLConfig", analyticsSQLConfig.data);
     }
 
     // Setting up the MongoDB container if the config is provided

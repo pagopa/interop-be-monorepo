@@ -99,7 +99,12 @@ const agreementRouter = (
 
         const { data: agreement, metadata } =
           await agreementService.activateAgreement(
-            unsafeBrandId(req.params.agreementId),
+            {
+              agreementId: unsafeBrandId(req.params.agreementId),
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                : undefined,
+            },
             ctx
           );
 
@@ -250,7 +255,12 @@ const agreementRouter = (
 
         const { data: agreement, metadata } =
           await agreementService.suspendAgreement(
-            unsafeBrandId(req.params.agreementId),
+            {
+              agreementId: unsafeBrandId(req.params.agreementId),
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                : undefined,
+            },
             ctx
           );
 
@@ -492,7 +502,7 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         await agreementService.deleteAgreementById(
           unsafeBrandId(req.params.agreementId),
@@ -611,12 +621,15 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.cloneAgreement(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.cloneAgreement(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
