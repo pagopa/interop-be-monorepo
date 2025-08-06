@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
+  DrizzleTransactionType,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
@@ -23,6 +24,36 @@ import { and, eq, lte } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
+  const updateMetadataVersionInPurposeTemplateTables = async (
+    tx: DrizzleTransactionType,
+    purposeTemplateId: PurposeTemplateId,
+    newMetadataVersion: number
+  ): Promise<void> => {
+    const purposeTemplateTables = [
+      purposeTemplateInReadmodelPurposeTemplate,
+      purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+      purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+      purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+      purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+      purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+    ];
+
+    for (const table of purposeTemplateTables) {
+      await tx
+        .update(table)
+        .set({ metadataVersion: newMetadataVersion })
+        .where(
+          and(
+            eq(
+              "purposeTemplateId" in table ? table.purposeTemplateId : table.id,
+              purposeTemplateId
+            ),
+            lte(table.metadataVersion, newMetadataVersion)
+          )
+        );
+    }
+  };
+
   return {
     async upsertPurposeTemplate(
       purposeTemplate: PurposeTemplate,
@@ -137,6 +168,12 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
               metadataVersion
             )
           );
+
+        await updateMetadataVersionInPurposeTemplateTables(
+          tx,
+          purposeTemplateEServiceDescriptor.purposeTemplateId,
+          metadataVersion
+        );
       });
     },
     async deletePurposeTemplateById(
@@ -155,12 +192,17 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
           )
         );
     },
-    async deletePurposeTemplateEServiceDescriptorsByEServiceIdAndDescriptorId(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      purposeTemplateId: PurposeTemplateId,
-      metadataVersion: number
-    ): Promise<void> {
+    async deletePurposeTemplateEServiceDescriptorsByEServiceIdAndDescriptorId({
+      purposeTemplateId,
+      eserviceId,
+      descriptorId,
+      metadataVersion,
+    }: {
+      purposeTemplateId: PurposeTemplateId;
+      eserviceId: EServiceId;
+      descriptorId: DescriptorId;
+      metadataVersion: number;
+    }): Promise<void> {
       await db
         .delete(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
         .where(
