@@ -160,7 +160,7 @@ export function producerKeychainServiceBuilder(
         results: jwks.map(toM2MJWK),
       };
     },
-    async addEServiceToProducerKeychain(
+    async addProducerKeychainEService(
       producerKeychainId: ProducerKeychainId,
       seed: m2mGatewayApi.ProducerKeychainAddEService,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
@@ -182,7 +182,7 @@ export function producerKeychainServiceBuilder(
 
       await pollProducerKeychain(response, headers);
     },
-    async removeEServiceFromProducerKeychain(
+    async removeProducerKeychainEService(
       producerKeychainId: ProducerKeychainId,
       eserviceId: EServiceId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>

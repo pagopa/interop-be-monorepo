@@ -21,7 +21,7 @@ import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("addEServiceToProducerKeychain", () => {
+describe("addProducerKeychainEService", () => {
   const mockSeed: m2mGatewayApi.ProducerKeychainAddEService = {
     eserviceId: generateId(),
   };
@@ -52,7 +52,7 @@ describe("addEServiceToProducerKeychain", () => {
   });
 
   it("Should succeed and perform API producerKeychains calls", async () => {
-    const result = await producerKeychainService.addEServiceToProducerKeychain(
+    const result = await producerKeychainService.addProducerKeychainEService(
       unsafeBrandId(mockAuthorizationProcessResponse.data.id),
       mockSeed,
       getMockM2MAdminAppContext()
@@ -80,14 +80,14 @@ describe("addEServiceToProducerKeychain", () => {
     ).toHaveBeenCalledTimes(2);
   });
 
-  it("Should throw missingMetadata in case the producerKeychain returned by the addEServiceToProducerKeychain POST call has no metadata", async () => {
+  it("Should throw missingMetadata in case the producerKeychain returned by the addProducerKeychainEService POST call has no metadata", async () => {
     mockAddProducerKeychainEService.mockResolvedValueOnce({
       ...mockAuthorizationProcessResponse,
       metadata: undefined,
     });
 
     await expect(
-      producerKeychainService.addEServiceToProducerKeychain(
+      producerKeychainService.addProducerKeychainEService(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
         mockSeed,
         getMockM2MAdminAppContext()
@@ -102,7 +102,7 @@ describe("addEServiceToProducerKeychain", () => {
     });
 
     await expect(
-      producerKeychainService.addEServiceToProducerKeychain(
+      producerKeychainService.addProducerKeychainEService(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
         mockSeed,
         getMockM2MAdminAppContext()
@@ -119,7 +119,7 @@ describe("addEServiceToProducerKeychain", () => {
     );
 
     await expect(
-      producerKeychainService.addEServiceToProducerKeychain(
+      producerKeychainService.addProducerKeychainEService(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
         mockSeed,
         getMockM2MAdminAppContext()

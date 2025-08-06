@@ -21,7 +21,7 @@ import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("removeEServiceFromProducerKeychain", () => {
+describe("removeProducerKeychainEService", () => {
   const mockAuthorizationProcessResponse = getMockWithMetadata(
     getMockedApiFullProducerKeychain()
   );
@@ -49,12 +49,11 @@ describe("removeEServiceFromProducerKeychain", () => {
 
   it("Should succeed and perform API producerKeychains calls", async () => {
     const eserviceId = generateId<EServiceId>();
-    const result =
-      await producerKeychainService.removeEServiceFromProducerKeychain(
-        unsafeBrandId(mockAuthorizationProcessResponse.data.id),
-        eserviceId,
-        getMockM2MAdminAppContext()
-      );
+    const result = await producerKeychainService.removeProducerKeychainEService(
+      unsafeBrandId(mockAuthorizationProcessResponse.data.id),
+      eserviceId,
+      getMockM2MAdminAppContext()
+    );
 
     expect(result).toEqual(undefined);
     expectApiClientPostToHaveBeenCalledWith({
@@ -78,14 +77,14 @@ describe("removeEServiceFromProducerKeychain", () => {
     ).toHaveBeenCalledTimes(2);
   });
 
-  it("Should throw missingMetadata in case the producerKeychain returned by the removeEServiceFromProducerKeychain POST call has no metadata", async () => {
+  it("Should throw missingMetadata in case the producerKeychain returned by the removeProducerKeychainEService POST call has no metadata", async () => {
     mockRemoveProducerKeychainPurpose.mockResolvedValueOnce({
       ...mockAuthorizationProcessResponse,
       metadata: undefined,
     });
 
     await expect(
-      producerKeychainService.removeEServiceFromProducerKeychain(
+      producerKeychainService.removeProducerKeychainEService(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
         generateId(),
         getMockM2MAdminAppContext()
@@ -100,7 +99,7 @@ describe("removeEServiceFromProducerKeychain", () => {
     });
 
     await expect(
-      producerKeychainService.removeEServiceFromProducerKeychain(
+      producerKeychainService.removeProducerKeychainEService(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
         generateId(),
         getMockM2MAdminAppContext()
@@ -117,7 +116,7 @@ describe("removeEServiceFromProducerKeychain", () => {
     );
 
     await expect(
-      producerKeychainService.removeEServiceFromProducerKeychain(
+      producerKeychainService.removeProducerKeychainEService(
         unsafeBrandId(mockAuthorizationProcessResponse.data.id),
         generateId(),
         getMockM2MAdminAppContext()

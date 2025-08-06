@@ -122,7 +122,7 @@ const producerKeychainRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-        await producerKeychainService.addEServiceToProducerKeychain(
+        await producerKeychainService.addProducerKeychainEService(
           unsafeBrandId(req.params.keychainId),
           req.body,
           ctx
@@ -146,7 +146,7 @@ const producerKeychainRouter = (
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-          await producerKeychainService.removeEServiceFromProducerKeychain(
+          await producerKeychainService.removeProducerKeychainEService(
             unsafeBrandId(req.params.keychainId),
             unsafeBrandId(req.params.eserviceId),
             ctx

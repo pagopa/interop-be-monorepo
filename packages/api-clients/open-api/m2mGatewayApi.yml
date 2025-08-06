@@ -3977,11 +3977,11 @@ paths:
     post:
       tags:
         - producerKeychains
-      summary: Adds an e-service to a producer keychain
+      summary: Link an E-Service to a Producer Keychain
       description: |
-        Adds an e-service to a producer keychain
-        The caller must be the e-service owner
-      operationId: addEServiceToProducerKeychain
+        Link a Producer Keychain to an E-Service  
+        You must be the E-Service owner
+      operationId: addProducerKeychainEService
       requestBody:
         content:
           application/json:
@@ -3990,7 +3990,7 @@ paths:
         required: true
       responses:
         "204":
-          description: E-Service added to the Producer Keychain
+          description: Producer Keychain linked to the E-Service
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4080,14 +4080,14 @@ paths:
     parameters:
       - name: keychainId
         in: path
-        description: The ID of the Producer Keychain where the E-Service is associated
+        description: The ID of the Producer Keychain to unlink the E-Service from
         required: true
         schema:
           type: string
           format: uuid
       - name: eserviceId
         in: path
-        description: The ID of the EService to be removed from the Producer Keychain
+        description: The ID of the E-Service to unlink from the Producer Keychain
         required: true
         schema:
           type: string
@@ -4095,12 +4095,12 @@ paths:
     delete:
       tags:
         - producerKeychains
-      summary: Remove an e-service from a Producer Keychain
-      description: Remove an e-service from a Producer Keychain, removing the association between them
-      operationId: removeEServiceFromProducerKeychain
+      summary: Unlink an E-Service from a Producer Keychain
+      description: Unlink an E-Service from a Producer Keychain, removing the association between them
+      operationId: removeProducerKeychainEService
       responses:
         "204":
-          description: E-Service removed from the Producer Keychain
+          description: E-Service unlinked from the Producer Keychain
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
