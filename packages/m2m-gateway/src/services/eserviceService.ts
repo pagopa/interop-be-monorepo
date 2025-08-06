@@ -232,7 +232,7 @@ export function eserviceServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EService> {
+    ): Promise<void> {
       logger.info(
         `Deleting interface document from eservice ${eserviceId} descriptor ${descriptorId}`
       );
@@ -260,9 +260,7 @@ export function eserviceServiceBuilder(
           }
         );
 
-      const polledEService = await pollEService(response, headers);
-
-      return toM2MGatewayApiEService(polledEService.data);
+      await pollEService(response, headers);
     },
   };
 }

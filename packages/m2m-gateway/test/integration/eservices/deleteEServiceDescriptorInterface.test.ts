@@ -11,7 +11,7 @@ import {
   getMockedApiEserviceDescriptor,
   getMockedApiEserviceDoc,
 } from "pagopa-interop-commons-test";
-import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   eserviceService,
   expectApiClientPostToHaveBeenCalledWith,
@@ -60,26 +60,12 @@ describe("deleteEServiceDescriptorInterface", () => {
   it("Should succeed and perform API clients calls", async () => {
     mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
 
-    const m2mEServiceResponse: m2mGatewayApi.EService = {
-      id: mockEService.id,
-      name: mockEService.name,
-      producerId: mockEService.producerId,
-      description: mockEService.description,
-      technology: mockEService.technology,
-      mode: mockEService.mode,
-      templateId: mockEService.templateId,
-      isSignalHubEnabled: mockEService.isSignalHubEnabled,
-      isConsumerDelegable: mockEService.isConsumerDelegable,
-      isClientAccessDelegable: mockEService.isClientAccessDelegable,
-    };
-
-    const result = await eserviceService.deleteEServiceDescriptorInterface(
+    await eserviceService.deleteEServiceDescriptorInterface(
       unsafeBrandId(mockEService.id),
       unsafeBrandId(mockDescriptor.id),
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mEServiceResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.catalogProcessClient.deleteEServiceDocumentById,
