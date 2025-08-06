@@ -839,9 +839,6 @@ components:
           type: string
         targetTenantKind:
           $ref: "#/components/schemas/TenantKind"
-        creatorId:
-          type: string
-          format: uuid
         purposeTitle:
           type: string
         purposeDescription:
