@@ -727,7 +727,25 @@ export function readModelServiceBuilder(
         },
         {
           $project: {
-            documents: "$data.docs",
+            documents: {
+              $let: {
+                vars: {
+                  matchedDescriptor: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: "$data.descriptors",
+                          as: "desc",
+                          cond: { $eq: ["$$desc.id", descriptorId] },
+                        },
+                      },
+                      0,
+                    ],
+                  },
+                },
+                in: "$$matchedDescriptor.docs",
+              },
+            },
           },
         },
         {
@@ -765,7 +783,7 @@ export function readModelServiceBuilder(
       return {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
-          agreements,
+          eservices,
           pipeline
         ),
       };
