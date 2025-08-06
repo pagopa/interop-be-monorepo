@@ -4,7 +4,7 @@ import { QueryParametersByAlias } from "./utils.js";
 
 type Api = typeof attributeRegistryApi.attributeApi.api;
 
-export type GetCertifiedAttributesQueryParams = QueryParametersByAlias<
+export type GetAttributesQueryParams = QueryParametersByAlias<
   Api,
   "getAttributes"
 >;

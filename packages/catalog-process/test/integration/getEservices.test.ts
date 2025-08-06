@@ -1255,6 +1255,21 @@ describe("get eservices", () => {
       });
       await addOneEService(eservice7);
       await addOneDelegation(delegation);
+      const eservice8: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [],
+      };
+      const delegation2 = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegateId: organizationId2,
+        eserviceId: eservice8.id,
+        state: delegationState.waitingForApproval,
+      });
+      await addOneEService(eservice8);
+      await addOneDelegation(delegation2);
       const result = await catalogService.getEServices(
         {
           eservicesIds: [],
@@ -1268,7 +1283,7 @@ describe("get eservices", () => {
         50,
         context
       );
-      expect(result.totalCount).toBe(7);
+      expect(result.totalCount).toBe(8);
       expect(sortEServices(result.results)).toEqual(
         sortEServices([
           eservice1,
@@ -1278,6 +1293,7 @@ describe("get eservices", () => {
           eservice5,
           eservice6,
           eservice7,
+          eservice8,
         ])
       );
     }
@@ -1788,4 +1804,131 @@ describe("get eservices", () => {
       );
     }
   );
+
+  it("should get the eServices if they exist (parameters: technology)", async () => {
+    const result = await catalogService.getEServices(
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        templatesIds: [],
+        technology: "Rest",
+      },
+      0,
+      50,
+      getMockContext({})
+    );
+    expect(result.totalCount).toBe(6);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+      ])
+    );
+  });
+
+  it("should get the eServices if they exist (parameters: isSignalHubEnabled)", async () => {
+    const result1 = await catalogService.getEServices(
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        templatesIds: [],
+        isSignalHubEnabled: true,
+      },
+      0,
+      50,
+      getMockContext({})
+    );
+
+    expect(result1.totalCount).toBe(1);
+    expect(sortEServices(result1.results)).toEqual(sortEServices([eservice1]));
+
+    const result2 = await catalogService.getEServices(
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        templatesIds: [],
+        isSignalHubEnabled: false,
+      },
+      0,
+      50,
+      getMockContext({})
+    );
+    expect(result2.totalCount).toBe(5);
+    expect(sortEServices(result2.results)).toEqual(
+      sortEServices([eservice2, eservice3, eservice4, eservice5, eservice6])
+    );
+  });
+
+  it("should get the eServices if they exist (parameters: isClientAccessDelegable)", async () => {
+    const result1 = await catalogService.getEServices(
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        templatesIds: [],
+        isClientAccessDelegable: true,
+      },
+      0,
+      50,
+      getMockContext({})
+    );
+
+    expect(result1.totalCount).toBe(1);
+    expect(sortEServices(result1.results)).toEqual(sortEServices([eservice1]));
+
+    const result2 = await catalogService.getEServices(
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        templatesIds: [],
+        isClientAccessDelegable: false,
+      },
+      0,
+      50,
+      getMockContext({})
+    );
+    expect(result2.totalCount).toBe(5);
+    expect(sortEServices(result2.results)).toEqual(
+      sortEServices([eservice2, eservice3, eservice4, eservice5, eservice6])
+    );
+  });
+
+  it("should get the eServices if they exist (parameters: producersIds, mode)", async () => {
+    const result = await catalogService.getEServices(
+      {
+        eservicesIds: [],
+        producersIds: [organizationId2],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        templatesIds: [],
+        mode: eserviceMode.deliver,
+      },
+      0,
+      50,
+      getMockContext({})
+    );
+    expect(result.totalCount).toBe(2);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice4, eservice5])
+    );
+  });
 });

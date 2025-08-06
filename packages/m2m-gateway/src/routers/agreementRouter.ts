@@ -67,6 +67,27 @@ const agreementRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .delete("/agreements/:agreementId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await agreementService.deleteAgreementById(
+          unsafeBrandId(req.params.agreementId),
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error deleting agreement with id ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/agreements/:agreementId/purposes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
@@ -111,6 +132,7 @@ const agreementRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
         const agreement = await agreementService.approveAgreement(
           unsafeBrandId(req.params.agreementId),
+          req.body,
           ctx
         );
 
@@ -173,6 +195,7 @@ const agreementRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
         const agreement = await agreementService.suspendAgreement(
           unsafeBrandId(req.params.agreementId),
+          req.body,
           ctx
         );
 
@@ -193,6 +216,7 @@ const agreementRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
         const agreement = await agreementService.unsuspendAgreement(
           unsafeBrandId(req.params.agreementId),
+          req.body,
           ctx
         );
 
@@ -339,7 +363,30 @@ const agreementRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/agreements/:agreementId/clone", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const clonedAgreement = await agreementService.cloneAgreement(
+          unsafeBrandId(req.params.agreementId),
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.Agreement.parse(clonedAgreement));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error cloning agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return agreementRouter;
 };
