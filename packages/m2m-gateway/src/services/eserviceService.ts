@@ -1,6 +1,6 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
+import { DescriptorId, EServiceId, unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
@@ -15,10 +15,13 @@ import {
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
+import { toM2MGatewayApiDocument } from "../api/eserviceApiConverter.js";
 import {
+  isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
+import { uploadEServiceDocument } from "../utils/fileUpload.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -61,12 +64,21 @@ export function eserviceServiceBuilder(
     };
   };
 
-  const pollEservice = (
+  const pollEServiceById = (
+    eserviceId: EServiceId,
+    metadata: { version: number } | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
+    pollResourceWithMetadata(() => retrieveEServiceById(headers, eserviceId))({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
+    });
+
+  const pollEService = (
     response: WithMaybeMetadata<catalogApi.EService>,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
     pollResourceWithMetadata(() =>
-      retrieveEServiceById(headers, response.data.id as EServiceId)
+      retrieveEServiceById(headers, unsafeBrandId(response.data.id))
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
@@ -204,7 +216,7 @@ export function eserviceServiceBuilder(
         }
       );
 
-      await pollEservice(response, headers);
+      await pollEService(response, headers);
 
       const descriptor = response.data.descriptors.find(
         (d) => d.id === descriptorId
@@ -215,6 +227,72 @@ export function eserviceServiceBuilder(
       }
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
+
+    async uploadEServiceDescriptorInterface(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      fileUpload: m2mGatewayApi.FileUploadMultipart,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Document> {
+      logger.info(
+        `Adding interface document ${fileUpload.file.name} to eservice ${eserviceId} descriptor ${descriptorId}`
+      );
+
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
+      );
+
+      const { data: document, metadata } = await uploadEServiceDocument({
+        eservice,
+        descriptorId,
+        documentKind: catalogApi.EServiceDocumentKind.Values.INTERFACE,
+        fileUpload,
+        fileManager,
+        catalogProcessClient: clients.catalogProcessClient,
+        headers,
+        logger,
+      });
+
+      await pollEServiceById(eserviceId, metadata, headers);
+
+      return toM2MGatewayApiDocument(document);
+    },
+
+    async deleteEServiceDescriptorInterface(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting interface document from eservice ${eserviceId} descriptor ${descriptorId}`
+      );
+
+      const { data: descriptor } = await retrieveEServiceDescriptorById(
+        headers,
+        eserviceId,
+        descriptorId
+      );
+
+      if (!descriptor.interface) {
+        throw eserviceDescriptorInterfaceNotFound(eserviceId, descriptorId);
+      }
+
+      const response =
+        await clients.catalogProcessClient.deleteEServiceDocumentById(
+          undefined,
+          {
+            params: {
+              eServiceId: eserviceId,
+              descriptorId,
+              documentId: descriptor.interface.id,
+            },
+            headers,
+          }
+        );
+
+      await pollEService(response, headers);
     },
   };
 }
