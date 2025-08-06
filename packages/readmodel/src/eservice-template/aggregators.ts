@@ -30,7 +30,7 @@ import {
   attributesSQLtoAttributes,
   documentSQLtoDocument,
 } from "../catalog/aggregators.js";
-import { makeUniqueKey, throwIfMultiple } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utilities/utils.js";
 
 export const aggregateEServiceTemplateRiskAnalysis = (
   riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL,

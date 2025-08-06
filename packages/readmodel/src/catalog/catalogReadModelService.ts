@@ -17,10 +17,7 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
-import {
-  aggregateEservice,
-  toEServiceAggregator,
-} from "./catalog/aggregators.js";
+import { aggregateEservice, toEServiceAggregator } from "./aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {

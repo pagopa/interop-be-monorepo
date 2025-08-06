@@ -18,7 +18,7 @@ import {
   ClientSQL,
   ClientUserSQL,
 } from "pagopa-interop-readmodel-models";
-import { makeUniqueKey, throwIfMultiple } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../../utilities/utils.js";
 
 export const aggregateClient = ({
   clientSQL,

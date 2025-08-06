@@ -18,7 +18,7 @@ import { eq, SQL } from "drizzle-orm";
 import {
   aggregateEServiceTemplate,
   toEServiceTemplateAggregator,
-} from "./eservice-template/aggregators.js";
+} from "./aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {

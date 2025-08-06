@@ -9,10 +9,7 @@ import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import {
-  aggregateAttribute,
-  aggregateAttributeArray,
-} from "./attribute/aggregators.js";
+import { aggregateAttribute, aggregateAttributeArray } from "./aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {

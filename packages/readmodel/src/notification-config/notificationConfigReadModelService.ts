@@ -21,8 +21,8 @@ import {
   aggregateUserNotificationConfig,
   toTenantNotificationConfigAggregator,
   toUserNotificationConfigAggregator,
-} from "./notification-config/aggregators.js";
-import { NotificationType } from "./notification-config/utils.js";
+} from "./aggregators.js";
+import { NotificationType } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function notificationConfigReadModelServiceBuilder(

@@ -81,23 +81,26 @@ import { and, eq } from "drizzle-orm";
 import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
-} from "./notification-config/splitters.js";
-import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
-import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
-import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
-import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
-import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
-import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
-import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
-import { splitEServiceTemplateIntoObjectsSQL } from "./eservice-template/splitters.js";
-import { splitProducerJWKKeyIntoObjectsSQL } from "./authorization/producerJWKKeySplitters.js";
-import { splitProducerKeychainIntoObjectsSQL } from "./authorization/producerKeychainSplitters.js";
-import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
-import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
+} from "../notification-config/splitters.js";
+import { splitAgreementIntoObjectsSQL } from "../agreement/splitters.js";
+import {
+  checkMetadataVersion,
+  checkMetadataVersionByFilter,
+} from "../utilities/utils.js";
+import { splitAttributeIntoObjectsSQL } from "../attribute/splitters.js";
+import { splitEserviceIntoObjectsSQL } from "../catalog/splitters.js";
+import { splitClientJWKKeyIntoObjectsSQL } from "../authorization/client-key/clientJWKKeySplitters.js";
+import { splitClientIntoObjectsSQL } from "../authorization/client/clientSplitters.js";
+import { splitDelegationIntoObjectsSQL } from "../delegation/splitters.js";
+import { splitEServiceTemplateIntoObjectsSQL } from "../eservice-template/splitters.js";
+import { splitProducerJWKKeyIntoObjectsSQL } from "../authorization/producer-key/producerJWKKeySplitters.js";
+import { splitProducerKeychainIntoObjectsSQL } from "../authorization/producer-keychain/producerKeychainSplitters.js";
+import { splitPurposeIntoObjectsSQL } from "../purpose/splitters.js";
+import { splitTenantIntoObjectsSQL } from "../tenant/splitters.js";
 import {
   splitPurposeTemplateIntoObjectsSQL,
   toPurposeTemplateEServiceDescriptorSQL,
-} from "./purpose-template/splitters.js";
+} from "../purpose-template/splitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
