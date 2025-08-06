@@ -4878,9 +4878,9 @@ paths:
     post:
       tags:
         - eservices
-      summary: reject a delegated new e-service version
+      summary: Reject a delegated E-Service Descriptor in Waiting for Approval state
       operationId: rejectDelegatedEServiceDescriptor
-      description: Rejects a delegated E-Service descriptor
+      description: Reject a delegated E-Service Descriptor that is in Waiting for Approval state
       requestBody:
         description: Payload containing the reason of the rejection
         content:
@@ -4898,14 +4898,14 @@ paths:
             format: uuid
         - name: descriptorId
           in: path
-          description: The ID of the delegated Descriptor to reject
+          description: The ID of the Descriptor to reject
           required: true
           schema:
             type: string
             format: uuid
       responses:
         "200":
-          description: New delegated e-service version rejected
+          description: E-Service Descriptor rejected
           content:
             application/json:
               schema:
@@ -4918,7 +4918,7 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "400":
-          description: Bad request
+          description: Bad Request
           content:
             application/problem+json:
               schema:
@@ -4957,7 +4957,20 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
-          description: EService not found
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
           content:
             application/problem+json:
               schema:
