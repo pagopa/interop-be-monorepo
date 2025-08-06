@@ -110,7 +110,8 @@ export const handlePurposeMessageV2 = async (
             "PurposeVersionSuspendedByConsumer",
             "PurposeVersionUnsuspendedByProducer",
             "PurposeVersionUnsuspendedByConsumer",
-            "PurposeVersionRejected"
+            "PurposeVersionRejected",
+            "PurposeVersionArchivedByRevokedDelegation"
           ),
         },
         (event) => {
@@ -148,8 +149,7 @@ export const handlePurposeMessageV2 = async (
             "DraftPurposeDeleted",
             "WaitingForApprovalPurposeDeleted",
             "WaitingForApprovalPurposeVersionDeleted",
-            "PurposeDeletedByRevokedDelegation",
-            "PurposeVersionArchivedByRevokedDelegation"
+            "PurposeDeletedByRevokedDelegation"
           ),
         },
         (event) => {
