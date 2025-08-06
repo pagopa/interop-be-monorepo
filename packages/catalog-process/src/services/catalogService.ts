@@ -749,7 +749,7 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EService>> {
       logger.info(
-        `Getting EServices with name = ${filters.name}, ids = ${filters.eservicesIds}, producers = ${filters.producersIds}, states = ${filters.states}, agreementStates = ${filters.agreementStates}, mode = ${filters.mode}, isConsumerDelegable = ${filters.isConsumerDelegable}, limit = ${limit}, offset = ${offset}`
+        `Getting EServices with name = ${filters.name}, ids = ${filters.eservicesIds}, producers = ${filters.producersIds}, states = ${filters.states}, agreementStates = ${filters.agreementStates}, technology = ${filters.technology}, mode = ${filters.mode}, isSignalHubEnabled = ${filters.isSignalHubEnabled}, isConsumerDelegable = ${filters.isConsumerDelegable}, isClientAccessDelegable = ${filters.isClientAccessDelegable}, limit = ${limit}, offset = ${offset}`
       );
       const eservicesList = await readModelService.getEServices(
         authData,
@@ -1742,7 +1742,7 @@ export function catalogServiceBuilder(
       const recentDescriptorVersion = Math.max(...descriptorVersions);
 
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      const data = async () => {
+      const createActivationEvent = async () => {
         if (
           recentDescriptorVersion !== null &&
           parseInt(descriptor.version, 10) === recentDescriptorVersion
@@ -1792,7 +1792,7 @@ export function catalogServiceBuilder(
         }
       };
 
-      const response = await data();
+      const response = await createActivationEvent();
 
       return {
         data: response.data,
@@ -3541,7 +3541,7 @@ async function applyVisibilityToEService(
 
     const producerDelegation = await readModelService.getLatestDelegation({
       eserviceId: eservice.id,
-      states: [delegationState.active],
+      states: [delegationState.active, delegationState.waitingForApproval],
       kind: delegationKind.delegatedProducer,
     });
 

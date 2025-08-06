@@ -23,6 +23,7 @@ import {
   apiAgreementStateToAgreementState,
   apiDescriptorStateToDescriptorState,
   apiEServiceModeToEServiceMode,
+  apiTechnologyToTechnology,
   descriptorStateToApiEServiceDescriptorState,
   descriptorToApiDescriptor,
   documentToApiDocument,
@@ -113,6 +114,9 @@ const eservicesRouter = (
           producersIds,
           attributesIds,
           states,
+          technology,
+          isSignalHubEnabled,
+          isClientAccessDelegable,
           agreementStates,
           mode,
           delegated,
@@ -131,6 +135,11 @@ const eservicesRouter = (
             agreementStates: agreementStates.map(
               apiAgreementStateToAgreementState
             ),
+            technology: technology
+              ? apiTechnologyToTechnology(technology)
+              : undefined,
+            isSignalHubEnabled,
+            isClientAccessDelegable,
             name,
             mode: mode ? apiEServiceModeToEServiceMode(mode) : undefined,
             isConsumerDelegable,

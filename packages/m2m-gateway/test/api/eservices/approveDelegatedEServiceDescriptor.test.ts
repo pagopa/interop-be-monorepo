@@ -13,7 +13,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
 
-describe("POST /eservices/:eServiceId/descriptors/:descriptorId/approve router test", () => {
+describe("POST /eservices/:eserviceId/descriptors/:descriptorId/approve router test", () => {
   const mockApiDescriptor: catalogApi.EServiceDescriptor = {
     ...getMockedApiEserviceDescriptor(),
     state: "DRAFT",

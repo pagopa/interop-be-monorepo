@@ -18,7 +18,10 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  eserviceDescriptorNotFound,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
 
@@ -78,7 +81,28 @@ describe("approveDelegatedEServiceDescriptor", () => {
     ).toHaveBeenCalledTimes(2);
   });
 
-  it("Should throw missingMetadata in case the eservice returned by the publish call has no metadata", async () => {
+  it("Should throw eserviceDescriptorNotFound in case of descriptor missing in E-service returned by the process", async () => {
+    const eserviceWithoutDescriptor: catalogApi.EService = {
+      ...mockApiEservice.data,
+      descriptors: [],
+    };
+
+    mockApproveDelegatedEServiceDescriptor.mockResolvedValue({
+      data: eserviceWithoutDescriptor,
+      metadata: { version: 0 },
+    });
+    await expect(
+      eserviceService.approveDelegatedEServiceDescriptor(
+        unsafeBrandId(mockApiEservice.data.id),
+        unsafeBrandId(mockApiDescriptor.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      eserviceDescriptorNotFound(mockApiEservice.data.id, mockApiDescriptor.id)
+    );
+  });
+
+  it("Should throw missingMetadata in case the eservice returned by the POST call has no metadata", async () => {
     mockApproveDelegatedEServiceDescriptor.mockResolvedValueOnce({
       metadata: undefined,
     });
