@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
   WithMetadata,
@@ -37,6 +38,7 @@ describe("suspendPurposeVersion", () => {
       versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
     })
   );
+  const mockDelegationRef = { delegationId: generateId() };
 
   const suspendPurposeApiResponse: WithMetadata<purposeApi.PurposeVersion> = {
     data: mockApiPurposeVersion1,
@@ -83,6 +85,7 @@ describe("suspendPurposeVersion", () => {
 
     const purpose = await purposeService.suspendPurpose(
       unsafeBrandId(mockApiPurpose.data.id),
+      mockDelegationRef,
       getMockM2MAdminAppContext()
     );
 
@@ -93,6 +96,7 @@ describe("suspendPurposeVersion", () => {
         purposeId: mockApiPurpose.data.id,
         versionId: mockApiPurposeVersion1.id,
       },
+      body: mockDelegationRef,
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
@@ -119,6 +123,7 @@ describe("suspendPurposeVersion", () => {
     await expect(
       purposeService.suspendPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
@@ -135,6 +140,7 @@ describe("suspendPurposeVersion", () => {
     await expect(
       purposeService.suspendPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -150,6 +156,7 @@ describe("suspendPurposeVersion", () => {
     await expect(
       purposeService.suspendPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -166,6 +173,7 @@ describe("suspendPurposeVersion", () => {
     await expect(
       purposeService.suspendPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(

@@ -97,8 +97,23 @@ paths:
           schema:
             $ref: "#/components/schemas/EServiceMode"
         - in: query
+          name: technology
+          description: EService technology filter
+          schema:
+            $ref: "#/components/schemas/EServiceTechnology"
+        - in: query
+          name: isSignalHubEnabled
+          description: EService isSignalHubEnabled filter
+          schema:
+            type: boolean
+        - in: query
           name: isConsumerDelegable
           description: EService isConsumerDelegable filter
+          schema:
+            type: boolean
+        - in: query
+          name: isClientAccessDelegable
+          description: EService isClientAccessDelegable filter
           schema:
             type: boolean
         - in: query
@@ -1045,12 +1060,14 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: the descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
       requestBody:
         description: E-Service document
         required: true
@@ -1076,6 +1093,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
