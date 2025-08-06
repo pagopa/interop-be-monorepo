@@ -1970,7 +1970,7 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurpo
         columns: [table.purposeTemplateId],
         foreignColumns: [purposeTemplateInReadmodelPurposeTemplate.id],
         name: "purpose_template_risk_analysis_answer_purpose_template_id_fkey1",
-      }),
+      }).onDelete("cascade"),
       foreignKey({
         columns: [table.annotationId],
         foreignColumns: [
