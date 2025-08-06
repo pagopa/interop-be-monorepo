@@ -21759,7 +21759,6 @@ components:
           type: array
           items:
             type: string
-            format: uri
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
         delegation:
