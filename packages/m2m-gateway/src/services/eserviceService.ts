@@ -20,6 +20,7 @@ import {
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
+  pollResourceUntilDeletion,
 } from "../utils/polling.js";
 import { uploadEServiceDocument } from "../utils/fileUpload.js";
 
@@ -74,6 +75,13 @@ export function eserviceServiceBuilder(
     };
   };
 
+  const pollEserviceUntilDeletion = (
+    eServiceId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveEServiceById(headers, unsafeBrandId(eServiceId))
+    )({});
   const pollEServiceById = (
     eserviceId: EServiceId,
     metadata: { version: number } | undefined,
@@ -219,6 +227,18 @@ export function eserviceServiceBuilder(
       });
       const polledResource = await pollEservice(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
+    },
+    async deleteEService(
+      eserviceId: EServiceId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting eservice with id ${eserviceId}`);
+
+      await clients.catalogProcessClient.deleteEService(undefined, {
+        params: { eServiceId: eserviceId },
+        headers,
+      });
+      await pollEserviceUntilDeletion(eserviceId, headers);
     },
 
     async suspendDescriptor(
