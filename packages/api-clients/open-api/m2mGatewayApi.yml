@@ -4151,9 +4151,9 @@ paths:
     post:
       tags:
         - eservices
-      summary: approve a delegated new e-service version
+      summary: Approve a delegated E-Service Descriptor in Waiting for Approval state
       operationId: approveDelegatedEServiceDescriptor
-      description: Approves a delegated E-Service descriptor
+      description: Approve a delegated E-Service Descriptor that is in Waiting for Approval state
       parameters:
         - name: eserviceId
           in: path
@@ -4164,14 +4164,14 @@ paths:
             format: uuid
         - name: descriptorId
           in: path
-          description: The ID of the Descriptor to suspend
+          description: The ID of the Descriptor to approve
           required: true
           schema:
             type: string
             format: uuid
       responses:
         "200":
-          description: New delegated e-service version approved
+          description: E-Service Descriptor approved
           content:
             application/json:
               schema:
@@ -4184,33 +4184,7 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
-        "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
-        "403":
-          description: Forbidden
+          description: Bad Request
           content:
             application/problem+json:
               schema:
@@ -4224,6 +4198,32 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "401":
           description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:

@@ -273,19 +273,19 @@ export function eserviceServiceBuilder(
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
     async approveDelegatedEServiceDescriptor(
-      eServiceId: EServiceId,
+      eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceDescriptor> {
       logger.info(
-        `Approving a delegated eService descriptor with id ${descriptorId} for eservice with id ${eServiceId}`
+        `Approving a delegated eService descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
       );
 
       const response =
         await clients.catalogProcessClient.approveDelegatedEServiceDescriptor(
           undefined,
           {
-            params: { eServiceId, descriptorId },
+            params: { eServiceId: eserviceId, descriptorId },
             headers,
           }
         );
@@ -296,7 +296,7 @@ export function eserviceServiceBuilder(
       );
 
       if (!descriptor) {
-        throw eserviceDescriptorNotFound(eServiceId, descriptorId);
+        throw eserviceDescriptorNotFound(eserviceId, descriptorId);
       }
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
