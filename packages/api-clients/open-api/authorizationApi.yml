@@ -1154,6 +1154,7 @@ paths:
         - name: producerId
           in: query
           description: ID of producer that MUST be related to the keychain
+          required: true
           schema:
             type: string
             format: uuid
@@ -2218,8 +2219,12 @@ components:
           PARTIAL: "#/components/schemas/PartialProducerKeychain"
           FULL: "#/components/schemas/FullProducerKeychain"
     FullProducerKeychain:
-      description: Models Producer Keychain details
       type: object
+      description: |
+        Models a producer keychain.
+        The owner of the producer keychain is the producer tenant, identified by the producerId.
+        The only fields that are visible to any caller tenant are the ones that are
+        present also in the PartialProducerKeychain schema. The rest are visible only to the owner tenant.
       properties:
         visibility:
           type: string
@@ -2230,6 +2235,9 @@ components:
         name:
           type: string
         producerId:
+          description: |
+            The producerId is the identifier of the tenant that owns the keychain.
+            It is the tenant that created the keychain and has full access to it.
           type: string
           format: uuid
         createdAt:
@@ -2241,6 +2249,7 @@ components:
             type: string
             format: uuid
           default: []
+          uniqueItems: true
         description:
           type: string
         users:
@@ -2248,6 +2257,7 @@ components:
           items:
             type: string
             format: uuid
+          default: []
           uniqueItems: true
         keys:
           type: array

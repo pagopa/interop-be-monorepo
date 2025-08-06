@@ -46,7 +46,12 @@ export function setupDbServiceBuilder(
           tables.map(({ name, columns }) => {
             const snakeCaseMapper = getColumnNameMapper(name);
             const columnDefs = columns
-              .map((key) => `${snakeCaseMapper(key)} VARCHAR(255)`)
+              .map((key) => {
+                if (key === "deleted_at") {
+                  return `${snakeCaseMapper(key)} TIMESTAMP WITH TIME ZONE`;
+                }
+                return `${snakeCaseMapper(key)} VARCHAR(255)`;
+              })
               .concat("deleted BOOLEAN")
               .join(",\n  ");
 

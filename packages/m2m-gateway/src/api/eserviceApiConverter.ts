@@ -6,13 +6,16 @@ export function toGetEServicesQueryParams(
   return {
     producersIds: params.producerIds,
     templatesIds: params.templateIds,
-    name: undefined,
+    name: params.name,
+    technology: params.technology,
     eservicesIds: [],
     attributesIds: [],
     states: [],
     agreementStates: [],
-    mode: undefined,
-    isConsumerDelegable: undefined,
+    mode: params.mode,
+    isSignalHubEnabled: params.isSignalHubEnabled,
+    isConsumerDelegable: params.isConsumerDelegable,
+    isClientAccessDelegable: params.isClientAccessDelegable,
     delegated: undefined,
     offset: params.offset,
     limit: params.limit,
@@ -55,5 +58,17 @@ export function toM2MGatewayApiEServiceDescriptor(
     deprecatedAt: descriptor.deprecatedAt,
     archivedAt: descriptor.archivedAt,
     templateVersionId: descriptor.templateVersionRef?.id,
+  };
+}
+
+export function toM2MGatewayApiDocument(
+  document: catalogApi.EServiceDoc
+): m2mGatewayApi.Document {
+  return {
+    id: document.id,
+    name: document.name,
+    prettyName: document.prettyName,
+    createdAt: document.uploadDate,
+    contentType: document.contentType,
   };
 }
