@@ -73,8 +73,8 @@ describe("API GET /eservices/{eserviceId}/descriptors/{descriptorId}/documents t
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.API_ROLE,
-    authRole.SECURITY_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
   ];
@@ -113,20 +113,20 @@ describe("API GET /eservices/{eserviceId}/descriptors/{descriptorId}/documents t
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       catalogService.getDocuments = vi.fn().mockRejectedValue(error);
-      const token = generateToken(authRole.ADMIN_ROLE);
+      const token = generateToken(authRole.M2M_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
     }
   );
 
   it("Should return 400 if passed invalid eservice id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
+    const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token, "invalid" as EServiceId);
     expect(res.status).toBe(400);
   });
 
   it("Should return 400 if passed invalid descriptor id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
+    const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(
       token,
       mockEService.id,
