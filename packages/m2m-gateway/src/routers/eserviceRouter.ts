@@ -15,6 +15,7 @@ import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getEserviceDescriptorErrorMapper,
   downloadEServiceDescriptorInterfaceErrorMapper,
+  uploadEServiceDescriptorInterfaceErrorMapper,
   deleteEServiceDescriptorInterfaceErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
@@ -169,7 +170,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            uploadEServiceDescriptorInterfaceErrorMapper,
             ctx,
             `Error uploading interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );
