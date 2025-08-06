@@ -19,3 +19,19 @@ export const assertValidPuposeTemplateName = (
     throw purposeTemplateNameConflict();
   }
 };
+
+export const assertPurposeTemplateTitleIsNotDuplicated = async ({
+  readModelService,
+  title,
+}: {
+  readModelService: ReadModelService;
+  title: string;
+}): Promise<void> => {
+  const purposeTemplateWithSameName = await readModelService.getPurposeTemplate(
+    title
+  );
+
+  if (purposeTemplateWithSameName) {
+    throw purposeTemplateNameConflict();
+  }
+};
