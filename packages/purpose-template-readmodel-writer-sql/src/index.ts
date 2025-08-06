@@ -8,11 +8,14 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
 import { purposeTemplateWriterServiceBuilder } from "./purposeTemplateWriterService.js";
 
-const purposeTemplateWriterService = purposeTemplateWriterServiceBuilder();
+const purposeTemplateWriterService = purposeTemplateWriterServiceBuilder(
+  makeDrizzleConnection(config)
+);
 
 async function processMessage({
   message,
