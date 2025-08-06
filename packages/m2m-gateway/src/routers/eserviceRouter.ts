@@ -182,6 +182,31 @@ const eserviceRouter = (
       }
     )
     .get(
+      "/eservices/:eserviceId/descriptors/:descriptorId/documents/:documentId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const file = await eserviceService.downloadEServiceDescriptorDocument(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            unsafeBrandId(req.params.documentId),
+            ctx
+          );
+
+          return sendDownloadedDocumentAsFormData(file, res);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error retrieving document with id ${req.params.documentId} for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
       "/eservices/:eserviceId/descriptors/:descriptorId/interface",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
