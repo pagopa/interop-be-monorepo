@@ -1031,6 +1031,20 @@ paths:
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
       security:
         - bearerAuth: []
@@ -1039,19 +1053,6 @@ paths:
       summary: Add new e-service document
       operationId: createEServiceDocument
       description: Adds a new document to the specified E-Service
-      parameters:
-        - name: eServiceId
-          in: path
-          description: the eservice id
-          required: true
-          schema:
-            type: string
-        - name: descriptorId
-          in: path
-          description: the descriptor Id
-          required: true
-          schema:
-            type: string
       requestBody:
         description: E-Service document
         required: true
@@ -1088,18 +1089,6 @@ paths:
       operationId: getEServiceDocuments
       description: Retrieves a list of documents for the specified E-Service
       parameters:
-        - name: eServiceId
-          in: path
-          description: the eservice id
-          required: true
-          schema:
-            type: string
-        - name: descriptorId
-          in: path
-          description: the descriptor Id
-          required: true
-          schema:
-            type: string
         - in: query
           name: offset
           required: true
