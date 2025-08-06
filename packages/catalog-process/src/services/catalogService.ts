@@ -1726,7 +1726,7 @@ export function catalogServiceBuilder(
       const recentDescriptorVersion = Math.max(...descriptorVersions);
 
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      const data = async () => {
+      const createActivationEvent = async () => {
         if (
           recentDescriptorVersion !== null &&
           parseInt(descriptor.version, 10) === recentDescriptorVersion
@@ -1776,7 +1776,7 @@ export function catalogServiceBuilder(
         }
       };
 
-      const response = await data();
+      const response = await createActivationEvent();
 
       return {
         data: response.data,

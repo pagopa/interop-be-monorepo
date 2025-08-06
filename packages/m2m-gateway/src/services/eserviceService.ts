@@ -217,18 +217,18 @@ export function eserviceServiceBuilder(
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
     async unsuspendDescriptor(
-      eServiceId: EServiceId,
+      eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceDescriptor> {
       logger.info(
-        `Unsuspending descriptor with id ${descriptorId} for eservice with id ${eServiceId}`
+        `Unsuspending descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
       );
 
       const response = await clients.catalogProcessClient.activateDescriptor(
         undefined,
         {
-          params: { eServiceId, descriptorId },
+          params: { eServiceId: eserviceId, descriptorId },
           headers,
         }
       );
@@ -239,7 +239,7 @@ export function eserviceServiceBuilder(
       );
 
       if (!descriptor) {
-        throw eserviceDescriptorNotFound(eServiceId, descriptorId);
+        throw eserviceDescriptorNotFound(eserviceId, descriptorId);
       }
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
