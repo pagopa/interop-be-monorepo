@@ -1046,12 +1046,14 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: the descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
       requestBody:
         description: E-Service document
         required: true
