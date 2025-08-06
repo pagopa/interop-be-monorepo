@@ -207,16 +207,16 @@ export function eserviceServiceBuilder(
       );
     },
     async deleteEService(
-      eServiceId: EServiceId,
+      eserviceId: EServiceId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
-      logger.info(`Deleting eservice with id ${eServiceId}`);
+      logger.info(`Deleting eservice with id ${eserviceId}`);
 
       await clients.catalogProcessClient.deleteEService(undefined, {
-        params: { eServiceId },
+        params: { eServiceId: eserviceId },
         headers,
       });
-      await pollEserviceUntilDeletion(eServiceId, headers);
+      await pollEserviceUntilDeletion(eserviceId, headers);
     },
     async uploadEServiceDescriptorInterface(
       eserviceId: EServiceId,

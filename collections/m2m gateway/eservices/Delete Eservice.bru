@@ -6,7 +6,7 @@ meta {
 
 delete {
   url: {{host-m2m-gw}}/eservices/:eserviceId
-  body: json
+  body: none
   auth: none
 }
 
@@ -16,21 +16,4 @@ params:path {
 
 headers {
   Authorization: {{JWT-M2M-ADMIN}}
-  X-Correlation-Id: {{correlation-id}}
-}
-
-body:json {
-  {
-      "name": "{{name}}",
-      "description": "this is a test again",
-      "technology": "REST",
-      "mode": "DELIVER",
-      "descriptor": {
-          "audience": [ "string" ],
-          "voucherLifespan": 86400,
-          "dailyCallsPerConsumer": 100,
-          "dailyCallsTotal": 100,
-          "agreementApprovalPolicy": "MANUAL"
-      }
-  }
 }
