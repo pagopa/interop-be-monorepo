@@ -26,7 +26,7 @@ describe("removeProducerKeychainEService", () => {
     getMockedApiFullProducerKeychain()
   );
 
-  const mockRemoveProducerKeychainPurpose = vi
+  const mockRemoveProducerKeychainEService = vi
     .fn()
     .mockResolvedValue(mockAuthorizationProcessResponse);
 
@@ -37,13 +37,13 @@ describe("removeProducerKeychainEService", () => {
   mockInteropBeClients.authorizationClient = {
     producerKeychain: {
       getProducerKeychain: mockGetProducerKeychain,
-      removeProducerKeychainEService: mockRemoveProducerKeychainPurpose,
+      removeProducerKeychainEService: mockRemoveProducerKeychainEService,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
   beforeEach(() => {
     // Clear mock counters and call information before each test
-    mockRemoveProducerKeychainPurpose.mockClear();
+    mockRemoveProducerKeychainEService.mockClear();
     mockGetProducerKeychain.mockClear();
   });
 
@@ -78,7 +78,7 @@ describe("removeProducerKeychainEService", () => {
   });
 
   it("Should throw missingMetadata in case the producerKeychain returned by the removeProducerKeychainEService POST call has no metadata", async () => {
-    mockRemoveProducerKeychainPurpose.mockResolvedValueOnce({
+    mockRemoveProducerKeychainEService.mockResolvedValueOnce({
       ...mockAuthorizationProcessResponse,
       metadata: undefined,
     });
