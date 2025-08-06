@@ -7,6 +7,11 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  TestMultipartFileUpload,
+  addMultipartFileToSupertestRequest,
+  fileFromTestMultipartFileUpload,
+} from "../../multipartTestUtils.js";
 
 describe("POST /eservices/:eserviceId/descriptors/:descriptorId/documents router test", () => {
   const mockFileUpload = {
@@ -28,12 +33,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/documents router
     token: string,
     eserviceId: string,
     descriptorId: string,
-    file: {
-      fileContent?: Buffer;
-      filename?: string;
-      contentType?: string;
-      prettyName?: string;
-    }
+    file: TestMultipartFileUpload
   ) => {
     const req = request(api)
       .post(
@@ -41,18 +41,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/documents router
       )
       .set("Authorization", `Bearer ${token}`);
 
-    if (file.fileContent) {
-      void req.attach("file", file.fileContent, {
-        filename: file.filename,
-        contentType: file.contentType,
-      });
-    }
-
-    if (file.prettyName) {
-      void req.field("prettyName", file.prettyName);
-    }
-
-    return req;
+    return addMultipartFileToSupertestRequest(req, file);
   };
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
@@ -81,13 +70,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/documents router
         eserviceId,
         descriptorId,
         {
-          file: new File(
-            [mockFileUpload.fileContent],
-            mockFileUpload.filename,
-            {
-              type: mockFileUpload.contentType,
-            }
-          ),
+          file: fileFromTestMultipartFileUpload(mockFileUpload),
           prettyName: mockFileUpload.prettyName,
         },
         expect.any(Object) // Context object
@@ -150,7 +133,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/documents router
         token,
         generateId(),
         generateId(),
-        multipartFields
+        multipartFields as TestMultipartFileUpload
       );
 
       expect(res.status).toBe(400);
