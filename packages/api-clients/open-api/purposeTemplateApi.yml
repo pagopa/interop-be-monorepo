@@ -325,7 +325,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdatePurposeTemplateSeed"
+              $ref: "#/components/schemas/PurposeTemplateSeed"
         required: true
       responses:
         "200":
@@ -843,24 +843,6 @@ components:
           type: string
         purposeDescription:
           type: string
-        purposeIsFreeOfCharge:
-          type: boolean
-      required:
-        - targetDescription
-        - targetTenantKind
-        - purposeTitle
-        - purposeDescription
-        - purposeIsFreeOfCharge
-    UpdatePurposeTemplateSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        targetDescription:
-          type: string
-        purposeTitle:
-          type: string
-        purposeDescription:
-          type: string
         purposeRiskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormTemplateSeed"
         purposeIsFreeOfCharge:
@@ -871,6 +853,8 @@ components:
           type: integer
           format: int32
       required:
+        - targetDescription
+        - targetTenantKind
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
