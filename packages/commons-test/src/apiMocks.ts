@@ -450,7 +450,7 @@ export function getMockedApiProducerJWK({
   const jwk = getMockProducerJWKKey(producerKeychainId);
   return {
     jwk,
-    producerKeychainId: generateId(),
+    producerKeychainId,
   };
 }
 
