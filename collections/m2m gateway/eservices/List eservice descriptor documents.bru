@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptor/:descriptorId?offset=0&limit=10
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/documents?offset=0&limit=10
   body: none
   auth: none
 }
@@ -16,6 +16,7 @@ params:query {
 }
 
 params:path {
+  descriptorId: {{descriptorId}}
   eserviceId: {{eserviceId}}
 }
 
