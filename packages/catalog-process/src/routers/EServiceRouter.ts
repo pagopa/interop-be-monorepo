@@ -605,14 +605,17 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          await catalogService.suspendDescriptor(
+          const { data, metadata } = await catalogService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).send();
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(catalogApi.EService.parse(eServiceToApiEService(data)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

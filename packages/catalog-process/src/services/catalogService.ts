@@ -1651,8 +1651,12 @@ export function catalogServiceBuilder(
     async suspendDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Suspending Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1683,14 +1687,22 @@ export function catalogServiceBuilder(
 
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
-      const event = toCreateEventEServiceDescriptorSuspended(
-        eserviceId,
-        eservice.metadata.version,
-        descriptorId,
-        newEservice,
-        correlationId
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorSuspended(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          newEservice,
+          correlationId
+        )
       );
-      await repository.createEvent(event);
+
+      return {
+        data: newEservice,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
 
     async activateDescriptor(
