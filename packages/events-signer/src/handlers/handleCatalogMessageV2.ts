@@ -37,10 +37,14 @@ export const handleCatalogMessageV2 = async (
       .with(
         {
           type: P.union(
+            "EServiceDescriptorAdded",
             "EServiceDescriptorActivated",
             "EServiceDescriptorArchived",
             "EServiceDescriptorPublished",
-            "EServiceDescriptorSuspended"
+            "EServiceDescriptorSuspended",
+            "EServiceDescriptorSubmittedByDelegate",
+            "EServiceDescriptorApprovedByDelegator",
+            "EServiceDescriptorRejectedByDelegator"
           ),
         },
         (event) => {
@@ -74,7 +78,6 @@ export const handleCatalogMessageV2 = async (
             "DraftEServiceUpdated",
             "EServiceDeleted",
             "EServiceCloned",
-            "EServiceDescriptorAdded",
             "EServiceDraftDescriptorUpdated",
             "EServiceDescriptorQuotasUpdated",
             "EServiceDescriptorAgreementApprovalPolicyUpdated",
@@ -89,9 +92,6 @@ export const handleCatalogMessageV2 = async (
             "EServiceRiskAnalysisUpdated",
             "EServiceRiskAnalysisDeleted",
             "EServiceDescriptionUpdated",
-            "EServiceDescriptorSubmittedByDelegate",
-            "EServiceDescriptorApprovedByDelegator",
-            "EServiceDescriptorRejectedByDelegator",
             "EServiceDescriptorAttributesUpdated",
             "EServiceIsConsumerDelegableEnabled",
             "EServiceIsConsumerDelegableDisabled",

@@ -7,7 +7,6 @@ type PreparedFileForUpload = {
   fileContentBuffer: Buffer;
   fileName: string;
   filePath: string;
-  resourceId: string;
 };
 
 export const uploadPreparedFileToS3 = async (
@@ -24,7 +23,6 @@ export const uploadPreparedFileToS3 = async (
       {
         bucket: config.s3Bucket,
         path: preparedFile.filePath,
-        resourceId: preparedFile.resourceId,
         name: preparedFile.fileName,
         content: preparedFile.fileContentBuffer,
       },
@@ -38,9 +36,7 @@ export const uploadPreparedFileToS3 = async (
     const s3KeyParts = s3Key.split("/");
     const extractedFileName = s3KeyParts.pop();
     if (!extractedFileName) {
-      throw genericInternalError(
-        `Couldn't extract fileName from S3 path: ${s3Key}`
-      );
+      throw new Error(`Couldn't extract fileName from S3 path: ${s3Key}`);
     }
 
     return {

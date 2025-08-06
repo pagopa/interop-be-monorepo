@@ -52,7 +52,6 @@ describe("prepareNdjsonEventData", () => {
       expect(file.fileContentBuffer).toBeInstanceOf(Buffer);
       expect(file).toHaveProperty("fileName");
       expect(file).toHaveProperty("filePath");
-      expect(file).toHaveProperty("resourceId");
     }
   });
   it("should return an empty array if no events are provided", async () => {

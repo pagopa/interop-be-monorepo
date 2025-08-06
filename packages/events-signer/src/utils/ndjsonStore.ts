@@ -11,7 +11,6 @@ export type PreparedNdjsonFile = {
   fileContentBuffer: Buffer;
   fileName: string;
   filePath: string;
-  resourceId: string;
 };
 
 export const prepareNdjsonEventData = async <
@@ -32,20 +31,23 @@ export const prepareNdjsonEventData = async <
     const [year, month, day] = dateKey.split("-");
 
     const ndjsonString =
-      group.map((item) => JSON.stringify(item)).join("\n") + "\n";
-
+      group
+        .map((item) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { eventTimestamp, correlationId, ...rest } = item;
+          return JSON.stringify(rest);
+        })
+        .join("\n") + "\n";
     const fileContentBuffer = await compressJson(ndjsonString);
 
     const time = format(new Date(), "hhmmss");
     const fileName = `events_${year}${month}${day}_${time}_${generateId()}.ndjson.gz`;
     const filePath = `year=${year}/month=${month}/day=${day}`;
-    const resourceId = generateId();
 
     results.push({
       fileContentBuffer,
       fileName,
       filePath,
-      resourceId,
     });
   }
   return results;

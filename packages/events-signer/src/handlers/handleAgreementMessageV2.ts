@@ -48,7 +48,8 @@ export const handleAgreementMessageV2 = async (
             "AgreementUnsuspendedByConsumer",
             "AgreementUnsuspendedByPlatform",
             "AgreementArchivedByUpgrade",
-            "AgreementArchivedByConsumer"
+            "AgreementArchivedByConsumer",
+            "AgreementArchivedByRevokedDelegation"
           ),
         },
         (event) => {
@@ -82,8 +83,7 @@ export const handleAgreementMessageV2 = async (
             "AgreementConsumerDocumentRemoved",
             "AgreementSetDraftByPlatform",
             "AgreementSetMissingCertifiedAttributesByPlatform",
-            "AgreementDeletedByRevokedDelegation",
-            "AgreementArchivedByRevokedDelegation"
+            "AgreementDeletedByRevokedDelegation"
           ),
         },
         (event) => {

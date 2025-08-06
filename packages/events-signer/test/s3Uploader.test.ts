@@ -38,7 +38,6 @@ describe("uploadPreparedFileToS3", () => {
       {
         bucket: appConfig.s3Bucket,
         path: mockPreparedFile.filePath,
-        resourceId: mockPreparedFile.resourceId,
         name: mockPreparedFile.fileName,
         content: mockPreparedFile.fileContentBuffer,
       },
@@ -56,7 +55,6 @@ describe("uploadPreparedFileToS3", () => {
       fileContentBuffer: Buffer.from("test content"),
       fileName: "failing-file.ndjson.gz",
       filePath: "year=2024/month=07/day=30",
-      resourceId: "resource-id-fail",
     };
     const mockError = new Error("S3 upload failed");
     const fileManagerStoreBytesSpy = vi.spyOn(fileManager, "storeBytes");

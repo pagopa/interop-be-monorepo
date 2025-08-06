@@ -35,11 +35,9 @@ export const handlePurposeMessageV2 = async (
 
   for (const { purposeV2, timestamp } of eventsWithTimestamp) {
     match(purposeV2)
-      .with({ type: "PurposeAdded" }, (event) => {
+      .with({ type: P.union("PurposeAdded", "PurposeCloned") }, (event) => {
         if (!event.data.purpose?.id) {
-          throw new Error(
-            `Skipping PurposeAdded event due to missing purpose ID.`
-          );
+          throw new Error(`Purpose id can't be missing on event message`);
         }
 
         const eventName = event.type;
@@ -150,7 +148,6 @@ export const handlePurposeMessageV2 = async (
             "DraftPurposeDeleted",
             "WaitingForApprovalPurposeDeleted",
             "WaitingForApprovalPurposeVersionDeleted",
-            "PurposeCloned",
             "PurposeDeletedByRevokedDelegation",
             "PurposeVersionArchivedByRevokedDelegation"
           ),
