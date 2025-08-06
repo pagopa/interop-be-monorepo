@@ -19906,7 +19906,7 @@ paths:
       tags:
         - develop
       summary: Swagger docs endpoint
-      description:  Display the API documentation
+      description: Display the API documentation
       operationId: getDocs
       responses:
         "200":
@@ -20219,11 +20219,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
     UpdateEServiceTemplateInstanceDescriptorQuotas:
       required:
         - dailyCallsPerConsumer
@@ -20235,12 +20237,14 @@ components:
           description: "maximum number of daily calls that this descriptor can afford."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
     UpdateEServiceDescriptorAgreementApprovalPolicySeed:
       type: object
       additionalProperties: false
@@ -20273,10 +20277,14 @@ components:
           description: "maximum number of daily calls that this descriptor can afford."
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
@@ -20298,10 +20306,14 @@ components:
           description: "maximum number of daily calls that this descriptor can afford."
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
     Mail:
@@ -20403,12 +20415,14 @@ components:
           description: "maximum number of daily calls that this descriptor can afford."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         eservice:
@@ -20688,12 +20702,14 @@ components:
           description: "maximum number of daily calls that this descriptor can afford."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         eservice:
@@ -21236,7 +21252,8 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
     PurposeSeed:
       type: object
       additionalProperties: false
@@ -21261,7 +21278,8 @@ components:
         dailyCalls:
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
       required:
         - eserviceId
         - consumerId
@@ -21294,7 +21312,8 @@ components:
         dailyCalls:
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
       required:
         - eserviceId
         - consumerId
@@ -21559,10 +21578,14 @@ components:
           description: "maximum number of daily calls that this descriptor can afford."
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
       required:
@@ -21764,6 +21787,8 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
         - title
         - description
@@ -21786,6 +21811,8 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
         - title
         - description
@@ -21844,6 +21871,8 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
         riskAnalysisDocument:
           $ref: "#/components/schemas/PurposeVersionDocument"
         rejectionReason:
@@ -23101,11 +23130,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         interface:
           $ref: "#/components/schemas/EServiceDoc"
         docs:
@@ -23137,10 +23168,12 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
       required:
         - voucherLifespan
     CreatedEServiceTemplateVersion:
@@ -23245,11 +23278,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
     EServiceTemplateInstance:
@@ -23420,11 +23455,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
