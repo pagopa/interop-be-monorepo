@@ -1,7 +1,14 @@
-import { WithMetadata, unauthorizedError } from "pagopa-interop-models";
-import { authorizationApi } from "pagopa-interop-api-clients";
+import {
+  TenantId,
+  WithMetadata,
+  unauthorizedError,
+} from "pagopa-interop-models";
+import { authorizationApi, delegationApi } from "pagopa-interop-api-clients";
 import { WithMaybeMetadata } from "../../clients/zodiosWithMetadataPatch.js";
-import { missingMetadata } from "../../model/errors.js";
+import {
+  missingMetadata,
+  notAnActiveConsumerDelegation,
+} from "../../model/errors.js";
 
 export function assertMetadataExists<T>(
   resource: WithMaybeMetadata<T>
@@ -31,14 +38,22 @@ export function assertClientVisibilityIsFull(
   }
 }
 
-export function assertProducerKeychainVisibilityIsFull(
-  keychain: authorizationApi.ProducerKeychain
-): asserts keychain is authorizationApi.ProducerKeychain & {
-  visibility: typeof authorizationApi.Visibility.Values.FULL;
-} {
-  if (keychain.visibility !== authorizationApi.Visibility.Values.FULL) {
-    throw unauthorizedError(
-      `Tenant is not the owner of the producer keychain with id ${keychain.id}`
+export function assertActiveConsumerDelegateForEservice(
+  requesterTenantId: TenantId,
+  eserviceId: string,
+  delegation: delegationApi.Delegation
+): void {
+  if (
+    delegation.kind !==
+      delegationApi.DelegationKind.Values.DELEGATED_CONSUMER ||
+    delegation.state !== delegationApi.DelegationState.Values.ACTIVE ||
+    delegation.delegateId !== requesterTenantId ||
+    delegation.eserviceId !== eserviceId
+  ) {
+    throw notAnActiveConsumerDelegation(
+      requesterTenantId,
+      eserviceId,
+      delegation
     );
   }
 }

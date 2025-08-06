@@ -890,6 +890,11 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Agreement flagged as activated. It could still be Suspended if other parties have suspended the agreement
@@ -1799,6 +1804,11 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Agreement suspended
@@ -9345,6 +9355,11 @@ paths:
         - purposes
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose Version Suspended
@@ -9452,6 +9467,11 @@ paths:
     post:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose Version Activated
@@ -22991,6 +23011,14 @@ components:
           format: uuid
       required:
         - id
+    DelegationRef:
+      type: object
+      additionalProperties: false
+      description: sets the delegation ID in order to operate as a delegate for a specific active delegation
+      properties:
+        delegationId:
+          type: string
+          format: uuid
     CreatedEServiceDescriptor:
       type: object
       additionalProperties: false
