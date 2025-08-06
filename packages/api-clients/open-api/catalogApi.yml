@@ -97,8 +97,23 @@ paths:
           schema:
             $ref: "#/components/schemas/EServiceMode"
         - in: query
+          name: technology
+          description: EService technology filter
+          schema:
+            $ref: "#/components/schemas/EServiceTechnology"
+        - in: query
+          name: isSignalHubEnabled
+          description: EService isSignalHubEnabled filter
+          schema:
+            type: boolean
+        - in: query
           name: isConsumerDelegable
           description: EService isConsumerDelegable filter
+          schema:
+            type: boolean
+        - in: query
+          name: isClientAccessDelegable
+          description: EService isClientAccessDelegable filter
           schema:
             type: boolean
         - in: query
@@ -1031,12 +1046,14 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: the descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
       requestBody:
         description: E-Service document
         required: true
@@ -1047,10 +1064,13 @@ paths:
       responses:
         "200":
           description: EService Document created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceDoc"
         "400":
           description: Invalid input
           content:
@@ -1059,6 +1079,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -1143,8 +1169,15 @@ paths:
           schema:
             type: string
       responses:
-        "204":
+        "200":
           description: Document deleted.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "404":
           description: E-Service descriptor document not found
           content:
@@ -2972,6 +3005,7 @@ components:
         - prettyName
         - path
         - checksum
+        - uploadDate
       properties:
         id:
           type: string
@@ -2986,6 +3020,9 @@ components:
           type: string
         checksum:
           type: string
+        uploadDate:
+          type: string
+          format: date-time
         contacts:
           $ref: "#/components/schemas/DescriptorInterfaceContacts"
     EServiceDescriptionUpdateSeed:
