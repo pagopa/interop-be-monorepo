@@ -107,13 +107,10 @@ export const documentCreateErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with(
-      "notValidDescriptor",
-      "interfaceAlreadyExists",
-      () => HTTP_STATUS_BAD_REQUEST
-    )
+    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "documentPrettyNameDuplicate",
+      "interfaceAlreadyExists",
       "checksumDuplicate",
       () => HTTP_STATUS_CONFLICT
     )

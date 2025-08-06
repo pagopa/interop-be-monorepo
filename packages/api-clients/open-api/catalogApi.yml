@@ -1082,7 +1082,15 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     get:
+      security:
+        - bearerAuth: []
       tags:
         - process
       summary: Retrieve a list of e-service documents
