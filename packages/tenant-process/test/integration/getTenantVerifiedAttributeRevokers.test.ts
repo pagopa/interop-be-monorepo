@@ -99,19 +99,18 @@ describe("getTenantVerifiedAttributeRevokers", () => {
       getMockContext({})
     );
 
-    expect(result.results).toHaveLength(2);
-
-    const resultIds = result.results.map((revoker) => revoker.id);
-    expect(resultIds).toContain(revoker1.id);
-    expect(resultIds).toContain(revoker2.id);
-
-    // Check that we get full TenantRevoker objects with all required fields
-    result.results.forEach((revoker) => {
-      expect(revoker).toHaveProperty("id");
-      expect(revoker).toHaveProperty("verificationDate");
-      expect(revoker).toHaveProperty("revocationDate");
-      expect(revoker.verificationDate).toBeInstanceOf(Date);
-      expect(revoker.revocationDate).toBeInstanceOf(Date);
+    expect(result).toEqual({
+      totalCount: 2,
+      results: [
+        {
+          ...revoker1,
+          delegationId: undefined,
+        },
+        {
+          ...revoker2,
+          delegationId: undefined,
+        },
+      ],
     });
   });
 

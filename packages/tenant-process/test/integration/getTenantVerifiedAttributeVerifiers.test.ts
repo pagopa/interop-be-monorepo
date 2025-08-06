@@ -96,23 +96,18 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
       getMockContext({})
     );
 
-    expect(result.results).toHaveLength(2);
-    expect(result.totalCount).toBe(2);
-
-    expect(result.results[0]).toEqual({
-      id: verifier1Id,
-      verificationDate: verifier1.verificationDate,
-      expirationDate: undefined,
-      extensionDate: undefined,
-      delegationId: undefined,
-    });
-
-    expect(result.results[1]).toEqual({
-      id: verifier2Id,
-      verificationDate: verifier2.verificationDate,
-      expirationDate: undefined,
-      extensionDate: undefined,
-      delegationId: undefined,
+    expect(result).toEqual({
+      totalCount: 2,
+      results: [
+        {
+          ...verifier1,
+          delegationId: undefined,
+        },
+        {
+          ...verifier2,
+          delegationId: undefined,
+        },
+      ],
     });
   });
 

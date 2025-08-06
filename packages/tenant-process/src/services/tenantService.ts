@@ -155,12 +155,8 @@ async function retrieveTenantVerifiedAttribute(
   tenantId: TenantId,
   attributeId: AttributeId,
   readModelService: ReadModelService
-): Promise<{ tenant: WithMetadata<Tenant>; attribute: Attribute }> {
+): Promise<{ tenant: WithMetadata<Tenant> }> {
   const tenant = await retrieveTenant(tenantId, readModelService);
-  const attribute = await retrieveAttribute(attributeId, readModelService);
-  if (attribute.kind !== attributeKind.verified) {
-    throw attributeNotFound(attributeId);
-  }
 
   const tenantAttribute = tenant.data.attributes.find(
     (attr): attr is VerifiedTenantAttribute =>
@@ -171,7 +167,7 @@ async function retrieveTenantVerifiedAttribute(
     throw attributeNotFoundInTenant(attributeId, tenantId);
   }
 
-  return { tenant, attribute };
+  return { tenant };
 }
 
 async function retrieveCertifiedAttribute({

@@ -28,6 +28,7 @@ import {
   delegationState,
   TenantVerifier,
   TenantRevoker,
+  stringToDate,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
@@ -595,13 +596,9 @@ export function readModelServiceBuilder(
       return {
         results: paginatedVerifiers.map((verifier) => ({
           id: verifier.id,
-          verificationDate: new Date(verifier.verificationDate),
-          expirationDate: verifier.expirationDate
-            ? new Date(verifier.expirationDate)
-            : undefined,
-          extensionDate: verifier.extensionDate
-            ? new Date(verifier.extensionDate)
-            : undefined,
+          verificationDate: stringToDate(verifier.verificationDate),
+          expirationDate: stringToDate(verifier.expirationDate ?? null),
+          extensionDate: stringToDate(verifier.extensionDate ?? null),
           delegationId: verifier.delegationId,
         })),
         totalCount,
