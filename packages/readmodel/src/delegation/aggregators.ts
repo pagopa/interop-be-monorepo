@@ -19,7 +19,7 @@ import {
   DelegationItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
-import { makeUniqueKey, throwIfMultiple } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utilities/utils.js";
 
 export const aggregateDelegationArray = ({
   delegationsSQL,

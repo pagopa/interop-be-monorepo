@@ -15,7 +15,7 @@ import {
   UserNotificationConfigItemsSQL,
   UserNotificationConfigSQL,
 } from "pagopa-interop-readmodel-models";
-import { makeUniqueKey, throwIfMultiple } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utilities/utils.js";
 import { NotificationType } from "./utils.js";
 
 export const aggregateTenantNotificationConfig = ({

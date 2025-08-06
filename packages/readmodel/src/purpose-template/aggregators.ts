@@ -25,7 +25,7 @@ import {
   PurposeTemplateSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
-import { throwIfMultiple } from "../utils.js";
+import { throwIfMultiple } from "../utilities/utils.js";
 
 export const aggregatePurposeTemplateArray = ({
   purposeTemplatesSQL,

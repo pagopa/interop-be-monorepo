@@ -6,7 +6,7 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.js",
-    "./testUtils": "./dist/testUtils.js"
+    "./testUtils": "./dist/utilities/testUtils.js"
   },
   "scripts": {
     "test": "vitest",
