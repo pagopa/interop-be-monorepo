@@ -4,7 +4,7 @@ import { unsafeBrandId } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import {
-  getMockedApiVerifiedTenantAttribute,
+  getMockedApiDeclaredTenantAttribute,
   getMockedApiTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
@@ -16,63 +16,67 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("getVerifiedAttributes", () => {
-  const mockVerifiedAttribute1 = getMockedApiVerifiedTenantAttribute();
-  const mockVerifiedAttribute2 = getMockedApiVerifiedTenantAttribute();
-  const mockVerifiedAttribute3 = getMockedApiVerifiedTenantAttribute();
-  const mockVerifiedAttribute4 = getMockedApiVerifiedTenantAttribute();
-  const mockVerifiedAttribute5 = getMockedApiVerifiedTenantAttribute();
+describe("getDeclaredAttributes", () => {
+  const mockDeclaredAttribute1 = getMockedApiDeclaredTenantAttribute({
+    revoked: true,
+  });
+  const mockDeclaredAttribute2 = getMockedApiDeclaredTenantAttribute();
+  const mockDeclaredAttribute3 = getMockedApiDeclaredTenantAttribute();
+  const mockDeclaredAttribute4 = getMockedApiDeclaredTenantAttribute();
+  const mockDeclaredAttribute5 = getMockedApiDeclaredTenantAttribute();
   const otherMockedAttributes = generateMock(
     z.array(tenantApi.TenantAttribute)
-  ).filter((attr) => attr.verified === undefined);
+  ).filter((attr) => attr.declared === undefined);
 
   const mockTenantProcessResponse = getMockWithMetadata(
     getMockedApiTenant({
       attributes: [
         {
-          verified: mockVerifiedAttribute1,
+          declared: mockDeclaredAttribute1,
         },
         {
-          verified: mockVerifiedAttribute2,
+          declared: mockDeclaredAttribute2,
         },
         {
-          verified: mockVerifiedAttribute3,
+          declared: mockDeclaredAttribute3,
         },
         {
-          verified: mockVerifiedAttribute4,
+          declared: mockDeclaredAttribute4,
         },
         {
-          verified: mockVerifiedAttribute5,
+          declared: mockDeclaredAttribute5,
         },
         ...otherMockedAttributes,
       ],
     })
   );
 
-  const testToM2MGatewayApiVerifiedAttribute = (
-    attribute: tenantApi.VerifiedTenantAttribute
-  ): m2mGatewayApi.TenantVerifiedAttribute => ({
+  const testToM2MGatewayApiDeclaredAttribute = (
+    attribute: tenantApi.DeclaredTenantAttribute
+  ): m2mGatewayApi.TenantDeclaredAttribute => ({
     id: attribute.id,
     assignedAt: attribute.assignmentTimestamp,
+    revokedAt: attribute.revocationTimestamp,
+    delegationId: attribute.delegationId,
   });
 
-  const m2mVerifiedAttributeResponse1 = testToM2MGatewayApiVerifiedAttribute(
-    mockVerifiedAttribute1
+  const m2mDeclaredAttributeResponse1 = testToM2MGatewayApiDeclaredAttribute(
+    mockDeclaredAttribute1
   );
 
-  const m2mVerifiedAttributeResponse2 = testToM2MGatewayApiVerifiedAttribute(
-    mockVerifiedAttribute2
+  const m2mDeclaredAttributeResponse2 = testToM2MGatewayApiDeclaredAttribute(
+    mockDeclaredAttribute2
   );
 
-  const m2mVerifiedAttributeResponse3 = testToM2MGatewayApiVerifiedAttribute(
-    mockVerifiedAttribute3
+  const m2mDeclaredAttributeResponse3 = testToM2MGatewayApiDeclaredAttribute(
+    mockDeclaredAttribute3
   );
 
-  const m2mVerifiedAttributeResponse4 = testToM2MGatewayApiVerifiedAttribute(
-    mockVerifiedAttribute4
+  const m2mDeclaredAttributeResponse4 = testToM2MGatewayApiDeclaredAttribute(
+    mockDeclaredAttribute4
   );
-  const m2mVerifiedAttributeResponse5 = testToM2MGatewayApiVerifiedAttribute(
-    mockVerifiedAttribute5
+  const m2mDeclaredAttributeResponse5 = testToM2MGatewayApiDeclaredAttribute(
+    mockDeclaredAttribute5
   );
 
   const mockGetTenant = vi.fn().mockResolvedValue(mockTenantProcessResponse);
@@ -89,22 +93,22 @@ describe("getVerifiedAttributes", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mTenantsResponse: m2mGatewayApi.TenantVerifiedAttributes = {
+    const m2mTenantsResponse: m2mGatewayApi.TenantDeclaredAttributes = {
       pagination: {
         limit: 10,
         offset: 0,
         totalCount: mockTenantProcessResponse.data.attributes.length,
       },
       results: [
-        m2mVerifiedAttributeResponse1,
-        m2mVerifiedAttributeResponse2,
-        m2mVerifiedAttributeResponse3,
-        m2mVerifiedAttributeResponse4,
-        m2mVerifiedAttributeResponse5,
+        m2mDeclaredAttributeResponse1,
+        m2mDeclaredAttributeResponse2,
+        m2mDeclaredAttributeResponse3,
+        m2mDeclaredAttributeResponse4,
+        m2mDeclaredAttributeResponse5,
       ],
     };
 
-    const result = await tenantService.getVerifiedAttributes(
+    const result = await tenantService.getTenantDeclaredAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       {
         offset: 0,
@@ -123,17 +127,17 @@ describe("getVerifiedAttributes", () => {
   });
 
   it("Should apply filters (offset, limit)", async () => {
-    const m2mVerifiedAttributesResponse1: m2mGatewayApi.TenantVerifiedAttributes =
+    const m2mDeclaredAttributesResponse1: m2mGatewayApi.TenantDeclaredAttributes =
       {
         pagination: {
           offset: 0,
           limit: 2,
           totalCount: mockTenantProcessResponse.data.attributes.length,
         },
-        results: [m2mVerifiedAttributeResponse1, m2mVerifiedAttributeResponse2],
+        results: [m2mDeclaredAttributeResponse1, m2mDeclaredAttributeResponse2],
       };
 
-    const result1 = await tenantService.getVerifiedAttributes(
+    const result1 = await tenantService.getTenantDeclaredAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       {
         offset: 0,
@@ -141,18 +145,18 @@ describe("getVerifiedAttributes", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result1).toEqual(m2mVerifiedAttributesResponse1);
+    expect(result1).toEqual(m2mDeclaredAttributesResponse1);
 
-    const m2mVerifiedAttributesResponse2: m2mGatewayApi.TenantVerifiedAttributes =
+    const m2mDeclaredAttributesResponse2: m2mGatewayApi.TenantDeclaredAttributes =
       {
         pagination: {
           offset: 2,
           limit: 2,
           totalCount: mockTenantProcessResponse.data.attributes.length,
         },
-        results: [m2mVerifiedAttributeResponse3, m2mVerifiedAttributeResponse4],
+        results: [m2mDeclaredAttributeResponse3, m2mDeclaredAttributeResponse4],
       };
-    const result2 = await tenantService.getVerifiedAttributes(
+    const result2 = await tenantService.getTenantDeclaredAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       {
         offset: 2,
@@ -160,18 +164,18 @@ describe("getVerifiedAttributes", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result2).toEqual(m2mVerifiedAttributesResponse2);
+    expect(result2).toEqual(m2mDeclaredAttributesResponse2);
 
-    const m2mVerifiedAttributesResponse3: m2mGatewayApi.TenantVerifiedAttributes =
+    const m2mDeclaredAttributesResponse3: m2mGatewayApi.TenantDeclaredAttributes =
       {
         pagination: {
           offset: 4,
           limit: 2,
           totalCount: mockTenantProcessResponse.data.attributes.length,
         },
-        results: [m2mVerifiedAttributeResponse5],
+        results: [m2mDeclaredAttributeResponse5],
       };
-    const result3 = await tenantService.getVerifiedAttributes(
+    const result3 = await tenantService.getTenantDeclaredAttributes(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       {
         offset: 4,
@@ -179,6 +183,6 @@ describe("getVerifiedAttributes", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result3).toEqual(m2mVerifiedAttributesResponse3);
+    expect(result3).toEqual(m2mDeclaredAttributesResponse3);
   });
 });
