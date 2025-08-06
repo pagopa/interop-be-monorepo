@@ -167,8 +167,10 @@ export const getMockBffApiProducerEServiceDescriptor =
     state: generateMock(bffApi.EServiceDescriptorState),
     audience: generateMock(z.array(z.string())),
     voucherLifespan: generateMock(z.number().int()),
-    dailyCallsPerConsumer: generateMock(z.number().int().gte(0)),
-    dailyCallsTotal: generateMock(z.number().int().gte(0)),
+    dailyCallsPerConsumer: generateMock(
+      z.number().int().gte(1).lte(1000000000)
+    ),
+    dailyCallsTotal: generateMock(z.number().int().gte(1).lte(1000000000)),
     agreementApprovalPolicy: generateMock(bffApi.AgreementApprovalPolicy),
     eservice: generateMock(bffApi.ProducerDescriptorEService),
     attributes: generateMock(bffApi.DescriptorAttributes),
@@ -221,8 +223,10 @@ export const getMockBffApiCatalogEServiceDescriptor =
     state: generateMock(bffApi.EServiceDescriptorState),
     audience: generateMock(z.array(z.string())),
     voucherLifespan: generateMock(z.number().int()),
-    dailyCallsPerConsumer: generateMock(z.number().int().gte(0)),
-    dailyCallsTotal: generateMock(z.number().int().gte(0)),
+    dailyCallsPerConsumer: generateMock(
+      z.number().int().gte(1).lte(1000000000)
+    ),
+    dailyCallsTotal: generateMock(z.number().int().gte(1).lte(1000000000)),
     agreementApprovalPolicy: generateMock(bffApi.AgreementApprovalPolicy),
     eservice: generateMock(bffApi.CatalogDescriptorEService),
     publishedAt: generateMock(z.string().datetime({ offset: true }).optional()),
@@ -294,8 +298,10 @@ export const getMockCatalogApiEServiceDescriptor =
     description: generateMock(z.string().optional()),
     audience: generateMock(z.array(z.string())),
     voucherLifespan: generateMock(z.number().int()),
-    dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
-    dailyCallsTotal: generateMock(z.number().int().gte(1)),
+    dailyCallsPerConsumer: generateMock(
+      z.number().int().gte(1).lte(1000000000)
+    ),
+    dailyCallsTotal: generateMock(z.number().int().gte(1).lte(1000000000)),
     interface: generateMock(catalogApi.EServiceDoc.optional()),
     docs: generateMock(z.array(catalogApi.EServiceDoc)),
     state: generateMock(catalogApi.EServiceDescriptorState),
@@ -371,8 +377,10 @@ export const getMockBffApiRejectDelegatedEServiceDescriptorSeed =
 export const getMockCatalogApiUpdateEServiceDescriptorQuotasSeed =
   (): catalogApi.UpdateEServiceDescriptorQuotasSeed => ({
     voucherLifespan: generateMock(z.number().int().gte(60).lte(86400)),
-    dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
-    dailyCallsTotal: generateMock(z.number().int().gte(1)),
+    dailyCallsPerConsumer: generateMock(
+      z.number().int().gte(1).lte(1000000000)
+    ),
+    dailyCallsTotal: generateMock(z.number().int().gte(1).lte(1000000000)),
   });
 
 export const getMockBffApiDescriptorAttributesSeed =
@@ -387,8 +395,10 @@ export const getMockBffApiUpdateEServiceDescriptorSeed =
     description: generateMock(z.string().optional()),
     audience: generateMock(z.array(z.string())),
     voucherLifespan: generateMock(z.number().int()),
-    dailyCallsPerConsumer: generateMock(z.number().int()),
-    dailyCallsTotal: generateMock(z.number().int()),
+    dailyCallsPerConsumer: generateMock(
+      z.number().int().min(1).max(1000000000)
+    ),
+    dailyCallsTotal: generateMock(z.number().int().min(1).max(1000000000)),
     agreementApprovalPolicy: generateMock(bffApi.AgreementApprovalPolicy),
     attributes: generateMock(bffApi.DescriptorAttributesSeed),
   });
@@ -396,8 +406,10 @@ export const getMockBffApiUpdateEServiceDescriptorSeed =
 export const getMockBffApiUpdateEServiceDescriptorTemplateInstanceSeed =
   (): bffApi.UpdateEServiceDescriptorTemplateInstanceSeed => ({
     audience: generateMock(z.array(z.string())),
-    dailyCallsPerConsumer: generateMock(z.number().int()),
-    dailyCallsTotal: generateMock(z.number().int()),
+    dailyCallsPerConsumer: generateMock(
+      z.number().int().min(1).max(1000000000)
+    ),
+    dailyCallsTotal: generateMock(z.number().int().min(1).max(1000000000)),
     agreementApprovalPolicy: generateMock(bffApi.AgreementApprovalPolicy),
   });
 
@@ -443,8 +455,10 @@ export const getMockBffApiUpdateEServiceTemplateInstanceSeed =
 
 export const getMockBffApiUpdateEServiceTemplateInstanceDescriptorQuotas =
   (): bffApi.UpdateEServiceTemplateInstanceDescriptorQuotas => ({
-    dailyCallsPerConsumer: generateMock(z.number().int().gte(0)),
-    dailyCallsTotal: generateMock(z.number().int().gte(0)),
+    dailyCallsPerConsumer: generateMock(
+      z.number().int().gte(1).lte(1000000000)
+    ),
+    dailyCallsTotal: generateMock(z.number().int().gte(1).lte(1000000000)),
   });
 
 export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
@@ -464,8 +478,8 @@ export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
   suspendedByProducer: generateMock(z.boolean().optional()),
   isFreeOfCharge: generateMock(z.boolean()),
   freeOfChargeReason: generateMock(z.string().optional()),
-  dailyCallsPerConsumer: generateMock(z.number().int()),
-  dailyCallsTotal: generateMock(z.number().int()),
+  dailyCallsPerConsumer: generateMock(z.number().int().min(1).max(1000000000)),
+  dailyCallsTotal: generateMock(z.number().int().min(1).max(1000000000)),
   delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
 });
 
@@ -481,7 +495,7 @@ export const getMockBffApiPurposeUpdateContent =
     description: generateMock(z.string()),
     isFreeOfCharge: generateMock(z.boolean()),
     freeOfChargeReason: generateMock(z.string().optional()),
-    dailyCalls: generateMock(z.number().int().min(0)),
+    dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
   });
 
 export const getMockBffApiPurposeVersionResource = (
@@ -502,7 +516,7 @@ export const getMockPurposeSeed = (): bffApi.PurposeSeed => ({
   description: generateMock(z.string()),
   isFreeOfCharge: generateMock(z.boolean()),
   freeOfChargeReason: generateMock(z.string().optional()),
-  dailyCalls: generateMock(z.number().int().min(0)),
+  dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
 });
 
 export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
@@ -513,7 +527,7 @@ export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
   description: generateMock(z.string()),
   isFreeOfCharge: generateMock(z.boolean()),
   freeOfChargeReason: generateMock(z.string().optional()),
-  dailyCalls: generateMock(z.number().int().min(0)),
+  dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
 });
 
 export const getMockBffApiPrivacyNotice = (): bffApi.PrivacyNotice => ({
@@ -664,8 +678,12 @@ export const getMockBffApiUpdateEServiceTemplateVersionSeed =
   (): bffApi.UpdateEServiceTemplateVersionSeed => ({
     description: generateMock(z.string().min(10).max(250).optional()),
     voucherLifespan: generateMock(z.number().int().gte(60).lte(86400)),
-    dailyCallsPerConsumer: generateMock(z.number().int().gte(1).optional()),
-    dailyCallsTotal: generateMock(z.number().int().gte(1).optional()),
+    dailyCallsPerConsumer: generateMock(
+      z.number().int().gte(1).lte(1000000000).optional()
+    ),
+    dailyCallsTotal: generateMock(
+      z.number().int().gte(1).lte(1000000000).optional()
+    ),
     agreementApprovalPolicy: generateMock(
       bffApi.AgreementApprovalPolicy.optional()
     ),
@@ -693,8 +711,12 @@ export const getMockBffApiEServiceTemplateVersionDetails =
     version: generateMock(z.number().int()),
     description: generateMock(z.string().optional()),
     voucherLifespan: generateMock(z.number().int()),
-    dailyCallsPerConsumer: generateMock(z.number().int().gte(1).optional()),
-    dailyCallsTotal: generateMock(z.number().int().gte(1).optional()),
+    dailyCallsPerConsumer: generateMock(
+      z.number().int().gte(1).lte(1000000000).optional()
+    ),
+    dailyCallsTotal: generateMock(
+      z.number().int().gte(1).lte(1000000000).optional()
+    ),
     interface: generateMock(bffApi.EServiceDoc.optional()),
     docs: generateMock(z.array(bffApi.EServiceDoc)),
     state: generateMock(bffApi.EServiceTemplateVersionState),
@@ -732,8 +754,10 @@ export const getMockBffApiProducerEServiceTemplate =
 export const getMockBffApiEServiceTemplateVersionQuotasUpdateSeed =
   (): bffApi.EServiceTemplateVersionQuotasUpdateSeed => ({
     voucherLifespan: generateMock(z.number().int().gte(60).lte(86400)),
-    dailyCallsPerConsumer: generateMock(z.number().gte(1).optional()),
-    dailyCallsTotal: generateMock(z.number().gte(1).optional()),
+    dailyCallsPerConsumer: generateMock(
+      z.number().gte(1).lte(1000000000).optional()
+    ),
+    dailyCallsTotal: generateMock(z.number().gte(1).lte(1000000000).optional()),
   });
 
 export const getMockBffApiEServiceTemplateRiskAnalysisSeed =
