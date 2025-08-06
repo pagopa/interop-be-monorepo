@@ -7,9 +7,9 @@ import {
   getCompleteMockPurposeTemplate,
   purposeTemplateWriterService,
   readModelDB,
-  retrievePurposeTemplateRiskAnalysisFormAnswersAnnotationsDocumentsSQLById as retrievePurposeTemplateRiskAnalysisAnswersAnnotationsDocumentsSQLById,
-  retrievePurposeTemplateRiskAnalysisFormAnswersAnnotationsSQLById as retrievePurposeTemplateRiskAnalysisAnswersAnnotationsSQLById,
-  retrievePurposeTemplateRiskAnalysisFormAnswersSQLById as retrievePurposeTemplateRiskAnalysisAnswersSQLById,
+  retrievePurposeTemplateRiskAnalysisAnswersAnnotationsDocumentsSQLById,
+  retrievePurposeTemplateRiskAnalysisAnswersAnnotationsSQLById,
+  retrievePurposeTemplateRiskAnalysisAnswersSQLById,
   retrievePurposeTemplateRiskAnalysisFormSQLById,
   retrievePurposeTemplateSQLById,
 } from "./utils.js";

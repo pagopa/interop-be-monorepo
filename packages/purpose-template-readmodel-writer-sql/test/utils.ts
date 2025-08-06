@@ -99,17 +99,17 @@ export const checkCompletePurposeTemplate = async (
       purposeTemplate.id
     );
   const retrievedRiskAnalysisTemplateAnswersSQL =
-    await retrievePurposeTemplateRiskAnalysisFormAnswersSQLById(
+    await retrievePurposeTemplateRiskAnalysisAnswersSQLById(
       readModelDB,
       purposeTemplate.id
     );
   const retrievedRiskAnalysisTemplateAnswersAnnotationsSQL =
-    await retrievePurposeTemplateRiskAnalysisFormAnswersAnnotationsSQLById(
+    await retrievePurposeTemplateRiskAnalysisAnswersAnnotationsSQLById(
       readModelDB,
       purposeTemplate.id
     );
   const retrievedRiskAnalysisTemplateAnswersAnnotationsDocumentsSQL =
-    await retrievePurposeTemplateRiskAnalysisFormAnswersAnnotationsDocumentsSQLById(
+    await retrievePurposeTemplateRiskAnalysisAnswersAnnotationsDocumentsSQLById(
       readModelDB,
       purposeTemplate.id
     );
@@ -167,7 +167,7 @@ export const retrievePurposeTemplateRiskAnalysisFormSQLById = async (
   return queryResult[0];
 };
 
-export const retrievePurposeTemplateRiskAnalysisFormAnswersSQLById = async (
+export const retrievePurposeTemplateRiskAnalysisAnswersSQLById = async (
   readModelDB: DrizzleReturnType,
   purposeTemplateId: PurposeTemplateId
 ): Promise<PurposeTemplateRiskAnalysisAnswerSQL[]> =>
@@ -181,7 +181,7 @@ export const retrievePurposeTemplateRiskAnalysisFormAnswersSQLById = async (
       )
     );
 
-export const retrievePurposeTemplateRiskAnalysisFormAnswersAnnotationsSQLById =
+export const retrievePurposeTemplateRiskAnalysisAnswersAnnotationsSQLById =
   async (
     readModelDB: DrizzleReturnType,
     purposeTemplateId: PurposeTemplateId
@@ -198,7 +198,7 @@ export const retrievePurposeTemplateRiskAnalysisFormAnswersAnnotationsSQLById =
         )
       );
 
-export const retrievePurposeTemplateRiskAnalysisFormAnswersAnnotationsDocumentsSQLById =
+export const retrievePurposeTemplateRiskAnalysisAnswersAnnotationsDocumentsSQLById =
   async (
     readModelDB: DrizzleReturnType,
     purposeTemplateId: PurposeTemplateId
