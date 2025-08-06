@@ -60,3 +60,15 @@ export function toM2MGatewayApiEServiceDescriptor(
     templateVersionId: descriptor.templateVersionRef?.id,
   };
 }
+
+export function toM2MGatewayApiDocument(
+  document: catalogApi.EServiceDoc
+): m2mGatewayApi.Document {
+  return {
+    id: document.id,
+    name: document.name,
+    prettyName: document.prettyName,
+    createdAt: document.uploadDate,
+    contentType: document.contentType,
+  };
+}

@@ -5,6 +5,7 @@ import {
   authRole,
   ExpressContext,
   fromAppContext,
+  setMetadataVersionHeader,
   validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
@@ -214,10 +215,12 @@ const eservicesRouter = (
           INTERNAL_ROLE,
         ]);
 
-        const eservice = await catalogService.getEServiceById(
-          unsafeBrandId(req.params.eServiceId),
-          ctx
-        );
+        const { data: eservice, metadata } =
+          await catalogService.getEServiceById(
+            unsafeBrandId(req.params.eServiceId),
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(catalogApi.EService.parse(eServiceToApiEService(eservice)));
@@ -371,18 +374,23 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          // The same check is done in the backend-for-frontend, if you change this check, change it there too
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const updatedEService = await catalogService.uploadDocument(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.descriptorId),
-            req.body,
-            ctx
-          );
+          const { data: document, metadata } =
+            await catalogService.uploadDocument(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
           return res
             .status(200)
             .send(
-              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+              catalogApi.EServiceDoc.parse(documentToApiDocument(document))
             );
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -400,15 +408,19 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          await catalogService.deleteDocument(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.descriptorId),
-            unsafeBrandId(req.params.documentId),
-            ctx
-          );
-          return res.status(204).send();
+          const { data: eservice, metadata } =
+            await catalogService.deleteDocument(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              unsafeBrandId(req.params.documentId),
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res.status(200).send(eServiceToApiEService(eservice));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
