@@ -24,7 +24,6 @@ const clientRouter = (
     .get("/clients", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        const requesterId = ctx.authData.organizationId;
         const { limit, offset, userIds, kind, q } = req.query;
         const clients = await clientService.getClients(
           {
@@ -33,7 +32,6 @@ const clientRouter = (
             userIds,
             kind,
             name: q,
-            requesterId,
           },
           ctx
         );

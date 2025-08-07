@@ -5,9 +5,14 @@ meta {
 }
 
 get {
-  url: {{host-bff}}/producerKeychains/:producerKeychainId/keys
+  url: {{host-bff}}/producerKeychains/:producerKeychainId/keys?offset=0&limit=10
   body: none
   auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
 }
 
 params:path {
@@ -18,8 +23,6 @@ headers {
   Authorization: {{JWT}}
 }
 
-
-
 docs {
-  retrieves a list of clients
+  retrieves a list of producer keychain keys
 }
