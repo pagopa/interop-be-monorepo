@@ -4,6 +4,7 @@ import {
   AgreementDocumentId,
   AgreementId,
   generateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -11,6 +12,7 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
+  pollResourceUntilDeletion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import {
@@ -26,6 +28,7 @@ import {
 import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
+import { agreementContractNotFound } from "../model/errors.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
@@ -65,6 +68,14 @@ export function agreementServiceBuilder(
         condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
       }
     );
+
+  const pollAgreementUntilDeletion = (
+    agreementId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveAgreementById(headers, unsafeBrandId(agreementId))
+    )({});
 
   return {
     async getAgreements(
@@ -167,6 +178,7 @@ export function agreementServiceBuilder(
     },
     async approveAgreement(
       agreementId: AgreementId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Approving pending agreement with id ${agreementId}`);
@@ -176,7 +188,7 @@ export function agreementServiceBuilder(
       assertAgreementIsPending(agreement.data);
 
       const response = await clients.agreementProcessClient.activateAgreement(
-        undefined,
+        { delegationId },
         {
           params: { agreementId },
           headers,
@@ -227,12 +239,13 @@ export function agreementServiceBuilder(
     },
     async suspendAgreement(
       agreementId: AgreementId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Suspending agreement with id ${agreementId}`);
 
       const response = await clients.agreementProcessClient.suspendAgreement(
-        undefined,
+        { delegationId },
         {
           params: { agreementId },
           headers,
@@ -245,6 +258,7 @@ export function agreementServiceBuilder(
     },
     async unsuspendAgreement(
       agreementId: AgreementId,
+      { delegationId }: m2mGatewayApi.DelegationRef,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Unsuspending agreement with id ${agreementId}`);
@@ -254,7 +268,7 @@ export function agreementServiceBuilder(
       assertAgreementIsSuspended(agreement.data);
 
       const response = await clients.agreementProcessClient.activateAgreement(
-        undefined,
+        { delegationId },
         {
           params: { agreementId },
           headers,
@@ -282,7 +296,31 @@ export function agreementServiceBuilder(
 
       return toM2MGatewayApiAgreement(polledResource.data);
     },
+    async getAgreementConsumerDocuments(
+      agreementId: AgreementId,
+      { offset, limit }: m2mGatewayApi.GetAgreementConsumerDocumentsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Documents> {
+      logger.info(
+        `Retrieving consumer documents for agreement with id ${agreementId}`
+      );
 
+      const { data: documents } =
+        await clients.agreementProcessClient.getAgreementConsumerDocuments({
+          params: { agreementId },
+          queries: { offset, limit },
+          headers,
+        });
+
+      return {
+        results: documents.results.map(toM2MGatewayApiDocument),
+        pagination: {
+          limit,
+          offset,
+          totalCount: documents.totalCount,
+        },
+      };
+    },
     async uploadAgreementConsumerDocument(
       agreementId: AgreementId,
       fileUpload: m2mGatewayApi.FileUploadMultipart,
@@ -346,6 +384,77 @@ export function agreementServiceBuilder(
         config.agreementConsumerDocumentsContainer,
         logger
       );
+    },
+    async deleteAgreementById(
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting agreement with id ${agreementId}`);
+
+      await clients.agreementProcessClient.deleteAgreement(undefined, {
+        params: { agreementId },
+        headers,
+      });
+      await pollAgreementUntilDeletion(agreementId, headers);
+    },
+    async downloadAgreementConsumerContract(
+      agreementId: AgreementId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(`Retrieving contract for agreement with id ${agreementId}`);
+
+      const { data: agreement } = await retrieveAgreementById(
+        headers,
+        agreementId
+      );
+
+      if (!agreement.contract) {
+        throw agreementContractNotFound(agreementId);
+      }
+
+      return downloadDocument(
+        agreement.contract,
+        fileManager,
+        config.agreementConsumerDocumentsContainer,
+        logger
+      );
+    },
+    async deleteAgreementConsumerDocument(
+      agreementId: AgreementId,
+      documentId: AgreementDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Removing consumer document ${documentId} for agreement with id ${agreementId}`
+      );
+      const { metadata } =
+        await clients.agreementProcessClient.removeAgreementConsumerDocument(
+          undefined,
+          {
+            params: { agreementId, documentId },
+            headers,
+          }
+        );
+
+      await pollAgreementById(agreementId, metadata, headers);
+    },
+    async cloneAgreement(
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> {
+      logger.info(`Cloning agreement with id ${agreementId}`);
+
+      const response = await clients.agreementProcessClient.cloneAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreement(polledResource.data);
     },
   };
 }

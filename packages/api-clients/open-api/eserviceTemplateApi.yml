@@ -1316,11 +1316,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
     UpdateEServiceTemplateVersionSeed:
@@ -1344,11 +1346,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
@@ -1366,10 +1370,12 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
       required:
         - voucherLifespan
     CreateEServiceTemplateVersionDocumentSeed:
@@ -1637,6 +1643,7 @@ components:
         - prettyName
         - path
         - checksum
+        - uploadDate
       properties:
         id:
           type: string
@@ -1651,6 +1658,9 @@ components:
           type: string
         checksum:
           type: string
+        uploadDate:
+          type: string
+          format: date-time
     EServiceTemplateDescriptionUpdateSeed:
       type: object
       additionalProperties: false
@@ -1709,11 +1719,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         interface:
           $ref: "#/components/schemas/EServiceDoc"
         docs:

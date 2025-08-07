@@ -12,6 +12,7 @@ import {
   makeApiProblemBuilder,
   PurposeId,
   PurposeVersionId,
+  TenantId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -36,6 +37,8 @@ export const errorCodes = {
   purposeVersionDocumentNotFound: "0020",
   unexpectedClientKind: "0021",
   purposeAgreementNotFound: "0022",
+  agreementContractNotFound: "0023",
+  notAnActiveConsumerDelegation: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -234,5 +237,27 @@ export function purposeAgreementNotFound(
     detail: `No active agreement found for purpose ${purposeId}`,
     code: "purposeAgreementNotFound",
     title: "Agreement for purpose not found",
+  });
+}
+
+export function agreementContractNotFound(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract not found for agreement ${agreementId}`,
+    code: "agreementContractNotFound",
+    title: "Agreement contract not found",
+  });
+}
+
+export function notAnActiveConsumerDelegation(
+  requesterTenantId: TenantId,
+  eserviceId: string,
+  delegation: delegationApi.Delegation
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegation.id} is not an active consumer delegation for e-service ${eserviceId} and delegate ${requesterTenantId}`,
+    code: "notAnActiveConsumerDelegation",
+    title: "Not an active consumer delegation",
   });
 }

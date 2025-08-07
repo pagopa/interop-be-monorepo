@@ -24,7 +24,7 @@ export function getMockedApiPurposeVersion({
   return {
     id: generateId(),
     createdAt: new Date().toISOString(),
-    dailyCalls: generateMock(z.number().positive()),
+    dailyCalls: generateMock(z.number().min(1).max(1000000000)),
     state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
     riskAnalysis,
   };
@@ -82,11 +82,15 @@ export function getMockedApiAgreement({
   eserviceId,
   descriptorId,
   consumerId,
+  contract,
+  consumerDocuments,
 }: {
   state?: agreementApi.AgreementState;
   eserviceId?: string;
   descriptorId?: string;
   consumerId?: string;
+  contract?: agreementApi.Document;
+  consumerDocuments?: agreementApi.Document[];
 } = {}): agreementApi.Agreement {
   return {
     id: generateId(),
@@ -97,9 +101,11 @@ export function getMockedApiAgreement({
     state: state ?? agreementApi.AgreementState.Values.ACTIVE,
     certifiedAttributes: generateMock(z.array(agreementApi.CertifiedAttribute)),
     declaredAttributes: generateMock(z.array(agreementApi.DeclaredAttribute)),
-    consumerDocuments: generateMock(z.array(agreementApi.Document)),
+    consumerDocuments:
+      consumerDocuments ?? generateMock(z.array(agreementApi.Document)),
     verifiedAttributes: generateMock(z.array(agreementApi.VerifiedAttribute)),
     createdAt: new Date().toISOString(),
+    contract,
   };
 }
 
@@ -111,10 +117,7 @@ export function getMockedApiTenant({
   return {
     id: generateId(),
     attributes: attributes ?? generateMock(z.array(tenantApi.TenantAttribute)),
-    externalId: {
-      origin: generateMock(z.string()),
-      value: generateMock(z.string()),
-    },
+    externalId: generateMock(tenantApi.ExternalId),
     name: generateMock(z.string()),
     createdAt: new Date().toISOString(),
     kind: tenantApi.TenantKind.Values.GSP,
@@ -142,6 +145,58 @@ export function getMockedApiAttribute({
     code: code ?? generateMock(z.string()),
     origin: generateMock(z.string()),
     kind: kind ?? attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+  };
+}
+
+export function getMockedApiVerifiedTenantAttributeRevoker(
+  revokerId: tenantApi.TenantRevoker["id"],
+  delegationId?: tenantApi.TenantRevoker["delegationId"]
+): tenantApi.TenantRevoker {
+  const now = new Date();
+  const daysAgo = (min: number, max: number): number =>
+    now.getTime() -
+    1000 * 60 * 60 * 24 * (Math.floor(Math.random() * (max - min + 1)) + min);
+  const daysInFuture = (min: number, max: number): number =>
+    now.getTime() +
+    1000 * 60 * 60 * 24 * (Math.floor(Math.random() * (max - min + 1)) + min);
+
+  const verificationDate = new Date(daysAgo(20, 60)); // 20-60 days ago
+  const revocationDate = new Date(daysAgo(1, 19)); // 1-19 days ago
+  const expirationDate = new Date(daysInFuture(10, 40)); // 10-40 days in future
+  const extensionDate = new Date(daysInFuture(41, 90)); // 41-90 days in future
+
+  return {
+    id: revokerId,
+    verificationDate: verificationDate.toISOString(),
+    expirationDate: expirationDate.toISOString(),
+    extensionDate: extensionDate.toISOString(),
+    revocationDate: revocationDate.toISOString(),
+    delegationId: delegationId ?? generateId(),
+  };
+}
+
+export function getMockedApiVerifiedTenantAttributeVerifier(
+  verifierId: tenantApi.TenantVerifier["id"],
+  delegationId?: tenantApi.TenantVerifier["delegationId"]
+): tenantApi.TenantVerifier {
+  const now = new Date();
+  const daysAgo = (min: number, max: number): number =>
+    now.getTime() -
+    1000 * 60 * 60 * 24 * (Math.floor(Math.random() * (max - min + 1)) + min);
+  const daysInFuture = (min: number, max: number): number =>
+    now.getTime() +
+    1000 * 60 * 60 * 24 * (Math.floor(Math.random() * (max - min + 1)) + min);
+
+  const verificationDate = new Date(daysAgo(20, 60)); // 20-60 days ago
+  const expirationDate = new Date(daysInFuture(10, 40)); // 10-40 days in future
+  const extensionDate = new Date(daysInFuture(41, 90)); // 41-90 days in future
+
+  return {
+    id: verifierId,
+    verificationDate: verificationDate.toISOString(),
+    expirationDate: expirationDate.toISOString(),
+    extensionDate: extensionDate.toISOString(),
+    delegationId: delegationId ?? generateId(),
   };
 }
 
@@ -192,15 +247,17 @@ export function getMockedApiConsumerPartialClient({
 
 export function getMockedApiEservice({
   descriptors,
+  technology,
 }: {
   descriptors?: catalogApi.EServiceDescriptor[];
+  technology?: catalogApi.EServiceTechnology;
 } = {}): catalogApi.EService {
   return {
     id: generateId(),
     name: generateMock(z.string().length(10)),
     producerId: generateId(),
     description: generateMock(z.string().length(10)),
-    technology: generateMock(catalogApi.EServiceTechnology),
+    technology: technology ?? generateMock(catalogApi.EServiceTechnology),
     descriptors:
       descriptors ?? generateMock(z.array(catalogApi.EServiceDescriptor)),
     riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
@@ -225,8 +282,10 @@ export function getMockedApiEserviceDescriptor({
     description: generateMock(z.string().length(10)),
     audience: generateMock(z.array(z.string())),
     voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
-    dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
-    dailyCallsTotal: generateMock(z.number().int().gte(1)),
+    dailyCallsPerConsumer: generateMock(
+      z.number().int().gte(1).lte(1000000000)
+    ),
+    dailyCallsTotal: generateMock(z.number().int().gte(1).lte(1000000000)),
     interface: interfaceDoc ?? generateMock(catalogApi.EServiceDoc),
     docs: generateMock(z.array(catalogApi.EServiceDoc)),
     state: state ?? generateMock(catalogApi.EServiceDescriptorState),
@@ -331,6 +390,28 @@ export function getMockedApiCertifiedTenantAttribute({
   };
 }
 
+export function getMockedApiVerifiedTenantAttribute(): tenantApi.VerifiedTenantAttribute {
+  return {
+    id: generateId(),
+    assignmentTimestamp: new Date().toISOString(),
+    verifiedBy: generateMock(z.array(tenantApi.TenantVerifier)),
+    revokedBy: generateMock(z.array(tenantApi.TenantRevoker)),
+  };
+}
+
+export function getMockedApiDeclaredTenantAttribute({
+  revoked = false,
+}: {
+  revoked?: boolean;
+} = {}): tenantApi.DeclaredTenantAttribute {
+  return {
+    id: generateId(),
+    assignmentTimestamp: new Date().toISOString(),
+    revocationTimestamp: revoked ? new Date().toISOString() : undefined,
+    delegationId: generateId(),
+  };
+}
+
 export function getMockedApiAgreementDocument({
   id = generateId(),
   name = "doc.txt",
@@ -370,6 +451,7 @@ export function getMockedApiEserviceDoc({
     prettyName: "Interface Document",
     path,
     checksum: "mock-checksum",
+    uploadDate: new Date().toISOString(),
     contacts: generateMock(catalogApi.DescriptorInterfaceContacts),
   };
 }
