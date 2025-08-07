@@ -31,6 +31,16 @@ export function eserviceServiceBuilder(
   clients: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
+  const pollEservice = (
+    response: WithMaybeMetadata<catalogApi.EService>,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
+    pollResourceWithMetadata(() =>
+      retrieveEServiceById(headers, response.data.id as EServiceId)
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
+    });
+
   const retrieveEServiceById = async (
     headers: M2MGatewayAppContext["headers"],
     eserviceId: EServiceId
@@ -205,6 +215,18 @@ export function eserviceServiceBuilder(
         config.eserviceDocumentsContainer,
         logger
       );
+    },
+    async createEService(
+      seed: m2mGatewayApi.EServiceSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(`Creating EService with name ${seed.name}`);
+
+      const response = await clients.catalogProcessClient.createEService(seed, {
+        headers,
+      });
+      const polledResource = await pollEservice(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
     },
     async deleteEService(
       eserviceId: EServiceId,
