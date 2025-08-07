@@ -19,10 +19,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { buildCreateDescriptorSeed } from "../mockUtils.js";
-import {
-  descriptorToApiDescriptor,
-  eServiceToApiEService,
-} from "../../src/model/domain/apiConverter.js";
+import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   attributeNotFound,
   draftDescriptorAlreadyExists,
@@ -74,12 +71,12 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
 
   const serviceResponse = getMockWithMetadata({
     eservice,
-    descriptor: newDescriptor,
+    descriptorId: newDescriptor.id,
   });
 
   const apiCreatedDescriptor = catalogApi.CreatedEServiceDescriptor.parse({
     eservice: eServiceToApiEService(eservice),
-    descriptor: descriptorToApiDescriptor(newDescriptor),
+    descriptorId: newDescriptor.id,
   });
 
   beforeEach(() => {
@@ -105,12 +102,12 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     authRole.M2M_ADMIN_ROLE,
   ];
   it.each(authorizedRoles)(
-    "Should return 201 for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, eservice.id);
       expect(res.body).toEqual(apiCreatedDescriptor);
-      expect(res.status).toBe(201);
+      expect(res.status).toBe(200);
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
       );

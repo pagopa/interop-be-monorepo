@@ -1297,7 +1297,9 @@ export function catalogServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<{ eservice: EService; descriptor: Descriptor }>> {
+    ): Promise<
+      WithMetadata<{ eservice: EService; descriptorId: DescriptorId }>
+    > {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -1406,7 +1408,7 @@ export function catalogServiceBuilder(
       return {
         data: {
           eservice: eserviceWithNewDescriptor,
-          descriptor: newDescriptor,
+          descriptorId: newDescriptor.id,
         },
         metadata: { version: newVersion },
       };

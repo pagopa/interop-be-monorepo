@@ -214,7 +214,7 @@ export function eserviceServiceBuilder(
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
       const {
-        data: { eservice, descriptor },
+        data: { eservice, descriptorId },
         metadata,
       } = await clients.catalogProcessClient.createDescriptor(
         eserviceDescriptorSeed,
@@ -230,6 +230,14 @@ export function eserviceServiceBuilder(
         },
         headers
       );
+
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === descriptorId
+      );
+
+      if (!descriptor) {
+        throw eserviceDescriptorNotFound(eserviceId, descriptorId);
+      }
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },

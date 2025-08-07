@@ -516,7 +516,7 @@ paths:
               $ref: "#/components/schemas/EServiceDescriptorSeed"
         required: true
       responses:
-        "201":
+        "200":
           description: EService Descriptor created.
           headers:
               X-Metadata-Version:
@@ -2551,12 +2551,13 @@ components:
       additionalProperties: false
       required:
         - eservice
-        - descriptor
+        - descriptorId
       properties:
         eservice:
           $ref: "#/components/schemas/EService"
-        descriptor:
-          $ref: "#/components/schemas/EServiceDescriptor"
+        descriptorId:
+          type: string
+          format: uuid
     EServiceInstanceDescriptorSeed:
       required:
         - audience

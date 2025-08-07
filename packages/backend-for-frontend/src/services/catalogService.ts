@@ -1145,7 +1145,7 @@ export function catalogServiceBuilder(
 
       const clonedDocuments = await Promise.all(clonedDocumentsCalls);
 
-      const { descriptor } = await catalogProcessClient.createDescriptor(
+      const { descriptorId } = await catalogProcessClient.createDescriptor(
         {
           description: previousDescriptor.description,
           audience: [],
@@ -1163,7 +1163,7 @@ export function catalogServiceBuilder(
           },
         }
       );
-      return { id: descriptor.id };
+      return { id: descriptorId };
     },
     deleteDraft: async (
       eServiceId: EServiceId,

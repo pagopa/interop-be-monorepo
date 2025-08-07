@@ -96,7 +96,7 @@ describe("createDescriptor", () => {
   const mockcreateDescriptor = vi.fn().mockResolvedValue({
     data: {
       eservice: mockApiEservice,
-      descriptor: mockApiDescriptor,
+      descriptorId: mockApiDescriptor.id,
     },
     metadata: { version: 0 },
   });
