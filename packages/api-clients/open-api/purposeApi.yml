@@ -256,7 +256,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServicePurposeSeed"
+              $ref: "#/components/schemas/ReversePurposeSeed"
         required: true
       responses:
         "200":
@@ -723,6 +723,11 @@ paths:
     post:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose Version Activated
@@ -818,6 +823,11 @@ paths:
     post:
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose Version Suspended
@@ -982,6 +992,14 @@ components:
       schema:
         type: string
   schemas:
+    DelegationRef:
+      type: object
+      additionalProperties: false
+      description: sets the delegation ID in order to operate as a delegate for a specific active delegation
+      properties:
+        delegationId:
+          type: string
+          format: uuid
     RejectPurposeVersionPayload:
       type: object
       additionalProperties: false
@@ -1337,15 +1355,19 @@ components:
           format: uuid
       required:
         - eserviceId
-    EServicePurposeSeed:
+    ReversePurposeSeed:
       type: object
       additionalProperties: false
       description: contains the expected payload for purpose creation.
       properties:
-        eServiceId:
+        eserviceId:
           type: string
           format: uuid
         consumerId:
+          description: |
+            The ID of the tenant that will consume the e-service. It can be:
+            - the ID of your tenant
+            - the ID of a tenant for which you are the consumer delegate
           type: string
           format: uuid
         riskAnalysisId:
@@ -1367,7 +1389,7 @@ components:
           type: integer
           format: int32
       required:
-        - eServiceId
+        - eserviceId
         - consumerId
         - title
         - riskAnalysisId
@@ -1383,6 +1405,10 @@ components:
           type: string
           format: uuid
         consumerId:
+          description: |
+            The ID of the tenant that will consume the e-service. It can be:
+            - the ID of your tenant
+            - the ID of a tenant for which you are the consumer delegate
           type: string
           format: uuid
         riskAnalysisForm:

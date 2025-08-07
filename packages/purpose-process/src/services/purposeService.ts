@@ -8,6 +8,7 @@ import {
   Logger,
   M2MAdminAuthData,
   M2MAuthData,
+  Ownership,
   PDFGenerator,
   RiskAnalysisFormRules,
   UIAuthData,
@@ -17,6 +18,7 @@ import {
   getFormRulesByVersion,
   getIpaCode,
   getLatestVersionFormRules,
+  ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -97,11 +99,7 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
-import {
-  ownership,
-  Ownership,
-  PurposeDocumentEServiceInfo,
-} from "../model/domain/models.js";
+import { PurposeDocumentEServiceInfo } from "../model/domain/models.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertEserviceMode,
@@ -124,6 +122,7 @@ import {
   verifyRequesterIsConsumerOrDelegateConsumer,
   isClonable,
   purposeIsArchived,
+  getOrganizationRole,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
@@ -684,9 +683,11 @@ export function purposeServiceBuilder(
       {
         purposeId,
         versionId,
+        delegationId,
       }: {
         purposeId: PurposeId;
         versionId: PurposeVersionId;
+        delegationId: DelegationId | undefined;
       },
       {
         authData,
@@ -694,7 +695,11 @@ export function purposeServiceBuilder(
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeVersion>> {
-      logger.info(`Suspending Version ${versionId} in Purpose ${purposeId}`);
+      logger.info(
+        `Suspending Version ${versionId} in Purpose ${purposeId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
+      );
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
@@ -711,8 +716,9 @@ export function purposeServiceBuilder(
       const suspender = await getOrganizationRole({
         purpose: purpose.data,
         producerId: eservice.producerId,
-        authData,
+        delegationId,
         readModelService,
+        authData,
       });
 
       const suspendedPurposeVersion: PurposeVersion = {
@@ -953,9 +959,11 @@ export function purposeServiceBuilder(
       {
         purposeId,
         versionId,
+        delegationId,
       }: {
         purposeId: PurposeId;
         versionId: PurposeVersionId;
+        delegationId: DelegationId | undefined;
       },
       {
         authData,
@@ -963,7 +971,11 @@ export function purposeServiceBuilder(
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeVersion>> {
-      logger.info(`Activating Version ${versionId} in Purpose ${purposeId}`);
+      logger.info(
+        `Activating Version ${versionId} in Purpose ${purposeId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
+      );
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
@@ -997,8 +1009,9 @@ export function purposeServiceBuilder(
       const purposeOwnership = await getOrganizationRole({
         purpose: purpose.data,
         producerId: eservice.producerId,
-        authData,
+        delegationId,
         readModelService,
+        authData,
       });
 
       const { event, updatedPurposeVersion } = await match({
@@ -1047,7 +1060,7 @@ export function purposeServiceBuilder(
             purposeOwnership: ownership.PRODUCER,
           },
           () => {
-            throw tenantIsNotTheConsumer(authData.organizationId);
+            throw tenantIsNotTheConsumer(authData.organizationId, delegationId);
           }
         )
         .with(
@@ -1056,7 +1069,7 @@ export function purposeServiceBuilder(
             purposeOwnership: ownership.CONSUMER,
           },
           () => {
-            throw tenantIsNotTheProducer(authData.organizationId);
+            throw tenantIsNotTheProducer(authData.organizationId, delegationId);
           }
         )
         .with(
@@ -1166,9 +1179,25 @@ export function purposeServiceBuilder(
               correlationId
             )
         )
-        .otherwise(() => {
-          throw tenantNotAllowed(authData.organizationId);
-        });
+        .with(
+          {
+            state: P.union(
+              purposeVersionState.archived,
+              purposeVersionState.active,
+              purposeVersionState.rejected,
+              purposeVersionState.suspended
+            ),
+            purposeOwnership: P.union(
+              ownership.CONSUMER,
+              ownership.SELF_CONSUMER,
+              ownership.PRODUCER
+            ),
+          },
+          () => {
+            throw tenantNotAllowed(authData.organizationId);
+          }
+        )
+        .exhaustive();
 
       const createdEvent = await repository.createEvent(event);
 
@@ -1252,7 +1281,7 @@ export function purposeServiceBuilder(
       };
     },
     async createReversePurpose(
-      seed: purposeApi.EServicePurposeSeed,
+      seed: purposeApi.ReversePurposeSeed,
       {
         authData,
         correlationId,
@@ -1262,10 +1291,10 @@ export function purposeServiceBuilder(
       WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
     > {
       logger.info(
-        `Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`
+        `Creating Purpose for EService ${seed.eserviceId}, Consumer ${seed.consumerId}`
       );
       const riskAnalysisId: RiskAnalysisId = unsafeBrandId(seed.riskAnalysisId);
-      const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
+      const eserviceId: EServiceId = unsafeBrandId(seed.eserviceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -1363,15 +1392,10 @@ export function purposeServiceBuilder(
 
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
 
-      const consumerDelegation = await retrievePurposeDelegation(
-        purposeToClone.data,
-        readModelService
-      );
-
       assertRequesterCanActAsConsumer(
         purposeToClone.data,
         authData,
-        consumerDelegation
+        await retrievePurposeDelegation(purposeToClone.data, readModelService)
       );
 
       if (!isClonable(purposeToClone.data)) {
@@ -1528,47 +1552,6 @@ export function purposeServiceBuilder(
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
-const getOrganizationRole = async ({
-  purpose,
-  producerId,
-  authData,
-  readModelService,
-}: {
-  purpose: Purpose;
-  producerId: TenantId;
-  authData: UIAuthData | M2MAdminAuthData;
-  readModelService: ReadModelService;
-}): Promise<Ownership> => {
-  if (
-    producerId === purpose.consumerId &&
-    authData.organizationId === producerId
-  ) {
-    return ownership.SELF_CONSUMER;
-  }
-
-  try {
-    assertRequesterCanActAsProducer(
-      { id: purpose.eserviceId, producerId },
-      authData,
-      await readModelService.getActiveProducerDelegationByEserviceId(
-        purpose.eserviceId
-      )
-    );
-    return ownership.PRODUCER;
-  } catch {
-    try {
-      assertRequesterCanActAsConsumer(
-        purpose,
-        authData,
-        await retrievePurposeDelegation(purpose, readModelService)
-      );
-      return ownership.CONSUMER;
-    } catch {
-      throw tenantNotAllowed(authData.organizationId);
-    }
-  }
-};
-
 const replacePurposeVersion = (
   purpose: Purpose,
   newVersion: PurposeVersion
@@ -1645,12 +1628,11 @@ const performUpdatePurpose = async (
     });
   }
 
-  const consumerDelegation = await retrievePurposeDelegation(
+  assertRequesterCanActAsConsumer(
     purpose.data,
-    readModelService
+    authData,
+    await retrievePurposeDelegation(purpose.data, readModelService)
   );
-
-  assertRequesterCanActAsConsumer(purpose.data, authData, consumerDelegation);
 
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
@@ -1975,7 +1957,19 @@ function activatePurposeVersionFromSuspendedLogic(
       },
       () => purposeVersionState.suspended
     )
-    .otherwise(() => purposeVersionState.active);
+    .with(
+      {
+        suspendedByConsumer: P.any,
+        suspendedByProducer: P.any,
+        purposeOwnership: P.union(
+          ownership.SELF_CONSUMER,
+          ownership.CONSUMER,
+          ownership.PRODUCER
+        ),
+      },
+      () => purposeVersionState.active
+    )
+    .exhaustive();
 
   const updatedPurposeVersion: PurposeVersion = {
     ...purposeVersion,
@@ -1992,11 +1986,8 @@ function activatePurposeVersionFromSuspendedLogic(
     updatedPurposeVersion
   );
 
-  if (
-    purposeOwnership === ownership.PRODUCER ||
-    purposeOwnership === ownership.SELF_CONSUMER
-  ) {
-    return {
+  return match(purposeOwnership)
+    .with(P.union(ownership.PRODUCER, ownership.SELF_CONSUMER), () => ({
       event: toCreateEventPurposeVersionUnsuspenedByProducer({
         purpose: { ...updatedPurpose, suspendedByProducer: false },
         versionId: purposeVersion.id,
@@ -2004,9 +1995,8 @@ function activatePurposeVersionFromSuspendedLogic(
         correlationId,
       }),
       updatedPurposeVersion,
-    };
-  } else {
-    return {
+    }))
+    .with(ownership.CONSUMER, () => ({
       event: toCreateEventPurposeVersionUnsuspenedByConsumer({
         purpose: { ...updatedPurpose, suspendedByConsumer: false },
         versionId: purposeVersion.id,
@@ -2014,6 +2004,6 @@ function activatePurposeVersionFromSuspendedLogic(
         correlationId,
       }),
       updatedPurposeVersion,
-    };
-  }
+    }))
+    .exhaustive();
 }
