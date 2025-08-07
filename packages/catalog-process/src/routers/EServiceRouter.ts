@@ -167,12 +167,14 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const eservice = await catalogService.createEService(req.body, ctx);
+        const { data: eService, metadata } =
+          await catalogService.createEService(req.body, ctx);
+        setMetadataVersionHeader(res, metadata);
         return res
-          .status(200)
-          .send(catalogApi.EService.parse(eServiceToApiEService(eservice)));
+          .status(201)
+          .send(catalogApi.EService.parse(eServiceToApiEService(eService)));
       } catch (error) {
         const errorRes = makeApiProblem(error, createEServiceErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
@@ -281,7 +283,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
         await catalogService.deleteEService(
           unsafeBrandId(req.params.eServiceId),
@@ -622,14 +624,17 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          await catalogService.publishDescriptor(
+          const { data, metadata } = await catalogService.publishDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).send();
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(catalogApi.EService.parse(eServiceToApiEService(data)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -646,14 +651,17 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          await catalogService.suspendDescriptor(
+          const { data, metadata } = await catalogService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).send();
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(catalogApi.EService.parse(eServiceToApiEService(data)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -670,14 +678,17 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          await catalogService.activateDescriptor(
+          const { data, metadata } = await catalogService.activateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).send();
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(catalogApi.EService.parse(eServiceToApiEService(data)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
