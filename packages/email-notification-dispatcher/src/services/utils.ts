@@ -25,17 +25,17 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 // Be careful to change this enum, it's used to find the html template files
 export const eventMailTemplateType = {
   agreementActivatedMailTemplate: "agreement-activated-mail",
-  agreementSubmittedMailTemplate: "agreement-submitted-mail",
-  agreementRejectedMailTemplate: "agreement-rejected-mail",
-  newPurposeVersionWaitingForApprovalMailTemplate:
-    "new-purpose-version-waiting-for-approval-mail",
-  firstPurposeVersionRejectedMailTemplate:
-    "first-purpose-version-rejected-mail",
-  otherPurposeVersionRejectedMailTemplate:
-    "other-purpose-version-rejected-mail",
-  purposeWaitingForApprovalMailTemplate: "purpose-waiting-for-approval-mail",
+  // agreementSubmittedMailTemplate: "agreement-submitted-mail",
+  // agreementRejectedMailTemplate: "agreement-rejected-mail",
+  // newPurposeVersionWaitingForApprovalMailTemplate:
+  //   "new-purpose-version-waiting-for-approval-mail",
+  // firstPurposeVersionRejectedMailTemplate:
+  //   "first-purpose-version-rejected-mail",
+  // otherPurposeVersionRejectedMailTemplate:
+  //   "other-purpose-version-rejected-mail",
+  // purposeWaitingForApprovalMailTemplate: "purpose-waiting-for-approval-mail",
   eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
-  purposeVersionActivatedMailTemplate: "purpose-version-activated-mail",
+  // purposeVersionActivatedMailTemplate: "purpose-version-activated-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
