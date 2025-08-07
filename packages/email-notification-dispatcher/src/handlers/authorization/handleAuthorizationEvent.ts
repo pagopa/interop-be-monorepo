@@ -1,21 +1,23 @@
 import {
-  AuthorizationEventEnvelopeV2,
-  CorrelationId,
+  AuthorizationEventV2,
   EmailNotificationMessagePayload,
 } from "pagopa-interop-models";
-import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { HandlerParams } from "../../models/handlerParams.js";
 
 // const interopFeBaseUrl = config.interopFeBaseUrl;
 
 export async function handleAuthorizationEvent(
-  decodedMessage: AuthorizationEventEnvelopeV2,
-  _correlationId: CorrelationId,
-  logger: Logger,
-  _readModelService: ReadModelServiceSQL,
-  _templateService: HtmlTemplateService
+  params: HandlerParams<typeof AuthorizationEventV2>
 ): Promise<EmailNotificationMessagePayload[]> {
+  const {
+    decodedMessage,
+    logger,
+    // readModelService,
+    // templateService,
+    // userService,
+    // correlationId,
+  } = params;
   return match(decodedMessage)
     .with(
       {

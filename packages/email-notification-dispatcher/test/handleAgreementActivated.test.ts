@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
 import {
   getMockAgreement,
@@ -17,7 +18,7 @@ import {
   toAgreementV2,
   UserId,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   agreementStampDateNotFound,
   descriptorNotFound,
@@ -29,6 +30,7 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
+  getMockUser,
   interopFeBaseUrl,
   readModelService,
   templateService,
@@ -45,6 +47,10 @@ describe("handleAgreementActivated", async () => {
 
   await addOneAgreement(agreement);
 
+  const userService = {
+    readUser: vi.fn(),
+  };
+
   it("should throw missingKafkaMessageDataError when agreement is undefined", async () => {
     await expect(() =>
       handleAgreementActivated({
@@ -52,6 +58,7 @@ describe("handleAgreementActivated", async () => {
         logger,
         interopFeBaseUrl,
         templateService,
+        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -92,6 +99,7 @@ describe("handleAgreementActivated", async () => {
         logger,
         interopFeBaseUrl,
         templateService,
+        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -130,6 +138,7 @@ describe("handleAgreementActivated", async () => {
         logger,
         interopFeBaseUrl,
         templateService,
+        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -172,6 +181,7 @@ describe("handleAgreementActivated", async () => {
         logger,
         interopFeBaseUrl,
         templateService,
+        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -210,6 +220,7 @@ describe("handleAgreementActivated", async () => {
         logger,
         interopFeBaseUrl,
         templateService,
+        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -247,6 +258,7 @@ describe("handleAgreementActivated", async () => {
         logger,
         interopFeBaseUrl,
         templateService,
+        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -255,7 +267,7 @@ describe("handleAgreementActivated", async () => {
     );
   });
 
-  it("should skip tenant when no emails exist for the tenant", async () => {
+  it("should generate one message per user of the tenant that consumed the eservice", async () => {
     const descriptor = getMockDescriptor();
     const eservice = {
       ...getMockEService(),
@@ -263,57 +275,24 @@ describe("handleAgreementActivated", async () => {
     };
     await addOneEService(eservice);
 
-    const consumerTenant = {
-      ...getMockTenant(),
-      mails: [],
-    };
+    const consumerTenant = getMockTenant();
     await addOneTenant(consumerTenant);
 
-    const producerTenant = {
-      ...getMockTenant(),
-      mails: [],
-    };
+    const producerTenant = getMockTenant();
     await addOneTenant(producerTenant);
 
-    const agreement = {
-      ...getMockAgreement(),
-      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
-      producerId: producerTenant.id,
-      descriptorId: descriptor.id,
-      eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
-    };
-    await addOneAgreement(agreement);
-    const messages = await handleAgreementActivated({
-      agreementV2Msg: toAgreementV2(agreement),
-      logger,
-      interopFeBaseUrl,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-    expect(messages).toEqual([]);
-  });
-
-  it("should generate one message to the tenant that published the eservice", async () => {
-    const descriptor = getMockDescriptor();
-    const eservice = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-
-    const consumerTenant = {
-      ...getMockTenant(),
-      mails: [getMockTenantMail()],
-    };
-    await addOneTenant(consumerTenant);
-
-    const producerTenant = {
-      ...getMockTenant(),
-      mails: [getMockTenantMail()],
-    };
-    await addOneTenant(producerTenant);
+    const users = [
+      getMockUser(consumerTenant.id),
+      getMockUser(consumerTenant.id),
+    ];
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockReturnValueOnce(
+        users.map((user) => ({ userId: user.userId, tenantId: user.tenantId }))
+      );
+    userService.readUser.mockImplementation((userId) =>
+      users.find((user) => user.userId === userId)
+    );
 
     const agreement = {
       ...getMockAgreement(),
@@ -330,54 +309,11 @@ describe("handleAgreementActivated", async () => {
       logger,
       interopFeBaseUrl,
       templateService,
+      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages.length).toEqual(1);
-  });
-
-  it("should generate a message using the latest mail registered per tenant", async () => {
-    const descriptor = getMockDescriptor();
-    const eservice = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-
-    const oldMail = { ...getMockTenantMail(), createdAt: new Date(1999) };
-    const newMail = getMockTenantMail();
-    const consumerTenant = {
-      ...getMockTenant(),
-      mails: [oldMail, newMail],
-    };
-    await addOneTenant(consumerTenant);
-
-    const producerTenant = {
-      ...getMockTenant(),
-      mails: [getMockTenantMail()],
-    };
-    await addOneTenant(producerTenant);
-
-    const agreement = {
-      ...getMockAgreement(),
-      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
-      producerId: producerTenant.id,
-      descriptorId: descriptor.id,
-      eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
-    };
-    await addOneAgreement(agreement);
-
-    const messages = await handleAgreementActivated({
-      agreementV2Msg: toAgreementV2(agreement),
-      logger,
-      interopFeBaseUrl,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-    expect(messages.length).toEqual(1);
-    expect(messages[0].address).toEqual(newMail.address);
+    expect(messages.length).toEqual(2);
   });
 
   it("should generate a message that correctly imports the specified header and footer", async () => {
@@ -388,19 +324,20 @@ describe("handleAgreementActivated", async () => {
     };
     await addOneEService(eservice);
 
-    const oldMail = { ...getMockTenantMail(), createdAt: new Date(1999) };
-    const newMail = getMockTenantMail();
     const consumerTenant = {
-      ...getMockTenant(),
-      mails: [oldMail, newMail],
-    };
-    await addOneTenant(consumerTenant);
-
-    const producerTenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail()],
     };
+    await addOneTenant(consumerTenant);
+
+    const producerTenant = getMockTenant();
     await addOneTenant(producerTenant);
+
+    const user = getMockUser(consumerTenant.id);
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockReturnValueOnce([{ userId: user.userId, tenantId: user.tenantId }]);
+    userService.readUser.mockImplementation((_) => user);
 
     const agreement = {
       ...getMockAgreement(),
@@ -417,10 +354,12 @@ describe("handleAgreementActivated", async () => {
       logger,
       interopFeBaseUrl,
       templateService,
+      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
     expect(messages.length).toBe(1);
+    expect(messages[0].address).toBe(user.email);
     expect(messages[0].email.body).toContain("<!-- Title & Main Message -->");
     expect(messages[0].email.body).toContain("<!-- Footer -->");
     expect(messages[0].email.body).toContain(`Nuova richiesta di fruizione`);
