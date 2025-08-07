@@ -1,0 +1,86 @@
+import {
+  EmailNotificationMessagePayload,
+  EServiceEventV2,
+} from "pagopa-interop-models";
+import { match, P } from "ts-pattern";
+import { config } from "../../config/config.js";
+import { HandlerParams } from "../../models/handlerParams.js";
+import { handleEserviceDescriptorPublished } from "./handleEserviceDescriptorPublished.js";
+
+const interopFeBaseUrl = config.interopFeBaseUrl;
+
+export async function handleEServiceEvent(
+  params: HandlerParams<typeof EServiceEventV2>
+): Promise<EmailNotificationMessagePayload[]> {
+  const {
+    decodedMessage,
+    logger,
+    readModelService,
+    templateService,
+    correlationId,
+  } = params;
+  return match(decodedMessage)
+    .with({ type: "EServiceDescriptorPublished" }, ({ data: { eservice } }) =>
+      handleEserviceDescriptorPublished({
+        eserviceV2Msg: eservice,
+        interopFeBaseUrl,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorActivated",
+          "EServiceDescriptorApprovedByDelegator",
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorArchived",
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorAgreementApprovalPolicyUpdated",
+          "EServiceAdded",
+          "EServiceCloned",
+          "EServiceDeleted",
+          "DraftEServiceUpdated",
+          "EServiceDescriptorAdded",
+          "EServiceDraftDescriptorDeleted",
+          "EServiceDraftDescriptorUpdated",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorInterfaceDeleted",
+          "EServiceRiskAnalysisAdded",
+          "EServiceRiskAnalysisUpdated",
+          "EServiceRiskAnalysisDeleted",
+          "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptionUpdated",
+          "EServiceNameUpdated",
+          "EServiceDescriptorSubmittedByDelegate",
+          "EServiceDescriptorRejectedByDelegator",
+          "EServiceIsConsumerDelegableEnabled",
+          "EServiceIsConsumerDelegableDisabled",
+          "EServiceIsClientAccessDelegableEnabled",
+          "EServiceIsClientAccessDelegableDisabled",
+          "EServiceNameUpdatedByTemplateUpdate",
+          "EServiceDescriptionUpdatedByTemplateUpdate",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+          "EServiceSignalHubEnabled",
+          "EServiceSignalHubDisabled"
+        ),
+      },
+      () => {
+        logger.info(
+          `No need to send an email-app notification for ${decodedMessage.type} message`
+        );
+        return [];
+      }
+    )
+    .exhaustive();
+}

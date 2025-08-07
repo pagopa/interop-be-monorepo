@@ -1271,9 +1271,12 @@ export function createDummyStub<T>(): T {
   return {} as T;
 }
 
-export const getMockNotificationConfig = (): NotificationConfig => ({
-  newEServiceVersionPublished: generateMock(z.boolean()),
-});
+export const getMockNotificationConfig = (): NotificationConfig =>
+  Object.keys(NotificationConfig.shape).reduce((acc, key) => {
+    // eslint-disable-next-line functional/immutable-data
+    acc[key as keyof NotificationConfig] = generateMock(z.boolean());
+    return acc;
+  }, {} as NotificationConfig);
 
 export const getMockTenantNotificationConfig =
   (): TenantNotificationConfig => ({
