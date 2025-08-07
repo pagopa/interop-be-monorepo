@@ -244,7 +244,7 @@ const retrieveRiskAnalysis = (
 const assertRequesterCanPublish = (
   producerDelegation: Delegation | undefined,
   eservice: EService,
-  authData: UIAuthData
+  authData: UIAuthData | M2MAdminAuthData
 ): void => {
   if (producerDelegation) {
     if (
@@ -1579,8 +1579,12 @@ export function catalogServiceBuilder(
     async publishDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Publishing Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1624,7 +1628,7 @@ export function catalogServiceBuilder(
           eservice.data,
           updateDescriptorState(descriptor, descriptorState.waitingForApproval)
         );
-        await repository.createEvent(
+        const event = await repository.createEvent(
           toCreateEventEServiceDescriptorSubmittedByDelegate(
             eservice.metadata.version,
             descriptor.id,
@@ -1632,6 +1636,12 @@ export function catalogServiceBuilder(
             correlationId
           )
         );
+        return {
+          data: eserviceWithWaitingForApprovalDescriptor,
+          metadata: {
+            version: event.newVersion,
+          },
+        };
       } else {
         const updatedEService = await processDescriptorPublication(
           eservice.data,
@@ -1640,7 +1650,7 @@ export function catalogServiceBuilder(
           logger
         );
 
-        await repository.createEvent(
+        const event = await repository.createEvent(
           toCreateEventEServiceDescriptorPublished(
             eserviceId,
             eservice.metadata.version,
@@ -1649,6 +1659,12 @@ export function catalogServiceBuilder(
             correlationId
           )
         );
+        return {
+          data: updatedEService,
+          metadata: {
+            version: event.newVersion,
+          },
+        };
       }
     },
 
