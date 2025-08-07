@@ -207,30 +207,22 @@ export function eserviceServiceBuilder(
       );
     },
     async deleteDraftDescriptor(
-      eServiceId: EServiceId,
+      eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EService | void> {
+    ): Promise<void> {
       logger.info(
-        `Deleting descriptor ${descriptorId} for eservice with id ${eServiceId}`
+        `Deleting descriptor ${descriptorId} for eservice with id ${eserviceId}`
       );
 
-      const { data, metadata } = await clients.catalogProcessClient.deleteDraft(
+      const { metadata } = await clients.catalogProcessClient.deleteDraft(
         undefined,
         {
-          params: { eServiceId, descriptorId },
+          params: { eServiceId: eserviceId, descriptorId },
           headers,
         }
       );
-      if (data === undefined) {
-        await pollEserviceUntilDeletion(eServiceId, headers);
-        return undefined;
-        // If the last descriptor is deleted, the EService is deleted as well
-      } else {
-        // If there are still descriptors, return the updated EService
-        await pollEServiceById(eServiceId, metadata, headers);
-        return toM2MGatewayApiEService(data);
-      }
+      await pollEServiceById(eserviceId, metadata, headers);
     },
 
     async createEService(

@@ -32,9 +32,6 @@ describe("DELETE /eservices/:eServiceId/descriptors/:descriptorId router test", 
     descriptors: [mockApiDescriptorDraft],
   });
 
-  const mockM2MEserviceResponse: m2mGatewayApi.EService =
-    toM2MGatewayApiEService(mockApiEservice);
-
   const mockM2MEserviceResponseDeleted: m2mGatewayApi.EService =
     toM2MGatewayApiEService(mockApiEserviceDeleted);
 
@@ -52,11 +49,9 @@ describe("DELETE /eservices/:eServiceId/descriptors/:descriptorId router test", 
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
+    "Should return 204 and perform service calls for user with role %s",
     async (role) => {
-      mockEserviceService.deleteDraftDescriptor = vi
-        .fn()
-        .mockResolvedValue(mockM2MEserviceResponse);
+      mockEserviceService.deleteDraftDescriptor = vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(
@@ -65,8 +60,7 @@ describe("DELETE /eservices/:eServiceId/descriptors/:descriptorId router test", 
         mockApiDescriptorDraft.id
       );
 
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockM2MEserviceResponse);
+      expect(res.status).toBe(204);
     }
   );
 

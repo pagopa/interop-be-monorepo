@@ -172,18 +172,12 @@ const eserviceRouter = (
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-          const eservice = await eserviceService.deleteDraftDescriptor(
+          await eserviceService.deleteDraftDescriptor(
             unsafeBrandId(req.params.eserviceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-
-          if (eservice === undefined) {
-            // If the last descriptor is deleted, the EService is deleted as well
-            return res.status(204).send();
-          } else {
-            return res.status(200).send(m2mGatewayApi.EService.parse(eservice));
-          }
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

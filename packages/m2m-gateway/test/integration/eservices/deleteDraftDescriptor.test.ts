@@ -12,14 +12,14 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
-  mockDeletionPollingResponse,
   mockInteropBeClients,
   eserviceService,
+  mockPollingResponse,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
-import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 
 describe("deleteDfratDescriptor", () => {
   const mockApiDescriptorPublished: catalogApi.EServiceDescriptor = {
@@ -36,21 +36,10 @@ describe("deleteDfratDescriptor", () => {
       descriptors: [mockApiDescriptorPublished, mockApiDescriptorDraft],
     })
   );
-  const mockApiEServiceWithoutDraftDescriptor = getMockWithMetadata(
-    getMockedApiEservice({
-      descriptors: [mockApiDescriptorPublished],
-    })
-  );
 
-  const mockM2MEserviceResponse = toM2MGatewayApiEService(
-    mockApiEServiceWithoutDraftDescriptor.data
-  );
+  const mockDeleteDraftDescriptor = vi.fn().mockResolvedValue(mockApiEService);
 
-  const mockDeleteDraftDescriptor = vi.fn();
-
-  const mockGetEService = vi.fn(
-    mockDeletionPollingResponse(mockApiEService, 2)
-  );
+  const mockGetEService = vi.fn(mockPollingResponse(mockApiEService, 2));
 
   mockInteropBeClients.catalogProcessClient = {
     getEServiceById: mockGetEService,
@@ -60,39 +49,6 @@ describe("deleteDfratDescriptor", () => {
   beforeEach(() => {
     mockDeleteDraftDescriptor.mockClear();
     mockGetEService.mockClear();
-  });
-
-  it.only("Should succeed and perform API clients calls and returned the Eservice", async () => {
-    const mockDeleteDraftDescriptor = vi
-      .fn()
-      .mockResolvedValue(mockApiEServiceWithoutDraftDescriptor);
-    mockInteropBeClients.catalogProcessClient = {
-      getEServiceById: mockGetEService,
-      deleteDraft: mockDeleteDraftDescriptor,
-    } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
-    const eservice = await eserviceService.deleteDraftDescriptor(
-      unsafeBrandId(mockApiEService.data.id),
-      unsafeBrandId(mockApiDescriptorDraft.id),
-      getMockM2MAdminAppContext()
-    );
-
-    expect(eservice).toEqual(mockM2MEserviceResponse);
-    expectApiClientPostToHaveBeenCalledWith({
-      mockPost: mockInteropBeClients.catalogProcessClient.deleteDraft,
-      params: {
-        eServiceId: mockApiEService.data.id,
-        descriptorId: mockApiDescriptorDraft.id,
-      },
-    });
-    expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
-      params: {
-        eServiceId: mockApiEService.data.id,
-      },
-    });
-    expect(
-      mockInteropBeClients.catalogProcessClient.getEServiceById
-    ).toHaveBeenCalledTimes(1);
   });
 
   it("Should succeed and perform API clients calls", async () => {
@@ -120,12 +76,38 @@ describe("deleteDfratDescriptor", () => {
     ).toHaveBeenCalledTimes(2);
   });
 
+  it("Should throw missingMetadata in case the E-Service returned by the DELETE call has no metadata", async () => {
+    mockDeleteDraftDescriptor.mockResolvedValueOnce({
+      metadata: undefined,
+    });
+
+    await expect(
+      eserviceService.deleteDraftDescriptor(
+        unsafeBrandId(mockApiEService.data.id),
+        unsafeBrandId(mockApiDescriptorDraft.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw missingMetadata in case the E-Service returned by the polling GET call has no metadata", async () => {
+    mockGetEService.mockResolvedValueOnce({
+      data: mockApiEService.data,
+      metadata: undefined,
+    });
+
+    await expect(
+      eserviceService.deleteDraftDescriptor(
+        unsafeBrandId(mockApiEService.data.id),
+        unsafeBrandId(mockApiDescriptorDraft.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetEService.mockImplementation(
-      mockDeletionPollingResponse(
-        mockApiEService,
-        config.defaultPollingMaxRetries + 1
-      )
+      mockPollingResponse(mockApiEService, config.defaultPollingMaxRetries + 1)
     );
 
     await expect(
