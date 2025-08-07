@@ -31,16 +31,6 @@ export function eserviceServiceBuilder(
   clients: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
-  const pollEservice = (
-    response: WithMaybeMetadata<catalogApi.EService>,
-    headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
-    pollResourceWithMetadata(() =>
-      retrieveEServiceById(headers, response.data.id as EServiceId)
-    )({
-      condition: isPolledVersionAtLeastResponseVersion(response),
-    });
-
   const retrieveEServiceById = async (
     headers: M2MGatewayAppContext["headers"],
     eserviceId: EServiceId
@@ -216,6 +206,25 @@ export function eserviceServiceBuilder(
         logger
       );
     },
+    async deleteDraftDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting descriptor ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const { metadata } = await clients.catalogProcessClient.deleteDraft(
+        undefined,
+        {
+          params: { eServiceId: eserviceId, descriptorId },
+          headers,
+        }
+      );
+      await pollEServiceById(eserviceId, metadata, headers);
+    },
+
     async createEService(
       seed: m2mGatewayApi.EServiceSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
@@ -225,7 +234,7 @@ export function eserviceServiceBuilder(
       const response = await clients.catalogProcessClient.createEService(seed, {
         headers,
       });
-      const polledResource = await pollEservice(response, headers);
+      const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
     },
     async deleteEService(

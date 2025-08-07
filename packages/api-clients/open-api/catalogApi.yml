@@ -603,8 +603,17 @@ paths:
           schema:
             type: string
       responses:
-        "204":
-          description: E-Service draft Descriptor deleted
+        "200":
+          description: E-Service retrieved with draft Descriptor deleted
+          headers:
+              X-Metadata-Version:
+                $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        '204':
+         description: E-Service and its draft descriptor successfully deleted
         "400":
           description: Invalid input
           content:
