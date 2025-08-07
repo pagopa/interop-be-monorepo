@@ -1,0 +1,46 @@
+meta {
+  name: Create eservice
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host-m2m-gw}}/eservices
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+      "name": "{{randomName}}",
+      "description": "this is a test",
+      "technology": "REST",
+      "mode": "DELIVER",
+      "descriptor": {
+          "audience": [ "string" ],
+          "voucherLifespan": 86400,
+          "dailyCallsPerConsumer": 100,
+          "dailyCallsTotal": 100,
+          "agreementApprovalPolicy": "MANUAL"
+      }
+  }
+}
+
+vars:post-response {
+  eserviceId: res.body.id
+  descriptorId: res.body.descriptors[0].id
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
+}
+
+docs {
+  Creates a new eservice.
+}

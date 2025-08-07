@@ -177,6 +177,9 @@ paths:
       responses:
         "200":
           description: EService created
+          headers:
+              X-Metadata-Version:
+                $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -734,8 +737,15 @@ paths:
           schema:
             type: string
       responses:
-        "204":
-          description: E-Service Descriptor published
+        "200":
+          description: E-Service Descriptor suspended
+          headers:
+              X-Metadata-Version:
+                $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -773,8 +783,15 @@ paths:
           schema:
             type: string
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor suspended
+          headers:
+              X-Metadata-Version:
+                $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -812,8 +829,15 @@ paths:
           schema:
             type: string
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor activated
+          headers:
+              X-Metadata-Version:
+                $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -1046,12 +1070,14 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: the descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
       requestBody:
         description: E-Service document
         required: true
@@ -1077,6 +1103,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -1781,8 +1813,15 @@ paths:
             type: string
             format: uuid
       responses:
-        "204":
+        "200":
           description: New delegated e-service version approved
+          headers:
+              X-Metadata-Version:
+                $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "403":
           description: Forbidden
           content:
@@ -1835,8 +1874,15 @@ paths:
             type: string
             format: uuid
       responses:
-        "204":
+        "200":
           description: New delegated e-service version rejected
+          headers:
+              X-Metadata-Version:
+                $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "403":
           description: Forbidden
           content:
@@ -2448,11 +2494,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
     EServiceDescriptorSeed:
@@ -2487,11 +2535,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
@@ -2519,11 +2569,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
     UpdateEServiceDescriptorSeed:
@@ -2557,11 +2609,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
@@ -2586,11 +2640,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
     UpdateEServiceDescriptorQuotasSeed:
@@ -2606,10 +2662,12 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
       required:
         - voucherLifespan
         - dailyCallsPerConsumer
@@ -2622,10 +2680,12 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
       required:
         - dailyCallsPerConsumer
         - dailyCallsTotal
@@ -3092,11 +3152,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         interface:
           $ref: "#/components/schemas/EServiceDoc"
         docs:

@@ -126,7 +126,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
     },
     {
       error: interfaceAlreadyExists(descriptor.id),
-      expectedStatus: 400,
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",
