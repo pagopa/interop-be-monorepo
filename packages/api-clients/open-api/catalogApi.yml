@@ -1055,6 +1055,20 @@ paths:
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
       security:
         - bearerAuth: []
@@ -1063,21 +1077,6 @@ paths:
       summary: Add new e-service document
       operationId: createEServiceDocument
       description: Adds a new document to the specified E-Service
-      parameters:
-        - name: eServiceId
-          in: path
-          description: the eservice id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: descriptorId
-          in: path
-          description: the descriptor Id
-          required: true
-          schema:
-            type: string
-            format: uuid
       requestBody:
         description: E-Service document
         required: true
@@ -1109,6 +1108,55 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve a list of e-service documents
+      operationId: getEServiceDocuments
+      description: Retrieves a list of documents for the specified E-Service
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: EService documents retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDocs"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
           content:
             application/problem+json:
               schema:
@@ -3077,6 +3125,20 @@ components:
           format: date-time
         contacts:
           $ref: "#/components/schemas/DescriptorInterfaceContacts"
+    EServiceDocs:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDoc"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     EServiceDescriptionUpdateSeed:
       type: object
       additionalProperties: false

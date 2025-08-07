@@ -1,0 +1,26 @@
+meta {
+  name: Get eservice descriptor documents
+  type: http
+  seq: 24
+}
+
+get {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/documents?offset=0&limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+params:path {
+  descriptorId: {{descriptorId}}
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
