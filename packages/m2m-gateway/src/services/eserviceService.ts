@@ -231,15 +231,7 @@ export function eserviceServiceBuilder(
         headers
       );
 
-      const createdDescriptor = eservice.descriptors.find(
-        (d) => d.id === descriptor.id
-      );
-
-      if (!createdDescriptor) {
-        throw eserviceDescriptorNotFound(eservice.id, descriptor.id);
-      }
-
-      return toM2MGatewayApiEServiceDescriptor(createdDescriptor);
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
     async createEService(
       seed: m2mGatewayApi.EServiceSeed,

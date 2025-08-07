@@ -77,6 +77,9 @@ describe("createDescriptor", () => {
       prettyName: doc.prettyName,
       contentType: doc.contentType,
       checksum: doc.checksum,
+      uploadDate: new Date().toISOString(),
+      kind: doc.kind,
+      serverUrls: doc.serverUrls,
     })),
     agreementApprovalPolicy: descriptorSeed.agreementApprovalPolicy,
   };

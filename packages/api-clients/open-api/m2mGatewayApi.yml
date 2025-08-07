@@ -4292,17 +4292,9 @@ paths:
     post:
       tags:
         - eservices
-      summary: Adds a descriptor to the specified e-service
+      summary: Adds a descriptor to the specified E-Service
       operationId: createDescriptor
-      description: Adds a descriptor to the specified e-service
-      parameters:
-        - name: eserviceId
-          in: path
-          description: The E-Service id
-          required: true
-          schema:
-            type: string
-            format: uuid
+      description: Adds a descriptor to the specified E-Service
       requestBody:
         description: An E-Service Descriptor seed
         content:
@@ -4312,7 +4304,7 @@ paths:
         required: true
       responses:
         "201":
-          description: EService Descriptor created.
+          description: E-Service Descriptor created.
           content:
             application/json:
               schema:
@@ -4325,20 +4317,7 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
-        "404":
-          description: Not found
+          description: Bad Request
           content:
             application/problem+json:
               schema:
@@ -4352,6 +4331,19 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "401":
           description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:

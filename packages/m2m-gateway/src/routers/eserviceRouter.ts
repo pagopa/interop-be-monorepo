@@ -156,7 +156,7 @@ const eserviceRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error creating descriptor`
+          `Error creating descriptor for eservice with id ${req.params.eserviceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
