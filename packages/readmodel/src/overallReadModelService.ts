@@ -15,26 +15,6 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
-  aggregateAttributeArray,
-  aggregateEserviceArray,
-  toEServiceAggregatorArray,
-  aggregateTenantArray,
-  toPurposeAggregatorArray,
-  aggregatePurposeArray,
-  aggregateAgreementArray,
-  toAgreementAggregatorArray,
-  aggregateClientArray,
-  toClientAggregatorArray,
-  aggregateClientJWKKeyArray,
-  aggregateProducerKeychainArray,
-  toProducerKeychainAggregatorArray,
-  aggregateProducerJWKKeyArray,
-  aggregateDelegationsArray,
-  toDelegationAggregatorArray,
-  aggregateEServiceTemplateArray,
-  toEServiceTemplateAggregatorArray,
-} from "pagopa-interop-readmodel";
-import {
   agreementAttributeInReadmodelAgreement,
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
@@ -94,9 +74,41 @@ import {
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
+import {
+  aggregateAgreementArray,
+  toAgreementAggregatorArray,
+} from "./agreement/aggregators.js";
+import { aggregateAttributeArray } from "./attribute/aggregators.js";
+import {
+  aggregateClientArray,
+  toClientAggregatorArray,
+} from "./authorization/clientAggregators.js";
+import { aggregateClientJWKKeyArray } from "./authorization/clientJWKKeyAggregators.js";
+import { aggregateProducerJWKKeyArray } from "./authorization/producerJWKKeyAggregators.js";
+import {
+  aggregateProducerKeychainArray,
+  toProducerKeychainAggregatorArray,
+} from "./authorization/producerKeychainAggregators.js";
+import {
+  aggregateEserviceArray,
+  toEServiceAggregatorArray,
+} from "./catalog/aggregators.js";
+import {
+  aggregateDelegationsArray,
+  toDelegationAggregatorArray,
+} from "./delegation/aggregators.js";
+import {
+  aggregateEServiceTemplateArray,
+  toEServiceTemplateAggregatorArray,
+} from "./eservice-template/aggregators.js";
+import {
+  aggregatePurposeArray,
+  toPurposeAggregatorArray,
+} from "./purpose/aggregators.js";
+import { aggregateTenantArray } from "./tenant/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
+export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
   return {
     async getAllAttributes(): Promise<Array<WithMetadata<Attribute>>> {
       const res = await readModelDB
