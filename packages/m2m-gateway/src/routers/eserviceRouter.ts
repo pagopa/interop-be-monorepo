@@ -245,6 +245,33 @@ const eserviceRouter = (
         }
       }
     )
+    .delete(
+      "/eservices/:eserviceId/descriptors/:descriptorId/documents/:documentId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await eserviceService.deleteEServiceDescriptorDocument(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            unsafeBrandId(req.params.documentId),
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error deleting document with id ${req.params.documentId} for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get(
       "/eservices/:eserviceId/descriptors/:descriptorId/interface",
       async (req, res) => {

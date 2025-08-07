@@ -1,10 +1,10 @@
 meta {
-  name: Get eservice descriptor document
+  name: Delete eservice descriptor document
   type: http
-  seq: 10
+  seq: 11
 }
 
-get {
+delete {
   url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/documents/:documentId
   body: none
   auth: none
@@ -17,5 +17,5 @@ params:path {
 }
 
 headers {
-  Authorization: {{JWT-M2M}}
+  Authorization: {{JWT-M2M-ADMIN}}
 }
