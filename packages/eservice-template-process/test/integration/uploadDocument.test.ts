@@ -240,7 +240,7 @@ describe("upload Document", () => {
         })
       )
     ).rejects.toThrowError(
-      checksumDuplicate(document.name, eserviceTemplate.id, mockVersion.id)
+      checksumDuplicate(eserviceTemplate.id, mockVersion.id)
     );
   });
 });

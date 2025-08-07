@@ -2559,12 +2559,14 @@ components:
           description: max number of daily requests per consumer
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: total number of daily requests delivered by the eservice
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
         interface:
           $ref: "#/components/schemas/EServiceDoc"
         docs:

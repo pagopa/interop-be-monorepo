@@ -177,6 +177,9 @@ paths:
       responses:
         "200":
           description: EService created
+          headers:
+              X-Metadata-Version:
+                $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -2484,11 +2487,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
     EServiceDescriptorSeed:
@@ -2523,11 +2528,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
@@ -2555,11 +2562,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
     UpdateEServiceDescriptorSeed:
@@ -2593,11 +2602,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
@@ -2622,11 +2633,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
     UpdateEServiceDescriptorQuotasSeed:
@@ -2642,10 +2655,12 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
       required:
         - voucherLifespan
         - dailyCallsPerConsumer
@@ -2658,10 +2673,12 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
       required:
         - dailyCallsPerConsumer
         - dailyCallsTotal
@@ -3128,11 +3145,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         interface:
           $ref: "#/components/schemas/EServiceDoc"
         docs:

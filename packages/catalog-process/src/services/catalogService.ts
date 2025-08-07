@@ -21,6 +21,7 @@ import {
   M2MAdminAuthData,
   interpolateTemplateApiSpec,
   authRole,
+  retrieveOriginFromAuthData,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -55,8 +56,8 @@ import {
   Tenant,
   TenantId,
   unsafeBrandId,
-  WithMetadata,
   tenantKind,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -216,7 +217,7 @@ const retrieveDocument = (
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: Pick<ReadModelService, "getTenantById">
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
@@ -466,7 +467,7 @@ function isTenantInSignalHubWhitelist(
     : false;
 }
 
-function innerCreateEService(
+async function innerCreateEService(
   {
     seed,
     template,
@@ -481,10 +482,23 @@ function innerCreateEService(
         }
       | undefined;
   },
-  { authData, correlationId }: WithLogger<AppContext<UIAuthData>>
-): { eService: EService; events: Array<CreateEvent<EServiceEvent>> } {
-  if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
-    throw originNotCompliant(authData.externalId.origin);
+  readModelService: ReadModelService,
+  {
+    authData,
+    correlationId,
+  }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+): Promise<{
+  eService: EService;
+  events: Array<CreateEvent<EServiceEvent>>;
+}> {
+  const origin = await retrieveOriginFromAuthData(
+    authData,
+    readModelService,
+    retrieveTenant
+  );
+
+  if (!config.producerAllowedOrigins.includes(origin)) {
+    throw originNotCompliant(origin);
   }
 
   const creationDate = new Date();
@@ -815,8 +829,8 @@ export function catalogServiceBuilder(
 
     async createEService(
       seed: catalogApi.EServiceSeed,
-      ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       ctx.logger.info(`Creating EService with name ${seed.name}`);
 
       await assertEServiceNameAvailableForProducer(
@@ -829,14 +843,23 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const { eService, events } = innerCreateEService(
+      const { eService, events } = await innerCreateEService(
         { seed, template: undefined },
+        readModelService,
         ctx
       );
 
-      await repository.createEvents(events);
+      const createdEvents = await repository.createEvents(events);
 
-      return eService;
+      const newVersion = Math.max(
+        0,
+        ...createdEvents.map((event) => event.newVersion)
+      );
+
+      return {
+        data: eService,
+        metadata: { version: newVersion },
+      };
     },
 
     async updateEService(
@@ -3163,7 +3186,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const { eService: createdEService, events } = innerCreateEService(
+      const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
             name: template.name,
@@ -3194,6 +3217,7 @@ export function catalogServiceBuilder(
             riskAnalysis,
           },
         },
+        readModelService,
         ctx
       );
 
