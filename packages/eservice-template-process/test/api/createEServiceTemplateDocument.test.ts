@@ -15,6 +15,7 @@ import request from "supertest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
+  checksumDuplicate,
   documentPrettyNameDuplicate,
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
@@ -93,6 +94,13 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents"
     {
       error: documentPrettyNameDuplicate(
         documentName,
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 409,
+    },
+    {
+      error: checksumDuplicate(
+        mockEserviceTemplate.id,
         mockEserviceTemplate.versions[0].id
       ),
       expectedStatus: 409,
