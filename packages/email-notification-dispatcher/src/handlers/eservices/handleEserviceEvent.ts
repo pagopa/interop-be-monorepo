@@ -1,23 +1,24 @@
-import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import {
-  CorrelationId,
   EmailNotificationMessagePayload,
-  EServiceEventEnvelopeV2,
+  EServiceEventV2,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { config } from "../../config/config.js";
-import { handleEserviceDescriptorPublished } from "./handleEServiceDescriptorPublished.js";
+import { HandlerParams } from "../../models/handlerParams.js";
+import { handleEserviceDescriptorPublished } from "./handleEserviceDescriptorPublished.js";
 
 const interopFeBaseUrl = config.interopFeBaseUrl;
 
 export async function handleEServiceEvent(
-  decodedMessage: EServiceEventEnvelopeV2,
-  correlationId: CorrelationId,
-  logger: Logger,
-  readModelService: ReadModelServiceSQL,
-  templateService: HtmlTemplateService
+  params: HandlerParams<typeof EServiceEventV2>
 ): Promise<EmailNotificationMessagePayload[]> {
+  const {
+    decodedMessage,
+    logger,
+    readModelService,
+    templateService,
+    correlationId,
+  } = params;
   return match(decodedMessage)
     .with({ type: "EServiceDescriptorPublished" }, ({ data: { eservice } }) =>
       handleEserviceDescriptorPublished({

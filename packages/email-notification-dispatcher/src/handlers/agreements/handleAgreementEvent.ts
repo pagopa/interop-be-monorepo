@@ -1,23 +1,25 @@
 import {
-  AgreementEventEnvelopeV2,
-  CorrelationId,
+  AgreementEventV2,
   EmailNotificationMessagePayload,
 } from "pagopa-interop-models";
-import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { config } from "../../config/config.js";
+import { HandlerParams } from "../../models/handlerParams.js";
 import { handleAgreementActivated } from "./handleAgreementActivated.js";
 
 const interopFeBaseUrl = config.interopFeBaseUrl;
 
 export async function handleAgreementEvent(
-  decodedMessage: AgreementEventEnvelopeV2,
-  correlationId: CorrelationId,
-  logger: Logger,
-  readModelService: ReadModelServiceSQL,
-  templateService: HtmlTemplateService
+  params: HandlerParams<typeof AgreementEventV2>
 ): Promise<EmailNotificationMessagePayload[]> {
+  const {
+    decodedMessage,
+    logger,
+    readModelService,
+    templateService,
+    userService,
+    correlationId,
+  } = params;
   return match(decodedMessage)
     .with({ type: "AgreementActivated" }, ({ data: { agreement } }) =>
       handleAgreementActivated({
@@ -26,6 +28,7 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
+        userService,
         correlationId,
       })
     )
