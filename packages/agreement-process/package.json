@@ -33,7 +33,6 @@
     "prettier": "2.8.8",
     "puppeteer": "22.11.2",
     "supertest": "7.0.0",
-    "testcontainers": "10.9.0",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
     "vitest": "1.6.1"
