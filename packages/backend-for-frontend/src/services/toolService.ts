@@ -418,8 +418,9 @@ async function retrieveDescriptor(
 function purposeToItemState(purpose: purposeApi.Purpose): ItemState {
   const purposeVersion = [...purpose.versions]
     .sort(
+      // sort versions in reverse order to find the latest with desired state
       (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
     .find(
       (v) =>
