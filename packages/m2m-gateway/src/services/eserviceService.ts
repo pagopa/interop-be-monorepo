@@ -1,6 +1,11 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { DescriptorId, EServiceId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceDocumentId,
+  EServiceId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
@@ -180,6 +185,33 @@ export function eserviceServiceBuilder(
         },
         results: paginatedDescriptors.map(toM2MGatewayApiEServiceDescriptor),
       };
+    },
+    async downloadEServiceDescriptorDocument(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving document with id ${documentId} for eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const { data: document } =
+        await clients.catalogProcessClient.getEServiceDocumentById({
+          params: {
+            eServiceId: eserviceId,
+            descriptorId,
+            documentId,
+          },
+          headers,
+        });
+
+      return downloadDocument(
+        document,
+        fileManager,
+        config.eserviceDocumentsContainer,
+        logger
+      );
     },
     async getEServiceDescriptorDocuments(
       eserviceId: EServiceId,
