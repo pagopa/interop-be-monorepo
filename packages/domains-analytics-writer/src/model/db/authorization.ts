@@ -31,6 +31,26 @@ export const ClientDbTableReadModel = {
   client_user: clientUserInReadmodelClient,
   client_key: clientKeyInReadmodelClient,
 } as const;
+
+export const ClientDbTablePartialTableConfig = {
+  key_relationship_migrated: ClientKeySchema,
+} as const;
+export type ClientDbTablePartialTableConfig =
+  typeof ClientDbTablePartialTableConfig;
+
+export const ClientDbTablePartialTableReadModel = {
+  key_relationship_migrated: clientKeyInReadmodelClient,
+} as const;
+
+export type ClientDbTablePartialTableReadModel =
+  typeof ClientDbTablePartialTableReadModel;
+
+export type ClientDbTablePartialTable =
+  keyof typeof ClientDbTablePartialTableReadModel;
+export const ClientDbTablePartialTable = Object.fromEntries(
+  Object.keys(ClientDbTablePartialTableConfig).map((k) => [k, k])
+) as { [K in ClientDbTablePartialTable]: K };
+
 export type ClientDbTableReadModel = typeof ClientDbTableReadModel;
 
 export type ClientDbTable = keyof typeof ClientDbTableConfig;

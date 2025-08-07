@@ -262,3 +262,27 @@ export const updateTenantDelegatedFeaturesErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getTenantVerifiedAttributeVerifiersErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "attributeNotFound",
+      "attributeNotFoundInTenant",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getTenantVerifiedAttributeRevokersErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "attributeNotFound",
+      "attributeNotFoundInTenant",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
