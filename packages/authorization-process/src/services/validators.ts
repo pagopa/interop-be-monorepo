@@ -143,7 +143,7 @@ export const assertProducerKeychainKeysCountIsBelowThreshold = (
 };
 
 export const assertOrganizationIsEServiceProducer = (
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   eservice: EService
 ): void => {
   if (authData.organizationId !== eservice.producerId) {

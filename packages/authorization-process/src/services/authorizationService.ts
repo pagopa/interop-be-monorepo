@@ -1314,8 +1314,12 @@ export function authorizationServiceBuilder(
         producerKeychainId: ProducerKeychainId;
         seed: authorizationApi.EServiceAdditionDetails;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<ProducerKeychain>> {
       logger.info(
         `Adding eservice with id ${seed.eserviceId} to producer keychain ${producerKeychainId}`
       );
@@ -1340,7 +1344,8 @@ export function authorizationServiceBuilder(
         ...producerKeychain.data,
         eservices: [...producerKeychain.data.eservices, eserviceId],
       };
-      await repository.createEvent(
+
+      const createdEvent = await repository.createEvent(
         toCreateEventProducerKeychainEServiceAdded(
           eserviceId,
           updatedProducerKeychain,
@@ -1348,6 +1353,13 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+
+      return {
+        data: updatedProducerKeychain,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async removeProducerKeychainEService(
       {
@@ -1357,8 +1369,12 @@ export function authorizationServiceBuilder(
         producerKeychainId: ProducerKeychainId;
         eserviceIdToRemove: EServiceId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<ProducerKeychain>> {
       logger.info(
         `Removing e-service ${eserviceIdToRemove} from producer keychain ${producerKeychainId}`
       );
@@ -1385,7 +1401,7 @@ export function authorizationServiceBuilder(
         ),
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventProducerKeychainEServiceRemoved(
           updatedProducerKeychain,
           eserviceIdToRemove,
@@ -1393,6 +1409,13 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+
+      return {
+        data: updatedProducerKeychain,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async internalRemoveClientAdmin(
       clientId: ClientId,

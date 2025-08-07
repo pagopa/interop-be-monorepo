@@ -979,16 +979,30 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          await authorizationService.addProducerKeychainEService(
-            {
-              producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
-              seed: req.body,
-            },
-            ctx
-          );
-          return res.status(204).send();
+          const { data: producerKeychain, metadata } =
+            await authorizationService.addProducerKeychainEService(
+              {
+                producerKeychainId: unsafeBrandId(
+                  req.params.producerKeychainId
+                ),
+                seed: req.body,
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(
+              authorizationApi.FullProducerKeychain.parse(
+                producerKeychainToApiFullVisibilityProducerKeychain(
+                  producerKeychain
+                )
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1005,16 +1019,30 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          await authorizationService.removeProducerKeychainEService(
-            {
-              producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
-              eserviceIdToRemove: unsafeBrandId(req.params.eserviceId),
-            },
-            ctx
-          );
-          return res.status(204).send();
+          const { data: producerKeychain, metadata } =
+            await authorizationService.removeProducerKeychainEService(
+              {
+                producerKeychainId: unsafeBrandId(
+                  req.params.producerKeychainId
+                ),
+                eserviceIdToRemove: unsafeBrandId(req.params.eserviceId),
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(
+              authorizationApi.FullProducerKeychain.parse(
+                producerKeychainToApiFullVisibilityProducerKeychain(
+                  producerKeychain
+                )
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

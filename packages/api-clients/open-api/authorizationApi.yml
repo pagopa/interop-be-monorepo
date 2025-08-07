@@ -1657,8 +1657,15 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceAdditionDetails"
       responses:
-        "204":
-          description: Request succeed
+        "200":
+          description: E-Service added to producer keychain
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FullProducerKeychain"
         "401":
           description: Unauthorized
           content:
@@ -1702,8 +1709,15 @@ paths:
             type: string
             format: uuid
       responses:
-        "204":
-          description: Request succeed
+        "200":
+          description: E-Service removed from producer keychain
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FullProducerKeychain"
         "401":
           description: Unauthorized
           content:
