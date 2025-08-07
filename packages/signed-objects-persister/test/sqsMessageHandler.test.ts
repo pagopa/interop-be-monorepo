@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
-import { FileManager, Logger } from "pagopa-interop-commons";
+import { FileManager } from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
 import { SafeStorageService } from "../src/services/safeStorageClient.js";
 import { DbServiceBuilder } from "../src/services/dynamoService.js";
