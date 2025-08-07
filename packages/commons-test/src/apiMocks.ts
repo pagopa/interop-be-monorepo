@@ -245,6 +245,28 @@ export function getMockedApiConsumerPartialClient({
   } satisfies authorizationApi.PartialClient;
 }
 
+export function getMockedApiFullProducerKeychain(): authorizationApi.FullProducerKeychain {
+  return {
+    visibility: authorizationApi.Visibility.Enum.FULL,
+    id: generateId(),
+    name: generateMock(z.string()),
+    description: generateMock(z.string()),
+    createdAt: new Date().toISOString(),
+    producerId: generateId(),
+    eservices: [generateId(), generateId()],
+    users: [generateId(), generateId()],
+    keys: generateMock(z.array(authorizationApi.Key)),
+  };
+}
+
+export function getMockedApiPartialProducerKeychain(): authorizationApi.PartialProducerKeychain {
+  return {
+    visibility: authorizationApi.Visibility.Enum.PARTIAL,
+    id: generateId(),
+    producerId: generateId(),
+  };
+}
+
 export function getMockedApiEservice({
   descriptors,
   technology,
