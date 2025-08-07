@@ -17,11 +17,11 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEServiceDescriptorPublished.js";
 import {
   descriptorPublishedNotFound,
   tenantNotFound,
 } from "../src/models/errors.js";
+import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEserviceDescriptorPublished.js";
 import {
   addOneAgreement,
   addOneEService,

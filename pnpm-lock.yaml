@@ -2875,6 +2875,12 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
+      pagopa-interop-selfcare-user-db-models:
+        specifier: workspace:*
+        version: link:../selfcare-user-db-models
+      pg:
+        specifier: 8.13.1
+        version: 8.13.1
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -2891,6 +2897,9 @@ importers:
       '@types/nodemailer':
         specifier: 6.4.17
         version: 6.4.17
+      '@types/pg':
+        specifier: 8.11.11
+        version: 8.11.11
       axios:
         specifier: 1.8.2
         version: 1.8.2

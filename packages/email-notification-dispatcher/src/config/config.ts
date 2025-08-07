@@ -1,7 +1,6 @@
 import {
   AgreementTopicConfig,
   KafkaConsumerConfig,
-  AWSSesConfig,
   PurposeTopicConfig,
   CatalogTopicConfig,
   FeatureFlagSQLConfig,
@@ -11,17 +10,9 @@ import {
   DelegationTopicConfig,
   AttributeTopicConfig,
   AuthorizationTopicConfig,
+  UserSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
-
-export const SESEmailSenderConfig = z
-  .object({
-    INTEROP_FE_BASE_URL: z.string(),
-  })
-  .transform((c) => ({
-    interopFeBaseUrl: c.INTEROP_FE_BASE_URL,
-  }));
-export type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
 
 export const EmailNotificationDispatcherConfig = KafkaConsumerConfig.and(
   KafkaProducerConfig
@@ -32,11 +23,15 @@ export const EmailNotificationDispatcherConfig = KafkaConsumerConfig.and(
   .and(DelegationTopicConfig)
   .and(AttributeTopicConfig)
   .and(AuthorizationTopicConfig)
-  .and(AWSSesConfig)
-  .and(SESEmailSenderConfig)
   .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig)
-  .and(EmailSenderTopicConfig);
+  .and(UserSQLDbConfig)
+  .and(EmailSenderTopicConfig)
+  .and(
+    z
+      .object({ INTEROP_FE_BASE_URL: z.string() })
+      .transform((c) => ({ interopFeBaseUrl: c.INTEROP_FE_BASE_URL }))
+  );
 
 export type EmailNotificationDispatcherConfig = z.infer<
   typeof EmailNotificationDispatcherConfig

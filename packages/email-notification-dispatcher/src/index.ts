@@ -7,8 +7,6 @@ import { EachMessagePayload } from "kafkajs";
 import {
   buildHTMLTemplateService,
   decodeKafkaMessage,
-  HtmlTemplateService,
-  Logger,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -22,7 +20,6 @@ import {
   unsafeBrandId,
   AuthorizationEventV2,
   AttributeEvent,
-  EventEnvelope,
   EmailNotificationMessagePayload,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -31,20 +28,22 @@ import {
   catalogReadModelServiceBuilder,
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
+  notificationConfigReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { z } from "zod";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
 import { config } from "./config/config.js";
 import { emailNotificationDispatcherServiceBuilder } from "./services/emailNotificationDispatcherService.js";
-import {
-  readModelServiceBuilderSQL,
-  ReadModelServiceSQL,
-} from "./services/readModelServiceSQL.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+import { userServiceBuilderSQL } from "./services/userServiceSQL.js";
 import { handleEServiceEvent } from "./handlers/eservices/handleEserviceEvent.js";
 import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent.js";
 import { handleAttributeEvent } from "./handlers/attributes/handleAttributeEvent.js";
 import { handleAuthorizationEvent } from "./handlers/authorization/handleAuthorizationEvent.js";
 import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
 import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
+import { HandlerParams } from "./models/handlerParams.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -60,12 +59,26 @@ const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const notificationConfigReadModelServiceSQL =
+  notificationConfigReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
+  notificationConfigReadModelServiceSQL,
 });
+
+const pool = new pg.Pool({
+  host: config.userSQLDbHost,
+  database: config.userSQLDbName,
+  user: config.userSQLDbUsername,
+  password: config.userSQLDbPassword,
+  port: config.userSQLDbPort,
+  ssl: config.userSQLDbUseSSL,
+});
+const userDB = drizzle(pool);
+const userService = userServiceBuilderSQL(userDB);
 
 const emailNotificationDispatcherService =
   emailNotificationDispatcherServiceBuilder();
@@ -102,11 +115,7 @@ function processMessage(topicHandlers: TopicNames) {
     const handleWith = <T extends z.ZodType>(
       eventType: T,
       handler: (
-        decodedMessage: EventEnvelope<z.infer<T>>,
-        correlationId: CorrelationId,
-        loggerInstance: Logger,
-        readModelService: ReadModelServiceSQL,
-        templateService: HtmlTemplateService
+        params: HandlerParams<T>
       ) => Promise<EmailNotificationMessagePayload[]>
     ): Promise<EmailNotificationMessagePayload[]> => {
       const decodedMessage = decodeKafkaMessage(
@@ -129,13 +138,14 @@ function processMessage(topicHandlers: TopicNames) {
         `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
       );
 
-      return handler(
+      return handler({
         decodedMessage,
         correlationId,
-        loggerInstance,
+        logger: loggerInstance,
         readModelService,
-        templateService
-      );
+        templateService,
+        userService,
+      });
     };
 
     const emailNotificationPayloads = await match(messagePayload.topic)
