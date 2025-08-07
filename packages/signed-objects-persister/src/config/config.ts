@@ -38,6 +38,10 @@ export const safeStorageApiConfigSchema = z
     SAFE_STORAGE_DOC_TYPE: z.string(),
     SAFE_STORAGE_DOC_STATUS: z.string(),
     SAFE_STORAGE_HOST: z.string(),
+    SAFE_STORAGE_PORT: z.preprocess(
+      (a) => parseInt(z.string().parse(a), 10),
+      z.number()
+    ),
   })
   .transform((c) => ({
     safeStorageBaseUrl: c.SAFE_STORAGE_BASE_URL,
@@ -46,6 +50,7 @@ export const safeStorageApiConfigSchema = z
     safeStorageDocType: c.SAFE_STORAGE_DOC_TYPE,
     safeStorageDocStatus: c.SAFE_STORAGE_DOC_STATUS,
     safeStorageHost: c.SAFE_STORAGE_HOST,
+    safeStoragePort: c.SAFE_STORAGE_PORT,
   }));
 
 export type SafeStorageApiConfig = z.infer<typeof safeStorageApiConfigSchema>;

@@ -1,9 +1,12 @@
 {
   "name": "signed-objects-persister",
   "version": "1.0.0",
-  "description": "",
+  "description": "PagoPA Interoperability signed objects persister",
   "main": "dist",
   "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
     "test": "vitest",
     "lint": "eslint . --ext .ts,.tsx",
