@@ -469,20 +469,23 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const descriptor = await catalogService.createDescriptor(
+        const {
+          data: { eservice, descriptorId },
+          metadata,
+        } = await catalogService.createDescriptor(
           unsafeBrandId(req.params.eServiceId),
           req.body,
           ctx
         );
-        return res
-          .status(200)
-          .send(
-            catalogApi.EServiceDescriptor.parse(
-              descriptorToApiDescriptor(descriptor)
-            )
-          );
+        setMetadataVersionHeader(res, metadata);
+        return res.status(200).send(
+          catalogApi.CreatedEServiceDescriptor.parse({
+            eservice: eServiceToApiEService(eservice),
+            descriptorId,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

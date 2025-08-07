@@ -518,10 +518,13 @@ paths:
       responses:
         "200":
           description: EService Descriptor created.
+          headers:
+              X-Metadata-Version:
+                $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptor"
+                $ref: "#/components/schemas/CreatedEServiceDescriptor"
         "400":
           description: Invalid input
           content:
@@ -2543,6 +2546,18 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
+    CreatedEServiceDescriptor:
+      type: object
+      additionalProperties: false
+      required:
+        - eservice
+        - descriptorId
+      properties:
+        eservice:
+          $ref: "#/components/schemas/EService"
+        descriptorId:
+          type: string
+          format: uuid
     EServiceInstanceDescriptorSeed:
       required:
         - audience

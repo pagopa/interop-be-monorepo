@@ -3933,12 +3933,12 @@ paths:
         required: true
       responses:
         "201":
-           description: E-Service created
-           content:
+          description: E-Service created
+          content:
             application/json:
               schema:
                 $ref: "#/components/schemas/EService"
-           headers:
+          headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
             X-Rate-Limit-Remaining:
@@ -4289,6 +4289,99 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+    post:
+      tags:
+        - eservices
+      summary: Create a new E-Service Descriptor
+      operationId: createDescriptor
+      description: |
+        Create a new E-Service Descriptor.
+        This action is only permitted if the E-Service does not already have a descriptor in a 'Draft' state
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorSeed"
+        required: true
+      responses:
+        "201":
+          description: E-Service Descriptor created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /eservices/{eserviceId}/descriptors/{descriptorId}:
     parameters:
       - name: eserviceId
@@ -4469,7 +4562,7 @@ paths:
       tags:
         - eservices
       summary: Upload a E-Service Descriptor interface
-      description: | 
+      description: |
         Upload an interface document for the specified E-Service Descriptor. 
         If the Descriptor already has an interface, it should be first deleted before uploading a new one.
         The Descriptor must be in Draft state.
@@ -4748,8 +4841,7 @@ paths:
       tags:
         - eservices
       summary: Unsuspend an E-Service Descriptor in Suspended state
-      description:
-        Unsuspend an E-Service Descriptor that is in Suspended state, transitioning it to Active or Deprecated state
+      description: Unsuspend an E-Service Descriptor that is in Suspended state, transitioning it to Active or Deprecated state
       operationId: unsuspendDescriptor
       parameters:
         - name: eserviceId
@@ -8621,6 +8713,144 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
+    EServiceDescriptorSeed:
+      required:
+        - audience
+        - voucherLifespan
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+        - agreementApprovalPolicy
+        - attributes
+        - docs
+      type: object
+      additionalProperties: false
+      properties:
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        audience:
+          type: array
+          items:
+            type: string
+            minLength: 0
+            maxLength: 250
+        voucherLifespan:
+          type: integer
+          format: int32
+          minimum: 60
+          maximum: 86400
+        dailyCallsPerConsumer:
+          description: Maximum number of daily calls that this descriptor can afford per consumer
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        dailyCallsTotal:
+          description: Total daily calls available for this E-Service
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
+        docs:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
+    AttributesSeed:
+      properties:
+        certified:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
+        declared:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
+        verified:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
+      required:
+        - certified
+        - declared
+        - verified
+    AttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        explicitAttributeVerification:
+          type: boolean
+      required:
+        - id
+        - explicitAttributeVerification
+    CreateEServiceDescriptorDocumentSeed:
+      required:
+        - documentId
+        - kind
+        - prettyName
+        - filePath
+        - fileName
+        - contentType
+        - checksum
+        - serverUrls
+      type: object
+      additionalProperties: false
+      properties:
+        documentId:
+          type: string
+          format: uuid
+        kind:
+          $ref: "#/components/schemas/EServiceDocumentKind"
+        prettyName:
+          type: string
+        filePath:
+          type: string
+        fileName:
+          type: string
+        contentType:
+          type: string
+        checksum:
+          type: string
+        serverUrls:
+          type: array
+          items:
+            type: string
+        interfaceTemplateMetadata:
+          $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
+    TemplateInstanceInterfaceMetadata:
+      type: object
+      additionalProperties: false
+      properties:
+        contactName:
+          type: string
+        contactEmail:
+          type: string
+          format: email
+        contactUrl:
+          type: string
+          format: uri
+        termsAndConditionsUrl:
+          type: string
+          format: uri
+    EServiceDocumentKind:
+      type: string
+      description: EService Document Kind
+      enum:
+        - INTERFACE
+        - DOCUMENT
     EServiceMode:
       type: string
       description: Indicates if the E-Service is intended for receiving or delivering data

@@ -31,16 +31,6 @@ export function eserviceServiceBuilder(
   clients: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
-  const pollEservice = (
-    response: WithMaybeMetadata<catalogApi.EService>,
-    headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
-    pollResourceWithMetadata(() =>
-      retrieveEServiceById(headers, response.data.id as EServiceId)
-    )({
-      condition: isPolledVersionAtLeastResponseVersion(response),
-    });
-
   const retrieveEServiceById = async (
     headers: M2MGatewayAppContext["headers"],
     eserviceId: EServiceId
@@ -216,6 +206,41 @@ export function eserviceServiceBuilder(
         logger
       );
     },
+    async createDescriptor(
+      eserviceId: EServiceId,
+      eserviceDescriptorSeed: m2mGatewayApi.EServiceDescriptorSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
+      logger.info(`Creating Descriptor for EService ${eserviceId}`);
+
+      const {
+        data: { eservice, descriptorId },
+        metadata,
+      } = await clients.catalogProcessClient.createDescriptor(
+        eserviceDescriptorSeed,
+        {
+          params: { eServiceId: eserviceId },
+          headers,
+        }
+      );
+      await pollEService(
+        {
+          data: eservice,
+          metadata,
+        },
+        headers
+      );
+
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === descriptorId
+      );
+
+      if (!descriptor) {
+        throw eserviceDescriptorNotFound(eserviceId, descriptorId);
+      }
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
     async createEService(
       seed: m2mGatewayApi.EServiceSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
@@ -225,7 +250,7 @@ export function eserviceServiceBuilder(
       const response = await clients.catalogProcessClient.createEService(seed, {
         headers,
       });
-      const polledResource = await pollEservice(response, headers);
+      const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
     },
     async deleteEService(
