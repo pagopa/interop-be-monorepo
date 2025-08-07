@@ -96,6 +96,7 @@ import {
   tenantNotFound,
   unchangedAttributes,
   templateMissingRequiredRiskAnalysis,
+  checksumDuplicate,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -620,6 +621,13 @@ async function innerAddDocumentToEserviceEvent(
     )
   ) {
     throw documentPrettyNameDuplicate(documentSeed.prettyName, descriptor.id);
+  }
+
+  if (
+    documentSeed.kind === "DOCUMENT" &&
+    descriptor.docs.some((d) => d.checksum === documentSeed.checksum)
+  ) {
+    throw checksumDuplicate(eService.data.id, descriptor.id);
   }
 
   const isInterface = documentSeed.kind === "INTERFACE";

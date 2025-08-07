@@ -314,6 +314,7 @@ describe("create eService from template", () => {
       name: `${mockDocument.name}_1`,
       prettyName: `${mockDocument.prettyName}_1`,
       path: `${config.eserviceDocumentsPath}/${documentId1}/${mockDocument.name}_1`,
+      checksum: "checksum1",
     };
     const document2 = {
       ...mockDocument,
@@ -321,6 +322,7 @@ describe("create eService from template", () => {
       name: `${mockDocument.name}_2`,
       prettyName: `${mockDocument.prettyName}_2`,
       path: `${config.eserviceDocumentsPath}/${documentId2}/${mockDocument.name}_2`,
+      checksum: "checksum2",
     };
 
     const eserviceTemplatePublishedVersionId =

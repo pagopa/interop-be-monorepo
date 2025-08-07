@@ -23,6 +23,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import { buildInterfaceSeed } from "../mockUtils.js";
 import { documentToApiDocument } from "../../src/model/domain/apiConverter.js";
 import {
+  checksumDuplicate,
   documentPrettyNameDuplicate,
   eServiceDescriptorNotFound,
   eServiceNotFound,
@@ -126,6 +127,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
     },
     {
       error: interfaceAlreadyExists(descriptor.id),
+      expectedStatus: 409,
+    },
+    {
+      error: checksumDuplicate(mockEService.id, descriptor.id),
       expectedStatus: 409,
     },
   ])(

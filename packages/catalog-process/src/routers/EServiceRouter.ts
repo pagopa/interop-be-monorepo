@@ -376,8 +376,13 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          // The same check is done in the backend-for-frontend, if you change this check, change it there too
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            // ^^ The same check for the roles above is done in the backend-for-frontend
+            // If you change this check, change it there too
+            M2M_ADMIN_ROLE,
+          ]);
 
           const { data: document, metadata } =
             await catalogService.uploadDocument(

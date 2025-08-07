@@ -111,6 +111,7 @@ export const documentCreateErrorMapper = (
     .with(
       "documentPrettyNameDuplicate",
       "interfaceAlreadyExists",
+      "checksumDuplicate",
       () => HTTP_STATUS_CONFLICT
     )
     .with(

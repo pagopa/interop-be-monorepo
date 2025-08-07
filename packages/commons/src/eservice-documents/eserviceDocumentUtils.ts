@@ -236,9 +236,9 @@ export const interpolateTemplateSoapApiSpec = async (
       throw interfaceExtractingInfoError();
     });
 
-  /* ======================================================  
+  /* ======================================================
     NOTE : SOAP protocol does not have specific fields for
-    - termsOfService 
+    - termsOfService
     - name
     - email
     - contactUrl
@@ -374,7 +374,7 @@ export async function verifyAndCreateDocument<T>(
   logger: Logger
 ): Promise<T> {
   const contentType = doc.type;
-  if (!contentType) {
+  if (kind === "INTERFACE" && !contentType) {
     throw invalidInterfaceContentTypeDetected(resource, "invalid", technology);
   }
 
