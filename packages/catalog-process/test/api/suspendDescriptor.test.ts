@@ -14,6 +14,7 @@ import {
   generateToken,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, catalogService } from "../vitest.api.setup.js";
@@ -22,6 +23,7 @@ import {
   eServiceNotFound,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
+import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 
 describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/suspend authorization test", () => {
   const descriptor: Descriptor = {
@@ -34,7 +36,13 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/suspend autho
     descriptors: [descriptor],
   };
 
-  catalogService.suspendDescriptor = vi.fn().mockResolvedValue({});
+  const mockApiEservice = eServiceToApiEService(mockEService);
+
+  const mockEserviceWithMetadata = getMockWithMetadata(mockEService);
+
+  catalogService.suspendDescriptor = vi
+    .fn()
+    .mockResolvedValue(mockEserviceWithMetadata);
 
   const makeRequest = async (
     token: string,
@@ -45,16 +53,24 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/suspend autho
       .post(`/eservices/${eServiceId}/descriptors/${descriptorId}/suspend`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send();
+      .send(mockEService);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockEService.id, descriptor.id);
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockApiEservice);
+      expect(res.headers["x-metadata-version"]).toBe(
+        mockEserviceWithMetadata.metadata.version.toString()
+      );
     }
   );
 

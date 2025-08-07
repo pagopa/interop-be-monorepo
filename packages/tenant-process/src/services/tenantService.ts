@@ -42,6 +42,7 @@ import {
   Agreement,
   AgreementState,
   DelegationId,
+  TenantRevoker,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { bffApi, tenantApi } from "pagopa-interop-api-clients";
@@ -148,6 +149,25 @@ export async function retrieveAttribute(
     throw attributeNotFound(attributeId);
   }
   return attribute;
+}
+
+async function retrieveTenantVerifiedAttribute(
+  tenantId: TenantId,
+  attributeId: AttributeId,
+  readModelService: ReadModelService
+): Promise<{ tenant: WithMetadata<Tenant> }> {
+  const tenant = await retrieveTenant(tenantId, readModelService);
+
+  const tenantAttribute = tenant.data.attributes.find(
+    (attr): attr is VerifiedTenantAttribute =>
+      attr.type === tenantAttributeType.VERIFIED && attr.id === attributeId
+  );
+
+  if (!tenantAttribute) {
+    throw attributeNotFoundInTenant(attributeId, tenantId);
+  }
+
+  return { tenant };
 }
 
 async function retrieveCertifiedAttribute({
@@ -333,7 +353,9 @@ export function tenantServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | InternalAuthData>>
     ): Promise<TenantId> {
       logger.info(
-        `Upsert tenant by selfcare with externalId: ${tenantSeed.externalId}`
+        `Upsert tenant by selfcare with externalId: ${JSON.stringify(
+          tenantSeed.externalId
+        )}`
       );
       const existingTenant = await readModelService.getTenantByExternalId(
         tenantSeed.externalId
@@ -1834,6 +1856,56 @@ export function tenantServiceBuilder(
         )
         .with([P.nullish, P.nullish], () => Promise.resolve())
         .exhaustive();
+    },
+    async getTenantVerifiedAttributeVerifiers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<TenantVerifier>> {
+      logger.info(
+        `Retrieving verifiers for verified attribute ${attributeId} of tenant ${tenantId}`
+      );
+
+      // Validate that tenant and verified attribute exist
+      await retrieveTenantVerifiedAttribute(
+        tenantId,
+        attributeId,
+        readModelService
+      );
+
+      return await readModelService.getTenantVerifiedAttributeVerifiers(
+        tenantId,
+        attributeId,
+        { offset, limit }
+      );
+    },
+    async getTenantVerifiedAttributeRevokers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<TenantRevoker>> {
+      logger.info(
+        `Retrieving revokers for verified attribute ${attributeId} of tenant ${tenantId}`
+      );
+
+      // Validate that tenant and verified attribute exist
+      await retrieveTenantVerifiedAttribute(
+        tenantId,
+        attributeId,
+        readModelService
+      );
+
+      return await readModelService.getTenantVerifiedAttributeRevokers(
+        tenantId,
+        attributeId,
+        { offset, limit }
+      );
     },
   };
 }

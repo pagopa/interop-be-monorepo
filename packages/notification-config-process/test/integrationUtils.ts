@@ -14,7 +14,10 @@ import {
   toTenantNotificationConfigV2,
   toUserNotificationConfigV2,
 } from "pagopa-interop-models";
-import { notificationConfigReadModelServiceBuilder } from "pagopa-interop-readmodel";
+import {
+  notificationConfigReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import {
   insertTenantNotificationConfig,
   insertUserNotificationConfig,
@@ -38,9 +41,12 @@ afterEach(cleanup);
 const notificationConfigReadModelService =
   notificationConfigReadModelServiceBuilder(readModelDB);
 
+const tenantReadModelService = tenantReadModelServiceBuilder(readModelDB);
+
 export const notificationConfigService = notificationConfigServiceBuilder(
   postgresDB,
-  notificationConfigReadModelService
+  notificationConfigReadModelService,
+  tenantReadModelService
 );
 
 export const readLastNotificationConfigEvent = async (
@@ -52,7 +58,7 @@ const writeTenantNotificationConfigInEventstore = async (
   tenantNotificationConfig: TenantNotificationConfig
 ): Promise<void> => {
   const event: NotificationConfigEvent = {
-    type: "TenantNotificationConfigUpdated",
+    type: "TenantNotificationConfigCreated",
     event_version: 2,
     data: {
       tenantNotificationConfig: toTenantNotificationConfigV2(
@@ -72,7 +78,7 @@ const writeTenantNotificationConfigInEventstore = async (
 export const addOneTenantNotificationConfig = async (
   tenantNotificationConfig: TenantNotificationConfig
 ): Promise<void> => {
-  writeTenantNotificationConfigInEventstore(tenantNotificationConfig);
+  await writeTenantNotificationConfigInEventstore(tenantNotificationConfig);
   await insertTenantNotificationConfig(
     readModelDB,
     tenantNotificationConfig,
@@ -84,7 +90,7 @@ const writeUserNotificationConfigInEventstore = async (
   userNotificationConfig: UserNotificationConfig
 ): Promise<void> => {
   const event: NotificationConfigEvent = {
-    type: "UserNotificationConfigUpdated",
+    type: "UserNotificationConfigCreated",
     event_version: 2,
     data: {
       userNotificationConfig: toUserNotificationConfigV2(
@@ -104,6 +110,6 @@ const writeUserNotificationConfigInEventstore = async (
 export const addOneUserNotificationConfig = async (
   userNotificationConfig: UserNotificationConfig
 ): Promise<void> => {
-  writeUserNotificationConfigInEventstore(userNotificationConfig);
+  await writeUserNotificationConfigInEventstore(userNotificationConfig);
   await insertUserNotificationConfig(readModelDB, userNotificationConfig, 0);
 };

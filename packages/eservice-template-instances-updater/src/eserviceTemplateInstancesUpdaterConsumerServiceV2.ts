@@ -4,6 +4,7 @@ import {
   CorrelationId,
   Descriptor,
   descriptorState,
+  Document,
   EService,
   EServiceTemplate,
   EServiceTemplateEventEnvelope,
@@ -353,7 +354,7 @@ function getTemplateDocumentFromEvent(
   msg: EServiceTemplateEventEnvelope & {
     data: { documentId: string; eserviceTemplateVersionId: string };
   }
-): catalogApi.EServiceDoc {
+): Document {
   const eserviceTemplateVersion = getTemplateVersionFromEvent(msg);
 
   const doc = eserviceTemplateVersion.docs.find(
@@ -431,7 +432,7 @@ async function commitUpdateToTemplateInstances(
 }
 
 async function cloneDocument(
-  doc: catalogApi.EServiceDoc,
+  doc: Document,
   fileManager: FileManager,
   logger: Logger
 ): Promise<catalogApi.CreateEServiceDescriptorDocumentSeed> {

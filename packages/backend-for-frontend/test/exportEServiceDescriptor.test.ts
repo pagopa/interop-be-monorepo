@@ -73,6 +73,7 @@ describe("exportEServiceDescriptor", () => {
           contentType: "mockContentType",
           prettyName: "mockPrettyName",
           checksum: "mockChecksum",
+          uploadDate: new Date(mockDate).toISOString(),
         },
         attributes: {
           certified: [],

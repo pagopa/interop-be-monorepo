@@ -6,8 +6,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import { readModelService } from "./utils.js";
-import { agreementReadModelService } from "./utils.js";
+import { agreementReadModelService, agreementWriterService } from "./utils.js";
 
 describe("events V2", async () => {
   beforeEach(async () => {
@@ -16,10 +15,10 @@ describe("events V2", async () => {
   });
 
   it("should test upsert agreement events", async () => {
-    const spyUpdate = vi.spyOn(readModelService, "upsertAgreement");
+    const spyUpdate = vi.spyOn(agreementWriterService, "upsertAgreement");
 
     const agreement = getMockAgreement();
-    await readModelService.upsertAgreement(agreement, 1);
+    await agreementWriterService.upsertAgreement(agreement, 1);
 
     const eventTypes = [
       "AgreementAdded",
@@ -53,7 +52,7 @@ describe("events V2", async () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, agreementWriterService);
 
       const actualAgreement = await agreementReadModelService.getAgreementById(
         agreement.id
@@ -68,11 +67,11 @@ describe("events V2", async () => {
   });
 
   it("should test all agreement consumer document events", async () => {
-    const spyUpdate = vi.spyOn(readModelService, "upsertAgreement");
-    const spyDelete = vi.spyOn(readModelService, "deleteAgreementById");
+    const spyUpdate = vi.spyOn(agreementWriterService, "upsertAgreement");
+    const spyDelete = vi.spyOn(agreementWriterService, "deleteAgreementById");
 
     const agreement = getMockAgreement();
-    await readModelService.upsertAgreement(agreement, 1);
+    await agreementWriterService.upsertAgreement(agreement, 1);
 
     const eventTypesConsumerDocument = [
       "AgreementConsumerDocumentAdded",
@@ -95,7 +94,7 @@ describe("events V2", async () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, readModelService);
+      await handleMessageV2(message, agreementWriterService);
 
       const actualAgreement = await agreementReadModelService.getAgreementById(
         agreement.id
@@ -111,10 +110,10 @@ describe("events V2", async () => {
   });
 
   it("should test delete agreement", async () => {
-    const spyDelete = vi.spyOn(readModelService, "deleteAgreementById");
+    const spyDelete = vi.spyOn(agreementWriterService, "deleteAgreementById");
 
     const agreement = getMockAgreement();
-    await readModelService.upsertAgreement(agreement, 1);
+    await agreementWriterService.upsertAgreement(agreement, 1);
 
     const eventType = "AgreementDeleted";
     const event = {
@@ -131,7 +130,7 @@ describe("events V2", async () => {
       log_date: new Date(),
     };
 
-    await handleMessageV2(message, readModelService);
+    await handleMessageV2(message, agreementWriterService);
 
     const actualAgreement = await agreementReadModelService.getAgreementById(
       agreement.id

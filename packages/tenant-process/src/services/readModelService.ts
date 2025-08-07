@@ -26,6 +26,9 @@ import {
   DelegationReadModel,
   delegationKind,
   delegationState,
+  TenantVerifier,
+  TenantRevoker,
+  stringToDate,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
@@ -564,6 +567,83 @@ export function readModelServiceBuilder(
         "data.state": delegationState.active,
         "data.kind": delegationKind.delegatedConsumer,
       });
+    },
+    async getTenantVerifiedAttributeVerifiers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ListResult<TenantVerifier>> {
+      const tenant = await tenants.findOne({ "data.id": tenantId });
+      if (!tenant) {
+        return { results: [], totalCount: 0 };
+      }
+
+      const verifiedAttribute = tenant.data.attributes
+        .filter((attr) => attr.type === "PersistentVerifiedAttribute")
+        .find((attr) => attr.id === attributeId);
+
+      if (
+        !verifiedAttribute ||
+        verifiedAttribute.type !== "PersistentVerifiedAttribute"
+      ) {
+        return { results: [], totalCount: 0 };
+      }
+
+      const verifiers = verifiedAttribute.verifiedBy || [];
+      const totalCount = verifiers.length;
+      const paginatedVerifiers = verifiers.slice(offset, offset + limit);
+
+      return {
+        results: paginatedVerifiers.map((verifier) => ({
+          id: verifier.id,
+          verificationDate: stringToDate(verifier.verificationDate),
+          expirationDate: stringToDate(verifier.expirationDate ?? null),
+          extensionDate: stringToDate(verifier.extensionDate ?? null),
+          delegationId: verifier.delegationId,
+        })),
+        totalCount,
+      };
+    },
+    async getTenantVerifiedAttributeRevokers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ListResult<TenantRevoker>> {
+      const tenant = await tenants.findOne({ "data.id": tenantId });
+      if (!tenant) {
+        return { results: [], totalCount: 0 };
+      }
+
+      const verifiedAttribute = tenant.data.attributes
+        .filter((attr) => attr.type === "PersistentVerifiedAttribute")
+        .find((attr) => attr.id === attributeId);
+
+      if (
+        !verifiedAttribute ||
+        verifiedAttribute.type !== "PersistentVerifiedAttribute"
+      ) {
+        return { results: [], totalCount: 0 };
+      }
+
+      const revokers = verifiedAttribute.revokedBy || [];
+      const totalCount = revokers.length;
+      const paginatedRevokers = revokers.slice(offset, offset + limit);
+
+      return {
+        results: paginatedRevokers.map((revoker) => ({
+          id: revoker.id,
+          verificationDate: new Date(revoker.verificationDate),
+          expirationDate: revoker.expirationDate
+            ? new Date(revoker.expirationDate)
+            : undefined,
+          extensionDate: revoker.extensionDate
+            ? new Date(revoker.extensionDate)
+            : undefined,
+          revocationDate: new Date(revoker.revocationDate),
+          delegationId: revoker.delegationId,
+        })),
+        totalCount,
+      };
     },
   };
 }
