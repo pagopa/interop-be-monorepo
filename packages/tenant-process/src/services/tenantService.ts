@@ -924,7 +924,7 @@ export function tenantServiceBuilder(
           updatedTenant,
           attributeId,
           correlationId
-        )-
+        )
       );
       return updatedTenant;
     },
