@@ -432,20 +432,63 @@ export function tenantServiceBuilder(
     },
 
     async revokeDeclaredAttribute(
-      { attributeId }: { attributeId: AttributeId },
-      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
+      {
+        attributeId,
+        delegationId,
+      }: {
+        attributeId: AttributeId;
+        delegationId?: DelegationId;
+      },
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<Tenant> {
-      logger.info(
-        `Revoking declared attribute ${attributeId} to tenant ${authData.organizationId}`
-      );
-      const requesterTenant = await retrieveTenant(
-        authData.organizationId,
-        readModelService
-      );
+      const { tenant, resolvedDelegationId } = await match(delegationId)
+        .with(P.nullish, async () => {
+          logger.info(
+            `Revoking declared attribute ${attributeId} from requester tenant ${authData.organizationId}`
+          );
+          const targetTenant = await retrieveTenant(
+            authData.organizationId,
+            readModelService
+          );
 
-      const declaredTenantAttribute = requesterTenant.data.attributes.find(
+          return { tenant: targetTenant, resolvedDelegationId: undefined };
+        })
+        .otherwise(async (seedDelegationId) => {
+          const delegation = await readModelService.getActiveConsumerDelegation(
+            seedDelegationId
+          );
+
+          if (!delegation) {
+            throw delegationNotFound(seedDelegationId);
+          }
+          logger.info(
+            `Revoking declared attribute ${attributeId} from delegator tenant ${delegation.delegatorId} with delegation ${seedDelegationId}`
+          );
+
+          if (delegation.delegateId !== authData.organizationId) {
+            throw operationRestrictedToDelegate();
+          }
+
+          const targetTenant = await retrieveTenant(
+            delegation.delegatorId,
+            readModelService
+          );
+
+          return {
+            tenant: targetTenant,
+            resolvedDelegationId: seedDelegationId,
+          };
+        });
+
+      const declaredTenantAttribute = tenant.data.attributes.find(
         (attr): attr is DeclaredTenantAttribute =>
-          attr.id === attributeId && attr.type === tenantAttributeType.DECLARED
+          attr.id === attributeId &&
+          attr.type === tenantAttributeType.DECLARED &&
+          (!resolvedDelegationId || attr.delegationId === resolvedDelegationId) // Filter by delegationId if provided
       );
 
       if (!declaredTenantAttribute) {
@@ -453,21 +496,25 @@ export function tenantServiceBuilder(
       }
 
       const updatedTenant: Tenant = {
-        ...requesterTenant.data,
+        ...tenant.data,
         updatedAt: new Date(),
-        attributes: requesterTenant.data.attributes.map((declaredAttribute) =>
-          declaredAttribute.id === attributeId
+        attributes: tenant.data.attributes.map((attr) =>
+          attr.id === attributeId &&
+          attr.type === tenantAttributeType.DECLARED &&
+          (!resolvedDelegationId ||
+            (attr as DeclaredTenantAttribute).delegationId ===
+              resolvedDelegationId)
             ? {
-                ...declaredAttribute,
+                ...attr,
                 revocationTimestamp: new Date(),
               }
-            : declaredAttribute
+            : attr
         ),
       };
 
       await repository.createEvent(
         toCreateEventTenantDeclaredAttributeRevoked(
-          requesterTenant.metadata.version,
+          tenant.metadata.version,
           updatedTenant,
           unsafeBrandId(attributeId),
           correlationId
@@ -580,7 +627,11 @@ export function tenantServiceBuilder(
       {
         tenantAttributeSeed,
       }: { tenantAttributeSeed: tenantApi.DeclaredTenantAttributeSeed },
-      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<Tenant> {
       const { tenant, delegationId } = await match(
         tenantAttributeSeed.delegationId
@@ -789,7 +840,11 @@ export function tenantServiceBuilder(
         agreementId: AgreementId;
         expirationDate?: string;
       },
-      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Verifying attribute ${attributeId} to tenant ${tenantId} for agreement ${agreementId}`
@@ -869,7 +924,7 @@ export function tenantServiceBuilder(
           updatedTenant,
           attributeId,
           correlationId
-        )
+        )-
       );
       return updatedTenant;
     },
@@ -884,7 +939,11 @@ export function tenantServiceBuilder(
         attributeId: AttributeId;
         agreementId: AgreementId;
       },
-      { logger, authData, correlationId }: WithLogger<AppContext<UIAuthData>>
+      {
+        logger,
+        authData,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Revoking verified attribute ${attributeId} to tenant ${tenantId}`

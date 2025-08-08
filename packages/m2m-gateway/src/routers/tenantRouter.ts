@@ -87,6 +87,60 @@ const tenantRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/tenants/:tenantId/declaredAttributes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        const declaredAttribute =
+          await tenantService.addTenantDeclaredAttribute(
+            unsafeBrandId(req.params.tenantId),
+            req.body,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.TenantDeclaredAttribute.parse(declaredAttribute));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error adding declared attribute to tenant ${req.params.tenantId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete(
+      "/tenants/:tenantId/declaredAttributes/:attributeId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const declaredAttribute =
+            await tenantService.revokeTenantDeclaredAttribute(
+              unsafeBrandId(req.params.tenantId),
+              unsafeBrandId(req.params.attributeId),
+              req.query,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApi.TenantDeclaredAttribute.parse(declaredAttribute)
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error revoking declared attribute ${req.params.attributeId} from tenant ${req.params.tenantId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
@@ -193,6 +247,60 @@ const tenantRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/tenants/:tenantId/verifiedAttributes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        const verifiedAttribute =
+          await tenantService.addTenantVerifiedAttribute(
+            unsafeBrandId(req.params.tenantId),
+            req.body,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.TenantVerifiedAttribute.parse(verifiedAttribute));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error adding verified attribute to tenant ${req.params.tenantId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete(
+      "/tenants/:tenantId/verifiedAttributes/:attributeId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const verifiedAttribute =
+            await tenantService.revokeTenantVerifiedAttribute(
+              unsafeBrandId(req.params.tenantId),
+              unsafeBrandId(req.params.attributeId),
+              req.body,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApi.TenantVerifiedAttribute.parse(verifiedAttribute)
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error revoking verified attribute ${req.params.attributeId} from tenant ${req.params.tenantId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get(
       "/tenants/:tenantId/verifiedAttributes/:attributeId/verifiers",
       async (req, res) => {

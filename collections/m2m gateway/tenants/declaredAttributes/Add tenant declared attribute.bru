@@ -1,0 +1,39 @@
+meta {
+  name: Add tenant declared attribute
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/tenants/{{tenantId}}/declaredAttributes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{m2mToken}}
+}
+
+body:json {
+  {
+    "id": "{{attributeId}}",
+    "delegationId": "{{delegationId}}"
+  }
+}
+
+vars:pre-request {
+  tenantId: {{generateUUID}}
+  attributeId: {{generateUUID}}
+  delegationId: {{generateUUID}}
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return declared attribute", function() {
+    expect(res.getBody()).to.have.property('id');
+    expect(res.getBody()).to.have.property('assignedAt');
+  });
+}

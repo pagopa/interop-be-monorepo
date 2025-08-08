@@ -17,7 +17,12 @@ import {
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
-import { tenantCertifiedAttributeNotFound } from "../model/errors.js";
+import {
+  tenantCertifiedAttributeNotFound,
+  tenantDeclaredAttributeNotFound,
+  tenantVerifiedAttributeNotFound,
+  missingRequiredAgreementId,
+} from "../model/errors.js";
 
 function retrieveDeclaredAttributes(
   tenant: tenantApi.Tenant
@@ -321,6 +326,141 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount,
         },
       };
+    },
+    async addTenantDeclaredAttribute(
+      tenantId: TenantId,
+      body: m2mGatewayApi.AddDeclaredAttributeRequest,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
+      logger.info(`Adding declared attribute ${body.id} to tenant ${tenantId}`);
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.addDeclaredAttribute(
+          {
+            id: body.id,
+            delegationId: body.delegationId,
+          },
+          {
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+
+      const declaredAttribute = retrieveDeclaredAttributes(polledTenant).find(
+        (attr) => attr.id === body.id
+      );
+
+      if (!declaredAttribute) {
+        throw tenantDeclaredAttributeNotFound(tenantId, body.id);
+      }
+
+      return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
+    },
+    async revokeTenantDeclaredAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      query: { delegationId?: string },
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
+      const logMessage = query.delegationId
+        ? `Revoking declared attribute ${attributeId} from tenant ${tenantId} with delegation ${query.delegationId}`
+        : `Revoking declared attribute ${attributeId} from tenant ${tenantId}`;
+
+      logger.info(logMessage);
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.revokeDeclaredAttribute(
+          undefined,
+          {
+            params: { attributeId },
+            ...(query.delegationId && {
+              queries: { delegationId: query.delegationId },
+            }),
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+
+      const declaredAttribute = retrieveDeclaredAttributes(polledTenant).find(
+        (attr) => attr.id === attributeId
+      );
+
+      if (!declaredAttribute) {
+        throw tenantDeclaredAttributeNotFound(tenantId, attributeId);
+      }
+
+      return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
+    },
+    async addTenantVerifiedAttribute(
+      tenantId: TenantId,
+      body: m2mGatewayApi.AddVerifiedAttributeRequest,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantVerifiedAttribute> {
+      logger.info(`Adding verified attribute ${body.id} to tenant ${tenantId}`);
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.verifyVerifiedAttribute(
+          {
+            id: body.id,
+            agreementId: body.agreementId,
+            expirationDate: body.expirationDate,
+          },
+          {
+            params: { tenantId },
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+
+      const verifiedAttribute = retrieveVerifiedAttributes(polledTenant).find(
+        (attr) => attr.id === body.id
+      );
+
+      if (!verifiedAttribute) {
+        throw tenantVerifiedAttributeNotFound(tenantId, body.id);
+      }
+
+      return toM2MGatewayApiTenantVerifiedAttribute(verifiedAttribute);
+    },
+    async revokeTenantVerifiedAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      query: { agreementId?: string },
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantVerifiedAttribute> {
+      logger.info(
+        `Revoking verified attribute ${attributeId} from tenant ${tenantId}`
+      );
+
+      if (!query.agreementId) {
+        throw missingRequiredAgreementId();
+      }
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(
+          {
+            agreementId: query.agreementId,
+          },
+          {
+            params: { tenantId, attributeId },
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+
+      const verifiedAttribute = retrieveVerifiedAttributes(polledTenant).find(
+        (attr) => attr.id === attributeId
+      );
+
+      if (!verifiedAttribute) {
+        throw tenantVerifiedAttributeNotFound(tenantId, attributeId);
+      }
+
+      return toM2MGatewayApiTenantVerifiedAttribute(verifiedAttribute);
     },
   };
 }

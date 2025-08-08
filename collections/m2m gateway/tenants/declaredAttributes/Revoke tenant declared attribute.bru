@@ -1,0 +1,36 @@
+meta {
+  name: Revoke tenant declared attribute
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseUrl}}/tenants/{{tenantId}}/declaredAttributes/{{attributeId}}?delegationId={{delegationId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{m2mToken}}
+}
+
+params:query {
+  delegationId: {{delegationId}}
+}
+
+vars:pre-request {
+  tenantId: {{generateUUID}}
+  attributeId: {{generateUUID}}
+  delegationId: {{generateUUID}}
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return declared attribute", function() {
+    expect(res.getBody()).to.have.property('id');
+    expect(res.getBody()).to.have.property('assignedAt');
+  });
+}
