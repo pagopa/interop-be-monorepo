@@ -32,7 +32,13 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { upsertAgreement } from "pagopa-interop-readmodel/testUtils";
+import {
+  upsertAgreement,
+  upsertAttribute,
+  upsertDelegation,
+  upsertEService,
+  upsertTenant,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
@@ -118,25 +124,25 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-  await attributeReadModelServiceSQL.upsertAttribute(attribute, 0);
+  await upsertAttribute(readModelDB, attribute, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeTenantInEventstore(tenant);
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
-  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
+  await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
-  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 export const readLastTenantEvent = async (

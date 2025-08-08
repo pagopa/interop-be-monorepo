@@ -36,7 +36,13 @@ import {
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { upsertAgreement } from "pagopa-interop-readmodel/testUtils";
+import {
+  upsertAgreement,
+  upsertDelegation,
+  upsertEService,
+  upsertPurpose,
+  upsertTenant,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
 import { config } from "../src/config/config.js";
@@ -118,19 +124,19 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await writePurposeInEventstore(purpose);
   await writeInReadmodel(toReadModelPurpose(purpose), purposes);
 
-  await purposeReadModelServiceSQL.upsertPurpose(purpose, 0);
+  await upsertPurpose(readModelDB, purpose, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
 
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
 
-  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
+  await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
@@ -144,7 +150,7 @@ export const addOneDelegation = async (
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
 
-  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 export const writePurposeInEventstore = async (

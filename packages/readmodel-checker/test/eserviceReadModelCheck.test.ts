@@ -6,10 +6,11 @@ import {
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { Descriptor, EService, WithMetadata } from "pagopa-interop-models";
+import { upsertEService } from "pagopa-interop-readmodel/testUtils";
 import { compare } from "../src/utils.js";
 import {
   addOneEService,
-  eserviceReadModelServiceSQL,
+  readModelDB,
   readModelService,
   readModelServiceSQL,
 } from "./utils.js";
@@ -55,10 +56,7 @@ describe("Check catalog readmodels", () => {
 
     await addOneEService(eservice);
 
-    await eserviceReadModelServiceSQL.upsertEService(
-      eservice.data,
-      eservice.metadata.version
-    );
+    await upsertEService(readModelDB, eservice.data, eservice.metadata.version);
 
     const collectionEServices =
       await readModelService.getAllReadModelEServices();
@@ -98,7 +96,8 @@ describe("Check catalog readmodels", () => {
     await addOneEService(eservice1);
     await addOneEService(eservice2);
 
-    await eserviceReadModelServiceSQL.upsertEService(
+    await upsertEService(
+      readModelDB,
       eservice2.data,
       eservice2.metadata.version
     );
@@ -140,11 +139,13 @@ describe("Check catalog readmodels", () => {
 
     await addOneEService(eservice1);
 
-    await eserviceReadModelServiceSQL.upsertEService(
+    await upsertEService(
+      readModelDB,
       eservice1.data,
       eservice1.metadata.version
     );
-    await eserviceReadModelServiceSQL.upsertEService(
+    await upsertEService(
+      readModelDB,
       eservice2.data,
       eservice2.metadata.version
     );
@@ -189,7 +190,8 @@ describe("Check catalog readmodels", () => {
 
     await addOneEService(eservice1);
 
-    await eserviceReadModelServiceSQL.upsertEService(
+    await upsertEService(
+      readModelDB,
       eservice1InPostgresDb.data,
       eservice1InPostgresDb.metadata.version
     );
@@ -233,7 +235,8 @@ describe("Check catalog readmodels", () => {
 
     await addOneEService(eservice1);
 
-    await eserviceReadModelServiceSQL.upsertEService(
+    await upsertEService(
+      readModelDB,
       eservice1InPostgresDb.data,
       eservice1InPostgresDb.metadata.version
     );

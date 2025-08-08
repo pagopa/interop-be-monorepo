@@ -63,7 +63,7 @@ describe("upload Document", () => {
       };
       await addOneEService(eservice);
 
-      const returnedEService = await catalogService.uploadDocument(
+      const returnedDocument = await catalogService.uploadDocument(
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
@@ -80,22 +80,23 @@ describe("upload Document", () => {
         payload: writtenEvent.data,
       });
 
+      const expectedDocument: Document = {
+        ...mockDocument,
+        id: unsafeBrandId(
+          writtenPayload.eservice!.descriptors[0]!.interface!.id
+        ),
+        checksum: writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
+        uploadDate: new Date(
+          writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
+        ),
+      };
+
       const expectedEservice = toEServiceV2({
         ...eservice,
         descriptors: [
           {
             ...descriptor,
-            interface: {
-              ...mockDocument,
-              id: unsafeBrandId(
-                writtenPayload.eservice!.descriptors[0]!.interface!.id
-              ),
-              checksum:
-                writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
-              uploadDate: new Date(
-                writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
-              ),
-            },
+            interface: expectedDocument,
             serverUrls: ["pagopa.it"],
           },
         ],
@@ -103,7 +104,12 @@ describe("upload Document", () => {
 
       expect(writtenPayload.descriptorId).toEqual(descriptor.id);
       expect(writtenPayload.eservice).toEqual(expectedEservice);
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(returnedDocument).toEqual({
+        data: expectedDocument,
+        metadata: {
+          version: 1,
+        },
+      });
     }
   );
   it.each(
@@ -132,7 +138,7 @@ describe("upload Document", () => {
       await addOneEService(eservice);
       await addOneDelegation(delegation);
 
-      const returnedEService = await catalogService.uploadDocument(
+      const returnedDocument = await catalogService.uploadDocument(
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
@@ -149,22 +155,23 @@ describe("upload Document", () => {
         payload: writtenEvent.data,
       });
 
+      const expectedDocument: Document = {
+        ...mockDocument,
+        id: unsafeBrandId(
+          writtenPayload.eservice!.descriptors[0]!.interface!.id
+        ),
+        checksum: writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
+        uploadDate: new Date(
+          writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
+        ),
+      };
+
       const expectedEservice = toEServiceV2({
         ...eservice,
         descriptors: [
           {
             ...descriptor,
-            interface: {
-              ...mockDocument,
-              id: unsafeBrandId(
-                writtenPayload.eservice!.descriptors[0]!.interface!.id
-              ),
-              checksum:
-                writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
-              uploadDate: new Date(
-                writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
-              ),
-            },
+            interface: expectedDocument,
             serverUrls: ["pagopa.it"],
           },
         ],
@@ -172,7 +179,12 @@ describe("upload Document", () => {
 
       expect(writtenPayload.descriptorId).toEqual(descriptor.id);
       expect(writtenPayload.eservice).toEqual(expectedEservice);
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(returnedDocument).toEqual({
+        data: expectedDocument,
+        metadata: {
+          version: 1,
+        },
+      });
     }
   );
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {

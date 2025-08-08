@@ -13,13 +13,13 @@ import {
   toReadModelEService,
   toReadModelPurpose,
 } from "pagopa-interop-models";
-import {
-  catalogReadModelServiceBuilder,
-  clientReadModelServiceBuilder,
-  purposeReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
 import { afterEach, inject } from "vitest";
-import { upsertAgreement } from "pagopa-interop-readmodel/testUtils";
+import {
+  upsertAgreement,
+  upsertClient,
+  upsertEService,
+  upsertPurpose,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { config as checkerConfig } from "../src/configs/config.js";
@@ -43,10 +43,6 @@ if (!config) {
   throw new Error("Config is not defined");
 }
 
-const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
-const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
-const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
-
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 export const readModelService =
@@ -66,7 +62,7 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
     readModelRepository.eservices
   );
 
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
@@ -75,7 +71,7 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
     readModelRepository.purposes
   );
 
-  await purposeReadModelServiceSQL.upsertPurpose(purpose, 0);
+  await upsertPurpose(readModelDB, purpose, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
@@ -93,5 +89,5 @@ export const addOneClient = async (client: Client): Promise<void> => {
     readModelRepository.clients
   );
 
-  await clientReadModelServiceSQL.upsertClient(client, 0);
+  await upsertClient(readModelDB, client, 0);
 };
