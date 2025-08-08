@@ -1,6 +1,7 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
+  errorsToApiProblemsMiddleware,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -30,6 +31,7 @@ export async function createApp(service: CatalogService) {
   app.use(authenticationMiddleware(config));
   app.use(loggerMiddleware(serviceName));
   app.use(eservicesRouter(zodiosCtx, service));
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }
