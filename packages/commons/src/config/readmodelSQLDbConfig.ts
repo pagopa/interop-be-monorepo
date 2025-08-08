@@ -38,6 +38,9 @@ export const ReadModelSQLDbConfig = z
       .string()
       .default("readmodel_producer_keychain"),
     READMODEL_SQL_DB_SCHEMA_PURPOSE: z.string().default("readmodel_purpose"),
+    READMODEL_SQL_DB_SCHEMA_PURPOSE_TEMPLATE: z
+      .string()
+      .default("readmodel_purpose_template"),
     READMODEL_SQL_DB_SCHEMA_TENANT: z.string().default("readmodel_tenant"),
   })
   .transform((c) => ({
@@ -62,6 +65,8 @@ export const ReadModelSQLDbConfig = z
     readModelSQLDbSchemaProducerKeychain:
       c.READMODEL_SQL_DB_SCHEMA_PRODUCER_KEYCHAIN,
     readModelSQLDbSchemaPurpose: c.READMODEL_SQL_DB_SCHEMA_PURPOSE,
+    readModelSQLDbSchemaPurposeTemplate:
+      c.READMODEL_SQL_DB_SCHEMA_PURPOSE_TEMPLATE,
     readModelSQLDbSchemaTenant: c.READMODEL_SQL_DB_SCHEMA_TENANT,
   }));
 

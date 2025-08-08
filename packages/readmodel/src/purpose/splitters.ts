@@ -35,6 +35,7 @@ export const splitPurposeIntoObjectsSQL = (
     freeOfChargeReason,
     riskAnalysisForm,
     versions,
+    purposeTemplateId,
     ...rest
   }: Purpose,
   version: number
@@ -57,6 +58,7 @@ export const splitPurposeIntoObjectsSQL = (
     updatedAt: dateToString(updatedAt),
     isFreeOfCharge,
     freeOfChargeReason: freeOfChargeReason || null,
+    purposeTemplateId: purposeTemplateId || null,
   };
 
   const splitPurposeRiskAnalysisSQL = splitRiskAnalysisFormIntoObjectsSQL(
