@@ -96,6 +96,10 @@ export const mockDelegationService = {} as DelegationService;
 export const mockPurposeService = {} as PurposeService;
 export const mockTenantService = {
   getTenant: vi.fn(),
+  addTenantDeclaredAttribute: vi.fn(),
+  revokeTenantDeclaredAttribute: vi.fn(),
+  addTenantVerifiedAttribute: vi.fn(),
+  revokeTenantVerifiedAttribute: vi.fn(),
 } as unknown as TenantService;
 export const mockAttributeService = {} as AttributeService;
 export const mockEServiceTemplateService = {} as EserviceTemplateService;

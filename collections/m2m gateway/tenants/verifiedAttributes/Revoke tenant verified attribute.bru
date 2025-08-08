@@ -1,0 +1,36 @@
+meta {
+  name: Revoke tenant verified attribute
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseUrl}}/tenants/{{tenantId}}/verifiedAttributes/{{attributeId}}?agreementId={{agreementId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{m2mToken}}
+}
+
+params:query {
+  agreementId: {{agreementId}}
+}
+
+vars:pre-request {
+  tenantId: {{generateUUID}}
+  attributeId: {{generateUUID}}
+  agreementId: {{generateUUID}}
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return verified attribute", function() {
+    expect(res.getBody()).to.have.property('id');
+    expect(res.getBody()).to.have.property('assignedAt');
+  });
+}
