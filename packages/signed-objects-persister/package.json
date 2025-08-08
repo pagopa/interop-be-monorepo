@@ -21,7 +21,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "24.0.15",
+    "@types/node": "20.19.4",
     "dotenv-flow": "4.1.0",
     "pagopa-interop-commons-test": "workspace:*",
     "ts-node": "10.9.2",
