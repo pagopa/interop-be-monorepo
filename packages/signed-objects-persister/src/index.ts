@@ -24,7 +24,7 @@ const safeStorageService: SafeStorageService =
   createSafeStorageApiClient(safeStorageConfig);
 
 const queueManager = initQueueManager({
-  messageGroupId: "message_group_all_notification", // DA CAPIRE
+  messageGroupId: "message_group_all_notification",
   logLevel: config.logLevel,
 });
 
