@@ -317,6 +317,98 @@ describe("handleAgreementActivated", async () => {
     expect(messages.length).toEqual(2);
   });
 
+  it("should generate one message to the consumer whose agreement was activated", async () => {
+    const descriptor = getMockDescriptor();
+    const eservice = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    const consumerTenant = {
+      ...getMockTenant(),
+      mails: [getMockTenantMail()],
+    };
+    await addOneTenant(consumerTenant);
+
+    const producerTenant = getMockTenant();
+    await addOneTenant(producerTenant);
+
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockReturnValueOnce([]);
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleAgreementActivated({
+      agreementV2Msg: toAgreementV2(agreement),
+      logger,
+      interopFeBaseUrl,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+    expect(messages.length).toEqual(1);
+    expect(messages[0].address).toEqual(consumerTenant.mails[0].address);
+  });
+
+  it("should generate a message using the latest consumer mail that was registered", async () => {
+    const descriptor = getMockDescriptor();
+    const eservice = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    const oldMail = { ...getMockTenantMail(), createdAt: new Date(1999) };
+    const newMail = getMockTenantMail();
+    const consumerTenant = {
+      ...getMockTenant(),
+      mails: [oldMail, newMail],
+    };
+    await addOneTenant(consumerTenant);
+
+    const producerTenant = {
+      ...getMockTenant(),
+    };
+    await addOneTenant(producerTenant);
+
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockReturnValueOnce([]);
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleAgreementActivated({
+      agreementV2Msg: toAgreementV2(agreement),
+      logger,
+      interopFeBaseUrl,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+    expect(messages.length).toEqual(1);
+    expect(messages[0].address).toEqual(newMail.address);
+  });
+
   it("should generate a complete and correct message", async () => {
     const descriptor = getMockDescriptor();
     const eservice = {
