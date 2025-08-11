@@ -8744,7 +8744,6 @@ components:
         - description
         - technology
         - descriptors
-        - riskAnalysis
         - mode
     EServiceDescriptor:
       type: object
@@ -8896,7 +8895,6 @@ components:
         - intendedTarget
         - description
         - technology
-        - riskAnalysis
         - mode
     EServiceTemplateVersion:
       type: object
