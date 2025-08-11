@@ -21,7 +21,7 @@ import {
   descriptorPublishedNotFound,
   tenantNotFound,
 } from "../src/models/errors.js";
-import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEserviceDescriptorPublished.js";
+import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEServiceDescriptorPublished.js";
 import {
   addOneAgreement,
   addOneEService,
