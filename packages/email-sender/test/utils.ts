@@ -23,8 +23,8 @@ export const kafkaMessagePayload: EachMessagePayload = {
     offset: "10",
     size: 100,
   },
-  heartbeat: async () => { },
-  pause: () => () => { },
+  heartbeat: async () => {},
+  pause: () => () => {},
 };
 
 export const kafkaMessagePayloadWithValue = (
