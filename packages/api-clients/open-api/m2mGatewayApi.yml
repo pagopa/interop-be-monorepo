@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: PDND Interoperability API
   x-summary: PDND Interoperability API
-  version: "2.1.0"
+  version: "2.2.0"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -3933,12 +3933,12 @@ paths:
         required: true
       responses:
         "201":
-           description: E-Service created
-           content:
+          description: E-Service created
+          content:
             application/json:
               schema:
                 $ref: "#/components/schemas/EService"
-           headers:
+          headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
             X-Rate-Limit-Remaining:
@@ -4469,8 +4469,8 @@ paths:
       tags:
         - eservices
       summary: Upload a E-Service Descriptor interface
-      description: | 
-        Upload an interface document for the specified E-Service Descriptor. 
+      description: |
+        Upload an interface document for the specified E-Service Descriptor.
         If the Descriptor already has an interface, it should be first deleted before uploading a new one.
         The Descriptor must be in Draft state.
       operationId: uploadEServiceDescriptorInterface
@@ -4748,8 +4748,7 @@ paths:
       tags:
         - eservices
       summary: Unsuspend an E-Service Descriptor in Suspended state
-      description:
-        Unsuspend an E-Service Descriptor that is in Suspended state, transitioning it to Active or Deprecated state
+      description: Unsuspend an E-Service Descriptor that is in Suspended state, transitioning it to Active or Deprecated state
       operationId: unsuspendDescriptor
       parameters:
         - name: eserviceId
@@ -4870,6 +4869,215 @@ paths:
       responses:
         "200":
           description: E-Service Descriptor published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/approve:
+    post:
+      tags:
+        - eservices
+      summary: Approve a delegated E-Service Descriptor in Waiting for Approval state
+      operationId: approveDelegatedEServiceDescriptor
+      description: Approve a delegated E-Service Descriptor that is in Waiting for Approval state
+      parameters:
+        - name: eserviceId
+          in: path
+          description: The E-Service ID of the Descriptor
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: The ID of the Descriptor to approve
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: E-Service Descriptor approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/reject:
+    post:
+      tags:
+        - eservices
+      summary: Reject a delegated E-Service Descriptor in Waiting for Approval state
+      operationId: rejectDelegatedEServiceDescriptor
+      description: Reject a delegated E-Service Descriptor that is in Waiting for Approval state
+      requestBody:
+        description: Payload containing the reason of the rejection
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedEServiceDescriptorSeed"
+        required: true
+      parameters:
+        - name: eserviceId
+          in: path
+          description: The E-Service ID of the Descriptor
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: The ID of the Descriptor to reject
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: E-Service Descriptor rejected
           content:
             application/json:
               schema:
@@ -8455,11 +8663,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: Total daily calls available for this E-Service
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         state:
           $ref: "#/components/schemas/EServiceDescriptorState"
         agreementApprovalPolicy:
@@ -8543,6 +8753,14 @@ components:
       enum:
         - REST
         - SOAP
+    RejectDelegatedEServiceDescriptorSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        rejectionReason:
+          type: string
+      required:
+        - rejectionReason
     EServiceTemplate:
       type: object
       additionalProperties: false
@@ -8594,11 +8812,13 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         dailyCallsTotal:
           description: Total daily calls available for this E-Service
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
         state:
           $ref: "#/components/schemas/EServiceTemplateVersionState"
         agreementApprovalPolicy:
@@ -8935,7 +9155,8 @@ components:
         dailyCalls:
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
       required:
         - eserviceId
         - title
@@ -8974,6 +9195,8 @@ components:
         dailyCalls:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
         - eserviceId
         - title
@@ -9019,7 +9242,8 @@ components:
           description: Maximum number of daily calls performed using this version
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
         rejectionReason:
           type: string
       required:
@@ -9051,7 +9275,8 @@ components:
           description: Maximum number of daily calls performed using this version
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
     PurposeVersionState:
       type: string
       description: Purpose State
