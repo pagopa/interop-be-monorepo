@@ -22,6 +22,30 @@ export const buildRiskAnalysisFormSeed = (
 ): purposeApi.RiskAnalysisFormSeed =>
   riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
 
+export const createUpdatedRiskAnalysisForm = (
+  riskAnalysisForm: RiskAnalysisForm,
+  writtenRiskAnalysisForm: PurposeRiskAnalysisFormV2
+): RiskAnalysisForm => ({
+  ...riskAnalysisForm,
+  id: unsafeBrandId(writtenRiskAnalysisForm.id),
+  singleAnswers: riskAnalysisForm.singleAnswers.map((singleAnswer) => ({
+    ...singleAnswer,
+    id: unsafeBrandId(
+      writtenRiskAnalysisForm.singleAnswers.find(
+        (sa) => sa.key === singleAnswer.key
+      )!.id
+    ),
+  })),
+  multiAnswers: riskAnalysisForm.multiAnswers.map((multiAnswer) => ({
+    ...multiAnswer,
+    id: unsafeBrandId(
+      writtenRiskAnalysisForm.multiAnswers.find(
+        (ma) => ma.key === multiAnswer.key
+      )!.id
+    ),
+  })),
+});
+
 export const createUpdatedPurpose = (
   mockPurpose: Purpose,
   purposeUpdateContent:
@@ -43,30 +67,10 @@ export const createUpdatedPurpose = (
     },
   ],
   updatedAt: new Date(),
-  riskAnalysisForm: {
-    ...mockValidRiskAnalysis.riskAnalysisForm,
-    id: unsafeBrandId(writtenRiskAnalysisForm.id),
-    singleAnswers: mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
-      (singleAnswer) => ({
-        ...singleAnswer,
-        id: unsafeBrandId(
-          writtenRiskAnalysisForm.singleAnswers.find(
-            (sa) => sa.key === singleAnswer.key
-          )!.id
-        ),
-      })
-    ),
-    multiAnswers: mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
-      (multiAnswer) => ({
-        ...multiAnswer,
-        id: unsafeBrandId(
-          writtenRiskAnalysisForm.multiAnswers.find(
-            (ma) => ma.key === multiAnswer.key
-          )!.id
-        ),
-      })
-    ),
-  },
+  riskAnalysisForm: createUpdatedRiskAnalysisForm(
+    mockValidRiskAnalysis.riskAnalysisForm,
+    writtenRiskAnalysisForm
+  ),
 });
 
 export const getMockPurposeSeed = (

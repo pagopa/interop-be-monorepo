@@ -125,8 +125,9 @@ describe("updatePurpose and updateReversePurpose", () => {
       title: "test",
       dailyCalls: 10,
       description: "test",
-      isFreeOfCharge: false,
+      isFreeOfCharge: true,
       riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis),
+      freeOfChargeReason: "test",
     };
 
     reversePurposeUpdateContent = {
@@ -143,7 +144,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     await addOneEService(eServiceDeliver);
     await addOneTenant(tenant);
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.updatePurpose(
+    const updatePurposeReturn = await purposeService.updatePurpose(
       purposeForDeliver.id,
       purposeUpdateContent,
       getMockContext({ authData: getMockAuthData(tenant.id) })
@@ -174,10 +175,13 @@ describe("updatePurpose and updateReversePurpose", () => {
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(purpose))
-    );
-    expect(isRiskAnalysisValid).toBe(true);
+    expect(updatePurposeReturn).toEqual({
+      purpose: {
+        data: expectedPurpose,
+        metadata: { version: 1 },
+      },
+      isRiskAnalysisValid: true,
+    });
   });
   it("Should write on event store for the update of a purpose of an e-service in mode DELIVER (no title change)", async () => {
     await addOnePurpose(purposeForDeliver);
@@ -189,7 +193,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       title: purposeForDeliver.title,
     };
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.updatePurpose(
+    const updatePurposeReturn = await purposeService.updatePurpose(
       purposeForDeliver.id,
       updateContentWithoutTitle,
       getMockContext({ authData: getMockAuthData(tenant.id) })
@@ -220,22 +224,24 @@ describe("updatePurpose and updateReversePurpose", () => {
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(purpose))
-    );
-    expect(isRiskAnalysisValid).toBe(true);
+    expect(updatePurposeReturn).toEqual({
+      purpose: {
+        data: expectedPurpose,
+        metadata: { version: 1 },
+      },
+      isRiskAnalysisValid: true,
+    });
   });
   it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE (including title change)", async () => {
     await addOnePurpose(purposeForReceive);
     await addOneEService(eServiceReceive);
     await addOneTenant(tenant);
 
-    const { purpose, isRiskAnalysisValid } =
-      await purposeService.updateReversePurpose(
-        purposeForReceive.id,
-        reversePurposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
-      );
+    const updatePurposeReturn = await purposeService.updateReversePurpose(
+      purposeForReceive.id,
+      reversePurposeUpdateContent,
+      getMockContext({ authData: getMockAuthData(tenant.id) })
+    );
 
     const writtenEvent = await readLastPurposeEvent(purposeForReceive.id);
     expect(writtenEvent).toMatchObject({
@@ -261,10 +267,13 @@ describe("updatePurpose and updateReversePurpose", () => {
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(purpose))
-    );
-    expect(isRiskAnalysisValid).toBe(true);
+    expect(updatePurposeReturn).toEqual({
+      purpose: {
+        data: expectedPurpose,
+        metadata: { version: 1 },
+      },
+      isRiskAnalysisValid: true,
+    });
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a updatable state and the e-service is in mode DELIVER", async () => {
     const authData = getMockAuthData();
@@ -294,7 +303,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       title: delegatePurpose.title,
     };
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.updatePurpose(
+    const updatePurposeReturn = await purposeService.updatePurpose(
       delegatePurpose.id,
       updateContentWithoutTitle,
       getMockContext({ authData })
@@ -325,10 +334,13 @@ describe("updatePurpose and updateReversePurpose", () => {
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(purpose))
-    );
-    expect(isRiskAnalysisValid).toBe(true);
+    expect(updatePurposeReturn).toEqual({
+      purpose: {
+        data: expectedPurpose,
+        metadata: { version: 1 },
+      },
+      isRiskAnalysisValid: true,
+    });
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a updatable state and the e-service is in mode RECEIVE", async () => {
     const authData = getMockAuthData();
@@ -353,12 +365,11 @@ describe("updatePurpose and updateReversePurpose", () => {
     await addOneEService(eServiceReceive);
     await addOneTenant(tenant);
 
-    const { purpose, isRiskAnalysisValid } =
-      await purposeService.updateReversePurpose(
-        delegatePurpose.id,
-        reversePurposeUpdateContent,
-        getMockContext({ authData })
-      );
+    const updatePurposeReturn = await purposeService.updateReversePurpose(
+      delegatePurpose.id,
+      reversePurposeUpdateContent,
+      getMockContext({ authData })
+    );
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
     expect(writtenEvent).toMatchObject({
@@ -384,10 +395,13 @@ describe("updatePurpose and updateReversePurpose", () => {
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(purpose))
-    );
-    expect(isRiskAnalysisValid).toBe(true);
+    expect(updatePurposeReturn).toEqual({
+      purpose: {
+        data: expectedPurpose,
+        metadata: { version: 1 },
+      },
+      isRiskAnalysisValid: true,
+    });
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a updatable state and the e-service is in mode DELIVER", async () => {
     const producer = {
@@ -462,7 +476,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       title: delegatePurpose.title,
     };
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.updatePurpose(
+    const updatePurposeReturn = await purposeService.updatePurpose(
       delegatePurpose.id,
       updateContentWithoutTitle,
       getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
@@ -492,10 +506,13 @@ describe("updatePurpose and updateReversePurpose", () => {
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(purpose))
-    );
-    expect(isRiskAnalysisValid).toBe(true);
+    expect(updatePurposeReturn).toEqual({
+      purpose: {
+        data: expectedPurpose,
+        metadata: { version: 1 },
+      },
+      isRiskAnalysisValid: true,
+    });
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a updatable state and the e-service is in mode RECEIVE", async () => {
     const producerDelegator = {
@@ -563,12 +580,11 @@ describe("updatePurpose and updateReversePurpose", () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
 
-    const { purpose, isRiskAnalysisValid } =
-      await purposeService.updateReversePurpose(
-        delegatePurpose.id,
-        reversePurposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(consumer.id) })
-      );
+    const updatePurposeReturn = await purposeService.updateReversePurpose(
+      delegatePurpose.id,
+      reversePurposeUpdateContent,
+      getMockContext({ authData: getMockAuthData(consumer.id) })
+    );
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
     expect(writtenEvent).toMatchObject({
@@ -594,10 +610,13 @@ describe("updatePurpose and updateReversePurpose", () => {
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(purpose))
-    );
-    expect(isRiskAnalysisValid).toBe(true);
+    expect(updatePurposeReturn).toEqual({
+      purpose: {
+        data: expectedPurpose,
+        metadata: { version: 1 },
+      },
+      isRiskAnalysisValid: true,
+    });
   });
   it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
     await addOneEService(eServiceDeliver);
@@ -740,6 +759,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         {
           ...purposeUpdateContent,
           isFreeOfCharge: true,
+          freeOfChargeReason: "",
         },
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
