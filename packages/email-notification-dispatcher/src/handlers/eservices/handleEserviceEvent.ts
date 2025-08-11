@@ -5,7 +5,7 @@ import {
 import { match, P } from "ts-pattern";
 import { config } from "../../config/config.js";
 import { HandlerParams } from "../../models/handlerParams.js";
-import { handleEserviceDescriptorPublished } from "./handleEserviceDescriptorPublished.js";
+import { handleEserviceDescriptorPublished } from "./handleEServiceDescriptorPublished.js";
 
 const interopFeBaseUrl = config.interopFeBaseUrl;
 
