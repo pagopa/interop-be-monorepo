@@ -1204,7 +1204,7 @@ components:
     PurposeUpdateContent:
       type: object
       additionalProperties: false
-      description: contains the expected payload for purpose update.
+      description: contains the expected payload for purpose update
       properties:
         title:
           type: string
@@ -1218,10 +1218,14 @@ components:
           type: boolean
         freeOfChargeReason:
           type: string
+          nullable: true
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
+          description: |
+            Optional in the purpose model, but a purpose cannot exist without a risk analysis.
+            There is no practical use in letting the user remove it, we don't make it nullable.
         dailyCalls:
-          description: "maximum number of daily calls that this version can perform."
+          description: Maximum number of daily calls that this version can perform
           type: integer
           format: int32
           minimum: 1
