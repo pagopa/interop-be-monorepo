@@ -19,7 +19,6 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
   agreementStampDateNotFound,
   descriptorNotFound,
