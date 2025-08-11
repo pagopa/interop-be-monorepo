@@ -21,6 +21,7 @@ import {
   addOneEservice,
   delegationService,
 } from "../integrationUtils.js";
+import { eserviceToApiCompactEservice } from "../mockUtils.js";
 
 describe("getConsumerEservices", () => {
   const delegatorId1 = generateId<TenantId>();
@@ -193,13 +194,7 @@ describe("getConsumerEservices", () => {
         getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).toEqual({
-      results: [
-        {
-          name: eservice4.name,
-          id: eservice4.id,
-          producerId: eservice4.producerId,
-        },
-      ],
+      results: [eserviceToApiCompactEservice(eservice4)],
       totalCount: 4,
     });
   });
@@ -216,16 +211,8 @@ describe("getConsumerEservices", () => {
       )
     ).toEqual({
       results: [
-        {
-          name: eservice1.name,
-          id: eservice1.id,
-          producerId: eservice1.producerId,
-        },
-        {
-          name: eservice2.name,
-          id: eservice2.id,
-          producerId: eservice2.producerId,
-        },
+        eserviceToApiCompactEservice(eservice1),
+        eserviceToApiCompactEservice(eservice2),
       ],
       totalCount: 2,
     });
@@ -241,13 +228,7 @@ describe("getConsumerEservices", () => {
         getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).toEqual({
-      results: [
-        {
-          name: eservice4.name,
-          id: eservice4.id,
-          producerId: eservice4.producerId,
-        },
-      ],
+      results: [eserviceToApiCompactEservice(eservice4)],
       totalCount: 1,
     });
   });
