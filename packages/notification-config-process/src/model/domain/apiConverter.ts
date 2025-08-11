@@ -7,7 +7,12 @@ import {
 export function tenantNotificationConfigToApiTenantNotificationConfig({
   id,
   tenantId,
-  config: { newEServiceVersionPublished, ...rest },
+  config: {
+    newEServiceVersionPublishedToConsumer,
+    agreementSuspendedUnsuspendedToProducer,
+    agreementSuspendedUnsuspendedToConsumer,
+    ...rest
+  },
   createdAt,
   updatedAt,
 }: TenantNotificationConfig): notificationConfigApi.TenantNotificationConfig {
@@ -16,7 +21,9 @@ export function tenantNotificationConfigToApiTenantNotificationConfig({
     id,
     tenantId,
     config: {
-      newEServiceVersionPublished,
+      newEServiceVersionPublishedToConsumer,
+      agreementSuspendedUnsuspendedToProducer,
+      agreementSuspendedUnsuspendedToConsumer,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),
@@ -28,11 +35,19 @@ export function userNotificationConfigToApiUserNotificationConfig({
   userId,
   tenantId,
   inAppConfig: {
-    newEServiceVersionPublished: newEServiceVersionPublishedInApp,
+    newEServiceVersionPublishedToConsumer: newEServiceVersionPublishedInApp,
+    agreementSuspendedUnsuspendedToProducer:
+      agreementSuspendedUnsuspendedToProducerInApp,
+    agreementSuspendedUnsuspendedToConsumer:
+      agreementSuspendedUnsuspendedToConsumerInApp,
     ...inAppRest
   },
   emailConfig: {
-    newEServiceVersionPublished: newEServiceVersionPublishedEmail,
+    newEServiceVersionPublishedToConsumer: newEServiceVersionPublishedEmail,
+    agreementSuspendedUnsuspendedToProducer:
+      agreementSuspendedUnsuspendedToProducerEmail,
+    agreementSuspendedUnsuspendedToConsumer:
+      agreementSuspendedUnsuspendedToConsumerEmail,
     ...emailRest
   },
   createdAt,
@@ -45,10 +60,18 @@ export function userNotificationConfigToApiUserNotificationConfig({
     userId,
     tenantId,
     inAppConfig: {
-      newEServiceVersionPublished: newEServiceVersionPublishedInApp,
+      newEServiceVersionPublishedToConsumer: newEServiceVersionPublishedInApp,
+      agreementSuspendedUnsuspendedToProducer:
+        agreementSuspendedUnsuspendedToProducerInApp,
+      agreementSuspendedUnsuspendedToConsumer:
+        agreementSuspendedUnsuspendedToConsumerInApp,
     },
     emailConfig: {
-      newEServiceVersionPublished: newEServiceVersionPublishedEmail,
+      newEServiceVersionPublishedToConsumer: newEServiceVersionPublishedEmail,
+      agreementSuspendedUnsuspendedToProducer:
+        agreementSuspendedUnsuspendedToProducerEmail,
+      agreementSuspendedUnsuspendedToConsumer:
+        agreementSuspendedUnsuspendedToConsumerEmail,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),

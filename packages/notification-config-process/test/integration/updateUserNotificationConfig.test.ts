@@ -34,8 +34,15 @@ describe("updateUserNotificationConfig", () => {
   const userNotificationConfigSeed: notificationConfigApi.UserNotificationConfigUpdateSeed =
     {
       inAppConfig: {
-        newEServiceVersionPublished:
-          !userNotificationConfig.inAppConfig.newEServiceVersionPublished,
+        newEServiceVersionPublishedToConsumer:
+          !userNotificationConfig.inAppConfig
+            .newEServiceVersionPublishedToConsumer,
+        agreementSuspendedUnsuspendedToProducer:
+          !userNotificationConfig.inAppConfig
+            .agreementSuspendedUnsuspendedToProducer,
+        agreementSuspendedUnsuspendedToConsumer:
+          !userNotificationConfig.inAppConfig
+            .agreementSuspendedUnsuspendedToConsumer,
       },
       emailConfig: getMockNotificationConfig(),
     };
