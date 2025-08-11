@@ -5944,9 +5944,11 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
     patch:
       tags:
-          - purposes
-      summary: Update Draft Purpose
-      description: Update a Purpose in Draft state. Purpose must have only one version in Draft state
+        - purposes
+      summary: Update a Draft Purpose
+      description: |
+        Update a Purpose in Draft state.
+        Purpose must have a single version, and that version must be in Draft state.
       operationId: updateDraftPurpose
       requestBody:
         content:
@@ -9394,7 +9396,7 @@ components:
     PurposeDraftUpdateSeed:
       type: object
       additionalProperties: false
-      description: Contains the expected payload for purpose update.
+      description: Contains the expected payload for purpose update
       properties:
         title:
           type: string
@@ -9408,6 +9410,7 @@ components:
           type: boolean
         freeOfChargeReason:
           type: string
+          nullable: true
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
         dailyCalls:
