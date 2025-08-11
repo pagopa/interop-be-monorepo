@@ -24,7 +24,7 @@
     "@types/node": "20.19.9",
     "@types/pg": "8.11.11",
     "prettier": "2.8.8",
-    "@types/supertest": "6.0.2",
+    "@types/supertest": "6.0.3",
     "pagopa-interop-commons-test": "workspace:*",
     "tsx": "4.19.1",
     "supertest": "7.0.0",

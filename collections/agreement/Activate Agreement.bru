@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{host-agreement}}/agreements/:agreementId/activate
-  body: none
+  body: json
   auth: none
 }
 
@@ -17,4 +17,10 @@ params:path {
 headers {
   Authorization: {{JWT}}
   x-correlation-id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "delegationId": "{{delegationId}}"
+  }
 }

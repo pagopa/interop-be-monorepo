@@ -17,6 +17,8 @@ import {
   ClientDbTableReadModel,
   ProducerKeychainDbTableConfig,
   ProducerKeychainDbTableReadModel,
+  ClientDbTablePartialTableConfig,
+  ClientDbTablePartialTableReadModel,
 } from "./authorization.js";
 import {
   DelegationDbTableConfig,
@@ -38,6 +40,7 @@ import {
 export const PartialDbTable = {
   ...TenantDbPartialTableConfig,
   ...CatalogDbPartialTableConfig,
+  ...ClientDbTablePartialTableConfig,
 } as const;
 export type PartialDbTableSchemas = typeof PartialDbTable;
 export type PartialDbTable = keyof PartialDbTableSchemas;
@@ -80,6 +83,7 @@ export type DomainDbTableReadModels = typeof DomainDbTableReadModels;
 export const PartialDbTableReadModels = {
   ...TenantDbPartialTableReadModel,
   ...CatalogDbPartialTableReadModel,
+  ...ClientDbTablePartialTableReadModel,
 } as const;
 export type PartialDbTableReadModels = typeof PartialDbTableReadModels;
 
