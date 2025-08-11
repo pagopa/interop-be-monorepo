@@ -19,7 +19,8 @@ export type AgreementSuspendedUnsuspendedEventType =
   | "AgreementSuspendedByProducer"
   | "AgreementUnsuspendedByProducer"
   | "AgreementSuspendedByPlatform"
-  | "AgreementUnsuspendedByPlatform";
+  | "AgreementUnsuspendedByPlatform"
+  | "AgreementArchivedByConsumer";
 
 type NotificationAudience = "consumer" | "producer";
 type NotificationConfig =
@@ -36,7 +37,7 @@ export async function handleAgreementSuspendedUnsuspended(
     throw missingKafkaMessageDataError("agreement", eventType);
   }
   logger.info(
-    `Handle agreement suspended/unsuspended in-app notification for ${eventType} agreement ${agreementV2Msg.id}`
+    `Handle agreement suspended/unsuspended/archived in-app notification for ${eventType} agreement ${agreementV2Msg.id}`
   );
 
   const agreement = fromAgreementV2(agreementV2Msg);
@@ -61,7 +62,8 @@ export async function handleAgreementSuspendedUnsuspended(
     getSubjectName(agreement, eventType, readModelService),
   ]);
 
-  const action: "sospeso" | "riattivato" = getActionPerformed(eventType);
+  const action: "sospeso" | "riattivato" | "archiviato" =
+    getActionPerformed(eventType);
   const body = inAppTemplates.agreementSuspendedUnsuspended(
     action,
     subjectName,
@@ -96,6 +98,7 @@ async function getSubjectName(
     .with(
       "AgreementSuspendedByConsumer",
       "AgreementUnsuspendedByConsumer",
+      "AgreementArchivedByConsumer",
       () => getTenantName(agreement.consumerId)
     )
     .with(
@@ -123,15 +126,16 @@ function getAudiencesToNotify(
     .with("AgreementUnsuspendedByProducer", () => ["consumer"])
     .with("AgreementSuspendedByPlatform", () => ["consumer", "producer"])
     .with("AgreementUnsuspendedByPlatform", () => ["consumer", "producer"])
+    .with("AgreementArchivedByConsumer", () => ["producer"])
     .exhaustive();
 }
 
 function getActionPerformed(
   eventType: AgreementSuspendedUnsuspendedEventType
-): "sospeso" | "riattivato" {
+): "sospeso" | "riattivato" | "archiviato" {
   return match<
     AgreementSuspendedUnsuspendedEventType,
-    "sospeso" | "riattivato"
+    "sospeso" | "riattivato" | "archiviato"
   >(eventType)
     .with(
       "AgreementSuspendedByConsumer",
@@ -145,6 +149,7 @@ function getActionPerformed(
       "AgreementUnsuspendedByPlatform",
       () => "riattivato"
     )
+    .with("AgreementArchivedByConsumer", () => "archiviato")
     .exhaustive();
 }
 

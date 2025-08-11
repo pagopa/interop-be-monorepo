@@ -20,7 +20,8 @@ export async function handleAgreementEvent(
         { type: "AgreementSuspendedByProducer" },
         { type: "AgreementUnsuspendedByProducer" },
         { type: "AgreementSuspendedByPlatform" },
-        { type: "AgreementUnsuspendedByPlatform" }
+        { type: "AgreementUnsuspendedByPlatform" },
+        { type: "AgreementArchivedByConsumer" }
       ),
       ({ data: { agreement }, type }) =>
         handleAgreementSuspendedUnsuspended(
@@ -39,7 +40,6 @@ export async function handleAgreementEvent(
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
-          "AgreementArchivedByConsumer",
           "AgreementArchivedByUpgrade",
           "AgreementUpgraded",
           "AgreementConsumerDocumentAdded",
