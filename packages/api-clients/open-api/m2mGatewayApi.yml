@@ -7031,7 +7031,7 @@ paths:
         required: true
       responses:
         "201":
-          description: reverse Purpose created
+          description: Reverse Purpose created
           content:
             application/json:
               schema:
