@@ -421,7 +421,7 @@ paths:
       tags:
         - purpose
       operationId: patchUpdatePurpose
-      description: Updates a Purpose if not yet activated
+      description: Partially update a Purpose if not yet activated
       requestBody:
         content:
           application/json:
