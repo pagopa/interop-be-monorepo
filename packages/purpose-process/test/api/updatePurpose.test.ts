@@ -12,6 +12,7 @@ import {
   generateToken,
   getMockPurpose,
   getMockValidRiskAnalysis,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -48,9 +49,10 @@ describe("API POST /purposes/{purposeId} test", () => {
   );
 
   beforeEach(() => {
-    purposeService.updatePurpose = vi
-      .fn()
-      .mockResolvedValue({ purpose: mockPurpose, isRiskAnalysisValid });
+    purposeService.updatePurpose = vi.fn().mockResolvedValue({
+      purpose: getMockWithMetadata(mockPurpose),
+      isRiskAnalysisValid,
+    });
   });
 
   const makeRequest = async (
