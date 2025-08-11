@@ -262,7 +262,7 @@ const purposeRouter = (
         const {
           data: { purpose, isRiskAnalysisValid },
           metadata,
-        } = await purposeService.PATCH_updatePurpose(
+        } = await purposeService.patchUpdatePurpose(
           unsafeBrandId(req.params.id),
           req.body,
           ctx

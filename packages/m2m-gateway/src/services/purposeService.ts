@@ -565,7 +565,7 @@ export function purposeServiceBuilder(
       logger.info(`Updating draft purpose with id ${purposeId}`);
 
       const updatedPurpose =
-        await clients.purposeProcessClient.PATCH_updatePurpose(updateSeed, {
+        await clients.purposeProcessClient.patchUpdatePurpose(updateSeed, {
           params: { id: purposeId },
           headers,
         });

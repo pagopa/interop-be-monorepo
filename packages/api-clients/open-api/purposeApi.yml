@@ -420,13 +420,13 @@ paths:
         - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
         - purpose
-      operationId: PATCH_updatePurpose
+      operationId: patchUpdatePurpose
       description: Updates a Purpose if not yet activated
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PATCH_PurposeUpdateContent"
+              $ref: "#/components/schemas/PatchPurposeUpdateContent"
         required: true
       responses:
         "200":
@@ -1231,7 +1231,7 @@ components:
         - description
         - isFreeOfCharge
         - dailyCalls
-    PATCH_PurposeUpdateContent:
+    PatchPurposeUpdateContent:
       type: object
       additionalProperties: false
       description: Contains the expected payload for purpose update

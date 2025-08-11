@@ -455,9 +455,9 @@ export function purposeServiceBuilder(
         repository
       );
     },
-    async PATCH_updatePurpose(
+    async patchUpdatePurpose(
       purposeId: PurposeId,
-      purposeUpdateContent: purposeApi.PATCH_PurposeUpdateContent,
+      purposeUpdateContent: purposeApi.PatchPurposeUpdateContent,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<
       WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
@@ -1602,7 +1602,7 @@ const performUpdatePurpose = async (
         mode: "Deliver";
         updateContent:
           | purposeApi.PurposeUpdateContent
-          | purposeApi.PATCH_PurposeUpdateContent;
+          | purposeApi.PatchPurposeUpdateContent;
       }
     | {
         mode: "Receive";
