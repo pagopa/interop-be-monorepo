@@ -14,7 +14,7 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { config } from "../src/config/config.js";
-import { handleEserviceStatusChangedToConsumer } from "../src/handlers/eservices/handleEserviceStatusChangedToConsumer.js";
+import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
 import { tenantNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
@@ -35,14 +35,14 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
 
   it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
     await expect(() =>
-      handleEserviceStatusChangedToConsumer(undefined, logger, readModelService)
+      handleEserviceStateChangedToConsumer(undefined, logger, readModelService)
     ).rejects.toThrow(
       missingKafkaMessageDataError("eservice", "EServiceDescriptorPublished")
     );
   });
 
   it("should return empty array when no agreements exist for the eservice", async () => {
-    const notifications = await handleEserviceStatusChangedToConsumer(
+    const notifications = await handleEserviceStateChangedToConsumer(
       toEServiceV2(eservice),
       logger,
       readModelService
@@ -60,7 +60,7 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleEserviceStatusChangedToConsumer(
+      handleEserviceStateChangedToConsumer(
         toEServiceV2(eservice),
         logger,
         readModelService
@@ -104,7 +104,7 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
         .fn()
         .mockResolvedValue(users);
 
-      const notifications = await handleEserviceStatusChangedToConsumer(
+      const notifications = await handleEserviceStateChangedToConsumer(
         toEServiceV2(eservice),
         logger,
         readModelService
@@ -148,7 +148,7 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
       .fn()
       .mockResolvedValue([]);
 
-    const notifications = await handleEserviceStatusChangedToConsumer(
+    const notifications = await handleEserviceStateChangedToConsumer(
       toEServiceV2(eservice),
       logger,
       readModelService

@@ -26,7 +26,7 @@ export async function handleEserviceStateChangedToConsumer(
     );
   }
   logger.info(
-    `Sending in-app notification for handleEserviceStatusChangedToConsumer ${eserviceV2Msg.id}`
+    `Sending in-app notification for handleEserviceStateChangedToConsumer ${eserviceV2Msg.id}`
   );
 
   const eservice = fromEServiceV2(eserviceV2Msg);
