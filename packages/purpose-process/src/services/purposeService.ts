@@ -1655,7 +1655,7 @@ const performUpdatePurpose = async (
   );
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
-    mode === eserviceMode.deliver
+    mode === eserviceMode.deliver && updateContent.riskAnalysisForm
       ? validateAndTransformRiskAnalysis(
           updateContent.riskAnalysisForm,
           true,
