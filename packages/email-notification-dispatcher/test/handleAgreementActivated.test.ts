@@ -19,6 +19,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
   agreementStampDateNotFound,
   descriptorNotFound,
@@ -316,7 +317,7 @@ describe("handleAgreementActivated", async () => {
     expect(messages.length).toEqual(2);
   });
 
-  it("should generate a message that correctly imports the specified header and footer", async () => {
+  it("should generate a complete and correct message", async () => {
     const descriptor = getMockDescriptor();
     const eservice = {
       ...getMockEService(),
@@ -339,9 +340,12 @@ describe("handleAgreementActivated", async () => {
       .mockReturnValueOnce([{ userId: user.userId, tenantId: user.tenantId }]);
     userService.readUser.mockImplementation((_) => user);
 
+    const activationDate = new Date();
     const agreement = {
       ...getMockAgreement(),
-      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      stamps: {
+        activation: { when: activationDate, who: generateId<UserId>() },
+      },
       producerId: producerTenant.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
@@ -358,17 +362,21 @@ describe("handleAgreementActivated", async () => {
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages.length).toBe(1);
+    expect(messages.length).toBe(2);
     expect(messages[0].address).toBe(user.email);
-    expect(messages[0].email.body).toContain("<!-- Title & Main Message -->");
-    expect(messages[0].email.body).toContain("<!-- Footer -->");
-    expect(messages[0].email.body).toContain(`Nuova richiesta di fruizione`);
-    expect(messages[0].email.body).toContain(
-      `https://${interopFeBaseUrl}/ui/it/fruizione/richieste/${agreement.id}`
-    );
-    expect(messages[0].email.body).toContain(producerTenant.name);
-    expect(messages[0].email.body).toContain(consumerTenant.name);
-    expect(messages[0].email.body).toContain(eservice.name);
-    expect(messages[0].email.body).toContain(descriptor.version);
+    expect(messages[1].address).toBe(consumerTenant.mails[0].address);
+    messages.forEach((message) => {
+      expect(message.email.body).toContain("<!-- Footer -->");
+      expect(message.email.body).toContain("<!-- Title & Main Message -->");
+      expect(message.email.body).toContain(`Nuova richiesta di fruizione`);
+      expect(message.email.body).toContain(
+        `https://${interopFeBaseUrl}/ui/it/fruizione/richieste/${agreement.id}`
+      );
+      expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(consumerTenant.name);
+      expect(message.email.body).toContain(eservice.name);
+      expect(message.email.body).toContain(descriptor.version);
+      // expect(message.email.body).toContain(dateAtRomeZone(activationDate));
+    });
   });
 });
