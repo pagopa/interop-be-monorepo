@@ -1647,10 +1647,6 @@ const performUpdatePurpose = async (
     readModelService
   );
   assertEserviceMode(eservice, mode);
-  assertConsistentFreeOfCharge(
-    updateContent.isFreeOfCharge,
-    updateContent.freeOfChargeReason
-  );
 
   const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
     eservice,
@@ -1685,6 +1681,11 @@ const performUpdatePurpose = async (
     updatedAt: new Date(),
     riskAnalysisForm: newRiskAnalysis,
   };
+
+  assertConsistentFreeOfCharge(
+    updatedPurpose.isFreeOfCharge,
+    updatedPurpose.freeOfChargeReason
+  );
 
   const event = toCreateEventDraftPurposeUpdated({
     purpose: updatedPurpose,
