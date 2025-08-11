@@ -6,6 +6,7 @@ import { P, match } from "ts-pattern";
 import { config } from "../../config/config.js";
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleAgreementActivated } from "./handleAgreementActivated.js";
+import { handleAgreementRejected } from "./handleAgreementRejected.js";
 
 const interopFeBaseUrl = config.interopFeBaseUrl;
 
@@ -32,11 +33,21 @@ export async function handleAgreementEvent(
         correlationId,
       })
     )
+    .with({ type: "AgreementRejected" }, ({ data: { agreement } }) =>
+      handleAgreementRejected({
+        agreementV2Msg: agreement,
+        interopFeBaseUrl,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
     .with(
       {
         type: P.union(
           "AgreementSubmitted",
-          "AgreementRejected",
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
