@@ -34,7 +34,7 @@ import {
 import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
-import { assertActiveConsumerDelegateForEservice } from "../utils/validators/validators.js";
+import { assertActiveConsumerDelegateForEservice } from "../utils/validators/delegationValidators.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 

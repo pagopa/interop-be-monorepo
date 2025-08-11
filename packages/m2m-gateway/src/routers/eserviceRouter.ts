@@ -321,6 +321,63 @@ const eserviceRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/approve",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const eserviceDescriptor =
+            await eserviceService.approveDelegatedEServiceDescriptor(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceDescriptor.parse(eserviceDescriptor));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error approving descriptor with ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/reject",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const eserviceDescriptor =
+            await eserviceService.rejectDelegatedEServiceDescriptor(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceDescriptor.parse(eserviceDescriptor));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error rejecting descriptor ${req.params.descriptorId} for delegated eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
   return eserviceRouter;
 };
