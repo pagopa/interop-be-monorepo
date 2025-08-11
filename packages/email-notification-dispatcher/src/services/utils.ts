@@ -26,7 +26,7 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 export const eventMailTemplateType = {
   agreementActivatedMailTemplate: "agreement-activated-mail",
   // agreementSubmittedMailTemplate: "agreement-submitted-mail",
-  // agreementRejectedMailTemplate: "agreement-rejected-mail",
+  agreementRejectedMailTemplate: "agreement-rejected-mail",
   // newPurposeVersionWaitingForApprovalMailTemplate:
   //   "new-purpose-version-waiting-for-approval-mail",
   // firstPurposeVersionRejectedMailTemplate:

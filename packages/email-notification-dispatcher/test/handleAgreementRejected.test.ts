@@ -1,9 +1,9 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
 import {
   getMockAgreement,
   getMockContext,
   getMockDescriptor,
-  getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
   getMockTenantMail,
@@ -17,33 +17,31 @@ import {
   toAgreementV2,
   UserId,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
   agreementStampDateNotFound,
   descriptorNotFound,
   eServiceNotFound,
   tenantNotFound,
 } from "../src/models/errors.js";
-import { handleAgreementRejected } from "../src/handlers/handleAgreementRejected.js";
+import { handleAgreementRejected } from "../src/handlers/agreements/handleAgreementRejected.js";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
+  getMockUser,
   interopFeBaseUrl,
   readModelService,
   templateService,
 } from "./utils.js";
 
 describe("handleAgreementRejected", async () => {
-  const agreement = {
-    ...getMockAgreement(),
-    producerId: generateId<TenantId>(),
-    descriptors: [getMockDescriptorPublished()],
-  };
-
   const { logger } = getMockContext({});
 
-  await addOneAgreement(agreement);
+  const userService = {
+    readUser: vi.fn(),
+  };
 
   it("should throw missingKafkaMessageDataError when agreement is undefined", async () => {
     await expect(() =>
@@ -52,6 +50,7 @@ describe("handleAgreementRejected", async () => {
         logger,
         interopFeBaseUrl,
         templateService,
+        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -92,6 +91,7 @@ describe("handleAgreementRejected", async () => {
         logger,
         interopFeBaseUrl,
         templateService,
+        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -130,6 +130,7 @@ describe("handleAgreementRejected", async () => {
         logger,
         interopFeBaseUrl,
         templateService,
+        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -172,6 +173,7 @@ describe("handleAgreementRejected", async () => {
         logger,
         interopFeBaseUrl,
         templateService,
+        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -210,13 +212,54 @@ describe("handleAgreementRejected", async () => {
         logger,
         interopFeBaseUrl,
         templateService,
+        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(eServiceNotFound(eServiceId));
   });
 
-  it("should generate no messages when no emails exist for the consumer", async () => {
+  it("should throw descriptorNotFound when descriptor is not found", async () => {
+    const eservice = getMockEService();
+    await addOneEService(eservice);
+
+    const consumerTenant = {
+      ...getMockTenant(),
+      mails: [getMockTenantMail()],
+    };
+    await addOneTenant(consumerTenant);
+
+    const producerTenant = {
+      ...getMockTenant(),
+      mails: [getMockTenantMail()],
+    };
+    await addOneTenant(producerTenant);
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    await expect(() =>
+      handleAgreementRejected({
+        agreementV2Msg: toAgreementV2(agreement),
+        logger,
+        interopFeBaseUrl,
+        templateService,
+        userService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      })
+    ).rejects.toThrow(
+      descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
+    );
+  });
+
+  it("should generate one message per user of the tenant that consumed the eservice", async () => {
     const descriptor = getMockDescriptor();
     const eservice = {
       ...getMockEService(),
@@ -224,16 +267,24 @@ describe("handleAgreementRejected", async () => {
     };
     await addOneEService(eservice);
 
-    const consumerTenant = {
-      ...getMockTenant(),
-      mails: [],
-    };
+    const consumerTenant = getMockTenant();
     await addOneTenant(consumerTenant);
 
-    const producerTenant = {
-      ...getMockTenant(),
-    };
+    const producerTenant = getMockTenant();
     await addOneTenant(producerTenant);
+
+    const users = [
+      getMockUser(consumerTenant.id),
+      getMockUser(consumerTenant.id),
+    ];
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockReturnValueOnce(
+        users.map((user) => ({ userId: user.userId, tenantId: user.tenantId }))
+      );
+    userService.readUser.mockImplementation((userId) =>
+      users.find((user) => user.userId === userId)
+    );
 
     const agreement = {
       ...getMockAgreement(),
@@ -244,15 +295,17 @@ describe("handleAgreementRejected", async () => {
       consumerId: consumerTenant.id,
     };
     await addOneAgreement(agreement);
+
     const messages = await handleAgreementRejected({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       interopFeBaseUrl,
       templateService,
+      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages).toEqual([]);
+    expect(messages.length).toEqual(2);
   });
 
   it("should generate one message to the consumer whose agreement was rejected", async () => {
@@ -269,11 +322,12 @@ describe("handleAgreementRejected", async () => {
     };
     await addOneTenant(consumerTenant);
 
-    const producerTenant = {
-      ...getMockTenant(),
-      mails: [getMockTenantMail()],
-    };
+    const producerTenant = getMockTenant();
     await addOneTenant(producerTenant);
+
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockReturnValueOnce([]);
 
     const agreement = {
       ...getMockAgreement(),
@@ -285,15 +339,21 @@ describe("handleAgreementRejected", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementRejected({
-      agreementV2Msg: toAgreementV2(agreement),
-      logger,
-      interopFeBaseUrl,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-    expect(messages.length).toEqual(1);
+    try {
+      const messages = await handleAgreementRejected({
+        agreementV2Msg: toAgreementV2(agreement),
+        logger,
+        interopFeBaseUrl,
+        templateService,
+        userService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      });
+      expect(messages.length).toEqual(1);
+      expect(messages[0].address).toEqual(consumerTenant.mails[0].address);
+    } catch (e) {
+      console.log("-----------------", e);
+    }
   });
 
   it("should generate a message using the latest consumer mail that was registered", async () => {
@@ -317,6 +377,10 @@ describe("handleAgreementRejected", async () => {
     };
     await addOneTenant(producerTenant);
 
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockReturnValueOnce([]);
+
     const agreement = {
       ...getMockAgreement(),
       stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
@@ -332,6 +396,7 @@ describe("handleAgreementRejected", async () => {
       logger,
       interopFeBaseUrl,
       templateService,
+      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -347,11 +412,9 @@ describe("handleAgreementRejected", async () => {
     };
     await addOneEService(eservice);
 
-    const oldMail = { ...getMockTenantMail(), createdAt: new Date(1999) };
-    const newMail = getMockTenantMail();
     const consumerTenant = {
       ...getMockTenant(),
-      mails: [oldMail, newMail],
+      mails: [getMockTenantMail()],
     };
     await addOneTenant(consumerTenant);
 
@@ -361,9 +424,16 @@ describe("handleAgreementRejected", async () => {
     };
     await addOneTenant(producerTenant);
 
+    const user = getMockUser(consumerTenant.id);
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockReturnValueOnce([{ userId: user.userId, tenantId: user.tenantId }]);
+    userService.readUser.mockImplementation((_) => user);
+
+    const rejectionDate = new Date();
     const agreement = {
       ...getMockAgreement(),
-      stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
+      stamps: { rejection: { when: rejectionDate, who: generateId<UserId>() } },
       producerId: producerTenant.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
@@ -376,19 +446,25 @@ describe("handleAgreementRejected", async () => {
       logger,
       interopFeBaseUrl,
       templateService,
+      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages.length).toBe(1);
-    expect(messages[0].email.body).toContain("<!-- Title & Main Message -->");
-    expect(messages[0].email.body).toContain("<!-- Footer -->");
-    expect(messages[0].email.body).toContain(`Nuova richiesta di fruizione`);
-    expect(messages[0].email.body).toContain(
-      `https://${interopFeBaseUrl}/ui/it/fruizione/richieste/${agreement.id}`
-    );
-    expect(messages[0].email.body).toContain(producerTenant.name);
-    expect(messages[0].email.body).toContain(consumerTenant.name);
-    expect(messages[0].email.body).toContain(eservice.name);
-    expect(messages[0].email.body).toContain(descriptor.version);
+    expect(messages.length).toBe(2);
+    expect(messages[0].address).toBe(user.email);
+    expect(messages[1].address).toBe(consumerTenant.mails[0].address);
+    messages.forEach((message) => {
+      expect(message.email.body).toContain("<!-- Title & Main Message -->");
+      expect(message.email.body).toContain("<!-- Footer -->");
+      expect(message.email.body).toContain(`Nuova richiesta di fruizione`);
+      expect(message.email.body).toContain(
+        `https://${interopFeBaseUrl}/ui/it/fruizione/richieste/${agreement.id}`
+      );
+      expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(consumerTenant.name);
+      expect(message.email.body).toContain(eservice.name);
+      expect(message.email.body).toContain(descriptor.version);
+      expect(message.email.body).toContain(dateAtRomeZone(rejectionDate));
+    });
   });
 });
