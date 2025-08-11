@@ -8,7 +8,7 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   assertMetadataExists,
   assertTargetMetadataExists,
-} from "./validators/validators.js";
+} from "./validators/metadataValidators.js";
 
 /**
  * Generic polling function that polls a fetch call of a resource with metadata
