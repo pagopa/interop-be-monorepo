@@ -14,7 +14,6 @@ import {
   fromAgreementV2,
   tenantMailKind,
 } from "pagopa-interop-models";
-import { UserDB } from "pagopa-interop-selfcare-user-db-models";
 import {
   eventMailTemplateType,
   getFormattedAgreementStampDate,
@@ -25,6 +24,7 @@ import {
 } from "../../services/utils.js";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { UserServiceSQL } from "../../services/userServiceSQL.js";
+import { getUserEmailsToNotify } from "../handlerCommons.js";
 
 export type AgreementActivatedData = {
   agreementV2Msg?: AgreementV2;
@@ -67,28 +67,18 @@ export async function handleAgreementActivated(
     tenantMailKind.ContactEmail
   );
 
-  const tenantUsers =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [consumer.id],
-      "agreementActivatedRejectedToConsumer"
-    );
-
-  let usersToNotify: UserDB[] = [];
+  let userEmails: string[] = [];
   try {
-    const userResults = await Promise.all(
-      tenantUsers
-        .map((config) => config.userId)
-        .map((userId) => userService.readUser(userId))
-    );
-    usersToNotify = userResults.filter(
-      (userResult): userResult is UserDB => userResult !== undefined
+    userEmails = await getUserEmailsToNotify(
+      consumer.id,
+      readModelService,
+      userService
     );
   } catch (error) {
     logger.warn(`Error reading user email. Reason: ${error}`);
     return [];
   }
 
-  const userEmails = usersToNotify.map((user) => user.email);
   const activationDate = getFormattedAgreementStampDate(
     agreement,
     "activation"
