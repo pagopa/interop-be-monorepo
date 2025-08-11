@@ -49,8 +49,8 @@ export const aggregateTenantNotificationConfig = ({
     agreementSuspendedUnsuspendedToConsumer: enabledNotifications.includes(
       "agreementSuspendedUnsuspendedToConsumer"
     ),
-    eserviceStatusChangedToConsumer: enabledNotifications.includes(
-      "eserviceStatusChangedToConsumer"
+    eserviceStateChangedToConsumer: enabledNotifications.includes(
+      "eserviceStateChangedToConsumer"
     ),
     agreementActivatedRejectedToConsumer: enabledNotifications.includes(
       "agreementActivatedRejectedToConsumer"
@@ -89,8 +89,8 @@ export const aggregateTenantNotificationConfig = ({
       enabledNotifications.includes(
         "certifiedVerifiedAttributeAssignedRevokedToAssignee"
       ),
-    clientKeyStatusChangedToClientUsers: enabledNotifications.includes(
-      "clientKeyStatusChangedToClientUsers"
+    clientKeyAddedDeletedToClientUsers: enabledNotifications.includes(
+      "clientKeyAddedDeletedToClientUsers"
     ),
   };
 
@@ -148,8 +148,8 @@ export const aggregateUserNotificationConfig = ({
     agreementSuspendedUnsuspendedToConsumer: enabledInAppNotifications.includes(
       "agreementSuspendedUnsuspendedToConsumer"
     ),
-    eserviceStatusChangedToConsumer: enabledInAppNotifications.includes(
-      "eserviceStatusChangedToConsumer"
+    eserviceStateChangedToConsumer: enabledInAppNotifications.includes(
+      "eserviceStateChangedToConsumer"
     ),
     agreementActivatedRejectedToConsumer: enabledInAppNotifications.includes(
       "agreementActivatedRejectedToConsumer"
@@ -192,8 +192,8 @@ export const aggregateUserNotificationConfig = ({
       enabledInAppNotifications.includes(
         "certifiedVerifiedAttributeAssignedRevokedToAssignee"
       ),
-    clientKeyStatusChangedToClientUsers: enabledInAppNotifications.includes(
-      "clientKeyStatusChangedToClientUsers"
+    clientKeyAddedDeletedToClientUsers: enabledInAppNotifications.includes(
+      "clientKeyAddedDeletedToClientUsers"
     ),
   };
   const emailConfig: NotificationConfig = {
@@ -215,8 +215,8 @@ export const aggregateUserNotificationConfig = ({
     agreementSuspendedUnsuspendedToConsumer: enabledEmailNotifications.includes(
       "agreementSuspendedUnsuspendedToConsumer"
     ),
-    eserviceStatusChangedToConsumer: enabledEmailNotifications.includes(
-      "eserviceStatusChangedToConsumer"
+    eserviceStateChangedToConsumer: enabledEmailNotifications.includes(
+      "eserviceStateChangedToConsumer"
     ),
     agreementActivatedRejectedToConsumer: enabledEmailNotifications.includes(
       "agreementActivatedRejectedToConsumer"
@@ -259,8 +259,8 @@ export const aggregateUserNotificationConfig = ({
       enabledEmailNotifications.includes(
         "certifiedVerifiedAttributeAssignedRevokedToAssignee"
       ),
-    clientKeyStatusChangedToClientUsers: enabledEmailNotifications.includes(
-      "clientKeyStatusChangedToClientUsers"
+    clientKeyAddedDeletedToClientUsers: enabledEmailNotifications.includes(
+      "clientKeyAddedDeletedToClientUsers"
     ),
   };
 

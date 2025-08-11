@@ -43,8 +43,8 @@ describe("updateTenantNotificationConfig", () => {
       agreementSuspendedUnsuspendedToConsumer:
         !tenantNotificationConfig.config
           .agreementSuspendedUnsuspendedToConsumer,
-      eserviceStatusChangedToConsumer:
-        !tenantNotificationConfig.config.eserviceStatusChangedToConsumer,
+      eserviceStateChangedToConsumer:
+        !tenantNotificationConfig.config.eserviceStateChangedToConsumer,
       agreementActivatedRejectedToConsumer:
         !tenantNotificationConfig.config.agreementActivatedRejectedToConsumer,
       purposeVersionOverQuotaToConsumer:
@@ -74,8 +74,8 @@ describe("updateTenantNotificationConfig", () => {
       certifiedVerifiedAttributeAssignedRevokedToAssignee:
         !tenantNotificationConfig.config
           .certifiedVerifiedAttributeAssignedRevokedToAssignee,
-      clientKeyStatusChangedToClientUsers:
-        !tenantNotificationConfig.config.clientKeyStatusChangedToClientUsers,
+      clientKeyAddedDeletedToClientUsers:
+        !tenantNotificationConfig.config.clientKeyAddedDeletedToClientUsers,
     };
 
   beforeAll(async () => {

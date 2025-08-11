@@ -14,7 +14,7 @@ export function tenantNotificationConfigToApiTenantNotificationConfig({
     purposeStatusChangedToProducer,
     templateStatusChangedToProducer,
     agreementSuspendedUnsuspendedToConsumer,
-    eserviceStatusChangedToConsumer,
+    eserviceStateChangedToConsumer,
     agreementActivatedRejectedToConsumer,
     purposeVersionOverQuotaToConsumer,
     purposeActivatedRejectedToConsumer,
@@ -27,7 +27,7 @@ export function tenantNotificationConfigToApiTenantNotificationConfig({
     eserviceNewVersionApprovedRejectedToDelegate,
     delegationSubmittedRevokedToDelegate,
     certifiedVerifiedAttributeAssignedRevokedToAssignee,
-    clientKeyStatusChangedToClientUsers,
+    clientKeyAddedDeletedToClientUsers,
   },
   createdAt,
   updatedAt,
@@ -43,7 +43,7 @@ export function tenantNotificationConfigToApiTenantNotificationConfig({
       purposeStatusChangedToProducer,
       templateStatusChangedToProducer,
       agreementSuspendedUnsuspendedToConsumer,
-      eserviceStatusChangedToConsumer,
+      eserviceStateChangedToConsumer,
       agreementActivatedRejectedToConsumer,
       purposeVersionOverQuotaToConsumer,
       purposeActivatedRejectedToConsumer,
@@ -56,7 +56,7 @@ export function tenantNotificationConfigToApiTenantNotificationConfig({
       eserviceNewVersionApprovedRejectedToDelegate,
       delegationSubmittedRevokedToDelegate,
       certifiedVerifiedAttributeAssignedRevokedToAssignee,
-      clientKeyStatusChangedToClientUsers,
+      clientKeyAddedDeletedToClientUsers,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),
@@ -76,7 +76,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
     templateStatusChangedToProducer: templateStatusChangedToProducerInApp,
     agreementSuspendedUnsuspendedToConsumer:
       agreementSuspendedUnsuspendedToConsumerInApp,
-    eserviceStatusChangedToConsumer: eserviceStatusChangedToConsumerInApp,
+    eserviceStateChangedToConsumer: eserviceStateChangedToConsumerInApp,
     agreementActivatedRejectedToConsumer:
       agreementActivatedRejectedToConsumerInApp,
     purposeVersionOverQuotaToConsumer: purposeVersionOverQuotaToConsumerInApp,
@@ -99,8 +99,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
       delegationSubmittedRevokedToDelegateInApp,
     certifiedVerifiedAttributeAssignedRevokedToAssignee:
       certifiedVerifiedAttributeAssignedRevokedToAssigneeInApp,
-    clientKeyStatusChangedToClientUsers:
-      clientKeyStatusChangedToClientUsersInApp,
+    clientKeyAddedDeletedToClientUsers: clientKeyAddedDeletedToClientUsersInApp,
   },
   emailConfig: {
     agreementSuspendedUnsuspendedToProducer:
@@ -111,7 +110,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
     templateStatusChangedToProducer: templateStatusChangedToProducerEmail,
     agreementSuspendedUnsuspendedToConsumer:
       agreementSuspendedUnsuspendedToConsumerEmail,
-    eserviceStatusChangedToConsumer: eserviceStatusChangedToConsumerEmail,
+    eserviceStateChangedToConsumer: eserviceStateChangedToConsumerEmail,
     agreementActivatedRejectedToConsumer:
       agreementActivatedRejectedToConsumerEmail,
     purposeVersionOverQuotaToConsumer: purposeVersionOverQuotaToConsumerEmail,
@@ -134,8 +133,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
       delegationSubmittedRevokedToDelegateEmail,
     certifiedVerifiedAttributeAssignedRevokedToAssignee:
       certifiedVerifiedAttributeAssignedRevokedToAssigneeEmail,
-    clientKeyStatusChangedToClientUsers:
-      clientKeyStatusChangedToClientUsersEmail,
+    clientKeyAddedDeletedToClientUsers: clientKeyAddedDeletedToClientUsersEmail,
   },
   createdAt,
   updatedAt,
@@ -154,7 +152,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
       templateStatusChangedToProducer: templateStatusChangedToProducerInApp,
       agreementSuspendedUnsuspendedToConsumer:
         agreementSuspendedUnsuspendedToConsumerInApp,
-      eserviceStatusChangedToConsumer: eserviceStatusChangedToConsumerInApp,
+      eserviceStateChangedToConsumer: eserviceStateChangedToConsumerInApp,
       agreementActivatedRejectedToConsumer:
         agreementActivatedRejectedToConsumerInApp,
       purposeVersionOverQuotaToConsumer: purposeVersionOverQuotaToConsumerInApp,
@@ -178,8 +176,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
         delegationSubmittedRevokedToDelegateInApp,
       certifiedVerifiedAttributeAssignedRevokedToAssignee:
         certifiedVerifiedAttributeAssignedRevokedToAssigneeInApp,
-      clientKeyStatusChangedToClientUsers:
-        clientKeyStatusChangedToClientUsersInApp,
+      clientKeyAddedDeletedToClientUsers:
+        clientKeyAddedDeletedToClientUsersInApp,
     },
     emailConfig: {
       agreementSuspendedUnsuspendedToProducer:
@@ -190,7 +188,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
       templateStatusChangedToProducer: templateStatusChangedToProducerEmail,
       agreementSuspendedUnsuspendedToConsumer:
         agreementSuspendedUnsuspendedToConsumerEmail,
-      eserviceStatusChangedToConsumer: eserviceStatusChangedToConsumerEmail,
+      eserviceStateChangedToConsumer: eserviceStateChangedToConsumerEmail,
       agreementActivatedRejectedToConsumer:
         agreementActivatedRejectedToConsumerEmail,
       purposeVersionOverQuotaToConsumer: purposeVersionOverQuotaToConsumerEmail,
@@ -214,8 +212,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
         delegationSubmittedRevokedToDelegateEmail,
       certifiedVerifiedAttributeAssignedRevokedToAssignee:
         certifiedVerifiedAttributeAssignedRevokedToAssigneeEmail,
-      clientKeyStatusChangedToClientUsers:
-        clientKeyStatusChangedToClientUsersEmail,
+      clientKeyAddedDeletedToClientUsers:
+        clientKeyAddedDeletedToClientUsersEmail,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),

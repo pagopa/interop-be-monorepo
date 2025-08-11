@@ -29,7 +29,7 @@ describe("createTenantNotificationConfig", () => {
     purposeStatusChangedToProducer: false,
     templateStatusChangedToProducer: false,
     agreementSuspendedUnsuspendedToConsumer: false,
-    eserviceStatusChangedToConsumer: false,
+    eserviceStateChangedToConsumer: false,
     agreementActivatedRejectedToConsumer: false,
     purposeVersionOverQuotaToConsumer: false,
     purposeActivatedRejectedToConsumer: false,
@@ -42,7 +42,7 @@ describe("createTenantNotificationConfig", () => {
     eserviceNewVersionApprovedRejectedToDelegate: false,
     delegationSubmittedRevokedToDelegate: false,
     certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-    clientKeyStatusChangedToClientUsers: false,
+    clientKeyAddedDeletedToClientUsers: false,
   };
 
   beforeAll(async () => {

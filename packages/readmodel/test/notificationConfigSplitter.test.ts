@@ -54,7 +54,7 @@ describe("Notification config splitters", () => {
           "purposeStatusChangedToProducer",
           "templateStatusChangedToProducer",
           "agreementSuspendedUnsuspendedToConsumer",
-          "eserviceStatusChangedToConsumer",
+          "eserviceStateChangedToConsumer",
           "agreementActivatedRejectedToConsumer",
           "purposeVersionOverQuotaToConsumer",
           "purposeActivatedRejectedToConsumer",
@@ -67,7 +67,7 @@ describe("Notification config splitters", () => {
           "eserviceNewVersionApprovedRejectedToDelegate",
           "delegationSubmittedRevokedToDelegate",
           "certifiedVerifiedAttributeAssignedRevokedToAssignee",
-          "clientKeyStatusChangedToClientUsers",
+          "clientKeyAddedDeletedToClientUsers",
         ] as const
       )
         .filter(
@@ -123,7 +123,7 @@ describe("Notification config splitters", () => {
             "purposeStatusChangedToProducer",
             "templateStatusChangedToProducer",
             "agreementSuspendedUnsuspendedToConsumer",
-            "eserviceStatusChangedToConsumer",
+            "eserviceStateChangedToConsumer",
             "agreementActivatedRejectedToConsumer",
             "purposeVersionOverQuotaToConsumer",
             "purposeActivatedRejectedToConsumer",
@@ -136,7 +136,7 @@ describe("Notification config splitters", () => {
             "eserviceNewVersionApprovedRejectedToDelegate",
             "delegationSubmittedRevokedToDelegate",
             "certifiedVerifiedAttributeAssignedRevokedToAssignee",
-            "clientKeyStatusChangedToClientUsers",
+            "clientKeyAddedDeletedToClientUsers",
           ] as const
         )
           .filter(
@@ -157,7 +157,7 @@ describe("Notification config splitters", () => {
             "purposeStatusChangedToProducer",
             "templateStatusChangedToProducer",
             "agreementSuspendedUnsuspendedToConsumer",
-            "eserviceStatusChangedToConsumer",
+            "eserviceStateChangedToConsumer",
             "agreementActivatedRejectedToConsumer",
             "purposeVersionOverQuotaToConsumer",
             "purposeActivatedRejectedToConsumer",
@@ -170,7 +170,7 @@ describe("Notification config splitters", () => {
             "eserviceNewVersionApprovedRejectedToDelegate",
             "delegationSubmittedRevokedToDelegate",
             "certifiedVerifiedAttributeAssignedRevokedToAssignee",
-            "clientKeyStatusChangedToClientUsers",
+            "clientKeyAddedDeletedToClientUsers",
           ] as const
         )
           .filter(

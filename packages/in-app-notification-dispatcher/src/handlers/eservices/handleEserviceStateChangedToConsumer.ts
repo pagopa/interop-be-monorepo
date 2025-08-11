@@ -14,7 +14,7 @@ import {
   retrieveTenant,
 } from "../handlerCommons.js";
 
-export async function handleEserviceStatusChangedToConsumer(
+export async function handleEserviceStateChangedToConsumer(
   eserviceV2Msg: EServiceV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL
@@ -48,10 +48,10 @@ export async function handleEserviceStatusChangedToConsumer(
   const userNotificationConfigs =
     await readModelService.getTenantUsersWithNotificationEnabled(
       consumers.map((consumer) => consumer.id),
-      "eserviceStatusChangedToConsumer"
+      "eserviceStateChangedToConsumer"
     );
 
-  const body = inAppTemplates.eserviceStatusChangedToConsumer(eservice.name);
+  const body = inAppTemplates.eserviceStateChangedToConsumer(eservice.name);
 
   return userNotificationConfigs.map(({ userId, tenantId }) => ({
     id: generateId(),

@@ -16,7 +16,7 @@ export const NotificationConfig = z.object({
 
   // Fruizione (Consumer) notifications
   agreementSuspendedUnsuspendedToConsumer: z.boolean(), // 13: Sospensione o riattivazione richiesta di fruizione
-  eserviceStatusChangedToConsumer: z.boolean(), // 11: Variazione di stato e-service
+  eserviceStateChangedToConsumer: z.boolean(), // 11: Variazione di stato e-service
   agreementActivatedRejectedToConsumer: z.boolean(), // 12: Attivazione o rifiuto richiesta di fruizione
   purposeVersionOverQuotaToConsumer: z.boolean(), // 14: Stato delle soglie di carico
   purposeActivatedRejectedToConsumer: z.boolean(), // 15: Attivazione o rifiuto finalità
@@ -35,7 +35,7 @@ export const NotificationConfig = z.object({
   certifiedVerifiedAttributeAssignedRevokedToAssignee: z.boolean(), // 24: Conferimento o revoca di attributi certificati o verificati
 
   // Chiavi (Keys) notifications
-  clientKeyStatusChangedToClientUsers: z.boolean(), // 25: Variazioni sullo stato delle chiavi collegate ad un client
+  clientKeyAddedDeletedToClientUsers: z.boolean(), // 25: Variazioni sullo stato delle chiavi collegate ad un client
 });
 export type NotificationConfig = z.infer<typeof NotificationConfig>;
 

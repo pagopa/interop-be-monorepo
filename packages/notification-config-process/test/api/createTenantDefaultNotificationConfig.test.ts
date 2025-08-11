@@ -25,7 +25,7 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
     purposeStatusChangedToProducer: false,
     templateStatusChangedToProducer: false,
     agreementSuspendedUnsuspendedToConsumer: false,
-    eserviceStatusChangedToConsumer: false,
+    eserviceStateChangedToConsumer: false,
     agreementActivatedRejectedToConsumer: false,
     purposeVersionOverQuotaToConsumer: false,
     purposeActivatedRejectedToConsumer: false,
@@ -38,7 +38,7 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
     eserviceNewVersionApprovedRejectedToDelegate: false,
     delegationSubmittedRevokedToDelegate: false,
     certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-    clientKeyStatusChangedToClientUsers: false,
+    clientKeyAddedDeletedToClientUsers: false,
   };
   const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigSeed =
     {

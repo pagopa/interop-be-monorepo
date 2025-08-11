@@ -87,7 +87,7 @@ describe("processUserEvent", () => {
         purposeStatusChangedToProducer: false,
         templateStatusChangedToProducer: false,
         agreementSuspendedUnsuspendedToConsumer: false,
-        eserviceStatusChangedToConsumer: false,
+        eserviceStateChangedToConsumer: false,
         agreementActivatedRejectedToConsumer: false,
         purposeVersionOverQuotaToConsumer: false,
         purposeActivatedRejectedToConsumer: false,
@@ -100,7 +100,7 @@ describe("processUserEvent", () => {
         eserviceNewVersionApprovedRejectedToDelegate: false,
         delegationSubmittedRevokedToDelegate: false,
         certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-        clientKeyStatusChangedToClientUsers: false,
+        clientKeyAddedDeletedToClientUsers: false,
       },
       emailConfig: {
         agreementSuspendedUnsuspendedToProducer: false,
@@ -109,7 +109,7 @@ describe("processUserEvent", () => {
         purposeStatusChangedToProducer: false,
         templateStatusChangedToProducer: false,
         agreementSuspendedUnsuspendedToConsumer: false,
-        eserviceStatusChangedToConsumer: false,
+        eserviceStateChangedToConsumer: false,
         agreementActivatedRejectedToConsumer: false,
         purposeVersionOverQuotaToConsumer: false,
         purposeActivatedRejectedToConsumer: false,
@@ -122,7 +122,7 @@ describe("processUserEvent", () => {
         eserviceNewVersionApprovedRejectedToDelegate: false,
         delegationSubmittedRevokedToDelegate: false,
         certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-        clientKeyStatusChangedToClientUsers: false,
+        clientKeyAddedDeletedToClientUsers: false,
       },
     });
 

@@ -31,7 +31,7 @@ describe("createUserNotificationConfig", () => {
     purposeStatusChangedToProducer: false,
     templateStatusChangedToProducer: false,
     agreementSuspendedUnsuspendedToConsumer: false,
-    eserviceStatusChangedToConsumer: false,
+    eserviceStateChangedToConsumer: false,
     agreementActivatedRejectedToConsumer: false,
     purposeVersionOverQuotaToConsumer: false,
     purposeActivatedRejectedToConsumer: false,
@@ -44,7 +44,7 @@ describe("createUserNotificationConfig", () => {
     eserviceNewVersionApprovedRejectedToDelegate: false,
     delegationSubmittedRevokedToDelegate: false,
     certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-    clientKeyStatusChangedToClientUsers: false,
+    clientKeyAddedDeletedToClientUsers: false,
   };
   const defaultEmailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: false,
@@ -53,7 +53,7 @@ describe("createUserNotificationConfig", () => {
     purposeStatusChangedToProducer: false,
     templateStatusChangedToProducer: false,
     agreementSuspendedUnsuspendedToConsumer: false,
-    eserviceStatusChangedToConsumer: false,
+    eserviceStateChangedToConsumer: false,
     agreementActivatedRejectedToConsumer: false,
     purposeVersionOverQuotaToConsumer: false,
     purposeActivatedRejectedToConsumer: false,
@@ -66,7 +66,7 @@ describe("createUserNotificationConfig", () => {
     eserviceNewVersionApprovedRejectedToDelegate: false,
     delegationSubmittedRevokedToDelegate: false,
     certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-    clientKeyStatusChangedToClientUsers: false,
+    clientKeyAddedDeletedToClientUsers: false,
   };
   beforeAll(async () => {
     vi.useFakeTimers();

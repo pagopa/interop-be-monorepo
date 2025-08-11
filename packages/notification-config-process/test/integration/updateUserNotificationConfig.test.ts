@@ -48,8 +48,8 @@ describe("updateUserNotificationConfig", () => {
         agreementSuspendedUnsuspendedToConsumer:
           !userNotificationConfig.inAppConfig
             .agreementSuspendedUnsuspendedToConsumer,
-        eserviceStatusChangedToConsumer:
-          !userNotificationConfig.inAppConfig.eserviceStatusChangedToConsumer,
+        eserviceStateChangedToConsumer:
+          !userNotificationConfig.inAppConfig.eserviceStateChangedToConsumer,
         agreementActivatedRejectedToConsumer:
           !userNotificationConfig.inAppConfig
             .agreementActivatedRejectedToConsumer,
@@ -85,9 +85,9 @@ describe("updateUserNotificationConfig", () => {
         certifiedVerifiedAttributeAssignedRevokedToAssignee:
           !userNotificationConfig.inAppConfig
             .certifiedVerifiedAttributeAssignedRevokedToAssignee,
-        clientKeyStatusChangedToClientUsers:
+        clientKeyAddedDeletedToClientUsers:
           !userNotificationConfig.inAppConfig
-            .clientKeyStatusChangedToClientUsers,
+            .clientKeyAddedDeletedToClientUsers,
       },
       emailConfig: getMockNotificationConfig(),
     };

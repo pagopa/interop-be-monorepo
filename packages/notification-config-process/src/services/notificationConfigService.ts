@@ -45,7 +45,7 @@ const defaultNotificationConfigs = {
     purposeStatusChangedToProducer: false,
     templateStatusChangedToProducer: false,
     agreementSuspendedUnsuspendedToConsumer: false,
-    eserviceStatusChangedToConsumer: false,
+    eserviceStateChangedToConsumer: false,
     agreementActivatedRejectedToConsumer: false,
     purposeVersionOverQuotaToConsumer: false,
     purposeActivatedRejectedToConsumer: false,
@@ -58,7 +58,7 @@ const defaultNotificationConfigs = {
     eserviceNewVersionApprovedRejectedToDelegate: false,
     delegationSubmittedRevokedToDelegate: false,
     certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-    clientKeyStatusChangedToClientUsers: false,
+    clientKeyAddedDeletedToClientUsers: false,
   } satisfies NotificationConfig,
   user: {
     inApp: {
@@ -68,7 +68,7 @@ const defaultNotificationConfigs = {
       purposeStatusChangedToProducer: false,
       templateStatusChangedToProducer: false,
       agreementSuspendedUnsuspendedToConsumer: false,
-      eserviceStatusChangedToConsumer: false,
+      eserviceStateChangedToConsumer: false,
       agreementActivatedRejectedToConsumer: false,
       purposeVersionOverQuotaToConsumer: false,
       purposeActivatedRejectedToConsumer: false,
@@ -81,7 +81,7 @@ const defaultNotificationConfigs = {
       eserviceNewVersionApprovedRejectedToDelegate: false,
       delegationSubmittedRevokedToDelegate: false,
       certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-      clientKeyStatusChangedToClientUsers: false,
+      clientKeyAddedDeletedToClientUsers: false,
     } satisfies NotificationConfig,
     email: {
       agreementSuspendedUnsuspendedToProducer: false,
@@ -90,7 +90,7 @@ const defaultNotificationConfigs = {
       purposeStatusChangedToProducer: false,
       templateStatusChangedToProducer: false,
       agreementSuspendedUnsuspendedToConsumer: false,
-      eserviceStatusChangedToConsumer: false,
+      eserviceStateChangedToConsumer: false,
       agreementActivatedRejectedToConsumer: false,
       purposeVersionOverQuotaToConsumer: false,
       purposeActivatedRejectedToConsumer: false,
@@ -103,7 +103,7 @@ const defaultNotificationConfigs = {
       eserviceNewVersionApprovedRejectedToDelegate: false,
       delegationSubmittedRevokedToDelegate: false,
       certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-      clientKeyStatusChangedToClientUsers: false,
+      clientKeyAddedDeletedToClientUsers: false,
     } satisfies NotificationConfig,
   },
 };

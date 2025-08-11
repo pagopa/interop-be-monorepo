@@ -113,7 +113,7 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
       const expectedNotifications = isNotified ? users.length : 0;
       expect(notifications).toHaveLength(expectedNotifications);
       if (isNotified) {
-        const body = inAppTemplates.eserviceStatusChangedToConsumer(
+        const body = inAppTemplates.eserviceStateChangedToConsumer(
           eservice.name
         );
         const expectedNotifications = users.map((user) => ({

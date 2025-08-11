@@ -51,7 +51,7 @@ describe("Notification config queries", () => {
           purposeStatusChangedToProducer: false,
           templateStatusChangedToProducer: false,
           agreementSuspendedUnsuspendedToConsumer: false,
-          eserviceStatusChangedToConsumer: false,
+          eserviceStateChangedToConsumer: false,
           agreementActivatedRejectedToConsumer: false,
           purposeVersionOverQuotaToConsumer: false,
           purposeActivatedRejectedToConsumer: false,
@@ -64,7 +64,7 @@ describe("Notification config queries", () => {
           eserviceNewVersionApprovedRejectedToDelegate: false,
           delegationSubmittedRevokedToDelegate: false,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-          clientKeyStatusChangedToClientUsers: false,
+          clientKeyAddedDeletedToClientUsers: false,
         },
       };
       await insertTenantNotificationConfig(
@@ -123,7 +123,7 @@ describe("Notification config queries", () => {
           purposeStatusChangedToProducer: false,
           templateStatusChangedToProducer: false,
           agreementSuspendedUnsuspendedToConsumer: false,
-          eserviceStatusChangedToConsumer: false,
+          eserviceStateChangedToConsumer: false,
           agreementActivatedRejectedToConsumer: false,
           purposeVersionOverQuotaToConsumer: false,
           purposeActivatedRejectedToConsumer: false,
@@ -136,7 +136,7 @@ describe("Notification config queries", () => {
           eserviceNewVersionApprovedRejectedToDelegate: false,
           delegationSubmittedRevokedToDelegate: false,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-          clientKeyStatusChangedToClientUsers: false,
+          clientKeyAddedDeletedToClientUsers: false,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer: false,
@@ -145,7 +145,7 @@ describe("Notification config queries", () => {
           purposeStatusChangedToProducer: false,
           templateStatusChangedToProducer: false,
           agreementSuspendedUnsuspendedToConsumer: false,
-          eserviceStatusChangedToConsumer: false,
+          eserviceStateChangedToConsumer: false,
           agreementActivatedRejectedToConsumer: false,
           purposeVersionOverQuotaToConsumer: false,
           purposeActivatedRejectedToConsumer: false,
@@ -158,7 +158,7 @@ describe("Notification config queries", () => {
           eserviceNewVersionApprovedRejectedToDelegate: false,
           delegationSubmittedRevokedToDelegate: false,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-          clientKeyStatusChangedToClientUsers: false,
+          clientKeyAddedDeletedToClientUsers: false,
         },
       };
       await insertUserNotificationConfig(
