@@ -1234,7 +1234,7 @@ components:
     PATCH_PurposeUpdateContent:
       type: object
       additionalProperties: false
-      description: contains the expected payload for purpose update
+      description: Contains the expected payload for purpose update
       properties:
         title:
           type: string
