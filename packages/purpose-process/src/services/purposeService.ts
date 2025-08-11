@@ -1601,10 +1601,7 @@ const archiveActiveAndSuspendedPurposeVersions = (
 
 const performUpdatePurpose = async (
   purposeId: PurposeId,
-  {
-    mode,
-    updateContent,
-  }:
+  modeAndUpdateContent:
     | {
         mode: "Deliver";
         updateContent:
@@ -1633,12 +1630,33 @@ const performUpdatePurpose = async (
 
   assertPurposeIsDraft(purpose.data);
 
-  if (updateContent.title && updateContent.title !== purpose.data.title) {
+  const {
+    title,
+    description,
+    isFreeOfCharge,
+    freeOfChargeReason,
+    dailyCalls,
+    riskAnalysisForm,
+    ...rest
+  } = match(modeAndUpdateContent)
+    .with({ mode: eserviceMode.deliver }, ({ updateContent }) => updateContent)
+    .with({ mode: eserviceMode.receive }, ({ updateContent }) => ({
+      ...updateContent,
+      riskAnalysisForm: undefined, // To make the destructuring work also for receive mode
+    }))
+    .exhaustive();
+
+  void (rest satisfies Record<string, never>);
+  // ^ To make sure we extract all the updated fields, even optional ones
+
+  const { mode } = modeAndUpdateContent;
+
+  if (title && title !== purpose.data.title) {
     await assertPurposeTitleIsNotDuplicated({
       readModelService,
       eserviceId: purpose.data.eserviceId,
       consumerId: purpose.data.consumerId,
-      title: updateContent.title,
+      title,
     });
   }
 
@@ -1655,26 +1673,23 @@ const performUpdatePurpose = async (
   );
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
-    mode === eserviceMode.deliver && updateContent.riskAnalysisForm
-      ? validateAndTransformRiskAnalysis(
-          updateContent.riskAnalysisForm,
-          true,
-          tenantKind
-        )
+    mode === eserviceMode.deliver && riskAnalysisForm
+      ? validateAndTransformRiskAnalysis(riskAnalysisForm, true, tenantKind)
       : purpose.data.riskAnalysisForm;
 
   const updatedPurpose: Purpose = {
     ...purpose.data,
-    title: updateContent.title ?? purpose.data.title,
-    description: updateContent.description ?? purpose.data.description,
-    isFreeOfCharge: updateContent.isFreeOfCharge ?? purpose.data.isFreeOfCharge,
+    title: title ?? purpose.data.title,
+    description: description ?? purpose.data.description,
+    isFreeOfCharge: isFreeOfCharge ?? purpose.data.isFreeOfCharge,
     freeOfChargeReason:
-      updateContent.freeOfChargeReason ?? purpose.data.freeOfChargeReason,
+      freeOfChargeReason === null
+        ? undefined
+        : freeOfChargeReason ?? purpose.data.freeOfChargeReason,
     versions: [
       {
         ...purpose.data.versions[0],
-        dailyCalls:
-          updateContent.dailyCalls ?? purpose.data.versions[0].dailyCalls,
+        dailyCalls: dailyCalls ?? purpose.data.versions[0].dailyCalls,
         updatedAt: new Date(),
       },
     ],
