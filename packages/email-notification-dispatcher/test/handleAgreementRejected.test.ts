@@ -339,21 +339,17 @@ describe("handleAgreementRejected", async () => {
     };
     await addOneAgreement(agreement);
 
-    try {
-      const messages = await handleAgreementRejected({
-        agreementV2Msg: toAgreementV2(agreement),
-        logger,
-        interopFeBaseUrl,
-        templateService,
-        userService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      });
-      expect(messages.length).toEqual(1);
-      expect(messages[0].address).toEqual(consumerTenant.mails[0].address);
-    } catch (e) {
-      console.log("-----------------", e);
-    }
+    const messages = await handleAgreementRejected({
+      agreementV2Msg: toAgreementV2(agreement),
+      logger,
+      interopFeBaseUrl,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+    expect(messages.length).toEqual(1);
+    expect(messages[0].address).toEqual(consumerTenant.mails[0].address);
   });
 
   it("should generate a message using the latest consumer mail that was registered", async () => {
