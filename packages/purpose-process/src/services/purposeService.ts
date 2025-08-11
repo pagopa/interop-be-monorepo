@@ -1683,9 +1683,10 @@ const performUpdatePurpose = async (
     description: description ?? purpose.data.description,
     isFreeOfCharge: isFreeOfCharge ?? purpose.data.isFreeOfCharge,
     freeOfChargeReason:
-      freeOfChargeReason === null
+      freeOfChargeReason ??
+      (freeOfChargeReason === null
         ? undefined
-        : freeOfChargeReason ?? purpose.data.freeOfChargeReason,
+        : purpose.data.freeOfChargeReason),
     versions: [
       {
         ...purpose.data.versions[0],
