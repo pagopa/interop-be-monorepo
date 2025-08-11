@@ -9417,7 +9417,8 @@ components:
           description: Maximum number of daily calls that this version can perform.
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
     RiskAnalysisFormSeed:
       type: object
       additionalProperties: false
