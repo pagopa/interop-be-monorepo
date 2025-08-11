@@ -1204,6 +1204,36 @@ components:
     PurposeUpdateContent:
       type: object
       additionalProperties: false
+      description: contains the expected payload for purpose update.
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        isFreeOfCharge:
+          type: boolean
+        freeOfChargeReason:
+          type: string
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        dailyCalls:
+          description: "maximum number of daily calls that this version can perform."
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - title
+        - description
+        - isFreeOfCharge
+        - dailyCalls
+    PATCH_PurposeUpdateContent:
+      type: object
+      additionalProperties: false
       description: contains the expected payload for purpose update
       properties:
         title:
@@ -1230,35 +1260,6 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
-      required:
-        - title
-        - description
-        - isFreeOfCharge
-        - dailyCalls
-    PATCH_PurposeUpdateContent:
-      type: object
-      additionalProperties: false
-      description: Contains the expected payload for purpose update.
-      properties:
-        title:
-          type: string
-          minLength: 5
-          maxLength: 60
-        description:
-          type: string
-          minLength: 10
-          maxLength: 250
-        isFreeOfCharge:
-          type: boolean
-        freeOfChargeReason:
-          type: string
-        riskAnalysisForm:
-          $ref: "#/components/schemas/RiskAnalysisFormSeed"
-        dailyCalls:
-          description: Maximum number of daily calls that this version can perform.
-          type: integer
-          format: int32
-          minimum: 0
     ReversePurposeUpdateContent:
       type: object
       additionalProperties: false
