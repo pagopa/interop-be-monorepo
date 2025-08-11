@@ -439,9 +439,10 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       purposeUpdateContent: purposeApi.PurposeUpdateContent,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<{
+      purpose: WithMetadata<Purpose>;
+      isRiskAnalysisValid: boolean;
+    }> {
       logger.info(`Updating Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -458,10 +459,15 @@ export function purposeServiceBuilder(
     async patchUpdatePurpose(
       purposeId: PurposeId,
       purposeUpdateContent: purposeApi.PatchPurposeUpdateContent,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<M2MAdminAuthData>>
+    ): Promise<{
+      purpose: WithMetadata<Purpose>;
+      isRiskAnalysisValid: boolean;
+    }> {
       logger.info(`Updating Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -479,9 +485,10 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       reversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<{
+      purpose: WithMetadata<Purpose>;
+      isRiskAnalysisValid: boolean;
+    }> {
       logger.info(`Updating Reverse Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -1608,15 +1615,22 @@ const performUpdatePurpose = async (
         mode: "Receive";
         updateContent: purposeApi.ReversePurposeUpdateContent;
       },
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelService,
   correlationId: CorrelationId,
   repository: ReturnType<typeof eventRepository<PurposeEvent>>
-): Promise<
-  WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+): Promise<{
+  purpose: WithMetadata<Purpose>;
+  isRiskAnalysisValid: boolean;
   // eslint-disable-next-line max-params
-> => {
+}> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
+  assertRequesterCanActAsConsumer(
+    purpose.data,
+    authData,
+    await retrievePurposeDelegation(purpose.data, readModelService)
+  );
+
   assertPurposeIsDraft(purpose.data);
 
   if (updateContent.title && updateContent.title !== purpose.data.title) {
@@ -1627,12 +1641,6 @@ const performUpdatePurpose = async (
       title: updateContent.title,
     });
   }
-
-  assertRequesterCanActAsConsumer(
-    purpose.data,
-    authData,
-    await retrievePurposeDelegation(purpose.data, readModelService)
-  );
 
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
@@ -1686,15 +1694,15 @@ const performUpdatePurpose = async (
   const createdEvent = await repository.createEvent(event);
 
   return {
-    data: {
-      purpose: updatedPurpose,
-      isRiskAnalysisValid: isRiskAnalysisFormValid(
-        updatedPurpose.riskAnalysisForm,
-        false,
-        tenantKind
-      ),
+    purpose: {
+      data: updatedPurpose,
+      metadata: { version: createdEvent.newVersion },
     },
-    metadata: { version: createdEvent.newVersion },
+    isRiskAnalysisValid: isRiskAnalysisFormValid(
+      updatedPurpose.riskAnalysisForm,
+      false,
+      tenantKind
+    ),
   };
 };
 
