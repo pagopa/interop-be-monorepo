@@ -4289,6 +4289,116 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /eservices/{eserviceId}/riskAnalysis:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID for which to create a risk analysis
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Create a new Risk Analysis
+      description: Create a Risk Analysis for an E-Service
+      operationId: createEServiceRiskAnalysis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
+      responses:
+        "201":
+          description: Risk Analysis created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceRiskAnalysis"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /eservices/{eserviceId}/descriptors/{descriptorId}:
     parameters:
       - name: eserviceId
@@ -9305,6 +9415,89 @@ components:
       required:
         - version
         - answers
+    EServiceRiskAnalysisSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - riskAnalysisForm
+      properties:
+        name:
+          type: string
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+    EServiceRiskAnalysis:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - riskAnalysisForm
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisForm"
+        createdAt:
+          type: string
+          format: date-time
+    RiskAnalysisForm:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - version
+        - singleAnswers
+        - multiAnswers
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: string
+        singleAnswers:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisSingleAnswer"
+        multiAnswers:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisMultiAnswer"
+    RiskAnalysisSingleAnswer:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - key
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+        value:
+          type: string
+    RiskAnalysisMultiAnswer:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - key
+        - values
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+        values:
+          type: array
+          items:
+            type: string
     Tenant:
       description: Tenant model
       type: object
