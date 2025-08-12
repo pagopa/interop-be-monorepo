@@ -14,7 +14,7 @@ import {
   getMockValidRiskAnalysis,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { api, purposeService } from "../vitest.api.setup.js";
@@ -28,6 +28,9 @@ import {
   purposeNotFound,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
+  eserviceNotFound,
+  tenantKindNotFound,
+  tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
 
@@ -36,7 +39,8 @@ describe("API POST /purposes/{purposeId} test", () => {
     title: "Mock purpose title",
     dailyCalls: 10,
     description: "Mock purpose description",
-    isFreeOfCharge: false,
+    isFreeOfCharge: true,
+    freeOfChargeReason: "Mock free of charge reason",
     riskAnalysisForm: buildRiskAnalysisSeed(
       getMockValidRiskAnalysis(tenantKind.PA)
     ),
@@ -48,11 +52,12 @@ describe("API POST /purposes/{purposeId} test", () => {
     purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
   );
 
+  const processResponse = {
+    purpose: getMockWithMetadata(mockPurpose),
+    isRiskAnalysisValid,
+  };
   beforeEach(() => {
-    purposeService.updatePurpose = vi.fn().mockResolvedValue({
-      purpose: getMockWithMetadata(mockPurpose),
-      isRiskAnalysisValid,
-    });
+    purposeService.updatePurpose = vi.fn().mockResolvedValue(processResponse);
   });
 
   const makeRequest = async (
@@ -66,15 +71,19 @@ describe("API POST /purposes/{purposeId} test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("Should return 200 for user with role Admin", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(apiResponse);
-  });
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+    }
+  );
 
   it.each(
-    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -102,6 +111,9 @@ describe("API POST /purposes/{purposeId} test", () => {
       error: duplicatedPurposeTitle(mockPurposeUpdateContent.title),
       expectedStatus: 409,
     },
+    { error: eserviceNotFound(generateId()), expectedStatus: 500 },
+    { error: tenantNotFound(generateId()), expectedStatus: 500 },
+    { error: tenantKindNotFound(generateId()), expectedStatus: 500 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
