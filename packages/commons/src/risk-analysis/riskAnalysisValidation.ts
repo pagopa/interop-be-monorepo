@@ -334,7 +334,7 @@ function answerToValidatedSingleOrMultiAnswer(
     .exhaustive();
 }
 
-function invalidResult(
+export function invalidResult(
   issues: RiskAnalysisValidationIssue[]
 ): RiskAnalysisValidationInvalid {
   return {
@@ -343,7 +343,7 @@ function invalidResult(
   };
 }
 
-function validResult<T>(value: T): RiskAnalysisValidationResult<T> {
+export function validResult<T>(value: T): RiskAnalysisValidationResult<T> {
   return {
     type: "valid",
     value,
