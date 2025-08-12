@@ -870,13 +870,7 @@ export function tenantServiceBuilder(
         throw attributeVerificationNotAllowed(tenantId, attributeId);
       }
 
-      // 3. Get producer delegation if exists
-      const producerDelegation =
-        await readModelService.getActiveProducerDelegationByEservice(
-          agreement.eserviceId
-        );
-
-      // 4. Retrieve and validate tenant and attribute
+      // 3. Retrieve and validate tenant and attribute
       const targetTenant = await retrieveTenant(tenantId, readModelService);
       const attribute = await retrieveAttribute(attributeId, readModelService);
 
@@ -884,7 +878,7 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attribute.id);
       }
 
-      // 5. Check existing verified attribute and prevent double verification BEFORE permission checks
+      // 4. Check existing verified attribute and prevent double verification BEFORE permission checks
       const existingVerifiedAttribute = targetTenant.data.attributes.find(
         (attr): attr is VerifiedTenantAttribute =>
           attr.type === tenantAttributeType.VERIFIED && attr.id === attribute.id
@@ -903,6 +897,12 @@ export function tenantServiceBuilder(
           );
         }
       }
+
+      // 5. Get producer delegation if exists (only when needed for permission checks)
+      const producerDelegation =
+        await readModelService.getActiveProducerDelegationByEservice(
+          agreement.eserviceId
+        );
 
       // 6. Validate operation permissions (now that we're sure it's not a double verification)
       const operationError = attributeVerificationNotAllowed(
@@ -1011,20 +1011,6 @@ export function tenantServiceBuilder(
         throw error;
       }
 
-      const producerDelegation =
-        await readModelService.getActiveProducerDelegationByEservice(
-          agreement.eserviceId
-        );
-
-      await assertVerifiedAttributeOperationAllowed({
-        requesterId: authData.organizationId,
-        producerDelegation,
-        attributeId,
-        agreement,
-        readModelService,
-        error,
-      });
-
       const revokerId = agreement.producerId;
 
       if (revokerId === tenantId) {
@@ -1055,6 +1041,21 @@ export function tenantServiceBuilder(
       if (isInRevokedBy) {
         throw attributeAlreadyRevoked(tenantId, revokerId, attributeId);
       }
+
+      // Get producer delegation only when needed for permission checks and final operation
+      const producerDelegation =
+        await readModelService.getActiveProducerDelegationByEservice(
+          agreement.eserviceId
+        );
+
+      await assertVerifiedAttributeOperationAllowed({
+        requesterId: authData.organizationId,
+        producerDelegation,
+        attributeId,
+        agreement,
+        readModelService,
+        error,
+      });
 
       const updatedTenant: Tenant = {
         ...targetTenant.data,
