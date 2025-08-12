@@ -7,6 +7,8 @@ import { config } from "../../config/config.js";
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleAgreementActivated } from "./handleAgreementActivated.js";
 import { handleAgreementRejected } from "./handleAgreementRejected.js";
+import { handleAgreementSubmitted } from "./handleAgreementSubmitted.js";
+import { handleAgreementUpgraded } from "./handleAgreementUpgraded.js";
 
 const interopFeBaseUrl = config.interopFeBaseUrl;
 
@@ -44,10 +46,31 @@ export async function handleAgreementEvent(
         correlationId,
       })
     )
+    .with({ type: "AgreementSubmitted" }, ({ data: { agreement } }) =>
+      handleAgreementSubmitted({
+        agreementV2Msg: agreement,
+        interopFeBaseUrl,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
+    .with({ type: "AgreementUpgraded" }, ({ data: { agreement } }) =>
+      handleAgreementUpgraded({
+        agreementV2Msg: agreement,
+        interopFeBaseUrl,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
     .with(
       {
         type: P.union(
-          "AgreementSubmitted",
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
@@ -56,7 +79,6 @@ export async function handleAgreementEvent(
           "AgreementUnsuspendedByPlatform",
           "AgreementArchivedByConsumer",
           "AgreementArchivedByUpgrade",
-          "AgreementUpgraded",
           "AgreementSuspendedByProducer",
           "AgreementSuspendedByConsumer",
           "AgreementSuspendedByPlatform",
