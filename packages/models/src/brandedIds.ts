@@ -223,7 +223,7 @@ export const IDS = z.union([
   TenantNotificationConfigId,
   UserNotificationConfigId,
 ]);
-type IDS = z.infer<typeof IDS>;
+export type IDS = z.infer<typeof IDS>;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result
