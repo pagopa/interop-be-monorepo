@@ -10,7 +10,6 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { retrieveTenant } from "../handlerCommons.js";
 import { retrieveEservice } from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { config } from "../../config/config.js";
 
 export async function handleAgreementActivatedRejectedToConsumer(
   agreementV2Msg: AgreementV2 | undefined,
@@ -54,12 +53,12 @@ export async function handleAgreementActivatedRejectedToConsumer(
       .with("AgreementRejected", () => "rifiuto" as const)
       .exhaustive()
   );
-  const deepLink = `https://${config.interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`;
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
-    deepLink,
+    notificationType: "agreementActivatedRejectedToConsumer",
+    entityId: agreement.id,
   }));
 }

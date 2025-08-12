@@ -7,7 +7,6 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { config } from "../../config/config.js";
 import {
   retrieveLatestPublishedDescriptor,
   retrieveTenant,
@@ -56,6 +55,7 @@ export async function handleEserviceStateChangedToConsumer(
     userId,
     tenantId,
     body,
-    deepLink: `https://${config.interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${descriptor.id}`,
+    notificationType: "eserviceStateChangedToConsumer",
+    entityId: descriptor.id,
   }));
 }
