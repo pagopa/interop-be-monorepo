@@ -52,10 +52,10 @@ describe("API POST /purposes/{purposeId} test", () => {
     purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
   );
 
-  const processResponse = {
-    purpose: getMockWithMetadata(mockPurpose),
+  const processResponse = getMockWithMetadata({
+    purpose: mockPurpose,
     isRiskAnalysisValid,
-  };
+  });
   beforeEach(() => {
     purposeService.updatePurpose = vi.fn().mockResolvedValue(processResponse);
   });

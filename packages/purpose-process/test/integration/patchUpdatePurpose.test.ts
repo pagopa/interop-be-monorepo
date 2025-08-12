@@ -89,10 +89,10 @@ describe("patchUpdatePurpose", () => {
   }
 
   async function expectUpdatedPurpose(
-    updatePurposeReturn: {
-      purpose: WithMetadata<Purpose>;
+    updatePurposeReturn: WithMetadata<{
+      purpose: Purpose;
       isRiskAnalysisValid: boolean;
-    },
+    }>,
     writtenPayload: DraftPurposeUpdatedV2,
     expectedPurpose: Purpose,
     expectedIsRiskAnalysisValid: boolean = true
@@ -102,11 +102,11 @@ describe("patchUpdatePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(updatePurposeReturn).toEqual({
-      purpose: {
-        data: expectedPurpose,
-        metadata: { version: 1 },
+      data: {
+        purpose: expectedPurpose,
+        isRiskAnalysisValid: expectedIsRiskAnalysisValid,
       },
-      isRiskAnalysisValid: expectedIsRiskAnalysisValid,
+      metadata: { version: 1 },
     });
   }
 

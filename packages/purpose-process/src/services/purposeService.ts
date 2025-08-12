@@ -439,10 +439,12 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       purposeUpdateContent: purposeApi.PurposeUpdateContent,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{
-      purpose: WithMetadata<Purpose>;
-      isRiskAnalysisValid: boolean;
-    }> {
+    ): Promise<
+      WithMetadata<{
+        purpose: Purpose;
+        isRiskAnalysisValid: boolean;
+      }>
+    > {
       logger.info(`Updating Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -464,10 +466,12 @@ export function purposeServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<M2MAdminAuthData>>
-    ): Promise<{
-      purpose: WithMetadata<Purpose>;
-      isRiskAnalysisValid: boolean;
-    }> {
+    ): Promise<
+      WithMetadata<{
+        purpose: Purpose;
+        isRiskAnalysisValid: boolean;
+      }>
+    > {
       logger.info(`Updating Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -485,10 +489,12 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       reversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{
-      purpose: WithMetadata<Purpose>;
-      isRiskAnalysisValid: boolean;
-    }> {
+    ): Promise<
+      WithMetadata<{
+        purpose: Purpose;
+        isRiskAnalysisValid: boolean;
+      }>
+    > {
       logger.info(`Updating Reverse Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -1616,11 +1622,13 @@ const performUpdatePurpose = async (
   readModelService: ReadModelService,
   correlationId: CorrelationId,
   repository: ReturnType<typeof eventRepository<PurposeEvent>>
-): Promise<{
-  purpose: WithMetadata<Purpose>;
-  isRiskAnalysisValid: boolean;
+): Promise<
+  WithMetadata<{
+    purpose: Purpose;
+    isRiskAnalysisValid: boolean;
+  }>
   // eslint-disable-next-line max-params
-}> => {
+> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
   assertRequesterCanActAsConsumer(
     purpose.data,
@@ -1711,15 +1719,15 @@ const performUpdatePurpose = async (
   const createdEvent = await repository.createEvent(event);
 
   return {
-    purpose: {
-      data: updatedPurpose,
-      metadata: { version: createdEvent.newVersion },
+    data: {
+      purpose: updatedPurpose,
+      isRiskAnalysisValid: isRiskAnalysisFormValid(
+        updatedPurpose.riskAnalysisForm,
+        false,
+        tenantKind
+      ),
     },
-    isRiskAnalysisValid: isRiskAnalysisFormValid(
-      updatedPurpose.riskAnalysisForm,
-      false,
-      tenantKind
-    ),
+    metadata: { version: createdEvent.newVersion },
   };
 };
 

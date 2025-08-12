@@ -47,10 +47,10 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
     purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
   );
 
-  const processResponse = {
-    purpose: getMockWithMetadata(mockPurpose),
+  const processResponse = getMockWithMetadata({
+    purpose: mockPurpose,
     isRiskAnalysisValid,
-  };
+  });
 
   beforeEach(() => {
     purposeService.updateReversePurpose = vi

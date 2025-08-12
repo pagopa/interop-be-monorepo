@@ -171,8 +171,7 @@ const purposeRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
         const {
-          purpose: { data },
-          isRiskAnalysisValid,
+          data: { purpose, isRiskAnalysisValid },
         } = await purposeService.updateReversePurpose(
           unsafeBrandId(req.params.id),
           req.body,
@@ -182,7 +181,7 @@ const purposeRouter = (
           .status(200)
           .send(
             purposeApi.Purpose.parse(
-              purposeToApiPurpose(data, isRiskAnalysisValid)
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
             )
           );
       } catch (error) {
@@ -236,8 +235,7 @@ const purposeRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
         const {
-          purpose: { data },
-          isRiskAnalysisValid,
+          data: { purpose, isRiskAnalysisValid },
         } = await purposeService.updatePurpose(
           unsafeBrandId(req.params.id),
           req.body,
@@ -248,7 +246,7 @@ const purposeRouter = (
           .status(200)
           .send(
             purposeApi.Purpose.parse(
-              purposeToApiPurpose(data, isRiskAnalysisValid)
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
             )
           );
       } catch (error) {
@@ -263,8 +261,8 @@ const purposeRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
         const {
-          purpose: { data, metadata },
-          isRiskAnalysisValid,
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
         } = await purposeService.patchUpdatePurpose(
           unsafeBrandId(req.params.id),
           req.body,
@@ -277,7 +275,7 @@ const purposeRouter = (
           .status(200)
           .send(
             purposeApi.Purpose.parse(
-              purposeToApiPurpose(data, isRiskAnalysisValid)
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
             )
           );
       } catch (error) {

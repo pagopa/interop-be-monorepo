@@ -52,10 +52,10 @@ describe("API PATCH /purposes/{purposeId} test", () => {
     purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
   );
 
-  const processResponse = {
-    purpose: getMockWithMetadata(mockPurpose),
+  const processResponse = getMockWithMetadata({
+    purpose: mockPurpose,
     isRiskAnalysisValid,
-  };
+  });
   beforeEach(() => {
     purposeService.patchUpdatePurpose = vi
       .fn()
@@ -82,7 +82,7 @@ describe("API PATCH /purposes/{purposeId} test", () => {
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
       expect(res.headers["x-metadata-version"]).toBe(
-        processResponse.purpose.metadata.version.toString()
+        processResponse.metadata.version.toString()
       );
     }
   );

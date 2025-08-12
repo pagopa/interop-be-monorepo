@@ -176,11 +176,8 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(updatePurposeReturn).toEqual({
-      purpose: {
-        data: expectedPurpose,
-        metadata: { version: 1 },
-      },
-      isRiskAnalysisValid: true,
+      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      metadata: { version: 1 },
     });
   });
   it("Should write on event store for the update of a purpose of an e-service in mode DELIVER (no title change)", async () => {
@@ -225,11 +222,8 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(updatePurposeReturn).toEqual({
-      purpose: {
-        data: expectedPurpose,
-        metadata: { version: 1 },
-      },
-      isRiskAnalysisValid: true,
+      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      metadata: { version: 1 },
     });
   });
   it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE (including title change)", async () => {
@@ -268,11 +262,8 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(updatePurposeReturn).toEqual({
-      purpose: {
-        data: expectedPurpose,
-        metadata: { version: 1 },
-      },
-      isRiskAnalysisValid: true,
+      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      metadata: { version: 1 },
     });
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a updatable state and the e-service is in mode DELIVER", async () => {
@@ -335,11 +326,8 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(updatePurposeReturn).toEqual({
-      purpose: {
-        data: expectedPurpose,
-        metadata: { version: 1 },
-      },
-      isRiskAnalysisValid: true,
+      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      metadata: { version: 1 },
     });
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a updatable state and the e-service is in mode RECEIVE", async () => {
@@ -396,11 +384,8 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(updatePurposeReturn).toEqual({
-      purpose: {
-        data: expectedPurpose,
-        metadata: { version: 1 },
-      },
-      isRiskAnalysisValid: true,
+      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      metadata: { version: 1 },
     });
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a updatable state and the e-service is in mode DELIVER", async () => {
@@ -507,11 +492,8 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(updatePurposeReturn).toEqual({
-      purpose: {
-        data: expectedPurpose,
-        metadata: { version: 1 },
-      },
-      isRiskAnalysisValid: true,
+      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      metadata: { version: 1 },
     });
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a updatable state and the e-service is in mode RECEIVE", async () => {
@@ -611,11 +593,8 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(updatePurposeReturn).toEqual({
-      purpose: {
-        data: expectedPurpose,
-        metadata: { version: 1 },
-      },
-      isRiskAnalysisValid: true,
+      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      metadata: { version: 1 },
     });
   });
   it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
