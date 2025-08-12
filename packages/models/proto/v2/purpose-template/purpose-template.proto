@@ -55,7 +55,7 @@ message RiskAnalysisTemplateMultiAnswerV2 {
 
 message RiskAnalysisTemplateAnswerAnnotationV2 {
   string id = 1;
-  optional string text = 2;
+  string text = 2;
   repeated RiskAnalysisTemplateAnswerAnnotationDocumentV2 docs = 3;
 }
 
