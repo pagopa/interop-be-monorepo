@@ -86,6 +86,7 @@ import {
   tenantNotFound,
   tenantIsAlreadyACertifier,
   verifiedAttributeSelfRevocationNotAllowed,
+  verifiedAttributeAlreadyVerified,
   agreementNotFound,
   notValidMailAddress,
   delegationNotFound,
@@ -828,7 +829,7 @@ export function tenantServiceBuilder(
       };
     },
 
-    async verifyVerifiedAttribute(
+    async addVerifiedAttribute(
       {
         tenantId,
         attributeId,
@@ -847,12 +848,17 @@ export function tenantServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<Tenant> {
       logger.info(
-        `Verifying attribute ${attributeId} to tenant ${tenantId} for agreement ${agreementId}`
+        `Adding verified attribute ${attributeId} to tenant ${tenantId} for agreement ${agreementId}`
       );
 
+      // 1. Validate agreement and retrieve basic data
       const agreement = await retrieveAgreement(agreementId, readModelService);
+      const verifierId = agreement.producerId;
 
-      const error = attributeVerificationNotAllowed(tenantId, attributeId);
+      // 2. Basic validations
+      if (verifierId === tenantId) {
+        throw verifiedAttributeSelfVerificationNotAllowed();
+      }
 
       const allowedStatuses: AgreementState[] = [
         agreementState.pending,
@@ -861,72 +867,113 @@ export function tenantServiceBuilder(
       ];
 
       if (!allowedStatuses.includes(agreement.state)) {
-        throw error;
+        throw attributeVerificationNotAllowed(tenantId, attributeId);
       }
 
+      // 3. Get producer delegation if exists
       const producerDelegation =
         await readModelService.getActiveProducerDelegationByEservice(
           agreement.eserviceId
         );
 
-      await assertVerifiedAttributeOperationAllowed({
-        requesterId: authData.organizationId,
-        producerDelegation,
-        attributeId,
-        agreement,
-        readModelService,
-        error,
-      });
-
-      const verifierId = agreement.producerId;
-
-      if (verifierId === tenantId) {
-        throw verifiedAttributeSelfVerificationNotAllowed();
-      }
-
+      // 5. Retrieve and validate tenant and attribute
       const targetTenant = await retrieveTenant(tenantId, readModelService);
-
       const attribute = await retrieveAttribute(attributeId, readModelService);
 
       if (attribute.kind !== attributeKind.verified) {
         throw attributeNotFound(attribute.id);
       }
 
-      const verifiedTenantAttribute = targetTenant.data.attributes.find(
+      // 6. Check existing verified attribute and prevent double verification BEFORE permission checks
+      const existingVerifiedAttribute = targetTenant.data.attributes.find(
         (attr): attr is VerifiedTenantAttribute =>
           attr.type === tenantAttributeType.VERIFIED && attr.id === attribute.id
       );
 
-      const updatedTenant: Tenant = {
-        ...targetTenant.data,
-        attributes: verifiedTenantAttribute
-          ? reassignVerifiedAttribute(
-              targetTenant.data.attributes,
-              verifiedTenantAttribute,
-              verifierId,
-              producerDelegation?.id,
-              expirationDate
-            )
-          : assignVerifiedAttribute(
-              targetTenant.data.attributes,
-              verifierId,
-              producerDelegation?.id,
-              attributeId,
-              expirationDate
-            ),
+      if (existingVerifiedAttribute) {
+        const hasAlreadyVerified = existingVerifiedAttribute.verifiedBy.find(
+          (verifier) => verifier.id === verifierId
+        );
 
-        updatedAt: new Date(),
-      };
+        if (hasAlreadyVerified) {
+          throw verifiedAttributeAlreadyVerified(
+            tenantId,
+            attributeId,
+            verifierId
+          );
+        }
+      }
 
-      await repository.createEvent(
-        toCreateEventTenantVerifiedAttributeAssigned(
-          targetTenant.metadata.version,
-          updatedTenant,
-          attributeId,
-          correlationId
-        )
+      // 7. Validate operation permissions (now that we're sure it's not a double verification)
+      const operationError = attributeVerificationNotAllowed(
+        tenantId,
+        attributeId
       );
-      return updatedTenant;
+      await assertVerifiedAttributeOperationAllowed({
+        requesterId: authData.organizationId,
+        producerDelegation,
+        attributeId,
+        agreement,
+        readModelService,
+        error: operationError,
+      });
+
+      if (existingVerifiedAttribute) {
+        // Add verification to existing attribute
+        const updatedTenant: Tenant = {
+          ...targetTenant.data,
+          updatedAt: new Date(),
+          attributes: targetTenant.data.attributes.map((attr) =>
+            attr.id === existingVerifiedAttribute.id
+              ? {
+                  ...attr,
+                  verifiedBy: buildVerifiedBy(
+                    existingVerifiedAttribute.verifiedBy,
+                    verifierId,
+                    producerDelegation?.id,
+                    expirationDate
+                  ),
+                  revokedBy: existingVerifiedAttribute.revokedBy.filter(
+                    (revoker) => revoker.id !== verifierId
+                  ),
+                }
+              : attr
+          ),
+        };
+
+        await repository.createEvent(
+          toCreateEventTenantVerifiedAttributeAssigned(
+            targetTenant.metadata.version,
+            updatedTenant,
+            attributeId,
+            correlationId
+          )
+        );
+        return updatedTenant;
+      } else {
+        // Create new verified attribute
+        const updatedTenant: Tenant = {
+          ...targetTenant.data,
+          updatedAt: new Date(),
+          attributes: assignVerifiedAttribute(
+            targetTenant.data.attributes,
+            verifierId,
+            producerDelegation?.id,
+            attributeId,
+            expirationDate
+          ),
+        };
+
+        await repository.createEvent(
+          toCreateEventTenantVerifiedAttributeAssigned(
+            targetTenant.metadata.version,
+            updatedTenant,
+            attributeId,
+            correlationId
+          )
+        );
+        return updatedTenant;
+      }
     },
 
     async revokeVerifiedAttribute(
@@ -2160,35 +2207,18 @@ function buildVerifiedBy(
   producerDelegation: DelegationId | undefined,
   expirationDate: string | undefined
 ): TenantVerifier[] {
-  const hasPreviouslyVerified = verifiers.find((i) => i.id === organizationId);
-  return hasPreviouslyVerified
-    ? verifiers.map((verification) =>
-        verification.id === organizationId
-          ? {
-              id: organizationId,
-              delegationId: producerDelegation,
-              verificationDate: new Date(),
-              expirationDate: expirationDate
-                ? validateExpirationDate(new Date(expirationDate))
-                : undefined,
-              extensionDate: expirationDate
-                ? new Date(expirationDate)
-                : undefined,
-            }
-          : verification
-      )
-    : [
-        ...verifiers,
-        {
-          id: organizationId,
-          delegationId: producerDelegation,
-          verificationDate: new Date(),
-          expirationDate: expirationDate
-            ? validateExpirationDate(new Date(expirationDate))
-            : undefined,
-          extensionDate: expirationDate ? new Date(expirationDate) : undefined,
-        },
-      ];
+  return [
+    ...verifiers,
+    {
+      id: organizationId,
+      delegationId: producerDelegation,
+      verificationDate: new Date(),
+      expirationDate: expirationDate
+        ? validateExpirationDate(new Date(expirationDate))
+        : undefined,
+      extensionDate: expirationDate ? new Date(expirationDate) : undefined,
+    },
+  ];
 }
 
 function assignDeclaredAttribute(
@@ -2261,31 +2291,6 @@ function assignVerifiedAttribute(
       revokedBy: [],
     },
   ];
-}
-
-function reassignVerifiedAttribute(
-  attributes: TenantAttribute[],
-  verifiedTenantAttribute: VerifiedTenantAttribute,
-  organizationId: TenantId,
-  producerDelegationId: DelegationId | undefined,
-  expirationDate: string | undefined
-): TenantAttribute[] {
-  return attributes.map((attr) =>
-    attr.id === verifiedTenantAttribute.id
-      ? {
-          ...attr,
-          verifiedBy: buildVerifiedBy(
-            verifiedTenantAttribute.verifiedBy,
-            organizationId,
-            producerDelegationId,
-            expirationDate
-          ),
-          revokedBy: verifiedTenantAttribute.revokedBy.filter(
-            (i) => i.id !== organizationId
-          ),
-        }
-      : attr
-  );
 }
 
 async function revokeCertifiedAttribute(

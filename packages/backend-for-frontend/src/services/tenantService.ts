@@ -340,7 +340,7 @@ export function tenantServiceBuilder(
         headers,
       });
     },
-    async verifyVerifiedAttribute(
+    async addVerifiedAttribute(
       tenantId: TenantId,
       seed: bffApi.VerifiedTenantAttributeSeed,
       { logger, headers }: WithLogger<BffAppContext>
@@ -348,7 +348,7 @@ export function tenantServiceBuilder(
       logger.info(
         `Verifying verified attribute ${seed.id} for tenant ${tenantId}`
       );
-      await tenantProcessClient.tenantAttribute.verifyVerifiedAttribute(seed, {
+      await tenantProcessClient.tenantAttribute.addVerifiedAttribute(seed, {
         params: { tenantId },
         headers,
       });

@@ -789,7 +789,7 @@ const tenantsRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
 
-        const tenant = await tenantService.verifyVerifiedAttribute(
+        const tenant = await tenantService.addVerifiedAttribute(
           {
             tenantId: unsafeBrandId(req.params.tenantId),
             attributeId: unsafeBrandId(req.body.id),

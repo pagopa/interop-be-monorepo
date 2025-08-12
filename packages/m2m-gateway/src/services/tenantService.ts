@@ -401,7 +401,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       logger.info(`Adding verified attribute ${body.id} to tenant ${tenantId}`);
 
       const response =
-        await clients.tenantProcessClient.tenantAttribute.verifyVerifiedAttribute(
+        await clients.tenantProcessClient.tenantAttribute.addVerifiedAttribute(
           {
             id: body.id,
             agreementId: body.agreementId,

@@ -29,15 +29,16 @@ export const errorCodes = {
   attributeAlreadyRevoked: "0019",
   attributeRevocationNotAllowed: "0020",
   verifiedAttributeSelfRevocationNotAllowed: "0021",
-  tenantIsAlreadyACertifier: "0022",
-  certifierWithExistingAttributes: "0023",
-  attributeNotFoundInTenant: "0024",
-  tenantNotFoundByExternalId: "0025",
-  notValidMailAddress: "0026",
-  agreementNotFound: "0027",
-  descriptorNotFoundInEservice: "0028",
-  delegationNotFound: "0029",
-  operationRestrictedToDelegate: "0030",
+  verifiedAttributeAlreadyVerified: "0022",
+  tenantIsAlreadyACertifier: "0023",
+  certifierWithExistingAttributes: "0024",
+  attributeNotFoundInTenant: "0025",
+  tenantNotFoundByExternalId: "0026",
+  notValidMailAddress: "0027",
+  agreementNotFound: "0028",
+  descriptorNotFoundInEservice: "0029",
+  delegationNotFound: "0030",
+  operationRestrictedToDelegate: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -57,6 +58,18 @@ export function verifiedAttributeSelfRevocationNotAllowed(): ApiError<ErrorCodes
     detail: `Tenants are not allowed to revoke own attributes`,
     code: "verifiedAttributeSelfRevocationNotAllowed",
     title: "Verified attribute self revocation not allowed",
+  });
+}
+
+export function verifiedAttributeAlreadyVerified(
+  tenantId: TenantId,
+  attributeId: AttributeId,
+  verifierId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} attribute ${attributeId} has already been verified by organization ${verifierId}`,
+    code: "verifiedAttributeAlreadyVerified",
+    title: "Verified attribute already verified",
   });
 }
 

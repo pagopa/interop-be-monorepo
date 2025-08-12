@@ -214,7 +214,7 @@ const tenantRouter = (
 
       try {
         const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
-        await tenantService.verifyVerifiedAttribute(tenantId, req.body, ctx);
+        await tenantService.addVerifiedAttribute(tenantId, req.body, ctx);
 
         return res.status(204).send();
       } catch (error) {

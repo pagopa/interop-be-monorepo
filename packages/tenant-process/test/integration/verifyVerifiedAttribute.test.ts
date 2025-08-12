@@ -34,6 +34,7 @@ import {
   tenantNotFound,
   attributeVerificationNotAllowed,
   verifiedAttributeSelfVerificationNotAllowed,
+  verifiedAttributeAlreadyVerified,
   attributeNotFound,
   expirationDateCannotBeInThePast,
 } from "../../src/model/domain/errors.js";
@@ -129,7 +130,7 @@ describe("verifyVerifiedAttribute", async () => {
         await addOneDelegation(delegation);
       }
 
-      const returnedTenant = await tenantService.verifyVerifiedAttribute(
+      const returnedTenant = await tenantService.addVerifiedAttribute(
         {
           tenantId: targetTenant.id,
           attributeId: tenantAttributeSeedId,
@@ -230,7 +231,7 @@ describe("verifyVerifiedAttribute", async () => {
         await addOneDelegation(delegation);
       }
 
-      const returnedTenant = await tenantService.verifyVerifiedAttribute(
+      const returnedTenant = await tenantService.addVerifiedAttribute(
         {
           tenantId: tenantWithVerifiedAttribute.id,
           attributeId: tenantAttributeSeedId,
@@ -285,7 +286,7 @@ describe("verifyVerifiedAttribute", async () => {
     await addOneAgreement(agreementEservice1);
 
     expect(
-      tenantService.verifyVerifiedAttribute(
+      tenantService.addVerifiedAttribute(
         {
           tenantId: targetTenant.id,
           attributeId: tenantAttributeSeedId,
@@ -302,7 +303,7 @@ describe("verifyVerifiedAttribute", async () => {
     await addOneAgreement(agreementEservice1);
 
     expect(
-      tenantService.verifyVerifiedAttribute(
+      tenantService.addVerifiedAttribute(
         {
           tenantId: targetTenant.id,
           attributeId: tenantAttributeSeedId,
@@ -342,11 +343,12 @@ describe("verifyVerifiedAttribute", async () => {
 
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
+    await addOneAttribute(attribute);
     await addOneEService(eServiceWithNotAllowedDescriptor);
     await addOneAgreement(agreementEserviceWithNotAllowedDescriptor);
 
     expect(
-      tenantService.verifyVerifiedAttribute(
+      tenantService.addVerifiedAttribute(
         {
           tenantId: targetTenant.id,
           attributeId: tenantAttributeSeedId,
@@ -368,7 +370,7 @@ describe("verifyVerifiedAttribute", async () => {
     await addOneAgreement(agreementEservice1);
 
     expect(
-      tenantService.verifyVerifiedAttribute(
+      tenantService.addVerifiedAttribute(
         {
           tenantId: agreementEservice1.producerId,
           attributeId: tenantAttributeSeedId,
@@ -421,7 +423,7 @@ describe("verifyVerifiedAttribute", async () => {
     await addOneAgreement(agreementEservice1);
 
     expect(
-      tenantService.verifyVerifiedAttribute(
+      tenantService.addVerifiedAttribute(
         {
           tenantId: targetTenant.id,
           attributeId: tenantAttributeSeedId,
@@ -431,5 +433,52 @@ describe("verifyVerifiedAttribute", async () => {
         getMockContext({ authData: getMockAuthData(requesterTenant.id) })
       )
     ).rejects.toThrowError(expirationDateCannotBeInThePast(yesterday));
+  });
+
+  it("Should throw verifiedAttributeAlreadyVerified if the same verifier tries to verify an already verified attribute", async () => {
+    // Tenant  with attribute already verified by the requester
+    const tenantWithVerifiedAttribute: Tenant = {
+      ...targetTenant,
+      attributes: [
+        {
+          ...getMockVerifiedTenantAttribute(),
+          id: attribute.id,
+          verifiedBy: [
+            {
+              id: requesterTenant.id,
+              delegationId: undefined,
+              verificationDate: new Date(),
+              expirationDate: undefined,
+              extensionDate: undefined,
+            },
+          ],
+          revokedBy: [],
+        },
+      ],
+    };
+
+    await addOneTenant(requesterTenant);
+    await addOneTenant(tenantWithVerifiedAttribute);
+    await addOneAttribute(attribute);
+    await addOneEService(eService1);
+    await addOneAgreement(agreementEservice1);
+
+    // Trying to re-verify the same attribute from the same tenant
+    expect(
+      tenantService.addVerifiedAttribute(
+        {
+          tenantId: tenantWithVerifiedAttribute.id,
+          attributeId: tenantAttributeSeedId,
+          agreementId: agreementEservice1.id,
+        },
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+      )
+    ).rejects.toThrowError(
+      verifiedAttributeAlreadyVerified(
+        tenantWithVerifiedAttribute.id,
+        attribute.id,
+        requesterTenant.id
+      )
+    );
   });
 });
