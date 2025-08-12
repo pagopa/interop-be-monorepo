@@ -652,6 +652,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Verified attribute already verified
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /tenants/{tenantId}/attributes/verified/{attributeId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
