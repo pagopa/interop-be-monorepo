@@ -260,7 +260,7 @@ export function getMockedApiEservice({
     technology: technology ?? generateMock(catalogApi.EServiceTechnology),
     descriptors:
       descriptors ?? generateMock(z.array(catalogApi.EServiceDescriptor)),
-    riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
+    riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis).min(1)),
     mode: generateMock(catalogApi.EServiceMode),
     isSignalHubEnabled: generateMock(z.boolean()),
     isConsumerDelegable: generateMock(z.boolean()),
