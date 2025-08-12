@@ -12,7 +12,10 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { TenantService } from "../services/tenantService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
-import { getTenantsErrorMapper } from "../utils/errorMappers.js";
+import {
+  getTenantsErrorMapper,
+  tenantDeclaredAttributeErrorMapper,
+} from "../utils/errorMappers.js";
 
 const tenantRouter = (
   ctx: ZodiosContext,
@@ -104,7 +107,7 @@ const tenantRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          tenantDeclaredAttributeErrorMapper,
           ctx,
           `Error adding declared attribute to tenant ${req.params.tenantId}`
         );
@@ -133,7 +136,7 @@ const tenantRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            tenantDeclaredAttributeErrorMapper,
             ctx,
             `Error revoking declared attribute ${req.params.attributeId} from tenant ${req.params.tenantId}`
           );

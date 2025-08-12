@@ -8,6 +8,8 @@ import { WithMaybeMetadata } from "../../clients/zodiosWithMetadataPatch.js";
 import {
   missingMetadata,
   notAnActiveConsumerDelegation,
+  tenantAuthorizationMismatch,
+  unexpectedDelegationKind,
 } from "../../model/errors.js";
 
 export function assertMetadataExists<T>(
@@ -55,5 +57,38 @@ export function assertActiveConsumerDelegateForEservice(
       eserviceId,
       delegation
     );
+  }
+}
+
+export function assertTenantDeclaredAttributeAuthorization(
+  callerTenantId: TenantId,
+  requestedTenantId: TenantId,
+  delegationId?: string,
+  delegation?: delegationApi.Delegation
+): void {
+  // Caller can always operate on their own declared attributes
+  if (callerTenantId === requestedTenantId) {
+    return;
+  }
+
+  // If no delegationId is provided for different tenants, throw authorization error
+  if (!delegationId) {
+    throw tenantAuthorizationMismatch(
+      callerTenantId,
+      requestedTenantId,
+      delegationId
+    );
+  }
+
+  // If delegation is provided, validate it
+  if (
+    delegation &&
+    (delegation.kind !==
+      delegationApi.DelegationKind.Values.DELEGATED_PRODUCER ||
+      delegation.state !== delegationApi.DelegationState.Values.ACTIVE ||
+      delegation.delegateId !== callerTenantId ||
+      delegation.delegatorId !== requestedTenantId)
+  ) {
+    throw unexpectedDelegationKind(delegation);
   }
 }

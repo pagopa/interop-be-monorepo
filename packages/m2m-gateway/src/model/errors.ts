@@ -42,6 +42,7 @@ export const errorCodes = {
   tenantDeclaredAttributeNotFound: "0025",
   tenantVerifiedAttributeNotFound: "0026",
   missingRequiredAgreementId: "0027",
+  tenantAuthorizationMismatch: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -292,5 +293,21 @@ export function missingRequiredAgreementId(): ApiError<ErrorCodes> {
     detail: "agreementId is required for revoking verified attribute",
     code: "missingRequiredAgreementId",
     title: "Missing required agreement ID",
+  });
+}
+
+export function tenantAuthorizationMismatch(
+  callerTenantId: string,
+  requestedTenantId: string,
+  delegationId?: string
+): ApiError<ErrorCodes> {
+  const detail = delegationId
+    ? `Caller tenant ${callerTenantId} is not authorized to act on tenant ${requestedTenantId} even with delegation ${delegationId}`
+    : `Caller tenant ${callerTenantId} is not authorized to act on tenant ${requestedTenantId}`;
+
+  return new ApiError({
+    detail,
+    code: "tenantAuthorizationMismatch",
+    title: "Tenant authorization mismatch",
   });
 }

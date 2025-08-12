@@ -1,5 +1,9 @@
 import { WithLogger, isDefined } from "pagopa-interop-commons";
-import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApi,
+  tenantApi,
+  delegationApi,
+} from "pagopa-interop-api-clients";
 import { AttributeId, TenantId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -23,6 +27,7 @@ import {
   tenantVerifiedAttributeNotFound,
   missingRequiredAgreementId,
 } from "../model/errors.js";
+import { assertTenantDeclaredAttributeAuthorization } from "../utils/validators/validators.js";
 
 function retrieveDeclaredAttributes(
   tenant: tenantApi.Tenant
@@ -330,9 +335,28 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     async addTenantDeclaredAttribute(
       tenantId: TenantId,
       body: m2mGatewayApi.AddDeclaredAttributeRequest,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
       logger.info(`Adding declared attribute ${body.id} to tenant ${tenantId}`);
+
+      // 1. Get delegation if specified and validate authorization
+      const delegation: delegationApi.Delegation | undefined =
+        body.delegationId && authData.organizationId !== tenantId
+          ? (
+              await clients.delegationProcessClient.delegation.getDelegation({
+                params: { delegationId: body.delegationId },
+                headers,
+              })
+            ).data
+          : undefined;
+
+      // 2. Validate tenant authorization and delegation for declared attributes
+      assertTenantDeclaredAttributeAuthorization(
+        authData.organizationId,
+        tenantId,
+        body.delegationId,
+        delegation
+      );
 
       const response =
         await clients.tenantProcessClient.tenantAttribute.addDeclaredAttribute(
@@ -361,13 +385,32 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       tenantId: TenantId,
       attributeId: AttributeId,
       query: { delegationId?: string },
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
       const logMessage = query.delegationId
         ? `Revoking declared attribute ${attributeId} from tenant ${tenantId} with delegation ${query.delegationId}`
         : `Revoking declared attribute ${attributeId} from tenant ${tenantId}`;
 
       logger.info(logMessage);
+
+      // 1. Get delegation if specified and validate authorization
+      const delegation: delegationApi.Delegation | undefined =
+        query.delegationId && authData.organizationId !== tenantId
+          ? (
+              await clients.delegationProcessClient.delegation.getDelegation({
+                params: { delegationId: query.delegationId },
+                headers,
+              })
+            ).data
+          : undefined;
+
+      // 2. Validate tenant authorization and delegation for declared attributes
+      assertTenantDeclaredAttributeAuthorization(
+        authData.organizationId,
+        tenantId,
+        query.delegationId,
+        delegation
+      );
 
       const response =
         await clients.tenantProcessClient.tenantAttribute.revokeDeclaredAttribute(
