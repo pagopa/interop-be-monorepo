@@ -72,3 +72,14 @@ export function toM2MGatewayApiDocument(
     contentType: document.contentType,
   };
 }
+
+export function toM2MGatewayApiEServiceRiskAnalysis(
+  riskAnalysis: catalogApi.EServiceRiskAnalysis
+): m2mGatewayApi.EServiceRiskAnalysis {
+  return {
+    id: riskAnalysis.id,
+    name: riskAnalysis.name,
+    createdAt: riskAnalysis.createdAt,
+    riskAnalysisForm: riskAnalysis.riskAnalysisForm,
+  };
+}
