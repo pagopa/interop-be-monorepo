@@ -876,7 +876,7 @@ export function tenantServiceBuilder(
           agreement.eserviceId
         );
 
-      // 5. Retrieve and validate tenant and attribute
+      // 4. Retrieve and validate tenant and attribute
       const targetTenant = await retrieveTenant(tenantId, readModelService);
       const attribute = await retrieveAttribute(attributeId, readModelService);
 
@@ -884,7 +884,7 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attribute.id);
       }
 
-      // 6. Check existing verified attribute and prevent double verification BEFORE permission checks
+      // 5. Check existing verified attribute and prevent double verification BEFORE permission checks
       const existingVerifiedAttribute = targetTenant.data.attributes.find(
         (attr): attr is VerifiedTenantAttribute =>
           attr.type === tenantAttributeType.VERIFIED && attr.id === attribute.id
@@ -904,7 +904,7 @@ export function tenantServiceBuilder(
         }
       }
 
-      // 7. Validate operation permissions (now that we're sure it's not a double verification)
+      // 6. Validate operation permissions (now that we're sure it's not a double verification)
       const operationError = attributeVerificationNotAllowed(
         tenantId,
         attributeId
