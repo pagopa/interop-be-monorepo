@@ -881,7 +881,7 @@ const tenantsRouter = (
           {
             attributeId: unsafeBrandId(req.params.attributeId),
             delegationId: req.query.delegationId
-              ? (req.query.delegationId as string as DelegationId)
+              ? unsafeBrandId<DelegationId>(req.query.delegationId)
               : undefined,
           },
           ctx
