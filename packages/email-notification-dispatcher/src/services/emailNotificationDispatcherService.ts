@@ -23,7 +23,7 @@ export function emailNotificationDispatcherServiceBuilder() {
       } catch (e) {
         logger({ serviceName: "email-notification-dispatcher" }).info(
           `Error while sending messages. Transaction will be aborted. Affected correlationIds: ` +
-          messagePayloads.map((payload) => payload.correlationId).join(", ")
+            messagePayloads.map((payload) => payload.correlationId).join(", ")
         );
         await transaction.abort();
       }
