@@ -1,12 +1,4 @@
-import {
-  EService,
-  EServiceId,
-  generateId,
-  PurposeTemplate,
-  PurposeTemplateId,
-  purposeTemplateState,
-  WithMetadata,
-} from "pagopa-interop-models";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
@@ -15,7 +7,16 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  EService,
+  EServiceId,
+  generateId,
+  PurposeTemplate,
+  PurposeTemplateId,
+  purposeTemplateState,
+  RiskAnalysisFormTemplate,
+  WithMetadata,
+} from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
@@ -30,6 +31,19 @@ export function purposeTemplateServiceBuilder(
   // TODO : use it to write purpose template events in the event store
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // const repository = eventRepository(dbInstance, purposeEventToBinaryDataV2);
+
+  const validateAndTransformRiskAnalysisTemplate = (
+    purposeRiskAnalysisForm?: purposeTemplateApi.RiskAnalysisFormTemplateSeed
+  ): RiskAnalysisFormTemplate | undefined {
+
+    if(!purposeRiskAnalysisForm) {
+      return undefined;
+    }
+
+    
+    
+
+  }
 
   return {
     async createPurposeTemplate(
@@ -52,7 +66,8 @@ export function purposeTemplateServiceBuilder(
         title: seed.purposeTitle,
       });
 
-      // todo validateAndTransformRiskAnalysis?
+      const validatedPurposeRiskAnalysisForm =
+        validateAndTransformRiskAnalysisTemplate(seed.purposeRiskAnalysisForm);
 
       const purposeTemplate: PurposeTemplate = {
         id: generateId(),
@@ -63,28 +78,7 @@ export function purposeTemplateServiceBuilder(
         createdAt: new Date(),
         purposeTitle: seed.purposeTitle,
         purposeDescription: seed.purposeDescription,
-        purposeRiskAnalysisForm: seed.purposeRiskAnalysisForm
-          ? {
-              id: generateId(),
-              version: seed.purposeRiskAnalysisForm.version,
-              singleAnswers: seed.purposeRiskAnalysisForm.answers.map(
-                (answer: purposeTemplateApi.RiskAnalysisTemplateAnswer) => ({
-                  value: answer.value,
-                  editable: answer.editable,
-                  annotation: answer.annotation,
-                  suggestedValues: answer.suggestedValues,
-                })
-              ),
-              multiAnswers: seed.purposeRiskAnalysisForm.answers.map(
-                (answer: purposeTemplateApi.RiskAnalysisTemplateAnswer) => ({
-                  id: generateId(),
-                  value: answer.value,
-                  editable: answer.editable,
-                  annotation: answer.annotation,
-                })
-              ),
-            }
-          : undefined,
+        purposeRiskAnalysisForm: validatedPurposeRiskAnalysisForm,
         purposeIsFreeOfCharge: seed.purposeIsFreeOfCharge,
         purposeFreeOfChargeReason: seed.purposeFreeOfChargeReason,
         purposeDailyCalls: seed.purposeDailyCalls,
@@ -94,7 +88,10 @@ export function purposeTemplateServiceBuilder(
         toCreateEventPurposeTemplateAdded(purposeTemplate, correlationId)
       );
       return {
-        data: { purposeTemplate, isRiskAnalysisValid: validatedFormSeed !== undefined },
+        data: {
+          purposeTemplate,
+          isRiskAnalysisValid: validatedFormSeed !== undefined,
+        },
         metadata: {
           version: event.newVersion,
         },

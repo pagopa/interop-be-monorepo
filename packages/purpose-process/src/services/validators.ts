@@ -1,46 +1,46 @@
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
+  M2MAdminAuthData,
+  RiskAnalysisValidatedTemplateAnswer,
+  UIAuthData,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
+  validateRiskAnalysis,
+} from "pagopa-interop-commons";
+import {
+  Delegation,
+  DelegationId,
   EService,
+  EServiceId,
   EServiceMode,
   Purpose,
-  PurposeVersion,
   PurposeRiskAnalysisForm,
+  PurposeVersion,
   RiskAnalysisForm,
   TenantId,
   TenantKind,
-  purposeVersionState,
-  EServiceId,
   delegationKind,
-  Delegation,
   delegationState,
-  DelegationId,
+  purposeVersionState,
 } from "pagopa-interop-models";
-import {
-  validateRiskAnalysis,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
-  RiskAnalysisValidatedForm,
-  riskAnalysisValidatedFormToNewRiskAnalysisForm,
-  UIAuthData,
-  M2MAdminAuthData,
-} from "pagopa-interop-commons";
-import { purposeApi } from "pagopa-interop-api-clients";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
+  purposeNotInDraftState,
+  riskAnalysisValidationFailed,
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegatedConsumer,
   tenantIsNotTheDelegatedProducer,
   tenantIsNotTheProducer,
   tenantNotAllowed,
-  purposeNotInDraftState,
-  riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
-import { ReadModelService } from "./readModelService.js";
 import {
   retrieveActiveAgreement,
   retrievePurposeDelegation,
 } from "./purposeService.js";
+import { ReadModelService } from "./readModelService.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -114,7 +114,7 @@ export function validateRiskAnalysisOrThrow({
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
   schemaOnlyValidation: boolean;
   tenantKind: TenantKind;
-}): RiskAnalysisValidatedForm {
+}): RiskAnalysisValidatedTemplateAnswer {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
