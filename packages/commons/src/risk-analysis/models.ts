@@ -11,8 +11,8 @@ import {
   TenantKind,
   generateId,
 } from "pagopa-interop-models";
-import { DataType } from "./rules/riskAnalysisFormRules.js";
 import { RiskAnalysisValidationIssue } from "./riskAnalysisValidationErrors.js";
+import { DataType } from "./rules/riskAnalysisFormRules.js";
 
 export type RiskAnalysisValidationInvalid = {
   type: "invalid";
@@ -78,11 +78,11 @@ export type ValidationRule = {
 
 export type RiskAnalysisFormTemplateToValidate = {
   version: string;
-  answers: Record<string, RiskAnalysisTemplateAnswer>;
+  answers: Record<string, RiskAnalysisTemplateAnswerToValidate>;
 };
 
-export type RiskAnalysisTemplateAnswer = {
-  value: string;
+export type RiskAnalysisTemplateAnswerToValidate = {
+  values: string[];
   editable: boolean;
   annotation?: RiskAnalysisTemplateAnswerAnnotation;
   suggestedValues: string[];
@@ -102,6 +102,16 @@ export type RiskAnalysisTemplateAnswerAnnotationDocument = {
   path: string;
   createdAt: Date;
 };
+
+export type RiskAnalysisTemplateValidatedSingleOrMultiAnswer =
+  | {
+      type: "single";
+      answer?: RiskAnalysisValidatedSingleAnswer;
+    }
+  | {
+      type: "multi";
+      answer: RiskAnalysisValidatedMultiAnswer;
+    };
 
 export function riskAnalysisValidatedFormToNewRiskAnalysis(
   validatedForm: RiskAnalysisValidatedForm,
