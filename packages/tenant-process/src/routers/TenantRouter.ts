@@ -37,7 +37,7 @@ import {
   deleteTenantMailErrorMapper,
   addTenantMailErrorMapper,
   addDeclaredAttributeErrorMapper,
-  verifyVerifiedAttributeErrorMapper,
+  addVerifiedAttributeErrorMapper,
   revokeVerifiedAttributeErrorMapper,
   internalAddCertifiedAttributeErrorMapper,
   internalRevokeCertifiedAttributeErrorMapper,
@@ -804,7 +804,7 @@ const tenantsRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          verifyVerifiedAttributeErrorMapper,
+          addVerifiedAttributeErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

@@ -44,7 +44,7 @@ describe("addVerifiedAttribute", () => {
 
   mockInteropBeClients.tenantProcessClient = {
     tenantAttribute: {
-      verifyVerifiedAttribute: mockAddVerifiedAttribute,
+      addVerifiedAttribute: mockAddVerifiedAttribute,
     },
     tenant: {
       getTenant: mockGetTenant,

@@ -31,7 +31,7 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
     authRole.M2M_ADMIN_ROLE,
   ];
   beforeEach(() => {
-    tenantService.verifyVerifiedAttribute = vi.fn().mockResolvedValue(tenant);
+    tenantService.addVerifiedAttribute = vi.fn().mockResolvedValue(tenant);
   });
 
   const makeRequest = async (
@@ -82,7 +82,7 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      tenantService.verifyVerifiedAttribute = vi.fn().mockRejectedValue(error);
+      tenantService.addVerifiedAttribute = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);

@@ -54,7 +54,7 @@ import {
   getMockRevokedBy,
 } from "../mockUtils.js";
 
-describe("verifyVerifiedAttribute", async () => {
+describe("addVerifiedAttribute", async () => {
   const targetTenant = getMockTenant();
   const requesterTenant = getMockTenant();
 

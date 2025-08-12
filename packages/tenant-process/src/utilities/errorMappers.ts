@@ -151,7 +151,7 @@ export const maintenanceTenantUpdatedErrorMapper = (
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const verifyVerifiedAttributeErrorMapper = (
+export const addVerifiedAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
