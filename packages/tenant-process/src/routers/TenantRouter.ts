@@ -37,7 +37,7 @@ import {
   deleteTenantMailErrorMapper,
   addTenantMailErrorMapper,
   addDeclaredAttributeErrorMapper,
-  addVerifiedAttributeErrorMapper,
+  verifyVerifiedAttributeErrorMapper,
   revokeVerifiedAttributeErrorMapper,
   internalAddCertifiedAttributeErrorMapper,
   internalRevokeCertifiedAttributeErrorMapper,
@@ -789,7 +789,7 @@ const tenantsRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
 
-        const tenant = await tenantService.addVerifiedAttribute(
+        const tenant = await tenantService.verifyVerifiedAttribute(
           {
             tenantId: unsafeBrandId(req.params.tenantId),
             attributeId: unsafeBrandId(req.body.id),
@@ -804,7 +804,7 @@ const tenantsRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          addVerifiedAttributeErrorMapper,
+          verifyVerifiedAttributeErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

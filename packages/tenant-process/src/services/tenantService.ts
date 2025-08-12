@@ -86,7 +86,6 @@ import {
   tenantNotFound,
   tenantIsAlreadyACertifier,
   verifiedAttributeSelfRevocationNotAllowed,
-  verifiedAttributeAlreadyVerified,
   agreementNotFound,
   notValidMailAddress,
   delegationNotFound,
@@ -829,7 +828,7 @@ export function tenantServiceBuilder(
       };
     },
 
-    async addVerifiedAttribute(
+    async verifyVerifiedAttribute(
       {
         tenantId,
         attributeId,
@@ -848,17 +847,12 @@ export function tenantServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<Tenant> {
       logger.info(
-        `Adding verified attribute ${attributeId} to tenant ${tenantId} for agreement ${agreementId}`
+        `Verifying attribute ${attributeId} to tenant ${tenantId} for agreement ${agreementId}`
       );
 
-      // 1. Validate agreement and retrieve basic data
       const agreement = await retrieveAgreement(agreementId, readModelService);
-      const verifierId = agreement.producerId;
 
-      // 2. Basic validations
-      if (verifierId === tenantId) {
-        throw verifiedAttributeSelfVerificationNotAllowed();
-      }
+      const error = attributeVerificationNotAllowed(tenantId, attributeId);
 
       const allowedStatuses: AgreementState[] = [
         agreementState.pending,
@@ -867,10 +861,29 @@ export function tenantServiceBuilder(
       ];
 
       if (!allowedStatuses.includes(agreement.state)) {
-        throw attributeVerificationNotAllowed(tenantId, attributeId);
+        throw error;
       }
 
-      // 3. Retrieve and validate tenant and attribute
+      const producerDelegation =
+        await readModelService.getActiveProducerDelegationByEservice(
+          agreement.eserviceId
+        );
+
+      await assertVerifiedAttributeOperationAllowed({
+        requesterId: authData.organizationId,
+        producerDelegation,
+        attributeId,
+        agreement,
+        readModelService,
+        error,
+      });
+
+      const verifierId = agreement.producerId;
+
+      if (verifierId === tenantId) {
+        throw verifiedAttributeSelfVerificationNotAllowed();
+      }
+
       const targetTenant = await retrieveTenant(tenantId, readModelService);
       const attribute = await retrieveAttribute(attributeId, readModelService);
 
@@ -878,62 +891,26 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attribute.id);
       }
 
-      // 4. Check existing verified attribute and prevent double verification BEFORE permission checks
-      const existingVerifiedAttribute = targetTenant.data.attributes.find(
+      const existingAttribute = targetTenant.data.attributes.find(
         (attr): attr is VerifiedTenantAttribute =>
           attr.type === tenantAttributeType.VERIFIED && attr.id === attribute.id
       );
 
-      if (existingVerifiedAttribute) {
-        const hasAlreadyVerified = existingVerifiedAttribute.verifiedBy.find(
-          (verifier) => verifier.id === verifierId
-        );
-
-        if (hasAlreadyVerified) {
-          throw verifiedAttributeAlreadyVerified(
-            tenantId,
-            attributeId,
-            verifierId
-          );
-        }
-      }
-
-      // 5. Get producer delegation if exists (only when needed for permission checks)
-      const producerDelegation =
-        await readModelService.getActiveProducerDelegationByEservice(
-          agreement.eserviceId
-        );
-
-      // 6. Validate operation permissions (now that we're sure it's not a double verification)
-      const operationError = attributeVerificationNotAllowed(
-        tenantId,
-        attributeId
-      );
-      await assertVerifiedAttributeOperationAllowed({
-        requesterId: authData.organizationId,
-        producerDelegation,
-        attributeId,
-        agreement,
-        readModelService,
-        error: operationError,
-      });
-
-      if (existingVerifiedAttribute) {
-        // Add verification to existing attribute
+      if (existingAttribute) {
         const updatedTenant: Tenant = {
           ...targetTenant.data,
           updatedAt: new Date(),
           attributes: targetTenant.data.attributes.map((attr) =>
-            attr.id === existingVerifiedAttribute.id
+            attr.id === existingAttribute.id
               ? {
                   ...attr,
                   verifiedBy: buildVerifiedBy(
-                    existingVerifiedAttribute.verifiedBy,
+                    existingAttribute.verifiedBy,
                     verifierId,
                     producerDelegation?.id,
                     expirationDate
                   ),
-                  revokedBy: existingVerifiedAttribute.revokedBy.filter(
+                  revokedBy: existingAttribute.revokedBy.filter(
                     (revoker) => revoker.id !== verifierId
                   ),
                 }
@@ -951,7 +928,6 @@ export function tenantServiceBuilder(
         );
         return updatedTenant;
       } else {
-        // Create new verified attribute
         const updatedTenant: Tenant = {
           ...targetTenant.data,
           updatedAt: new Date(),

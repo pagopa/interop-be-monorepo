@@ -13,7 +13,7 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
   const attributeSeed = getMockBffApiVerifiedTenantAttributeSeed();
 
   beforeEach(() => {
-    clients.tenantProcessClient.tenantAttribute.addVerifiedAttribute = vi
+    clients.tenantProcessClient.tenantAttribute.verifyVerifiedAttribute = vi
       .fn()
       .mockResolvedValue(undefined);
   });

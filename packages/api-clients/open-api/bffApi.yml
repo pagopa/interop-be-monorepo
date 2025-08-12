@@ -10285,7 +10285,7 @@ paths:
         - tenants
       summary: Adds the verified attribute to the Institution
       description: Adds the verified attribute to the Institution
-      operationId: addVerifiedAttribute
+      operationId: verifyVerifiedAttribute
       requestBody:
         required: true
         content:

@@ -625,7 +625,7 @@ paths:
     post:
       tags:
         - tenantAttribute
-      operationId: addVerifiedAttribute
+      operationId: verifyVerifiedAttribute
       description: Verify or de-revoke a Verified attribute to a Tenant by the requester Tenant
       requestBody:
         content:
