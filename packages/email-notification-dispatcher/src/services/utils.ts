@@ -25,8 +25,9 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 // Be careful to change this enum, it's used to find the html template files
 export const eventMailTemplateType = {
   agreementActivatedMailTemplate: "agreement-activated-mail",
-  // agreementSubmittedMailTemplate: "agreement-submitted-mail",
+  agreementSubmittedMailTemplate: "agreement-submitted-mail",
   agreementRejectedMailTemplate: "agreement-rejected-mail",
+  agreementUpgradedMailTemplate: "agreement-upgraded-mail",
   // newPurposeVersionWaitingForApprovalMailTemplate:
   //   "new-purpose-version-waiting-for-approval-mail",
   // firstPurposeVersionRejectedMailTemplate:
