@@ -7,6 +7,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
@@ -16,7 +17,12 @@ describe("PATCH /purposes/:purposeId router test", () => {
   const mockPurpose: purposeApi.Purpose = getMockedApiPurpose();
 
   const mockUpdateSeed: m2mGatewayApi.PurposeDraftUpdateSeed = {
-    // TODO
+    title: "updated title",
+    description: "updated description",
+    dailyCalls: 99,
+    isFreeOfCharge: false,
+    freeOfChargeReason: null,
+    riskAnalysisForm: generateMock(m2mGatewayApi.RiskAnalysisFormSeed),
   };
 
   const mockM2MPurpose: m2mGatewayApi.Purpose =
@@ -45,6 +51,11 @@ describe("PATCH /purposes/:purposeId router test", () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MPurpose);
+      expect(mockPurposeService.updateDraftPurpose).toHaveBeenCalledWith(
+        mockPurpose.id,
+        mockUpdateSeed,
+        expect.any(Object) // context
+      );
     }
   );
 
