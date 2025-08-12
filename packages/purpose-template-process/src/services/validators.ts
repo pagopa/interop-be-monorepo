@@ -1,18 +1,27 @@
 import {
   buildValidationRules,
   getLatestVersionFormRules,
-  invalidResult,
-  noRulesVersionFoundError,
+  invalidTemplateResult,
+  malformedTemplateFieldValueOrSuggestion,
+  missingExpectedTemplateFieldError,
+  noRulesVersionTemplateFoundError,
   RiskAnalysisFormTemplateToValidate,
-  RiskAnalysisTemplateAnswer,
+  RiskAnalysisTemplateAnswerToValidate,
+  RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
   RiskAnalysisTemplateValidationIssue,
+  RiskAnalysisTemplateValidationResult,
   RiskAnalysisValidatedSingleOrMultiAnswer,
-  RiskAnalysisValidationResult,
-  unexpectedFieldError,
-  unexpectedFieldValueOrSuggestion,
-  unexpectedRulesVersionError,
-  unexpectedFieldValueTemplateError,
+  templateDependencyNotFoundError,
+  unexpectedTemplateDependencyEditableError,
+  unexpectedTemplateDependencyValueError,
+  unexpectedTemplateFieldError,
+  unexpectedTemplateFieldValueError,
+  unexpectedTemplateFieldValueOrSuggestion,
+  unexpectedTemplateRulesVersionError,
   ValidationRule,
+  ValidationRuleDependency,
+  validResult,
+  validTemplateResult,
 } from "pagopa-interop-commons";
 import { RiskAnalysisFormTemplate, TenantKind } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
@@ -56,40 +65,39 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
 
 export function validatePurposeTemplateRiskAnalysis(
   riskAnalysisFormTemplate: RiskAnalysisFormTemplateToValidate,
-  schemaOnlyValidation: boolean,
   tenantKind: TenantKind
-): RiskAnalysisValidationResult<RiskAnalysisFormTemplate> | undefined {
+):
+  | RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>
+  | undefined {
   if (!riskAnalysisFormTemplate) {
     return undefined;
   }
   const latestVersionFormRules = getLatestVersionFormRules(tenantKind);
 
   if (latestVersionFormRules === undefined) {
-    return invalidResult([noRulesVersionFoundError(tenantKind)]);
+    return invalidTemplateResult([
+      noRulesVersionTemplateFoundError(tenantKind),
+    ]);
   }
 
   if (latestVersionFormRules.version !== riskAnalysisFormTemplate.version) {
-    return invalidResult([
-      unexpectedRulesVersionError(riskAnalysisFormTemplate.version),
+    return invalidTemplateResult([
+      unexpectedTemplateRulesVersionError(riskAnalysisFormTemplate.version),
     ]);
   }
 
   const validationRules = buildValidationRules(latestVersionFormRules);
 
-  const results = validateTemplateFormAnswers(
+  return validateTemplateFormAnswers(
     riskAnalysisFormTemplate.answers,
-    schemaOnlyValidation,
     validationRules
   );
 }
 
 function validateTemplateFormAnswers(
   answers: RiskAnalysisFormTemplateToValidate["answers"],
-  schemaOnlyValidation: boolean,
   validationRules: ValidationRule[]
-): Array<
-  RiskAnalysistValidationResult<RiskAnalysisValidatedSingleOrMultiAnswer>
-> {
+): RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer> {
   return Object.entries(answers)
     .map(([answerKey, answerValue]) => {
       const validationRule = validationRules.find(
@@ -97,17 +105,14 @@ function validateTemplateFormAnswers(
       );
 
       return match(validationRule)
-        .with(P.nullish, () => invalidResult([unexpectedFieldError(answerKey)]))
+        .with(P.nullish, () =>
+          invalidTemplateResult([unexpectedTemplateFieldError(answerKey)])
+        )
         .with(P.not(P.nullish), (rule) => {
-          const errors = validateFormField(
-            answerValue,
-            rule,
-            schemaOnlyValidation,
-            answers
-          );
+          const errors = validateFormAnswer(answerValue, rule, answers);
 
           if (errors.length > 0) {
-            return invalidResult(errors);
+            return invalidTemplateResult(errors);
           } else {
             return answerToValidatedSingleOrMultiAnswer(
               answerKey,
@@ -117,111 +122,150 @@ function validateTemplateFormAnswers(
           }
         })
         .exhaustive();
-    }) // todo valutare se tenere questo concat
+    })
     .concat(
-      match(schemaOnlyValidation)
-        .with(true, () => [])
-        .with(false, () => {
-          const errors = validateRequiredFields(answers, validationRules);
-
-          if (errors.length > 0) {
-            return [invalidResult(errors)];
-          } else {
-            return [];
-          }
-        })
-        .exhaustive()
+      invalidTemplateResult(
+        validateTemplateRequiredFields(answers, validationRules)
+      )
     );
 }
 
-function validateFormField(
-  fieldValue: RiskAnalysisTemplateAnswer,
+function validateFormAnswer(
+  templateAnswer: RiskAnalysisTemplateAnswerToValidate,
   validationRule: ValidationRule,
   answers: RiskAnalysisFormTemplateToValidate["answers"]
 ): RiskAnalysisTemplateValidationIssue[] {
   return [
-    ...validateFieldValue(fieldValue, validationRule),
-    ...validationRule.dependencies.flatMap,
-    (dependency) =>
-      validateAnswerDependency(answers, validationRule.fieldName, dependency),
+    ...validateAnswerValue(templateAnswer, validationRule),
+    ...validationRule.dependencies.flatMap((dependencyRule) =>
+      validateAnswerDependency(
+        answers,
+        dependencyRule,
+        validationRule.fieldName
+      )
+    ),
   ];
 }
 
-function validateFieldValue(
-  answer: RiskAnalysisTemplateAnswer,
+function validateAnswerValue(
+  answer: RiskAnalysisTemplateAnswerToValidate,
   rule: ValidationRule
 ): RiskAnalysisTemplateValidationIssue[] {
   if (answer.editable) {
-    return answer.value.length > 0 || answer.suggestedValues.length > 0
-      ? [unexpectedFieldValueOrSuggestion(rule.fieldName)]
+    return answer.values.length > 0 || answer.suggestedValues.length > 0
+      ? [unexpectedTemplateFieldValueOrSuggestion(rule.fieldName)]
       : [];
   }
-  return match(rule.allowedValues)
-    .with(P.not(P.nullish), (allowedValues) => {
-      if (answer.value && !allowedValues.has(answer.value)) {
-        return [
-          unexpectedFieldValueTemplateError(rule.fieldName, allowedValues),
-        ];
+
+  const hasSuggestions = answer.suggestedValues.length > 0;
+  const hasValue = answer.values.length > 0;
+  return match(rule)
+    .with(P.nullish, () => [])
+    .with({ dataType: "freeText" }, (r) => {
+      if (!hasValue && !hasSuggestions) {
+        return [unexpectedTemplateFieldValueOrSuggestion(r.fieldName)];
       }
 
-      if (answer.suggestedValues.some((v) => allowedValues.has(v))) {
-        return [
-          unexpectedFieldValueTemplateError(rule.fieldName, allowedValues),
-        ];
+      if (hasValue && hasSuggestions) {
+        return [malformedTemplateFieldValueOrSuggestion(r.fieldName)];
       }
 
       return [];
     })
-    .with(P.nullish, () => [])
+    .with({ dataType: P.not("freeText") }, () =>
+      rule.allowedValues &&
+      answer.values.some((e) => !rule.allowedValues?.has(e))
+        ? [
+            unexpectedTemplateFieldValueError(
+              rule.fieldName,
+              rule.allowedValues
+            ),
+          ]
+        : []
+    )
     .exhaustive();
 }
 
-// todo ma serve dependentField?
 function validateAnswerDependency(
   answers: RiskAnalysisFormTemplateToValidate["answers"],
-  dependentField: string,
-  dependency: ValidationRuleDependency
+  dependency: ValidationRuleDependency,
+  dependentField: string
 ): RiskAnalysisTemplateValidationIssue[] {
-  const dependencyAnswer: RiskAnalysisTemplateAnswer | undefined =
-    answers[dependency.fieldName];
-  if (dependencyAnswer === undefined) {
-    return [dependencyNotFoundError(dependentField, dependency.fieldName)];
-  }
-
-  if (dependencyAnswer.value !== dependency.fieldValue) {
-    return [
-      unexpectedDependencyValueError(
+  return match(answers[dependency.fieldName])
+    .with(P.nullish, () => [
+      templateDependencyNotFoundError(dependentField, dependency.fieldName),
+    ])
+    .with({ editable: true }, () => [
+      unexpectedTemplateDependencyEditableError(
+        dependentField,
+        dependency.fieldName
+      ),
+    ])
+    .with({ values: P.when((v) => !v.includes(dependency.fieldValue)) }, () => [
+      unexpectedTemplateDependencyValueError(
         dependentField,
         dependency.fieldName,
         dependency.fieldValue
       ),
-    ];
-  }
+    ])
+    .otherwise(() => []);
 }
 
-function getSanitizedTemplateAnswers(
-  form: RiskAnalysisFormTemplateToValidate
-): RiskAnalysisFormTemplateToValidate["answers"] {
-  return Object.fromEntries(
-    Object.entries(form.answers).filter(([, v]) => {
-      //  case 1 : value && !editable - Suggestion Not allowed
-      //  case 2 : !value && editable && suggestions
-      //  case 3 : value && editable && suggestions
-      //  case 4 : !value && !editable && !suggestions
-      //  case 5 : value && editable && !suggestions
-      //  case 6 : !value && editable && !suggestions
-      //  case 7 : !value && !editable && suggestions
-      //  case 8 : value && !editable && suggestions
-      //  case 9 : !value && !editable && suggestions
-      //  case 10: value && editable && suggestions
+function answerToValidatedSingleOrMultiAnswer(
+  answerKey: string,
+  answerValue: RiskAnalysisTemplateAnswerToValidate,
+  validationRule: ValidationRule
+): RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer> {
+  return match(validationRule.dataType)
+    .with("single", "freeText", () =>
+      validTemplateResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>({
+        type: "single",
+        answer: { key: answerKey, value: answerValue.values[0] ?? undefined },
+      })
+    )
+    .with("multi", () =>
+      validTemplateResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>({
+        type: "multi",
+        answer: {
+          key: answerKey,
+          values: answerValue.values,
+        },
+      })
+    )
+    .exhaustive();
+}
 
-      const hasValue = v.value.trim().length > 0;
+function validateTemplateRequiredFields(
+  answers: RiskAnalysisFormTemplateToValidate["answers"],
+  validationRules: ValidationRule[]
+): RiskAnalysisTemplateValidationIssue[] {
+  return validationRules
+    .filter((r) => r.required)
+    .flatMap((rule) => {
+      const templateAnswer = answers[rule.fieldName];
 
-      const hasSuggestions = v.suggestedValues.length > 0;
+      if (templateAnswer === undefined) {
+        return [missingExpectedTemplateFieldError(rule.fieldName)];
+      }
 
-      // check on v.editable removes answers that are editable,
-      // ensure that only answers with values or suggestions are kept for validation and storage
-      return hasValue || hasSuggestions || v.editable;
-    })
-  );
+      // if the field is editable, require fields are not checked
+      if (templateAnswer.editable) {
+        return [];
+      }
+
+      if (
+        rule.dataType === "freeText" &&
+        !templateAnswer.editable &&
+        !templateAnswer.values.length &&
+        !templateAnswer.suggestedValues.length
+      ) {
+        return [unexpectedTemplateFieldValueOrSuggestion(rule.fieldName)];
+      }
+
+      if (!templateAnswer.editable && !templateAnswer.values.length) {
+        return [unexpectedTemplateFieldValueOrSuggestion(rule.fieldName)];
+      }
+
+      return [];
+    });
 }
