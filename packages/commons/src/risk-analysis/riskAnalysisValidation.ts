@@ -134,7 +134,7 @@ function questionRulesDepsToValidationRuleDeps(
   }));
 }
 
-function buildValidationRules(
+export function buildValidationRules(
   formRules: RiskAnalysisFormRules
 ): ValidationRule[] {
   return formRules.questions.map(buildValidationRule);

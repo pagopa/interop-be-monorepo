@@ -1,49 +1,49 @@
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
+  M2MAdminAuthData,
+  Ownership,
+  RiskAnalysisValidatedForm,
+  UIAuthData,
+  ownership,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
+  validateRiskAnalysis,
+} from "pagopa-interop-commons";
+import {
+  Delegation,
+  DelegationId,
   EService,
+  EServiceId,
   EServiceMode,
   Purpose,
-  PurposeVersion,
   PurposeRiskAnalysisForm,
+  PurposeVersion,
   RiskAnalysisForm,
   TenantId,
   TenantKind,
-  purposeVersionState,
-  EServiceId,
   delegationKind,
-  Delegation,
   delegationState,
-  DelegationId,
+  purposeVersionState,
 } from "pagopa-interop-models";
-import {
-  validateRiskAnalysis,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
-  RiskAnalysisValidatedForm,
-  riskAnalysisValidatedFormToNewRiskAnalysisForm,
-  UIAuthData,
-  M2MAdminAuthData,
-  Ownership,
-  ownership,
-} from "pagopa-interop-commons";
-import { purposeApi } from "pagopa-interop-api-clients";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
+  purposeNotInDraftState,
+  riskAnalysisValidationFailed,
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegatedConsumer,
   tenantIsNotTheDelegatedProducer,
   tenantIsNotTheProducer,
   tenantNotAllowed,
-  purposeNotInDraftState,
-  riskAnalysisValidationFailed,
   tenantIsNotTheDelegate,
 } from "../model/domain/errors.js";
-import { ReadModelService } from "./readModelService.js";
 import {
   retrieveActiveAgreement,
   retrievePurposeDelegation,
 } from "./purposeService.js";
+import { ReadModelService } from "./readModelService.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
