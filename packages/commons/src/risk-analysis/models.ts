@@ -6,6 +6,8 @@ import {
   RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  RiskAnalysisTemplateAnswerAnnotationId,
   TenantKind,
   generateId,
 } from "pagopa-interop-models";
@@ -68,6 +70,37 @@ export type ValidationRule = {
   required: boolean;
   dependencies: ValidationRuleDependency[];
   allowedValues: Set<string> | undefined;
+};
+
+/* ===============================
+  Purpose Template Risk Analysis 
+================================== */
+
+export type RiskAnalysisFormTemplateToValidate = {
+  version: string;
+  answers: Record<string, RiskAnalysisTemplateAnswer>;
+};
+
+export type RiskAnalysisTemplateAnswer = {
+  value: string;
+  editable: boolean;
+  annotation?: RiskAnalysisTemplateAnswerAnnotation;
+  suggestedValues: string[];
+};
+
+export type RiskAnalysisTemplateAnswerAnnotation = {
+  id: RiskAnalysisTemplateAnswerAnnotationId;
+  text?: string;
+  docs: RiskAnalysisTemplateAnswerAnnotationDocument;
+};
+
+export type RiskAnalysisTemplateAnswerAnnotationDocument = {
+  id: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  name: string;
+  contentType: string;
+  prettyName: string;
+  path: string;
+  createdAt: Date;
 };
 
 export function riskAnalysisValidatedFormToNewRiskAnalysis(
