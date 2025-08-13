@@ -66,6 +66,7 @@ import { EserviceTemplateService } from "../src/services/eserviceTemplateService
 import { PurposeService } from "../src/services/purposeService.js";
 import { TenantService } from "../src/services/tenantService.js";
 import { KeyService } from "../src/services/keyService.js";
+import { ProducerKeychainService } from "../src/services/producerKeychainService.js";
 
 export const mockRateLimiter: RateLimiter = {
   rateLimitByOrganization: vi.fn().mockResolvedValue({
@@ -102,6 +103,7 @@ export const mockEServiceTemplateService = {} as EserviceTemplateService;
 export const mockAgreementService = {} as AgreementService;
 export const mockEserviceService = {} as EserviceService;
 export const mockKeyService = {} as KeyService;
+export const mockProducerKeychainService = {} as ProducerKeychainService;
 
 export const api = await createApp(
   {
@@ -114,6 +116,7 @@ export const api = await createApp(
     purposeService: mockPurposeService,
     tenantService: mockTenantService,
     keyService: mockKeyService,
+    producerKeychainService: mockProducerKeychainService,
   },
   rateLimiterMiddleware(mockRateLimiter)
 );
