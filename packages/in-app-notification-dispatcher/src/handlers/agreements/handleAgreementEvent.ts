@@ -7,6 +7,7 @@ import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleAgreementManagementToProducer } from "./handleAgreementManagementToProducer.js";
 import { handleAgreementSuspendedUnsuspended } from "./handleAgreementSuspendedUnsuspended.js";
+import { handleAgreementActivatedRejectedToConsumer } from "./handleAgreementActivatedRejectedToConsumer.js";
 
 export async function handleAgreementEvent(
   decodedMessage: AgreementEventEnvelopeV2,
@@ -34,11 +35,7 @@ export async function handleAgreementEvent(
     )
     .with(
       {
-        type: P.union(
-          "AgreementActivated",
-          "AgreementSubmitted",
-          "AgreementUpgraded"
-        ),
+        type: P.union("AgreementSubmitted", "AgreementUpgraded"),
       },
       ({ data: { agreement }, type }) =>
         handleAgreementManagementToProducer(
@@ -50,8 +47,38 @@ export async function handleAgreementEvent(
     )
     .with(
       {
+        type: "AgreementActivated",
+      },
+      async ({ data: { agreement }, type }) => [
+        ...(await handleAgreementManagementToProducer(
+          agreement,
+          logger,
+          readModelService,
+          type
+        )),
+        ...(await handleAgreementActivatedRejectedToConsumer(
+          agreement,
+          logger,
+          readModelService,
+          type
+        )),
+      ]
+    )
+    .with(
+      {
+        type: "AgreementRejected",
+      },
+      ({ data: { agreement }, type }) =>
+        handleAgreementActivatedRejectedToConsumer(
+          agreement,
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
+      {
         type: P.union(
-          "AgreementRejected",
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
