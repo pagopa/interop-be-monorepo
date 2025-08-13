@@ -5170,6 +5170,7 @@ paths:
       description: Create a Risk Analysis for an E-Service
       operationId: createEServiceRiskAnalysis
       requestBody:
+        required: true
         content:
           application/json:
             schema:
