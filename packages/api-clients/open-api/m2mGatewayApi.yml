@@ -3979,7 +3979,7 @@ paths:
         - producerKeychains
       summary: Link an E-Service to a Producer Keychain
       description: |
-        Link a Producer Keychain to an E-Service  
+        Link a Producer Keychain to an E-Service
         You must be the E-Service owner
       operationId: addProducerKeychainEService
       requestBody:
@@ -8373,7 +8373,7 @@ paths:
     parameters:
       - name: tenantId
         in: path
-        description: The Tenant ID of the Attributes
+        description: The Tenant ID of the Declared Attributes
         required: true
         schema:
           type: string
@@ -8477,18 +8477,18 @@ paths:
     post:
       tags:
         - tenants
-      summary: Add Declared Attribute to Tenant
-      description: Add a declared attribute to the specified tenant
-      operationId: addTenantDeclaredAttribute
+      summary: Assign a Declared Attribute to a Tenant
+      description: Assign a Declared Attribute to a Tenant
+      operationId: assignDeclaredAttribute
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AddDeclaredAttributeRequest"
+              $ref: "#/components/schemas/TenantDeclaredAttributeSeed"
       responses:
         "200":
-          description: Declared Attribute added
+          description: Declared Attribute assigned
           content:
             application/json:
               schema:
@@ -8526,8 +8526,8 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-        "404":
-          description: Not Found
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -8539,8 +8539,8 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-        "409":
-          description: Conflict
+        "404":
+          description: Not Found
           content:
             application/problem+json:
               schema:
@@ -8569,14 +8569,14 @@ paths:
     parameters:
       - name: tenantId
         in: path
-        description: The Tenant ID
+        description: The Tenant ID of the Declared Attribute
         required: true
         schema:
           type: string
           format: uuid
       - name: attributeId
         in: path
-        description: The Attribute ID
+        description: The Declared Attribute ID
         required: true
         schema:
           type: string
@@ -8584,16 +8584,9 @@ paths:
     delete:
       tags:
         - tenants
-      summary: Revoke Declared Attribute from Tenant
-      description: Revoke a declared attribute from the specified tenant
-      operationId: revokeTenantDeclaredAttribute
-      parameters:
-        - in: query
-          name: delegationId
-          description: The ID of the Delegation
-          schema:
-            type: string
-            format: uuid
+      summary: Revoke a Declared Attribute from a Tenant
+      description: Revoke a Declared Attribute from a Tenant
+      operationId: revokeDeclaredAttribute
       responses:
         "200":
           description: Declared Attribute revoked
@@ -8623,6 +8616,19 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "401":
           description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -8664,7 +8670,7 @@ paths:
     parameters:
       - name: tenantId
         in: path
-        description: The Tenant ID of the Attributes
+        description: The Tenant ID of the Certified Attributes
         required: true
         schema:
           type: string
@@ -8867,14 +8873,14 @@ paths:
     parameters:
       - name: tenantId
         in: path
-        description: The Tenant ID of the Attributes
+        description: The Tenant ID of the Certified Attribute
         required: true
         schema:
           type: string
           format: uuid
       - name: attributeId
         in: path
-        description: The Attribute ID
+        description: The Certified Attribute ID
         required: true
         schema:
           type: string
@@ -9079,18 +9085,18 @@ paths:
     post:
       tags:
         - tenants
-      summary: Add Verified Attribute to Tenant
-      description: Add a verified attribute to the specified tenant
-      operationId: addTenantVerifiedAttribute
+      summary: Assign a Verified Attribute to a Tenant
+      description: Assign a Verified Attribute to a Tenant
+      operationId: assignVerifiedAttribute
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AddVerifiedAttributeRequest"
+              $ref: "#/components/schemas/TenantVerifiedAttributeSeed"
       responses:
         "200":
-          description: Verified Attribute added
+          description: Verified Attribute assigned
           content:
             application/json:
               schema:
@@ -9128,8 +9134,8 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-        "404":
-          description: Not Found
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -9141,8 +9147,8 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-        "409":
-          description: Conflict
+        "404":
+          description: Not Found
           content:
             application/problem+json:
               schema:
@@ -9171,14 +9177,14 @@ paths:
     parameters:
       - name: tenantId
         in: path
-        description: The Tenant ID
+        description: The Tenant ID of the Verified Attribute
         required: true
         schema:
           type: string
           format: uuid
       - name: attributeId
         in: path
-        description: The Attribute ID
+        description: The Verified Attribute ID
         required: true
         schema:
           type: string
@@ -9186,9 +9192,9 @@ paths:
     delete:
       tags:
         - tenants
-      summary: Revoke Verified Attribute from Tenant
-      description: Revoke a verified attribute from the specified tenant
-      operationId: revokeTenantVerifiedAttribute
+      summary: Revoke a Verified Attribute from a Tenant
+      description: Revoke a Verified Attribute from a Tenant
+      operationId: revokeVerifiedAttribute
       parameters:
         - in: query
           name: agreementId
@@ -9236,8 +9242,34 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -10785,22 +10817,6 @@ components:
       enum:
         - AOO
         - UO
-    AddVerifiedAttributeRequest:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        agreementId:
-          type: string
-          format: uuid
-        expirationDate:
-          type: string
-          format: date-time
-      required:
-        - id
-        - agreementId
     TenantVerifiedAttribute:
       type: object
       additionalProperties: false
@@ -10827,6 +10843,22 @@ components:
       required:
         - results
         - pagination
+    TenantVerifiedAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        agreementId:
+          type: string
+          format: uuid
+        expirationDate:
+          type: string
+          format: date-time
+      required:
+        - id
+        - agreementId
     TenantCertifiedAttribute:
       type: object
       additionalProperties: false
@@ -10865,18 +10897,6 @@ components:
           format: uuid
       required:
         - id
-    AddDeclaredAttributeRequest:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        delegationId:
-          type: string
-          format: uuid
-      required:
-        - id
     TenantDeclaredAttribute:
       type: object
       additionalProperties: false
@@ -10909,6 +10929,18 @@ components:
       required:
         - results
         - pagination
+    TenantDeclaredAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        delegationId:
+          type: string
+          format: uuid
+      required:
+        - id
     TenantVerifiedAttributeVerifier:
       type: object
       additionalProperties: false
