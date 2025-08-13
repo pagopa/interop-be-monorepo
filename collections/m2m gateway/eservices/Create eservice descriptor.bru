@@ -30,16 +30,25 @@ body:json {
       "agreementApprovalPolicy": "AUTOMATIC",
       "attributes": {
           "certified": [
-            [{}, {}]
-            // TODO
+            [{"id": "{{certifiedAttributeId}}"}],
+            [
+              {"id": "{{certifiedAttributeId}}"},
+              {"id": "{{certifiedAttributeId}}"}
+            ]
           ],
           "declared": [
-            [{}, {}]
-            // TODO
+            [{"id": "{{declaredAttributeId}}"}],
+            [
+              {"id": "{{declaredAttributeId}}"},
+              {"id": "{{declaredAttributeId}}"}
+            ]
           ],
           "verified": [
-            [{}, {}]
-            // TODO
+            [{"id": "{{verifiedAttributeId}}"}],
+            [
+              {"id": "{{verifiedAttributeId}}"},
+              {"id": "{{verifiedAttributeId}}"}
+            ]
           ]
       }
   }
