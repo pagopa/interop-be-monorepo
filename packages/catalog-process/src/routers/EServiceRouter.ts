@@ -73,6 +73,7 @@ import {
   updateTemplateInstanceDescriptorErrorMapper,
   updateAgreementApprovalPolicyErrorMapper,
   updateEServiceSignalhubFlagErrorMapper,
+  documentListErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 
@@ -166,12 +167,14 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const eservice = await catalogService.createEService(req.body, ctx);
+        const { data: eService, metadata } =
+          await catalogService.createEService(req.body, ctx);
+        setMetadataVersionHeader(res, metadata);
         return res
-          .status(200)
-          .send(catalogApi.EService.parse(eServiceToApiEService(eservice)));
+          .status(201)
+          .send(catalogApi.EService.parse(eServiceToApiEService(eService)));
       } catch (error) {
         const errorRes = makeApiProblem(error, createEServiceErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
@@ -280,7 +283,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
         await catalogService.deleteEService(
           unsafeBrandId(req.params.eServiceId),
@@ -344,6 +347,7 @@ const eservicesRouter = (
             SUPPORT_ROLE,
             SECURITY_ROLE,
             M2M_ROLE,
+            M2M_ADMIN_ROLE,
           ]);
 
           const { eServiceId, descriptorId, documentId } = req.params;
@@ -368,14 +372,55 @@ const eservicesRouter = (
         }
       }
     )
+    .get(
+      "/eservices/:eServiceId/descriptors/:descriptorId/documents",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SUPPORT_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
+            M2M_ADMIN_ROLE,
+          ]);
+
+          const { eServiceId, descriptorId } = req.params;
+
+          const documents = await catalogService.getDocuments(
+            unsafeBrandId(eServiceId),
+            unsafeBrandId(descriptorId),
+            req.query,
+            ctx
+          );
+
+          return res.status(200).send(
+            catalogApi.EServiceDocs.parse({
+              results: documents.results.map(documentToApiDocument),
+              totalCount: documents.totalCount,
+            })
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(error, documentListErrorMapper, ctx);
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
-          // The same check is done in the backend-for-frontend, if you change this check, change it there too
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            // ^^ The same check for the roles above is done in the backend-for-frontend
+            // If you change this check, change it there too
+            M2M_ADMIN_ROLE,
+          ]);
 
           const { data: document, metadata } =
             await catalogService.uploadDocument(
@@ -579,14 +624,17 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          await catalogService.publishDescriptor(
+          const { data, metadata } = await catalogService.publishDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).send();
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(catalogApi.EService.parse(eServiceToApiEService(data)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -603,14 +651,17 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          await catalogService.suspendDescriptor(
+          const { data, metadata } = await catalogService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).send();
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(catalogApi.EService.parse(eServiceToApiEService(data)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -627,14 +678,17 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          await catalogService.activateDescriptor(
+          const { data, metadata } = await catalogService.activateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).send();
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(catalogApi.EService.parse(eServiceToApiEService(data)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -938,14 +992,18 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          await catalogService.approveDelegatedEServiceDescriptor(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.descriptorId),
-            ctx
-          );
-          return res.status(204).send();
+          const { data, metadata } =
+            await catalogService.approveDelegatedEServiceDescriptor(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(catalogApi.EService.parse(eServiceToApiEService(data)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -962,15 +1020,19 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          await catalogService.rejectDelegatedEServiceDescriptor(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.descriptorId),
-            req.body,
-            ctx
-          );
-          return res.status(204).send();
+          const { data, metadata } =
+            await catalogService.rejectDelegatedEServiceDescriptor(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(catalogApi.EService.parse(eServiceToApiEService(data)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

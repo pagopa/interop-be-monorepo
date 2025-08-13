@@ -9,10 +9,15 @@ import {
   eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
-import { ClientId, algorithm, generateId } from "pagopa-interop-models";
+import {
+  ClientId,
+  ProducerKeychainId,
+  algorithm,
+  generateId,
+} from "pagopa-interop-models";
 import { z } from "zod";
 import { match } from "ts-pattern";
-import { getMockClientJWKKey } from "./testUtils.js";
+import { getMockClientJWKKey, getMockProducerJWKKey } from "./testUtils.js";
 
 export function getMockedApiPurposeVersion({
   state,
@@ -24,7 +29,7 @@ export function getMockedApiPurposeVersion({
   return {
     id: generateId(),
     createdAt: new Date().toISOString(),
-    dailyCalls: generateMock(z.number().positive()),
+    dailyCalls: generateMock(z.number().min(1).max(1000000000)),
     state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
     riskAnalysis,
   };
@@ -245,17 +250,45 @@ export function getMockedApiConsumerPartialClient({
   } satisfies authorizationApi.PartialClient;
 }
 
+export function getMockedApiFullProducerKeychain({
+  eservices = [],
+}: {
+  eservices?: string[];
+} = {}): authorizationApi.FullProducerKeychain {
+  return {
+    visibility: authorizationApi.Visibility.Enum.FULL,
+    id: generateId(),
+    name: generateMock(z.string()),
+    description: generateMock(z.string()),
+    createdAt: new Date().toISOString(),
+    producerId: generateId(),
+    eservices: eservices ?? [generateId(), generateId()],
+    users: [generateId(), generateId()],
+    keys: generateMock(z.array(authorizationApi.Key)),
+  };
+}
+
+export function getMockedApiPartialProducerKeychain(): authorizationApi.PartialProducerKeychain {
+  return {
+    visibility: authorizationApi.Visibility.Enum.PARTIAL,
+    id: generateId(),
+    producerId: generateId(),
+  };
+}
+
 export function getMockedApiEservice({
   descriptors,
+  technology,
 }: {
   descriptors?: catalogApi.EServiceDescriptor[];
+  technology?: catalogApi.EServiceTechnology;
 } = {}): catalogApi.EService {
   return {
     id: generateId(),
     name: generateMock(z.string().length(10)),
     producerId: generateId(),
     description: generateMock(z.string().length(10)),
-    technology: generateMock(catalogApi.EServiceTechnology),
+    technology: technology ?? generateMock(catalogApi.EServiceTechnology),
     descriptors:
       descriptors ?? generateMock(z.array(catalogApi.EServiceDescriptor)),
     riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
@@ -280,8 +313,10 @@ export function getMockedApiEserviceDescriptor({
     description: generateMock(z.string().length(10)),
     audience: generateMock(z.array(z.string())),
     voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
-    dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
-    dailyCallsTotal: generateMock(z.number().int().gte(1)),
+    dailyCallsPerConsumer: generateMock(
+      z.number().int().gte(1).lte(1000000000)
+    ),
+    dailyCallsTotal: generateMock(z.number().int().gte(1).lte(1000000000)),
     interface: interfaceDoc ?? generateMock(catalogApi.EServiceDoc),
     docs: generateMock(z.array(catalogApi.EServiceDoc)),
     state: state ?? generateMock(catalogApi.EServiceDescriptorState),
@@ -461,6 +496,18 @@ export function getMockedApiClientJWK({
   return {
     jwk,
     clientId,
+  };
+}
+
+export function getMockedApiProducerJWK({
+  producerKeychainId = generateId<ProducerKeychainId>(),
+}: {
+  producerKeychainId?: ProducerKeychainId;
+} = {}): authorizationApi.ProducerJWK {
+  const jwk = getMockProducerJWKKey(producerKeychainId);
+  return {
+    jwk,
+    producerKeychainId,
   };
 }
 

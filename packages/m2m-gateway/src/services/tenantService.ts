@@ -27,7 +27,7 @@ import {
   tenantVerifiedAttributeNotFound,
   missingRequiredAgreementId,
 } from "../model/errors.js";
-import { assertTenantDeclaredAttributeAuthorization } from "../utils/validators/validators.js";
+import { assertTenantDeclaredAttributeAuthorization } from "../utils/validators/tenantValidators.js";
 
 function retrieveDeclaredAttributes(
   tenant: tenantApi.Tenant
