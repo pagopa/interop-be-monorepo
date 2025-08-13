@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Attribute,
@@ -79,11 +79,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     createdDescriptorId: newDescriptor.id,
   });
 
-  beforeEach(() => {
-    catalogService.createDescriptor = vi
-      .fn()
-      .mockResolvedValue(serviceResponse);
-  });
+  catalogService.createDescriptor = vi.fn().mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
