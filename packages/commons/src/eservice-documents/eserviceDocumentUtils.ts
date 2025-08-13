@@ -11,7 +11,7 @@ import {
   EServiceId,
   genericError,
   interfaceExtractingInfoError,
-  invalidInterfaceContentTypeDetected,
+  invalidContentTypeDetected,
   invalidInterfaceData,
   invalidInterfaceFileDetected,
   invalidServerUrl,
@@ -374,8 +374,8 @@ export async function verifyAndCreateDocument<T>(
   logger: Logger
 ): Promise<T> {
   const contentType = doc.type;
-  if (kind === "INTERFACE" && !contentType) {
-    throw invalidInterfaceContentTypeDetected(resource, "invalid", technology);
+  if (!contentType) {
+    throw invalidContentTypeDetected(resource, "invalid", technology);
   }
 
   const serverUrls = await retrieveServerUrlsAPI(

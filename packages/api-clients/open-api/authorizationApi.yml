@@ -1122,7 +1122,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ProducerKeychain"
+                $ref: "#/components/schemas/FullProducerKeychain"
         "401":
           description: Unauthorized
           content:
@@ -1348,7 +1348,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ProducerKeychain"
+                $ref: "#/components/schemas/FullProducerKeychain"
         "400":
           description: Bad Request
           content:
@@ -1503,6 +1503,21 @@ paths:
               format: uuid
             default: []
           explode: false
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: returns the corresponding array of keys
@@ -1642,8 +1657,15 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceAdditionDetails"
       responses:
-        "204":
-          description: Request succeed
+        "200":
+          description: E-Service added to producer keychain
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FullProducerKeychain"
         "401":
           description: Unauthorized
           content:
@@ -1687,8 +1709,15 @@ paths:
             type: string
             format: uuid
       responses:
-        "204":
-          description: Request succeed
+        "200":
+          description: E-Service removed from producer keychain
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FullProducerKeychain"
         "401":
           description: Unauthorized
           content:
@@ -2191,15 +2220,38 @@ components:
       required:
         - purposeId
     ProducerKeychain:
-      description: Models Producer Keychain details
+      description: |
+        Models a producer keychain that can be either a full producer keychain or a partial producer keychain based on the caller
+        tenant. In case the caller tenant is the producer of the keychain (i.e., the owner), the
+        full keychain is returned, otherwise a partial keychain is returned.
+      oneOf:
+        - $ref: "#/components/schemas/FullProducerKeychain"
+        - $ref: "#/components/schemas/PartialProducerKeychain"
+      discriminator:
+        propertyName: visibility
+        mapping:
+          PARTIAL: "#/components/schemas/PartialProducerKeychain"
+          FULL: "#/components/schemas/FullProducerKeychain"
+    FullProducerKeychain:
       type: object
+      description: |
+        Models a producer keychain.
+        The owner of the producer keychain is the producer tenant, identified by the producerId.
+        The only fields that are visible to any caller tenant are the ones that are
+        present also in the PartialProducerKeychain schema. The rest are visible only to the owner tenant.
       properties:
+        visibility:
+          type: string
+          enum: [FULL]
         id:
           type: string
           format: uuid
         name:
           type: string
         producerId:
+          description: |
+            The producerId is the identifier of the tenant that owns the keychain.
+            It is the tenant that created the keychain and has full access to it.
           type: string
           format: uuid
         createdAt:
@@ -2211,6 +2263,7 @@ components:
             type: string
             format: uuid
           default: []
+          uniqueItems: true
         description:
           type: string
         users:
@@ -2218,12 +2271,14 @@ components:
           items:
             type: string
             format: uuid
+          default: []
           uniqueItems: true
         keys:
           type: array
           items:
             $ref: "#/components/schemas/Key"
       required:
+        - visibility
         - id
         - name
         - producerId
@@ -2232,6 +2287,29 @@ components:
         - createdAt
         - description
         - keys
+    PartialProducerKeychain:
+      type: object
+      description: |
+        Models a producer keychain with a reduced set of fields: only the fields that are
+        visible to any caller tenant.
+      additionalProperties: false
+      properties:
+        visibility:
+          type: string
+          enum: [PARTIAL]
+        id:
+          type: string
+          format: uuid
+        producerId:
+          description: |
+            The producerId is the identifier of the tenant that owns the keychain.
+            It is the tenant that created the keychain and has full access to it.
+          type: string
+          format: uuid
+      required:
+        - visibility
+        - id
+        - producerId
     ProducerKeychains:
       type: object
       properties:

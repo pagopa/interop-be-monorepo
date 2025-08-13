@@ -141,7 +141,7 @@ export const uploadEServiceDescriptorInterfaceErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "invalidInterfaceContentTypeDetected",
+      "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
       () => HTTP_STATUS_BAD_REQUEST

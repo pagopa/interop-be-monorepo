@@ -873,7 +873,7 @@ export function authorizationServiceBuilder(
         producerKeychainSeed: authorizationApi.ProducerKeychainSeed;
       },
       { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+    ): Promise<ProducerKeychain> {
       logger.info(
         `Creating producer keychain ${producerKeychainSeed.name} for producer ${authData.organizationId}"`
       );
@@ -893,7 +893,7 @@ export function authorizationServiceBuilder(
         toCreateEventProducerKeychainAdded(producerKeychain, correlationId)
       );
 
-      return { producerKeychain, showUsers: true };
+      return producerKeychain;
     },
     async getProducerKeychains(
       {
@@ -905,7 +905,10 @@ export function authorizationServiceBuilder(
         offset: number;
         limit: number;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<ProducerKeychain>> {
       logger.info(
         `Retrieving producer keychains by name ${filters.name}, userIds ${filters.userIds}, producerId ${filters.producerId}, eserviceId ${filters.eserviceId}`
@@ -930,17 +933,15 @@ export function authorizationServiceBuilder(
       }: {
         producerKeychainId: ProducerKeychainId;
       },
-      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
-    ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<ProducerKeychain>> {
       logger.info(`Retrieving Producer Keychain ${producerKeychainId}`);
-      const producerKeychain = await retrieveProducerKeychain(
+      return await retrieveProducerKeychain(
         producerKeychainId,
         readModelService
       );
-      return {
-        producerKeychain: producerKeychain.data,
-        showUsers: authData.organizationId === producerKeychain.data.producerId,
-      };
     },
     async deleteProducerKeychain(
       {
@@ -999,7 +1000,7 @@ export function authorizationServiceBuilder(
         userIds: UserId[];
       },
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+    ): Promise<ProducerKeychain> {
       logger.info(
         `Binding producer keychain ${producerKeychainId} with users ${userIds.join(
           ", "
@@ -1052,10 +1053,7 @@ export function authorizationServiceBuilder(
         })
       );
 
-      return {
-        producerKeychain: updatedProducerKeychain,
-        showUsers: true,
-      };
+      return updatedProducerKeychain;
     },
     async removeProducerKeychainUser(
       {
@@ -1243,12 +1241,19 @@ export function authorizationServiceBuilder(
       {
         producerKeychainId,
         userIds,
+        offset,
+        limit,
       }: {
         producerKeychainId: ProducerKeychainId;
         userIds: UserId[];
+        offset: number;
+        limit: number;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
-    ): Promise<Key[]> {
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<Key>> {
       logger.info(
         `Retrieving keys for producer keychain ${producerKeychainId}`
       );
@@ -1260,12 +1265,17 @@ export function authorizationServiceBuilder(
         authData,
         producerKeychain.data
       );
-      if (userIds.length > 0) {
-        return producerKeychain.data.keys.filter((k) =>
-          userIds.includes(k.userId)
-        );
-      }
-      return producerKeychain.data.keys;
+      const allKeys = producerKeychain.data.keys;
+
+      const filteredKeys =
+        userIds && userIds.length > 0
+          ? allKeys.filter((key) => userIds.includes(key.userId))
+          : allKeys;
+
+      return {
+        results: filteredKeys.slice(offset, offset + limit),
+        totalCount: filteredKeys.length,
+      };
     },
     async getProducerKeychainKeyById(
       {
@@ -1304,8 +1314,12 @@ export function authorizationServiceBuilder(
         producerKeychainId: ProducerKeychainId;
         seed: authorizationApi.EServiceAdditionDetails;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<ProducerKeychain>> {
       logger.info(
         `Adding eservice with id ${seed.eserviceId} to producer keychain ${producerKeychainId}`
       );
@@ -1330,7 +1344,8 @@ export function authorizationServiceBuilder(
         ...producerKeychain.data,
         eservices: [...producerKeychain.data.eservices, eserviceId],
       };
-      await repository.createEvent(
+
+      const createdEvent = await repository.createEvent(
         toCreateEventProducerKeychainEServiceAdded(
           eserviceId,
           updatedProducerKeychain,
@@ -1338,6 +1353,13 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+
+      return {
+        data: updatedProducerKeychain,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async removeProducerKeychainEService(
       {
@@ -1347,8 +1369,12 @@ export function authorizationServiceBuilder(
         producerKeychainId: ProducerKeychainId;
         eserviceIdToRemove: EServiceId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<ProducerKeychain>> {
       logger.info(
         `Removing e-service ${eserviceIdToRemove} from producer keychain ${producerKeychainId}`
       );
@@ -1375,7 +1401,7 @@ export function authorizationServiceBuilder(
         ),
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventProducerKeychainEServiceRemoved(
           updatedProducerKeychain,
           eserviceIdToRemove,
@@ -1383,6 +1409,13 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+
+      return {
+        data: updatedProducerKeychain,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async internalRemoveClientAdmin(
       clientId: ClientId,
