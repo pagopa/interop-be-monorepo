@@ -775,7 +775,7 @@ export function readModelServiceBuilder(
       const result = z.array(Document).safeParse(data.map((d) => d.documents));
       if (!result.success) {
         throw genericInternalError(
-          `Unable to parse descripto document items: result ${JSON.stringify(
+          `Unable to parse descriptor document items: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
