@@ -3866,7 +3866,7 @@ paths:
     parameters:
       - name: keychainId
         in: path
-        description: The ID of the Producer Keychain 
+        description: The ID of the Producer Keychain
         required: true
         schema:
           type: string
@@ -3978,7 +3978,7 @@ paths:
     parameters:
       - name: keychainId
         in: path
-        description: The ID of the Producer Keychain 
+        description: The ID of the Producer Keychain
         required: true
         schema:
           type: string
