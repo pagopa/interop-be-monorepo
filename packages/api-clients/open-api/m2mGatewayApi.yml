@@ -4693,13 +4693,13 @@ paths:
       operationId: createDescriptor
       description: |
         Create a new E-Service Descriptor.
-        This action is only permitted if the E-Service does not already have a descriptor in a 'Draft' state
+        This E-Service must not already have a descriptor in a Draft state.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/EServiceDescriptorSeed"
-        required: true
       responses:
         "201":
           description: E-Service Descriptor created
@@ -9278,14 +9278,6 @@ components:
         - ARCHIVED
         - WAITING_FOR_APPROVAL
     EServiceDescriptorSeed:
-      required:
-        - audience
-        - voucherLifespan
-        - dailyCallsPerConsumer
-        - dailyCallsTotal
-        - agreementApprovalPolicy
-        - attributes
-        - docs
       type: object
       additionalProperties: false
       properties:
@@ -9320,10 +9312,13 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
-        docs:
-          type: array
-          items:
-            $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
+      required:
+        - audience
+        - voucherLifespan
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+        - agreementApprovalPolicy
+        - attributes
     AttributesSeed:
       properties:
         certified:
@@ -9360,61 +9355,6 @@ components:
       required:
         - id
         - explicitAttributeVerification
-    CreateEServiceDescriptorDocumentSeed:
-      required:
-        - documentId
-        - kind
-        - prettyName
-        - filePath
-        - fileName
-        - contentType
-        - checksum
-        - serverUrls
-      type: object
-      additionalProperties: false
-      properties:
-        documentId:
-          type: string
-          format: uuid
-        kind:
-          $ref: "#/components/schemas/EServiceDocumentKind"
-        prettyName:
-          type: string
-        filePath:
-          type: string
-        fileName:
-          type: string
-        contentType:
-          type: string
-        checksum:
-          type: string
-        serverUrls:
-          type: array
-          items:
-            type: string
-        interfaceTemplateMetadata:
-          $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
-    TemplateInstanceInterfaceMetadata:
-      type: object
-      additionalProperties: false
-      properties:
-        contactName:
-          type: string
-        contactEmail:
-          type: string
-          format: email
-        contactUrl:
-          type: string
-          format: uri
-        termsAndConditionsUrl:
-          type: string
-          format: uri
-    EServiceDocumentKind:
-      type: string
-      description: EService Document Kind
-      enum:
-        - INTERFACE
-        - DOCUMENT
     EServiceMode:
       type: string
       description: Indicates if the E-Service is intended for receiving or delivering data

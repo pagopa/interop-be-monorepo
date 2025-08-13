@@ -178,8 +178,8 @@ paths:
         "200":
           description: EService created
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -222,8 +222,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/EService"
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "404":
           description: E-Service not found
           content:
@@ -519,8 +519,8 @@ paths:
         "200":
           description: EService Descriptor created.
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -743,8 +743,8 @@ paths:
         "200":
           description: E-Service Descriptor suspended
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -789,8 +789,8 @@ paths:
         "200":
           description: E-Service Descriptor suspended
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -835,8 +835,8 @@ paths:
         "200":
           description: E-Service Descriptor activated
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1819,8 +1819,8 @@ paths:
         "200":
           description: New delegated e-service version approved
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1880,8 +1880,8 @@ paths:
         "200":
           description: New delegated e-service version rejected
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -2558,11 +2558,11 @@ components:
       additionalProperties: false
       required:
         - eservice
-        - descriptorId
+        - createdDescriptorId
       properties:
         eservice:
           $ref: "#/components/schemas/EService"
-        descriptorId:
+        createdDescriptorId:
           type: string
           format: uuid
     EServiceInstanceDescriptorSeed:
