@@ -1298,7 +1298,10 @@ export function catalogServiceBuilder(
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<
-      WithMetadata<{ eservice: EService; descriptorId: DescriptorId }>
+      WithMetadata<{
+        eservice: EService;
+        createdDescriptorId: DescriptorId;
+      }>
     > {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
@@ -1340,19 +1343,19 @@ export function catalogServiceBuilder(
         templateVersionId: undefined,
       });
 
-      const newEservice: EService = {
+      const updatedEService: EService = {
         ...eservice.data,
         descriptors: [...eservice.data.descriptors, newDescriptor],
       };
 
       const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
-        newEservice,
+        updatedEService,
         eserviceVersion,
         newDescriptor.id,
         correlationId
       );
 
-      const { events, eserviceWithNewDescriptor } =
+      const { events, updatedEServiceWithDocs } =
         eserviceDescriptorSeed.docs.reduce(
           (acc, document, index) => {
             const newDocument: Document = {
@@ -1365,17 +1368,18 @@ export function catalogServiceBuilder(
               uploadDate: new Date(),
             };
 
-            const currentDescriptor: Descriptor =
-              acc.eserviceWithNewDescriptor.descriptors[
-                acc.eserviceWithNewDescriptor.descriptors.length - 1
-              ];
-            const descriptorWithDocs: Descriptor = {
-              ...currentDescriptor,
-              docs: [...currentDescriptor.docs, newDocument],
-            };
-            const updatedEService = replaceDescriptor(
-              acc.eserviceWithNewDescriptor,
-              descriptorWithDocs
+            const currentDescriptor =
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              acc.updatedEServiceWithDocs.descriptors.find(
+                (d) => d.id === newDescriptor.id
+              )!;
+
+            const updatedEServiceWithDocs = replaceDescriptor(
+              acc.updatedEServiceWithDocs,
+              {
+                ...currentDescriptor,
+                docs: [...currentDescriptor.docs, newDocument],
+              }
             );
             const version = eserviceVersion + index + 1;
             const documentEvent = toCreateEventEServiceDocumentAdded(
@@ -1383,18 +1387,18 @@ export function catalogServiceBuilder(
               {
                 descriptorId: newDescriptor.id,
                 documentId: unsafeBrandId(document.documentId),
-                eservice: updatedEService,
+                eservice: updatedEServiceWithDocs,
               },
               correlationId
             );
             return {
               events: [...acc.events, documentEvent],
-              eserviceWithNewDescriptor: updatedEService,
+              updatedEServiceWithDocs,
             };
           },
           {
             events: [descriptorCreationEvent],
-            eserviceWithNewDescriptor: newEservice,
+            updatedEServiceWithDocs: updatedEService,
           }
         );
 
@@ -1407,8 +1411,8 @@ export function catalogServiceBuilder(
 
       return {
         data: {
-          eservice: eserviceWithNewDescriptor,
-          descriptorId: newDescriptor.id,
+          eservice: updatedEServiceWithDocs,
+          createdDescriptorId: newDescriptor.id,
         },
         metadata: { version: newVersion },
       };

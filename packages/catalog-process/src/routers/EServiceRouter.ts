@@ -472,7 +472,7 @@ const eservicesRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
         const {
-          data: { eservice, descriptorId },
+          data: { eservice, createdDescriptorId },
           metadata,
         } = await catalogService.createDescriptor(
           unsafeBrandId(req.params.eServiceId),
@@ -485,7 +485,7 @@ const eservicesRouter = (
         return res.status(200).send(
           catalogApi.CreatedEServiceDescriptor.parse({
             eservice: eServiceToApiEService(eservice),
-            descriptorId,
+            createdDescriptorId,
           })
         );
       } catch (error) {
