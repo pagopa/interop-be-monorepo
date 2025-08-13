@@ -13,18 +13,40 @@ export async function handleEServiceEvent(
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
-    .with({ type: "EServiceDescriptorPublished" }, ({ data: { eservice } }) =>
-      handleEserviceStateChangedToConsumer(eservice, logger, readModelService)
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorPublished",
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorActivated",
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorAgreementApprovalPolicyUpdated",
+          "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceNameUpdatedByTemplateUpdate",
+          "EServiceDescriptionUpdatedByTemplateUpdate",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+        ),
+      },
+      ({ data: { eservice }, type }) =>
+        handleEserviceStateChangedToConsumer(
+          eservice,
+          logger,
+          readModelService,
+          type
+        )
     )
     .with(
       {
         type: P.union(
-          "EServiceDescriptorActivated",
           "EServiceDescriptorApprovedByDelegator",
-          "EServiceDescriptorSuspended",
           "EServiceDescriptorArchived",
-          "EServiceDescriptorQuotasUpdated",
-          "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceAdded",
           "EServiceCloned",
           "EServiceDeleted",
@@ -32,11 +54,7 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAdded",
           "EServiceDraftDescriptorDeleted",
           "EServiceDraftDescriptorUpdated",
-          "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorDocumentUpdated",
           "EServiceDescriptorDocumentDeleted",
-          "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorInterfaceDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
@@ -50,13 +68,6 @@ export async function handleEServiceEvent(
           "EServiceIsConsumerDelegableDisabled",
           "EServiceIsClientAccessDelegableEnabled",
           "EServiceIsClientAccessDelegableDisabled",
-          "EServiceNameUpdatedByTemplateUpdate",
-          "EServiceDescriptionUpdatedByTemplateUpdate",
-          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
-          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
-          "EServiceDescriptorDocumentAddedByTemplateUpdate",
-          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled"
         ),
