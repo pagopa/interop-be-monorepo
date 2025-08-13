@@ -8,6 +8,10 @@ import { handleAgreementActivatedToConsumer } from "./handleAgreementActivatedTo
 import { handleAgreementRejected } from "./handleAgreementRejected.js";
 import { handleAgreementSubmitted } from "./handleAgreementSubmitted.js";
 import { handleAgreementUpgraded } from "./handleAgreementUpgraded.js";
+import { handleAgreementSuspendedByConsumer } from "./handleAgreementSuspendedByConsumer.js";
+import { handleAgreementSuspendedByPlatform } from "./handleAgreementSuspendedByPlatform.js";
+import { handleAgreementUnsuspendedByConsumer } from "./handleAgreementUnsuspendedByConsumer.js";
+import { handleAgreementUnsuspendedByPlatform } from "./handleAgreementUnsuspendedByPlatform.js";
 import { handleAgreementSuspendedByProducer } from "./handleAgreementSuspendedByProducer.js";
 import { handleAgreementActivatedToProducer } from "./handleAgreementActivatedToProducer.js";
 import { handleAgreementUnsuspendedByProducer } from "./handleAgreementUnsuspendedByProducer.js";
@@ -74,6 +78,17 @@ export async function handleAgreementEvent(
         correlationId,
       })
     )
+    .with({ type: "AgreementSuspendedByConsumer" }, ({ data: { agreement } }) =>
+      handleAgreementSuspendedByConsumer({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+        interopFeBaseUrl: "",
+      })
+    )
     .with({ type: "AgreementSuspendedByProducer" }, ({ data: { agreement } }) =>
       handleAgreementSuspendedByProducer({
         agreementV2Msg: agreement,
@@ -84,15 +99,40 @@ export async function handleAgreementEvent(
         correlationId,
       })
     )
-    .with({ type: "AgreementSuspendedByPlatform" }, ({ data: { agreement } }) =>
-      handleAgreementSuspendedByPlatformToConsumer({
-        agreementV2Msg: agreement,
-        logger,
-        readModelService,
-        templateService,
-        userService,
-        correlationId,
-      })
+    .with(
+      { type: "AgreementSuspendedByPlatform" },
+      async ({ data: { agreement } }) => [
+        ...(await handleAgreementSuspendedByPlatformToConsumer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })),
+        ...(await handleAgreementSuspendedByPlatform({
+          agreementV2Msg: agreement,
+          interopFeBaseUrl: "",
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })),
+      ]
+    )
+    .with(
+      { type: "AgreementUnsuspendedByConsumer" },
+      ({ data: { agreement } }) =>
+        handleAgreementUnsuspendedByConsumer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+          interopFeBaseUrl: "",
+        })
     )
     .with(
       { type: "AgreementUnsuspendedByProducer" },
@@ -108,15 +148,25 @@ export async function handleAgreementEvent(
     )
     .with(
       { type: "AgreementUnsuspendedByPlatform" },
-      ({ data: { agreement } }) =>
-        handleAgreementUnsuspendedByPlatformToConsumer({
+      async ({ data: { agreement } }) => [
+        ...(await handleAgreementUnsuspendedByPlatform({
           agreementV2Msg: agreement,
           logger,
           readModelService,
           templateService,
           userService,
           correlationId,
-        })
+          interopFeBaseUrl: "",
+        })),
+        ...(await handleAgreementUnsuspendedByPlatformToConsumer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })),
+      ]
     )
     .with(
       {
@@ -124,10 +174,8 @@ export async function handleAgreementEvent(
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
-          "AgreementUnsuspendedByConsumer",
           "AgreementArchivedByConsumer",
           "AgreementArchivedByUpgrade",
-          "AgreementSuspendedByConsumer",
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
