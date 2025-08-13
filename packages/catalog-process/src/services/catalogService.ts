@@ -854,9 +854,9 @@ export function catalogServiceBuilder(
         authData,
         readModelService
       );
-      if (!checkedEService.descriptors.find((d) => d.id === descriptorId)) {
-        throw eServiceDescriptorNotFound(eserviceId, descriptorId);
-      }
+
+      retrieveDescriptorFromEService(descriptorId, checkedEService);
+      // ^ to check that descriptor exists
 
       return readModelService.getEServiceDescriptorDocuments(
         eserviceId,
