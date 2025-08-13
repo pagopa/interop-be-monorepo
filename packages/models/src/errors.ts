@@ -291,7 +291,7 @@ export const commonErrorCodes = {
   invalidEserviceInterfaceFileDetected: "10010",
   openapiVersionNotRecognized: "10011",
   interfaceExtractingInfoError: "10012",
-  invalidInterfaceContentTypeDetected: "10013",
+  invalidContentTypeDetected: "10013",
   tokenVerificationFailed: "10014",
   invalidEserviceInterfaceData: "10015",
   soapFileParsingError: "10016",
@@ -727,7 +727,7 @@ export function interfaceExtractingSoapFiledError(
   });
 }
 
-export function invalidInterfaceContentTypeDetected(
+export function invalidContentTypeDetected(
   resource: {
     id: string;
     isEserviceTemplate: boolean;
@@ -736,12 +736,12 @@ export function invalidInterfaceContentTypeDetected(
   technology: string
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `The interface file for ${
+    detail: `The file uploaded for ${
       resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
     } ${
       resource.id
     } has a contentType ${contentType} not admitted for ${technology} technology`,
-    code: "invalidInterfaceContentTypeDetected",
+    code: "invalidContentTypeDetected",
     title: "Invalid content type detected",
   });
 }
