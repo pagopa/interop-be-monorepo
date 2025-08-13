@@ -1145,25 +1145,26 @@ export function catalogServiceBuilder(
 
       const clonedDocuments = await Promise.all(clonedDocumentsCalls);
 
-      const { descriptorId } = await catalogProcessClient.createDescriptor(
-        {
-          description: previousDescriptor.description,
-          audience: [],
-          voucherLifespan: previousDescriptor.voucherLifespan,
-          dailyCallsPerConsumer: previousDescriptor.dailyCallsPerConsumer,
-          dailyCallsTotal: previousDescriptor.dailyCallsTotal,
-          agreementApprovalPolicy: previousDescriptor.agreementApprovalPolicy,
-          attributes: previousDescriptor.attributes,
-          docs: clonedDocuments,
-        },
-        {
-          headers,
-          params: {
-            eServiceId,
+      const { createdDescriptorId } =
+        await catalogProcessClient.createDescriptor(
+          {
+            description: previousDescriptor.description,
+            audience: [],
+            voucherLifespan: previousDescriptor.voucherLifespan,
+            dailyCallsPerConsumer: previousDescriptor.dailyCallsPerConsumer,
+            dailyCallsTotal: previousDescriptor.dailyCallsTotal,
+            agreementApprovalPolicy: previousDescriptor.agreementApprovalPolicy,
+            attributes: previousDescriptor.attributes,
+            docs: clonedDocuments,
           },
-        }
-      );
-      return { id: descriptorId };
+          {
+            headers,
+            params: {
+              eServiceId,
+            },
+          }
+        );
+      return { id: createdDescriptorId };
     },
     deleteDraft: async (
       eServiceId: EServiceId,
