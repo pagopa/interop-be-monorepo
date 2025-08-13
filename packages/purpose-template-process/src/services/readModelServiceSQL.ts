@@ -3,16 +3,23 @@ import {
   EServiceId,
   PurposeTemplate,
   PurposeTemplateId,
+  Tenant,
+  TenantId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { CatalogReadModelService } from "pagopa-interop-readmodel";
+import {
+  CatalogReadModelService,
+  TenantReadModelService,
+} from "pagopa-interop-readmodel";
 import { purposeTemplateNotFound } from "../model/errors.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
   catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
 }: {
   catalogReadModelServiceSQL: CatalogReadModelService;
+  tenantReadModelServiceSQL: TenantReadModelService;
 }) {
   return {
     async checkPurposeTemplateName(): Promise<boolean> {
@@ -27,6 +34,9 @@ export function readModelServiceBuilderSQL({
     ): Promise<WithMetadata<PurposeTemplate>> {
       // TO DO: this is a placeholder function Replace with actual implementation to fetch the purpose template by ID
       throw purposeTemplateNotFound(id);
+    },
+    async getTenantById(id: TenantId): Promise<Tenant | undefined> {
+      return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
     },
   };
 }

@@ -945,10 +945,12 @@ components:
       type: object
       additionalProperties: false
       properties:
-        value:
-          type: string
-          minLength: 1
-          maxLength: 2000
+        values:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2000
         editable:
           type: boolean
         annotation:
@@ -959,17 +961,17 @@ components:
             type: string
             minLength: 1
             maxLength: 250
+        assistiveText:
+          type: string
+          maxLength: 250
       required:
-        - value
+        - values
         - editable
         - suggestedValues
     RiskAnalysisTemplateAnswerAnnotation:
       type: object
       additionalProperties: false
       properties:
-        id:
-          type: string
-          format: uuid
         text:
           type: string
         docs:
@@ -977,15 +979,12 @@ components:
           items:
             $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
       required:
-        - id
+        - text
         - docs
     RiskAnalysisTemplateAnswerAnnotationDocument:
       type: object
       additionalProperties: false
       properties:
-        id:
-          type: string
-          format: uuid
         name:
           type: string
         contentType:
@@ -994,16 +993,11 @@ components:
           type: string
         path:
           type: string
-        createdAt:
-          type: string
-          format: date-time
       required:
-        - id
         - name
         - contentType
         - prettyName
         - path
-        - createdAt
     Problem:
       properties:
         type:
