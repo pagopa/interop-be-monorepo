@@ -18,7 +18,6 @@ import {
 import { handleAgreementActivatedRejectedToConsumer } from "../src/handlers/agreements/handleAgreementActivatedRejectedToConsumer.js";
 import { tenantNotFound, eserviceNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
-import { config } from "../src/config/config.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -189,7 +188,8 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
         userId: user.userId,
         tenantId: user.tenantId,
         body: expectedBody,
-        deepLink: `https://${config.interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
+        notificationType: "agreementActivatedRejectedToConsumer",
+        entityId: agreement.id,
       }));
 
       expect(notifications).toEqual(

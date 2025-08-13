@@ -1,12 +1,17 @@
 import { generateId, NotificationId, unsafeBrandId } from "../brandedIds.js";
-import { Notification, NewNotification } from "./notification.js";
+import {
+  Notification,
+  NewNotification,
+  NotificationType,
+} from "./notification.js";
 
 export type NotificationSQL = {
   id: string;
   userId: string;
   tenantId: string;
   body: string;
-  deepLink: string;
+  notificationType: string;
+  entityId: string;
   createdAt: string;
   readAt?: string | null;
 };
@@ -18,7 +23,8 @@ export const fromNotificationSQL = (
   userId: unsafeBrandId(notification.userId),
   tenantId: unsafeBrandId(notification.tenantId),
   body: notification.body,
-  deepLink: notification.deepLink,
+  notificationType: NotificationType.parse(notification.notificationType),
+  entityId: unsafeBrandId(notification.entityId),
   createdAt: new Date(notification.createdAt),
   readAt: notification.readAt ? new Date(notification.readAt) : undefined,
 });
@@ -30,7 +36,8 @@ export const toNotificationSQL = (
   userId: notification.userId,
   tenantId: notification.tenantId,
   body: notification.body,
-  deepLink: notification.deepLink,
+  notificationType: notification.notificationType,
+  entityId: notification.entityId,
   createdAt: new Date().toISOString(),
   readAt: null,
 });

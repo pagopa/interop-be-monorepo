@@ -15,7 +15,6 @@ import {
   AgreementId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { config } from "../src/config/config.js";
 import { handleAgreementManagementToProducer } from "../src/handlers/agreements/handleAgreementManagementToProducer.js";
 import { tenantNotFound, eserviceNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
@@ -183,7 +182,8 @@ describe("handleAgreementManagementToProducer", () => {
         userId: user.userId,
         tenantId: user.tenantId,
         body: expectedBody,
-        deepLink: `https://${config.interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
+        notificationType: "agreementManagementToProducer",
+        entityId: agreement.id,
       }));
 
       expect(notifications).toEqual(

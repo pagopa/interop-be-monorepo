@@ -15,7 +15,6 @@ import {
   AgreementId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { config } from "../src/config/config.js";
 import {
   AgreementSuspendedUnsuspendedEventType,
   handleAgreementSuspendedUnsuspended,
@@ -217,12 +216,23 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         eservice.name
       );
 
-      const expectedNotifications = expectedUsers.map((user) => ({
-        userId: user.userId,
-        tenantId: user.tenantId,
-        body: expectedBody,
-        deepLink: `https://${config.interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
-      }));
+      const expectedNotifications = expectedUsers.map((user) => {
+        // Determine the notification type based on which audience this user belongs to
+        const isProducerUser = producerUsers.some(
+          (p) => p.userId === user.userId
+        );
+        const notificationType = isProducerUser
+          ? "agreementSuspendedUnsuspendedToProducer"
+          : "agreementSuspendedUnsuspendedToConsumer";
+
+        return {
+          userId: user.userId,
+          tenantId: user.tenantId,
+          body: expectedBody,
+          notificationType,
+          entityId: agreement.id,
+        };
+      });
 
       expect(notifications).toEqual(
         expect.arrayContaining(expectedNotifications)
