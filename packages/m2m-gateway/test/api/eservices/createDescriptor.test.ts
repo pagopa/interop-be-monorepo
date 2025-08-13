@@ -17,10 +17,10 @@ import {
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("POST /eservices/{eServiceId}/descriptors router test", () => {
-  const mockDescriptorAttribute: m2mGatewayApi.AttributeSeed = {
-    id: generateId(),
-    explicitAttributeVerification: false,
-  };
+  const mockDescriptorAttribute: m2mGatewayApi.EServiceDescriptorAttributeSeed =
+    {
+      id: generateId(),
+    };
   const descriptorSeed: m2mGatewayApi.EServiceDescriptorSeed = {
     description: "Test Descriptor",
     audience: ["http/test.test"],
