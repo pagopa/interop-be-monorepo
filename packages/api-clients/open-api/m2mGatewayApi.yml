@@ -9316,22 +9316,34 @@ components:
         - agreementApprovalPolicy
         - attributes
     EServiceDescriptorAttributesSeed:
+      description: |
+        An E-Service descriptor can have multiple attribute groups
+        for each attribute kind (certified, declared, verified).
+        All groups of attributes are considered in AND (i.e., must be satisfied together),
+        while attributes within the same group are considered in OR.
+        You can model a single attribute as a group with one element.
       properties:
         certified:
           type: array
+          description: A list of groups of certified attributes.
           items:
+            descriptor: A group of certified attributes
             type: array
             items:
               $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
         declared:
           type: array
+          description: A list of groups of declared attributes
           items:
+            descriptor: A group of declared attributes
             type: array
             items:
               $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
         verified:
           type: array
+          description: A list of groups of verified attributes
           items:
+            descriptor: A group of verified attributes
             type: array
             items:
               $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
