@@ -149,7 +149,7 @@ const eserviceRouter = (
         );
 
         return res
-          .status(200)
+          .status(201)
           .send(m2mGatewayApi.EServiceDescriptor.parse(descriptor));
       } catch (error) {
         const errorRes = makeApiProblem(

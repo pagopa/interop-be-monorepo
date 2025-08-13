@@ -1,97 +1,48 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import {
-  Attribute,
-  generateId,
-  pollingMaxRetriesExceeded,
-} from "pagopa-interop-models";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   generateToken,
-  getMockedApiEservice,
+  getMockedApiEserviceDescriptor,
 } from "pagopa-interop-commons-test";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
-describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
-  const attribute: Attribute = {
-    name: "Attribute name",
+describe("POST /eservices/{eServiceId}/descriptors router test", () => {
+  const mockDescriptorAttribute: m2mGatewayApi.AttributeSeed = {
     id: generateId(),
-    kind: "Declared",
-    description: "Attribute Description",
-    creationTime: new Date(),
+    explicitAttributeVerification: false,
   };
-
-  const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
-    attributes: {
-      certified: [],
-      declared: [[{ id: attribute.id, explicitAttributeVerification: false }]],
-      verified: [],
-    },
+  const descriptorSeed: m2mGatewayApi.EServiceDescriptorSeed = {
+    description: "Test Descriptor",
     audience: ["http/test.test"],
     voucherLifespan: 100,
     dailyCallsPerConsumer: 10,
     dailyCallsTotal: 10,
-    docs: [
-      {
-        prettyName: "prettyName",
-        contentType: "",
-        documentId: generateId(),
-        kind: "INTERFACE",
-        serverUrls: [],
-        checksum: "",
-        fileName: "testName",
-        filePath: "/test/test",
-      },
-    ],
     agreementApprovalPolicy: "AUTOMATIC",
-  };
-
-  const mockApiDescriptor: catalogApi.EServiceDescriptor = {
-    version: "1",
-    id: generateId(),
-    serverUrls: [],
     attributes: {
-      certified: [],
-      declared: [[{ id: attribute.id, explicitAttributeVerification: false }]],
-      verified: [],
+      certified: [
+        [mockDescriptorAttribute, mockDescriptorAttribute],
+        [mockDescriptorAttribute],
+      ],
+      declared: [
+        [mockDescriptorAttribute, mockDescriptorAttribute],
+        [mockDescriptorAttribute],
+      ],
+      verified: [
+        [mockDescriptorAttribute, mockDescriptorAttribute],
+        [mockDescriptorAttribute],
+      ],
     },
-    state: "DRAFT",
-    audience: descriptorSeed.audience,
-    voucherLifespan: descriptorSeed.voucherLifespan,
-    dailyCallsPerConsumer: descriptorSeed.dailyCallsPerConsumer,
-    dailyCallsTotal: descriptorSeed.dailyCallsTotal,
-    docs: descriptorSeed.docs.map((doc) => ({
-      path: doc.filePath,
-      id: doc.documentId,
-      name: doc.fileName,
-      prettyName: doc.prettyName,
-      contentType: doc.contentType,
-      checksum: doc.checksum,
-      kind: doc.kind,
-      serverUrls: doc.serverUrls,
-      creationTime: new Date(),
-      lastUpdateTime: new Date(),
-      size: 0,
-      description: "",
-      fileName: doc.fileName,
-      filePath: doc.filePath,
-      documentId: doc.documentId,
-      uploadDate: new Date().toISOString(),
-    })),
-    agreementApprovalPolicy: descriptorSeed.agreementApprovalPolicy,
   };
-
-  const mockApiEservice = getMockedApiEservice({
-    descriptors: [mockApiDescriptor],
-  });
 
   const mockM2MEserviceDescriptorResponse: m2mGatewayApi.EServiceDescriptor =
-    toM2MGatewayApiEServiceDescriptor(mockApiDescriptor);
+    toM2MGatewayApiEServiceDescriptor(getMockedApiEserviceDescriptor());
 
   mockEserviceService.createDescriptor = vi
     .fn()
@@ -99,8 +50,8 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
 
   const makeRequest = async (
     token: string,
-    eserviceId: string,
-    body: catalogApi.EServiceDescriptorSeed = descriptorSeed
+    eserviceId: string = generateId(),
+    body: m2mGatewayApi.EServiceDescriptorSeed = descriptorSeed
   ) =>
     request(api)
       .post(`${appBasePath}/eservices/${eserviceId}/descriptors`)
@@ -110,11 +61,11 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 201 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const res = await makeRequest(token, mockApiEservice.id);
-      expect(res.status).toBe(200);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(201);
       expect(res.body).toEqual(mockM2MEserviceDescriptorResponse);
     }
   );
@@ -123,7 +74,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockApiEservice.id);
+    const res = await makeRequest(token);
 
     expect(res.status).toBe(403);
   });
@@ -136,12 +87,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     { ...descriptorSeed, agreementApprovalPolicy: "INVALID_POLICY" },
     {
       ...descriptorSeed,
-      docs: [
-        {
-          ...descriptorSeed.docs[0],
-          kind: "INVALID_KIND",
-        },
-      ],
+      docs: [],
     },
     {
       ...descriptorSeed,
@@ -150,18 +96,14 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
         declared: undefined,
       },
     },
-    {
-      ...descriptorSeed,
-      docs: undefined,
-    },
   ])(
-    "Should return 400 if passed an invalid Descriptor seed: %s",
+    "Should return 400 if passed an invalid Descriptor seed (seed #%#)",
     async (body) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        mockApiEservice.id,
-        body as catalogApi.EServiceDescriptorSeed
+        generateId(),
+        body as m2mGatewayApi.EServiceDescriptorSeed
       );
 
       expect(res.status).toBe(400);
@@ -173,7 +115,24 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     async (error) => {
       mockEserviceService.createDescriptor = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockApiEservice.id);
+      const res = await makeRequest(token, generateId());
+
+      expect(res.status).toBe(500);
+    }
+  );
+
+  it.each([
+    { ...mockM2MEserviceDescriptorResponse, id: undefined },
+    { ...mockM2MEserviceDescriptorResponse, invalidParam: "invalidValue" },
+    { ...mockM2MEserviceDescriptorResponse, state: undefined },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockEserviceService.getEServiceDescriptor = vi
+        .fn()
+        .mockResolvedValueOnce(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token);
 
       expect(res.status).toBe(500);
     }
