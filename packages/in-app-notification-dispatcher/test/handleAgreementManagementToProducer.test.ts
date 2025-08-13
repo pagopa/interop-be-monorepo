@@ -16,11 +16,8 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { config } from "../src/config/config.js";
-import {
-  AgreementSuspendedUnsuspendedEventType,
-  handleAgreementSuspendedUnsuspended,
-} from "../src/handlers/agreements/handleAgreementSuspendedUnsuspended.js";
-import { tenantNotFound } from "../src/models/errors.js";
+import { handleAgreementManagementToProducer } from "../src/handlers/agreements/handleAgreementManagementToProducer.js";
+import { tenantNotFound, eserviceNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
   addOneAgreement,
@@ -29,7 +26,7 @@ import {
   readModelService,
 } from "./utils.js";
 
-describe("handleAgreementSuspendedUnsuspended", () => {
+describe("handleAgreementManagementToProducer", () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -62,18 +59,18 @@ describe("handleAgreementSuspendedUnsuspended", () => {
 
   it("should throw missingKafkaMessageDataError when agreement is undefined", async () => {
     await expect(() =>
-      handleAgreementSuspendedUnsuspended(
+      handleAgreementManagementToProducer(
         undefined,
         logger,
         readModelService,
-        "AgreementSuspendedByConsumer"
+        "AgreementActivated"
       )
     ).rejects.toThrow(
-      missingKafkaMessageDataError("agreement", "AgreementSuspendedByConsumer")
+      missingKafkaMessageDataError("agreement", "AgreementActivated")
     );
   });
 
-  it("should throw tenantNotFound when tenant is not found", async () => {
+  it("should throw tenantNotFound when consumer tenant is not found", async () => {
     const unknownTenantId = generateId<TenantId>();
     const agreementWithUnknownTenant = {
       ...agreement,
@@ -87,13 +84,36 @@ describe("handleAgreementSuspendedUnsuspended", () => {
       .mockResolvedValue([{ userId: generateId(), tenantId: producerId }]);
 
     await expect(() =>
-      handleAgreementSuspendedUnsuspended(
+      handleAgreementManagementToProducer(
         toAgreementV2(agreementWithUnknownTenant),
         logger,
         readModelService,
-        "AgreementSuspendedByConsumer"
+        "AgreementActivated"
       )
     ).rejects.toThrow(tenantNotFound(unknownTenantId));
+  });
+
+  it("should throw eserviceNotFound when eservice is not found", async () => {
+    const unknownEserviceId = generateId<EServiceId>();
+    const agreementWithUnknownEservice = {
+      ...agreement,
+      eserviceId: unknownEserviceId,
+    };
+
+    // Mock notification service to return users (so the check doesn't exit early)
+    // eslint-disable-next-line functional/immutable-data
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockResolvedValue([{ userId: generateId(), tenantId: producerId }]);
+
+    await expect(() =>
+      handleAgreementManagementToProducer(
+        toAgreementV2(agreementWithUnknownEservice),
+        logger,
+        readModelService,
+        "AgreementActivated"
+      )
+    ).rejects.toThrow(eserviceNotFound(unknownEserviceId));
   });
 
   it("should return empty array when no users have notifications enabled", async () => {
@@ -102,122 +122,64 @@ describe("handleAgreementSuspendedUnsuspended", () => {
       .fn()
       .mockResolvedValue([]);
 
-    const notifications = await handleAgreementSuspendedUnsuspended(
+    const notifications = await handleAgreementManagementToProducer(
       toAgreementV2(agreement),
       logger,
       readModelService,
-      "AgreementSuspendedByConsumer"
+      "AgreementActivated"
     );
 
     expect(notifications).toEqual([]);
   });
 
   it.each<{
-    eventType: AgreementSuspendedUnsuspendedEventType;
-    expectedAudience: "consumer" | "producer" | "both";
-    expectedAction: "sospeso" | "riattivato" | "archiviato";
-    expectedSubject: string;
+    eventType:
+      | "AgreementActivated"
+      | "AgreementSubmitted"
+      | "AgreementUpgraded";
+    expectedAction: "attivato" | "creato" | "aggiornato";
   }>([
     {
-      eventType: "AgreementSuspendedByConsumer",
-      expectedAudience: "producer",
-      expectedAction: "sospeso",
-      expectedSubject: consumerTenant.name,
+      eventType: "AgreementActivated",
+      expectedAction: "attivato",
     },
     {
-      eventType: "AgreementUnsuspendedByConsumer",
-      expectedAudience: "producer",
-      expectedAction: "riattivato",
-      expectedSubject: consumerTenant.name,
+      eventType: "AgreementSubmitted",
+      expectedAction: "creato",
     },
     {
-      eventType: "AgreementSuspendedByProducer",
-      expectedAudience: "consumer",
-      expectedAction: "sospeso",
-      expectedSubject: producerTenant.name,
-    },
-    {
-      eventType: "AgreementUnsuspendedByProducer",
-      expectedAudience: "consumer",
-      expectedAction: "riattivato",
-      expectedSubject: producerTenant.name,
-    },
-    {
-      eventType: "AgreementSuspendedByPlatform",
-      expectedAudience: "both",
-      expectedAction: "sospeso",
-      expectedSubject: "La piattaforma",
-    },
-    {
-      eventType: "AgreementUnsuspendedByPlatform",
-      expectedAudience: "both",
-      expectedAction: "riattivato",
-      expectedSubject: "La piattaforma",
-    },
-    {
-      eventType: "AgreementArchivedByConsumer",
-      expectedAudience: "producer",
-      expectedAction: "archiviato",
-      expectedSubject: consumerTenant.name,
+      eventType: "AgreementUpgraded",
+      expectedAction: "aggiornato",
     },
   ])(
     "should handle $eventType event correctly",
-    async ({
-      eventType,
-      expectedAudience,
-      expectedAction,
-      expectedSubject,
-    }) => {
+    async ({ eventType, expectedAction }) => {
       const producerUsers = [
         { userId: generateId(), tenantId: producerId },
         { userId: generateId(), tenantId: producerId },
-      ];
-      const consumerUsers = [
-        { userId: generateId(), tenantId: consumerId },
-        { userId: generateId(), tenantId: consumerId },
       ];
 
       // eslint-disable-next-line functional/immutable-data
       readModelService.getTenantUsersWithNotificationEnabled = vi
         .fn()
-        .mockImplementation(async (_, notificationConfig) => {
-          if (
-            notificationConfig === "agreementSuspendedUnsuspendedToProducer"
-          ) {
-            return producerUsers;
-          } else if (
-            notificationConfig === "agreementSuspendedUnsuspendedToConsumer"
-          ) {
-            return consumerUsers;
-          }
-          return [];
-        });
+        .mockResolvedValue(producerUsers);
 
-      const notifications = await handleAgreementSuspendedUnsuspended(
+      const notifications = await handleAgreementManagementToProducer(
         toAgreementV2(agreement),
         logger,
         readModelService,
         eventType
       );
 
-      const expectedUsers: Array<{ userId: string; tenantId: string }> =
-        expectedAudience === "producer"
-          ? producerUsers
-          : expectedAudience === "consumer"
-          ? consumerUsers
-          : expectedAudience === "both"
-          ? [...producerUsers, ...consumerUsers]
-          : [];
+      expect(notifications).toHaveLength(producerUsers.length);
 
-      expect(notifications).toHaveLength(expectedUsers.length);
-
-      const expectedBody = inAppTemplates.agreementSuspendedUnsuspended(
-        expectedAction,
-        expectedSubject,
-        eservice.name
+      const expectedBody = inAppTemplates.agreementManagementToProducer(
+        consumerTenant.name,
+        eservice.name,
+        expectedAction
       );
 
-      const expectedNotifications = expectedUsers.map((user) => ({
+      const expectedNotifications = producerUsers.map((user) => ({
         userId: user.userId,
         tenantId: user.tenantId,
         body: expectedBody,
@@ -232,20 +194,20 @@ describe("handleAgreementSuspendedUnsuspended", () => {
 
   it("should generate notifications for multiple users", async () => {
     const users = [
-      { userId: generateId(), tenantId: consumerId },
-      { userId: generateId(), tenantId: consumerId },
-      { userId: generateId(), tenantId: consumerId },
+      { userId: generateId(), tenantId: producerId },
+      { userId: generateId(), tenantId: producerId },
+      { userId: generateId(), tenantId: producerId },
     ];
     // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue(users);
 
-    const notifications = await handleAgreementSuspendedUnsuspended(
+    const notifications = await handleAgreementManagementToProducer(
       toAgreementV2(agreement),
       logger,
       readModelService,
-      "AgreementSuspendedByConsumer"
+      "AgreementActivated"
     );
 
     expect(notifications).toHaveLength(3);

@@ -69,7 +69,7 @@ export async function handleAgreementSuspendedUnsuspended(
     subjectName,
     eservice.name
   );
-  const deepLink = `https://${config.interopFeBaseUrl}/ui/it/fruizione/sottoscrizione-eservice/${agreement.id}`;
+  const deepLink = `https://${config.interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`;
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,

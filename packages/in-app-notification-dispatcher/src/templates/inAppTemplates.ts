@@ -7,4 +7,10 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `${subjectName} ha ${action} la richiesta di fruizione relativa all'e-service <strong>${eserviceName}</strong>.`,
+  agreementManagementToProducer: (
+    consumerName: string,
+    eserviceName: string,
+    action: "attivato" | "creato" | "aggiornato"
+  ): string =>
+    `${consumerName} ha ${action} la richiesta di fruizione relativa all'e-service <strong>${eserviceName}</strong>.`,
 };
