@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
-  Attribute,
   EServiceId,
   generateId,
   pollingMaxRetriesExceeded,
