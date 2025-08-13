@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import { generateId, Tenant } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { api, tenantService } from "../vitest.api.setup.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
@@ -19,12 +19,6 @@ describe("API POST /tenants/attributes/declared test", () => {
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.ADMIN_ROLE,
-    authRole.M2M_ROLE,
-    authRole.M2M_ADMIN_ROLE,
-  ];
-
   beforeEach(() => {
     tenantService.addDeclaredAttribute = vi.fn().mockResolvedValue(tenant);
   });
@@ -38,18 +32,16 @@ describe("API POST /tenants/attributes/declared test", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
-  it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
-    async (role) => {
-      const token = generateToken(role);
-      const res = await makeRequest(token);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiResponse);
-    }
-  );
+
+  it("Should return 200 for user with role Admin", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(apiResponse);
+  });
 
   it.each(
-    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
