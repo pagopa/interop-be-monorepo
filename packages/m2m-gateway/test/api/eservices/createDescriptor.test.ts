@@ -10,7 +10,10 @@ import {
 } from "pagopa-interop-commons-test";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  eserviceDescriptorNotFound,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("POST /eservices/{eServiceId}/descriptors router test", () => {
@@ -110,16 +113,17 @@ describe("POST /eservices/{eServiceId}/descriptors router test", () => {
     }
   );
 
-  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockEserviceService.createDescriptor = vi.fn().mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, generateId());
+  it.each([
+    eserviceDescriptorNotFound(generateId(), generateId()),
+    missingMetadata(),
+    pollingMaxRetriesExceeded(3, 10),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockEserviceService.createDescriptor = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId());
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 
   it.each([
     { ...mockM2MEserviceDescriptorResponse, id: undefined },
