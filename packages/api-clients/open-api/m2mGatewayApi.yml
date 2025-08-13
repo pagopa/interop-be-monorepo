@@ -4380,12 +4380,14 @@ paths:
     delete:
       tags:
         - eservices
-      summary: Deletes a draft descriptor
-      operationId: deleteDraft
-      description: Deletes a draft descriptor for the specified E-Service
+      summary: Delete an E-Service Descriptor
+      operationId: deleteDescriptor
+      description: |
+        Delete an E-Service Descriptor in Draft state.
+        It is not possible to delete the last remaining Descriptor for an E-Service.
       responses:
         "204":
-          description: E-Service and its draft descriptor successfully deleted
+          description: E-Service Descriptor deleted
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
