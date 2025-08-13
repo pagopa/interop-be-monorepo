@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
@@ -14,12 +13,12 @@ import {
   fileFromTestMultipartFileUpload,
 } from "../../multipartTestUtils.js";
 
-describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router test", () => {
+describe("POST /eservices/:eserviceId/descriptors/:descriptorId/documents router test", () => {
   const mockFileUpload = {
     fileContent: Buffer.from("test content"),
-    filename: "test_document.yaml",
-    contentType: "application/yaml",
-    prettyName: "Test Interface",
+    filename: "test_document.pdf",
+    contentType: "application/pdf",
+    prettyName: "Test Document",
   };
 
   const mockM2MEServiceDocumentResponse: m2mGatewayApi.Document = {
@@ -38,7 +37,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
   ) => {
     const req = request(api)
       .post(
-        `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/interface`
+        `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/documents`
       )
       .set("Authorization", `Bearer ${token}`);
 
@@ -51,7 +50,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
     async (role) => {
       const eserviceId = generateId();
       const descriptorId = generateId();
-      mockEserviceService.uploadEServiceDescriptorInterface = vi
+      mockEserviceService.uploadEServiceDescriptorDocument = vi
         .fn()
         .mockResolvedValue(mockM2MEServiceDocumentResponse);
 
@@ -66,7 +65,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
       expect(res.status).toBe(201);
       expect(res.body).toEqual(mockM2MEServiceDocumentResponse);
       expect(
-        mockEserviceService.uploadEServiceDescriptorInterface
+        mockEserviceService.uploadEServiceDescriptorDocument
       ).toHaveBeenCalledWith(
         eserviceId,
         descriptorId,
@@ -93,7 +92,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
   });
 
   it("Should return 400 for incorrect value for eservice id", async () => {
-    mockEserviceService.uploadEServiceDescriptorInterface = vi
+    mockEserviceService.uploadEServiceDescriptorDocument = vi
       .fn()
       .mockResolvedValue(mockM2MEServiceDocumentResponse);
 
@@ -108,7 +107,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
   });
 
   it("Should return 400 for incorrect value for descriptor id", async () => {
-    mockEserviceService.uploadEServiceDescriptorInterface = vi
+    mockEserviceService.uploadEServiceDescriptorDocument = vi
       .fn()
       .mockResolvedValue(mockM2MEServiceDocumentResponse);
 
@@ -144,7 +143,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
   it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
     "Should return 500 in case of $code error",
     async (error) => {
-      mockEserviceService.uploadEServiceDescriptorInterface = vi
+      mockEserviceService.uploadEServiceDescriptorDocument = vi
         .fn()
         .mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -172,7 +171,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockEserviceService.uploadEServiceDescriptorInterface = vi
+      mockEserviceService.uploadEServiceDescriptorDocument = vi
         .fn()
         .mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);

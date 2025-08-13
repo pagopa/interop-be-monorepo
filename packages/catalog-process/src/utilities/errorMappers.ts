@@ -111,6 +111,7 @@ export const documentCreateErrorMapper = (
     .with(
       "documentPrettyNameDuplicate",
       "interfaceAlreadyExists",
+      "checksumDuplicate",
       () => HTTP_STATUS_CONFLICT
     )
     .with(
@@ -611,7 +612,7 @@ export const addEServiceTemplateInstanceInterfaceErrorMapper = (
   match(error.code)
     .with(
       "eserviceTemplateInterfaceDataNotValid",
-      "invalidInterfaceContentTypeDetected",
+      "invalidContentTypeDetected",
       "documentPrettyNameDuplicate",
       "notValidDescriptor",
       () => HTTP_STATUS_BAD_REQUEST

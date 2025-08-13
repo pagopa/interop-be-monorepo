@@ -1301,7 +1301,7 @@ paths:
         required: true
       responses:
         "201":
-          description: Consumer document uploaded successfully
+          description: Consumer Document uploaded successfully
           content:
             application/json:
               schema:
@@ -1417,7 +1417,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: Consumer documents retrieved
+          description: Consumer Documents retrieved
           content:
             application/json:
               schema:
@@ -1518,7 +1518,7 @@ paths:
       operationId: downloadAgreementConsumerDocument
       responses:
         "200":
-          description: Consumer document retrieved, a multipart containing the file and its metadata
+          description: Consumer Document retrieved, a multipart containing the file and its metadata
           content:
             multipart/form-data:
               schema:
@@ -1603,7 +1603,7 @@ paths:
       operationId: deleteAgreementConsumerDocument
       responses:
         "204":
-          description: Consumer document deleted successfully
+          description: Consumer Document deleted successfully
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4973,6 +4973,126 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/documents:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Upload an E-Service Descriptor Document
+      description: Upload a Document for the specified E-Service Descriptor
+      operationId: uploadEServiceDescriptorDocument
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/FileUploadMultipart"
+        required: true
+      responses:
+        "201":
+          description: Descriptor Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /eservices/{eserviceId}/descriptors/{descriptorId}/interface:
     parameters:
       - name: eserviceId
@@ -5444,7 +5564,7 @@ paths:
     post:
       tags:
         - eservices
-      summary: Publish an E-Service Descriptor in Draft state.
+      summary: Publish an E-Service Descriptor in Draft state
       operationId: publishDescriptor
       description: Publish an E-Service Descriptor that is in Draft state
       parameters:
