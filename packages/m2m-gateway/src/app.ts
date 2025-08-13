@@ -22,6 +22,7 @@ import tenantRouter from "./routers/tenantRouter.js";
 import delegationRouter from "./routers/delegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 import clientRouter from "./routers/clientRouter.js";
+import producerKeychainRouter from "./routers/producerKeychainRouter.js";
 import { appBasePath } from "./config/appBasePath.js";
 import { DelegationService } from "./services/delegationService.js";
 import { AgreementService } from "./services/agreementService.js";
@@ -33,6 +34,7 @@ import { PurposeService } from "./services/purposeService.js";
 import { TenantService } from "./services/tenantService.js";
 import { m2mAuthDataValidationMiddleware } from "./utils/middlewares.js";
 import { KeyService } from "./services/keyService.js";
+import { ProducerKeychainService } from "./services/producerKeychainService.js";
 import keyRouter from "./routers/keyRouter.js";
 
 export type M2MGatewayServices = {
@@ -45,6 +47,7 @@ export type M2MGatewayServices = {
   purposeService: PurposeService;
   tenantService: TenantService;
   keyService: KeyService;
+  producerKeychainService: ProducerKeychainService;
 };
 
 export type RateLimiterMiddleware = ReturnType<
@@ -67,6 +70,7 @@ export async function createApp(
     purposeService,
     tenantService,
     keyService,
+    producerKeychainService,
   } = services;
 
   const app = zodiosCtx.app();
@@ -101,6 +105,7 @@ export async function createApp(
     delegationRouter(zodiosCtx, delegationService),
     eserviceTemplateRouter(zodiosCtx, eserviceTemplateService),
     clientRouter(zodiosCtx, clientService),
+    producerKeychainRouter(zodiosCtx, producerKeychainService),
     keyRouter(zodiosCtx, keyService)
   );
 
