@@ -905,7 +905,10 @@ export function authorizationServiceBuilder(
         offset: number;
         limit: number;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<ProducerKeychain>> {
       logger.info(
         `Retrieving producer keychains by name ${filters.name}, userIds ${filters.userIds}, producerId ${filters.producerId}, eserviceId ${filters.eserviceId}`
@@ -930,14 +933,15 @@ export function authorizationServiceBuilder(
       }: {
         producerKeychainId: ProducerKeychainId;
       },
-      { logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
-    ): Promise<ProducerKeychain> {
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<ProducerKeychain>> {
       logger.info(`Retrieving Producer Keychain ${producerKeychainId}`);
-      const producerKeychain = await retrieveProducerKeychain(
+      return await retrieveProducerKeychain(
         producerKeychainId,
         readModelService
       );
-      return producerKeychain.data;
     },
     async deleteProducerKeychain(
       {
