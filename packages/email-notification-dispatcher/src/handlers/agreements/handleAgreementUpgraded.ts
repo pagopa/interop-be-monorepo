@@ -59,6 +59,7 @@ export async function handleAgreementUpgraded(
   try {
     userEmails = await getUserEmailsToNotify(
       producer.id,
+      "agreementManagementToProducer",
       readModelService,
       userService
     );
