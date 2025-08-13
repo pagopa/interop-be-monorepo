@@ -5,7 +5,10 @@ import request from "supertest";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  cannotDeleteLastEServiceDescriptor,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 
 describe("DELETE /eservices/:eServiceId/descriptors/:descriptorId router test", () => {
   const makeRequest = async (
@@ -51,6 +54,17 @@ describe("DELETE /eservices/:eServiceId/descriptors/:descriptorId router test", 
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, generateId(), "INVALID_ID");
     expect(res.status).toBe(400);
+  });
+
+  it("Should return 409 in case of cannotDeleteLastEServiceDescriptor error", async () => {
+    mockEserviceService.deleteDraftEServiceDescriptor = vi
+      .fn()
+      .mockRejectedValue(
+        cannotDeleteLastEServiceDescriptor(generateId(), generateId())
+      );
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId(), generateId());
+    expect(res.status).toBe(409);
   });
 
   it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
