@@ -278,6 +278,31 @@ export function eserviceServiceBuilder(
 
       return toM2MGatewayApiDocument(document);
     },
+    async deleteEServiceDescriptorDocument(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting document with id ${documentId} from eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.deleteEServiceDocumentById(
+          undefined,
+          {
+            params: {
+              eServiceId: eserviceId,
+              descriptorId,
+              documentId,
+            },
+            headers,
+          }
+        );
+
+      await pollEService(response, headers);
+    },
     async downloadEServiceDescriptorInterface(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
