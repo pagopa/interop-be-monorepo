@@ -40,9 +40,10 @@ describe("createEServiceRiskAnalysis", () => {
     eservice: mockEService,
     createdRiskAnalysisId: mockRiskAnalysis.id,
   };
-  const mockCreateRiskAnalysis = vi
-    .fn()
-    .mockResolvedValue(getMockWithMetadata(mockCreateResponseData));
+  const mockCreateRiskAnalysis = vi.fn().mockResolvedValue({
+    data: mockCreateResponseData,
+    metadata: { version: 0 },
+  });
   const mockGetEService = vi.fn(
     mockPollingResponse(getMockWithMetadata(mockEService), 2)
   );
@@ -115,6 +116,33 @@ describe("createEServiceRiskAnalysis", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
+  it("Should throw eserviceRiskAnalysisNotFound in case of risk analysis missing in eservice returned by the process", async () => {
+    const eserviceWithoutRiskAnalysis = getMockWithMetadata({
+      ...mockEService,
+      riskAnalysis: [],
+    });
+    mockCreateRiskAnalysis.mockResolvedValueOnce({
+      data: {
+        eservice: eserviceWithoutRiskAnalysis.data,
+        createdRiskAnalysisId: mockRiskAnalysis.id,
+      } satisfies catalogApi.CreatedEServiceRiskAnalysis,
+      metadata: { version: 0 },
+    });
+
+    await expect(
+      eserviceService.createEServiceRiskAnalysis(
+        unsafeBrandId(mockEService.id),
+        mockRiskAnalysisSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      eserviceRiskAnalysisNotFound(
+        unsafeBrandId(mockEService.id),
+        mockRiskAnalysis.id
+      )
+    );
+  });
+
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetEService.mockImplementation(
       mockPollingResponse(
@@ -137,32 +165,6 @@ describe("createEServiceRiskAnalysis", () => {
     );
     expect(mockGetEService).toHaveBeenCalledTimes(
       config.defaultPollingMaxRetries
-    );
-  });
-
-  it("Should throw eserviceRiskAnalysisNotFound in case of risk analysis missing in eservice returned by the process", async () => {
-    const eserviceWithoutRiskAnalysis = getMockWithMetadata({
-      ...mockEService,
-      riskAnalysis: [],
-    });
-    mockCreateRiskAnalysis.mockResolvedValue(
-      getMockWithMetadata({
-        eservice: eserviceWithoutRiskAnalysis.data,
-        createdRiskAnalysisId: mockRiskAnalysis.id,
-      } satisfies catalogApi.CreatedEServiceRiskAnalysis)
-    );
-
-    await expect(
-      eserviceService.createEServiceRiskAnalysis(
-        unsafeBrandId(mockEService.id),
-        mockRiskAnalysisSeed,
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(
-      eserviceRiskAnalysisNotFound(
-        unsafeBrandId(mockEService.id),
-        mockRiskAnalysis.id
-      )
     );
   });
 });
