@@ -17,6 +17,7 @@ import {
   downloadEServiceDescriptorInterfaceErrorMapper,
   uploadEServiceDescriptorInterfaceErrorMapper,
   deleteEServiceDescriptorInterfaceErrorMapper,
+  deleteDraftEServiceDescriptorErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -181,7 +182,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEserviceDescriptorErrorMapper,
+            deleteDraftEServiceDescriptorErrorMapper,
             ctx,
             `Error deleting descriptor with id ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
           );
