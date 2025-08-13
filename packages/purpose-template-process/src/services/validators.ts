@@ -7,10 +7,11 @@ import {
   noRulesVersionTemplateFoundError,
   RiskAnalysisFormTemplateToValidate,
   RiskAnalysisTemplateAnswerToValidate,
+  RiskAnalysisTemplateValidatedForm,
   RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
   RiskAnalysisTemplateValidationIssue,
   RiskAnalysisTemplateValidationResult,
-  RiskAnalysisValidatedSingleOrMultiAnswer,
+  riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   templateDependencyNotFoundError,
   unexpectedTemplateDependencyEditableError,
   unexpectedTemplateDependencyValueError,
@@ -20,15 +21,17 @@ import {
   unexpectedTemplateRulesVersionError,
   ValidationRule,
   ValidationRuleDependency,
-  validResult,
   validTemplateResult,
 } from "pagopa-interop-commons";
 import { RiskAnalysisFormTemplate, TenantKind } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
+  riskAnalysisTemplateValidationFailed,
 } from "../model/domain/errors.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const assertConsistentFreeOfCharge = (
   isFreeOfCharge: boolean,
@@ -51,7 +54,7 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
   readModelService,
   title,
 }: {
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   title: string;
 }): Promise<void> => {
   const purposeTemplateWithSameName = await readModelService.getPurposeTemplate(
@@ -63,15 +66,49 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
   }
 };
 
+export function validateAndTransformRiskAnalysisTemplate(
+  purposeRiskAnalysisForm:
+    | purposeTemplateApi.RiskAnalysisFormTemplateSeed
+    | undefined,
+  tenantKind: TenantKind
+): RiskAnalysisFormTemplate | undefined {
+  if (!purposeRiskAnalysisForm) {
+    return undefined;
+  }
+
+  const validatedForm = validateRiskAnalysisOrThrow({
+    riskAnalysisForm: purposeRiskAnalysisForm,
+    tenantKind,
+  });
+
+  return riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
+    validatedForm
+  );
+}
+
+export function validateRiskAnalysisOrThrow({
+  riskAnalysisForm,
+  tenantKind,
+}: {
+  riskAnalysisForm: purposeTemplateApi.RiskAnalysisFormTemplateSeed;
+  tenantKind: TenantKind;
+}): RiskAnalysisTemplateValidatedForm {
+  const result = validatePurposeTemplateRiskAnalysis(
+    riskAnalysisForm,
+    tenantKind
+  );
+
+  if (result.type === "invalid") {
+    throw riskAnalysisTemplateValidationFailed(result.issues);
+  } else {
+    return result.value;
+  }
+}
+
 export function validatePurposeTemplateRiskAnalysis(
   riskAnalysisFormTemplate: RiskAnalysisFormTemplateToValidate,
   tenantKind: TenantKind
-):
-  | RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>
-  | undefined {
-  if (!riskAnalysisFormTemplate) {
-    return undefined;
-  }
+): RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedForm> {
   const latestVersionFormRules = getLatestVersionFormRules(tenantKind);
 
   if (latestVersionFormRules === undefined) {
@@ -88,16 +125,54 @@ export function validatePurposeTemplateRiskAnalysis(
 
   const validationRules = buildValidationRules(latestVersionFormRules);
 
-  return validateTemplateFormAnswers(
+  const results = validateTemplateFormAnswers(
     riskAnalysisFormTemplate.answers,
     validationRules
   );
+
+  if (results.some((r) => r.type === "invalid")) {
+    return invalidTemplateResult(
+      results.flatMap((r) => (r.type === "invalid" ? r.issues : []))
+    );
+  } else {
+    const validatedAnswers = results.flatMap((r) =>
+      r.type === "valid" ? [r.value] : []
+    );
+
+    const { singleAnswers, multiAnswers } = validatedAnswers.reduce<
+      Omit<RiskAnalysisTemplateValidatedForm, "version">
+    >(
+      (validatedForm, answer) =>
+        match(answer)
+          .with({ type: "single" }, (a) => ({
+            ...validatedForm,
+            singleAnswers: [...validatedForm.singleAnswers, a.answer],
+          }))
+          .with({ type: "multi" }, (a) => ({
+            ...validatedForm,
+            multiAnswers: [...validatedForm.multiAnswers, a.answer],
+          }))
+          .exhaustive(),
+      {
+        singleAnswers: [],
+        multiAnswers: [],
+      }
+    );
+
+    return validTemplateResult({
+      version: latestVersionFormRules.version,
+      singleAnswers,
+      multiAnswers,
+    });
+  }
 }
 
 function validateTemplateFormAnswers(
   answers: RiskAnalysisFormTemplateToValidate["answers"],
   validationRules: ValidationRule[]
-): RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer> {
+): Array<
+  RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>
+> {
   return Object.entries(answers)
     .map(([answerKey, answerValue]) => {
       const validationRule = validationRules.find(
@@ -220,7 +295,12 @@ function answerToValidatedSingleOrMultiAnswer(
     .with("single", "freeText", () =>
       validTemplateResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>({
         type: "single",
-        answer: { key: answerKey, value: answerValue.values[0] ?? undefined },
+        answer: {
+          key: answerKey,
+          value: answerValue.values[0] ?? undefined,
+          editable: answerValue.editable,
+          suggestedValues: answerValue.suggestedValues,
+        },
       })
     )
     .with("multi", () =>
@@ -229,6 +309,7 @@ function answerToValidatedSingleOrMultiAnswer(
         answer: {
           key: answerKey,
           values: answerValue.values,
+          editable: answerValue.editable,
         },
       })
     )

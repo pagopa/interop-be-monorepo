@@ -251,6 +251,8 @@ type IDS =
   | UserNotificationConfigId
   | PurposeTemplateId
   | RiskAnalysisFormTemplateId
+  | RiskAnalysisTemplateSingleAnswerId
+  | RiskAnalysisTemplateMultiAnswerId
   | RiskAnalysisTemplateAnswerAnnotationId
   | RiskAnalysisTemplateAnswerAnnotationDocumentId;
 

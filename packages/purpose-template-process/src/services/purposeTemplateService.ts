@@ -4,7 +4,9 @@ import {
   PurposeTemplateId,
   purposeTemplateState,
   WithMetadata,
-  RiskAnalysisFormTemplate,
+  TenantKind,
+  TenantId,
+  Tenant,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -16,10 +18,12 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import { purposeTemplateNotFound } from "../model/domain/errors.js";
+import { tenantKindNotFound, tenantNotFound } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
   assertPurposeTemplateTitleIsNotDuplicated,
+  validateAndTransformRiskAnalysisTemplate,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -33,6 +37,29 @@ async function retrievePurposeTemplate(
   return purposeTemplate;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function retrieveTenantKind(
+  tenantId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<TenantKind> {
+  const tenant = await retrieveTenant(tenantId, readModelService);
+  if (!tenant.kind) {
+    throw tenantKindNotFound(tenant.id);
+  }
+  return tenant.kind;
+}
+
+const retrieveTenant = async (
+  tenantId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<Tenant> => {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (tenant === undefined) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   _dbInstance: DB,
@@ -42,19 +69,6 @@ export function purposeTemplateServiceBuilder(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // const repository = eventRepository(dbInstance, purposeEventToBinaryDataV2);
 
-  const validateAndTransformRiskAnalysisTemplate = (
-    purposeRiskAnalysisForm?: purposeTemplateApi.RiskAnalysisFormTemplateSeed
-  ): RiskAnalysisFormTemplate | undefined {
-
-    if(!purposeRiskAnalysisForm) {
-      return undefined;
-    }
-
-    
-    
-
-  }
-
   return {
     async createPurposeTemplate(
       seed: purposeTemplateApi.PurposeTemplateSeed,
@@ -63,7 +77,12 @@ export function purposeTemplateServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<PurposeTemplate>> {
+    ): Promise<
+      WithMetadata<{
+        purposeTemplate: PurposeTemplate;
+        isRiskAnalysisValid: boolean;
+      }>
+    > {
       logger.info(`Creating purpose template`);
 
       assertConsistentFreeOfCharge(
@@ -76,8 +95,11 @@ export function purposeTemplateServiceBuilder(
         title: seed.purposeTitle,
       });
 
-      const validatedPurposeRiskAnalysisForm =
-        validateAndTransformRiskAnalysisTemplate(seed.purposeRiskAnalysisForm);
+      const validatedPurposeRiskAnalysisFormSeed =
+        validateAndTransformRiskAnalysisTemplate(
+          seed.purposeRiskAnalysisForm,
+          seed.targetTenantKind // todo: è corretto o ci va come nel purpose?
+        );
 
       const purposeTemplate: PurposeTemplate = {
         id: generateId(),
@@ -88,7 +110,7 @@ export function purposeTemplateServiceBuilder(
         createdAt: new Date(),
         purposeTitle: seed.purposeTitle,
         purposeDescription: seed.purposeDescription,
-        purposeRiskAnalysisForm: validatedPurposeRiskAnalysisForm,
+        purposeRiskAnalysisForm: validatedPurposeRiskAnalysisFormSeed,
         purposeIsFreeOfCharge: seed.purposeIsFreeOfCharge,
         purposeFreeOfChargeReason: seed.purposeFreeOfChargeReason,
         purposeDailyCalls: seed.purposeDailyCalls,
@@ -100,7 +122,8 @@ export function purposeTemplateServiceBuilder(
       return {
         data: {
           purposeTemplate,
-          isRiskAnalysisValid: validatedFormSeed !== undefined,
+          isRiskAnalysisValid:
+            validatedPurposeRiskAnalysisFormSeed !== undefined,
         },
         metadata: {
           version: event.newVersion,

@@ -3,11 +3,16 @@ import {
   RiskAnalysis,
   RiskAnalysisForm,
   RiskAnalysisFormId,
+  RiskAnalysisFormTemplate,
+  RiskAnalysisFormTemplateId,
   RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateMultiAnswerId,
+  RiskAnalysisTemplateSingleAnswerId,
   TenantKind,
   generateId,
 } from "pagopa-interop-models";
@@ -84,34 +89,55 @@ export type RiskAnalysisFormTemplateToValidate = {
 export type RiskAnalysisTemplateAnswerToValidate = {
   values: string[];
   editable: boolean;
-  annotation?: RiskAnalysisTemplateAnswerAnnotation;
+  annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation;
   suggestedValues: string[];
+  assistiveText?: string;
 };
 
-export type RiskAnalysisTemplateAnswerAnnotation = {
-  id: RiskAnalysisTemplateAnswerAnnotationId;
-  text?: string;
-  docs: RiskAnalysisTemplateAnswerAnnotationDocument;
+export type RiskAnalysisTemplateValidatedAnswerAnnotation = {
+  text: string;
+  docs: RiskAnalysisTemplateAnswerAnnotationDocument[];
 };
 
 export type RiskAnalysisTemplateAnswerAnnotationDocument = {
-  id: RiskAnalysisTemplateAnswerAnnotationDocumentId;
   name: string;
   contentType: string;
   prettyName: string;
   path: string;
-  createdAt: Date;
+};
+
+export type RiskAnalysisTemplateValidatedForm = {
+  version: string;
+  singleAnswers: RiskAnalysisTemplateValidatedSingleAnswer[];
+  multiAnswers: RiskAnalysisTemplateValidatedMultiAnswer[];
 };
 
 export type RiskAnalysisTemplateValidatedSingleOrMultiAnswer =
   | {
       type: "single";
-      answer?: RiskAnalysisValidatedSingleAnswer;
+      answer: RiskAnalysisTemplateValidatedSingleAnswer;
     }
   | {
       type: "multi";
-      answer: RiskAnalysisValidatedMultiAnswer;
+      answer: RiskAnalysisTemplateValidatedMultiAnswer;
     };
+
+export type RiskAnalysisTemplateValidatedSingleAnswer = {
+  key: string;
+  value?: string;
+  editable: boolean;
+  annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation;
+  suggestedValues: string[];
+  assistiveText?: string;
+};
+
+export type RiskAnalysisTemplateValidatedMultiAnswer = {
+  key: string;
+  values: string[];
+  editable: boolean;
+  annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation;
+  assistiveText?: string;
+};
 
 export function riskAnalysisValidatedFormToNewRiskAnalysis(
   validatedForm: RiskAnalysisValidatedForm,
@@ -158,6 +184,32 @@ export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
   };
 }
 
+export function riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
+  validatedForm: RiskAnalysisTemplateValidatedForm
+): RiskAnalysisFormTemplate {
+  return {
+    id: generateId<RiskAnalysisFormTemplateId>(),
+    version: validatedForm.version,
+    singleAnswers: validatedForm.singleAnswers.map((a) => ({
+      id: generateId<RiskAnalysisSingleAnswerId>(),
+      key: a.key,
+      value: a.value,
+      editable: a.editable,
+      annotation: mapAnnotation(a.annotation),
+      assistiveText: a.assistiveText,
+      suggestedValues: a.suggestedValues,
+    })),
+    multiAnswers: validatedForm.multiAnswers.map((a) => ({
+      id: generateId<RiskAnalysisMultiAnswerId>(),
+      key: a.key,
+      values: a.values,
+      editable: a.editable,
+      annotation: mapAnnotation(a.annotation),
+      assistiveText: a.assistiveText,
+    })),
+  };
+}
+
 export function riskAnalysisFormToRiskAnalysisFormToValidate(
   form: RiskAnalysisForm
 ): RiskAnalysisFormToValidate {
@@ -180,4 +232,20 @@ export function riskAnalysisFormToRiskAnalysisFormToValidate(
       ),
     },
   };
+}
+
+function mapAnnotation(
+  annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation
+): RiskAnalysisTemplateAnswerAnnotation | undefined {
+  return annotation
+    ? {
+        id: generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
+        text: annotation.text,
+        docs: annotation.docs.map((d) => ({
+          id: generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
+          ...d,
+          createdAt: new Date(),
+        })),
+      }
+    : undefined;
 }
