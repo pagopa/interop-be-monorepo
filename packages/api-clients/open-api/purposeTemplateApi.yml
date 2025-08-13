@@ -821,6 +821,8 @@ components:
         purposeDailyCalls:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
         - id
         - targetDescription
@@ -847,11 +849,11 @@ components:
           $ref: "#/components/schemas/RiskAnalysisFormTemplateSeed"
         purposeIsFreeOfCharge:
           type: boolean
-        purposeFreeOfChargeReason:
-          type: string
         purposeDailyCalls:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
         - targetDescription
         - targetTenantKind

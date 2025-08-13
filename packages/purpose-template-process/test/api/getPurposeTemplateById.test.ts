@@ -7,7 +7,7 @@ import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
-describe("API GET /purposeTemplates test", () => {
+describe("API GET /purposeTemplate/{templateId} test", () => {
   beforeEach(() => {
     purposeTemplateService.getPurposeTemplateById = vi
       .fn()

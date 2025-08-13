@@ -1,6 +1,4 @@
 import {
-  EService,
-  EServiceId,
   PurposeTemplate,
   PurposeTemplateId,
   WithMetadata,
@@ -27,12 +25,12 @@ export function purposeTemplateServiceBuilder(
   return {
     async getPurposeTemplateById(
       id: PurposeTemplateId,
-      _ctx: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<PurposeTemplate> | undefined> {
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeTemplate>> {
+      logger.info(`Retrieving purpose template ${id}`);
       return readModelService.getPurposeTemplateById(id);
-    },
-    async getEServiceById(id: EServiceId): Promise<EService | undefined> {
-      return readModelService.getEServiceById(id);
     },
   };
 }

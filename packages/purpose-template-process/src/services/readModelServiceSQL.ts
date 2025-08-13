@@ -6,6 +6,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { CatalogReadModelService } from "pagopa-interop-readmodel";
+import { purposeTemplateNotFound } from "../model/errors.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -19,10 +20,10 @@ export function readModelServiceBuilderSQL({
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getPurposeTemplateById(
-      _id: PurposeTemplateId
-    ): Promise<WithMetadata<PurposeTemplate> | undefined> {
+      id: PurposeTemplateId
+    ): Promise<WithMetadata<PurposeTemplate>> {
       // TO DO: this is a placeholder function Replace with actual implementation to fetch the purpose template by ID
-      return undefined;
+      throw purposeTemplateNotFound(id);
     },
   };
 }
