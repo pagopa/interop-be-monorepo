@@ -181,6 +181,41 @@ export function eserviceServiceBuilder(
         results: paginatedDescriptors.map(toM2MGatewayApiEServiceDescriptor),
       };
     },
+    async getEServiceDescriptorDocuments(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        offset,
+        limit,
+      }: m2mGatewayApi.GetEServiceDescriptorDocumentsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Documents> {
+      logger.info(
+        `Retrieving documents for eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const { data: documents } =
+        await clients.catalogProcessClient.getEServiceDocuments({
+          params: {
+            eServiceId: eserviceId,
+            descriptorId,
+          },
+          queries: {
+            offset,
+            limit,
+          },
+          headers,
+        });
+
+      return {
+        results: documents.results.map(toM2MGatewayApiDocument),
+        pagination: {
+          limit,
+          offset,
+          totalCount: documents.totalCount,
+        },
+      };
+    },
     async uploadEServiceDescriptorDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,

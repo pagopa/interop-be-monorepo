@@ -41,6 +41,11 @@ export type GetEServiceDescriptorsQueryParams = QueryParametersByAlias<
   "getEServiceDescriptors"
 >;
 
+export type GetEServiceDescriptorDocumentsQueryParams = QueryParametersByAlias<
+  EServiceApi,
+  "getEServiceDescriptorDocuments"
+>;
+
 export type GetPurposesQueryParams = QueryParametersByAlias<
   PurposeApi,
   "getPurposes"
