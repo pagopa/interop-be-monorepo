@@ -7,6 +7,7 @@ import {
   toGetEServicesQueryParams,
   toM2MGatewayApiEService,
   toM2MGatewayApiEServiceDescriptor,
+  toM2MGatewayApiEServiceDescriptorSeed,
 } from "../api/eserviceApiConverter.js";
 import {
   eserviceDescriptorInterfaceNotFound,
@@ -214,15 +215,16 @@ export function eserviceServiceBuilder(
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
       const {
-        data: { eservice, descriptorId },
+        data: { eservice, createdDescriptorId },
         metadata,
       } = await clients.catalogProcessClient.createDescriptor(
-        eserviceDescriptorSeed,
+        toM2MGatewayApiEServiceDescriptorSeed(eserviceDescriptorSeed),
         {
           params: { eServiceId: eserviceId },
           headers,
         }
       );
+
       await pollEService(
         {
           data: eservice,
@@ -231,15 +233,15 @@ export function eserviceServiceBuilder(
         headers
       );
 
-      const descriptor = eservice.descriptors.find(
-        (d) => d.id === descriptorId
+      const createdDescriptor = eservice.descriptors.find(
+        (d) => d.id === createdDescriptorId
       );
 
-      if (!descriptor) {
-        throw eserviceDescriptorNotFound(eserviceId, descriptorId);
+      if (!createdDescriptor) {
+        throw eserviceDescriptorNotFound(eserviceId, createdDescriptorId);
       }
 
-      return toM2MGatewayApiEServiceDescriptor(descriptor);
+      return toM2MGatewayApiEServiceDescriptor(createdDescriptor);
     },
     async createEService(
       seed: m2mGatewayApi.EServiceSeed,

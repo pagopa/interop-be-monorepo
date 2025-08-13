@@ -72,3 +72,18 @@ export function toM2MGatewayApiDocument(
     contentType: document.contentType,
   };
 }
+
+export function toM2MGatewayApiEServiceDescriptorSeed(
+  descriptor: m2mGatewayApi.EServiceDescriptorSeed
+): catalogApi.EServiceDescriptorSeed {
+  return {
+    description: descriptor.description,
+    audience: descriptor.audience,
+    voucherLifespan: descriptor.voucherLifespan,
+    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+    dailyCallsTotal: descriptor.dailyCallsTotal,
+    agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
+    attributes: descriptor.attributes,
+    docs: [],
+  };
+}
