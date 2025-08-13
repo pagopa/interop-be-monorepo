@@ -500,20 +500,17 @@ const eservicesRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const { data, metadata } = await catalogService.deleteDraftDescriptor(
+          const result = await catalogService.deleteDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          if (data === undefined) {
-            // If the last descriptor is deleted, the EService is deleted as well
-            return res.status(204).send();
-          } else {
-            setMetadataVersionHeader(res, metadata);
-            return res
-              .status(200)
-              .send(catalogApi.EService.parse(eServiceToApiEService(data)));
+
+          if (result) {
+            setMetadataVersionHeader(res, result.metadata);
           }
+
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
