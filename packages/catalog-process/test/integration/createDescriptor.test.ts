@@ -80,12 +80,12 @@ describe("create descriptor", async () => {
       descriptors: [],
     };
     await addOneEService(eservice);
-    const createdDescriptorResponse = await catalogService.createDescriptor(
+    const createDescriptorResponse = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
-    const newDescriptorId = createdDescriptorResponse.data.descriptorId;
+    const newDescriptorId = createDescriptorResponse.data.createdDescriptorId;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
@@ -119,10 +119,14 @@ describe("create descriptor", async () => {
       ...eservice,
       descriptors: [expectedDescriptor],
     };
-    expect(expectedEservice).toEqual(createdDescriptorResponse.data.eservice);
-    expect(expectedDescriptor.id).toEqual(
-      createdDescriptorResponse.data.descriptorId
-    );
+
+    expect(createDescriptorResponse).toEqual({
+      data: {
+        createdDescriptorId: newDescriptorId,
+        eservice: expectedEservice,
+      },
+      metadata: { version: 1 },
+    });
     expect(writtenPayload).toEqual({
       descriptorId: newDescriptorId,
       eservice: toEServiceV2(expectedEservice),
@@ -164,13 +168,13 @@ describe("create descriptor", async () => {
       },
     };
 
-    const createdDescriptorResponse = await catalogService.createDescriptor(
+    const createDescriptorResponse = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
-    const newDescriptorId = createdDescriptorResponse.data.descriptorId;
+    const newDescriptorId = createDescriptorResponse.data.createdDescriptorId;
     const descriptorCreationEvent = await readEventByStreamIdAndVersion(
       eservice.id,
       1,
@@ -230,12 +234,14 @@ describe("create descriptor", async () => {
             : d
       ),
     };
-    expect(expectedEserviceAfterDocumentAddition).toEqual(
-      createdDescriptorResponse.data.eservice
-    );
-    expect(newDescriptor.id).toEqual(
-      createdDescriptorResponse.data.descriptorId
-    );
+
+    expect(createDescriptorResponse).toEqual({
+      data: {
+        createdDescriptorId: newDescriptorId,
+        eservice: expectedEserviceAfterDocumentAddition,
+      },
+      metadata: { version: 2 },
+    });
     expect(descriptorCreationPayload).toEqual({
       descriptorId: newDescriptorId,
       eservice: toEServiceV2(expectedEserviceAfterDescriptorCreation),
@@ -290,13 +296,13 @@ describe("create descriptor", async () => {
       },
     };
 
-    const createdDescriptorResponse = await catalogService.createDescriptor(
+    const createDescriptorResponse = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
-    const newDescriptorId = createdDescriptorResponse.data.descriptorId;
+    const newDescriptorId = createDescriptorResponse.data.createdDescriptorId;
     const descriptorCreationEvent = await readEventByStreamIdAndVersion(
       eservice.id,
       1,
@@ -356,12 +362,14 @@ describe("create descriptor", async () => {
             : d
       ),
     };
-    expect(expectedEserviceAfterDocumentAddition).toEqual(
-      createdDescriptorResponse.data.eservice
-    );
-    expect(newDescriptor.id).toEqual(
-      createdDescriptorResponse.data.descriptorId
-    );
+
+    expect(createDescriptorResponse).toEqual({
+      data: {
+        createdDescriptorId: newDescriptorId,
+        eservice: expectedEserviceAfterDocumentAddition,
+      },
+      metadata: { version: 2 },
+    });
     expect(descriptorCreationPayload).toEqual({
       descriptorId: newDescriptorId,
       eservice: toEServiceV2(expectedEserviceAfterDescriptorCreation),
