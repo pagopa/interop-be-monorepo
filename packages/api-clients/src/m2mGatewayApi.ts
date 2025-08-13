@@ -41,6 +41,11 @@ export type GetEServiceDescriptorsQueryParams = QueryParametersByAlias<
   "getEServiceDescriptors"
 >;
 
+export type GetEServiceDescriptorDocumentsQueryParams = QueryParametersByAlias<
+  EServiceApi,
+  "getEServiceDescriptorDocuments"
+>;
+
 export type GetPurposesQueryParams = QueryParametersByAlias<
   PurposeApi,
   "getPurposes"
@@ -108,6 +113,16 @@ export type GetClientKeysQueryParams = QueryParametersByAlias<
 export type GetProducerKeychainsQueryParams = QueryParametersByAlias<
   ProducerKeychainApi,
   "getProducerKeychains"
+>;
+
+export type GetProducerKeychainEServicesQueryParams = QueryParametersByAlias<
+  ProducerKeychainApi,
+  "getProducerKeychainEServices"
+>;
+
+export type GetProducerKeychainKeysQueryParams = QueryParametersByAlias<
+  ProducerKeychainApi,
+  "getProducerKeychainKeys"
 >;
 
 export * from "./generated/m2mGatewayApi.js";
