@@ -9,6 +9,7 @@ import {
 import {
   generateToken,
   getMockProducerKeychain,
+  getMockWithMetadata,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test/index.js";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -21,7 +22,7 @@ import {
 
 describe("API /producerKeychains/{producerKeychainId} authorization test", () => {
   const mockProducerKeychain: ProducerKeychain = getMockProducerKeychain();
-  const serviceResponse = mockProducerKeychain;
+  const serviceResponse = getMockWithMetadata(mockProducerKeychain);
   authorizationService.getProducerKeychainById = vi
     .fn()
     .mockResolvedValue(serviceResponse);
@@ -41,6 +42,7 @@ describe("API /producerKeychains/{producerKeychainId} authorization test", () =>
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.M2M_ADMIN_ROLE,
   ];
 
   it.each(authorizedRoles)(
@@ -52,6 +54,9 @@ describe("API /producerKeychains/{producerKeychainId} authorization test", () =>
       expect(res.body).toEqual(
         testToPartialProducerKeychain(mockProducerKeychain)
       );
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -61,14 +66,18 @@ describe("API /producerKeychains/{producerKeychainId} authorization test", () =>
       const mockProducerKeychain = getMockProducerKeychain({
         producerId: mockTokenOrganizationId,
       });
+      const serviceResponse = getMockWithMetadata(mockProducerKeychain);
       authorizationService.getProducerKeychainById = vi
         .fn()
-        .mockResolvedValueOnce(mockProducerKeychain);
+        .mockResolvedValueOnce(serviceResponse);
       const token = generateToken(role);
       const res = await makeRequest(token, mockProducerKeychain.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(
         testToFullProducerKeychain(mockProducerKeychain)
+      );
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
       );
     }
   );

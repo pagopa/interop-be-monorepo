@@ -9,6 +9,7 @@ type TenantApi = typeof m2mGatewayApi.tenantsApi.api;
 type DelegationApi = typeof m2mGatewayApi.delegationsApi.api;
 type EServiceTemplateApi = typeof m2mGatewayApi.eserviceTemplatesApi.api;
 type ClientApi = typeof m2mGatewayApi.clientsApi.api;
+type ProducerKeychainApi = typeof m2mGatewayApi.producerKeychainsApi.api;
 
 export type GetAgreementsQueryParams = QueryParametersByAlias<
   AgreementApi,
@@ -38,6 +39,11 @@ export type GetEServicesQueryParams = QueryParametersByAlias<
 export type GetEServiceDescriptorsQueryParams = QueryParametersByAlias<
   EServiceApi,
   "getEServiceDescriptors"
+>;
+
+export type GetEServiceDescriptorDocumentsQueryParams = QueryParametersByAlias<
+  EServiceApi,
+  "getEServiceDescriptorDocuments"
 >;
 
 export type GetPurposesQueryParams = QueryParametersByAlias<
@@ -102,6 +108,21 @@ export type GetClientPurposesQueryParams = QueryParametersByAlias<
 export type GetClientKeysQueryParams = QueryParametersByAlias<
   ClientApi,
   "getClientKeys"
+>;
+
+export type GetProducerKeychainsQueryParams = QueryParametersByAlias<
+  ProducerKeychainApi,
+  "getProducerKeychains"
+>;
+
+export type GetProducerKeychainEServicesQueryParams = QueryParametersByAlias<
+  ProducerKeychainApi,
+  "getProducerKeychainEServices"
+>;
+
+export type GetProducerKeychainKeysQueryParams = QueryParametersByAlias<
+  ProducerKeychainApi,
+  "getProducerKeychainKeys"
 >;
 
 export * from "./generated/m2mGatewayApi.js";

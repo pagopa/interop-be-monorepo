@@ -1,10 +1,16 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { DescriptorId, EServiceId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceDocumentId,
+  EServiceId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   toGetEServicesQueryParams,
+  toM2MGatewayApiDocument,
   toM2MGatewayApiEService,
   toM2MGatewayApiEServiceDescriptor,
 } from "../api/eserviceApiConverter.js";
@@ -15,14 +21,13 @@ import {
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
-import { toM2MGatewayApiDocument } from "../api/eserviceApiConverter.js";
+import { uploadEServiceDocument } from "../utils/fileUpload.js";
 import {
+  pollResourceWithMetadata,
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
-  pollResourceWithMetadata,
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
-import { uploadEServiceDocument } from "../utils/fileUpload.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -31,16 +36,6 @@ export function eserviceServiceBuilder(
   clients: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
-  const pollEservice = (
-    response: WithMaybeMetadata<catalogApi.EService>,
-    headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
-    pollResourceWithMetadata(() =>
-      retrieveEServiceById(headers, response.data.id as EServiceId)
-    )({
-      condition: isPolledVersionAtLeastResponseVersion(response),
-    });
-
   const retrieveEServiceById = async (
     headers: M2MGatewayAppContext["headers"],
     eserviceId: EServiceId
@@ -82,6 +77,7 @@ export function eserviceServiceBuilder(
     pollResourceUntilDeletion(() =>
       retrieveEServiceById(headers, unsafeBrandId(eServiceId))
     )({});
+
   const pollEServiceById = (
     eserviceId: EServiceId,
     metadata: { version: number } | undefined,
@@ -190,6 +186,123 @@ export function eserviceServiceBuilder(
         results: paginatedDescriptors.map(toM2MGatewayApiEServiceDescriptor),
       };
     },
+    async downloadEServiceDescriptorDocument(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving document with id ${documentId} for eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const { data: document } =
+        await clients.catalogProcessClient.getEServiceDocumentById({
+          params: {
+            eServiceId: eserviceId,
+            descriptorId,
+            documentId,
+          },
+          headers,
+        });
+
+      return downloadDocument(
+        document,
+        fileManager,
+        config.eserviceDocumentsContainer,
+        logger
+      );
+    },
+    async getEServiceDescriptorDocuments(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        offset,
+        limit,
+      }: m2mGatewayApi.GetEServiceDescriptorDocumentsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Documents> {
+      logger.info(
+        `Retrieving documents for eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const { data: documents } =
+        await clients.catalogProcessClient.getEServiceDocuments({
+          params: {
+            eServiceId: eserviceId,
+            descriptorId,
+          },
+          queries: {
+            offset,
+            limit,
+          },
+          headers,
+        });
+
+      return {
+        results: documents.results.map(toM2MGatewayApiDocument),
+        pagination: {
+          limit,
+          offset,
+          totalCount: documents.totalCount,
+        },
+      };
+    },
+    async uploadEServiceDescriptorDocument(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      fileUpload: m2mGatewayApi.FileUploadMultipart,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Document> {
+      logger.info(
+        `Adding document ${fileUpload.file.name} to descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
+      );
+
+      const { data: document, metadata } = await uploadEServiceDocument({
+        eservice,
+        descriptorId,
+        documentKind: catalogApi.EServiceDocumentKind.Values.DOCUMENT,
+        fileUpload,
+        fileManager,
+        catalogProcessClient: clients.catalogProcessClient,
+        headers,
+        logger,
+      });
+
+      await pollEServiceById(eserviceId, metadata, headers);
+
+      return toM2MGatewayApiDocument(document);
+    },
+    async deleteEServiceDescriptorDocument(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting document with id ${documentId} from eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.deleteEServiceDocumentById(
+          undefined,
+          {
+            params: {
+              eServiceId: eserviceId,
+              descriptorId,
+              documentId,
+            },
+            headers,
+          }
+        );
+
+      await pollEService(response, headers);
+    },
     async downloadEServiceDescriptorInterface(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -225,7 +338,7 @@ export function eserviceServiceBuilder(
       const response = await clients.catalogProcessClient.createEService(seed, {
         headers,
       });
-      const polledResource = await pollEservice(response, headers);
+      const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
     },
     async deleteEService(
