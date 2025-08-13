@@ -115,7 +115,54 @@ const producerKeychainRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .post("/producerKeychains/:keychainId/eservices", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await producerKeychainService.addProducerKeychainEService(
+          unsafeBrandId(req.params.keychainId),
+          req.body,
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error adding e-service to producer keychain with id ${req.params.keychainId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete(
+      "/producerKeychains/:keychainId/eservices/:eserviceId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await producerKeychainService.removeProducerKeychainEService(
+            unsafeBrandId(req.params.keychainId),
+            unsafeBrandId(req.params.eserviceId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error removing e-service with id ${req.params.eserviceId} from producer keychain with id ${req.params.keychainId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return producerKeychainRouter;
 };
