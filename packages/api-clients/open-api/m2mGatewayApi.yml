@@ -4381,7 +4381,7 @@ paths:
       tags:
         - eservices
       summary: Delete an E-Service Descriptor
-      operationId: deleteDescriptor
+      operationId: deleteDraftEServiceDescriptor
       description: |
         Delete an E-Service Descriptor in Draft state.
         It is not possible to delete the last remaining Descriptor for an E-Service.

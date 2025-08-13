@@ -9,6 +9,7 @@ import {
   toM2MGatewayApiEServiceDescriptor,
 } from "../api/eserviceApiConverter.js";
 import {
+  cannotDeleteLastEServiceDescriptor,
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
 } from "../model/errors.js";
@@ -206,7 +207,7 @@ export function eserviceServiceBuilder(
         logger
       );
     },
-    async deleteDraftDescriptor(
+    async deleteDraftEServiceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -214,6 +215,17 @@ export function eserviceServiceBuilder(
       logger.info(
         `Deleting descriptor ${descriptorId} for eservice with id ${eserviceId}`
       );
+
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
+      );
+      if (
+        eservice.descriptors.length === 1 &&
+        eservice.descriptors[0].id === descriptorId
+      ) {
+        throw cannotDeleteLastEServiceDescriptor(eserviceId, descriptorId);
+      }
 
       const { metadata } = await clients.catalogProcessClient.deleteDraft(
         undefined,

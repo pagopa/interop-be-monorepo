@@ -7,6 +7,8 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
+  DescriptorId,
+  EServiceId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
@@ -39,6 +41,7 @@ export const errorCodes = {
   purposeAgreementNotFound: "0022",
   agreementContractNotFound: "0023",
   notAnActiveConsumerDelegation: "0024",
+  cannotDeleteLastEServiceDescriptor: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -259,5 +262,16 @@ export function notAnActiveConsumerDelegation(
     detail: `Delegation ${delegation.id} is not an active consumer delegation for e-service ${eserviceId} and delegate ${requesterTenantId}`,
     code: "notAnActiveConsumerDelegation",
     title: "Not an active consumer delegation",
+  });
+}
+
+export function cannotDeleteLastEServiceDescriptor(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot delete descriptor ${descriptorId} for e-service ${eserviceId} because it is the last remaining descriptor`,
+    code: "cannotDeleteLastEServiceDescriptor",
+    title: "Cannot delete last e-service descriptor",
   });
 }

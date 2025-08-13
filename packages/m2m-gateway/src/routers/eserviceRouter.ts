@@ -172,7 +172,7 @@ const eserviceRouter = (
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-          await eserviceService.deleteDraftDescriptor(
+          await eserviceService.deleteDraftEServiceDescriptor(
             unsafeBrandId(req.params.eserviceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
