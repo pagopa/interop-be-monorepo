@@ -59,7 +59,7 @@ export function readModelServiceBuilderSQL({
       return notificationConfigReadModelServiceSQL.getTenantUsersWithNotificationEnabled(
         tenantIds,
         notificationName,
-        "inApp"
+        "email"
       );
     },
   };

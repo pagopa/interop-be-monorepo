@@ -71,6 +71,7 @@ export async function handleAgreementActivated(
   try {
     userEmails = await getUserEmailsToNotify(
       consumer.id,
+      "agreementActivatedRejectedToConsumer",
       readModelService,
       userService
     );
