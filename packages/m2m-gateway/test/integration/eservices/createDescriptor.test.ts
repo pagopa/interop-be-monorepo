@@ -27,10 +27,10 @@ import {
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("createDescriptor", () => {
-  const mockDescriptorAttribute: m2mGatewayApi.AttributeSeed = {
-    id: generateId(),
-    explicitAttributeVerification: false,
-  };
+  const mockDescriptorAttribute: m2mGatewayApi.EServiceDescriptorAttributeSeed =
+    {
+      id: generateId(),
+    };
   const descriptorSeed: m2mGatewayApi.EServiceDescriptorSeed = {
     description: "Test Descriptor",
     audience: ["http/test.test"],
@@ -82,6 +82,11 @@ describe("createDescriptor", () => {
     mockGetEService.mockClear();
   });
 
+  const defaultExplicitAttributeVerification = (group) =>
+    group.map((attr) => ({
+      ...attr,
+      explicitAttributeVerification: false,
+    }));
   it("Should succeed and perform API clients calls", async () => {
     const m2mEserviceDescriptorResponse: m2mGatewayApi.EServiceDescriptor = {
       id: mockDescriptor.id,
@@ -113,6 +118,17 @@ describe("createDescriptor", () => {
       params: { eServiceId: mockEService.id },
       body: {
         ...descriptorSeed,
+        attributes: {
+          certified: descriptorSeed.attributes.certified.map(
+            defaultExplicitAttributeVerification
+          ),
+          declared: descriptorSeed.attributes.declared.map(
+            defaultExplicitAttributeVerification
+          ),
+          verified: descriptorSeed.attributes.verified.map(
+            defaultExplicitAttributeVerification
+          ),
+        },
         docs: [],
       },
     });
