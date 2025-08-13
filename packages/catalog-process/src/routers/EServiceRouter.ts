@@ -479,7 +479,9 @@ const eservicesRouter = (
           req.body,
           ctx
         );
+
         setMetadataVersionHeader(res, metadata);
+
         return res.status(200).send(
           catalogApi.CreatedEServiceDescriptor.parse({
             eservice: eServiceToApiEService(eservice),
