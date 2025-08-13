@@ -67,11 +67,11 @@ export function eserviceServiceBuilder(
   };
 
   const pollEserviceUntilDeletion = (
-    eServiceId: string,
+    eserviceId: string,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<void> =>
     pollResourceUntilDeletion(() =>
-      retrieveEServiceById(headers, unsafeBrandId(eServiceId))
+      retrieveEServiceById(headers, unsafeBrandId(eserviceId))
     )({});
   const pollEServiceById = (
     eserviceId: EServiceId,
