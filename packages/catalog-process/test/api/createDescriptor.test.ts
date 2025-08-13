@@ -71,12 +71,12 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
 
   const serviceResponse = getMockWithMetadata({
     eservice,
-    descriptorId: newDescriptor.id,
+    createdDescriptorId: newDescriptor.id,
   });
 
   const apiCreatedDescriptor = catalogApi.CreatedEServiceDescriptor.parse({
     eservice: eServiceToApiEService(eservice),
-    descriptorId: newDescriptor.id,
+    createdDescriptorId: newDescriptor.id,
   });
 
   beforeEach(() => {
