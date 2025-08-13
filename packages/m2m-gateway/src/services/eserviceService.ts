@@ -7,7 +7,7 @@ import {
   toGetEServicesQueryParams,
   toM2MGatewayApiEService,
   toM2MGatewayApiEServiceDescriptor,
-  toM2MGatewayApiEServiceDescriptorSeed,
+  toCatalogApiEServiceDescriptorSeed,
 } from "../api/eserviceApiConverter.js";
 import {
   eserviceDescriptorInterfaceNotFound,
@@ -218,7 +218,7 @@ export function eserviceServiceBuilder(
         data: { eservice, createdDescriptorId },
         metadata,
       } = await clients.catalogProcessClient.createDescriptor(
-        toM2MGatewayApiEServiceDescriptorSeed(eserviceDescriptorSeed),
+        toCatalogApiEServiceDescriptorSeed(eserviceDescriptorSeed),
         {
           params: { eServiceId: eserviceId },
           headers,
