@@ -1,4 +1,7 @@
-import { EServiceEventEnvelopeV2, Notification } from "pagopa-interop-models";
+import {
+  EServiceEventEnvelopeV2,
+  NewNotification,
+} from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -8,7 +11,7 @@ export async function handleEServiceEvent(
   decodedMessage: EServiceEventEnvelopeV2,
   logger: Logger,
   readModelService: ReadModelServiceSQL
-): Promise<Notification[]> {
+): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with({ type: "EServiceDescriptorPublished" }, ({ data: { eservice } }) =>
       handleEserviceStateChangedToConsumer(eservice, logger, readModelService)

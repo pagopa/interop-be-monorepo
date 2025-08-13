@@ -39,8 +39,6 @@ export const readModelService = readModelServiceBuilderSQL({
   notificationConfigReadModelServiceSQL,
 });
 
-export const interopFeBaseUrl = "http://localhost/fe";
-
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await upsertTenant(readModelDB, tenant, 0);
 };

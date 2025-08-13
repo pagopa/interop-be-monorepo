@@ -117,13 +117,10 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
           eservice.name
         );
         const expectedNotifications = users.map((user) => ({
-          id: expect.any(String),
-          createdAt: expect.any(Date),
           userId: user.userId,
           tenantId: consumerId,
           body,
           deepLink: `https://${config.interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${eservice.descriptors[0].id}`,
-          readAt: undefined,
         }));
         expect(notifications).toEqual(
           expect.arrayContaining(expectedNotifications)
