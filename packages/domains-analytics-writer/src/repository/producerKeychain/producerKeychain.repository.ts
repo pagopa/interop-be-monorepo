@@ -79,7 +79,9 @@ export function producerKeychainRepository(conn: DBConnection) {
           deletingTableName,
           ProducerKeychainDeletingSchema
         );
-        await t.none(pgp.helpers.insert(records, cs));
+        await t.none(
+          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
