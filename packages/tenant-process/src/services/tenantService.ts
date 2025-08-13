@@ -432,63 +432,20 @@ export function tenantServiceBuilder(
     },
 
     async revokeDeclaredAttribute(
-      {
-        attributeId,
-        delegationId,
-      }: {
-        attributeId: AttributeId;
-        delegationId?: DelegationId;
-      },
-      {
-        authData,
-        logger,
-        correlationId,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+      { attributeId }: { attributeId: AttributeId },
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Tenant> {
-      const { tenant, resolvedDelegationId } = await match(delegationId)
-        .with(P.nullish, async () => {
-          logger.info(
-            `Revoking declared attribute ${attributeId} from requester tenant ${authData.organizationId}`
-          );
-          const targetTenant = await retrieveTenant(
-            authData.organizationId,
-            readModelService
-          );
+      logger.info(
+        `Revoking declared attribute ${attributeId} to tenant ${authData.organizationId}`
+      );
+      const requesterTenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
 
-          return { tenant: targetTenant, resolvedDelegationId: undefined };
-        })
-        .otherwise(async (seedDelegationId) => {
-          const delegation = await readModelService.getActiveConsumerDelegation(
-            seedDelegationId
-          );
-
-          if (!delegation) {
-            throw delegationNotFound(seedDelegationId);
-          }
-          logger.info(
-            `Revoking declared attribute ${attributeId} from delegator tenant ${delegation.delegatorId} with delegation ${seedDelegationId}`
-          );
-
-          if (delegation.delegateId !== authData.organizationId) {
-            throw operationRestrictedToDelegate();
-          }
-
-          const targetTenant = await retrieveTenant(
-            delegation.delegatorId,
-            readModelService
-          );
-
-          return {
-            tenant: targetTenant,
-            resolvedDelegationId: seedDelegationId,
-          };
-        });
-
-      const declaredTenantAttribute = tenant.data.attributes.find(
+      const declaredTenantAttribute = requesterTenant.data.attributes.find(
         (attr): attr is DeclaredTenantAttribute =>
-          attr.id === attributeId &&
-          attr.type === tenantAttributeType.DECLARED &&
-          (!resolvedDelegationId || attr.delegationId === resolvedDelegationId) // Filter by delegationId if provided
+          attr.id === attributeId && attr.type === tenantAttributeType.DECLARED
       );
 
       if (!declaredTenantAttribute) {
@@ -496,25 +453,21 @@ export function tenantServiceBuilder(
       }
 
       const updatedTenant: Tenant = {
-        ...tenant.data,
+        ...requesterTenant.data,
         updatedAt: new Date(),
-        attributes: tenant.data.attributes.map((attr) =>
-          attr.id === attributeId &&
-          attr.type === tenantAttributeType.DECLARED &&
-          (!resolvedDelegationId ||
-            (attr as DeclaredTenantAttribute).delegationId ===
-              resolvedDelegationId)
+        attributes: requesterTenant.data.attributes.map((declaredAttribute) =>
+          declaredAttribute.id === attributeId
             ? {
-                ...attr,
+                ...declaredAttribute,
                 revocationTimestamp: new Date(),
               }
-            : attr
+            : declaredAttribute
         ),
       };
 
       await repository.createEvent(
         toCreateEventTenantDeclaredAttributeRevoked(
-          tenant.metadata.version,
+          requesterTenant.metadata.version,
           updatedTenant,
           unsafeBrandId(attributeId),
           correlationId
@@ -627,11 +580,7 @@ export function tenantServiceBuilder(
       {
         tenantAttributeSeed,
       }: { tenantAttributeSeed: tenantApi.DeclaredTenantAttributeSeed },
-      {
-        authData,
-        logger,
-        correlationId,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Tenant> {
       const { tenant, delegationId } = await match(
         tenantAttributeSeed.delegationId
@@ -840,11 +789,7 @@ export function tenantServiceBuilder(
         agreementId: AgreementId;
         expirationDate?: string;
       },
-      {
-        authData,
-        logger,
-        correlationId,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Verifying attribute ${attributeId} to tenant ${tenantId} for agreement ${agreementId}`
@@ -885,71 +830,48 @@ export function tenantServiceBuilder(
       }
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
+
       const attribute = await retrieveAttribute(attributeId, readModelService);
 
       if (attribute.kind !== attributeKind.verified) {
         throw attributeNotFound(attribute.id);
       }
 
-      const existingAttribute = targetTenant.data.attributes.find(
+      const verifiedTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is VerifiedTenantAttribute =>
           attr.type === tenantAttributeType.VERIFIED && attr.id === attribute.id
       );
 
-      if (existingAttribute) {
-        const updatedTenant: Tenant = {
-          ...targetTenant.data,
-          updatedAt: new Date(),
-          attributes: targetTenant.data.attributes.map((attr) =>
-            attr.id === existingAttribute.id
-              ? {
-                  ...attr,
-                  verifiedBy: buildVerifiedBy(
-                    existingAttribute.verifiedBy,
-                    verifierId,
-                    producerDelegation?.id,
-                    expirationDate
-                  ),
-                  revokedBy: existingAttribute.revokedBy.filter(
-                    (revoker) => revoker.id !== verifierId
-                  ),
-                }
-              : attr
-          ),
-        };
+      const updatedTenant: Tenant = {
+        ...targetTenant.data,
+        attributes: verifiedTenantAttribute
+          ? reassignVerifiedAttribute(
+              targetTenant.data.attributes,
+              verifiedTenantAttribute,
+              verifierId,
+              producerDelegation?.id,
+              expirationDate
+            )
+          : assignVerifiedAttribute(
+              targetTenant.data.attributes,
+              verifierId,
+              producerDelegation?.id,
+              attributeId,
+              expirationDate
+            ),
 
-        await repository.createEvent(
-          toCreateEventTenantVerifiedAttributeAssigned(
-            targetTenant.metadata.version,
-            updatedTenant,
-            attributeId,
-            correlationId
-          )
-        );
-        return updatedTenant;
-      } else {
-        const updatedTenant: Tenant = {
-          ...targetTenant.data,
-          updatedAt: new Date(),
-          attributes: assignVerifiedAttribute(
-            targetTenant.data.attributes,
-            verifierId,
-            producerDelegation?.id,
-            attributeId,
-            expirationDate
-          ),
-        };
+        updatedAt: new Date(),
+      };
 
-        await repository.createEvent(
-          toCreateEventTenantVerifiedAttributeAssigned(
-            targetTenant.metadata.version,
-            updatedTenant,
-            attributeId,
-            correlationId
-          )
-        );
-        return updatedTenant;
-      }
+      await repository.createEvent(
+        toCreateEventTenantVerifiedAttributeAssigned(
+          targetTenant.metadata.version,
+          updatedTenant,
+          attributeId,
+          correlationId
+        )
+      );
+      return updatedTenant;
     },
 
     async revokeVerifiedAttribute(
@@ -962,11 +884,7 @@ export function tenantServiceBuilder(
         attributeId: AttributeId;
         agreementId: AgreementId;
       },
-      {
-        logger,
-        authData,
-        correlationId,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+      { logger, authData, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Revoking verified attribute ${attributeId} to tenant ${tenantId}`
@@ -986,6 +904,20 @@ export function tenantServiceBuilder(
       if (!allowedStatuses.includes(agreement.state)) {
         throw error;
       }
+
+      const producerDelegation =
+        await readModelService.getActiveProducerDelegationByEservice(
+          agreement.eserviceId
+        );
+
+      await assertVerifiedAttributeOperationAllowed({
+        requesterId: authData.organizationId,
+        producerDelegation,
+        attributeId,
+        agreement,
+        readModelService,
+        error,
+      });
 
       const revokerId = agreement.producerId;
 
@@ -1017,21 +949,6 @@ export function tenantServiceBuilder(
       if (isInRevokedBy) {
         throw attributeAlreadyRevoked(tenantId, revokerId, attributeId);
       }
-
-      // Get producer delegation only when needed for permission checks and final operation
-      const producerDelegation =
-        await readModelService.getActiveProducerDelegationByEservice(
-          agreement.eserviceId
-        );
-
-      await assertVerifiedAttributeOperationAllowed({
-        requesterId: authData.organizationId,
-        producerDelegation,
-        attributeId,
-        agreement,
-        readModelService,
-        error,
-      });
 
       const updatedTenant: Tenant = {
         ...targetTenant.data,
@@ -2184,18 +2101,35 @@ function buildVerifiedBy(
   producerDelegation: DelegationId | undefined,
   expirationDate: string | undefined
 ): TenantVerifier[] {
-  return [
-    ...verifiers,
-    {
-      id: organizationId,
-      delegationId: producerDelegation,
-      verificationDate: new Date(),
-      expirationDate: expirationDate
-        ? validateExpirationDate(new Date(expirationDate))
-        : undefined,
-      extensionDate: expirationDate ? new Date(expirationDate) : undefined,
-    },
-  ];
+  const hasPreviouslyVerified = verifiers.find((i) => i.id === organizationId);
+  return hasPreviouslyVerified
+    ? verifiers.map((verification) =>
+        verification.id === organizationId
+          ? {
+              id: organizationId,
+              delegationId: producerDelegation,
+              verificationDate: new Date(),
+              expirationDate: expirationDate
+                ? validateExpirationDate(new Date(expirationDate))
+                : undefined,
+              extensionDate: expirationDate
+                ? new Date(expirationDate)
+                : undefined,
+            }
+          : verification
+      )
+    : [
+        ...verifiers,
+        {
+          id: organizationId,
+          delegationId: producerDelegation,
+          verificationDate: new Date(),
+          expirationDate: expirationDate
+            ? validateExpirationDate(new Date(expirationDate))
+            : undefined,
+          extensionDate: expirationDate ? new Date(expirationDate) : undefined,
+        },
+      ];
 }
 
 function assignDeclaredAttribute(
@@ -2268,6 +2202,31 @@ function assignVerifiedAttribute(
       revokedBy: [],
     },
   ];
+}
+
+function reassignVerifiedAttribute(
+  attributes: TenantAttribute[],
+  verifiedTenantAttribute: VerifiedTenantAttribute,
+  organizationId: TenantId,
+  producerDelegationId: DelegationId | undefined,
+  expirationDate: string | undefined
+): TenantAttribute[] {
+  return attributes.map((attr) =>
+    attr.id === verifiedTenantAttribute.id
+      ? {
+          ...attr,
+          verifiedBy: buildVerifiedBy(
+            verifiedTenantAttribute.verifiedBy,
+            organizationId,
+            producerDelegationId,
+            expirationDate
+          ),
+          revokedBy: verifiedTenantAttribute.revokedBy.filter(
+            (i) => i.id !== organizationId
+          ),
+        }
+      : attr
+  );
 }
 
 async function revokeCertifiedAttribute(

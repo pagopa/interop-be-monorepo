@@ -342,7 +342,6 @@ describe("verifyVerifiedAttribute", async () => {
 
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
-    await addOneAttribute(attribute);
     await addOneEService(eServiceWithNotAllowedDescriptor);
     await addOneAgreement(agreementEserviceWithNotAllowedDescriptor);
 

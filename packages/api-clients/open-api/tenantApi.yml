@@ -585,14 +585,6 @@ paths:
         - tenantAttribute
       operationId: revokeDeclaredAttribute
       description: Revokes a Declared attribute to the requesting Tenant
-      parameters:
-        - name: delegationId
-          in: query
-          description: Optional delegation id to filter the specific declared attribute to revoke
-          required: false
-          schema:
-            type: string
-            format: uuid
       responses:
         "200":
           description: Updated Tenant

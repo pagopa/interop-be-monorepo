@@ -9,11 +9,7 @@ import {
   validateAuthorization,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
-import {
-  emptyErrorMapper,
-  unsafeBrandId,
-  DelegationId,
-} from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   apiTenantFeatureTypeToTenantFeatureType,
@@ -763,7 +759,7 @@ const tenantsRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE]);
 
         const tenant = await tenantService.addDeclaredAttribute(
           {
@@ -783,40 +779,44 @@ const tenantsRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/tenants/:tenantId/attributes/verified", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+    .post(
+      "/tenants/:tenantId/attributes/verified",
 
-      try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
 
-        const tenant = await tenantService.verifyVerifiedAttribute(
-          {
-            tenantId: unsafeBrandId(req.params.tenantId),
-            attributeId: unsafeBrandId(req.body.id),
-            agreementId: unsafeBrandId(req.body.agreementId),
-            expirationDate: req.body.expirationDate,
-          },
-          ctx
-        );
-        return res
-          .status(200)
-          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          verifyVerifiedAttributeErrorMapper,
-          ctx
-        );
-        return res.status(errorRes.status).send(errorRes);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE]);
+
+          const tenant = await tenantService.verifyVerifiedAttribute(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              attributeId: unsafeBrandId(req.body.id),
+              agreementId: unsafeBrandId(req.body.agreementId),
+              expirationDate: req.body.expirationDate,
+            },
+            ctx
+          );
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            verifyVerifiedAttributeErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    })
+    )
     .delete(
       "/tenants/:tenantId/attributes/verified/:attributeId",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE]);
 
           const tenant = await tenantService.revokeVerifiedAttribute(
             {
@@ -874,16 +874,12 @@ const tenantsRouter = (
     )
     .delete("/tenants/attributes/declared/:attributeId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
+
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE]);
 
         const tenant = await tenantService.revokeDeclaredAttribute(
-          {
-            attributeId: unsafeBrandId(req.params.attributeId),
-            delegationId: req.query.delegationId
-              ? unsafeBrandId<DelegationId>(req.query.delegationId)
-              : undefined,
-          },
+          { attributeId: unsafeBrandId(req.params.attributeId) },
           ctx
         );
         return res

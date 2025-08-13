@@ -37,23 +37,8 @@ describe("API DELETE /tenants/attributes/declared/{attributeId} test", () => {
     expect(res.body).toEqual(apiResponse);
   });
 
-  it.each([authRole.M2M_ROLE, authRole.M2M_ADMIN_ROLE])(
-    "Should return 200 for user with role %s",
-    async (role) => {
-      const token = generateToken(role);
-      const res = await makeRequest(token);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiResponse);
-    }
-  );
-
   it.each(
-    Object.values(authRole).filter(
-      (role) =>
-        role !== authRole.ADMIN_ROLE &&
-        role !== authRole.M2M_ROLE &&
-        role !== authRole.M2M_ADMIN_ROLE
-    )
+    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
