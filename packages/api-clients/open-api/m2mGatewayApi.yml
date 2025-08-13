@@ -8747,7 +8747,6 @@ components:
           type: string
           maxLength: 1000
     CertifiedAttribute:
-      title: Attribute
       type: object
       additionalProperties: false
       properties:
@@ -8803,7 +8802,6 @@ components:
         - results
         - pagination
     CertifiedAttributeSeed:
-      title: AttributeSeed
       type: object
       additionalProperties: false
       description: Models the attribute registry entry as payload response
@@ -8826,7 +8824,6 @@ components:
         - name
         - code
     DeclaredAttribute:
-      title: Attribute
       type: object
       additionalProperties: false
       properties:
@@ -8846,7 +8843,6 @@ components:
         - description
         - createdAt
     VerifiedAttribute:
-      title: Attribute
       type: object
       additionalProperties: false
       properties:
@@ -9311,7 +9307,7 @@ components:
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
-          $ref: "#/components/schemas/AttributesSeed"
+          $ref: "#/components/schemas/EServiceDescriptorAttributesSeed"
       required:
         - audience
         - voucherLifespan
@@ -9319,42 +9315,39 @@ components:
         - dailyCallsTotal
         - agreementApprovalPolicy
         - attributes
-    AttributesSeed:
+    EServiceDescriptorAttributesSeed:
       properties:
         certified:
           type: array
           items:
             type: array
             items:
-              $ref: "#/components/schemas/AttributeSeed"
+              $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
         declared:
           type: array
           items:
             type: array
             items:
-              $ref: "#/components/schemas/AttributeSeed"
+              $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
         verified:
           type: array
           items:
             type: array
             items:
-              $ref: "#/components/schemas/AttributeSeed"
+              $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
       required:
         - certified
         - declared
         - verified
-    AttributeSeed:
+    EServiceDescriptorAttributeSeed:
       type: object
       additionalProperties: false
       properties:
         id:
           type: string
           format: uuid
-        explicitAttributeVerification:
-          type: boolean
       required:
         - id
-        - explicitAttributeVerification
     EServiceMode:
       type: string
       description: Indicates if the E-Service is intended for receiving or delivering data
@@ -9615,7 +9608,6 @@ components:
         - kty
         - kid
     OtherPrimeInfo:
-      title: OtherPrimeInfo
       type: object
       additionalProperties: false
       properties:
