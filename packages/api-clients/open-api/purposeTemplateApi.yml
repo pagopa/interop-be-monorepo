@@ -92,10 +92,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: Purpose Templates requested
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
+          description: Purpose Templates retrieved
           content:
             application/json:
               schema:
@@ -118,7 +115,7 @@ paths:
       tags:
         - purposeTemplate
       operationId: createPurposeTemplate
-      description: Creates the Purpose Template (Draft state)
+      description: Create a Purpose Template (Draft state)
       requestBody:
         content:
           application/json:
@@ -152,11 +149,11 @@ paths:
       tags:
         - purposeTemplate
       operationId: getEServices
-      description: Retrieve associations between all purpose templates and all their linked eservices.
+      description: Retrieve associations between all Purpose Templates and all their linked E-Services
       parameters:
         - in: query
           name: eserviceIds
-          description: comma separated sequence of EService IDs
+          description: comma separated sequence of E-Service IDs
           schema:
             type: array
             items:
@@ -191,7 +188,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: EServices requested
+          description: EServices retrieved
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
@@ -257,7 +254,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: Risk Analysis requested
+          description: Risk Analysis retrieved
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
@@ -296,7 +293,7 @@ paths:
       description: Retrieve the Purpose template
       responses:
         "200":
-          description: Purpose template requested
+          description: Purpose template retrieved
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
@@ -400,7 +397,7 @@ paths:
       description: Retrieve the purpose template risk analysis
       responses:
         "200":
-          description: Purpose Template Risk Analysis requested
+          description: Purpose Template Risk Analysis retrieved
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
@@ -481,7 +478,7 @@ paths:
       description: Retrieve the purpose template eservices
       responses:
         "200":
-          description: Purpose Template EServices requested
+          description: Purpose Template EServices retrieved
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
