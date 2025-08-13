@@ -82,8 +82,10 @@ describe("createDescriptor", () => {
     mockGetEService.mockClear();
   });
 
-  const defaultExplicitAttributeVerification = (group) =>
-    group.map((attr) => ({
+  const defaultExplicitAttributeVerification = (
+    group: m2mGatewayApi.EServiceDescriptorAttributeSeed[]
+  ) =>
+    group.map((attr: m2mGatewayApi.EServiceDescriptorAttributeSeed) => ({
       ...attr,
       explicitAttributeVerification: false,
     }));
