@@ -111,6 +111,7 @@ export const documentCreateErrorMapper = (
     .with(
       "documentPrettyNameDuplicate",
       "interfaceAlreadyExists",
+      "checksumDuplicate",
       () => HTTP_STATUS_CONFLICT
     )
     .with(
@@ -126,6 +127,15 @@ export const documentGetErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "eServiceNotFound",
       "eServiceDescriptorNotFound",
       "eServiceDocumentNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const documentListErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -611,7 +621,7 @@ export const addEServiceTemplateInstanceInterfaceErrorMapper = (
   match(error.code)
     .with(
       "eserviceTemplateInterfaceDataNotValid",
-      "invalidInterfaceContentTypeDetected",
+      "invalidContentTypeDetected",
       "documentPrettyNameDuplicate",
       "notValidDescriptor",
       () => HTTP_STATUS_BAD_REQUEST

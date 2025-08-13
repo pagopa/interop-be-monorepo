@@ -96,6 +96,7 @@ import {
   tenantNotFound,
   unchangedAttributes,
   templateMissingRequiredRiskAnalysis,
+  checksumDuplicate,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -622,6 +623,13 @@ async function innerAddDocumentToEserviceEvent(
     throw documentPrettyNameDuplicate(documentSeed.prettyName, descriptor.id);
   }
 
+  if (
+    documentSeed.kind === "DOCUMENT" &&
+    descriptor.docs.some((d) => d.checksum === documentSeed.checksum)
+  ) {
+    throw checksumDuplicate(eService.data.id, descriptor.id);
+  }
+
   const isInterface = documentSeed.kind === "INTERFACE";
   const createdDocument: Document = {
     id: unsafeBrandId(documentSeed.documentId),
@@ -808,7 +816,10 @@ export function catalogServiceBuilder(
         descriptorId: DescriptorId;
         documentId: EServiceDocumentId;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<Document> {
       logger.info(
         `Retrieving EService document ${documentId} for EService ${eserviceId} and descriptor ${descriptorId}`
@@ -825,6 +836,37 @@ export function catalogServiceBuilder(
         throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
       }
       return document;
+    },
+
+    async getDocuments(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { offset, limit }: catalogApi.GetEServiceDocumentsQueryParams,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData | M2MAuthData>>
+    ): Promise<ListResult<Document>> {
+      logger.info(
+        `Retrieving EService documents for EService ${eserviceId} and descriptor ${descriptorId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const checkedEService = await applyVisibilityToEService(
+        eservice.data,
+        authData,
+        readModelService
+      );
+
+      retrieveDescriptorFromEService(descriptorId, checkedEService);
+      // ^ to check that descriptor exists
+
+      return readModelService.getEServiceDescriptorDocuments(
+        eserviceId,
+        descriptorId,
+        offset,
+        limit
+      );
     },
 
     async createEService(
