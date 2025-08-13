@@ -110,4 +110,14 @@ export type GetProducerKeychainsQueryParams = QueryParametersByAlias<
   "getProducerKeychains"
 >;
 
+export type GetProducerKeychainEServicesQueryParams = QueryParametersByAlias<
+  ProducerKeychainApi,
+  "getProducerKeychainEServices"
+>;
+
+export type GetProducerKeychainKeysQueryParams = QueryParametersByAlias<
+  ProducerKeychainApi,
+  "getProducerKeychainKeys"
+>;
+
 export * from "./generated/m2mGatewayApi.js";

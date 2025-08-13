@@ -9,10 +9,15 @@ import {
   eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
-import { ClientId, algorithm, generateId } from "pagopa-interop-models";
+import {
+  ClientId,
+  ProducerKeychainId,
+  algorithm,
+  generateId,
+} from "pagopa-interop-models";
 import { z } from "zod";
 import { match } from "ts-pattern";
-import { getMockClientJWKKey } from "./testUtils.js";
+import { getMockClientJWKKey, getMockProducerJWKKey } from "./testUtils.js";
 
 export function getMockedApiPurposeVersion({
   state,
@@ -245,7 +250,11 @@ export function getMockedApiConsumerPartialClient({
   } satisfies authorizationApi.PartialClient;
 }
 
-export function getMockedApiFullProducerKeychain(): authorizationApi.FullProducerKeychain {
+export function getMockedApiFullProducerKeychain({
+  eservices = [],
+}: {
+  eservices?: string[];
+} = {}): authorizationApi.FullProducerKeychain {
   return {
     visibility: authorizationApi.Visibility.Enum.FULL,
     id: generateId(),
@@ -253,7 +262,7 @@ export function getMockedApiFullProducerKeychain(): authorizationApi.FullProduce
     description: generateMock(z.string()),
     createdAt: new Date().toISOString(),
     producerId: generateId(),
-    eservices: [generateId(), generateId()],
+    eservices: eservices ?? [generateId(), generateId()],
     users: [generateId(), generateId()],
     keys: generateMock(z.array(authorizationApi.Key)),
   };
@@ -487,6 +496,18 @@ export function getMockedApiClientJWK({
   return {
     jwk,
     clientId,
+  };
+}
+
+export function getMockedApiProducerJWK({
+  producerKeychainId = generateId<ProducerKeychainId>(),
+}: {
+  producerKeychainId?: ProducerKeychainId;
+} = {}): authorizationApi.ProducerJWK {
+  const jwk = getMockProducerJWKKey(producerKeychainId);
+  return {
+    jwk,
+    producerKeychainId,
   };
 }
 
