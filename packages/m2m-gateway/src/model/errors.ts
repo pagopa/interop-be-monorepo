@@ -5,10 +5,8 @@ import {
   purposeApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { M2MAdminAuthData, M2MAuthData } from "pagopa-interop-commons";
 import {
   ApiError,
-  DelegationId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
@@ -43,10 +41,8 @@ export const errorCodes = {
   notAnActiveConsumerDelegation: "0024",
   requesterIsNotTheDelegateProducer: "0025",
   cannotEditDeclaredAttributesForTenant: "0026",
-  // tenantDeclaredAttributeNotFound: "0025",
-  // tenantVerifiedAttributeNotFound: "0026",
-  // missingRequiredAgreementId: "0027",
-  // tenantAuthorizationMismatch: "0028",
+  tenantDeclaredAttributeNotFound: "0025",
+  tenantVerifiedAttributeNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -270,35 +266,27 @@ export function notAnActiveConsumerDelegation(
   });
 }
 
-// export function tenantDeclaredAttributeNotFound(
-//   tenantId: TenantId,
-//   attributeId: string
-// ): ApiError<ErrorCodes> {
-//   return new ApiError({
-//     detail: `Declared attribute ${attributeId} not found for tenant ${tenantId}`,
-//     code: "tenantDeclaredAttributeNotFound",
-//     title: "Tenant declared attribute not found",
-//   });
-// }
+export function tenantDeclaredAttributeNotFound(
+  tenant: tenantApi.Tenant,
+  attributeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Declared attribute ${attributeId} not found for tenant ${tenant.id}`,
+    code: "tenantDeclaredAttributeNotFound",
+    title: "Tenant declared attribute not found",
+  });
+}
 
-// export function tenantVerifiedAttributeNotFound(
-//   tenantId: TenantId,
-//   attributeId: string
-// ): ApiError<ErrorCodes> {
-//   return new ApiError({
-//     detail: `Verified attribute ${attributeId} not found for tenant ${tenantId}`,
-//     code: "tenantVerifiedAttributeNotFound",
-//     title: "Tenant verified attribute not found",
-//   });
-// }
-
-// export function missingRequiredAgreementId(): ApiError<ErrorCodes> {
-//   return new ApiError({
-//     detail: "agreementId is required for revoking verified attribute",
-//     code: "missingRequiredAgreementId",
-//     title: "Missing required agreement ID",
-//   });
-// }
+export function tenantVerifiedAttributeNotFound(
+  tenant: tenantApi.Tenant,
+  attributeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Verified attribute ${attributeId} not found for tenant ${tenant.id}`,
+    code: "tenantVerifiedAttributeNotFound",
+    title: "Tenant verified attribute not found",
+  });
+}
 
 export function requesterIsNotTheDelegateProducer(
   delegation: delegationApi.Delegation

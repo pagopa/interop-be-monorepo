@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { tenantApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
@@ -9,8 +9,8 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
-  expectApiClientPostToHaveBeenCalledWith,
   expectApiClientGetToHaveBeenCalledWith,
+  expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
   mockPollingResponse,
   tenantService,
@@ -18,7 +18,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("revokeVerifiedAttribute", () => {
+describe("assignTenantVerifiedAttribute", () => {
   const mockVerifiedAttribute = getMockedApiVerifiedTenantAttribute();
   const otherMockedAttributes = generateMock(
     z.array(tenantApi.TenantAttribute)
@@ -34,7 +34,7 @@ describe("revokeVerifiedAttribute", () => {
     })
   );
 
-  const mockRevokeVerifiedAttribute = vi
+  const mockAddVerifiedAttribute = vi
     .fn()
     .mockResolvedValue(mockTenantProcessResponse);
 
@@ -44,7 +44,7 @@ describe("revokeVerifiedAttribute", () => {
 
   mockInteropBeClients.tenantProcessClient = {
     tenantAttribute: {
-      revokeVerifiedAttribute: mockRevokeVerifiedAttribute,
+      addVerifiedAttribute: mockAddVerifiedAttribute,
     },
     tenant: {
       getTenant: mockGetTenant,
@@ -53,25 +53,31 @@ describe("revokeVerifiedAttribute", () => {
 
   beforeEach(() => {
     // Clear mock counters and call information before each test
-    mockRevokeVerifiedAttribute.mockClear();
+    mockAddVerifiedAttribute.mockClear();
     mockGetTenant.mockClear();
   });
 
-  it("should revoke verified attribute", async () => {
-    const result = await tenantService.revokeTenantVerifiedAttribute(
+  it("should add verified attribute", async () => {
+    const body: m2mGatewayApi.AddVerifiedAttributeRequest = {
+      id: mockVerifiedAttribute.id,
+      agreementId: generateId(),
+      expirationDate: new Date().toISOString(),
+    };
+
+    const result = await tenantService.addTenantVerifiedAttribute(
       unsafeBrandId("test-tenant-id"),
-      unsafeBrandId(mockVerifiedAttribute.id),
-      { agreementId: generateId() },
+      body,
       getMockM2MAdminAppContext()
     );
 
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost: mockRevokeVerifiedAttribute,
-      body: { agreementId: expect.any(String) },
-      params: {
-        tenantId: "test-tenant-id",
-        attributeId: mockVerifiedAttribute.id,
+      mockPost: mockAddVerifiedAttribute,
+      body: {
+        id: body.id,
+        expirationDate: body.expirationDate,
+        agreementId: body.agreementId,
       },
+      params: { tenantId: "test-tenant-id" },
     });
 
     expectApiClientGetToHaveBeenCalledWith({

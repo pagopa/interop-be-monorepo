@@ -8479,7 +8479,7 @@ paths:
         - tenants
       summary: Assign a Declared Attribute to a Tenant
       description: Assign a Declared Attribute to a Tenant
-      operationId: assignDeclaredAttribute
+      operationId: assignTenantDeclaredAttribute
       requestBody:
         required: true
         content:
@@ -8586,7 +8586,7 @@ paths:
         - tenants
       summary: Revoke a Declared Attribute from a Tenant
       description: Revoke a Declared Attribute from a Tenant
-      operationId: revokeDeclaredAttribute
+      operationId: revokeTenantDeclaredAttribute
       responses:
         "200":
           description: Declared Attribute revoked
@@ -8770,7 +8770,7 @@ paths:
         - tenants
       summary: Assign a Certified Attribute to a Tenant
       description: Assign a Certified Attribute to a Tenant
-      operationId: assignCertifiedAttribute
+      operationId: assignTenantCertifiedAttribute
       requestBody:
         content:
           application/json:
@@ -8890,7 +8890,7 @@ paths:
         - tenants
       summary: Revoke a Certified Attribute from a Tenant
       description: Revoke a Certified Attribute from a Tenant
-      operationId: revokeCertifiedAttribute
+      operationId: revokeTenantCertifiedAttribute
       responses:
         "200":
           description: Certified Attribute revoked
@@ -9089,7 +9089,7 @@ paths:
         Assign a Verified Attribute to a Tenant with yourself as verifier.
         If the attribute is already assigned, you will be added to the list of verifiers.
       description: Assign a Verified Attribute to a Tenant
-      operationId: assignVerifiedAttribute
+      operationId: assignTenantVerifiedAttribute
       requestBody:
         required: true
         content:
@@ -9198,7 +9198,7 @@ paths:
       description: |
         Revoke a Verified Attribute from a Tenant.
         You will be added to the list of revokers of the tenant Verified Attribute.
-      operationId: revokeVerifiedAttribute
+      operationId: revokeTenantVerifiedAttribute
       parameters:
         - in: query
           name: agreementId

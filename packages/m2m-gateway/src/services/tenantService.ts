@@ -25,14 +25,27 @@ import {
   tenantCertifiedAttributeNotFound,
   tenantDeclaredAttributeNotFound,
   tenantVerifiedAttributeNotFound,
-  missingRequiredAgreementId,
 } from "../model/errors.js";
-import { assertTenantDeclaredAttributeAuthorization } from "../utils/validators/tenantValidators.js";
 
 function retrieveDeclaredAttributes(
   tenant: tenantApi.Tenant
 ): tenantApi.DeclaredTenantAttribute[] {
   return tenant.attributes.map((v) => v.declared).filter(isDefined);
+}
+
+function retrieveDeclaredAttribute(
+  tenant: tenantApi.Tenant,
+  attributeId: tenantApi.DeclaredTenantAttribute["id"]
+): tenantApi.DeclaredTenantAttribute {
+  const declaredAttribute = retrieveDeclaredAttributes(tenant).find(
+    (declaredAttribute) => declaredAttribute.id === attributeId
+  );
+
+  if (!declaredAttribute) {
+    throw tenantDeclaredAttributeNotFound(tenant, attributeId);
+  }
+
+  return declaredAttribute;
 }
 
 function retrieveCertifiedAttributes(
@@ -60,6 +73,21 @@ function retrieveVerifiedAttributes(
   tenant: tenantApi.Tenant
 ): tenantApi.VerifiedTenantAttribute[] {
   return tenant.attributes.map((v) => v.verified).filter(isDefined);
+}
+
+function retrieveVerifiedAttribute(
+  tenant: tenantApi.Tenant,
+  attributeId: tenantApi.VerifiedTenantAttribute["id"]
+): tenantApi.VerifiedTenantAttribute {
+  const verifiedAttribute = retrieveVerifiedAttributes(tenant).find(
+    (verifiedAttribute) => verifiedAttribute.id === attributeId
+  );
+
+  if (!verifiedAttribute) {
+    throw tenantVerifiedAttributeNotFound(tenant, attributeId);
+  }
+
+  return verifiedAttribute;
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
@@ -160,6 +188,110 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
+    async assignTenantDeclaredAttribute(
+      tenantId: TenantId,
+      body: m2mGatewayApi.AddDeclaredAttributeRequest,
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
+      logger.info(`Adding declared attribute ${body.id} to tenant ${tenantId}`);
+
+      // 1. Get delegation if specified and validate authorization
+      const delegation: delegationApi.Delegation | undefined =
+        body.delegationId && authData.organizationId !== tenantId
+          ? (
+              await clients.delegationProcessClient.delegation.getDelegation({
+                params: { delegationId: body.delegationId },
+                headers,
+              })
+            ).data
+          : undefined;
+
+      // 2. Validate tenant authorization and delegation for declared attributes
+      assertTenantDeclaredAttributeAuthorization(
+        authData.organizationId,
+        tenantId,
+        body.delegationId,
+        delegation
+      );
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.addDeclaredAttribute(
+          {
+            id: body.id,
+            delegationId: body.delegationId,
+          },
+          {
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+
+      const declaredAttribute = retrieveDeclaredAttributes(polledTenant).find(
+        (attr) => attr.id === body.id
+      );
+
+      if (!declaredAttribute) {
+        throw tenantDeclaredAttributeNotFound(tenantId, body.id);
+      }
+
+      return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
+    },
+    async revokeTenantDeclaredAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      query: { delegationId?: string },
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
+      const logMessage = query.delegationId
+        ? `Revoking declared attribute ${attributeId} from tenant ${tenantId} with delegation ${query.delegationId}`
+        : `Revoking declared attribute ${attributeId} from tenant ${tenantId}`;
+
+      logger.info(logMessage);
+
+      // 1. Get delegation if specified and validate authorization
+      const delegation: delegationApi.Delegation | undefined =
+        query.delegationId && authData.organizationId !== tenantId
+          ? (
+              await clients.delegationProcessClient.delegation.getDelegation({
+                params: { delegationId: query.delegationId },
+                headers,
+              })
+            ).data
+          : undefined;
+
+      // 2. Validate tenant authorization and delegation for declared attributes
+      assertTenantDeclaredAttributeAuthorization(
+        authData.organizationId,
+        tenantId,
+        query.delegationId,
+        delegation
+      );
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.revokeDeclaredAttribute(
+          undefined,
+          {
+            params: { attributeId },
+            ...(query.delegationId && {
+              queries: { delegationId: query.delegationId },
+            }),
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+
+      const declaredAttribute = retrieveDeclaredAttributes(polledTenant).find(
+        (attr) => attr.id === attributeId
+      );
+
+      if (!declaredAttribute) {
+        throw tenantDeclaredAttributeNotFound(tenantId, attributeId);
+      }
+
+      return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
+    },
     async getTenantCertifiedAttributes(
       tenantId: TenantId,
       { limit, offset }: m2mGatewayApi.GetTenantCertifiedAttributesQueryParams,
@@ -187,7 +319,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async assignCertifiedAttribute(
+    async assignTenantCertifiedAttribute(
       tenantId: TenantId,
       seed: m2mGatewayApi.TenantCertifiedAttributeSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -213,7 +345,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiTenantCertifiedAttribute(certifiedAttribute);
     },
-    async revokeCertifiedAttribute(
+    async revokeTenantCertifiedAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -332,111 +464,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async addTenantDeclaredAttribute(
-      tenantId: TenantId,
-      body: m2mGatewayApi.AddDeclaredAttributeRequest,
-      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
-      logger.info(`Adding declared attribute ${body.id} to tenant ${tenantId}`);
-
-      // 1. Get delegation if specified and validate authorization
-      const delegation: delegationApi.Delegation | undefined =
-        body.delegationId && authData.organizationId !== tenantId
-          ? (
-              await clients.delegationProcessClient.delegation.getDelegation({
-                params: { delegationId: body.delegationId },
-                headers,
-              })
-            ).data
-          : undefined;
-
-      // 2. Validate tenant authorization and delegation for declared attributes
-      assertTenantDeclaredAttributeAuthorization(
-        authData.organizationId,
-        tenantId,
-        body.delegationId,
-        delegation
-      );
-
-      const response =
-        await clients.tenantProcessClient.tenantAttribute.addDeclaredAttribute(
-          {
-            id: body.id,
-            delegationId: body.delegationId,
-          },
-          {
-            headers,
-          }
-        );
-
-      const { data: polledTenant } = await pollTenant(response, headers);
-
-      const declaredAttribute = retrieveDeclaredAttributes(polledTenant).find(
-        (attr) => attr.id === body.id
-      );
-
-      if (!declaredAttribute) {
-        throw tenantDeclaredAttributeNotFound(tenantId, body.id);
-      }
-
-      return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
-    },
-    async revokeTenantDeclaredAttribute(
-      tenantId: TenantId,
-      attributeId: AttributeId,
-      query: { delegationId?: string },
-      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
-      const logMessage = query.delegationId
-        ? `Revoking declared attribute ${attributeId} from tenant ${tenantId} with delegation ${query.delegationId}`
-        : `Revoking declared attribute ${attributeId} from tenant ${tenantId}`;
-
-      logger.info(logMessage);
-
-      // 1. Get delegation if specified and validate authorization
-      const delegation: delegationApi.Delegation | undefined =
-        query.delegationId && authData.organizationId !== tenantId
-          ? (
-              await clients.delegationProcessClient.delegation.getDelegation({
-                params: { delegationId: query.delegationId },
-                headers,
-              })
-            ).data
-          : undefined;
-
-      // 2. Validate tenant authorization and delegation for declared attributes
-      assertTenantDeclaredAttributeAuthorization(
-        authData.organizationId,
-        tenantId,
-        query.delegationId,
-        delegation
-      );
-
-      const response =
-        await clients.tenantProcessClient.tenantAttribute.revokeDeclaredAttribute(
-          undefined,
-          {
-            params: { attributeId },
-            ...(query.delegationId && {
-              queries: { delegationId: query.delegationId },
-            }),
-            headers,
-          }
-        );
-
-      const { data: polledTenant } = await pollTenant(response, headers);
-
-      const declaredAttribute = retrieveDeclaredAttributes(polledTenant).find(
-        (attr) => attr.id === attributeId
-      );
-
-      if (!declaredAttribute) {
-        throw tenantDeclaredAttributeNotFound(tenantId, attributeId);
-      }
-
-      return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
-    },
-    async addTenantVerifiedAttribute(
+    async assignTenantVerifiedAttribute(
       tenantId: TenantId,
       body: m2mGatewayApi.AddVerifiedAttributeRequest,
       { logger, headers }: WithLogger<M2MGatewayAppContext>

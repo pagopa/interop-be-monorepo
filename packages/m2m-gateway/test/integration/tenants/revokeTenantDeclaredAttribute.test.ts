@@ -18,7 +18,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("revokeDeclaredAttribute", () => {
+describe("revokeTenantDeclaredAttribute", () => {
   const mockDeclaredAttribute = getMockedApiDeclaredTenantAttribute({
     revoked: true,
   });

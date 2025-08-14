@@ -18,7 +18,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("addDeclaredAttribute", () => {
+describe("assignTenantDeclaredAttribute", () => {
   const mockDeclaredAttribute = getMockedApiDeclaredTenantAttribute();
   const otherMockedAttributes = generateMock(
     z.array(tenantApi.TenantAttribute)

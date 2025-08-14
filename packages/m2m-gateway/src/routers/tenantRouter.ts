@@ -95,7 +95,7 @@ const tenantRouter = (
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
         const declaredAttribute =
-          await tenantService.addTenantDeclaredAttribute(
+          await tenantService.assignTenantDeclaredAttribute(
             unsafeBrandId(req.params.tenantId),
             req.body,
             ctx
@@ -174,11 +174,12 @@ const tenantRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-        const certifiedAttribute = await tenantService.assignCertifiedAttribute(
-          unsafeBrandId(req.params.tenantId),
-          req.body,
-          ctx
-        );
+        const certifiedAttribute =
+          await tenantService.assignTenantCertifiedAttribute(
+            unsafeBrandId(req.params.tenantId),
+            req.body,
+            ctx
+          );
 
         return res
           .status(200)
@@ -202,7 +203,7 @@ const tenantRouter = (
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
           const certifiedAttribute =
-            await tenantService.revokeCertifiedAttribute(
+            await tenantService.revokeTenantCertifiedAttribute(
               unsafeBrandId(req.params.tenantId),
               unsafeBrandId(req.params.attributeId),
               ctx
@@ -255,7 +256,7 @@ const tenantRouter = (
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
         const verifiedAttribute =
-          await tenantService.addTenantVerifiedAttribute(
+          await tenantService.assignTenantVerifiedAttribute(
             unsafeBrandId(req.params.tenantId),
             req.body,
             ctx
