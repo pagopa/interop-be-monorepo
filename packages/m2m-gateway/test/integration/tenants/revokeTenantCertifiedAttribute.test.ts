@@ -28,7 +28,7 @@ import {
 } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("revokeTenantCertifiedAttribute.test", () => {
+describe("revokeTenantCertifiedAttribute", () => {
   const mockCertifiedAttribute1 = getMockedApiCertifiedTenantAttribute({
     revoked: true,
   });
