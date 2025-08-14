@@ -1,12 +1,9 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import {
   EmailNotificationMessagePayload,
   generateId,
-  CorrelationId,
   missingKafkaMessageDataError,
-  AgreementV2,
   fromAgreementV2,
   NotificationType,
 } from "pagopa-interop-models";
@@ -16,23 +13,15 @@ import {
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "../../services/utils.js";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { UserServiceSQL } from "../../services/userServiceSQL.js";
-import { getUserEmailsToNotify } from "../handlerCommons.js";
+import {
+  getUserEmailsToNotify,
+  HandleAgreementData,
+} from "../handlerCommons.js";
 
 const notificationType: NotificationType = "agreementManagementToProducer";
 
-export type AgreementUpgradedData = {
-  agreementV2Msg?: AgreementV2;
-  readModelService: ReadModelServiceSQL;
-  logger: Logger;
-  templateService: HtmlTemplateService;
-  userService: UserServiceSQL;
-  correlationId: CorrelationId;
-};
-
 export async function handleAgreementUpgraded(
-  data: AgreementUpgradedData
+  data: HandleAgreementData
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     agreementV2Msg,
