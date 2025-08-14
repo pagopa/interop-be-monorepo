@@ -9085,7 +9085,9 @@ paths:
     post:
       tags:
         - tenants
-      summary: Assign a Verified Attribute to a Tenant
+      summary: |
+        Assign a Verified Attribute to a Tenant with yourself as verifier.
+        If the attribute is already assigned, you will be added to the list of verifiers.
       description: Assign a Verified Attribute to a Tenant
       operationId: assignVerifiedAttribute
       requestBody:
@@ -9193,7 +9195,9 @@ paths:
       tags:
         - tenants
       summary: Revoke a Verified Attribute from a Tenant
-      description: Revoke a Verified Attribute from a Tenant
+      description: |
+        Revoke a Verified Attribute from a Tenant.
+        You will be added to the list of revokers of the tenant Verified Attribute.
       operationId: revokeVerifiedAttribute
       parameters:
         - in: query
