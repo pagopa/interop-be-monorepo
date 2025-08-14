@@ -6,13 +6,15 @@ import {
   authRole,
   ExpressContext,
   fromAppContext,
+  setMetadataVersionHeader,
   validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
-import { makeApiProblem } from "../model/errors.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import { createPurposeTemplateErrorMapper } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -56,15 +58,23 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const purposeTemplate = await purposeTemplateService.createPurposeTemplate(
-          unsafeBrandId(req.body.id),
+        const {
+          data: { purposeTemplate },
+          metadata,
+        } = await purposeTemplateService.createPurposeTemplate(req.body, ctx);
+
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(purposeTemplateApi.PurposeTemplate.parse(purposeTemplate));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createPurposeTemplateErrorMapper,
           ctx
         );
-
-      } catch (error) {
-        return res.status(501);
+        return res.status(errorRes.status).send(errorRes);
       }
-      return res.status(501);
     })
     .get("/purposeTemplates/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);

@@ -11,10 +11,17 @@ const {
   HTTP_STATUS_CONFLICT,
 } = constants;
 
-export const getPurposeTemplateErrorMapper = (
+export const createPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("missingFreeOfChargeReason", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "missingFreeOfChargeReason",
+      "riskAnalysisTemplateValidationFailed",
+      "tenantNotFound",
+      "tenantKindNotFound",
+      "purposeTemplateNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("purposeTemplateNameConflict", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

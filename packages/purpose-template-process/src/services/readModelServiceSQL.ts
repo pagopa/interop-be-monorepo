@@ -12,6 +12,7 @@ import {
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
 
+import { purposeTemplateNameConflict } from "../model/domain/errors.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
   catalogReadModelServiceSQL,
@@ -27,6 +28,12 @@ export function readModelServiceBuilderSQL({
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
+    async getPurposeTemplate(
+      _title: string
+    ): Promise<WithMetadata<PurposeTemplate>> {
+      // TODO : this is a placeholder function to replace with properly implementation
+      throw purposeTemplateNameConflict();
+    },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getPurposeTemplateById(
       _id: PurposeTemplateId
@@ -39,5 +46,4 @@ export function readModelServiceBuilderSQL({
     },
   };
 }
-
 export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;
