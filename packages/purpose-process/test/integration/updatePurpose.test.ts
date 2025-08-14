@@ -63,7 +63,11 @@ import {
   addOneEService,
   addOneAgreement,
 } from "../integrationUtils.js";
-import { buildRiskAnalysisSeed, createUpdatedPurpose } from "../mockUtils.js";
+import {
+  buildRiskAnalysisSeed,
+  createUpdatedPurpose,
+  createUpdatedReversePurpose,
+} from "../mockUtils.js";
 
 describe("updatePurpose and updateReversePurpose", () => {
   const tenantType = randomArrayItem(Object.values(tenantKind));
@@ -131,7 +135,11 @@ describe("updatePurpose and updateReversePurpose", () => {
     };
 
     reversePurposeUpdateContent = {
-      ...purposeUpdateContent,
+      title: "test",
+      dailyCalls: 10,
+      description: "test",
+      isFreeOfCharge: true,
+      freeOfChargeReason: "test",
     };
   });
 
@@ -167,7 +175,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     const expectedPurpose: Purpose = createUpdatedPurpose(
       purposeForDeliver,
       purposeUpdateContent,
-      validRiskAnalysis,
+      tenantType,
       writtenPayload.purpose!.riskAnalysisForm!
     );
 
@@ -213,7 +221,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     const expectedPurpose: Purpose = createUpdatedPurpose(
       purposeForDeliver,
       updateContentWithoutTitle,
-      validRiskAnalysis,
+      tenantType,
       writtenPayload.purpose!.riskAnalysisForm!
     );
 
@@ -250,11 +258,9 @@ describe("updatePurpose and updateReversePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedPurpose: Purpose = createUpdatedPurpose(
+    const expectedPurpose: Purpose = createUpdatedReversePurpose(
       purposeForReceive,
-      reversePurposeUpdateContent,
-      validRiskAnalysis,
-      writtenPayload.purpose!.riskAnalysisForm!
+      reversePurposeUpdateContent
     );
 
     const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
@@ -317,7 +323,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     const expectedPurpose: Purpose = createUpdatedPurpose(
       delegatePurpose,
       updateContentWithoutTitle,
-      validRiskAnalysis,
+      tenantType,
       writtenPayload.purpose!.riskAnalysisForm!
     );
 
@@ -372,11 +378,9 @@ describe("updatePurpose and updateReversePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedPurpose: Purpose = createUpdatedPurpose(
+    const expectedPurpose: Purpose = createUpdatedReversePurpose(
       delegatePurpose,
-      reversePurposeUpdateContent,
-      validRiskAnalysis,
-      writtenPayload.purpose!.riskAnalysisForm!
+      reversePurposeUpdateContent
     );
 
     const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
@@ -483,7 +487,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     const expectedPurpose: Purpose = createUpdatedPurpose(
       delegatePurpose,
       updateContentWithoutTitle,
-      validRiskAnalysis,
+      tenantType,
       writtenPayload.purpose!.riskAnalysisForm!
     );
 
@@ -581,11 +585,9 @@ describe("updatePurpose and updateReversePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedPurpose: Purpose = createUpdatedPurpose(
+    const expectedPurpose: Purpose = createUpdatedReversePurpose(
       delegatePurpose,
-      reversePurposeUpdateContent,
-      validRiskAnalysis,
-      writtenPayload.purpose!.riskAnalysisForm!
+      reversePurposeUpdateContent
     );
 
     const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);

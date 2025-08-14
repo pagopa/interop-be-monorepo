@@ -8,9 +8,12 @@ import {
   tenantKind,
   unsafeBrandId,
   PurposeRiskAnalysisFormV2,
+  TenantKind,
+  PurposeRiskAnalysisForm,
 } from "pagopa-interop-models";
 import { getMockValidRiskAnalysisForm } from "pagopa-interop-commons-test";
 import { purposeApi } from "pagopa-interop-api-clients";
+import { validateAndTransformRiskAnalysis } from "../src/services/validators.js";
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
@@ -23,7 +26,7 @@ export const buildRiskAnalysisFormSeed = (
   riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
 
 export const createUpdatedRiskAnalysisForm = (
-  riskAnalysisForm: RiskAnalysisForm,
+  riskAnalysisForm: PurposeRiskAnalysisForm,
   writtenRiskAnalysisForm: PurposeRiskAnalysisFormV2
 ): RiskAnalysisForm => ({
   ...riskAnalysisForm,
@@ -46,12 +49,29 @@ export const createUpdatedRiskAnalysisForm = (
   })),
 });
 
+export const createUpdatedReversePurpose = (
+  mockPurpose: Purpose,
+  purposeUpdateContent: purposeApi.ReversePurposeUpdateContent
+): Purpose => ({
+  ...mockPurpose,
+  title: purposeUpdateContent.title,
+  description: purposeUpdateContent.description,
+  isFreeOfCharge: purposeUpdateContent.isFreeOfCharge,
+  freeOfChargeReason: purposeUpdateContent.freeOfChargeReason,
+  versions: [
+    {
+      ...mockPurpose.versions[0],
+      dailyCalls: purposeUpdateContent.dailyCalls,
+      updatedAt: new Date(),
+    },
+  ],
+  updatedAt: new Date(),
+});
+
 export const createUpdatedPurpose = (
   mockPurpose: Purpose,
-  purposeUpdateContent:
-    | purposeApi.PurposeUpdateContent
-    | purposeApi.ReversePurposeUpdateContent,
-  mockValidRiskAnalysis: RiskAnalysis,
+  purposeUpdateContent: purposeApi.PurposeUpdateContent,
+  tenantKind: TenantKind,
   writtenRiskAnalysisForm: PurposeRiskAnalysisFormV2
 ): Purpose => ({
   ...mockPurpose,
@@ -68,7 +88,11 @@ export const createUpdatedPurpose = (
   ],
   updatedAt: new Date(),
   riskAnalysisForm: createUpdatedRiskAnalysisForm(
-    mockValidRiskAnalysis.riskAnalysisForm,
+    validateAndTransformRiskAnalysis(
+      purposeUpdateContent.riskAnalysisForm,
+      false,
+      tenantKind
+    )!,
     writtenRiskAnalysisForm
   ),
 });
