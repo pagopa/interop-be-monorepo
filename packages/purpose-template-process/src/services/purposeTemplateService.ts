@@ -2,6 +2,7 @@ import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
+  eventRepository,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -12,12 +13,10 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   purposeTemplateState,
-  TenantKind,
-  TenantId,
   WithMetadata,
-  Tenant,
+  purposeTemplateEventToBinaryDataV2,
 } from "pagopa-interop-models";
-import { tenantKindNotFound, tenantNotFound } from "../model/domain/errors.js";
+import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
@@ -50,12 +49,13 @@ const retrieveTenant = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
-  _dbInstance: DB,
+  dbInstance: DB,
   readModelService: ReadModelServiceSQL
 ) {
-  // TODO : use it to write purpose template events in the event store
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const repository = eventRepository(dbInstance, purposeEventToBinaryDataV2);
+  const repository = eventRepository(
+    dbInstance,
+    purposeTemplateEventToBinaryDataV2
+  );
 
   return {
     async createPurposeTemplate(
