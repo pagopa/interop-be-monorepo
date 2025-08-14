@@ -7,6 +7,8 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
+  DescriptorId,
+  EServiceId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
@@ -39,7 +41,8 @@ export const errorCodes = {
   purposeAgreementNotFound: "0022",
   agreementContractNotFound: "0023",
   notAnActiveConsumerDelegation: "0024",
-  eserviceRiskAnalysisNotFound: "0025",
+  cannotDeleteLastEServiceDescriptor: "0025",
+  eserviceRiskAnalysisNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -271,5 +274,16 @@ export function eserviceRiskAnalysisNotFound(
     detail: `Risk analysis ${riskAnalysisId} not found for e-service ${eserviceId}`,
     code: "eserviceRiskAnalysisNotFound",
     title: "E-Service risk analysis not found",
+  });
+}
+
+export function cannotDeleteLastEServiceDescriptor(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot delete descriptor ${descriptorId} for e-service ${eserviceId} because it is the last remaining descriptor`,
+    code: "cannotDeleteLastEServiceDescriptor",
+    title: "Cannot delete last e-service descriptor",
   });
 }
