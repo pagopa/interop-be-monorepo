@@ -852,6 +852,8 @@ components:
           $ref: "#/components/schemas/RiskAnalysisFormTemplateSeed"
         purposeIsFreeOfCharge:
           type: boolean
+        purposeFreeOfChargeReason:
+          type: string
         purposeDailyCalls:
           type: integer
           format: int32

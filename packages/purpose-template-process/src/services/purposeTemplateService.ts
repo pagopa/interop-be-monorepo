@@ -88,7 +88,7 @@ export function purposeTemplateServiceBuilder(
       const validatedPurposeRiskAnalysisFormSeed =
         validateAndTransformRiskAnalysisTemplate(
           seed.purposeRiskAnalysisForm,
-          seed.targetTenantKind // todo: è corretto o ci va come nel purpose?
+          seed.targetTenantKind
         );
 
       const purposeTemplate: PurposeTemplate = {

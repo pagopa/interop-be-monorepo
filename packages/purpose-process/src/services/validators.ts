@@ -1,7 +1,7 @@
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
   M2MAdminAuthData,
-  RiskAnalysisValidatedTemplateAnswer,
+  RiskAnalysisValidatedForm,
   UIAuthData,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
@@ -114,7 +114,7 @@ export function validateRiskAnalysisOrThrow({
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
   schemaOnlyValidation: boolean;
   tenantKind: TenantKind;
-}): RiskAnalysisValidatedTemplateAnswer {
+}): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,

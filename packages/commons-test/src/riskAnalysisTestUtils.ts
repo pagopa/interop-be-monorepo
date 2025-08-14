@@ -1,7 +1,7 @@
 import { generateMock } from "@anatine/zod-mock";
 import {
   RiskAnalysisFormToValidate,
-  RiskAnalysisValidatedTemplateAnswer,
+  RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
@@ -42,37 +42,36 @@ export const validRiskAnalysis3_0_Pa: RiskAnalysisFormToValidate = {
   },
 };
 
-export const validatedRiskAnalysis3_0_Pa: RiskAnalysisValidatedTemplateAnswer =
-  {
-    version: validRiskAnalysis3_0_Pa.version,
-    singleAnswers: [
-      { key: "purpose", value: "INSTITUTIONAL" },
-      { key: "institutionalPurpose", value: "MyPurpose" },
-      { key: "otherPersonalDataTypes", value: "MyDataTypes" },
-      { key: "legalObligationReference", value: "somethingLegal" },
-      { key: "legalBasisPublicInterest", value: "RULE_OF_LAW" },
-      { key: "ruleOfLawText", value: "TheLaw" },
-      { key: "knowsDataQuantity", value: "NO" },
-      { key: "deliveryMethod", value: "ANONYMOUS" },
-      { key: "policyProvided", value: "NO" },
-      { key: "confirmPricipleIntegrityAndDiscretion", value: "true" },
-      { key: "reasonPolicyNotProvided", value: "Because" },
-      { key: "doneDpia", value: "NO" },
-      { key: "dataDownload", value: "YES" },
-      { key: "confirmDataRetentionPeriod", value: "true" },
-      { key: "purposePursuit", value: "MERE_CORRECTNESS" },
-      {
-        key: "checkedExistenceMereCorrectnessInteropCatalogue",
-        value: "true",
-      },
-      { key: "usesThirdPartyData", value: "NO" },
-      { key: "declarationConfirmGDPR", value: "true" },
-    ],
-    multiAnswers: [
-      { key: "personalDataTypes", values: ["OTHER"] },
-      { key: "legalBasis", values: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"] },
-    ],
-  };
+export const validatedRiskAnalysis3_0_Pa: RiskAnalysisValidatedForm = {
+  version: validRiskAnalysis3_0_Pa.version,
+  singleAnswers: [
+    { key: "purpose", value: "INSTITUTIONAL" },
+    { key: "institutionalPurpose", value: "MyPurpose" },
+    { key: "otherPersonalDataTypes", value: "MyDataTypes" },
+    { key: "legalObligationReference", value: "somethingLegal" },
+    { key: "legalBasisPublicInterest", value: "RULE_OF_LAW" },
+    { key: "ruleOfLawText", value: "TheLaw" },
+    { key: "knowsDataQuantity", value: "NO" },
+    { key: "deliveryMethod", value: "ANONYMOUS" },
+    { key: "policyProvided", value: "NO" },
+    { key: "confirmPricipleIntegrityAndDiscretion", value: "true" },
+    { key: "reasonPolicyNotProvided", value: "Because" },
+    { key: "doneDpia", value: "NO" },
+    { key: "dataDownload", value: "YES" },
+    { key: "confirmDataRetentionPeriod", value: "true" },
+    { key: "purposePursuit", value: "MERE_CORRECTNESS" },
+    {
+      key: "checkedExistenceMereCorrectnessInteropCatalogue",
+      value: "true",
+    },
+    { key: "usesThirdPartyData", value: "NO" },
+    { key: "declarationConfirmGDPR", value: "true" },
+  ],
+  multiAnswers: [
+    { key: "personalDataTypes", values: ["OTHER"] },
+    { key: "legalBasis", values: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"] },
+  ],
+};
 
 export const validRiskAnalysis2_0_Private: RiskAnalysisFormToValidate = {
   version: "2.0",
@@ -101,37 +100,36 @@ export const validRiskAnalysis2_0_Private: RiskAnalysisFormToValidate = {
   },
 };
 
-export const validatedRiskAnalysis2_0_Private: RiskAnalysisValidatedTemplateAnswer =
-  {
-    version: validRiskAnalysis2_0_Private.version,
-    singleAnswers: [
-      { key: "purpose", value: "INSTITUTIONAL" },
-      { key: "institutionalPurpose", value: "MyPurpose" },
-      { key: "usesPersonalData", value: "YES" },
-      { key: "otherPersonalDataTypes", value: "MyDataTypes" },
-      { key: "legalObligationReference", value: "YES" },
-      { key: "legalBasisPublicInterest", value: "RULE_OF_LAW" },
-      { key: "ruleOfLawText", value: "TheLaw" },
-      { key: "knowsDataQuantity", value: "NO" },
-      { key: "dataDownload", value: "YES" },
-      { key: "deliveryMethod", value: "CLEARTEXT" },
-      { key: "policyProvided", value: "NO" },
-      { key: "confirmPricipleIntegrityAndDiscretion", value: "true" },
-      { key: "reasonPolicyNotProvided", value: "Because" },
-      { key: "doneDpia", value: "NO" },
-      { key: "dataRetentionPeriod", value: "10" },
-      { key: "purposePursuit", value: "MERE_CORRECTNESS" },
-      {
-        key: "checkedExistenceMereCorrectnessInteropCatalogue",
-        value: "true",
-      },
-      { key: "declarationConfirmGDPR", value: "true" },
-    ],
-    multiAnswers: [
-      { key: "personalDataTypes", values: ["OTHER"] },
-      { key: "legalBasis", values: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"] },
-    ],
-  };
+export const validatedRiskAnalysis2_0_Private: RiskAnalysisValidatedForm = {
+  version: validRiskAnalysis2_0_Private.version,
+  singleAnswers: [
+    { key: "purpose", value: "INSTITUTIONAL" },
+    { key: "institutionalPurpose", value: "MyPurpose" },
+    { key: "usesPersonalData", value: "YES" },
+    { key: "otherPersonalDataTypes", value: "MyDataTypes" },
+    { key: "legalObligationReference", value: "YES" },
+    { key: "legalBasisPublicInterest", value: "RULE_OF_LAW" },
+    { key: "ruleOfLawText", value: "TheLaw" },
+    { key: "knowsDataQuantity", value: "NO" },
+    { key: "dataDownload", value: "YES" },
+    { key: "deliveryMethod", value: "CLEARTEXT" },
+    { key: "policyProvided", value: "NO" },
+    { key: "confirmPricipleIntegrityAndDiscretion", value: "true" },
+    { key: "reasonPolicyNotProvided", value: "Because" },
+    { key: "doneDpia", value: "NO" },
+    { key: "dataRetentionPeriod", value: "10" },
+    { key: "purposePursuit", value: "MERE_CORRECTNESS" },
+    {
+      key: "checkedExistenceMereCorrectnessInteropCatalogue",
+      value: "true",
+    },
+    { key: "declarationConfirmGDPR", value: "true" },
+  ],
+  multiAnswers: [
+    { key: "personalDataTypes", values: ["OTHER"] },
+    { key: "legalBasis", values: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"] },
+  ],
+};
 
 export const validSchemaOnlyRiskAnalysis3_0_Pa: RiskAnalysisFormToValidate = {
   version: "3.0",
