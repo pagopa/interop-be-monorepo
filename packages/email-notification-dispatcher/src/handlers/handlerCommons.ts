@@ -1,5 +1,11 @@
-import { NotificationConfig, TenantId } from "pagopa-interop-models";
+import {
+  AgreementV2,
+  CorrelationId,
+  NotificationConfig,
+  TenantId,
+} from "pagopa-interop-models";
 import { UserDB } from "pagopa-interop-selfcare-user-db-models";
+import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { UserServiceSQL } from "../services/userServiceSQL.js";
 
@@ -25,3 +31,12 @@ export async function getUserEmailsToNotify(
   );
   return usersToNotify.map((user) => user.email);
 }
+
+export type HandleAgreementData = {
+  agreementV2Msg?: AgreementV2;
+  readModelService: ReadModelServiceSQL;
+  logger: Logger;
+  templateService: HtmlTemplateService;
+  userService: UserServiceSQL;
+  correlationId: CorrelationId;
+};

@@ -1,16 +1,10 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import {
-  getLatestTenantMailOfKind,
-  HtmlTemplateService,
-  Logger,
-} from "pagopa-interop-commons";
+import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
 import {
   EmailNotificationMessagePayload,
   generateId,
-  CorrelationId,
   missingKafkaMessageDataError,
-  AgreementV2,
   fromAgreementV2,
   tenantMailKind,
   NotificationType,
@@ -23,24 +17,16 @@ import {
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "../../services/utils.js";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { UserServiceSQL } from "../../services/userServiceSQL.js";
-import { getUserEmailsToNotify } from "../handlerCommons.js";
+import {
+  getUserEmailsToNotify,
+  HandleAgreementData,
+} from "../handlerCommons.js";
 
 const notificationType: NotificationType =
   "agreementActivatedRejectedToConsumer";
 
-export type AgreementActivatedData = {
-  agreementV2Msg?: AgreementV2;
-  readModelService: ReadModelServiceSQL;
-  logger: Logger;
-  templateService: HtmlTemplateService;
-  userService: UserServiceSQL;
-  correlationId: CorrelationId;
-};
-
 export async function handleAgreementActivated(
-  data: AgreementActivatedData
+  data: HandleAgreementData
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     agreementV2Msg,
