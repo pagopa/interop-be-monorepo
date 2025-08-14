@@ -2,6 +2,7 @@ import { RiskAnalysisTemplateValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
   makeApiProblemBuilder,
+  PurposeTemplateId,
   TenantId,
 } from "pagopa-interop-models";
 
@@ -11,6 +12,7 @@ export const errorCodes = {
   riskAnalysisTemplateValidationFailed: "0003",
   tenantNotFound: "0004",
   tenantKindNotFound: "0005",
+  purposeTemplateNotFound: "0006",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -56,5 +58,15 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant kind for tenant ${tenantId} not found`,
     code: "tenantKindNotFound",
     title: "Tenant kind not found",
+  });
+}
+
+export function purposeTemplateNotFound(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Purpose Template found for ID ${purposeTemplateId}`,
+    code: "purposeTemplateNotFound",
+    title: "Purpose Template Not Found",
   });
 }
