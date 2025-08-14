@@ -55,7 +55,7 @@ export async function handleEserviceStateChangedToConsumer(
 
   const eservice = fromEServiceV2(eserviceV2Msg.data.eservice);
 
-  // FIXME: what if is not the latest descriptor? Is it ok to navigate the user always to the latest?
+  // FIXME: what if is not the latest descriptor? Is it ok to navigate the user always to the latest in the moment the event is generated?
   const descriptor = retrieveLatestPublishedDescriptor(eservice);
 
   const agreements = await readModelService.getAgreementsByEserviceId(
