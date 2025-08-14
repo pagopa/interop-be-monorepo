@@ -11,7 +11,7 @@ post {
 }
 
 params:path {
-  tenantId: {{tenantId}}
+  tenantId: {{tenantId2}}
 }
 
 headers {
@@ -24,4 +24,9 @@ body:json {
     "agreementId": "{{agreementId}}",
     "expirationDate": "{{expirationDate}}"
   }
+}
+
+script:pre-request {
+  const now = new Date();
+  bru.setVar("expirationDate", new Date(now.getTime() + 24 * 60 * 60 * 1000));
 }

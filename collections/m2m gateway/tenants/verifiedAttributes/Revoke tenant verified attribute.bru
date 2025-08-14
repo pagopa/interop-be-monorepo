@@ -5,21 +5,20 @@ meta {
 }
 
 delete {
-  url: {{baseUrl}}/tenants/:tenantId/verifiedAttributes/:attributeId?agreementId
+  url: {{host-m2m-gw}}/tenants/:tenantId/verifiedAttributes/:attributeId?agreementId={{agreementId}}
   body: none
   auth: none
-}
-
-headers {
-  Authorization: {{JWT-M2M-ADMIN}}
-}
-
-params:path {
-  tenantId: {{tenantId}}
-  attributeId: {{attributeId}}
 }
 
 params:query {
   agreementId: {{agreementId}}
 }
 
+params:path {
+  tenantId: {{tenantId2}}
+  attributeId: {{attributeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
