@@ -1,0 +1,125 @@
+/* eslint-disable functional/immutable-data */
+/* eslint-disable functional/no-let */
+import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
+import {
+  EmailNotificationMessagePayload,
+  generateId,
+  CorrelationId,
+  missingKafkaMessageDataError,
+  fromAgreementV2,
+  tenantMailKind,
+  NotificationType,
+} from "pagopa-interop-models";
+import {
+  eventMailTemplateType,
+  getFormattedAgreementStampDate,
+  retrieveAgreementDescriptor,
+  retrieveAgreementEservice,
+  retrieveHTMLTemplate,
+  retrieveTenant,
+} from "../../services/utils.js";
+import {
+  getUserEmailsToNotify,
+  HandleAgreementData,
+} from "../handlerCommons.js";
+
+const notificationType: NotificationType =
+  "agreementActivatedRejectedToConsumer";
+
+export async function handleAgreementRejected(
+  data: HandleAgreementData
+): Promise<EmailNotificationMessagePayload[]> {
+  const {
+    agreementV2Msg,
+    readModelService,
+    logger,
+    templateService,
+    userService,
+    correlationId,
+  } = data;
+
+  if (!agreementV2Msg) {
+    throw missingKafkaMessageDataError("eservice", "AgreementRejected");
+  }
+
+  const agreement = fromAgreementV2(agreementV2Msg);
+
+  const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
+    retrieveHTMLTemplate(eventMailTemplateType.agreementRejectedMailTemplate),
+    retrieveAgreementEservice(agreement, readModelService),
+    retrieveTenant(agreement.producerId, readModelService),
+    retrieveTenant(agreement.consumerId, readModelService),
+  ]);
+
+  const consumerEmail = getLatestTenantMailOfKind(
+    consumer.mails,
+    tenantMailKind.ContactEmail
+  );
+
+  let userEmails: string[] = [];
+  try {
+    userEmails = await getUserEmailsToNotify(
+      consumer.id,
+      notificationType,
+      readModelService,
+      userService
+    );
+  } catch (error) {
+    logger.warn(`Error reading user email. Reason: ${error}`);
+    return [];
+  }
+
+  const rejectionDate = getFormattedAgreementStampDate(agreement, "rejection");
+  const descriptor = retrieveAgreementDescriptor(eservice, agreement);
+
+  let toDispatch: EmailNotificationMessagePayload[] = [];
+  if (userEmails.length > 0) {
+    toDispatch = userEmails.map((email: string) => ({
+      correlationId: correlationId ?? generateId<CorrelationId>(),
+      email: {
+        subject: `Richiesta di fruizione ${agreement.id} attiva`,
+        body: templateService.compileHtml(htmlTemplate, {
+          title: "Nuova richiesta di fruizione",
+          notificationType,
+          entityId: agreement.id,
+          producerName: producer.name,
+          consumerName: consumer.name,
+          eserviceName: eservice.name,
+          eserviceVersion: descriptor.version,
+          rejectionDate,
+        }),
+      },
+      address: email,
+    }));
+  } else {
+    logger.info(
+      `No users found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
+    );
+  }
+
+  if (consumerEmail) {
+    toDispatch.push({
+      correlationId: correlationId ?? generateId<CorrelationId>(),
+      email: {
+        subject: `Richiesta di fruizione ${agreement.id} attiva`,
+        body: templateService.compileHtml(htmlTemplate, {
+          title: "Nuova richiesta di fruizione",
+          notificationType,
+          entityId: agreement.id,
+          producerName: producer.name,
+          consumerName: consumer.name,
+          eserviceName: eservice.name,
+          eserviceVersion: descriptor.version,
+          rejectionDate,
+        }),
+      },
+      address: consumerEmail.address,
+    });
+  } else {
+    logger.warn(
+      `No consumer email found for agreement ${agreement.id}. No email to dispatch.`
+    );
+  }
+
+  return toDispatch;
+}
