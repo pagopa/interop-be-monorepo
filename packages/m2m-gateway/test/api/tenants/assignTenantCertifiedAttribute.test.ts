@@ -5,7 +5,11 @@ import {
   getMockedApiCertifiedTenantAttribute,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import {
+  TenantId,
+  generateId,
+  pollingMaxRetriesExceeded,
+} from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -21,12 +25,17 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
   const mockApiResponse = getMockedApiCertifiedTenantAttribute();
   const mockResponse = toM2MGatewayApiTenantCertifiedAttribute(mockApiResponse);
 
+  const mockSeed: m2mGatewayApi.TenantCertifiedAttributeSeed = {
+    id: generateId(),
+  };
+
   const makeRequest = async (
     token: string,
-    body: m2mGatewayApi.TenantCertifiedAttributeSeed
+    body: m2mGatewayApi.TenantCertifiedAttributeSeed = mockSeed,
+    tenantId: TenantId = generateId()
   ) =>
     request(api)
-      .post(`${appBasePath}/tenants/${generateId()}/certifiedAttributes`)
+      .post(`${appBasePath}/tenants/${tenantId}/certifiedAttributes`)
       .set("Authorization", `Bearer ${token}`)
       .send(body);
 
@@ -39,7 +48,7 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
         .mockResolvedValue(mockResponse);
 
       const token = generateToken(role);
-      const res = await makeRequest(token, { id: generateId() });
+      const res = await makeRequest(token);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockResponse);
@@ -50,15 +59,27 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, { id: generateId() });
+    const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid seed", async () => {
+  it.each([
+    { ...mockSeed, invalidParam: "invalidValue" },
+    { ...mockSeed, id: undefined },
+    { ...mockSeed, id: "invalidId" },
+  ] as m2mGatewayApi.TenantCertifiedAttributeSeed[])(
+    "Should return 400 if passed an invalid seed",
+    async (seed) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, seed);
+
+      expect(res.status).toBe(400);
+    }
+  );
+
+  it("Should return 400 if passed an invalid tenant id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      invalidParam: "invalidValue",
-    } as unknown as m2mGatewayApi.TenantCertifiedAttributeSeed);
+    const res = await makeRequest(token, mockSeed, "invalid_id" as TenantId);
 
     expect(res.status).toBe(400);
   });
@@ -72,7 +93,7 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, { id: generateId() });
+    const res = await makeRequest(token);
 
     expect(res.status).toBe(500);
   });
@@ -89,7 +110,7 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
         .fn()
         .mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, { id: generateId() });
+      const res = await makeRequest(token);
 
       expect(res.status).toBe(500);
     }

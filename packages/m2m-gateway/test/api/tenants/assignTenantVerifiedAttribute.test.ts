@@ -1,107 +1,123 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiVerifiedTenantAttribute,
+  getMockedApiTenant,
 } from "pagopa-interop-commons-test";
+import {
+  TenantId,
+  generateId,
+  pollingMaxRetriesExceeded,
+} from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import {
+  missingMetadata,
+  tenantVerifiedAttributeNotFound,
+} from "../../../src/model/errors.js";
 import { toM2MGatewayApiTenantVerifiedAttribute } from "../../../src/api/tenantApiConverter.js";
 
-const mockedTenantService = vi.mocked(mockTenantService);
+describe("POST /tenants/:tenantId/verifiedAttributes router test", () => {
+  const mockApiResponse = getMockedApiVerifiedTenantAttribute();
+  const mockResponse = toM2MGatewayApiTenantVerifiedAttribute(mockApiResponse);
 
-describe("POST /tenants/:tenantId/verifiedAttributes route test", () => {
-  beforeEach(() => {
-    mockedTenantService.addTenantVerifiedAttribute.mockClear();
-  });
-
-  const mockBody: m2mGatewayApi.AddVerifiedAttributeRequest = {
+  const mockSeed: m2mGatewayApi.TenantVerifiedAttributeSeed = {
     id: generateId(),
     agreementId: generateId(),
     expirationDate: new Date().toISOString(),
   };
 
-  const mockTenantAttribute = getMockedApiVerifiedTenantAttribute();
-  const mockResponse =
-    toM2MGatewayApiTenantVerifiedAttribute(mockTenantAttribute);
-
   const makeRequest = async (
     token: string,
-    tenantId: string,
-    body: m2mGatewayApi.AddVerifiedAttributeRequest
+    body: m2mGatewayApi.TenantVerifiedAttributeSeed = mockSeed,
+    tenantId: TenantId = generateId()
   ) =>
     request(api)
       .post(`${appBasePath}/tenants/${tenantId}/verifiedAttributes`)
-      .send(body)
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `Bearer ${token}`)
+      .send(body);
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.M2M_ROLE,
-    authRole.M2M_ADMIN_ROLE,
-  ];
+  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  it.each(authorizedRoles)(
+    "Should return 200 and perform service calls for user with role %s",
+    async (role) => {
+      mockTenantService.assignTenantVerifiedAttribute = vi
+        .fn()
+        .mockResolvedValue(mockResponse);
 
-  const unauthorizedRoles: AuthRole[] = [authRole.API_ROLE];
-
-  authorizedRoles.forEach((role) => {
-    it(`should return 200 when adding verified attribute with ${role} role`, async () => {
       const token = generateToken(role);
-      mockedTenantService.addTenantVerifiedAttribute.mockResolvedValueOnce(
-        mockResponse
-      );
+      const res = await makeRequest(token);
 
-      const response = await makeRequest(token, generateId(), mockBody);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockResponse);
+    }
+  );
 
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(mockResponse);
-      expect(
-        mockedTenantService.addTenantVerifiedAttribute
-      ).toHaveBeenCalledWith(expect.any(String), mockBody, expect.any(Object));
-    });
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
   });
 
-  unauthorizedRoles.forEach((role) => {
-    it(`should return 403 when adding verified attribute with ${role} role`, async () => {
-      const token = generateToken(role);
+  it.each([
+    { ...mockSeed, invalidParam: "invalidValue" },
+    { ...mockSeed, id: undefined },
+    { ...mockSeed, id: "invalidId" },
+    { ...mockSeed, agreementId: undefined },
+    { ...mockSeed, agreementId: "invalidId" },
+    { ...mockSeed, expirationDate: "invalidDate" },
+  ] as m2mGatewayApi.TenantVerifiedAttributeSeed[])(
+    "Should return 400 if passed an invalid seed",
+    async (seed) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, seed);
 
-      const response = await makeRequest(token, generateId(), mockBody);
+      expect(res.status).toBe(400);
+    }
+  );
 
-      expect(response.status).toBe(403);
-      expect(
-        mockedTenantService.addTenantVerifiedAttribute
-      ).not.toHaveBeenCalled();
-    });
+  it("Should return 400 if passed an invalid tenant id", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockSeed, "invalid_id" as TenantId);
+
+    expect(res.status).toBe(400);
   });
 
-  it("should return 400 with invalid body", async () => {
-    const token = generateToken(authRole.M2M_ROLE);
-    const invalidBody = { invalidField: "value" };
+  it.each([
+    tenantVerifiedAttributeNotFound(getMockedApiTenant(), generateId()),
+    missingMetadata(),
+    pollingMaxRetriesExceeded(3, 10),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockTenantService.assignTenantVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token);
 
-    const response = await request(api)
-      .post(`${appBasePath}/tenants/${generateId()}/verifiedAttributes`)
-      .send(invalidBody)
-      .set("Authorization", `Bearer ${token}`);
-
-    expect(response.status).toBe(400);
-    expect(
-      mockedTenantService.addTenantVerifiedAttribute
-    ).not.toHaveBeenCalled();
+    expect(res.status).toBe(500);
   });
 
-  it("should handle service errors", async () => {
-    const token = generateToken(authRole.M2M_ROLE);
-    const error = new Error("Service error");
-    mockedTenantService.addTenantVerifiedAttribute.mockRejectedValueOnce(error);
+  it.each([
+    { ...mockResponse, id: undefined },
+    { ...mockResponse, assignedAt: "INVALID_DATE" },
+    { ...mockResponse, extraParam: "extraValue" },
+    {},
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockTenantService.assignTenantVerifiedAttribute = vi
+        .fn()
+        .mockResolvedValue(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token);
 
-    const response = await makeRequest(token, generateId(), mockBody);
-
-    expect(response.status).toBe(500);
-    expect(mockedTenantService.addTenantVerifiedAttribute).toHaveBeenCalledWith(
-      expect.any(String),
-      mockBody,
-      expect.any(Object)
-    );
-  });
+      expect(res.status).toBe(500);
+    }
+  );
 });
