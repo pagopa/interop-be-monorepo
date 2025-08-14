@@ -9516,6 +9516,7 @@ paths:
       operationId: revokeTenantVerifiedAttribute
       parameters:
         - in: query
+          required: true
           name: agreementId
           description: The ID of the Agreement
           schema:
