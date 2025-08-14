@@ -86,7 +86,6 @@ export async function handleAgreementEvent(
         templateService,
         userService,
         correlationId,
-        interopFeBaseUrl: "",
       })
     )
     .with({ type: "AgreementSuspendedByProducer" }, ({ data: { agreement } }) =>
@@ -112,7 +111,6 @@ export async function handleAgreementEvent(
         })),
         ...(await handleAgreementSuspendedByPlatform({
           agreementV2Msg: agreement,
-          interopFeBaseUrl: "",
           logger,
           readModelService,
           templateService,
@@ -131,7 +129,6 @@ export async function handleAgreementEvent(
           templateService,
           userService,
           correlationId,
-          interopFeBaseUrl: "",
         })
     )
     .with(
@@ -156,7 +153,6 @@ export async function handleAgreementEvent(
           templateService,
           userService,
           correlationId,
-          interopFeBaseUrl: "",
         })),
         ...(await handleAgreementUnsuspendedByPlatformToConsumer({
           agreementV2Msg: agreement,
