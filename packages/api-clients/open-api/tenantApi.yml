@@ -554,6 +554,9 @@ paths:
       responses:
         "200":
           description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -588,6 +591,9 @@ paths:
       responses:
         "200":
           description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -628,6 +634,9 @@ paths:
       responses:
         "200":
           description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -682,6 +691,9 @@ paths:
       responses:
         "200":
           description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:

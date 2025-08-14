@@ -58,11 +58,13 @@ export function getMockedApiDelegation({
   kind,
   eserviceId,
   delegateId,
+  delegatorId,
   state,
 }: {
   kind?: delegationApi.DelegationKind;
   eserviceId?: string;
   delegateId?: string;
+  delegatorId?: string;
   state?: delegationApi.DelegationState;
 } = {}): delegationApi.Delegation {
   return {
@@ -70,7 +72,7 @@ export function getMockedApiDelegation({
     id: generateId(),
     eserviceId: eserviceId ?? generateId(),
     delegateId: delegateId ?? generateId(),
-    delegatorId: generateId(),
+    delegatorId: delegatorId ?? generateId(),
     createdAt: new Date().toISOString(),
     state: state ?? delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL,
     stamps: {

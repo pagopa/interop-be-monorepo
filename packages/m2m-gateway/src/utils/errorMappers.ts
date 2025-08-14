@@ -159,6 +159,27 @@ export const deleteEServiceDescriptorInterfaceErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const assignTenantDeclaredAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "requesterIsNotTheDelegateConsumer",
+      "cannotEditDeclaredAttributesForTenant",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const revokeTenantVerifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "missingAgreementIdForTenantVerifiedAttribute",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const deleteDraftEServiceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

@@ -60,7 +60,7 @@ describe("addDeclaredAttribute", async () => {
 
     await addOneAttribute(declaredAttribute);
     await addOneTenant(tenantWithoutDeclaredAttribute);
-    const returnedTenant = await tenantService.addDeclaredAttribute(
+    const addDeclaredAttrReturn = await tenantService.addDeclaredAttribute(
       {
         tenantAttributeSeed: { id: declaredAttribute.id },
       },
@@ -96,8 +96,14 @@ describe("addDeclaredAttribute", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-    expect(returnedTenant).toEqual(updatedTenant);
+    expect(writtenPayload).toEqual({
+      tenant: toTenantV2(updatedTenant),
+      attributeId: declaredAttribute.id,
+    });
+    expect(addDeclaredAttrReturn).toEqual({
+      data: updatedTenant,
+      metadata: { version: 1 },
+    });
   });
   it("Should re-assign the declared attribute if it was revoked", async () => {
     const tenantWithAttributeRevoked: Tenant = {
@@ -113,7 +119,7 @@ describe("addDeclaredAttribute", async () => {
     };
     await addOneAttribute(declaredAttribute);
     await addOneTenant(tenantWithAttributeRevoked);
-    const returnedTenant = await tenantService.addDeclaredAttribute(
+    const addDeclaredAttrReturn = await tenantService.addDeclaredAttribute(
       {
         tenantAttributeSeed: { id: declaredAttribute.id },
       },
@@ -149,8 +155,14 @@ describe("addDeclaredAttribute", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-    expect(returnedTenant).toEqual(updatedTenant);
+    expect(writtenPayload).toEqual({
+      tenant: toTenantV2(updatedTenant),
+      attributeId: declaredAttribute.id,
+    });
+    expect(addDeclaredAttrReturn).toEqual({
+      data: updatedTenant,
+      metadata: { version: 1 },
+    });
   });
   it("Should add the declared attribute to the delegator if the delegator doesn't have that", async () => {
     const delegateWithoutDeclaredAttribute: Tenant = {
@@ -178,7 +190,7 @@ describe("addDeclaredAttribute", async () => {
       })
     );
 
-    const returnedTenant = await tenantService.addDeclaredAttribute(
+    const addDeclaredAttrReturn = await tenantService.addDeclaredAttribute(
       {
         tenantAttributeSeed: {
           id: declaredAttribute.id,
@@ -218,8 +230,14 @@ describe("addDeclaredAttribute", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-    expect(returnedTenant).toEqual(updatedTenant);
+    expect(writtenPayload).toEqual({
+      tenant: toTenantV2(updatedTenant),
+      attributeId: declaredAttribute.id,
+    });
+    expect(addDeclaredAttrReturn).toEqual({
+      data: updatedTenant,
+      metadata: { version: 1 },
+    });
   });
   it("Should re-assign the declared attribute to the delegator if it was revoked", async () => {
     const delegateWithoutDeclaredAttribute: Tenant = {
@@ -252,7 +270,7 @@ describe("addDeclaredAttribute", async () => {
       })
     );
 
-    const returnedTenant = await tenantService.addDeclaredAttribute(
+    const addDeclaredAttrReturn = await tenantService.addDeclaredAttribute(
       {
         tenantAttributeSeed: { id: declaredAttribute.id, delegationId },
       },
@@ -290,8 +308,14 @@ describe("addDeclaredAttribute", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-    expect(returnedTenant).toEqual(updatedTenant);
+    expect(writtenPayload).toEqual({
+      tenant: toTenantV2(updatedTenant),
+      attributeId: declaredAttribute.id,
+    });
+    expect(addDeclaredAttrReturn).toEqual({
+      data: updatedTenant,
+      metadata: { version: 1 },
+    });
   });
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
     await addOneAttribute(declaredAttribute);

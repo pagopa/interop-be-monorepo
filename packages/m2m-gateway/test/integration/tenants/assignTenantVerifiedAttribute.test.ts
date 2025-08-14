@@ -1,15 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import {
-  AttributeId,
   generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import {
-  getMockedApiCertifiedTenantAttribute,
+  getMockedApiVerifiedTenantAttribute,
   getMockedApiTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
@@ -24,15 +23,13 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { config } from "../../../src/config/config.js";
 import {
   missingMetadata,
-  tenantCertifiedAttributeNotFound,
+  tenantVerifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("revokeCertifiedAttribute", () => {
-  const mockCertifiedAttribute1 = getMockedApiCertifiedTenantAttribute({
-    revoked: true,
-  });
-  const mockCertifiedAttribute2 = getMockedApiCertifiedTenantAttribute();
+describe("assignTenantVerifiedAttribute", () => {
+  const mockVerifiedAttribute1 = getMockedApiVerifiedTenantAttribute();
+  const mockVerifiedAttribute2 = getMockedApiVerifiedTenantAttribute();
   const otherMockedAttributes = generateMock(
     z.array(tenantApi.TenantAttribute)
   );
@@ -40,17 +37,24 @@ describe("revokeCertifiedAttribute", () => {
     getMockedApiTenant({
       attributes: [
         {
-          certified: mockCertifiedAttribute1,
+          verified: mockVerifiedAttribute1,
         },
         {
-          certified: mockCertifiedAttribute2,
+          verified: mockVerifiedAttribute2,
         },
         ...otherMockedAttributes,
       ],
     })
   );
 
-  const mockRevokeCertifiedAttributeById = vi
+  const mockTenantVerifiedAttributeSeed: m2mGatewayApi.TenantVerifiedAttributeSeed =
+    {
+      id: mockVerifiedAttribute2.id,
+      agreementId: generateId(),
+      expirationDate: new Date().toISOString(),
+    };
+
+  const mockAddVerifiedAttribute = vi
     .fn()
     .mockResolvedValue(mockTenantProcessResponse);
 
@@ -60,7 +64,7 @@ describe("revokeCertifiedAttribute", () => {
 
   mockInteropBeClients.tenantProcessClient = {
     tenantAttribute: {
-      revokeCertifiedAttributeById: mockRevokeCertifiedAttributeById,
+      verifyVerifiedAttribute: mockAddVerifiedAttribute,
     },
     tenant: {
       getTenant: mockGetTenant,
@@ -69,20 +73,19 @@ describe("revokeCertifiedAttribute", () => {
 
   beforeEach(() => {
     // Clear mock counters and call information before each test
-    mockRevokeCertifiedAttributeById.mockClear();
+    mockAddVerifiedAttribute.mockClear();
     mockGetTenant.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mTenantAttributeResponse: m2mGatewayApi.TenantCertifiedAttribute = {
-      id: mockCertifiedAttribute1.id,
-      assignedAt: mockCertifiedAttribute1.assignmentTimestamp,
-      revokedAt: mockCertifiedAttribute1.revocationTimestamp,
+    const m2mTenantAttributeResponse: m2mGatewayApi.TenantVerifiedAttribute = {
+      id: mockVerifiedAttribute2.id,
+      assignedAt: mockVerifiedAttribute2.assignmentTimestamp,
     };
 
-    const result = await tenantService.revokeCertifiedAttribute(
+    const result = await tenantService.assignTenantVerifiedAttribute(
       unsafeBrandId(mockTenantProcessResponse.data.id),
-      unsafeBrandId(mockCertifiedAttribute1.id),
+      mockTenantVerifiedAttributeSeed,
       getMockM2MAdminAppContext()
     );
 
@@ -90,9 +93,9 @@ describe("revokeCertifiedAttribute", () => {
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.tenantProcessClient.tenantAttribute
-          .revokeCertifiedAttributeById,
+          .verifyVerifiedAttribute,
+      body: mockTenantVerifiedAttributeSeed,
       params: {
-        attributeId: mockCertifiedAttribute1.id,
         tenantId: mockTenantProcessResponse.data.id,
       },
     });
@@ -105,16 +108,19 @@ describe("revokeCertifiedAttribute", () => {
     ).toHaveBeenCalledTimes(2);
   });
 
-  it("Should throw tenantCertifiedAttributeNotFound in case the attribute is not found in the tenant", async () => {
-    const nonExistentAttributeId: AttributeId = generateId();
+  it("Should throw tenantVerifiedAttributeNotFound in case the attribute is not found in the tenant", async () => {
+    const nonExistentAttributeId = generateId();
     await expect(
-      tenantService.revokeCertifiedAttribute(
+      tenantService.assignTenantVerifiedAttribute(
         unsafeBrandId(mockTenantProcessResponse.data.id),
-        nonExistentAttributeId,
+        {
+          ...mockTenantVerifiedAttributeSeed,
+          id: nonExistentAttributeId,
+        },
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      tenantCertifiedAttributeNotFound(
+      tenantVerifiedAttributeNotFound(
         mockTenantProcessResponse.data,
         nonExistentAttributeId
       )
@@ -122,15 +128,15 @@ describe("revokeCertifiedAttribute", () => {
   });
 
   it("Should throw missingMetadata in case the resource returned by the POST call has no metadata", async () => {
-    mockRevokeCertifiedAttributeById.mockResolvedValueOnce({
+    mockAddVerifiedAttribute.mockResolvedValueOnce({
       ...mockTenantProcessResponse,
       metadata: undefined,
     });
 
     await expect(
-      tenantService.revokeCertifiedAttribute(
+      tenantService.assignTenantVerifiedAttribute(
         unsafeBrandId(mockTenantProcessResponse.data.id),
-        unsafeBrandId(mockCertifiedAttribute1.id),
+        mockTenantVerifiedAttributeSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -143,9 +149,9 @@ describe("revokeCertifiedAttribute", () => {
     });
 
     await expect(
-      tenantService.revokeCertifiedAttribute(
+      tenantService.assignTenantVerifiedAttribute(
         unsafeBrandId(mockTenantProcessResponse.data.id),
-        unsafeBrandId(unsafeBrandId(mockCertifiedAttribute1.id)),
+        mockTenantVerifiedAttributeSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -160,9 +166,9 @@ describe("revokeCertifiedAttribute", () => {
     );
 
     await expect(
-      tenantService.revokeCertifiedAttribute(
+      tenantService.assignTenantVerifiedAttribute(
         unsafeBrandId(mockTenantProcessResponse.data.id),
-        unsafeBrandId(mockCertifiedAttribute1.id),
+        mockTenantVerifiedAttributeSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
