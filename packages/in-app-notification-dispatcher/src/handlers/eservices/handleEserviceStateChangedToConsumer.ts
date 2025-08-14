@@ -1,5 +1,6 @@
 import {
-  EServiceV2,
+  EService,
+  EServiceEventV2,
   fromEServiceV2,
   missingKafkaMessageDataError,
   NewNotification,
@@ -31,20 +32,26 @@ type EServiceStateChangedEventType =
   | "EServiceDescriptorDocumentDeletedByTemplateUpdate"
   | "EServiceDescriptorDocumentUpdatedByTemplateUpdate";
 
+type EServiceStateChangedEvent = Extract<
+  EServiceEventV2,
+  { type: EServiceStateChangedEventType }
+>;
+
 export async function handleEserviceStateChangedToConsumer(
-  eserviceV2Msg: EServiceV2 | undefined,
+  eserviceV2Msg: EServiceStateChangedEvent,
   logger: Logger,
-  readModelService: ReadModelServiceSQL,
-  eventType: EServiceStateChangedEventType
+  readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
-  if (!eserviceV2Msg) {
-    throw missingKafkaMessageDataError("eservice", eventType);
+  if (!eserviceV2Msg.data.eservice) {
+    throw missingKafkaMessageDataError("eservice", eserviceV2Msg.type);
   }
   logger.info(
-    `Sending in-app notification for handleEserviceStateChangedToConsumer ${eserviceV2Msg.id} eventType ${eventType}`
+    `Sending in-app notification for handleEserviceStateChangedToConsumer ${eserviceV2Msg.data.eservice.id} eventType ${eserviceV2Msg.type}`
   );
 
-  const eservice = fromEServiceV2(eserviceV2Msg);
+  const eservice = fromEServiceV2(eserviceV2Msg.data.eservice);
+
+  // FIXME: what if is not the latest descriptor? Is it ok to navigate the user always to the latest?
   const descriptor = retrieveLatestPublishedDescriptor(eservice);
 
   const agreements = await readModelService.getAgreementsByEserviceId(
@@ -66,7 +73,7 @@ export async function handleEserviceStateChangedToConsumer(
       "eserviceStateChangedToConsumer"
     );
 
-  const body = getBody(eventType, eservice.name);
+  const body = getBody(eserviceV2Msg, eservice);
 
   return userNotificationConfigs.map(({ userId, tenantId }) => ({
     userId,
@@ -77,71 +84,123 @@ export async function handleEserviceStateChangedToConsumer(
   }));
 }
 
-function getBody(
-  eventType: EServiceStateChangedEventType,
-  eserviceName: string
-): string {
-  return match(eventType)
-    .with("EServiceDescriptorPublished", () =>
-      inAppTemplates.eserviceDescriptorPublishedToConsumer(eserviceName)
+function getInterfaceName(
+  eservice: EService,
+  descriptorId: string
+): string | undefined {
+  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
+  return descriptor?.interface?.prettyName;
+}
+
+function getDocumentName(
+  eservice: EService,
+  descriptorId: string,
+  documentId: string
+): string | undefined {
+  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
+  return descriptor?.docs?.find((d) => d.id === documentId)?.prettyName;
+}
+
+function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
+  return match(msg)
+    .with({ type: "EServiceDescriptorPublished" }, () =>
+      inAppTemplates.eserviceDescriptorPublishedToConsumer(eservice.name)
     )
-    .with("EServiceDescriptorSuspended", () =>
-      inAppTemplates.eserviceDescriptorSuspendedToConsumer(eserviceName)
+    .with({ type: "EServiceDescriptorSuspended" }, () =>
+      inAppTemplates.eserviceDescriptorSuspendedToConsumer(eservice.name)
     )
-    .with("EServiceDescriptorActivated", () =>
-      inAppTemplates.eserviceDescriptorActivatedToConsumer(eserviceName)
+    .with({ type: "EServiceDescriptorActivated" }, () =>
+      inAppTemplates.eserviceDescriptorActivatedToConsumer(eservice.name)
     )
-    .with("EServiceDescriptorQuotasUpdated", () =>
-      inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(eserviceName)
+    .with({ type: "EServiceDescriptorQuotasUpdated" }, () =>
+      inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(eservice.name)
     )
-    .with("EServiceDescriptorAgreementApprovalPolicyUpdated", () =>
+    .with({ type: "EServiceDescriptorAgreementApprovalPolicyUpdated" }, () =>
       inAppTemplates.eserviceDescriptorAgreementApprovalPolicyUpdatedToConsumer(
-        eserviceName
+        eservice.name
       )
     )
-    .with("EServiceDescriptorInterfaceAdded", () =>
-      inAppTemplates.eserviceDescriptorInterfaceAddedToConsumer(eserviceName)
+    .with(
+      { type: "EServiceDescriptorInterfaceAdded" },
+      ({ data: { descriptorId } }) => {
+        const interfaceName = getInterfaceName(eservice, descriptorId);
+        return inAppTemplates.eserviceDescriptorInterfaceAddedToConsumer(
+          eservice.name,
+          interfaceName
+        );
+      }
     )
-    .with("EServiceDescriptorDocumentAdded", () =>
-      inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(eserviceName)
+    .with(
+      { type: "EServiceDescriptorDocumentAdded" },
+      ({ data: { descriptorId, documentId } }) => {
+        const documentName = getDocumentName(
+          eservice,
+          descriptorId,
+          documentId
+        );
+        return inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
+          eservice.name,
+          documentName
+        );
+      }
     )
-    .with("EServiceDescriptorInterfaceUpdated", () =>
-      inAppTemplates.eserviceDescriptorInterfaceUpdatedToConsumer(eserviceName)
+    .with(
+      { type: "EServiceDescriptorInterfaceUpdated" },
+      ({ data: { descriptorId } }) => {
+        const interfaceName = getInterfaceName(eservice, descriptorId);
+        return inAppTemplates.eserviceDescriptorInterfaceUpdatedToConsumer(
+          eservice.name,
+          interfaceName
+        );
+      }
     )
-    .with("EServiceDescriptorDocumentUpdated", () =>
-      inAppTemplates.eserviceDescriptorDocumentUpdatedToConsumer(eserviceName)
+    .with(
+      { type: "EServiceDescriptorDocumentUpdated" },
+      ({ data: { descriptorId, documentId } }) => {
+        const documentName = getDocumentName(
+          eservice,
+          descriptorId,
+          documentId
+        );
+        return inAppTemplates.eserviceDescriptorDocumentUpdatedToConsumer(
+          eservice.name,
+          documentName
+        );
+      }
     )
-    .with("EServiceNameUpdatedByTemplateUpdate", () =>
-      inAppTemplates.eserviceNameUpdatedByTemplateUpdateToConsumer(eserviceName)
+    .with({ type: "EServiceNameUpdatedByTemplateUpdate" }, () =>
+      inAppTemplates.eserviceNameUpdatedByTemplateUpdateToConsumer(
+        eservice.name
+      )
     )
-    .with("EServiceDescriptionUpdatedByTemplateUpdate", () =>
+    .with({ type: "EServiceDescriptionUpdatedByTemplateUpdate" }, () =>
       inAppTemplates.eserviceDescriptionUpdatedByTemplateUpdateToConsumer(
-        eserviceName
+        eservice.name
       )
     )
-    .with("EServiceDescriptorAttributesUpdatedByTemplateUpdate", () =>
+    .with({ type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" }, () =>
       inAppTemplates.eserviceDescriptorAttributesUpdatedByTemplateUpdateToConsumer(
-        eserviceName
+        eservice.name
       )
     )
-    .with("EServiceDescriptorQuotasUpdatedByTemplateUpdate", () =>
+    .with({ type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" }, () =>
       inAppTemplates.eserviceDescriptorQuotasUpdatedByTemplateUpdateToConsumer(
-        eserviceName
+        eservice.name
       )
     )
-    .with("EServiceDescriptorDocumentAddedByTemplateUpdate", () =>
+    .with({ type: "EServiceDescriptorDocumentAddedByTemplateUpdate" }, () =>
       inAppTemplates.eserviceDescriptorDocumentAddedByTemplateUpdateToConsumer(
-        eserviceName
+        eservice.name
       )
     )
-    .with("EServiceDescriptorDocumentDeletedByTemplateUpdate", () =>
+    .with({ type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" }, () =>
       inAppTemplates.eserviceDescriptorDocumentDeletedByTemplateUpdateToConsumer(
-        eserviceName
+        eservice.name
       )
     )
-    .with("EServiceDescriptorDocumentUpdatedByTemplateUpdate", () =>
+    .with({ type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" }, () =>
       inAppTemplates.eserviceDescriptorDocumentUpdatedByTemplateUpdateToConsumer(
-        eserviceName
+        eservice.name
       )
     )
     .exhaustive();

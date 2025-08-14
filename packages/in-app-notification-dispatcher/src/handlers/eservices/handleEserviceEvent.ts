@@ -34,13 +34,8 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
         ),
       },
-      ({ data: { eservice }, type }) =>
-        handleEserviceStateChangedToConsumer(
-          eservice,
-          logger,
-          readModelService,
-          type
-        )
+      (msg) =>
+        handleEserviceStateChangedToConsumer(msg, logger, readModelService)
     )
     .with(
       {
