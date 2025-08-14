@@ -439,12 +439,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       purposeUpdateContent: purposeApi.PurposeUpdateContent,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<
-      WithMetadata<{
-        purpose: Purpose;
-        isRiskAnalysisValid: boolean;
-      }>
-    > {
+    ): Promise<UpdatePurposeReturn> {
       logger.info(`Updating Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -466,12 +461,7 @@ export function purposeServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{
-        purpose: Purpose;
-        isRiskAnalysisValid: boolean;
-      }>
-    > {
+    ): Promise<UpdatePurposeReturn> {
       logger.info(`Partially updating Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -489,12 +479,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       reversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<
-      WithMetadata<{
-        purpose: Purpose;
-        isRiskAnalysisValid: boolean;
-      }>
-    > {
+    ): Promise<UpdatePurposeReturn> {
       logger.info(`Updating Reverse Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -1605,6 +1590,10 @@ const archiveActiveAndSuspendedPurposeVersions = (
       .otherwise(() => v)
   );
 
+export type UpdatePurposeReturn = WithMetadata<{
+  purpose: Purpose;
+  isRiskAnalysisValid: boolean;
+}>;
 const performUpdatePurpose = async (
   purposeId: PurposeId,
   modeAndUpdateContent:
@@ -1622,13 +1611,8 @@ const performUpdatePurpose = async (
   readModelService: ReadModelService,
   correlationId: CorrelationId,
   repository: ReturnType<typeof eventRepository<PurposeEvent>>
-): Promise<
-  WithMetadata<{
-    purpose: Purpose;
-    isRiskAnalysisValid: boolean;
-  }>
   // eslint-disable-next-line max-params
-> => {
+): Promise<UpdatePurposeReturn> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
   assertRequesterCanActAsConsumer(
     purpose.data,

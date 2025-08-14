@@ -23,7 +23,6 @@ import {
   eserviceMode,
   delegationKind,
   delegationState,
-  WithMetadata,
   PurposeId,
   unsafeBrandId,
   generateId,
@@ -42,6 +41,7 @@ import {
   addOneTenant,
   addOneEService,
   addOneDelegation,
+  sortUpdatePurposeReturn,
 } from "../integrationUtils.js";
 import {
   buildRiskAnalysisSeed,
@@ -61,6 +61,7 @@ import {
   tenantKindNotFound,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
+import { UpdatePurposeReturn } from "../../src/services/purposeService.js";
 
 describe("patchUpdatePurpose", () => {
   beforeAll(async () => {
@@ -89,21 +90,21 @@ describe("patchUpdatePurpose", () => {
   }
 
   async function expectUpdatedPurpose(
-    updatePurposeReturn: WithMetadata<{
-      purpose: Purpose;
-      isRiskAnalysisValid: boolean;
-    }>,
+    updatePurposeReturn: UpdatePurposeReturn,
     writtenPayload: DraftPurposeUpdatedV2,
     expectedPurpose: Purpose,
     expectedIsRiskAnalysisValid: boolean = true
   ): Promise<void> {
+    const sortedExpectedPurpose = sortPurpose(expectedPurpose);
     const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
+    const sortedUpdatePurposeReturn =
+      sortUpdatePurposeReturn(updatePurposeReturn);
     expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
+      sortPurpose(toPurposeV2(sortedExpectedPurpose))
     );
-    expect(updatePurposeReturn).toEqual({
+    expect(sortedUpdatePurposeReturn).toEqual({
       data: {
-        purpose: expectedPurpose,
+        purpose: sortedExpectedPurpose,
         isRiskAnalysisValid: expectedIsRiskAnalysisValid,
       },
       metadata: { version: 1 },

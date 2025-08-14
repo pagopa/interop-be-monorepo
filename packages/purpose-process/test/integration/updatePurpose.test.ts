@@ -62,6 +62,7 @@ import {
   addOneTenant,
   addOneEService,
   addOneAgreement,
+  sortUpdatePurposeReturn,
 } from "../integrationUtils.js";
 import {
   buildRiskAnalysisSeed,
@@ -172,18 +173,20 @@ describe("updatePurpose and updateReversePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedPurpose: Purpose = createUpdatedPurpose(
-      purposeForDeliver,
-      purposeUpdateContent,
-      tenantType,
-      writtenPayload.purpose!.riskAnalysisForm!
+    const expectedPurpose: Purpose = sortPurpose(
+      createUpdatedPurpose(
+        purposeForDeliver,
+        purposeUpdateContent,
+        tenantType,
+        writtenPayload.purpose!.riskAnalysisForm!
+      )
     );
 
     const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(updatePurposeReturn).toEqual({
+    expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
     });
@@ -218,18 +221,20 @@ describe("updatePurpose and updateReversePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedPurpose: Purpose = createUpdatedPurpose(
-      purposeForDeliver,
-      updateContentWithoutTitle,
-      tenantType,
-      writtenPayload.purpose!.riskAnalysisForm!
+    const expectedPurpose: Purpose = sortPurpose(
+      createUpdatedPurpose(
+        purposeForDeliver,
+        updateContentWithoutTitle,
+        tenantType,
+        writtenPayload.purpose!.riskAnalysisForm!
+      )
     );
 
     const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(updatePurposeReturn).toEqual({
+    expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
     });
@@ -258,16 +263,18 @@ describe("updatePurpose and updateReversePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedPurpose: Purpose = createUpdatedReversePurpose(
-      purposeForReceive,
-      reversePurposeUpdateContent
+    const expectedPurpose: Purpose = sortPurpose(
+      createUpdatedReversePurpose(
+        purposeForReceive,
+        reversePurposeUpdateContent
+      )
     );
 
     const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(updatePurposeReturn).toEqual({
+    expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
     });
@@ -320,18 +327,20 @@ describe("updatePurpose and updateReversePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedPurpose: Purpose = createUpdatedPurpose(
-      delegatePurpose,
-      updateContentWithoutTitle,
-      tenantType,
-      writtenPayload.purpose!.riskAnalysisForm!
+    const expectedPurpose: Purpose = sortPurpose(
+      createUpdatedPurpose(
+        delegatePurpose,
+        updateContentWithoutTitle,
+        tenantType,
+        writtenPayload.purpose!.riskAnalysisForm!
+      )
     );
 
     const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(updatePurposeReturn).toEqual({
+    expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
     });
@@ -378,16 +387,15 @@ describe("updatePurpose and updateReversePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedPurpose: Purpose = createUpdatedReversePurpose(
-      delegatePurpose,
-      reversePurposeUpdateContent
+    const expectedPurpose: Purpose = sortPurpose(
+      createUpdatedReversePurpose(delegatePurpose, reversePurposeUpdateContent)
     );
 
     const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(updatePurposeReturn).toEqual({
+    expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
     });
@@ -484,18 +492,20 @@ describe("updatePurpose and updateReversePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedPurpose: Purpose = createUpdatedPurpose(
-      delegatePurpose,
-      updateContentWithoutTitle,
-      tenantType,
-      writtenPayload.purpose!.riskAnalysisForm!
+    const expectedPurpose: Purpose = sortPurpose(
+      createUpdatedPurpose(
+        delegatePurpose,
+        updateContentWithoutTitle,
+        tenantType,
+        writtenPayload.purpose!.riskAnalysisForm!
+      )
     );
 
     const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(updatePurposeReturn).toEqual({
+    expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
     });
@@ -585,16 +595,15 @@ describe("updatePurpose and updateReversePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedPurpose: Purpose = createUpdatedReversePurpose(
-      delegatePurpose,
-      reversePurposeUpdateContent
+    const expectedPurpose: Purpose = sortPurpose(
+      createUpdatedReversePurpose(delegatePurpose, reversePurposeUpdateContent)
     );
 
     const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
     expect(sortedWrittenPayloadPurpose).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(updatePurposeReturn).toEqual({
+    expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
     });
