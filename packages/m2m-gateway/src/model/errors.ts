@@ -7,7 +7,6 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
-  AttributeId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
