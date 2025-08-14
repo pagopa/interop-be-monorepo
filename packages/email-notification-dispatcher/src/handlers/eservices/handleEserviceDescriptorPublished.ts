@@ -11,6 +11,7 @@ import {
   generateId,
   CorrelationId,
   missingKafkaMessageDataError,
+  NotificationType,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -20,12 +21,13 @@ import {
 } from "../../services/utils.js";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
+const notificationType: NotificationType = "eserviceStatusChangedToConsumer";
+
 export type EServiceDescriptorPublishedData = {
   eserviceV2Msg?: EServiceV2;
   readModelService: ReadModelServiceSQL;
   logger: Logger;
   templateService: HtmlTemplateService;
-  interopFeBaseUrl: string;
   correlationId: CorrelationId;
 };
 
@@ -37,7 +39,6 @@ export async function handleEserviceDescriptorPublished(
     readModelService,
     logger,
     templateService,
-    interopFeBaseUrl,
     correlationId,
   } = data;
 
@@ -92,7 +93,8 @@ export async function handleEserviceDescriptorPublished(
           subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
           body: templateService.compileHtml(htmlTemplate, {
             title: "Nuova versione di un e-service",
-            interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${descriptor.id}`,
+            notificationType,
+            entityId: descriptor.id,
             eserviceName: eservice.name,
           }),
         },
