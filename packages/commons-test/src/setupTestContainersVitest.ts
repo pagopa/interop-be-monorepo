@@ -287,6 +287,7 @@ export async function setupTestContainersVitest(
       await readModelRepository?.eservices.deleteMany({});
       await readModelRepository?.tenants.deleteMany({});
       await readModelRepository?.purposes.deleteMany({});
+      await readModelRepository?.purposeTemplates.deleteMany({});
       await readModelRepository?.attributes.deleteMany({});
       await readModelRepository?.clients.deleteMany({});
       await readModelRepository?.keys.deleteMany({});
@@ -304,6 +305,9 @@ export async function setupTestContainersVitest(
       await postgresDB?.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
       await postgresDB?.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
       await postgresDB?.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
+      await postgresDB?.none(
+        "TRUNCATE TABLE purpose_template.events RESTART IDENTITY"
+      );
       await postgresDB?.none(
         'TRUNCATE TABLE "authorization".events RESTART IDENTITY'
       );
