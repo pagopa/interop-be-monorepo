@@ -101,25 +101,21 @@ describe("assignTenantDeclaredAttribute", () => {
     mockGetTenant.mockClear();
   });
 
-  const testToM2MApiTenantDeclaredAttribute = (
-    att: tenantApi.DeclaredTenantAttribute
-  ): m2mGatewayApi.TenantDeclaredAttribute => ({
-    id: att.id,
-    assignedAt: att.assignmentTimestamp,
-    revokedAt: att.revocationTimestamp,
-    delegationId: att.delegationId,
-  });
-
   it("Should succeed and perform API clients calls when requester is target tenant", async () => {
+    const m2mTenantAttributeResponse: m2mGatewayApi.TenantDeclaredAttribute = {
+      id: mockDeclaredAttribute2.id,
+      assignedAt: mockDeclaredAttribute2.assignmentTimestamp,
+      revokedAt: mockDeclaredAttribute2.revocationTimestamp,
+      delegationId: mockDeclaredAttribute2.delegationId,
+    };
+
     const result = await tenantService.assignTenantDeclaredAttribute(
       unsafeBrandId(mockTenantId),
       mockTenantDeclaredAttributeSeed,
       getMockM2MAdminAppContext({ organizationId: mockTenantId })
     );
 
-    expect(result).toEqual(
-      testToM2MApiTenantDeclaredAttribute(mockDeclaredAttribute2)
-    );
+    expect(result).toEqual(m2mTenantAttributeResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.tenantProcessClient.tenantAttribute
@@ -144,6 +140,13 @@ describe("assignTenantDeclaredAttribute", () => {
       getMockWithMetadata(mockProducerDelegation)
     );
 
+    const m2mTenantAttributeResponse: m2mGatewayApi.TenantDeclaredAttribute = {
+      id: mockDeclaredAttribute2.id,
+      assignedAt: mockDeclaredAttribute2.assignmentTimestamp,
+      revokedAt: mockDeclaredAttribute2.revocationTimestamp,
+      delegationId: mockDeclaredAttribute2.delegationId,
+    };
+
     const result = await tenantService.assignTenantDeclaredAttribute(
       unsafeBrandId(mockTenantId),
       {
@@ -157,9 +160,7 @@ describe("assignTenantDeclaredAttribute", () => {
       })
     );
 
-    expect(result).toEqual(
-      testToM2MApiTenantDeclaredAttribute(mockDeclaredAttribute2)
-    );
+    expect(result).toEqual(m2mTenantAttributeResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.tenantProcessClient.tenantAttribute
