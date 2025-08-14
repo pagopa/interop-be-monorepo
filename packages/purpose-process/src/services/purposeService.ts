@@ -472,7 +472,7 @@ export function purposeServiceBuilder(
         isRiskAnalysisValid: boolean;
       }>
     > {
-      logger.info(`Updating Purpose ${purposeId}`);
+      logger.info(`Partially updating Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
         {
