@@ -2,24 +2,21 @@ import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
+  eventRepository,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
-  EService,
-  EServiceId,
   generateId,
   PurposeTemplate,
   PurposeTemplateId,
   purposeTemplateState,
-  TenantKind,
-  TenantId,
   WithMetadata,
-  Tenant,
+  purposeTemplateEventToBinaryDataV2,
 } from "pagopa-interop-models";
-import { tenantKindNotFound, tenantNotFound } from "../model/domain/errors.js";
+import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
@@ -27,37 +24,15 @@ import {
   validateAndTransformRiskAnalysisTemplate,
 } from "./validators.js";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function retrieveTenantKind(
-  tenantId: TenantId,
-  readModelService: ReadModelServiceSQL
-): Promise<TenantKind> {
-  const tenant = await retrieveTenant(tenantId, readModelService);
-  if (!tenant.kind) {
-    throw tenantKindNotFound(tenant.id);
-  }
-  return tenant.kind;
-}
-
-const retrieveTenant = async (
-  tenantId: TenantId,
-  readModelService: ReadModelServiceSQL
-): Promise<Tenant> => {
-  const tenant = await readModelService.getTenantById(tenantId);
-  if (tenant === undefined) {
-    throw tenantNotFound(tenantId);
-  }
-  return tenant;
-};
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
-  _dbInstance: DB,
+  dbInstance: DB,
   readModelService: ReadModelServiceSQL
 ) {
-  // TODO : use it to write purpose template events in the event store
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const repository = eventRepository(dbInstance, purposeEventToBinaryDataV2);
+  const repository = eventRepository(
+    dbInstance,
+    purposeTemplateEventToBinaryDataV2
+  );
 
   return {
     async createPurposeTemplate(
