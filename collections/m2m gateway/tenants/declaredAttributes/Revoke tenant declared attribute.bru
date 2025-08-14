@@ -1,36 +1,20 @@
 meta {
   name: Revoke tenant declared attribute
   type: http
-  seq: 2
+  seq: 3
 }
 
 delete {
-  url: {{baseUrl}}/tenants/{{tenantId}}/declaredAttributes/{{attributeId}}?delegationId={{delegationId}}
+  url: {{host-m2m-gw}}/tenants/:tenantId/declaredAttributes/:attributeId
   body: none
-  auth: bearer
+  auth: none
 }
 
-auth:bearer {
-  token: {{m2mToken}}
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
 }
 
-params:query {
-  delegationId: {{delegationId}}
-}
-
-vars:pre-request {
-  tenantId: {{generateUUID}}
-  attributeId: {{generateUUID}}
-  delegationId: {{generateUUID}}
-}
-
-tests {
-  test("should return 200", function() {
-    expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("should return declared attribute", function() {
-    expect(res.getBody()).to.have.property('id');
-    expect(res.getBody()).to.have.property('assignedAt');
-  });
+params:path {
+  tenantId: {{tenantId}}
+  attributeId: {{attributeId}}
 }

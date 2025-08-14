@@ -1,36 +1,25 @@
 meta {
   name: Revoke tenant verified attribute
   type: http
-  seq: 2
+  seq: 5
 }
 
 delete {
-  url: {{baseUrl}}/tenants/{{tenantId}}/verifiedAttributes/{{attributeId}}?agreementId={{agreementId}}
+  url: {{baseUrl}}/tenants/:tenantId/verifiedAttributes/:attributeId?agreementId
   body: none
-  auth: bearer
+  auth: none
 }
 
-auth:bearer {
-  token: {{m2mToken}}
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+params:path {
+  tenantId: {{tenantId}}
+  attributeId: {{attributeId}}
 }
 
 params:query {
   agreementId: {{agreementId}}
 }
 
-vars:pre-request {
-  tenantId: {{generateUUID}}
-  attributeId: {{generateUUID}}
-  agreementId: {{generateUUID}}
-}
-
-tests {
-  test("should return 200", function() {
-    expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("should return verified attribute", function() {
-    expect(res.getBody()).to.have.property('id');
-    expect(res.getBody()).to.have.property('assignedAt');
-  });
-}

@@ -1,7 +1,7 @@
 meta {
-  name: Assign certified attribute
+  name: Assign tenant certified attribute
   type: http
-  seq: 7
+  seq: 1
 }
 
 post {
@@ -20,6 +20,6 @@ headers {
 
 body:json {
   {
-    "id" : "5bd41941-cf5f-46e2-a59e-0ed8a5d5cfc8"
+    "id" : "{{attributeId}}"
   }
 }

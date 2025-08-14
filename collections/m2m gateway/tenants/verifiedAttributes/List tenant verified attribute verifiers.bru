@@ -1,11 +1,11 @@
 meta {
-  name: Get Tenant Verified Attribute Revokers
+  name: List Tenant Verified Attribute Verifiers
   type: http
-  seq: 27
+  seq: 3
 }
 
 get {
-  url: {{host-tenant}}/tenants/:tenantId/attributes/verified/:attributeId/revokers?offset={{offset}}&limit={{limit}}
+  url: {{host-m2m-gw}}/tenants/:tenantId/verifiedAttributes/:attributeId/verifiers?offset={{offset}}&limit={{limit}}
   body: none
   auth: none
 }
@@ -22,5 +22,4 @@ params:path {
 
 headers {
   Authorization: {{JWT-M2M}}
-  X-Correlation-Id: {{correlation-id}}
 }
