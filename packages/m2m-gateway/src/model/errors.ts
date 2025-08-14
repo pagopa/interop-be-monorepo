@@ -7,6 +7,8 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
+  DescriptorId,
+  EServiceId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
@@ -41,9 +43,10 @@ export const errorCodes = {
   notAnActiveConsumerDelegation: "0024",
   requesterIsNotTheDelegateProducer: "0025",
   cannotEditDeclaredAttributesForTenant: "0026",
-  tenantDeclaredAttributeNotFound: "0025",
-  tenantVerifiedAttributeNotFound: "0026",
-  missingAgreementIdForTenantVerifiedAttribute: "0027",
+  tenantDeclaredAttributeNotFound: "0027",
+  tenantVerifiedAttributeNotFound: "0029",
+  missingAgreementIdForTenantVerifiedAttribute: "0029",
+  cannotDeleteLastEServiceDescriptor: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -319,5 +322,16 @@ export function missingAgreementIdForTenantVerifiedAttribute(): ApiError<ErrorCo
     detail: `Missing agreementId query parameter to assign a tenant verified attribute`,
     code: "missingAgreementIdForTenantVerifiedAttribute",
     title: "Missing agreementId for tenant verified attribute",
+  });
+}
+
+export function cannotDeleteLastEServiceDescriptor(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot delete descriptor ${descriptorId} for e-service ${eserviceId} because it is the last remaining descriptor`,
+    code: "cannotDeleteLastEServiceDescriptor",
+    title: "Cannot delete last e-service descriptor",
   });
 }
