@@ -8,13 +8,18 @@ import {
   validateAuthorization,
   authRole,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import {
+  AgreementId,
+  emptyErrorMapper,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { TenantService } from "../services/tenantService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getTenantsErrorMapper,
-  tenantDeclaredAttributeErrorMapper,
+  assignTenantDeclaredAttributeErrorMapper,
+  revokeTenantVerifiedAttributeErrorMapper,
 } from "../utils/errorMappers.js";
 
 const tenantRouter = (
@@ -93,7 +98,8 @@ const tenantRouter = (
     .post("/tenants/:tenantId/declaredAttributes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
         const declaredAttribute =
           await tenantService.assignTenantDeclaredAttribute(
             unsafeBrandId(req.params.tenantId),
@@ -107,9 +113,9 @@ const tenantRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          tenantDeclaredAttributeErrorMapper,
+          assignTenantDeclaredAttributeErrorMapper,
           ctx,
-          `Error adding declared attribute to tenant ${req.params.tenantId}`
+          `Error assigning declared attribute to tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -119,12 +125,12 @@ const tenantRouter = (
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
-          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
           const declaredAttribute =
             await tenantService.revokeTenantDeclaredAttribute(
               unsafeBrandId(req.params.tenantId),
               unsafeBrandId(req.params.attributeId),
-              req.query,
               ctx
             );
 
@@ -136,7 +142,7 @@ const tenantRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            tenantDeclaredAttributeErrorMapper,
+            emptyErrorMapper,
             ctx,
             `Error revoking declared attribute ${req.params.attributeId} from tenant ${req.params.tenantId}`
           );
@@ -174,6 +180,7 @@ const tenantRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
         const certifiedAttribute =
           await tenantService.assignTenantCertifiedAttribute(
             unsafeBrandId(req.params.tenantId),
@@ -202,6 +209,7 @@ const tenantRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
           const certifiedAttribute =
             await tenantService.revokeTenantCertifiedAttribute(
               unsafeBrandId(req.params.tenantId),
@@ -254,7 +262,8 @@ const tenantRouter = (
     .post("/tenants/:tenantId/verifiedAttributes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
         const verifiedAttribute =
           await tenantService.assignTenantVerifiedAttribute(
             unsafeBrandId(req.params.tenantId),
@@ -270,7 +279,7 @@ const tenantRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error adding verified attribute to tenant ${req.params.tenantId}`
+          `Error assigning verified attribute to tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -280,12 +289,15 @@ const tenantRouter = (
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
-          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
           const verifiedAttribute =
             await tenantService.revokeTenantVerifiedAttribute(
               unsafeBrandId(req.params.tenantId),
               unsafeBrandId(req.params.attributeId),
-              req.body,
+              req.query.agreementId
+                ? unsafeBrandId<AgreementId>(req.query.agreementId)
+                : undefined,
               ctx
             );
 
@@ -297,7 +309,7 @@ const tenantRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            revokeTenantVerifiedAttributeErrorMapper,
             ctx,
             `Error revoking verified attribute ${req.params.attributeId} from tenant ${req.params.tenantId}`
           );

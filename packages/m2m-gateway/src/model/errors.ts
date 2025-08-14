@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
+  AttributeId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
@@ -43,6 +44,7 @@ export const errorCodes = {
   cannotEditDeclaredAttributesForTenant: "0026",
   tenantDeclaredAttributeNotFound: "0025",
   tenantVerifiedAttributeNotFound: "0026",
+  missingAgreementIdForTenantVerifiedAttribute: "0027",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -310,5 +312,13 @@ export function cannotEditDeclaredAttributesForTenant(
     }`,
     code: "cannotEditDeclaredAttributesForTenant",
     title: "Tenant cannot edit declared attributes",
+  });
+}
+
+export function missingAgreementIdForTenantVerifiedAttribute(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing agreementId query parameter to assign a tenant verified attribute`,
+    code: "missingAgreementIdForTenantVerifiedAttribute",
+    title: "Missing agreementId for tenant verified attribute",
   });
 }

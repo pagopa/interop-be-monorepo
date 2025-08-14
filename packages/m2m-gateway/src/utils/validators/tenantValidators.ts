@@ -1,7 +1,10 @@
 import { delegationApi } from "pagopa-interop-api-clients";
-import { DelegationId, TenantId } from "pagopa-interop-models";
+import { AgreementId, DelegationId, TenantId } from "pagopa-interop-models";
 import { M2MAdminAuthData } from "pagopa-interop-commons";
-import { cannotEditDeclaredAttributesForTenant } from "../../model/errors.js";
+import {
+  cannotEditDeclaredAttributesForTenant,
+  missingAgreementIdForTenantVerifiedAttribute,
+} from "../../model/errors.js";
 import { DelegationProcessClient } from "../../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../context.js";
 import { assertRequesterIsDelegateProducer } from "./delegationValidators.js";
@@ -31,5 +34,13 @@ export async function assertTenantCanEditDeclaredAttributes(
     if (delegation.delegatorId !== targetTenantId) {
       throw cannotEditDeclaredAttributesForTenant(targetTenantId, delegation);
     }
+  }
+}
+
+export function assertAgreementIdIsDefinedForTenantVerifiedAttribute(
+  agreementId: AgreementId | undefined
+): asserts agreementId is AgreementId {
+  if (agreementId === undefined) {
+    throw missingAgreementIdForTenantVerifiedAttribute();
   }
 }

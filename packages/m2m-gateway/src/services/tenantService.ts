@@ -3,12 +3,9 @@ import {
   WithLogger,
   isDefined,
 } from "pagopa-interop-commons";
+import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import {
-  m2mGatewayApi,
-  tenantApi,
-  delegationApi,
-} from "pagopa-interop-api-clients";
-import {
+  AgreementId,
   AttributeId,
   DelegationId,
   TenantId,
@@ -35,7 +32,10 @@ import {
   tenantDeclaredAttributeNotFound,
   tenantVerifiedAttributeNotFound,
 } from "../model/errors.js";
-import { assertTenantCanEditDeclaredAttributes } from "../utils/validators/tenantValidators.js";
+import {
+  assertAgreementIdIsDefinedForTenantVerifiedAttribute,
+  assertTenantCanEditDeclaredAttributes,
+} from "../utils/validators/tenantValidators.js";
 
 function retrieveDeclaredAttributes(
   tenant: tenantApi.Tenant
@@ -241,32 +241,10 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     async revokeTenantDeclaredAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,
-      query: { delegationId?: string },
-      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
-      const logMessage = query.delegationId
-        ? `Revoking declared attribute ${attributeId} from tenant ${tenantId} with delegation ${query.delegationId}`
-        : `Revoking declared attribute ${attributeId} from tenant ${tenantId}`;
-
-      logger.info(logMessage);
-
-      // 1. Get delegation if specified and validate authorization
-      const delegation: delegationApi.Delegation | undefined =
-        query.delegationId && authData.organizationId !== tenantId
-          ? (
-              await clients.delegationProcessClient.delegation.getDelegation({
-                params: { delegationId: query.delegationId },
-                headers,
-              })
-            ).data
-          : undefined;
-
-      // 2. Validate tenant authorization and delegation for declared attributes
-      assertTenantDeclaredAttributeAuthorization(
-        authData.organizationId,
-        tenantId,
-        query.delegationId,
-        delegation
+      logger.info(
+        `Revoking declared attribute ${attributeId} from tenant ${tenantId}`
       );
 
       const response =
@@ -274,22 +252,16 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           undefined,
           {
             params: { attributeId },
-            ...(query.delegationId && {
-              queries: { delegationId: query.delegationId },
-            }),
             headers,
           }
         );
 
       const { data: polledTenant } = await pollTenant(response, headers);
 
-      const declaredAttribute = retrieveDeclaredAttributes(polledTenant).find(
-        (attr) => attr.id === attributeId
+      const declaredAttribute = retrieveDeclaredAttribute(
+        polledTenant,
+        attributeId
       );
-
-      if (!declaredAttribute) {
-        throw tenantDeclaredAttributeNotFound(tenantId, attributeId);
-      }
 
       return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
     },
@@ -503,21 +475,19 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     async revokeTenantVerifiedAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,
-      query: { agreementId?: string },
+      agreementId: AgreementId | undefined,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantVerifiedAttribute> {
       logger.info(
         `Revoking verified attribute ${attributeId} from tenant ${tenantId}`
       );
 
-      if (!query.agreementId) {
-        throw missingRequiredAgreementId();
-      }
+      assertAgreementIdIsDefinedForTenantVerifiedAttribute(agreementId);
 
       const response =
         await clients.tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(
           {
-            agreementId: query.agreementId,
+            agreementId,
           },
           {
             params: { tenantId, attributeId },
@@ -527,13 +497,10 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const { data: polledTenant } = await pollTenant(response, headers);
 
-      const verifiedAttribute = retrieveVerifiedAttributes(polledTenant).find(
-        (attr) => attr.id === attributeId
+      const verifiedAttribute = retrieveVerifiedAttribute(
+        polledTenant,
+        attributeId
       );
-
-      if (!verifiedAttribute) {
-        throw tenantVerifiedAttributeNotFound(tenantId, attributeId);
-      }
 
       return toM2MGatewayApiTenantVerifiedAttribute(verifiedAttribute);
     },
