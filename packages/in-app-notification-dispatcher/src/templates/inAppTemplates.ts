@@ -16,18 +16,31 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `La politica di approvazione dell'e-service <strong>${eserviceName}</strong> è stata aggiornata.`,
-  eserviceDescriptorInterfaceAddedToConsumer: (eserviceName: string): string =>
-    `L'interfaccia dell'e-service <strong>${eserviceName}</strong> è stata aggiornata.`,
-  eserviceDescriptorDocumentAddedToConsumer: (eserviceName: string): string =>
-    `Il documento dell'e-service <strong>${eserviceName}</strong> è stato aggiunto.`,
-  eserviceDescriptorInterfaceUpdatedToConsumer: (
-    eserviceName: string
+  eserviceDescriptorInterfaceAddedToConsumer: (
+    eserviceName: string,
+    interfaceName = ""
   ): string =>
-    `L'interfaccia dell'e-service <strong>${eserviceName}</strong> è stata aggiornata.`,
-  eserviceDescriptorDocumentUpdatedToConsumer: (eserviceName: string): string =>
-    `Il documento dell'e-service <strong>${eserviceName}</strong> è stato aggiornato.`,
-  eserviceDescriptorDocumentDeletedToConsumer: (eserviceName: string): string =>
-    `Il documento dell'e-service <strong>${eserviceName}</strong> è stato rimosso.`,
+    `L'interfaccia <strong>${interfaceName}</strong> dell'e-service <strong>${eserviceName}</strong> è stata aggiunta.`,
+  eserviceDescriptorDocumentAddedToConsumer: (
+    eserviceName: string,
+    documentName = ""
+  ): string =>
+    `Il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong> è stato aggiunto.`,
+  eserviceDescriptorInterfaceUpdatedToConsumer: (
+    eserviceName: string,
+    interfaceName = ""
+  ): string =>
+    `L'interfaccia <strong>${interfaceName}</strong> dell'e-service <strong>${eserviceName}</strong> è stata aggiornata.`,
+  eserviceDescriptorDocumentUpdatedToConsumer: (
+    eserviceName: string,
+    documentName = ""
+  ): string =>
+    `Il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong> è stato aggiornato.`,
+  eserviceDescriptorDocumentDeletedToConsumer: (
+    eserviceName: string,
+    documentName = ""
+  ): string =>
+    `Il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong> è stato rimosso.`,
   eserviceNameUpdatedByTemplateUpdateToConsumer: (
     eserviceName: string
   ): string =>
