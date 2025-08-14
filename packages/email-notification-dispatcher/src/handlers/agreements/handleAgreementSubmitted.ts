@@ -8,6 +8,7 @@ import {
   missingKafkaMessageDataError,
   AgreementV2,
   fromAgreementV2,
+  NotificationType,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -19,13 +20,14 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { getUserEmailsToNotify } from "../handlerCommons.js";
 
+const notificationType: NotificationType = "agreementManagementToProducer";
+
 export type AgreementSubmittedData = {
   agreementV2Msg?: AgreementV2;
   readModelService: ReadModelServiceSQL;
   logger: Logger;
   templateService: HtmlTemplateService;
   userService: UserServiceSQL;
-  interopFeBaseUrl: string;
   correlationId: CorrelationId;
 };
 
@@ -38,7 +40,6 @@ export async function handleAgreementSubmitted(
     logger,
     templateService,
     userService,
-    interopFeBaseUrl,
     correlationId,
   } = data;
 
@@ -59,7 +60,7 @@ export async function handleAgreementSubmitted(
   try {
     userEmails = await getUserEmailsToNotify(
       producer.id,
-      "agreementManagementToProducer",
+      notificationType,
       readModelService,
       userService
     );
@@ -76,7 +77,8 @@ export async function handleAgreementSubmitted(
         subject: `Richiesta di fruizione ${agreement.id} attiva`,
         body: templateService.compileHtml(htmlTemplate, {
           title: "Nuova richiesta di fruizione",
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/richieste/${agreement.id}`,
+          notificationType,
+          entityId: agreement.id,
           producerName: producer.name,
           consumerName: consumer.name,
           eserviceName: eservice.name,

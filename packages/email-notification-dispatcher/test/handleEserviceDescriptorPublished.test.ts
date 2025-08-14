@@ -26,7 +26,6 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  interopFeBaseUrl,
   readModelService,
   templateService,
 } from "./utils.js";
@@ -48,7 +47,6 @@ describe("handleNewEServiceDescriptorPublished", async () => {
       handleEserviceDescriptorPublished({
         eserviceV2Msg: undefined,
         logger,
-        interopFeBaseUrl,
         templateService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
@@ -71,7 +69,6 @@ describe("handleNewEServiceDescriptorPublished", async () => {
       handleEserviceDescriptorPublished({
         eserviceV2Msg: toEServiceV2(eservice),
         logger,
-        interopFeBaseUrl,
         templateService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
@@ -108,7 +105,6 @@ describe("handleNewEServiceDescriptorPublished", async () => {
       handleEserviceDescriptorPublished({
         eserviceV2Msg: toEServiceV2(eservice),
         logger,
-        interopFeBaseUrl,
         templateService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
@@ -131,7 +127,6 @@ describe("handleNewEServiceDescriptorPublished", async () => {
     const messages = await handleEserviceDescriptorPublished({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
-      interopFeBaseUrl,
       templateService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
@@ -143,7 +138,6 @@ describe("handleNewEServiceDescriptorPublished", async () => {
     const messages = await handleEserviceDescriptorPublished({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
-      interopFeBaseUrl,
       templateService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
@@ -169,7 +163,6 @@ describe("handleNewEServiceDescriptorPublished", async () => {
     const messages = await handleEserviceDescriptorPublished({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
-      interopFeBaseUrl,
       templateService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
@@ -197,7 +190,6 @@ describe("handleNewEServiceDescriptorPublished", async () => {
     const messages = await handleEserviceDescriptorPublished({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
-      interopFeBaseUrl,
       templateService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
@@ -224,7 +216,6 @@ describe("handleNewEServiceDescriptorPublished", async () => {
     const messages = await handleEserviceDescriptorPublished({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
-      interopFeBaseUrl,
       templateService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
@@ -233,9 +224,6 @@ describe("handleNewEServiceDescriptorPublished", async () => {
     expect(messages[0].email.body).toContain("<!-- Title & Main Message -->");
     expect(messages[0].email.body).toContain("<!-- Footer -->");
     expect(messages[0].email.body).toContain("Nuova versione di un e-service");
-    expect(messages[0].email.body).toContain(
-      `https://${interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${descriptor.id}`
-    );
     expect(messages[0].email.body).toContain(eservice.name);
   });
 });
