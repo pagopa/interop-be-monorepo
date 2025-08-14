@@ -1,39 +1,22 @@
 import { delegationApi } from "pagopa-interop-api-clients";
 import { TenantId } from "pagopa-interop-models";
-import {
-  tenantAuthorizationMismatch,
-  unexpectedDelegationKind,
-} from "../../model/errors.js";
+import { M2MAdminAuthData, M2MAuthData } from "pagopa-interop-commons";
+import { cannotEditDeclaredAttributesForTenant } from "../../model/errors.js";
+import { assertRequesterIsDelegateProducer } from "./delegationValidators.js";
 
-export function assertTenantDeclaredAttributeAuthorization(
-  callerTenantId: TenantId,
-  requestedTenantId: TenantId,
-  delegationId?: string,
-  delegation?: delegationApi.Delegation
+export function assertTenantCanEditDeclaredAttributes(
+  authData: M2MAdminAuthData | M2MAuthData, // TODO accept only M2MAdminAuthData
+  delegation: delegationApi.Delegation | undefined,
+  targetTenantId: TenantId
 ): void {
-  // Caller can always operate on their own declared attributes
-  if (callerTenantId === requestedTenantId) {
-    return;
-  }
-
-  // If no delegationId is provided for different tenants, throw authorization error
-  if (!delegationId) {
-    throw tenantAuthorizationMismatch(
-      callerTenantId,
-      requestedTenantId,
-      delegationId
-    );
-  }
-
-  // If delegation is provided, validate it
-  if (
-    delegation &&
-    (delegation.kind !==
-      delegationApi.DelegationKind.Values.DELEGATED_PRODUCER ||
-      delegation.state !== delegationApi.DelegationState.Values.ACTIVE ||
-      delegation.delegateId !== callerTenantId ||
-      delegation.delegatorId !== requestedTenantId)
-  ) {
-    throw unexpectedDelegationKind(delegation);
+  if (!delegation) {
+    if (authData.organizationId !== targetTenantId) {
+      throw cannotEditDeclaredAttributesForTenant(targetTenantId, undefined);
+    }
+  } else {
+    assertRequesterIsDelegateProducer(authData, delegation);
+    if (delegation.delegatorId !== targetTenantId) {
+      throw cannotEditDeclaredAttributesForTenant(targetTenantId, delegation);
+    }
   }
 }

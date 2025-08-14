@@ -5,8 +5,10 @@ import {
   purposeApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { M2MAdminAuthData, M2MAuthData } from "pagopa-interop-commons";
 import {
   ApiError,
+  DelegationId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
@@ -39,10 +41,12 @@ export const errorCodes = {
   purposeAgreementNotFound: "0022",
   agreementContractNotFound: "0023",
   notAnActiveConsumerDelegation: "0024",
-  tenantDeclaredAttributeNotFound: "0025",
-  tenantVerifiedAttributeNotFound: "0026",
-  missingRequiredAgreementId: "0027",
-  tenantAuthorizationMismatch: "0028",
+  requesterIsNotTheDelegateProducer: "0025",
+  cannotEditDeclaredAttributesForTenant: "0026",
+  // tenantDeclaredAttributeNotFound: "0025",
+  // tenantVerifiedAttributeNotFound: "0026",
+  // missingRequiredAgreementId: "0027",
+  // tenantAuthorizationMismatch: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -266,48 +270,57 @@ export function notAnActiveConsumerDelegation(
   });
 }
 
-export function tenantDeclaredAttributeNotFound(
-  tenantId: TenantId,
-  attributeId: string
+// export function tenantDeclaredAttributeNotFound(
+//   tenantId: TenantId,
+//   attributeId: string
+// ): ApiError<ErrorCodes> {
+//   return new ApiError({
+//     detail: `Declared attribute ${attributeId} not found for tenant ${tenantId}`,
+//     code: "tenantDeclaredAttributeNotFound",
+//     title: "Tenant declared attribute not found",
+//   });
+// }
+
+// export function tenantVerifiedAttributeNotFound(
+//   tenantId: TenantId,
+//   attributeId: string
+// ): ApiError<ErrorCodes> {
+//   return new ApiError({
+//     detail: `Verified attribute ${attributeId} not found for tenant ${tenantId}`,
+//     code: "tenantVerifiedAttributeNotFound",
+//     title: "Tenant verified attribute not found",
+//   });
+// }
+
+// export function missingRequiredAgreementId(): ApiError<ErrorCodes> {
+//   return new ApiError({
+//     detail: "agreementId is required for revoking verified attribute",
+//     code: "missingRequiredAgreementId",
+//     title: "Missing required agreement ID",
+//   });
+// }
+
+export function requesterIsNotTheDelegateProducer(
+  delegation: delegationApi.Delegation
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Declared attribute ${attributeId} not found for tenant ${tenantId}`,
-    code: "tenantDeclaredAttributeNotFound",
-    title: "Tenant declared attribute not found",
+    detail: `Requester tenant is not the delegate producer for delegation ${delegation.id}`,
+    code: "requesterIsNotTheDelegateProducer",
+    title: "Requester is not the delegate producer",
   });
 }
 
-export function tenantVerifiedAttributeNotFound(
-  tenantId: TenantId,
-  attributeId: string
+export function cannotEditDeclaredAttributesForTenant(
+  targetTenantId: TenantId,
+  delegation: delegationApi.Delegation | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Verified attribute ${attributeId} not found for tenant ${tenantId}`,
-    code: "tenantVerifiedAttributeNotFound",
-    title: "Tenant verified attribute not found",
-  });
-}
-
-export function missingRequiredAgreementId(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: "agreementId is required for revoking verified attribute",
-    code: "missingRequiredAgreementId",
-    title: "Missing required agreement ID",
-  });
-}
-
-export function tenantAuthorizationMismatch(
-  callerTenantId: string,
-  requestedTenantId: string,
-  delegationId?: string
-): ApiError<ErrorCodes> {
-  const detail = delegationId
-    ? `Caller tenant ${callerTenantId} is not authorized to act on tenant ${requestedTenantId} even with delegation ${delegationId}`
-    : `Caller tenant ${callerTenantId} is not authorized to act on tenant ${requestedTenantId}`;
-
-  return new ApiError({
-    detail,
-    code: "tenantAuthorizationMismatch",
-    title: "Tenant authorization mismatch",
+    detail: `Cannot edit declared attributes for tenant ${targetTenantId}${
+      delegation
+        ? ` since it is not the delegator for delegation ${delegation.id}`
+        : ` without a delegation (delegationId is missing)`
+    }`,
+    code: "cannotEditDeclaredAttributesForTenant",
+    title: "Tenant cannot edit declared attributes",
   });
 }
