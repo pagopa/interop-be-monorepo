@@ -10555,6 +10555,33 @@ components:
           minLength: 1
           maxLength: 250
         answers:
+          description: |
+            Key-value pairs of risk analysis form answers.
+            Key: question ID; value: array of answers.
+          additionalProperties:
+            type: array
+            items:
+              type: string
+              minLength: 1
+              maxLength: 2000
+      required:
+        - version
+        - answers
+    RiskAnalysisForm:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: string
+          minLength: 1
+          maxLength: 250
+        answers:
+          description: |
+            Key-value pairs of risk analysis form answers.
+            Key: question ID; value: array of answers
           additionalProperties:
             type: array
             items:
@@ -10594,59 +10621,6 @@ components:
         createdAt:
           type: string
           format: date-time
-    RiskAnalysisForm:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-        - version
-        - singleAnswers
-        - multiAnswers
-      properties:
-        id:
-          type: string
-          format: uuid
-        version:
-          type: string
-        singleAnswers:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskAnalysisSingleAnswer"
-        multiAnswers:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskAnalysisMultiAnswer"
-    RiskAnalysisSingleAnswer:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-        - key
-      properties:
-        id:
-          type: string
-          format: uuid
-        key:
-          type: string
-        value:
-          type: string
-    RiskAnalysisMultiAnswer:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-        - key
-        - values
-      properties:
-        id:
-          type: string
-          format: uuid
-        key:
-          type: string
-        values:
-          type: array
-          items:
-            type: string
     Tenant:
       description: Tenant model
       type: object

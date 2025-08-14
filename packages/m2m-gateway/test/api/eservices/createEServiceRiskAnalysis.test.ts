@@ -32,6 +32,7 @@ describe("POST /eservice/:eserviceId/riskAnalysis router test", () => {
 
   const mockM2MEserviceResponse: m2mGatewayApi.EServiceRiskAnalysis =
     toM2MGatewayApiEServiceRiskAnalysis(mockRiskAnalysis);
+
   const makeRequest = async (
     token: string,
     eserviceId: string,
