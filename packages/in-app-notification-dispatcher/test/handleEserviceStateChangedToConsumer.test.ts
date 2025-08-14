@@ -14,6 +14,7 @@ import {
   toEServiceV2,
   type EServiceEventV2,
   type EServiceDescriptorPublishedV2,
+  EServiceNameUpdatedV2,
 } from "pagopa-interop-models";
 import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
 import { tenantNotFound } from "../src/models/errors.js";
@@ -25,7 +26,7 @@ import {
   readModelService,
 } from "./utils.js";
 
-describe("handleEserviceStatusChangedToConsumer", async () => {
+describe("handleEserviceStateChangedToConsumer for EServiceDescriptorPublished", async () => {
   const eservice = {
     ...getMockEService(),
     producerId: generateId<TenantId>(),
@@ -103,7 +104,7 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
     },
     { state: agreementState.rejected, isNotified: false },
   ])(
-    "should generate notifications for all tenant users for agreement in $state state (isNotified: $isNotified)",
+    "should generate notifications for EServiceDescriptorPublished for agreement in $state state (isNotified: $isNotified)",
     async ({ state, isNotified }) => {
       const eservice = {
         ...getMockEService(),
@@ -162,6 +163,91 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
       }
     }
   );
+
+  it("generate notifications for EServiceNameUpdated and EServiceNameUpdatedByTemplateUpdate", async () => {
+    const eservice = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptorPublished()],
+    };
+    await addOneEService(eservice);
+
+    const consumerId = generateId<TenantId>();
+    const consumerTenant = getMockTenant(consumerId);
+    await addOneTenant(consumerTenant);
+
+    const agreement = getMockAgreement(
+      eservice.id,
+      consumerId,
+      agreementState.active
+    );
+    await addOneAgreement(agreement);
+
+    const users = [
+      { userId: generateId(), tenantId: consumerId },
+      { userId: generateId(), tenantId: consumerId },
+    ];
+    // eslint-disable-next-line functional/immutable-data
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockResolvedValue(users);
+
+    const msg: EServiceEventV2 = {
+      event_version: 2,
+      type: "EServiceNameUpdated",
+      data: {
+        eservice: toEServiceV2(eservice),
+      } satisfies EServiceNameUpdatedV2,
+    };
+
+    const notifications = await handleEserviceStateChangedToConsumer(
+      msg,
+      logger,
+      readModelService
+    );
+
+    const body = inAppTemplates.eserviceNameUpdatedToConsumer(eservice.name);
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    const expectedNotifications = users.map((user) => ({
+      userId: user.userId,
+      tenantId: consumerId,
+      body,
+      notificationType: "eserviceStateChangedToConsumer",
+      entityId: eservice.descriptors[0].id,
+    }));
+    expect(notifications).toEqual(
+      expect.arrayContaining(expectedNotifications)
+    );
+
+    const msgByTemplateUpdate: EServiceEventV2 = {
+      event_version: 2,
+      type: "EServiceNameUpdatedByTemplateUpdate",
+      data: {
+        eservice: toEServiceV2(eservice),
+      } satisfies EServiceNameUpdatedV2,
+    };
+
+    const notificationsByTemplateUpdate =
+      await handleEserviceStateChangedToConsumer(
+        msgByTemplateUpdate,
+        logger,
+        readModelService
+      );
+
+    const bodyByTemplateUpdate = inAppTemplates.eserviceNameUpdatedToConsumer(
+      eservice.name
+    );
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    const expectedNotificationsByTemplateUpdate = users.map((user) => ({
+      userId: user.userId,
+      tenantId: consumerId,
+      body: bodyByTemplateUpdate,
+      notificationType: "eserviceStateChangedToConsumer",
+      entityId: eservice.descriptors[0].id,
+    }));
+    expect(notificationsByTemplateUpdate).toEqual(
+      expect.arrayContaining(expectedNotificationsByTemplateUpdate)
+    );
+  });
 
   it("should return empty array when no user notification configs exist for the eservice", async () => {
     const consumerId = generateId<TenantId>();
