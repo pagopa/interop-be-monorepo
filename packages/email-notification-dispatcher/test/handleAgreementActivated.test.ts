@@ -31,7 +31,6 @@ import {
   addOneEService,
   addOneTenant,
   getMockUser,
-  interopFeBaseUrl,
   readModelService,
   templateService,
 } from "./utils.js";
@@ -56,7 +55,6 @@ describe("handleAgreementActivated", async () => {
       handleAgreementActivated({
         agreementV2Msg: undefined,
         logger,
-        interopFeBaseUrl,
         templateService,
         userService,
         readModelService,
@@ -97,7 +95,6 @@ describe("handleAgreementActivated", async () => {
       handleAgreementActivated({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
-        interopFeBaseUrl,
         templateService,
         userService,
         readModelService,
@@ -136,7 +133,6 @@ describe("handleAgreementActivated", async () => {
       handleAgreementActivated({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
-        interopFeBaseUrl,
         templateService,
         userService,
         readModelService,
@@ -179,7 +175,6 @@ describe("handleAgreementActivated", async () => {
       handleAgreementActivated({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
-        interopFeBaseUrl,
         templateService,
         userService,
         readModelService,
@@ -218,7 +213,6 @@ describe("handleAgreementActivated", async () => {
       handleAgreementActivated({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
-        interopFeBaseUrl,
         templateService,
         userService,
         readModelService,
@@ -256,7 +250,6 @@ describe("handleAgreementActivated", async () => {
       handleAgreementActivated({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
-        interopFeBaseUrl,
         templateService,
         userService,
         readModelService,
@@ -307,7 +300,6 @@ describe("handleAgreementActivated", async () => {
     const messages = await handleAgreementActivated({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
-      interopFeBaseUrl,
       templateService,
       userService,
       readModelService,
@@ -350,7 +342,6 @@ describe("handleAgreementActivated", async () => {
     const messages = await handleAgreementActivated({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
-      interopFeBaseUrl,
       templateService,
       userService,
       readModelService,
@@ -398,7 +389,6 @@ describe("handleAgreementActivated", async () => {
     const messages = await handleAgreementActivated({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
-      interopFeBaseUrl,
       templateService,
       userService,
       readModelService,
@@ -447,7 +437,6 @@ describe("handleAgreementActivated", async () => {
     const messages = await handleAgreementActivated({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
-      interopFeBaseUrl,
       templateService,
       userService,
       readModelService,
@@ -460,9 +449,6 @@ describe("handleAgreementActivated", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(`Nuova richiesta di fruizione`);
-      expect(message.email.body).toContain(
-        `https://${interopFeBaseUrl}/ui/it/fruizione/richieste/${agreement.id}`
-      );
       expect(message.email.body).toContain(producerTenant.name);
       expect(message.email.body).toContain(consumerTenant.name);
       expect(message.email.body).toContain(eservice.name);

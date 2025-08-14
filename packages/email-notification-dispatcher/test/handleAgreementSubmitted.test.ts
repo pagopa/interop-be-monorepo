@@ -26,7 +26,6 @@ import {
   addOneEService,
   addOneTenant,
   getMockUser,
-  interopFeBaseUrl,
   readModelService,
   templateService,
 } from "./utils.js";
@@ -51,7 +50,6 @@ describe("handleAgreementSubmitted", async () => {
       handleAgreementSubmitted({
         agreementV2Msg: undefined,
         logger,
-        interopFeBaseUrl,
         templateService,
         userService,
         readModelService,
@@ -92,7 +90,6 @@ describe("handleAgreementSubmitted", async () => {
       handleAgreementSubmitted({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
-        interopFeBaseUrl,
         templateService,
         userService,
         readModelService,
@@ -131,7 +128,6 @@ describe("handleAgreementSubmitted", async () => {
       handleAgreementSubmitted({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
-        interopFeBaseUrl,
         templateService,
         userService,
         readModelService,
@@ -170,7 +166,6 @@ describe("handleAgreementSubmitted", async () => {
       handleAgreementSubmitted({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
-        interopFeBaseUrl,
         templateService,
         userService,
         readModelService,
@@ -219,7 +214,6 @@ describe("handleAgreementSubmitted", async () => {
     const messages = await handleAgreementSubmitted({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
-      interopFeBaseUrl,
       templateService,
       userService,
       readModelService,
@@ -269,7 +263,6 @@ describe("handleAgreementSubmitted", async () => {
     const messages = await handleAgreementSubmitted({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
-      interopFeBaseUrl,
       templateService,
       userService,
       readModelService,
