@@ -11,8 +11,6 @@ import {
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
-  RiskAnalysisTemplateMultiAnswerId,
-  RiskAnalysisTemplateSingleAnswerId,
   TenantKind,
   generateId,
 } from "pagopa-interop-models";
