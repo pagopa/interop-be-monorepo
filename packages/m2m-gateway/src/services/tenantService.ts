@@ -1,10 +1,19 @@
-import { WithLogger, isDefined } from "pagopa-interop-commons";
+import {
+  M2MAdminAuthData,
+  WithLogger,
+  isDefined,
+} from "pagopa-interop-commons";
 import {
   m2mGatewayApi,
   tenantApi,
   delegationApi,
 } from "pagopa-interop-api-clients";
-import { AttributeId, TenantId } from "pagopa-interop-models";
+import {
+  AttributeId,
+  DelegationId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
@@ -26,6 +35,7 @@ import {
   tenantDeclaredAttributeNotFound,
   tenantVerifiedAttributeNotFound,
 } from "../model/errors.js";
+import { assertTenantCanEditDeclaredAttributes } from "../utils/validators/tenantValidators.js";
 
 function retrieveDeclaredAttributes(
   tenant: tenantApi.Tenant
@@ -190,35 +200,29 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async assignTenantDeclaredAttribute(
       tenantId: TenantId,
-      body: m2mGatewayApi.AddDeclaredAttributeRequest,
+      {
+        id: attributeId,
+        delegationId,
+      }: m2mGatewayApi.TenantDeclaredAttributeSeed,
       { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
-      logger.info(`Adding declared attribute ${body.id} to tenant ${tenantId}`);
+      logger.info(
+        `Assigning declared attribute ${attributeId} to tenant ${tenantId}`
+      );
 
-      // 1. Get delegation if specified and validate authorization
-      const delegation: delegationApi.Delegation | undefined =
-        body.delegationId && authData.organizationId !== tenantId
-          ? (
-              await clients.delegationProcessClient.delegation.getDelegation({
-                params: { delegationId: body.delegationId },
-                headers,
-              })
-            ).data
-          : undefined;
-
-      // 2. Validate tenant authorization and delegation for declared attributes
-      assertTenantDeclaredAttributeAuthorization(
-        authData.organizationId,
+      await assertTenantCanEditDeclaredAttributes(
+        authData as M2MAdminAuthData,
         tenantId,
-        body.delegationId,
-        delegation
+        delegationId ? unsafeBrandId<DelegationId>(delegationId) : undefined,
+        clients.delegationProcessClient,
+        headers
       );
 
       const response =
         await clients.tenantProcessClient.tenantAttribute.addDeclaredAttribute(
           {
-            id: body.id,
-            delegationId: body.delegationId,
+            id: attributeId,
+            delegationId,
           },
           {
             headers,
@@ -227,13 +231,10 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const { data: polledTenant } = await pollTenant(response, headers);
 
-      const declaredAttribute = retrieveDeclaredAttributes(polledTenant).find(
-        (attr) => attr.id === body.id
+      const declaredAttribute = retrieveDeclaredAttribute(
+        polledTenant,
+        attributeId
       );
-
-      if (!declaredAttribute) {
-        throw tenantDeclaredAttributeNotFound(tenantId, body.id);
-      }
 
       return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
     },
@@ -321,16 +322,16 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async assignTenantCertifiedAttribute(
       tenantId: TenantId,
-      seed: m2mGatewayApi.TenantCertifiedAttributeSeed,
+      { id: attributeId }: m2mGatewayApi.TenantCertifiedAttributeSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantCertifiedAttribute> {
       logger.info(
-        `Assigning certified attribute ${seed.id} to tenant ${tenantId}`
+        `Assigning certified attribute ${attributeId} to tenant ${tenantId}`
       );
 
       const response =
         await clients.tenantProcessClient.tenantAttribute.addCertifiedAttribute(
-          seed,
+          { id: attributeId },
           {
             params: { tenantId },
             headers,
@@ -340,7 +341,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       const { data: polledTenant } = await pollTenant(response, headers);
       const certifiedAttribute = retrieveCertifiedAttribute(
         polledTenant,
-        seed.id
+        attributeId
       );
 
       return toM2MGatewayApiTenantCertifiedAttribute(certifiedAttribute);
@@ -466,17 +467,23 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async assignTenantVerifiedAttribute(
       tenantId: TenantId,
-      body: m2mGatewayApi.AddVerifiedAttributeRequest,
+      {
+        id: attributeId,
+        agreementId,
+        expirationDate,
+      }: m2mGatewayApi.TenantVerifiedAttributeSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantVerifiedAttribute> {
-      logger.info(`Adding verified attribute ${body.id} to tenant ${tenantId}`);
+      logger.info(
+        `Assigning verified attribute ${attributeId} to tenant ${tenantId}`
+      );
 
       const response =
         await clients.tenantProcessClient.tenantAttribute.verifyVerifiedAttribute(
           {
-            id: body.id,
-            agreementId: body.agreementId,
-            expirationDate: body.expirationDate,
+            id: attributeId,
+            agreementId,
+            expirationDate,
           },
           {
             params: { tenantId },
@@ -486,13 +493,10 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const { data: polledTenant } = await pollTenant(response, headers);
 
-      const verifiedAttribute = retrieveVerifiedAttributes(polledTenant).find(
-        (attr) => attr.id === body.id
+      const verifiedAttribute = retrieveVerifiedAttribute(
+        polledTenant,
+        attributeId
       );
-
-      if (!verifiedAttribute) {
-        throw tenantVerifiedAttributeNotFound(tenantId, body.id);
-      }
 
       return toM2MGatewayApiTenantVerifiedAttribute(verifiedAttribute);
     },
