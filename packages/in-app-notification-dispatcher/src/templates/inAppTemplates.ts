@@ -4,6 +4,14 @@ import { DelegationSubmittedRevokedToDelegateEventType } from "../handlers/deleg
 import { EserviceNewVersionApprovedRejectedToDelegateEventType } from "../handlers/eservices/handleEserviceNewVersionApprovedRejectedToDelegate.js";
 
 export const inAppTemplates = {
+  eserviceNameUpdatedToConsumer: (eserviceName: string): string =>
+    `Il nome dell'e-service <strong>${eserviceName}</strong> è stato aggiornato.`,
+  eserviceDescriptionUpdatedToConsumer: (eserviceName: string): string =>
+    `La descrizione dell'e-service <strong>${eserviceName}</strong> è stata aggiornata.`,
+  eserviceDescriptorAttributesUpdatedToConsumer: (
+    eserviceName: string
+  ): string =>
+    `Gli attributi dell'e-service <strong>${eserviceName}</strong> sono stati aggiornati.`,
   eserviceDescriptorPublishedToConsumer: (eserviceName: string): string =>
     `L'e-service <strong>${eserviceName}</strong> è stata pubblicata una nuova versione. Pertanto, ti consigliamo di procedere all'aggiornamento dell'e-service alla versione più recente.`,
   eserviceDescriptorSuspendedToConsumer: (eserviceName: string): string =>
@@ -41,35 +49,6 @@ export const inAppTemplates = {
     documentName = ""
   ): string =>
     `Il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong> è stato rimosso.`,
-  eserviceNameUpdatedByTemplateUpdateToConsumer: (
-    eserviceName: string
-  ): string =>
-    `Il nome dell'e-service <strong>${eserviceName}</strong> è stato aggiornato a causa della modifica del template associato.`,
-  eserviceDescriptionUpdatedByTemplateUpdateToConsumer: (
-    eserviceName: string
-  ): string =>
-    `La descrizione dell'e-service <strong>${eserviceName}</strong> è stata aggiornata a causa della modifica del template associato.`,
-  eserviceDescriptorAttributesUpdatedByTemplateUpdateToConsumer: (
-    eserviceName: string
-  ): string =>
-    `Gli attributi dell'e-service <strong>${eserviceName}</strong> sono stati aggiornati a causa della modifica del template associato.`,
-  eserviceDescriptorQuotasUpdatedByTemplateUpdateToConsumer: (
-    eserviceName: string
-  ): string =>
-    `Le quote dell'e-service <strong>${eserviceName}</strong> sono state aggiornate a causa della modifica del template associato.`,
-  eserviceDescriptorDocumentAddedByTemplateUpdateToConsumer: (
-    eserviceName: string
-  ): string =>
-    `Il documento dell'e-service <strong>${eserviceName}</strong> è stato aggiunto a causa della modifica del template associato.`,
-  eserviceDescriptorDocumentDeletedByTemplateUpdateToConsumer: (
-    eserviceName: string
-  ): string =>
-    `Il documento dell'e-service <strong>${eserviceName}</strong> è stato rimosso a causa della modifica del template associato.`,
-  eserviceDescriptorDocumentUpdatedByTemplateUpdateToConsumer: (
-    eserviceName: string
-  ): string =>
-    `Il documento dell'e-service <strong>${eserviceName}</strong> è stato aggiornato a causa della modifica del template associato.`,
-
   agreementSuspendedUnsuspended: (
     action: "sospeso" | "riattivato" | "archiviato",
     subjectName: string,

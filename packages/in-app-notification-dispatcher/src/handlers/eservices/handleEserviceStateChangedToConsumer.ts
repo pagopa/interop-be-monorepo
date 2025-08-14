@@ -6,7 +6,7 @@ import {
   NewNotification,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
@@ -15,6 +15,9 @@ import {
 } from "../handlerCommons.js";
 
 type EServiceStateChangedEventType =
+  | "EServiceNameUpdated"
+  | "EServiceDescriptionUpdated"
+  | "EServiceDescriptorAttributesUpdated"
   | "EServiceDescriptorPublished"
   | "EServiceDescriptorSuspended"
   | "EServiceDescriptorActivated"
@@ -22,6 +25,7 @@ type EServiceStateChangedEventType =
   | "EServiceDescriptorAgreementApprovalPolicyUpdated"
   | "EServiceDescriptorInterfaceAdded"
   | "EServiceDescriptorDocumentAdded"
+  | "EServiceDescriptorDocumentDeleted"
   | "EServiceDescriptorInterfaceUpdated"
   | "EServiceDescriptorDocumentUpdated"
   | "EServiceNameUpdatedByTemplateUpdate"
@@ -103,6 +107,36 @@ function getDocumentName(
 
 function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
   return match(msg)
+    .with(
+      {
+        type: P.union(
+          "EServiceNameUpdated",
+          "EServiceNameUpdatedByTemplateUpdate"
+        ),
+      },
+      () => inAppTemplates.eserviceNameUpdatedToConsumer(eservice.name)
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptionUpdated",
+          "EServiceDescriptionUpdatedByTemplateUpdate"
+        ),
+      },
+      () => inAppTemplates.eserviceDescriptionUpdatedToConsumer(eservice.name)
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate"
+        ),
+      },
+      () =>
+        inAppTemplates.eserviceDescriptorAttributesUpdatedToConsumer(
+          eservice.name
+        )
+    )
     .with({ type: "EServiceDescriptorPublished" }, () =>
       inAppTemplates.eserviceDescriptorPublishedToConsumer(eservice.name)
     )
@@ -112,8 +146,15 @@ function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
     .with({ type: "EServiceDescriptorActivated" }, () =>
       inAppTemplates.eserviceDescriptorActivatedToConsumer(eservice.name)
     )
-    .with({ type: "EServiceDescriptorQuotasUpdated" }, () =>
-      inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(eservice.name)
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
+        ),
+      },
+      () =>
+        inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(eservice.name)
     )
     .with({ type: "EServiceDescriptorAgreementApprovalPolicyUpdated" }, () =>
       inAppTemplates.eserviceDescriptorAgreementApprovalPolicyUpdatedToConsumer(
@@ -131,7 +172,12 @@ function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
       }
     )
     .with(
-      { type: "EServiceDescriptorDocumentAdded" },
+      {
+        type: P.union(
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate"
+        ),
+      },
       ({ data: { descriptorId, documentId } }) => {
         const documentName = getDocumentName(
           eservice,
@@ -139,6 +185,25 @@ function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
           documentId
         );
         return inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
+          eservice.name,
+          documentName
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate"
+        ),
+      },
+      ({ data: { descriptorId, documentId } }) => {
+        const documentName = getDocumentName(
+          eservice,
+          descriptorId,
+          documentId
+        );
+        return inAppTemplates.eserviceDescriptorDocumentDeletedToConsumer(
           eservice.name,
           documentName
         );
@@ -155,7 +220,12 @@ function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
       }
     )
     .with(
-      { type: "EServiceDescriptorDocumentUpdated" },
+      {
+        type: P.union(
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+        ),
+      },
       ({ data: { descriptorId, documentId } }) => {
         const documentName = getDocumentName(
           eservice,
@@ -167,41 +237,6 @@ function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
           documentName
         );
       }
-    )
-    .with({ type: "EServiceNameUpdatedByTemplateUpdate" }, () =>
-      inAppTemplates.eserviceNameUpdatedByTemplateUpdateToConsumer(
-        eservice.name
-      )
-    )
-    .with({ type: "EServiceDescriptionUpdatedByTemplateUpdate" }, () =>
-      inAppTemplates.eserviceDescriptionUpdatedByTemplateUpdateToConsumer(
-        eservice.name
-      )
-    )
-    .with({ type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" }, () =>
-      inAppTemplates.eserviceDescriptorAttributesUpdatedByTemplateUpdateToConsumer(
-        eservice.name
-      )
-    )
-    .with({ type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" }, () =>
-      inAppTemplates.eserviceDescriptorQuotasUpdatedByTemplateUpdateToConsumer(
-        eservice.name
-      )
-    )
-    .with({ type: "EServiceDescriptorDocumentAddedByTemplateUpdate" }, () =>
-      inAppTemplates.eserviceDescriptorDocumentAddedByTemplateUpdateToConsumer(
-        eservice.name
-      )
-    )
-    .with({ type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" }, () =>
-      inAppTemplates.eserviceDescriptorDocumentDeletedByTemplateUpdateToConsumer(
-        eservice.name
-      )
-    )
-    .with({ type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" }, () =>
-      inAppTemplates.eserviceDescriptorDocumentUpdatedByTemplateUpdateToConsumer(
-        eservice.name
-      )
     )
     .exhaustive();
 }

@@ -12,6 +12,8 @@ import {
   missingKafkaMessageDataError,
   TenantId,
   toEServiceV2,
+  type EServiceEventV2,
+  type EServiceDescriptorPublishedV2,
 } from "pagopa-interop-models";
 import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
 import { tenantNotFound } from "../src/models/errors.js";
@@ -33,16 +35,34 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
   await addOneEService(eservice);
 
   it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
+    const msg: EServiceEventV2 = {
+      event_version: 2,
+      type: "EServiceDescriptorPublished",
+      data: {
+        eservice: undefined,
+        descriptorId: eservice.descriptors[0].id,
+      } satisfies EServiceDescriptorPublishedV2,
+    };
+
     await expect(() =>
-      handleEserviceStateChangedToConsumer(undefined, logger, readModelService)
+      handleEserviceStateChangedToConsumer(msg, logger, readModelService)
     ).rejects.toThrow(
       missingKafkaMessageDataError("eservice", "EServiceDescriptorPublished")
     );
   });
 
   it("should return empty array when no agreements exist for the eservice", async () => {
+    const msg: EServiceEventV2 = {
+      event_version: 2,
+      type: "EServiceDescriptorPublished",
+      data: {
+        eservice: toEServiceV2(eservice),
+        descriptorId: eservice.descriptors[0].id,
+      } satisfies EServiceDescriptorPublishedV2,
+    };
+
     const notifications = await handleEserviceStateChangedToConsumer(
-      toEServiceV2(eservice),
+      msg,
       logger,
       readModelService
     );
@@ -58,12 +78,17 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
     );
     await addOneAgreement(agreement);
 
+    const msg: EServiceEventV2 = {
+      event_version: 2,
+      type: "EServiceDescriptorPublished",
+      data: {
+        eservice: toEServiceV2(eservice),
+        descriptorId: eservice.descriptors[0].id,
+      } satisfies EServiceDescriptorPublishedV2,
+    };
+
     await expect(() =>
-      handleEserviceStateChangedToConsumer(
-        toEServiceV2(eservice),
-        logger,
-        readModelService
-      )
+      handleEserviceStateChangedToConsumer(msg, logger, readModelService)
     ).rejects.toThrow(tenantNotFound(consumerId));
   });
 
@@ -103,8 +128,17 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
         .fn()
         .mockResolvedValue(users);
 
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceDescriptorPublished",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+        } satisfies EServiceDescriptorPublishedV2,
+      };
+
       const notifications = await handleEserviceStateChangedToConsumer(
-        toEServiceV2(eservice),
+        msg,
         logger,
         readModelService
       );
@@ -112,7 +146,7 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
       const expectedNotifications = isNotified ? users.length : 0;
       expect(notifications).toHaveLength(expectedNotifications);
       if (isNotified) {
-        const body = inAppTemplates.eserviceStateChangedToConsumer(
+        const body = inAppTemplates.eserviceDescriptorPublishedToConsumer(
           eservice.name
         );
         const expectedNotifications = users.map((user) => ({
@@ -145,8 +179,17 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
       .fn()
       .mockResolvedValue([]);
 
+    const msg: EServiceEventV2 = {
+      event_version: 2,
+      type: "EServiceDescriptorPublished",
+      data: {
+        eservice: toEServiceV2(eservice),
+        descriptorId: eservice.descriptors[0].id,
+      } satisfies EServiceDescriptorPublishedV2,
+    };
+
     const notifications = await handleEserviceStateChangedToConsumer(
-      toEServiceV2(eservice),
+      msg,
       logger,
       readModelService
     );
