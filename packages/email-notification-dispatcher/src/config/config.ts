@@ -26,12 +26,7 @@ export const EmailNotificationDispatcherConfig = KafkaConsumerConfig.and(
   .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig)
   .and(UserSQLDbConfig)
-  .and(EmailSenderTopicConfig)
-  .and(
-    z
-      .object({ INTEROP_FE_BASE_URL: z.string() })
-      .transform((c) => ({ interopFeBaseUrl: c.INTEROP_FE_BASE_URL }))
-  );
+  .and(EmailSenderTopicConfig);
 
 export type EmailNotificationDispatcherConfig = z.infer<
   typeof EmailNotificationDispatcherConfig

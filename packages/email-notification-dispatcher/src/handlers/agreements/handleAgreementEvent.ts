@@ -3,14 +3,11 @@ import {
   EmailNotificationMessagePayload,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { config } from "../../config/config.js";
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleAgreementActivated } from "./handleAgreementActivated.js";
 import { handleAgreementRejected } from "./handleAgreementRejected.js";
 import { handleAgreementSubmitted } from "./handleAgreementSubmitted.js";
 import { handleAgreementUpgraded } from "./handleAgreementUpgraded.js";
-
-const interopFeBaseUrl = config.interopFeBaseUrl;
 
 export async function handleAgreementEvent(
   params: HandlerParams<typeof AgreementEventV2>
@@ -27,7 +24,6 @@ export async function handleAgreementEvent(
     .with({ type: "AgreementActivated" }, ({ data: { agreement } }) =>
       handleAgreementActivated({
         agreementV2Msg: agreement,
-        interopFeBaseUrl,
         logger,
         readModelService,
         templateService,
@@ -38,7 +34,6 @@ export async function handleAgreementEvent(
     .with({ type: "AgreementRejected" }, ({ data: { agreement } }) =>
       handleAgreementRejected({
         agreementV2Msg: agreement,
-        interopFeBaseUrl,
         logger,
         readModelService,
         templateService,
@@ -49,7 +44,6 @@ export async function handleAgreementEvent(
     .with({ type: "AgreementSubmitted" }, ({ data: { agreement } }) =>
       handleAgreementSubmitted({
         agreementV2Msg: agreement,
-        interopFeBaseUrl,
         logger,
         readModelService,
         templateService,
@@ -60,7 +54,6 @@ export async function handleAgreementEvent(
     .with({ type: "AgreementUpgraded" }, ({ data: { agreement } }) =>
       handleAgreementUpgraded({
         agreementV2Msg: agreement,
-        interopFeBaseUrl,
         logger,
         readModelService,
         templateService,

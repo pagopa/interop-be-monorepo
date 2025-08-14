@@ -3,11 +3,8 @@ import {
   EServiceEventV2,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { config } from "../../config/config.js";
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleEserviceDescriptorPublished } from "./handleEserviceDescriptorPublished.js";
-
-const interopFeBaseUrl = config.interopFeBaseUrl;
 
 export async function handleEServiceEvent(
   params: HandlerParams<typeof EServiceEventV2>
@@ -23,7 +20,6 @@ export async function handleEServiceEvent(
     .with({ type: "EServiceDescriptorPublished" }, ({ data: { eservice } }) =>
       handleEserviceDescriptorPublished({
         eserviceV2Msg: eservice,
-        interopFeBaseUrl,
         logger,
         readModelService,
         templateService,

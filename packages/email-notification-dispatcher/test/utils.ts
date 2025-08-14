@@ -52,8 +52,6 @@ export const readModelService = readModelServiceBuilderSQL({
   notificationConfigReadModelServiceSQL,
 });
 
-export const interopFeBaseUrl = "http://localhost/fe";
-
 export const templateService = buildHTMLTemplateService();
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
