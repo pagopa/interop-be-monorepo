@@ -39,6 +39,10 @@ export const eventMailTemplateType = {
     "agreement-unsuspended-by-consumer-mail",
   agreementUnsuspendedByPlatformMailTemplate:
     "agreement-unsuspended-by-platform-mail",
+  agreementSuspendedByProducer: "agreement-suspended-by-producer-mail",
+  agreementSuspendedByPlatform: "agreement-suspended-by-platform-mail",
+  agreementUnsuspendedByProducer: "agreement-unsuspended-by-producer-mail",
+  agreementUnsuspendedByPlatform: "agreement-unsuspended-by-platform-mail",
   eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
 } as const;
 
