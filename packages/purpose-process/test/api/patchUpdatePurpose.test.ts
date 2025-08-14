@@ -29,13 +29,13 @@ import {
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
   eserviceNotFound,
-  tenantKindNotFound,
   tenantNotFound,
+  tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
 
-describe("API POST /purposes/{purposeId} test", () => {
-  const mockPurposeUpdateContent: purposeApi.PurposeUpdateContent = {
+describe("API PATCH /purposes/{purposeId} test", () => {
+  const mockPurposeUpdateContent: purposeApi.PatchPurposeUpdateContent = {
     title: "Mock purpose title",
     dailyCalls: 10,
     description: "Mock purpose description",
@@ -57,21 +57,23 @@ describe("API POST /purposes/{purposeId} test", () => {
     isRiskAnalysisValid,
   });
   beforeEach(() => {
-    purposeService.updatePurpose = vi.fn().mockResolvedValue(processResponse);
+    purposeService.patchUpdatePurpose = vi
+      .fn()
+      .mockResolvedValue(processResponse);
   });
 
   const makeRequest = async (
     token: string,
     purposeId: PurposeId = mockPurpose.id,
-    body: purposeApi.PurposeUpdateContent = mockPurposeUpdateContent
+    body: purposeApi.PatchPurposeUpdateContent = mockPurposeUpdateContent
   ) =>
     request(api)
-      .post(`/purposes/${purposeId}`)
+      .patch(`/purposes/${purposeId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -79,6 +81,9 @@ describe("API POST /purposes/{purposeId} test", () => {
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
+      expect(res.headers["x-metadata-version"]).toBe(
+        processResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -89,6 +94,32 @@ describe("API POST /purposes/{purposeId} test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
+
+  it.each([
+    {},
+    { title: "updated title" },
+    { description: "updated description" },
+    {
+      title: "updated title",
+      description: "updated description",
+    },
+    {
+      title: "updated title",
+      description: "updated description",
+      dailyCalls: 99,
+    },
+
+    // With nullable fields
+    { freeOfChargeReason: null },
+    { title: "updated title", isFreeOfCharge: false, freeOfChargeReason: null },
+  ])(
+    "Should return 200 with partial seed and nullable fields (seed #%#)",
+    async (seed: purposeApi.PatchPurposeUpdateContent) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockPurpose.id, seed);
+      expect(res.status).toBe(200);
+    }
+  );
 
   it.each([
     {
@@ -108,7 +139,7 @@ describe("API POST /purposes/{purposeId} test", () => {
     },
     { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
     {
-      error: duplicatedPurposeTitle(mockPurposeUpdateContent.title),
+      error: duplicatedPurposeTitle(mockPurpose.title),
       expectedStatus: 409,
     },
     { error: eserviceNotFound(generateId()), expectedStatus: 500 },
@@ -117,27 +148,27 @@ describe("API POST /purposes/{purposeId} test", () => {
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      purposeService.updatePurpose = vi.fn().mockRejectedValue(error);
-      const token = generateToken(authRole.ADMIN_ROLE);
+      purposeService.patchUpdatePurpose = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
     }
   );
 
+  it("Should return 400 if passed an invalid purpose id", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid" as PurposeId);
+    expect(res.status).toBe(400);
+  });
+
   it.each([
-    { purposeId: "invalid" as PurposeId },
-    { body: {} },
-    { body: { ...mockPurposeUpdateContent, dailyCalls: -1 } },
-    { body: { ...mockPurposeUpdateContent, extraField: 1 } },
+    { ...mockPurposeUpdateContent, dailyCalls: -1 },
+    { ...mockPurposeUpdateContent, extraField: 1 },
   ])(
-    "Should return 400 if passed invalid data: %s",
-    async ({ purposeId, body }) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        purposeId,
-        body as purposeApi.PurposeUpdateContent
-      );
+    "Should return 400 if passed an invalid seed (seed #%#)",
+    async (seed: purposeApi.PatchPurposeUpdateContent) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockPurpose.id, seed);
       expect(res.status).toBe(400);
     }
   );
