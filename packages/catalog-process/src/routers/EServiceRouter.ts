@@ -792,14 +792,24 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        await catalogService.createRiskAnalysis(
+        const {
+          data: { eservice, createdRiskAnalysisId },
+          metadata,
+        } = await catalogService.createRiskAnalysis(
           unsafeBrandId(req.params.eServiceId),
           req.body,
           ctx
         );
-        return res.status(204).send();
+
+        setMetadataVersionHeader(res, metadata);
+        return res.status(200).send(
+          catalogApi.CreatedEServiceRiskAnalysis.parse({
+            eservice: eServiceToApiEService(eservice),
+            createdRiskAnalysisId,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

@@ -44,9 +44,10 @@ export const errorCodes = {
   requesterIsNotTheDelegateProducer: "0025",
   cannotEditDeclaredAttributesForTenant: "0026",
   tenantDeclaredAttributeNotFound: "0027",
-  tenantVerifiedAttributeNotFound: "0029",
+  tenantVerifiedAttributeNotFound: "0028",
   missingAgreementIdForTenantVerifiedAttribute: "0029",
   cannotDeleteLastEServiceDescriptor: "0030",
+  eserviceRiskAnalysisNotFound: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -322,6 +323,17 @@ export function missingAgreementIdForTenantVerifiedAttribute(): ApiError<ErrorCo
     detail: `Missing agreementId query parameter to assign a tenant verified attribute`,
     code: "missingAgreementIdForTenantVerifiedAttribute",
     title: "Missing agreementId for tenant verified attribute",
+  });
+}
+
+export function eserviceRiskAnalysisNotFound(
+  eserviceId: string,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis ${riskAnalysisId} not found for e-service ${eserviceId}`,
+    code: "eserviceRiskAnalysisNotFound",
+    title: "E-Service risk analysis not found",
   });
 }
 
