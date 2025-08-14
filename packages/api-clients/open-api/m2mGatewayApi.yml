@@ -4885,6 +4885,99 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+    post:
+      tags:
+        - eservices
+      summary: Create a new E-Service Descriptor
+      operationId: createDescriptor
+      description: |
+        Create a new E-Service Descriptor.
+        This E-Service must not already have a descriptor in a Draft state.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorSeed"
+      responses:
+        "201":
+          description: E-Service Descriptor created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /eservices/{eserviceId}/descriptors/{descriptorId}:
     parameters:
       - name: eserviceId
@@ -9335,7 +9428,6 @@ components:
           type: string
           maxLength: 1000
     CertifiedAttribute:
-      title: Attribute
       type: object
       additionalProperties: false
       properties:
@@ -9391,7 +9483,6 @@ components:
         - results
         - pagination
     CertifiedAttributeSeed:
-      title: AttributeSeed
       type: object
       additionalProperties: false
       description: Models the attribute registry entry as payload response
@@ -9414,7 +9505,6 @@ components:
         - name
         - code
     DeclaredAttribute:
-      title: Attribute
       type: object
       additionalProperties: false
       properties:
@@ -9434,7 +9524,6 @@ components:
         - description
         - createdAt
     VerifiedAttribute:
-      title: Attribute
       type: object
       additionalProperties: false
       properties:
@@ -9874,6 +9963,93 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
+    EServiceDescriptorSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        audience:
+          type: array
+          items:
+            type: string
+            minLength: 0
+            maxLength: 250
+        voucherLifespan:
+          type: integer
+          format: int32
+          minimum: 60
+          maximum: 86400
+        dailyCallsPerConsumer:
+          description: Maximum number of daily calls that this descriptor can afford per consumer
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        dailyCallsTotal:
+          description: Total daily calls available for this E-Service
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/EServiceDescriptorAttributesSeed"
+      required:
+        - audience
+        - voucherLifespan
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+        - agreementApprovalPolicy
+        - attributes
+    EServiceDescriptorAttributesSeed:
+      description: |
+        An E-Service descriptor can have multiple attribute groups
+        for each attribute kind (certified, declared, verified).
+        All groups of attributes are considered in AND (i.e., must be satisfied together),
+        while attributes within the same group are considered in OR.
+        You can model a single attribute as a group with one element.
+      properties:
+        certified:
+          type: array
+          description: A list of groups of certified attributes.
+          items:
+            descriptor: A group of certified attributes
+            type: array
+            items:
+              $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
+        declared:
+          type: array
+          description: A list of groups of declared attributes
+          items:
+            descriptor: A group of declared attributes
+            type: array
+            items:
+              $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
+        verified:
+          type: array
+          description: A list of groups of verified attributes
+          items:
+            descriptor: A group of verified attributes
+            type: array
+            items:
+              $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
+      required:
+        - certified
+        - declared
+        - verified
+    EServiceDescriptorAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
     EServiceMode:
       type: string
       description: Indicates if the E-Service is intended for receiving or delivering data
@@ -10134,7 +10310,6 @@ components:
         - kty
         - kid
     OtherPrimeInfo:
-      title: OtherPrimeInfo
       type: object
       additionalProperties: false
       properties:

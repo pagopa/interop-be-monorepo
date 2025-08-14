@@ -1,11 +1,11 @@
 meta {
-  name: Approve Descriptor
+  name: Suspend eservice descriptor
   type: http
-  seq: 9
+  seq: 6
 }
 
 post {
-  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/approve
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/suspend
   body: none
   auth: none
 }
@@ -17,5 +17,4 @@ params:path {
 
 headers {
   Authorization: {{JWT-M2M-ADMIN}}
-  X-Correlation-Id: {{correlation-id}}
 }

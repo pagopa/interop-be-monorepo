@@ -1,11 +1,11 @@
 meta {
-  name: Delete e-service descriptor interface
+  name: Unsuspend eservice descriptor
   type: http
   seq: 7
 }
 
-delete {
-  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/interface
+post {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/unsuspend
   body: none
   auth: none
 }

@@ -22,3 +22,7 @@ params:path {
 headers {
   Authorization: {{JWT-M2M}}
 }
+
+vars:post-response {
+  descriptorId: res.body.results.at(-1).id
+}

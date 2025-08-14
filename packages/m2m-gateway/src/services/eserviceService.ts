@@ -13,6 +13,7 @@ import {
   toM2MGatewayApiDocument,
   toM2MGatewayApiEService,
   toM2MGatewayApiEServiceDescriptor,
+  toCatalogApiEServiceDescriptorSeed,
 } from "../api/eserviceApiConverter.js";
 import {
   cannotDeleteLastEServiceDescriptor,
@@ -330,6 +331,42 @@ export function eserviceServiceBuilder(
         logger
       );
     },
+    async createDescriptor(
+      eserviceId: EServiceId,
+      eserviceDescriptorSeed: m2mGatewayApi.EServiceDescriptorSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
+      logger.info(`Creating Descriptor for EService ${eserviceId}`);
+
+      const {
+        data: { eservice, createdDescriptorId },
+        metadata,
+      } = await clients.catalogProcessClient.createDescriptor(
+        toCatalogApiEServiceDescriptorSeed(eserviceDescriptorSeed),
+        {
+          params: { eServiceId: eserviceId },
+          headers,
+        }
+      );
+
+      await pollEService(
+        {
+          data: eservice,
+          metadata,
+        },
+        headers
+      );
+
+      const createdDescriptor = eservice.descriptors.find(
+        (d) => d.id === createdDescriptorId
+      );
+
+      if (!createdDescriptor) {
+        throw eserviceDescriptorNotFound(eserviceId, createdDescriptorId);
+      }
+
+      return toM2MGatewayApiEServiceDescriptor(createdDescriptor);
+    },
     async deleteDraftEServiceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -360,7 +397,6 @@ export function eserviceServiceBuilder(
       );
       await pollEServiceById(eserviceId, metadata, headers);
     },
-
     async createEService(
       seed: m2mGatewayApi.EServiceSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
