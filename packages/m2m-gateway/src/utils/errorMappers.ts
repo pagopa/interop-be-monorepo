@@ -164,7 +164,7 @@ export const assignTenantDeclaredAttributeErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "requesterIsNotTheDelegateProducer",
+      "requesterIsNotTheDelegateConsumer",
       "cannotEditDeclaredAttributesForTenant",
       () => HTTP_STATUS_FORBIDDEN
     )

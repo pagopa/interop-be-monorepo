@@ -7,7 +7,7 @@ import {
 } from "../../model/errors.js";
 import { DelegationProcessClient } from "../../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../context.js";
-import { assertRequesterIsDelegateProducer } from "./delegationValidators.js";
+import { assertRequesterIsDelegateConsumer } from "./delegationValidators.js";
 
 export async function assertTenantCanEditDeclaredAttributes(
   authData: M2MAdminAuthData,
@@ -30,7 +30,7 @@ export async function assertTenantCanEditDeclaredAttributes(
       })
     ).data;
 
-    assertRequesterIsDelegateProducer(authData, delegation);
+    assertRequesterIsDelegateConsumer(authData, delegation);
     if (delegation.delegatorId !== targetTenantId) {
       throw cannotEditDeclaredAttributesForTenant(targetTenantId, delegation);
     }

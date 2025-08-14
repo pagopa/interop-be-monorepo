@@ -3,7 +3,7 @@ import { TenantId } from "pagopa-interop-models";
 import { M2MAdminAuthData, M2MAuthData } from "pagopa-interop-commons";
 import {
   notAnActiveConsumerDelegation,
-  requesterIsNotTheDelegateProducer,
+  requesterIsNotTheDelegateConsumer,
   unexpectedDelegationKind,
 } from "../../model/errors.js";
 
@@ -36,16 +36,16 @@ export function assertActiveConsumerDelegateForEservice(
   }
 }
 
-export function assertRequesterIsDelegateProducer(
+export function assertRequesterIsDelegateConsumer(
   authData: M2MAdminAuthData | M2MAuthData,
   delegation: delegationApi.Delegation
 ): void {
   if (
     delegation.kind !==
-      delegationApi.DelegationKind.Values.DELEGATED_PRODUCER ||
+      delegationApi.DelegationKind.Values.DELEGATED_CONSUMER ||
     delegation.state !== delegationApi.DelegationState.Values.ACTIVE ||
     delegation.delegateId !== authData.organizationId
   ) {
-    throw requesterIsNotTheDelegateProducer(delegation);
+    throw requesterIsNotTheDelegateConsumer(delegation);
   }
 }

@@ -19,7 +19,7 @@ import { toM2MGatewayApiTenantDeclaredAttribute } from "../../../src/api/tenantA
 import {
   tenantDeclaredAttributeNotFound,
   missingMetadata,
-  requesterIsNotTheDelegateProducer,
+  requesterIsNotTheDelegateConsumer,
   cannotEditDeclaredAttributesForTenant,
 } from "../../../src/model/errors.js";
 
@@ -87,7 +87,7 @@ describe("POST /tenants/:tenantId/declaredAttributes router test", () => {
   });
 
   it.each([
-    requesterIsNotTheDelegateProducer(getMockedApiDelegation()),
+    requesterIsNotTheDelegateConsumer(getMockedApiDelegation()),
     cannotEditDeclaredAttributesForTenant(
       generateId(),
       getMockedApiDelegation()

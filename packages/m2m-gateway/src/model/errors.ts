@@ -41,7 +41,7 @@ export const errorCodes = {
   purposeAgreementNotFound: "0022",
   agreementContractNotFound: "0023",
   notAnActiveConsumerDelegation: "0024",
-  requesterIsNotTheDelegateProducer: "0025",
+  requesterIsNotTheDelegateConsumer: "0025",
   cannotEditDeclaredAttributesForTenant: "0026",
   tenantDeclaredAttributeNotFound: "0027",
   tenantVerifiedAttributeNotFound: "0028",
@@ -293,13 +293,13 @@ export function tenantVerifiedAttributeNotFound(
   });
 }
 
-export function requesterIsNotTheDelegateProducer(
+export function requesterIsNotTheDelegateConsumer(
   delegation: delegationApi.Delegation
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Requester tenant is not the delegate producer for delegation ${delegation.id}`,
-    code: "requesterIsNotTheDelegateProducer",
-    title: "Requester is not the delegate producer",
+    detail: `Requester tenant is not the delegate consumer for delegation ${delegation.id}`,
+    code: "requesterIsNotTheDelegateConsumer",
+    title: "Requester is not the delegate consumer",
   });
 }
 
