@@ -68,7 +68,6 @@ export async function handleAgreementEvent(
     .with({ type: "AgreementSuspendedByConsumer" }, ({ data: { agreement } }) =>
       handleAgreementSuspendedByConsumer({
         agreementV2Msg: agreement,
-        interopFeBaseUrl,
         logger,
         readModelService,
         templateService,
@@ -79,7 +78,6 @@ export async function handleAgreementEvent(
     .with({ type: "AgreementSuspendedByPlatform" }, ({ data: { agreement } }) =>
       handleAgreementSuspendedByPlatform({
         agreementV2Msg: agreement,
-        interopFeBaseUrl,
         logger,
         readModelService,
         templateService,
@@ -92,7 +90,6 @@ export async function handleAgreementEvent(
       ({ data: { agreement } }) =>
         handleAgreementUnsuspendedByConsumer({
           agreementV2Msg: agreement,
-          interopFeBaseUrl,
           logger,
           readModelService,
           templateService,
@@ -105,7 +102,6 @@ export async function handleAgreementEvent(
       ({ data: { agreement } }) =>
         handleAgreementUnsuspendedByPlatform({
           agreementV2Msg: agreement,
-          interopFeBaseUrl,
           logger,
           readModelService,
           templateService,
