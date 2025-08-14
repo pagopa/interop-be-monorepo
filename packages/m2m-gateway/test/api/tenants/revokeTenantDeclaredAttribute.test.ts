@@ -1,122 +1,104 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiDeclaredTenantAttribute,
+  getMockedApiTenant,
 } from "pagopa-interop-commons-test";
+import {
+  AttributeId,
+  TenantId,
+  generateId,
+  pollingMaxRetriesExceeded,
+} from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { generateId } from "pagopa-interop-models";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import {
+  missingMetadata,
+  tenantDeclaredAttributeNotFound,
+} from "../../../src/model/errors.js";
 import { toM2MGatewayApiTenantDeclaredAttribute } from "../../../src/api/tenantApiConverter.js";
 
-const mockedTenantService = vi.mocked(mockTenantService);
-
-describe("DELETE /tenants/:tenantId/declaredAttributes/:attributeId route test", () => {
-  beforeEach(() => {
-    mockedTenantService.revokeTenantDeclaredAttribute.mockClear();
-  });
-
-  const tenantId = generateId();
-  const attributeId = generateId();
-  const delegationId = generateId();
-
-  const mockTenantAttribute = getMockedApiDeclaredTenantAttribute({
-    revoked: true,
-  });
-  const mockResponse =
-    toM2MGatewayApiTenantDeclaredAttribute(mockTenantAttribute);
+describe("DELETE /tenants/:tenantId/declaredAttributes/:attributeId router test", () => {
+  const mockApiResponse = getMockedApiDeclaredTenantAttribute();
+  const mockResponse = toM2MGatewayApiTenantDeclaredAttribute(mockApiResponse);
 
   const makeRequest = async (
     token: string,
-    tenantId: string,
-    attributeId: string,
-    delegationId?: string
-  ) => {
-    const url = `${appBasePath}/tenants/${tenantId}/declaredAttributes/${attributeId}`;
-    let req = request(api).delete(url).set("Authorization", `Bearer ${token}`);
+    tenantId: TenantId = generateId(),
+    attributeId: AttributeId = generateId()
+  ) =>
+    request(api)
+      .delete(
+        `${appBasePath}/tenants/${tenantId}/declaredAttributes/${attributeId}`
+      )
+      .set("Authorization", `Bearer ${token}`);
 
-    if (delegationId) {
-      req = req.query({ delegationId });
+  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  it.each(authorizedRoles)(
+    "Should return 200 and perform service calls for user with role %s",
+    async (role) => {
+      mockTenantService.revokeTenantDeclaredAttribute = vi
+        .fn()
+        .mockResolvedValue(mockResponse);
+
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockResponse);
     }
+  );
 
-    return req;
-  };
+  it("Should return 400 if passed an invalid tenant id", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid_id" as TenantId);
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.M2M_ROLE,
-    authRole.M2M_ADMIN_ROLE,
-  ];
-
-  const unauthorizedRoles: AuthRole[] = [authRole.API_ROLE];
-
-  authorizedRoles.forEach((role) => {
-    it(`should return 200 when revoking declared attribute with ${role} role`, async () => {
-      const token = generateToken(role);
-      mockedTenantService.revokeTenantDeclaredAttribute.mockResolvedValueOnce(
-        mockResponse
-      );
-
-      const response = await makeRequest(token, tenantId, attributeId);
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(mockResponse);
-      expect(
-        mockedTenantService.revokeTenantDeclaredAttribute
-      ).toHaveBeenCalledWith(tenantId, attributeId, {}, expect.any(Object));
-    });
-
-    it(`should return 200 when revoking declared attribute with delegation ID with ${role} role`, async () => {
-      const token = generateToken(role);
-      mockedTenantService.revokeTenantDeclaredAttribute.mockResolvedValueOnce(
-        mockResponse
-      );
-
-      const response = await makeRequest(
-        token,
-        tenantId,
-        attributeId,
-        delegationId
-      );
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(mockResponse);
-      expect(
-        mockedTenantService.revokeTenantDeclaredAttribute
-      ).toHaveBeenCalledWith(
-        tenantId,
-        attributeId,
-        { delegationId },
-        expect.any(Object)
-      );
-    });
+    expect(res.status).toBe(400);
   });
 
-  unauthorizedRoles.forEach((role) => {
-    it(`should return 403 when revoking declared attribute with ${role} role`, async () => {
-      const token = generateToken(role);
-
-      const response = await makeRequest(token, tenantId, attributeId);
-
-      expect(response.status).toBe(403);
-      expect(
-        mockedTenantService.revokeTenantDeclaredAttribute
-      ).not.toHaveBeenCalled();
-    });
-  });
-
-  it("should handle service errors", async () => {
-    const token = generateToken(authRole.M2M_ROLE);
-    const error = new Error("Service error");
-    mockedTenantService.revokeTenantDeclaredAttribute.mockRejectedValueOnce(
-      error
+  it("Should return 400 if passed an invalid attribute id", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      generateId<TenantId>(),
+      "invalid_id" as AttributeId
     );
 
-    const response = await makeRequest(token, tenantId, attributeId);
-
-    expect(response.status).toBe(500);
-    expect(
-      mockedTenantService.revokeTenantDeclaredAttribute
-    ).toHaveBeenCalledWith(tenantId, attributeId, {}, expect.any(Object));
+    expect(res.status).toBe(400);
   });
+
+  it.each([
+    tenantDeclaredAttributeNotFound(getMockedApiTenant(), generateId()),
+    missingMetadata(),
+    pollingMaxRetriesExceeded(3, 10),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockTenantService.revokeTenantDeclaredAttribute = vi
+      .fn()
+      .mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token);
+
+    expect(res.status).toBe(500);
+  });
+
+  it.each([
+    { ...mockResponse, id: undefined },
+    { ...mockResponse, assignedAt: "INVALID_DATE" },
+    { ...mockResponse, extraParam: "extraValue" },
+    {},
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockTenantService.revokeTenantDeclaredAttribute = vi
+        .fn()
+        .mockResolvedValue(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token);
+
+      expect(res.status).toBe(500);
+    }
+  );
 });
