@@ -56,15 +56,13 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const purposeTemplate = await purposeTemplateService.createPurposeTemplate(
-          unsafeBrandId(req.body.id),
-          ctx
-        );
+        await purposeTemplateService.createPurposeTemplate(req.body, ctx);
 
+        return res.status(201).send();
       } catch (error) {
-        return res.status(501);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-      return res.status(501);
     })
     .get("/purposeTemplates/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);

@@ -8,7 +8,7 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
-  RiskAnalysisValidatedTemplateAnswer,
+  RiskAnalysisValidatedForm,
   UIAuthData,
   validateRiskAnalysis,
   WithLogger,
@@ -237,7 +237,7 @@ const replaceEServiceTemplateVersion = (
 export function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed["riskAnalysisForm"],
   tenantKind: TenantKind
-): RiskAnalysisValidatedTemplateAnswer {
+): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
