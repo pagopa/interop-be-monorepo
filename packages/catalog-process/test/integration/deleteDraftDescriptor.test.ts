@@ -42,6 +42,7 @@ import {
 
 describe("delete draft descriptor", () => {
   const mockDocument = getMockDocument();
+
   it("should write on event-store for the deletion of a draft descriptor (no interface nor documents to delete)", async () => {
     vi.spyOn(fileManager, "delete");
 
@@ -60,7 +61,7 @@ describe("delete draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.deleteDraftDescriptor(
+    const deleteDraftReturn = await catalogService.deleteDraftDescriptor(
       eservice.id,
       descriptorToDelete.id,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -79,13 +80,23 @@ describe("delete draft descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice = {
       ...eservice,
       descriptors: [publishedDescriptor],
+    };
+
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEservice),
+      descriptorId: descriptorToDelete.id,
     });
 
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
-    expect(writtenPayload.descriptorId).toEqual(descriptorToDelete.id);
+    expect(deleteDraftReturn).toEqual({
+      data: expectedEservice,
+      metadata: {
+        version: 1,
+      },
+    });
+
     expect(fileManager.delete).not.toHaveBeenCalled();
   });
 
@@ -173,7 +184,7 @@ describe("delete draft descriptor", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(document2.path);
 
-    await catalogService.deleteDraftDescriptor(
+    const deleteDraftReturn = await catalogService.deleteDraftDescriptor(
       eservice.id,
       descriptorToDelete.id,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -191,13 +202,22 @@ describe("delete draft descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice = {
       ...eservice,
       descriptors: [publishedDescriptor],
+    };
+
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEservice),
+      descriptorId: descriptorToDelete.id,
     });
 
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
-    expect(writtenPayload.descriptorId).toEqual(descriptorToDelete.id);
+    expect(deleteDraftReturn).toEqual({
+      data: expectedEservice,
+      metadata: {
+        version: 1,
+      },
+    });
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -237,7 +257,7 @@ describe("delete draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.deleteDraftDescriptor(
+    const deleteDraftReturn = await catalogService.deleteDraftDescriptor(
       eservice.id,
       draftDescriptor.id,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -287,6 +307,9 @@ describe("delete draft descriptor", () => {
       eserviceId: eservice.id,
       eservice: toEServiceV2(expectedEserviceBeforeDeletion),
     });
+
+    // In case the entire e-service is deleted, the return value should be undefined
+    expect(deleteDraftReturn).toEqual(undefined);
   });
 
   it("should write on event-store for the deletion of a draft descriptor and the entire eservice (delegate)", async () => {
@@ -307,7 +330,7 @@ describe("delete draft descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    await catalogService.deleteDraftDescriptor(
+    const deleteDraftReturn = await catalogService.deleteDraftDescriptor(
       eservice.id,
       draftDescriptor.id,
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
@@ -357,6 +380,9 @@ describe("delete draft descriptor", () => {
       eserviceId: eservice.id,
       eservice: toEServiceV2(expectedEserviceBeforeDeletion),
     });
+
+    // In case the entire e-service is deleted, the return value should be undefined
+    expect(deleteDraftReturn).toEqual(undefined);
   });
 
   it("should fail if one of the file deletions fails", async () => {

@@ -21,7 +21,7 @@ import {
 } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
-describe("downloadEserviceDescriptorInterface", () => {
+describe("downloadEServiceDescriptorInterface", () => {
   const testFileContent =
     "This is a mock file content for testing purposes.\nOn multiple lines.";
 

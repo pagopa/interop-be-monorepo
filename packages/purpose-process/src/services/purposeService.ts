@@ -439,8 +439,30 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       purposeUpdateContent: purposeApi.PurposeUpdateContent,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+    ): Promise<UpdatePurposeReturn> {
       logger.info(`Updating Purpose ${purposeId}`);
+      return await performUpdatePurpose(
+        purposeId,
+        {
+          updateContent: purposeUpdateContent,
+          mode: eserviceMode.deliver,
+        },
+        authData,
+        readModelService,
+        correlationId,
+        repository
+      );
+    },
+    async patchUpdatePurpose(
+      purposeId: PurposeId,
+      purposeUpdateContent: purposeApi.PatchPurposeUpdateContent,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<M2MAdminAuthData>>
+    ): Promise<UpdatePurposeReturn> {
+      logger.info(`Partially updating Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
         {
@@ -457,7 +479,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       reversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+    ): Promise<UpdatePurposeReturn> {
       logger.info(`Updating Reverse Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -1568,52 +1590,73 @@ const archiveActiveAndSuspendedPurposeVersions = (
       .otherwise(() => v)
   );
 
+export type UpdatePurposeReturn = WithMetadata<{
+  purpose: Purpose;
+  isRiskAnalysisValid: boolean;
+}>;
 const performUpdatePurpose = async (
   purposeId: PurposeId,
-  {
-    mode,
-    updateContent,
-  }:
-    | { mode: "Deliver"; updateContent: purposeApi.PurposeUpdateContent }
+  modeAndUpdateContent:
+    | {
+        mode: "Deliver";
+        updateContent:
+          | purposeApi.PurposeUpdateContent
+          | purposeApi.PatchPurposeUpdateContent;
+      }
     | {
         mode: "Receive";
         updateContent: purposeApi.ReversePurposeUpdateContent;
       },
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelService,
   correlationId: CorrelationId,
-  repository: {
-    createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<unknown>;
-  }
+  repository: ReturnType<typeof eventRepository<PurposeEvent>>
   // eslint-disable-next-line max-params
-): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
+): Promise<UpdatePurposeReturn> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
-  assertPurposeIsDraft(purpose.data);
-
-  if (updateContent.title !== purpose.data.title) {
-    await assertPurposeTitleIsNotDuplicated({
-      readModelService,
-      eserviceId: purpose.data.eserviceId,
-      consumerId: purpose.data.consumerId,
-      title: updateContent.title,
-    });
-  }
-
   assertRequesterCanActAsConsumer(
     purpose.data,
     authData,
     await retrievePurposeDelegation(purpose.data, readModelService)
   );
 
+  assertPurposeIsDraft(purpose.data);
+
+  const {
+    title,
+    description,
+    isFreeOfCharge,
+    freeOfChargeReason,
+    dailyCalls,
+    riskAnalysisForm,
+    ...rest
+  } = match(modeAndUpdateContent)
+    .with({ mode: eserviceMode.deliver }, ({ updateContent }) => updateContent)
+    .with({ mode: eserviceMode.receive }, ({ updateContent }) => ({
+      ...updateContent,
+      riskAnalysisForm: undefined, // To make the destructuring work also for receive mode
+    }))
+    .exhaustive();
+
+  void (rest satisfies Record<string, never>);
+  // ^ To make sure we extract all the updated fields, even optional ones
+
+  const { mode } = modeAndUpdateContent;
+
+  if (title && title !== purpose.data.title) {
+    await assertPurposeTitleIsNotDuplicated({
+      readModelService,
+      eserviceId: purpose.data.eserviceId,
+      consumerId: purpose.data.consumerId,
+      title,
+    });
+  }
+
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
     readModelService
   );
   assertEserviceMode(eservice, mode);
-  assertConsistentFreeOfCharge(
-    updateContent.isFreeOfCharge,
-    updateContent.freeOfChargeReason
-  );
 
   const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
     eservice,
@@ -1622,24 +1665,24 @@ const performUpdatePurpose = async (
   );
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
-    mode === eserviceMode.deliver
-      ? validateAndTransformRiskAnalysis(
-          updateContent.riskAnalysisForm,
-          true,
-          tenantKind
-        )
+    mode === eserviceMode.deliver && riskAnalysisForm
+      ? validateAndTransformRiskAnalysis(riskAnalysisForm, true, tenantKind)
       : purpose.data.riskAnalysisForm;
 
   const updatedPurpose: Purpose = {
     ...purpose.data,
-    title: updateContent.title,
-    description: updateContent.description,
-    isFreeOfCharge: updateContent.isFreeOfCharge,
-    freeOfChargeReason: updateContent.freeOfChargeReason,
+    title: title ?? purpose.data.title,
+    description: description ?? purpose.data.description,
+    isFreeOfCharge: isFreeOfCharge ?? purpose.data.isFreeOfCharge,
+    freeOfChargeReason:
+      freeOfChargeReason ??
+      (freeOfChargeReason === null
+        ? undefined
+        : purpose.data.freeOfChargeReason),
     versions: [
       {
         ...purpose.data.versions[0],
-        dailyCalls: updateContent.dailyCalls,
+        dailyCalls: dailyCalls ?? purpose.data.versions[0].dailyCalls,
         updatedAt: new Date(),
       },
     ],
@@ -1647,20 +1690,28 @@ const performUpdatePurpose = async (
     riskAnalysisForm: newRiskAnalysis,
   };
 
+  assertConsistentFreeOfCharge(
+    updatedPurpose.isFreeOfCharge,
+    updatedPurpose.freeOfChargeReason
+  );
+
   const event = toCreateEventDraftPurposeUpdated({
     purpose: updatedPurpose,
     version: purpose.metadata.version,
     correlationId,
   });
-  await repository.createEvent(event);
+  const createdEvent = await repository.createEvent(event);
 
   return {
-    purpose: updatedPurpose,
-    isRiskAnalysisValid: isRiskAnalysisFormValid(
-      updatedPurpose.riskAnalysisForm,
-      false,
-      tenantKind
-    ),
+    data: {
+      purpose: updatedPurpose,
+      isRiskAnalysisValid: isRiskAnalysisFormValid(
+        updatedPurpose.riskAnalysisForm,
+        false,
+        tenantKind
+      ),
+    },
+    metadata: { version: createdEvent.newVersion },
   };
 };
 

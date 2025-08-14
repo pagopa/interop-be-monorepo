@@ -144,6 +144,7 @@ export const documentToApiDocument = (
   prettyName: document.prettyName,
   path: document.path,
   checksum: document.checksum,
+  uploadDate: document.uploadDate.toJSON(),
 });
 
 export const descriptorToApiDescriptor = (

@@ -2,10 +2,11 @@ import { getMockPurpose } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { generateId, Purpose, WithMetadata } from "pagopa-interop-models";
+import { upsertPurpose } from "pagopa-interop-readmodel/testUtils";
 import { compare } from "../src/utils.js";
 import {
   addOnePurpose,
-  purposeReadModelServiceSQL,
+  readModelDB,
   readModelService,
   readModelServiceSQL,
 } from "./utils.js";
@@ -41,10 +42,7 @@ describe("Check purpose readmodels", () => {
 
     await addOnePurpose(purpose);
 
-    await purposeReadModelServiceSQL.upsertPurpose(
-      purpose.data,
-      purpose.metadata.version
-    );
+    await upsertPurpose(readModelDB, purpose.data, purpose.metadata.version);
 
     const collectionPurposes = await readModelService.getAllReadModelPurposes();
 
@@ -74,10 +72,7 @@ describe("Check purpose readmodels", () => {
     await addOnePurpose(purpose1);
     await addOnePurpose(purpose2);
 
-    await purposeReadModelServiceSQL.upsertPurpose(
-      purpose2.data,
-      purpose2.metadata.version
-    );
+    await upsertPurpose(readModelDB, purpose2.data, purpose2.metadata.version);
 
     const collectionPurposes = await readModelService.getAllReadModelPurposes();
 
@@ -106,14 +101,8 @@ describe("Check purpose readmodels", () => {
 
     await addOnePurpose(purpose1);
 
-    await purposeReadModelServiceSQL.upsertPurpose(
-      purpose1.data,
-      purpose1.metadata.version
-    );
-    await purposeReadModelServiceSQL.upsertPurpose(
-      purpose2.data,
-      purpose2.metadata.version
-    );
+    await upsertPurpose(readModelDB, purpose1.data, purpose1.metadata.version);
+    await upsertPurpose(readModelDB, purpose2.data, purpose2.metadata.version);
 
     const collectionPurposes = await readModelService.getAllReadModelPurposes();
 
@@ -147,7 +136,8 @@ describe("Check purpose readmodels", () => {
 
     await addOnePurpose(purpose1);
 
-    await purposeReadModelServiceSQL.upsertPurpose(
+    await upsertPurpose(
+      readModelDB,
       purpose1InPostgresDb.data,
       purpose1InPostgresDb.metadata.version
     );
@@ -181,7 +171,8 @@ describe("Check purpose readmodels", () => {
 
     await addOnePurpose(purpose1);
 
-    await purposeReadModelServiceSQL.upsertPurpose(
+    await upsertPurpose(
+      readModelDB,
       purpose1InPostgresDb.data,
       purpose1InPostgresDb.metadata.version
     );

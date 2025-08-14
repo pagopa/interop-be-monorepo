@@ -23,14 +23,14 @@ describe("Notification config aggregators", () => {
         ...getMockTenantNotificationConfig(),
         updatedAt: generateMock(z.coerce.date()), // Ensure updatedAt is not undefined
       };
-      const tenantNotificationConfigSQL =
+      const tenantNotificationConfigItemsSQL =
         splitTenantNotificationConfigIntoObjectsSQL(
           tenantNotificationConfig,
           1
         );
 
       const aggregatedTenantNotificationConfig =
-        aggregateTenantNotificationConfig(tenantNotificationConfigSQL);
+        aggregateTenantNotificationConfig(tenantNotificationConfigItemsSQL);
       expect(aggregatedTenantNotificationConfig).toStrictEqual({
         data: tenantNotificationConfig,
         metadata: { version: 1 },
@@ -41,15 +41,17 @@ describe("Notification config aggregators", () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { updatedAt: _, ...tenantNotificationConfig } =
         getMockTenantNotificationConfig();
-      const tenantNotificationConfigSQL =
+      const tenantNotificationConfigItemsSQL =
         splitTenantNotificationConfigIntoObjectsSQL(
           tenantNotificationConfig,
           1
         );
-      expect(tenantNotificationConfigSQL.updatedAt).toBeNull();
+      expect(
+        tenantNotificationConfigItemsSQL.tenantNotificationConfigSQL.updatedAt
+      ).toBeNull();
 
       const aggregatedTenantNotificationConfig =
-        aggregateTenantNotificationConfig(tenantNotificationConfigSQL);
+        aggregateTenantNotificationConfig(tenantNotificationConfigItemsSQL);
       expect(aggregatedTenantNotificationConfig).toStrictEqual({
         data: tenantNotificationConfig,
         metadata: { version: 1 },
@@ -63,11 +65,11 @@ describe("Notification config aggregators", () => {
         ...getMockUserNotificationConfig(),
         updatedAt: generateMock(z.coerce.date()), // Ensure updatedAt is not undefined
       };
-      const userNotificationConfigSQL =
+      const userNotificationConfigItemsSQL =
         splitUserNotificationConfigIntoObjectsSQL(userNotificationConfig, 1);
 
       const aggregatedUserNotificationConfig = aggregateUserNotificationConfig(
-        userNotificationConfigSQL
+        userNotificationConfigItemsSQL
       );
       expect(aggregatedUserNotificationConfig).toStrictEqual({
         data: userNotificationConfig,
@@ -79,12 +81,14 @@ describe("Notification config aggregators", () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { updatedAt: _, ...userNotificationConfig } =
         getMockUserNotificationConfig();
-      const userNotificationConfigSQL =
+      const userNotificationConfigItemsSQL =
         splitUserNotificationConfigIntoObjectsSQL(userNotificationConfig, 1);
-      expect(userNotificationConfigSQL.updatedAt).toBeNull();
+      expect(
+        userNotificationConfigItemsSQL.userNotificationConfigSQL.updatedAt
+      ).toBeNull();
 
       const aggregatedUserNotificationConfig = aggregateUserNotificationConfig(
-        userNotificationConfigSQL
+        userNotificationConfigItemsSQL
       );
       expect(aggregatedUserNotificationConfig).toStrictEqual({
         data: userNotificationConfig,

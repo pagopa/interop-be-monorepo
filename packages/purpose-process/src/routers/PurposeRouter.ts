@@ -170,12 +170,13 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const { purpose, isRiskAnalysisValid } =
-          await purposeService.updateReversePurpose(
-            unsafeBrandId(req.params.id),
-            req.body,
-            ctx
-          );
+        const {
+          data: { purpose, isRiskAnalysisValid },
+        } = await purposeService.updateReversePurpose(
+          unsafeBrandId(req.params.id),
+          req.body,
+          ctx
+        );
         return res
           .status(200)
           .send(
@@ -233,12 +234,43 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const { purpose, isRiskAnalysisValid } =
-          await purposeService.updatePurpose(
-            unsafeBrandId(req.params.id),
-            req.body,
-            ctx
+        const {
+          data: { purpose, isRiskAnalysisValid },
+        } = await purposeService.updatePurpose(
+          unsafeBrandId(req.params.id),
+          req.body,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(
+            purposeApi.Purpose.parse(
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, updatePurposeErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/purposes/:id", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.patchUpdatePurpose(
+          unsafeBrandId(req.params.id),
+          req.body,
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(

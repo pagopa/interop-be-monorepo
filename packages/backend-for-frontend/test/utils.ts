@@ -62,6 +62,18 @@ export const toEserviceTemplateProcessMock = (
   versions: [
     {
       ...eserviceTemplateVersion,
+      docs: eserviceTemplateVersion.docs.map((doc) => ({
+        ...doc,
+        uploadDate: new Date(doc.uploadDate).toISOString(),
+      })),
+      interface: eserviceTemplateVersion.interface
+        ? {
+            ...eserviceTemplateVersion.interface,
+            uploadDate: new Date(
+              eserviceTemplateVersion.interface.uploadDate
+            ).toISOString(),
+          }
+        : undefined,
       state: "PUBLISHED" as const,
       suspendedAt: undefined,
       deprecatedAt: undefined,
@@ -83,6 +95,17 @@ export const toEserviceCatalogProcessMock = (
   descriptors: [
     {
       ...descriptor,
+      docs: descriptor.docs.map((doc) => ({
+        ...doc,
+        uploadDate: new Date(doc.uploadDate).toISOString(),
+      })),
+      interface: descriptor.interface
+        ? {
+            ...descriptor.interface,
+            uploadDate: new Date(descriptor.interface.uploadDate).toISOString(),
+          }
+        : undefined,
+      serverUrls: [],
       state: "DRAFT",
       version: "1",
       agreementApprovalPolicy: "AUTOMATIC",

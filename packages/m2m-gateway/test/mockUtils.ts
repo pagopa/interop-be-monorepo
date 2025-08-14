@@ -1,7 +1,18 @@
-import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
-import { CorrelationId, TenantId, generateId } from "pagopa-interop-models";
+import {
+  WithLogger,
+  systemRole,
+  genericLogger,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
+} from "pagopa-interop-commons";
+import {
+  CorrelationId,
+  RiskAnalysis,
+  TenantId,
+  generateId,
+} from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 import { DownloadedDocument } from "../src/utils/fileDownload.js";
 
@@ -56,3 +67,12 @@ export function getMockDownloadedDocument({
     prettyName,
   };
 }
+
+export const buildRiskAnalysisSeed = (
+  riskAnalysis: RiskAnalysis
+): m2mGatewayApi.EServiceRiskAnalysisSeed => ({
+  name: riskAnalysis.name,
+  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+    riskAnalysis.riskAnalysisForm
+  ),
+});

@@ -31,6 +31,7 @@ import {
   interfaceAlreadyExists,
   documentPrettyNameDuplicate,
   templateInstanceNotAllowed,
+  checksumDuplicate,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -63,7 +64,7 @@ describe("upload Document", () => {
       };
       await addOneEService(eservice);
 
-      const returnedEService = await catalogService.uploadDocument(
+      const returnedDocument = await catalogService.uploadDocument(
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
@@ -80,22 +81,23 @@ describe("upload Document", () => {
         payload: writtenEvent.data,
       });
 
+      const expectedDocument: Document = {
+        ...mockDocument,
+        id: unsafeBrandId(
+          writtenPayload.eservice!.descriptors[0]!.interface!.id
+        ),
+        checksum: writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
+        uploadDate: new Date(
+          writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
+        ),
+      };
+
       const expectedEservice = toEServiceV2({
         ...eservice,
         descriptors: [
           {
             ...descriptor,
-            interface: {
-              ...mockDocument,
-              id: unsafeBrandId(
-                writtenPayload.eservice!.descriptors[0]!.interface!.id
-              ),
-              checksum:
-                writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
-              uploadDate: new Date(
-                writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
-              ),
-            },
+            interface: expectedDocument,
             serverUrls: ["pagopa.it"],
           },
         ],
@@ -103,7 +105,12 @@ describe("upload Document", () => {
 
       expect(writtenPayload.descriptorId).toEqual(descriptor.id);
       expect(writtenPayload.eservice).toEqual(expectedEservice);
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(returnedDocument).toEqual({
+        data: expectedDocument,
+        metadata: {
+          version: 1,
+        },
+      });
     }
   );
   it.each(
@@ -132,7 +139,7 @@ describe("upload Document", () => {
       await addOneEService(eservice);
       await addOneDelegation(delegation);
 
-      const returnedEService = await catalogService.uploadDocument(
+      const returnedDocument = await catalogService.uploadDocument(
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
@@ -149,22 +156,23 @@ describe("upload Document", () => {
         payload: writtenEvent.data,
       });
 
+      const expectedDocument: Document = {
+        ...mockDocument,
+        id: unsafeBrandId(
+          writtenPayload.eservice!.descriptors[0]!.interface!.id
+        ),
+        checksum: writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
+        uploadDate: new Date(
+          writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
+        ),
+      };
+
       const expectedEservice = toEServiceV2({
         ...eservice,
         descriptors: [
           {
             ...descriptor,
-            interface: {
-              ...mockDocument,
-              id: unsafeBrandId(
-                writtenPayload.eservice!.descriptors[0]!.interface!.id
-              ),
-              checksum:
-                writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
-              uploadDate: new Date(
-                writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
-              ),
-            },
+            interface: expectedDocument,
             serverUrls: ["pagopa.it"],
           },
         ],
@@ -172,7 +180,12 @@ describe("upload Document", () => {
 
       expect(writtenPayload.descriptorId).toEqual(descriptor.id);
       expect(writtenPayload.eservice).toEqual(expectedEservice);
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(returnedDocument).toEqual({
+        data: expectedDocument,
+        metadata: {
+          version: 1,
+        },
+      });
     }
   );
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
@@ -372,5 +385,34 @@ describe("upload Document", () => {
         getMockContext({ authData: getMockAuthData(eService.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
+  });
+  it("should throw checksumDuplicate if the checksum is already present in the descriptor", async () => {
+    const document: Document = {
+      ...getMockDocument(),
+      prettyName: "TEST",
+    };
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.draft,
+      docs: [document],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+
+    await addOneEService(eservice);
+    expect(
+      catalogService.uploadDocument(
+        eservice.id,
+        descriptor.id,
+        {
+          ...buildDocumentSeed(),
+          checksum: document.checksum,
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(checksumDuplicate(eservice.id, descriptor.id));
   });
 });

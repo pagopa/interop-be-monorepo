@@ -6,7 +6,7 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import {
   generateId,
-  invalidInterfaceContentTypeDetected,
+  invalidContentTypeDetected,
   technology,
 } from "pagopa-interop-models";
 import { getMockEService, readFileContent } from "../src/index.js";
@@ -81,7 +81,7 @@ describe("verifyAndCreateDocument", async () => {
       expect.any(String)
     );
   });
-  it("should throw invalidInterfaceContentTypeDetected if the content type is not valid", async () => {
+  it("should throw invalidContentTypeDetected if the content type is not valid", async () => {
     const invalidFile = new File([file], file.name, {
       type: "",
       lastModified: file.lastModified,
@@ -101,7 +101,7 @@ describe("verifyAndCreateDocument", async () => {
         genericLogger
       )
     ).rejects.toThrowError(
-      invalidInterfaceContentTypeDetected(resource, "invalid", technology.rest)
+      invalidContentTypeDetected(resource, "invalid", technology.rest)
     );
   });
   it("should delete the file and rethrow error if document creation fails", async () => {

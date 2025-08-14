@@ -24,12 +24,10 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
       {
         limit,
         offset,
-        requesterId,
         userIds,
         kind,
         name,
       }: {
-        requesterId: string;
         offset: number;
         limit: number;
         userIds: string[];
@@ -45,7 +43,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
           offset,
           limit,
           userIds,
-          consumerId: requesterId,
+          consumerId: authData.organizationId,
           name,
           kind,
           purposeId: undefined,

@@ -4,14 +4,14 @@ import {
   fromDescriptorV1,
   fromDocumentV1,
   fromEServiceV1,
-  genericInternalError,
+  missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { CustomReadModelService } from "./readModelService.js";
+import { CatalogWriterService } from "./catalogWriterService.js";
 
 export async function handleMessageV1(
   message: EServiceEventEnvelopeV1,
-  customReadModelService: CustomReadModelService
+  catalogWriterService: CatalogWriterService
 ): Promise<void> {
   await match(message)
     .with(
@@ -25,12 +25,10 @@ export async function handleMessageV1(
       async (msg) => {
         const eserviceV1 = msg.data.eservice;
         if (!eserviceV1) {
-          throw genericInternalError(
-            "eservice can't be missing in event message"
-          );
+          throw missingKafkaMessageDataError("eservice", msg.type);
         }
 
-        return await customReadModelService.upsertEService(
+        return await catalogWriterService.upsertEService(
           fromEServiceV1(eserviceV1),
           msg.version
         );
@@ -39,7 +37,7 @@ export async function handleMessageV1(
     .with(
       { type: "EServiceWithDescriptorsDeleted" },
       async (msg) =>
-        await customReadModelService.deleteDescriptorById({
+        await catalogWriterService.deleteDescriptorById({
           eserviceId: unsafeBrandId(msg.stream_id),
           descriptorId: unsafeBrandId(msg.data.descriptorId),
           metadataVersion: msg.version,
@@ -47,14 +45,11 @@ export async function handleMessageV1(
     )
     .with({ type: "EServiceDocumentUpdated" }, async (msg) => {
       const documentV1 = msg.data.updatedDocument;
-
       if (!documentV1) {
-        throw genericInternalError(
-          "document can't be missing in event message"
-        );
+        throw missingKafkaMessageDataError("updatedDocument", msg.type);
       }
 
-      await customReadModelService.updateDocOrInterface({
+      await catalogWriterService.updateDocOrInterface({
         eserviceId: unsafeBrandId(msg.data.eserviceId),
         descriptorId: unsafeBrandId(msg.data.descriptorId),
         docOrInterface: fromDocumentV1(documentV1),
@@ -65,22 +60,19 @@ export async function handleMessageV1(
     .with(
       { type: "EServiceDeleted" },
       async (msg) =>
-        await customReadModelService.deleteEServiceById(
+        await catalogWriterService.deleteEServiceById(
           unsafeBrandId(msg.data.eserviceId),
           msg.version
         )
     )
     .with({ type: "EServiceDocumentAdded" }, async (msg) => {
       const documentV1 = msg.data.document;
-
       if (!documentV1) {
-        throw genericInternalError(
-          "document can't be missing in event message"
-        );
+        throw missingKafkaMessageDataError("document", msg.type);
       }
 
       if (msg.data.isInterface) {
-        await customReadModelService.upsertInterface({
+        await catalogWriterService.upsertInterface({
           eserviceId: unsafeBrandId(msg.data.eserviceId),
           descriptorId: unsafeBrandId(msg.data.descriptorId),
           descriptorInterface: fromDocumentV1(documentV1),
@@ -88,7 +80,7 @@ export async function handleMessageV1(
           serverUrls: msg.data.serverUrls,
         });
       } else {
-        await customReadModelService.upsertDocument({
+        await catalogWriterService.upsertDocument({
           eserviceId: unsafeBrandId(msg.data.eserviceId),
           descriptorId: unsafeBrandId(msg.data.descriptorId),
           document: fromDocumentV1(documentV1),
@@ -97,7 +89,7 @@ export async function handleMessageV1(
       }
     })
     .with({ type: "EServiceDocumentDeleted" }, async (msg) => {
-      await customReadModelService.deleteDocumentOrInterface({
+      await catalogWriterService.deleteDocumentOrInterface({
         eserviceId: unsafeBrandId(msg.data.eserviceId),
         descriptorId: unsafeBrandId(msg.data.descriptorId),
         documentId: unsafeBrandId(msg.data.documentId),
@@ -109,14 +101,11 @@ export async function handleMessageV1(
       { type: "EServiceDescriptorUpdated" },
       async (msg) => {
         const descriptorV1 = msg.data.eserviceDescriptor;
-
         if (!descriptorV1) {
-          throw genericInternalError(
-            "descriptor can't be missing in event message"
-          );
+          throw missingKafkaMessageDataError("eserviceDescriptor", msg.type);
         }
 
-        await customReadModelService.upsertDescriptor({
+        await catalogWriterService.upsertDescriptor({
           eserviceId: unsafeBrandId(msg.data.eserviceId),
           descriptor: fromDescriptorV1(descriptorV1),
           metadataVersion: msg.version,

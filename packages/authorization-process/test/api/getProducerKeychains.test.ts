@@ -2,57 +2,61 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
-  EServiceId,
-  generateId,
   ProducerKeychain,
+  generateId,
   TenantId,
+  UserId,
+  EServiceId,
 } from "pagopa-interop-models";
 import {
   generateToken,
   getMockProducerKeychain,
+  mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { producerKeychainToApiProducerKeychain } from "../../src/model/domain/apiConverter.js";
+import {
+  testToPartialProducerKeychain,
+  testToFullProducerKeychain,
+} from "../apiUtils.js";
 
 describe("API /producerKeychains authorization test", () => {
-  const producerId: TenantId = generateId();
-  const eserviceId: EServiceId = generateId();
-  const mockProducerKeychain1: ProducerKeychain = {
+  const producerId = generateId<TenantId>();
+  const eserviceId = generateId<EServiceId>();
+  const userId1: UserId = generateId();
+  const userId2: UserId = generateId();
+
+  const producerKeychain1: ProducerKeychain = {
     ...getMockProducerKeychain(),
-    name: "test1",
+    name: "producerKeychain",
+    producerId: mockTokenOrganizationId,
     eservices: [eserviceId],
-    producerId,
+    users: [userId1],
   };
-  const mockProducerKeychain2: ProducerKeychain = {
+
+  const producerKeychain2: ProducerKeychain = {
     ...getMockProducerKeychain(),
-    name: "test2",
-    eservices: [eserviceId],
+    name: "producerKeychain",
     producerId,
+    eservices: [eserviceId],
+    users: [userId2],
   };
 
   const producerKeychainsResponse = {
-    results: [mockProducerKeychain1, mockProducerKeychain2],
+    results: [producerKeychain1, producerKeychain2],
     totalCount: 2,
   };
-
-  const apiProducerKeychains = authorizationApi.ProducerKeychains.parse({
-    results: producerKeychainsResponse.results.map((producerKeychain) =>
-      producerKeychainToApiProducerKeychain(producerKeychain, {
-        showUsers: false,
-      })
-    ),
-    totalCount: producerKeychainsResponse.totalCount,
-  });
 
   authorizationService.getProducerKeychains = vi
     .fn()
     .mockResolvedValue(producerKeychainsResponse);
 
-  const queryParams = {
-    producerId,
+  const queryParams: authorizationApi.GetProducerKeychainsQueryParams = {
+    name: "producerKeychain",
+    userIds: [userId1, userId2],
     eserviceId,
+    producerId,
     offset: 0,
     limit: 50,
   };
@@ -70,17 +74,24 @@ describe("API /producerKeychains authorization test", () => {
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.SECURITY_ROLE,
-    authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 200 with role %s and return full or partial producerKeychains based on producerKeychain producerId",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiProducerKeychains);
+      expect(res.body).toEqual({
+        results: [
+          testToFullProducerKeychain(producerKeychain1),
+          testToPartialProducerKeychain(producerKeychain2),
+        ],
+        totalCount: 2,
+      });
     }
   );
 
@@ -96,11 +107,11 @@ describe("API /producerKeychains authorization test", () => {
     {},
     { ...queryParams, offset: "invalid" },
     { ...queryParams, limit: "invalid" },
-    { ...queryParams, producerId: "invalid-consumer-id" },
-    { ...queryParams, eserviceId: "invalid-eservice-Id" },
+    { ...queryParams, eserviceId: "invalid-eservice-id" },
+    { ...queryParams, producerId: "invalid-producer-id" },
     { ...queryParams, offset: -2 },
     { ...queryParams, limit: 100 },
-  ])("Should return 400 if passed invalid params", async (query) => {
+  ])("Should return 400 if passed invalid params: %s", async (query) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof queryParams);
 

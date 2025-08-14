@@ -1,6 +1,7 @@
-import { authorizationApi, delegationApi } from "pagopa-interop-api-clients";
+import { delegationApi } from "pagopa-interop-api-clients";
+import { TenantId } from "pagopa-interop-models";
 import {
-  unexpectedClientKind,
+  notAnActiveConsumerDelegation,
   unexpectedDelegationKind,
 } from "../../model/errors.js";
 
@@ -13,11 +14,22 @@ export function assertDelegationKindIs<K extends delegationApi.DelegationKind>(
   }
 }
 
-export function assertClientKindIs<K extends authorizationApi.ClientKind>(
-  client: authorizationApi.Client,
-  expectedKind: K
-): asserts client is authorizationApi.Client & { kind: K } {
-  if (client.kind !== expectedKind) {
-    throw unexpectedClientKind(client);
+export function assertActiveConsumerDelegateForEservice(
+  requesterTenantId: TenantId,
+  eserviceId: string,
+  delegation: delegationApi.Delegation
+): void {
+  if (
+    delegation.kind !==
+      delegationApi.DelegationKind.Values.DELEGATED_CONSUMER ||
+    delegation.state !== delegationApi.DelegationState.Values.ACTIVE ||
+    delegation.delegateId !== requesterTenantId ||
+    delegation.eserviceId !== eserviceId
+  ) {
+    throw notAnActiveConsumerDelegation(
+      requesterTenantId,
+      eserviceId,
+      delegation
+    );
   }
 }

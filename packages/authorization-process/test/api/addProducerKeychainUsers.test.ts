@@ -4,7 +4,6 @@ import {
   generateId,
   ProducerKeychain,
   ProducerKeychainId,
-  TenantId,
   UserId,
 } from "pagopa-interop-models";
 import {
@@ -14,36 +13,27 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { producerKeychainToApiProducerKeychain } from "../../src/model/domain/apiConverter.js";
 import {
   tenantNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
   producerKeychainUserAlreadyAssigned,
   userWithoutSecurityPrivileges,
 } from "../../src/model/domain/errors.js";
+import { testToFullProducerKeychain } from "../apiUtils.js";
 
 describe("API /producerKeychains/{producerKeychainId}/users authorization test", () => {
-  const producerId: TenantId = generateId();
   const users: UserId[] = [generateId()];
   const userIdsToAdd: UserId[] = [generateId(), generateId()];
 
   const mockProducerKeychain: ProducerKeychain = {
     ...getMockProducerKeychain(),
-    producerId,
     users,
   };
 
-  const apiProducerKeyChain = producerKeychainToApiProducerKeychain(
-    mockProducerKeychain,
-    {
-      showUsers: true,
-    }
-  );
-
-  authorizationService.addProducerKeychainUsers = vi.fn().mockResolvedValue({
-    producerKeychain: mockProducerKeychain,
-    showUsers: true,
-  });
+  const serviceResponse = mockProducerKeychain;
+  authorizationService.addProducerKeychainUsers = vi
+    .fn()
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -57,23 +47,18 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
       .send({ userIds });
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockProducerKeychain.id);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiProducerKeyChain);
+      expect(res.body).toEqual(
+        testToFullProducerKeychain(mockProducerKeychain)
+      );
     }
   );
-
-  it.each(
-    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
-  )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(403);
-  });
 
   it.each([
     {

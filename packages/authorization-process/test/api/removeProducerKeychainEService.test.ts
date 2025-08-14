@@ -10,6 +10,7 @@ import {
 import {
   generateToken,
   getMockProducerKeychain,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, authorizationService } from "../vitest.api.setup.js";
@@ -18,6 +19,7 @@ import {
   tenantNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
 } from "../../src/model/domain/errors.js";
+import { testToFullProducerKeychain } from "../apiUtils.js";
 
 describe("API /producerKeychains/{producerKeychainId}/eservices/{eserviceId} authorization test", () => {
   const eserviceIdToRemove: EServiceId = generateId();
@@ -27,6 +29,8 @@ describe("API /producerKeychains/{producerKeychainId}/eservices/{eserviceId} aut
     ...getMockProducerKeychain(),
     eservices: [eserviceIdToRemove, eserviceIdToNotRemove],
   };
+
+  const serviceResponse = getMockWithMetadata(mockProducerKeychain);
 
   const makeRequest = async (
     token: string,
@@ -40,14 +44,17 @@ describe("API /producerKeychains/{producerKeychainId}/eservices/{eserviceId} aut
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
 
   authorizationService.removeProducerKeychainEService = vi
     .fn()
-    .mockResolvedValue({});
+    .mockResolvedValue(serviceResponse);
 
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 with a full producer keychain for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(
@@ -55,7 +62,22 @@ describe("API /producerKeychains/{producerKeychainId}/eservices/{eserviceId} aut
         mockProducerKeychain.id,
         eserviceIdToRemove
       );
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(
+        testToFullProducerKeychain(mockProducerKeychain)
+      );
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+      expect(
+        authorizationService.removeProducerKeychainEService
+      ).toHaveBeenCalledWith(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          eserviceIdToRemove,
+        },
+        expect.any(Object)
+      );
     }
   );
 

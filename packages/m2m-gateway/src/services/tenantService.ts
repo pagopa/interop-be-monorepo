@@ -9,6 +9,8 @@ import {
   toM2MGatewayApiTenant,
   toM2MGatewayApiTenantVerifiedAttribute,
   toM2MGatewayApiTenantDeclaredAttribute,
+  toM2MGatewayApiTenantVerifier,
+  toM2MGatewayApiTenantRevoker,
 } from "../api/tenantApiConverter.js";
 import {
   isPolledVersionAtLeastResponseVersion,
@@ -251,6 +253,72 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           limit,
           offset,
           totalCount: verifiedAttributes.length,
+        },
+      };
+    },
+    async getTenantVerifiedAttributeVerifiers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApi.GetTenantVerifiedAttributeVerifiersQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantVerifiedAttributeVerifiers> {
+      logger.info(
+        `Retrieving verifiers for verified attribute ${attributeId} of tenant ${tenantId}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.tenantProcessClient.tenant.getTenantVerifiedAttributeVerifiers(
+          {
+            params: { tenantId, attributeId },
+            queries: { limit, offset },
+            headers,
+          }
+        );
+
+      return {
+        results: results.map(toM2MGatewayApiTenantVerifier),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
+    },
+    async getTenantVerifiedAttributeRevokers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApi.GetTenantVerifiedAttributeRevokersQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantVerifiedAttributeRevokers> {
+      logger.info(
+        `Retrieving revokers for verified attribute ${attributeId} of tenant ${tenantId}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.tenantProcessClient.tenant.getTenantVerifiedAttributeRevokers(
+          {
+            params: { tenantId, attributeId },
+            queries: { limit, offset },
+            headers,
+          }
+        );
+
+      return {
+        results: results.map(toM2MGatewayApiTenantRevoker),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
         },
       };
     },
