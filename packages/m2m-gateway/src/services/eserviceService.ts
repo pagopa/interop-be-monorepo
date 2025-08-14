@@ -13,11 +13,13 @@ import {
   toM2MGatewayApiDocument,
   toM2MGatewayApiEService,
   toM2MGatewayApiEServiceDescriptor,
+  toM2MGatewayApiEServiceRiskAnalysis,
 } from "../api/eserviceApiConverter.js";
 import {
   cannotDeleteLastEServiceDescriptor,
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
+  eserviceRiskAnalysisNotFound,
 } from "../model/errors.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
@@ -596,6 +598,40 @@ export function eserviceServiceBuilder(
         );
 
       await pollEService(response, headers);
+    },
+
+    async createEServiceRiskAnalysis(
+      eserviceId: EServiceId,
+      body: catalogApi.EServiceRiskAnalysisSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceRiskAnalysis> {
+      logger.info(`Creating Risk Analysis for E-Service ${eserviceId}`);
+
+      const {
+        data: { eservice, createdRiskAnalysisId },
+        metadata,
+      } = await clients.catalogProcessClient.createRiskAnalysis(body, {
+        params: { eServiceId: eserviceId },
+        headers,
+      });
+
+      await pollEService(
+        {
+          data: eservice,
+          metadata,
+        },
+        headers
+      );
+
+      const createdRiskAnalysis = eservice.riskAnalysis.find(
+        (r) => r.id === createdRiskAnalysisId
+      );
+
+      if (!createdRiskAnalysis) {
+        throw eserviceRiskAnalysisNotFound(eserviceId, createdRiskAnalysisId);
+      }
+
+      return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
     },
   };
 }
