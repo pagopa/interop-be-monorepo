@@ -8,8 +8,6 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
-  EService,
-  EServiceId,
   generateId,
   PurposeTemplate,
   PurposeTemplateId,
@@ -28,7 +26,7 @@ import {
 } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function retrieveTenantKind(
+export async function retrieveTenantKind(
   tenantId: TenantId,
   readModelService: ReadModelServiceSQL
 ): Promise<TenantKind> {
@@ -64,7 +62,6 @@ export function purposeTemplateServiceBuilder(
       seed: purposeTemplateApi.PurposeTemplateSeed,
       {
         authData,
-        correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<
@@ -106,9 +103,6 @@ export function purposeTemplateServiceBuilder(
         purposeDailyCalls: seed.purposeDailyCalls,
       };
 
-      const event = await repository.createEvent(
-        toCreateEventPurposeTemplateAdded(purposeTemplate, correlationId)
-      );
       return {
         data: {
           purposeTemplate,
@@ -116,7 +110,7 @@ export function purposeTemplateServiceBuilder(
             validatedPurposeRiskAnalysisFormSeed !== undefined,
         },
         metadata: {
-          version: event.newVersion,
+          version: 0,
         },
       };
     },
