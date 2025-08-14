@@ -2,6 +2,7 @@ import { initDB, startServer } from "pagopa-interop-commons";
 import {
   catalogReadModelServiceBuilder,
   makeDrizzleConnection,
+  purposeTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
@@ -12,10 +13,14 @@ import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const readModelDB = makeDrizzleConnection(config);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const purposeTemplateReadModelServiceSQL =
+  purposeTemplateReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
 const readModelServiceSQL = readModelServiceBuilderSQL({
   catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL: tenantReadModelServiceBuilder(readModelDB),
+  tenantReadModelServiceSQL,
+  purposeTemplateReadModelServiceSQL,
 });
 
 const service = purposeTemplateServiceBuilder(
