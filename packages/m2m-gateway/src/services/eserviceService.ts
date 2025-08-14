@@ -15,6 +15,7 @@ import {
   toM2MGatewayApiEServiceDescriptor,
 } from "../api/eserviceApiConverter.js";
 import {
+  cannotDeleteLastEServiceDescriptor,
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
 } from "../model/errors.js";
@@ -71,11 +72,11 @@ export function eserviceServiceBuilder(
   };
 
   const pollEserviceUntilDeletion = (
-    eServiceId: string,
+    eserviceId: string,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<void> =>
     pollResourceUntilDeletion(() =>
-      retrieveEServiceById(headers, unsafeBrandId(eServiceId))
+      retrieveEServiceById(headers, unsafeBrandId(eserviceId))
     )({});
 
   const pollEServiceById = (
@@ -329,6 +330,37 @@ export function eserviceServiceBuilder(
         logger
       );
     },
+    async deleteDraftEServiceDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting descriptor ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
+      );
+
+      if (
+        eservice.descriptors.length === 1 &&
+        eservice.descriptors[0].id === descriptorId
+      ) {
+        throw cannotDeleteLastEServiceDescriptor(eserviceId, descriptorId);
+      }
+
+      const { metadata } = await clients.catalogProcessClient.deleteDraft(
+        undefined,
+        {
+          params: { eServiceId: eserviceId, descriptorId },
+          headers,
+        }
+      );
+      await pollEServiceById(eserviceId, metadata, headers);
+    },
+
     async createEService(
       seed: m2mGatewayApi.EServiceSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>

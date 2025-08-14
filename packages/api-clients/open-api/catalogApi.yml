@@ -178,8 +178,8 @@ paths:
         "200":
           description: EService created
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -604,6 +604,9 @@ paths:
             type: string
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: E-Service draft Descriptor deleted
         "400":
           description: Invalid input
@@ -740,8 +743,8 @@ paths:
         "200":
           description: E-Service Descriptor suspended
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -786,8 +789,8 @@ paths:
         "200":
           description: E-Service Descriptor suspended
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -832,8 +835,8 @@ paths:
         "200":
           description: E-Service Descriptor activated
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1864,8 +1867,8 @@ paths:
         "200":
           description: New delegated e-service version approved
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1925,8 +1928,8 @@ paths:
         "200":
           description: New delegated e-service version rejected
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
