@@ -29,7 +29,7 @@ import {
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("API /eservices/{eServiceId} authorization test", () => {
+describe("PUT /eservices/{eServiceId} router test", () => {
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.draft,
