@@ -3,8 +3,9 @@ import {
   getMockContext,
   getMockEService,
   getMockDescriptorPublished,
-  getMockAgreement,
+  getMockDocument,
   getMockTenant,
+  getMockAgreement,
 } from "pagopa-interop-commons-test";
 import {
   agreementState,
@@ -14,7 +15,9 @@ import {
   toEServiceV2,
   type EServiceEventV2,
   type EServiceDescriptorPublishedV2,
-  EServiceNameUpdatedV2,
+  unsafeBrandId,
+  EServiceId,
+  AttributeId,
 } from "pagopa-interop-models";
 import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
 import { tenantNotFound } from "../src/models/errors.js";
@@ -26,11 +29,17 @@ import {
   readModelService,
 } from "./utils.js";
 
-describe("handleEserviceStateChangedToConsumer for EServiceDescriptorPublished", async () => {
+describe("handleEserviceStateChangedToConsumer", async () => {
   const eservice = {
     ...getMockEService(),
     producerId: generateId<TenantId>(),
-    descriptors: [getMockDescriptorPublished()],
+    descriptors: [
+      {
+        ...getMockDescriptorPublished(),
+        interface: getMockDocument(),
+        docs: [getMockDocument()],
+      },
+    ],
   };
   const { logger } = getMockContext({});
   await addOneEService(eservice);
@@ -109,7 +118,13 @@ describe("handleEserviceStateChangedToConsumer for EServiceDescriptorPublished",
       const eservice = {
         ...getMockEService(),
         producerId: generateId<TenantId>(),
-        descriptors: [getMockDescriptorPublished()],
+        descriptors: [
+          {
+            ...getMockDescriptorPublished(),
+            interface: getMockDocument(),
+            docs: [getMockDocument()],
+          },
+        ],
       };
       await addOneEService(eservice);
 
@@ -164,90 +179,315 @@ describe("handleEserviceStateChangedToConsumer for EServiceDescriptorPublished",
     }
   );
 
-  it("generate notifications for EServiceNameUpdated and EServiceNameUpdatedByTemplateUpdate", async () => {
-    const eservice = {
-      ...getMockEService(),
-      descriptors: [getMockDescriptorPublished()],
-    };
-    await addOneEService(eservice);
+  it.each([
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceNameUpdated",
+        data: {
+          eservice: toEServiceV2(eservice),
+        },
+      },
+      expectedBody: inAppTemplates.eserviceNameUpdatedToConsumer(eservice.name),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceNameUpdatedByTemplateUpdate",
+        data: {
+          eservice: toEServiceV2(eservice),
+        },
+      },
+      expectedBody: inAppTemplates.eserviceNameUpdatedToConsumer(eservice.name),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptionUpdated",
+        data: {
+          eservice: toEServiceV2(eservice),
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptionUpdatedToConsumer(
+        eservice.name
+      ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptionUpdatedByTemplateUpdate",
+        data: {
+          eservice: toEServiceV2(eservice),
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptionUpdatedToConsumer(
+        eservice.name
+      ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorAttributesUpdated",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+          attributeIds: [generateId<AttributeId>()] as AttributeId[],
+        },
+      },
+      expectedBody:
+        inAppTemplates.eserviceDescriptorAttributesUpdatedToConsumer(
+          eservice.name
+        ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+          attributeIds: [generateId<AttributeId>()] as AttributeId[],
+        },
+      },
+      expectedBody:
+        inAppTemplates.eserviceDescriptorAttributesUpdatedToConsumer(
+          eservice.name
+        ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorSuspended",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptorSuspendedToConsumer(
+        eservice.name
+      ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorActivated",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptorActivatedToConsumer(
+        eservice.name
+      ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorQuotasUpdated",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(
+        eservice.name
+      ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(
+        eservice.name
+      ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorAgreementApprovalPolicyUpdated",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+        },
+      },
+      expectedBody:
+        inAppTemplates.eserviceDescriptorAgreementApprovalPolicyUpdatedToConsumer(
+          eservice.name
+        ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorInterfaceAdded",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+          documentId: eservice.descriptors[0].interface.id,
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptorInterfaceAddedToConsumer(
+        eservice.name,
+        eservice.descriptors[0].interface.prettyName
+      ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorDocumentAdded",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+          documentId: eservice.descriptors[0].docs[0].id,
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
+        eservice.name,
+        eservice.descriptors[0].docs[0].prettyName
+      ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorDocumentAddedByTemplateUpdate",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+          documentId: eservice.descriptors[0].docs[0].id,
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
+        eservice.name,
+        eservice.descriptors[0].docs[0].prettyName
+      ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorDocumentDeleted",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+          documentId: eservice.descriptors[0].docs[0].id,
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptorDocumentDeletedToConsumer(
+        eservice.name,
+        eservice.descriptors[0].docs[0].prettyName
+      ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+          documentId: eservice.descriptors[0].docs[0].id,
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptorDocumentDeletedToConsumer(
+        eservice.name,
+        eservice.descriptors[0].docs[0].prettyName
+      ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorInterfaceUpdated",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+          documentId: eservice.descriptors[0].interface.id,
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptorInterfaceUpdatedToConsumer(
+        eservice.name,
+        eservice.descriptors[0].interface.prettyName
+      ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorDocumentUpdated",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+          documentId: eservice.descriptors[0].docs[0].id,
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptorDocumentUpdatedToConsumer(
+        eservice.name,
+        eservice.descriptors[0].docs[0].prettyName
+      ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+          documentId: eservice.descriptors[0].docs[0].id,
+        },
+      },
+      expectedBody: inAppTemplates.eserviceDescriptorDocumentUpdatedToConsumer(
+        eservice.name,
+        eservice.descriptors[0].docs[0].prettyName
+      ),
+    },
+  ] as const)(
+    "should generate notifications for $msg.type",
+    async ({ msg, expectedBody }) => {
+      const consumerId = generateId<TenantId>();
+      const consumerTenant = getMockTenant(consumerId);
 
-    const consumerId = generateId<TenantId>();
-    const consumerTenant = getMockTenant(consumerId);
-    await addOneTenant(consumerTenant);
+      // eslint-disable-next-line functional/immutable-data
+      readModelService.getAgreementsByEserviceId = vi
+        .fn()
+        .mockResolvedValue([
+          getMockAgreement(
+            unsafeBrandId<EServiceId>(msg.data.eservice.id),
+            consumerId,
+            agreementState.active
+          ),
+        ]);
+      // eslint-disable-next-line functional/immutable-data
+      readModelService.getTenantById = vi
+        .fn()
+        .mockResolvedValue(consumerTenant);
 
-    const agreement = getMockAgreement(
-      eservice.id,
-      consumerId,
-      agreementState.active
-    );
-    await addOneAgreement(agreement);
+      const users = [
+        { userId: generateId(), tenantId: consumerId },
+        { userId: generateId(), tenantId: consumerId },
+      ];
+      // eslint-disable-next-line functional/immutable-data
+      readModelService.getTenantUsersWithNotificationEnabled = vi
+        .fn()
+        .mockResolvedValue(users);
 
-    const users = [
-      { userId: generateId(), tenantId: consumerId },
-      { userId: generateId(), tenantId: consumerId },
-    ];
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
-
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceNameUpdated",
-      data: {
-        eservice: toEServiceV2(eservice),
-      } satisfies EServiceNameUpdatedV2,
-    };
-
-    const notifications = await handleEserviceStateChangedToConsumer(
-      msg,
-      logger,
-      readModelService
-    );
-
-    const body = inAppTemplates.eserviceNameUpdatedToConsumer(eservice.name);
-    // eslint-disable-next-line sonarjs/no-identical-functions
-    const expectedNotifications = users.map((user) => ({
-      userId: user.userId,
-      tenantId: consumerId,
-      body,
-      notificationType: "eserviceStateChangedToConsumer",
-      entityId: eservice.descriptors[0].id,
-    }));
-    expect(notifications).toEqual(
-      expect.arrayContaining(expectedNotifications)
-    );
-
-    const msgByTemplateUpdate: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceNameUpdatedByTemplateUpdate",
-      data: {
-        eservice: toEServiceV2(eservice),
-      } satisfies EServiceNameUpdatedV2,
-    };
-
-    const notificationsByTemplateUpdate =
-      await handleEserviceStateChangedToConsumer(
-        msgByTemplateUpdate,
+      const notifications = await handleEserviceStateChangedToConsumer(
+        msg,
         logger,
         readModelService
       );
 
-    const bodyByTemplateUpdate = inAppTemplates.eserviceNameUpdatedToConsumer(
-      eservice.name
-    );
-    // eslint-disable-next-line sonarjs/no-identical-functions
-    const expectedNotificationsByTemplateUpdate = users.map((user) => ({
-      userId: user.userId,
-      tenantId: consumerId,
-      body: bodyByTemplateUpdate,
-      notificationType: "eserviceStateChangedToConsumer",
-      entityId: eservice.descriptors[0].id,
-    }));
-    expect(notificationsByTemplateUpdate).toEqual(
-      expect.arrayContaining(expectedNotificationsByTemplateUpdate)
-    );
-  });
+      const expectedNotifications = users.map((user) => ({
+        userId: user.userId,
+        tenantId: consumerId,
+        body: expectedBody,
+        notificationType: "eserviceStateChangedToConsumer",
+        entityId: msg.data.eservice.descriptors[0].id,
+      }));
+      expect(notifications).toEqual(
+        expect.arrayContaining(expectedNotifications)
+      );
+    }
+  );
 
   it("should return empty array when no user notification configs exist for the eservice", async () => {
     const consumerId = generateId<TenantId>();
@@ -271,7 +511,7 @@ describe("handleEserviceStateChangedToConsumer for EServiceDescriptorPublished",
       data: {
         eservice: toEServiceV2(eservice),
         descriptorId: eservice.descriptors[0].id,
-      } satisfies EServiceDescriptorPublishedV2,
+      },
     };
 
     const notifications = await handleEserviceStateChangedToConsumer(
