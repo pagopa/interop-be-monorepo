@@ -15,6 +15,7 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { createPurposeTemplateErrorMapper } from "../utilities/errorMappers.js";
+import { purposeTemplateToApiPurposeTemplate } from "../model/domain/apiConverter.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -66,7 +67,7 @@ const purposeTemplateRouter = (
         setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
-          .send(purposeTemplateApi.PurposeTemplate.parse(purposeTemplate));
+          .send(purposeTemplateToApiPurposeTemplate(purposeTemplate));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
