@@ -3,6 +3,7 @@ import {
   systemRole,
   genericLogger,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -24,7 +25,7 @@ export const getMockM2MAdminAppContext = ({
 }: {
   organizationId?: TenantId;
   serviceName?: string;
-} = {}): WithLogger<M2MGatewayAppContext> => {
+} = {}): WithLogger<M2MGatewayAppContext<M2MAdminAuthData>> => {
   const correlationId = generateId<CorrelationId>();
   return {
     authData: {

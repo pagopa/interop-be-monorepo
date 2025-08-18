@@ -1,6 +1,6 @@
 import { delegationApi } from "pagopa-interop-api-clients";
 import { TenantId } from "pagopa-interop-models";
-import { M2MAdminAuthData, M2MAuthData } from "pagopa-interop-commons";
+import { M2MAdminAuthData } from "pagopa-interop-commons";
 import {
   notAnActiveConsumerDelegation,
   requesterIsNotTheDelegateConsumer,
@@ -37,7 +37,7 @@ export function assertActiveConsumerDelegateForEservice(
 }
 
 export function assertRequesterIsDelegateConsumer(
-  authData: M2MAdminAuthData | M2MAuthData,
+  authData: M2MAdminAuthData,
   delegation: delegationApi.Delegation
 ): void {
   if (

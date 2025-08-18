@@ -204,14 +204,18 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         id: attributeId,
         delegationId,
       }: m2mGatewayApi.TenantDeclaredAttributeSeed,
-      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+      {
+        logger,
+        headers,
+        authData,
+      }: WithLogger<M2MGatewayAppContext<M2MAdminAuthData>>
     ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
       logger.info(
         `Assigning declared attribute ${attributeId} to tenant ${tenantId}`
       );
 
       await assertTenantCanEditDeclaredAttributes(
-        authData as M2MAdminAuthData,
+        authData,
         tenantId,
         delegationId ? unsafeBrandId<DelegationId>(delegationId) : undefined,
         clients.delegationProcessClient,
