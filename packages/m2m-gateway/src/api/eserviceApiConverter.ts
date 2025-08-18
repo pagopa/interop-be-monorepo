@@ -108,7 +108,7 @@ export function toCatalogApiEServiceDescriptorSeed(
     docs: [],
   };
 }
-    
+
 export function toM2MGatewayApiRiskAnalysisAnswers(
   singleAnswers: catalogApi.EServiceRiskAnalysisSingleAnswer[],
   multiAnswers: catalogApi.EServiceRiskAnalysisMultiAnswer[]
