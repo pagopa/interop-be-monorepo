@@ -923,7 +923,7 @@ export function catalogServiceBuilder(
     async patchUpdateEService(
       eserviceId: EServiceId,
       eserviceSeed: catalogApi.PatchUpdateEServiceSeed,
-      ctx: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       ctx.logger.info(`Partially updating EService ${eserviceId}`);
       return updateDraftEService(

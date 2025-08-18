@@ -11,14 +11,12 @@ import {
 } from "pagopa-interop-models";
 import {
   generateToken,
-  randomArrayItem,
   getMockDescriptor,
   getMockEService,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
-import { match } from "ts-pattern";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
@@ -45,38 +43,32 @@ describe("API /eservices/{eServiceId} authorization test", () => {
     eServiceToApiEService(mockEService)
   );
 
-  const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
-  const isConsumerDelegable = randomArrayItem([false, true, undefined]);
-  const isClientAccessDelegable = match(isConsumerDelegable)
-    .with(undefined, () => undefined)
-    .with(true, () => randomArrayItem([false, true, undefined]))
-    .with(false, () => false)
-    .exhaustive();
-
-  const eserviceSeed: catalogApi.UpdateEServiceSeed = {
+  const eserviceSeed: catalogApi.PatchUpdateEServiceSeed = {
     name: "new Name",
     description: mockEService.description,
     technology: "REST",
     mode: "DELIVER",
-    isSignalHubEnabled,
-    isConsumerDelegable,
-    isClientAccessDelegable,
+    isSignalHubEnabled: true,
+    isConsumerDelegable: true,
+    isClientAccessDelegable: true,
   };
 
-  catalogService.updateEService = vi.fn().mockResolvedValue(serviceResponse);
+  catalogService.patchUpdateEService = vi
+    .fn()
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
     eServiceId: string,
-    body: catalogApi.UpdateEServiceSeed = eserviceSeed
+    body: catalogApi.PatchUpdateEServiceSeed = eserviceSeed
   ) =>
     request(api)
-      .put(`/eservices/${eServiceId}`)
+      .patch(`/eservices/${eServiceId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -84,6 +76,72 @@ describe("API /eservices/{eServiceId} authorization test", () => {
       const res = await makeRequest(token, mockEService.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiEservice);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+    }
+  );
+
+  it.each([
+    {},
+    { name: "updated name" },
+    {
+      name: "updated name",
+      description: "updated description",
+    },
+    {
+      name: "updated name",
+      description: "updated description",
+      technology: "SOAP",
+    },
+    {
+      name: "updated name",
+      description: "updated description",
+      technology: "SOAP",
+      mode: "RECEIVE",
+    },
+    {
+      name: "updated name",
+      description: "updated description",
+      technology: "SOAP",
+      mode: "DELIVER",
+      isSignalHubEnabled: false,
+    },
+    {
+      name: "updated name",
+      description: "updated description",
+      technology: "SOAP",
+      mode: "RECEIVE",
+      isSignalHubEnabled: false,
+      isConsumerDelegable: false,
+    },
+  ] as catalogApi.PatchUpdateEServiceSeed[])(
+    "Should return 200 with partial seed (seed #%#)",
+    async (seed) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockEService.id, seed);
+      expect(res.status).toBe(200);
+    }
+  );
+
+  it.each([
+    [{ name: 123 }, mockEService.id],
+    [{ description: null }, mockEService.id],
+    [{ technology: "invalidTechnology" }, mockEService.id],
+    [{ mode: "invalidMode" }, mockEService.id],
+    [{ isConsumerDelegable: "stringInsteadOfBool" }, mockEService.id],
+    [{ ...eserviceSeed }, "invalidId"],
+  ])(
+    "Should return 400 if passed invalid seed or e-service id (seed #%#)",
+    async (body, eServiceId) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId as EServiceId,
+        body as catalogApi.UpdateEServiceSeed
+      );
+
+      expect(res.status).toBe(400);
     }
   );
 
@@ -131,35 +189,12 @@ describe("API /eservices/{eServiceId} authorization test", () => {
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      catalogService.updateEService = vi.fn().mockRejectedValueOnce(error);
+      catalogService.patchUpdateEService = vi.fn().mockRejectedValueOnce(error);
 
-      const token = generateToken(authRole.ADMIN_ROLE);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockEService.id);
 
       expect(res.status).toBe(expectedStatus);
-    }
-  );
-
-  it.each([
-    [{}, mockEService.id],
-    [{ name: 123 }, mockEService.id],
-    [{ description: null }, mockEService.id],
-    [{ technology: "invalidTechnology" }, mockEService.id],
-    [{ mode: "invalidMode" }, mockEService.id],
-    [{ isSignalHubEnabled: undefined }, mockEService.id],
-    [{ isConsumerDelegable: "stringInsteadOfBool" }, mockEService.id],
-    [{ ...eserviceSeed }, "invalidId"],
-  ])(
-    "Should return 400 if passed invalid seed or e-service id (seed #%#)",
-    async (body, eServiceId) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        eServiceId as EServiceId,
-        body as catalogApi.UpdateEServiceSeed
-      );
-
-      expect(res.status).toBe(400);
     }
   );
 });

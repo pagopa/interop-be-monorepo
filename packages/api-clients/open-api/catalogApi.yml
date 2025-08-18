@@ -205,6 +205,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
     get:
       security:
         - bearerAuth: []
@@ -286,6 +287,9 @@ paths:
       responses:
         "200":
           description: E-Service updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:

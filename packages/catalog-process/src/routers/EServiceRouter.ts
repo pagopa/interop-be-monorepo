@@ -253,6 +253,30 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .patch("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const { data: updatedEService, metadata } =
+          await catalogService.patchUpdateEService(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, updateEServiceErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/templates/eservices/:eServiceId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
