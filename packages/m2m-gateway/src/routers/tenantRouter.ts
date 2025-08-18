@@ -8,18 +8,13 @@ import {
   validateAuthorization,
   authRole,
 } from "pagopa-interop-commons";
-import {
-  AgreementId,
-  emptyErrorMapper,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { TenantService } from "../services/tenantService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getTenantsErrorMapper,
   assignTenantDeclaredAttributeErrorMapper,
-  revokeTenantVerifiedAttributeErrorMapper,
 } from "../utils/errorMappers.js";
 
 const tenantRouter = (
@@ -295,9 +290,7 @@ const tenantRouter = (
             await tenantService.revokeTenantVerifiedAttribute(
               unsafeBrandId(req.params.tenantId),
               unsafeBrandId(req.params.attributeId),
-              req.query.agreementId
-                ? unsafeBrandId<AgreementId>(req.query.agreementId)
-                : undefined,
+              unsafeBrandId(req.query.agreementId),
               ctx
             );
 
@@ -309,7 +302,7 @@ const tenantRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            revokeTenantVerifiedAttributeErrorMapper,
+            emptyErrorMapper,
             ctx,
             `Error revoking verified attribute ${req.params.attributeId} from tenant ${req.params.tenantId}`
           );

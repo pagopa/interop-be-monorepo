@@ -32,10 +32,7 @@ import {
   tenantDeclaredAttributeNotFound,
   tenantVerifiedAttributeNotFound,
 } from "../model/errors.js";
-import {
-  assertAgreementIdIsDefinedForTenantVerifiedAttribute,
-  assertTenantCanEditDeclaredAttributes,
-} from "../utils/validators/tenantValidators.js";
+import { assertTenantCanEditDeclaredAttributes } from "../utils/validators/tenantValidators.js";
 
 function retrieveDeclaredAttributes(
   tenant: tenantApi.Tenant
@@ -479,14 +476,12 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     async revokeTenantVerifiedAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,
-      agreementId: AgreementId | undefined,
+      agreementId: AgreementId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantVerifiedAttribute> {
       logger.info(
         `Revoking verified attribute ${attributeId} from tenant ${tenantId}`
       );
-
-      assertAgreementIdIsDefinedForTenantVerifiedAttribute(agreementId);
 
       const response =
         await clients.tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(

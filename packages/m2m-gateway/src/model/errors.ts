@@ -45,9 +45,8 @@ export const errorCodes = {
   cannotEditDeclaredAttributesForTenant: "0026",
   tenantDeclaredAttributeNotFound: "0027",
   tenantVerifiedAttributeNotFound: "0028",
-  missingAgreementIdForTenantVerifiedAttribute: "0029",
-  cannotDeleteLastEServiceDescriptor: "0030",
-  eserviceRiskAnalysisNotFound: "0031",
+  cannotDeleteLastEServiceDescriptor: "0029",
+  eserviceRiskAnalysisNotFound: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -315,14 +314,6 @@ export function cannotEditDeclaredAttributesForTenant(
     }`,
     code: "cannotEditDeclaredAttributesForTenant",
     title: "Tenant cannot edit declared attributes",
-  });
-}
-
-export function missingAgreementIdForTenantVerifiedAttribute(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Missing agreementId query parameter to assign a tenant verified attribute`,
-    code: "missingAgreementIdForTenantVerifiedAttribute",
-    title: "Missing agreementId for tenant verified attribute",
   });
 }
 

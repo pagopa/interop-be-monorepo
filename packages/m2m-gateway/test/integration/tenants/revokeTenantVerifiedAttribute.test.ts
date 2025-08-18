@@ -24,7 +24,6 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
-  missingAgreementIdForTenantVerifiedAttribute,
   missingMetadata,
   tenantVerifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
@@ -125,17 +124,6 @@ describe("revokeTenantVerifiedAttribute", () => {
         nonExistentAttributeId
       )
     );
-  });
-
-  it("Should throw missingAgreementIdForTenantVerifiedAttribute in case the agreementId is missing", async () => {
-    await expect(
-      tenantService.revokeTenantVerifiedAttribute(
-        unsafeBrandId(mockTenantProcessResponse.data.id),
-        unsafeBrandId(mockVerifiedAttribute1.id),
-        undefined,
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(missingAgreementIdForTenantVerifiedAttribute());
   });
 
   it("Should throw missingMetadata in case the resource returned by the POST call has no metadata", async () => {

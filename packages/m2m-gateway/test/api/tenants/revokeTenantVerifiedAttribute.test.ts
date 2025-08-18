@@ -17,7 +17,6 @@ import request from "supertest";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
-  missingAgreementIdForTenantVerifiedAttribute,
   missingMetadata,
   tenantVerifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
@@ -74,7 +73,7 @@ describe("DELETE /tenants/:tenantId/verifiedAttributes/:attributeId router test"
     expect(res.status).toBe(400);
   });
 
-  it("Should return 400 if passed an invalid agreement id", async () => {
+  it("Should return 400 if passed an invalid agreement id query param", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
@@ -86,12 +85,13 @@ describe("DELETE /tenants/:tenantId/verifiedAttributes/:attributeId router test"
     expect(res.status).toBe(400);
   });
 
-  it("Should return 400 in case of missingAgreementIdForTenantVerifiedAttribute error", async () => {
-    mockTenantService.revokeTenantVerifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(missingAgreementIdForTenantVerifiedAttribute());
+  it("Should return 400 if agreementId query param is missing", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token);
+    const res = await request(api)
+      .delete(
+        `${appBasePath}/tenants/${generateId()}/verifiedAttributes/${generateId()}`
+      )
+      .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(400);
   });
