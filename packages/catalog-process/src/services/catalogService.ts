@@ -907,101 +907,17 @@ export function catalogServiceBuilder(
     async updateEService(
       eserviceId: EServiceId,
       eserviceSeed: catalogApi.UpdateEServiceSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
-      logger.info(`Updating EService ${eserviceId}`);
-
-      const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateProducerOrProducer(
-        eservice.data.producerId,
-        eservice.data.id,
-        authData,
-        readModelService
-      );
-      assertEServiceNotTemplateInstance(
-        eservice.data.id,
-        eservice.data.templateId
-      );
-
-      assertIsDraftEservice(eservice.data);
-
-      if (eserviceSeed.name !== eservice.data.name) {
-        await assertEServiceNameAvailableForProducer(
-          eserviceSeed.name,
-          eservice.data.producerId,
-          readModelService
-        );
-        await assertEServiceNameNotConflictingWithTemplate(
-          eserviceSeed.name,
-          readModelService
-        );
-      }
-
-      const updatedTechnology = apiTechnologyToTechnology(
-        eserviceSeed.technology
-      );
-      const interfaceHasToBeDeleted =
-        updatedTechnology !== eservice.data.technology;
-
-      if (interfaceHasToBeDeleted) {
-        await Promise.all(
-          eservice.data.descriptors.map(async (d) => {
-            if (d.interface !== undefined) {
-              return await fileManager.delete(
-                config.s3Bucket,
-                d.interface.path,
-                logger
-              );
-            }
-          })
-        );
-      }
-
-      const updatedMode = apiEServiceModeToEServiceMode(eserviceSeed.mode);
-
-      const checkedRiskAnalysis =
-        updatedMode === eserviceMode.receive ? eservice.data.riskAnalysis : [];
-
-      const updatedEService: EService = {
-        ...eservice.data,
-        description: eserviceSeed.description,
-        name: eserviceSeed.name,
-        technology: updatedTechnology,
-        mode: updatedMode,
-        riskAnalysis: checkedRiskAnalysis,
-        descriptors: interfaceHasToBeDeleted
-          ? eservice.data.descriptors.map((d) => ({
-              ...d,
-              interface: undefined,
-              serverUrls: [],
-            }))
-          : eservice.data.descriptors,
-        isSignalHubEnabled: isFeatureFlagEnabled(
-          config,
-          "featureFlagSignalhubWhitelist"
-        )
-          ? isTenantInSignalHubWhitelist(
-              authData.organizationId,
-              eserviceSeed.isSignalHubEnabled
-            )
-          : eserviceSeed.isSignalHubEnabled,
-        isConsumerDelegable: eserviceSeed.isConsumerDelegable,
-        isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
-          .with(P.nullish, () => undefined)
-          .with(false, () => false)
-          .with(true, () => eserviceSeed.isClientAccessDelegable)
-          .exhaustive(),
-      };
-
-      const event = toCreateEventEServiceUpdated(
+      ctx: WithLogger<AppContext<UIAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      ctx.logger.info(`Updating EService ${eserviceId}`);
+      return updateDraftEService(
         eserviceId,
-        eservice.metadata.version,
-        updatedEService,
-        correlationId
+        eserviceSeed,
+        readModelService,
+        fileManager,
+        repository,
+        ctx
       );
-      await repository.createEvent(event);
-
-      return updatedEService;
     },
 
     async updateEServiceTemplateInstance(
@@ -3891,6 +3807,107 @@ async function extractEServiceRiskAnalysisFromTemplate(
   }
 
   return riskAnalysis;
+}
+
+async function updateDraftEService(
+  eserviceId: EServiceId,
+  seed: catalogApi.UpdateEServiceSeed,
+  readModelService: ReadModelService,
+  fileManager: FileManager,
+  repository: ReturnType<typeof eventRepository<EServiceEvent>>,
+  {
+    authData,
+    logger,
+    correlationId,
+  }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+): Promise<WithMetadata<EService>> {
+  const eservice = await retrieveEService(eserviceId, readModelService);
+  await assertRequesterIsDelegateProducerOrProducer(
+    eservice.data.producerId,
+    eservice.data.id,
+    authData,
+    readModelService
+  );
+  assertEServiceNotTemplateInstance(eservice.data.id, eservice.data.templateId);
+
+  assertIsDraftEservice(eservice.data);
+
+  if (seed.name !== eservice.data.name) {
+    await assertEServiceNameAvailableForProducer(
+      seed.name,
+      eservice.data.producerId,
+      readModelService
+    );
+    await assertEServiceNameNotConflictingWithTemplate(
+      seed.name,
+      readModelService
+    );
+  }
+
+  const updatedTechnology = apiTechnologyToTechnology(seed.technology);
+  const interfaceHasToBeDeleted =
+    updatedTechnology !== eservice.data.technology;
+
+  if (interfaceHasToBeDeleted) {
+    await Promise.all(
+      eservice.data.descriptors.map(async (d) => {
+        if (d.interface !== undefined) {
+          return await fileManager.delete(
+            config.s3Bucket,
+            d.interface.path,
+            logger
+          );
+        }
+      })
+    );
+  }
+
+  const updatedMode = apiEServiceModeToEServiceMode(seed.mode);
+
+  const checkedRiskAnalysis =
+    updatedMode === eserviceMode.receive ? eservice.data.riskAnalysis : [];
+
+  const updatedEService: EService = {
+    ...eservice.data,
+    description: seed.description,
+    name: seed.name,
+    technology: updatedTechnology,
+    mode: updatedMode,
+    riskAnalysis: checkedRiskAnalysis,
+    descriptors: interfaceHasToBeDeleted
+      ? eservice.data.descriptors.map((d) => ({
+          ...d,
+          interface: undefined,
+          serverUrls: [],
+        }))
+      : eservice.data.descriptors,
+    isSignalHubEnabled: isFeatureFlagEnabled(
+      config,
+      "featureFlagSignalhubWhitelist"
+    )
+      ? isTenantInSignalHubWhitelist(
+          authData.organizationId,
+          seed.isSignalHubEnabled
+        )
+      : seed.isSignalHubEnabled,
+    isConsumerDelegable: seed.isConsumerDelegable,
+    isClientAccessDelegable: match(seed.isConsumerDelegable)
+      .with(P.nullish, () => undefined)
+      .with(false, () => false)
+      .with(true, () => seed.isClientAccessDelegable)
+      .exhaustive(),
+  };
+
+  const event = await repository.createEvent(
+    toCreateEventEServiceUpdated(
+      eserviceId,
+      eservice.metadata.version,
+      updatedEService,
+      correlationId
+    )
+  );
+
+  return { data: updatedEService, metadata: { version: event.newVersion } };
 }
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

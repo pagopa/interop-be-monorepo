@@ -238,7 +238,7 @@ const eservicesRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-        const updatedEService = await catalogService.updateEService(
+        const { data: updatedEService } = await catalogService.updateEService(
           unsafeBrandId(req.params.eServiceId),
           req.body,
           ctx

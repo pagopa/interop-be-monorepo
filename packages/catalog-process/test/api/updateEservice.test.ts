@@ -14,6 +14,7 @@ import {
   randomArrayItem,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -39,6 +40,7 @@ describe("API /eservices/{eServiceId} authorization test", () => {
     descriptors: [descriptor],
   };
 
+  const serviceResponse = getMockWithMetadata(mockEService);
   const apiEservice = catalogApi.EService.parse(
     eServiceToApiEService(mockEService)
   );
@@ -61,7 +63,7 @@ describe("API /eservices/{eServiceId} authorization test", () => {
     isClientAccessDelegable,
   };
 
-  catalogService.updateEService = vi.fn().mockResolvedValue(mockEService);
+  catalogService.updateEService = vi.fn().mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
