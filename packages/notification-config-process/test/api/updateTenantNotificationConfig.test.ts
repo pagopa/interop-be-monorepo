@@ -16,13 +16,12 @@ import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.
 
 describe("API POST /tenantNotificationConfigs test", () => {
   const tenantId = mockTokenOrganizationId;
-  const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigUpdateSeed =
-    getMockNotificationConfig();
   const serviceResponse: TenantNotificationConfig = {
     ...getMockTenantNotificationConfig(),
     tenantId,
-    config: notificationConfigSeed,
   };
+  const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigUpdateSeed =
+    { enabled: serviceResponse.enabled };
   const apiResponse: notificationConfigApi.TenantNotificationConfig =
     tenantNotificationConfigToApiTenantNotificationConfig(serviceResponse);
 
