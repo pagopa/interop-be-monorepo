@@ -5,7 +5,6 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   generateId,
-  NotificationConfig,
   TenantId,
   TenantNotificationConfig,
   TenantNotificationConfigCreatedV2,

@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TenantNotificationConfig, generateId } from "pagopa-interop-models";
 import {
   generateToken,
-  getMockNotificationConfig,
   getMockTenantNotificationConfig,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";

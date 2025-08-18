@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { generateMock } from "@anatine/zod-mock";
 import {
-  TenantEnabledNotificationSQL,
   TenantNotificationConfigSQL,
   UserEnabledInAppNotificationSQL,
   UserEnabledEmailNotificationSQL,
