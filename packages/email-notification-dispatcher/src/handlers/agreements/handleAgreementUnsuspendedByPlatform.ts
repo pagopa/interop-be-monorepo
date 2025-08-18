@@ -1,13 +1,11 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import {
   EmailNotificationMessagePayload,
   generateId,
-  CorrelationId,
   missingKafkaMessageDataError,
-  AgreementV2,
   fromAgreementV2,
+  NotificationType,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -15,22 +13,16 @@ import {
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "../../services/utils.js";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { UserServiceSQL } from "../../services/userServiceSQL.js";
-import { getUserEmailsToNotify } from "../handlerCommons.js";
+import {
+  getUserEmailsToNotify,
+  HandleAgreementData,
+} from "../handlerCommons.js";
 
-export type AgreementUnsuspendedByPlatformData = {
-  agreementV2Msg?: AgreementV2;
-  readModelService: ReadModelServiceSQL;
-  logger: Logger;
-  templateService: HtmlTemplateService;
-  userService: UserServiceSQL;
-  interopFeBaseUrl: string;
-  correlationId: CorrelationId;
-};
+const notificationType: NotificationType =
+  "agreementSuspendedUnsuspendedToConsumer";
 
 export async function handleAgreementUnsuspendedByPlatform(
-  data: AgreementUnsuspendedByPlatformData
+  data: HandleAgreementData
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     agreementV2Msg,
@@ -38,7 +30,6 @@ export async function handleAgreementUnsuspendedByPlatform(
     logger,
     templateService,
     userService,
-    interopFeBaseUrl,
     correlationId,
   } = data;
 
@@ -62,7 +53,7 @@ export async function handleAgreementUnsuspendedByPlatform(
   try {
     userEmails = await getUserEmailsToNotify(
       consumer.id,
-      "agreementSuspendedUnsuspendedToConsumer",
+      notificationType,
       readModelService,
       userService
     );
@@ -79,7 +70,8 @@ export async function handleAgreementUnsuspendedByPlatform(
         subject: `Richiesta di fruizione ${agreement.id} attiva`,
         body: templateService.compileHtml(htmlTemplate, {
           title: "Nuova richiesta di fruizione",
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/richieste/${agreement.id}`,
+          notificationType,
+          entityId: agreement.id,
           producerName: producer.name,
           consumerName: consumer.name,
           eserviceName: eservice.name,
