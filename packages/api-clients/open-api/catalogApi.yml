@@ -1507,8 +1507,21 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
       responses:
-        "204":
-          description: EService Risk Analysis created.
+        "200":
+          description: EService Risk Analysis created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedEServiceRiskAnalysis"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
@@ -1521,8 +1534,8 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "400":
-          description: Bad request
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -2923,6 +2936,18 @@ components:
         isClientAccessDelegable:
           type: boolean
         templateId:
+          type: string
+          format: uuid
+    CreatedEServiceRiskAnalysis:
+      type: object
+      additionalProperties: false
+      required:
+        - eservice
+        - createdRiskAnalysisId
+      properties:
+        eservice:
+          $ref: "#/components/schemas/EService"
+        createdRiskAnalysisId:
           type: string
           format: uuid
     EServiceTemplateVersionRef:

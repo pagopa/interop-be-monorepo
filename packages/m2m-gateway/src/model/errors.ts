@@ -42,6 +42,7 @@ export const errorCodes = {
   agreementContractNotFound: "0023",
   notAnActiveConsumerDelegation: "0024",
   cannotDeleteLastEServiceDescriptor: "0025",
+  eserviceRiskAnalysisNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -262,6 +263,17 @@ export function notAnActiveConsumerDelegation(
     detail: `Delegation ${delegation.id} is not an active consumer delegation for e-service ${eserviceId} and delegate ${requesterTenantId}`,
     code: "notAnActiveConsumerDelegation",
     title: "Not an active consumer delegation",
+  });
+}
+
+export function eserviceRiskAnalysisNotFound(
+  eserviceId: string,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis ${riskAnalysisId} not found for e-service ${eserviceId}`,
+    code: "eserviceRiskAnalysisNotFound",
+    title: "E-Service risk analysis not found",
   });
 }
 

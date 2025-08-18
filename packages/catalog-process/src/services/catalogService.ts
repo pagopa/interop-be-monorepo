@@ -2213,8 +2213,17 @@ export function catalogServiceBuilder(
     async createRiskAnalysis(
       eserviceId: EServiceId,
       eserviceRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{
+        eservice: EService;
+        createdRiskAnalysisId: RiskAnalysisId;
+      }>
+    > {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -2275,7 +2284,15 @@ export function catalogServiceBuilder(
         correlationId
       );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: {
+          eservice: newEservice,
+          createdRiskAnalysisId: newRiskAnalysis.id,
+        },
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async updateRiskAnalysis(
       eserviceId: EServiceId,
