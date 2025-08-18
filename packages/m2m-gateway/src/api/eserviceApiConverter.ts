@@ -73,23 +73,6 @@ export function toM2MGatewayApiDocument(
   };
 }
 
-function toCatalogApiAttributeSeed(
-  attribute: m2mGatewayApi.EServiceDescriptorAttributeSeed
-): catalogApi.AttributeSeed {
-  return {
-    id: attribute.id,
-    explicitAttributeVerification: false,
-  };
-}
-
-function toCatalogApiAttributesSeed(
-  attributeGroups: m2mGatewayApi.EServiceDescriptorAttributeSeed[][]
-): catalogApi.AttributeSeed[][] {
-  return attributeGroups.map((group) =>
-    group.map((attribute) => toCatalogApiAttributeSeed(attribute))
-  );
-}
-
 export function toCatalogApiEServiceDescriptorSeed(
   descriptor: m2mGatewayApi.EServiceDescriptorSeed
 ): catalogApi.EServiceDescriptorSeed {
@@ -101,9 +84,9 @@ export function toCatalogApiEServiceDescriptorSeed(
     dailyCallsTotal: descriptor.dailyCallsTotal,
     agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
     attributes: {
-      declared: toCatalogApiAttributesSeed(descriptor.attributes.declared),
-      verified: toCatalogApiAttributesSeed(descriptor.attributes.verified),
-      certified: toCatalogApiAttributesSeed(descriptor.attributes.certified),
+      declared: [],
+      verified: [],
+      certified: [],
     },
     docs: [],
   };

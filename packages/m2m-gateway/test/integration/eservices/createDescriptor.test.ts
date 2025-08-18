@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   EServiceId,
-  generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -27,10 +26,6 @@ import {
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("createDescriptor", () => {
-  const mockDescriptorAttribute: m2mGatewayApi.EServiceDescriptorAttributeSeed =
-    {
-      id: generateId(),
-    };
   const descriptorSeed: m2mGatewayApi.EServiceDescriptorSeed = {
     description: "Test Descriptor",
     audience: ["http/test.test"],
@@ -38,20 +33,6 @@ describe("createDescriptor", () => {
     dailyCallsPerConsumer: 10,
     dailyCallsTotal: 10,
     agreementApprovalPolicy: "AUTOMATIC",
-    attributes: {
-      certified: [
-        [mockDescriptorAttribute, mockDescriptorAttribute],
-        [mockDescriptorAttribute],
-      ],
-      declared: [
-        [mockDescriptorAttribute, mockDescriptorAttribute],
-        [mockDescriptorAttribute],
-      ],
-      verified: [
-        [mockDescriptorAttribute, mockDescriptorAttribute],
-        [mockDescriptorAttribute],
-      ],
-    },
   };
 
   const mockDescriptor = getMockedApiEserviceDescriptor();
@@ -82,13 +63,6 @@ describe("createDescriptor", () => {
     mockGetEService.mockClear();
   });
 
-  const defaultExplicitAttributeVerification = (
-    group: m2mGatewayApi.EServiceDescriptorAttributeSeed[]
-  ) =>
-    group.map((attr: m2mGatewayApi.EServiceDescriptorAttributeSeed) => ({
-      ...attr,
-      explicitAttributeVerification: false,
-    }));
   it("Should succeed and perform API clients calls", async () => {
     const m2mEserviceDescriptorResponse: m2mGatewayApi.EServiceDescriptor = {
       id: mockDescriptor.id,
@@ -121,15 +95,9 @@ describe("createDescriptor", () => {
       body: {
         ...descriptorSeed,
         attributes: {
-          certified: descriptorSeed.attributes.certified.map(
-            defaultExplicitAttributeVerification
-          ),
-          declared: descriptorSeed.attributes.declared.map(
-            defaultExplicitAttributeVerification
-          ),
-          verified: descriptorSeed.attributes.verified.map(
-            defaultExplicitAttributeVerification
-          ),
+          certified: [],
+          declared: [],
+          verified: [],
         },
         docs: [],
       },

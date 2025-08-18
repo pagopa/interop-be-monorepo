@@ -17,10 +17,6 @@ import {
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("POST /eservices/{eServiceId}/descriptors router test", () => {
-  const mockDescriptorAttribute: m2mGatewayApi.EServiceDescriptorAttributeSeed =
-    {
-      id: generateId(),
-    };
   const descriptorSeed: m2mGatewayApi.EServiceDescriptorSeed = {
     description: "Test Descriptor",
     audience: ["http/test.test"],
@@ -28,20 +24,6 @@ describe("POST /eservices/{eServiceId}/descriptors router test", () => {
     dailyCallsPerConsumer: 10,
     dailyCallsTotal: 10,
     agreementApprovalPolicy: "AUTOMATIC",
-    attributes: {
-      certified: [
-        [mockDescriptorAttribute, mockDescriptorAttribute],
-        [mockDescriptorAttribute],
-      ],
-      declared: [
-        [mockDescriptorAttribute, mockDescriptorAttribute],
-        [mockDescriptorAttribute],
-      ],
-      verified: [
-        [mockDescriptorAttribute, mockDescriptorAttribute],
-        [mockDescriptorAttribute],
-      ],
-    },
   };
 
   const mockM2MEserviceDescriptorResponse: m2mGatewayApi.EServiceDescriptor =
@@ -94,9 +76,14 @@ describe("POST /eservices/{eServiceId}/descriptors router test", () => {
     },
     {
       ...descriptorSeed,
+      attributes: {},
+    },
+    {
+      ...descriptorSeed,
       attributes: {
-        ...descriptorSeed.attributes,
-        declared: undefined,
+        declared: [],
+        verified: [],
+        certified: [],
       },
     },
   ])(
