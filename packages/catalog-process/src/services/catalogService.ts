@@ -912,7 +912,23 @@ export function catalogServiceBuilder(
       ctx.logger.info(`Updating EService ${eserviceId}`);
       return updateDraftEService(
         eserviceId,
-        eserviceSeed,
+        { type: "put", seed: eserviceSeed },
+        readModelService,
+        fileManager,
+        repository,
+        ctx
+      );
+    },
+
+    async patchUpdateEService(
+      eserviceId: EServiceId,
+      eserviceSeed: catalogApi.PatchUpdateEServiceSeed,
+      ctx: WithLogger<AppContext<UIAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      ctx.logger.info(`Partially updating EService ${eserviceId}`);
+      return updateDraftEService(
+        eserviceId,
+        { type: "patch", seed: eserviceSeed },
         readModelService,
         fileManager,
         repository,
@@ -3811,7 +3827,18 @@ async function extractEServiceRiskAnalysisFromTemplate(
 
 async function updateDraftEService(
   eserviceId: EServiceId,
-  seed: catalogApi.UpdateEServiceSeed,
+  {
+    seed,
+    type,
+  }:
+    | {
+        type: "put";
+        seed: catalogApi.UpdateEServiceSeed;
+      }
+    | {
+        type: "patch";
+        seed: catalogApi.PatchUpdateEServiceSeed;
+      },
   readModelService: ReadModelService,
   fileManager: FileManager,
   repository: ReturnType<typeof eventRepository<EServiceEvent>>,
@@ -3832,19 +3859,32 @@ async function updateDraftEService(
 
   assertIsDraftEservice(eservice.data);
 
-  if (seed.name !== eservice.data.name) {
+  const {
+    name,
+    description,
+    technology,
+    mode,
+    isSignalHubEnabled,
+    isConsumerDelegable,
+    isClientAccessDelegable,
+    ...rest
+  } = seed;
+  void (rest satisfies Record<string, never>);
+  // ^ To make sure we extract all the updated fields
+
+  if (name && name !== eservice.data.name) {
     await assertEServiceNameAvailableForProducer(
-      seed.name,
+      name,
       eservice.data.producerId,
       readModelService
     );
-    await assertEServiceNameNotConflictingWithTemplate(
-      seed.name,
-      readModelService
-    );
+    await assertEServiceNameNotConflictingWithTemplate(name, readModelService);
   }
 
-  const updatedTechnology = apiTechnologyToTechnology(seed.technology);
+  const updatedTechnology = technology
+    ? apiTechnologyToTechnology(technology)
+    : eservice.data.technology;
+
   const interfaceHasToBeDeleted =
     updatedTechnology !== eservice.data.technology;
 
@@ -3862,15 +3902,38 @@ async function updateDraftEService(
     );
   }
 
-  const updatedMode = apiEServiceModeToEServiceMode(seed.mode);
+  const updatedMode = mode
+    ? apiEServiceModeToEServiceMode(mode)
+    : eservice.data.mode;
 
   const checkedRiskAnalysis =
     updatedMode === eserviceMode.receive ? eservice.data.riskAnalysis : [];
 
+  const updatedIsSignalHubEnabled = match(type)
+    .with("put", () => isSignalHubEnabled)
+    .with("patch", () => isSignalHubEnabled ?? eservice.data.isSignalHubEnabled)
+    .exhaustive();
+
+  const updatedIsConsumerDelegable = match(type)
+    .with("put", () => isConsumerDelegable)
+    .with(
+      "patch",
+      () => isConsumerDelegable ?? eservice.data.isConsumerDelegable
+    )
+    .exhaustive();
+
+  const updatedIsClientAccessDelegable = match(type)
+    .with("put", () => isClientAccessDelegable)
+    .with(
+      "patch",
+      () => isClientAccessDelegable ?? eservice.data.isClientAccessDelegable
+    )
+    .exhaustive();
+
   const updatedEService: EService = {
     ...eservice.data,
-    description: seed.description,
-    name: seed.name,
+    description: description ?? eservice.data.description,
+    name: name ?? eservice.data.name,
     technology: updatedTechnology,
     mode: updatedMode,
     riskAnalysis: checkedRiskAnalysis,
@@ -3887,14 +3950,14 @@ async function updateDraftEService(
     )
       ? isTenantInSignalHubWhitelist(
           authData.organizationId,
-          seed.isSignalHubEnabled
+          updatedIsSignalHubEnabled
         )
-      : seed.isSignalHubEnabled,
-    isConsumerDelegable: seed.isConsumerDelegable,
-    isClientAccessDelegable: match(seed.isConsumerDelegable)
+      : updatedIsSignalHubEnabled,
+    isConsumerDelegable: updatedIsConsumerDelegable,
+    isClientAccessDelegable: match(updatedIsConsumerDelegable)
       .with(P.nullish, () => undefined)
       .with(false, () => false)
-      .with(true, () => seed.isClientAccessDelegable)
+      .with(true, () => updatedIsClientAccessDelegable)
       .exhaustive(),
   };
 
