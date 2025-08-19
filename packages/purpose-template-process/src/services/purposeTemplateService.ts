@@ -15,7 +15,15 @@ import {
   purposeTemplateState,
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
+  TenantId,
+  TenantKind,
+  Tenant,
 } from "pagopa-interop-models";
+import {
+  purposeTemplateNotFound,
+  tenantKindNotFound,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
@@ -47,6 +55,17 @@ const retrieveTenant = async (
   return tenant;
 };
 
+const retrievePurposeTemplate = async (
+  templateId: PurposeTemplateId,
+  readModelService: ReadModelServiceSQL
+): Promise<WithMetadata<PurposeTemplate>> => {
+  const template = await readModelService.getPurposeTemplateById(templateId);
+  if (template === undefined) {
+    throw purposeTemplateNotFound(templateId);
+  }
+  return template;
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   dbInstance: DB,
@@ -63,6 +82,7 @@ export function purposeTemplateServiceBuilder(
       {
         authData,
         logger,
+        correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<
       WithMetadata<{
@@ -103,6 +123,10 @@ export function purposeTemplateServiceBuilder(
         purposeDailyCalls: seed.purposeDailyCalls,
       };
 
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateAdded(purposeTemplate, correlationId)
+      );
+
       return {
         data: {
           purposeTemplate,
@@ -110,7 +134,7 @@ export function purposeTemplateServiceBuilder(
             validatedPurposeRiskAnalysisFormSeed !== undefined,
         },
         metadata: {
-          version: 0,
+          version: event.newVersion,
         },
       };
     },
@@ -121,7 +145,7 @@ export function purposeTemplateServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Retrieving purpose template ${id}`);
-      return readModelService.getPurposeTemplateById(id);
+      return retrievePurposeTemplate(id, readModelService);
     },
   };
 }
