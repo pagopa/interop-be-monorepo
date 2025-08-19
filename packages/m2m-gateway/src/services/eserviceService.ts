@@ -15,6 +15,7 @@ import {
   toM2MGatewayApiEServiceDescriptor,
   toCatalogApiEServiceDescriptorSeed,
   toM2MGatewayApiEServiceRiskAnalysis,
+  toCatalogApiPatchUpdateEServiceDescriptorSeed,
 } from "../api/eserviceApiConverter.js";
 import {
   cannotDeleteLastEServiceDescriptor,
@@ -373,6 +374,36 @@ export function eserviceServiceBuilder(
 
       return toM2MGatewayApiEServiceDescriptor(createdDescriptor);
     },
+
+    async updateDraftEServiceDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApi.EServiceDescriptorDraftUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
+      logger.info(
+        `Updating draft descriptor ${descriptorId} for eservice ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.patchUpdateDraftDescriptor(
+          toCatalogApiPatchUpdateEServiceDescriptorSeed(seed),
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+
+      await pollEService(response, headers);
+
+      const updatedDescriptor = retrieveDescriptorByIdFromEService(
+        response.data,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(updatedDescriptor);
+    },
+
     async deleteDraftEServiceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,

@@ -190,6 +190,35 @@ const eserviceRouter = (
         }
       }
     )
+    .patch(
+      "/eservices/:eserviceId/descriptors/:descriptorId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const eservice = await eserviceService.updateDraftEServiceDescriptor(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceDescriptor.parse(eservice));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating eservice descriptor with id ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete(
       "/eservices/:eserviceId/descriptors/:descriptorId",
       async (req, res) => {
