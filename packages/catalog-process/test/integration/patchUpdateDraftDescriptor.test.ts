@@ -96,7 +96,7 @@ describe("patchUpdateDraftDescriptor", () => {
       descriptors: [
         {
           ...descriptor,
-          description: descriptorSeed.description,
+          description: descriptorSeed.description!,
           audience: descriptorSeed.audience!,
           voucherLifespan: descriptorSeed.voucherLifespan!,
           dailyCallsPerConsumer: descriptorSeed.dailyCallsPerConsumer!,
@@ -175,12 +175,23 @@ describe("patchUpdateDraftDescriptor", () => {
         ],
       },
     },
+    // nullable fields
+    {
+      description: null,
+    },
+    {
+      description: null,
+      dailyCallsPerConsumer: 100,
+      dailyCallsTotal: 200,
+    },
   ] as catalogApi.PatchUpdateEServiceDescriptorSeed[])(
-    "should write on event-store and update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",
+    `should write on event-store and update only the fields set in the seed,
+     leave undefined fields unchanged, and remove nullable fields (seed #%#)`,
     async (seed) => {
       const descriptor: Descriptor = {
         ...mockDescriptor,
         state: descriptorState.draft,
+        description: "Some description",
       };
       const eservice: EService = {
         ...mockEService,
@@ -201,7 +212,10 @@ describe("patchUpdateDraftDescriptor", () => {
         descriptors: [
           {
             ...descriptor,
-            description: seed.description ?? descriptor.description,
+            description:
+              seed.description === null
+                ? undefined
+                : seed.description ?? descriptor.description,
             audience: seed.audience ?? descriptor.audience,
             voucherLifespan: seed.voucherLifespan ?? descriptor.voucherLifespan,
             dailyCallsPerConsumer:

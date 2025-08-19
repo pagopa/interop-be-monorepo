@@ -2755,6 +2755,7 @@ components:
       properties:
         description:
           type: string
+          nullable: true
           minLength: 10
           maxLength: 250
         audience:

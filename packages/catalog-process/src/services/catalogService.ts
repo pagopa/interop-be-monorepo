@@ -3867,8 +3867,8 @@ async function updateDraftDescriptor(
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
   {
-    seed,
     type,
+    seed,
   }:
     | {
         type: "put";
@@ -3925,8 +3925,13 @@ async function updateDraftDescriptor(
     : descriptor.attributes;
 
   const updatedDescription = match(type)
-    .with("put", () => description)
-    .with("patch", () => description ?? descriptor.description)
+    .with("put", () => description ?? undefined)
+    .with(
+      "patch",
+      () =>
+        description ??
+        (description === null ? undefined : descriptor.description)
+    )
     .exhaustive();
 
   const updatedAgreementApprovalPolicy = agreementApprovalPolicy
