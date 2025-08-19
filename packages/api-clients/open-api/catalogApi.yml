@@ -258,14 +258,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EService"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: E-Service not found
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "400":
-          description: Bad request
+        "409":
+          description: Name Conflict
           content:
             application/problem+json:
               schema:
@@ -294,14 +306,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EService"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: E-Service not found
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "400":
-          description: Bad request
+        "409":
+          description: Name Conflict
           content:
             application/problem+json:
               schema:
