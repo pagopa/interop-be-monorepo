@@ -93,11 +93,13 @@ export const mockClientService = {
 // ^ Mocking getClientAdminId here to make the m2m auth data validation middleware
 // pass in all the api tests
 
+/*
+Don't mock any other method in the following services here.
+Mock directly in the test files, only the methods you need.
+*/
 export const mockDelegationService = {} as DelegationService;
 export const mockPurposeService = {} as PurposeService;
-export const mockTenantService = {
-  getTenant: vi.fn(),
-} as unknown as TenantService;
+export const mockTenantService = {} as TenantService;
 export const mockAttributeService = {} as AttributeService;
 export const mockEServiceTemplateService = {} as EserviceTemplateService;
 export const mockAgreementService = {} as AgreementService;
