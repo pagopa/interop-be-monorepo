@@ -1,10 +1,10 @@
 meta {
-  name: Edit Eservice Descriptor
+  name: Partial edit Eservice Descriptor
   type: http
   seq: 17
 }
 
-put {
+patch {
   url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId
   body: json
   auth: none
@@ -16,30 +16,30 @@ params:path {
 }
 
 headers {
-  Authorization: {{JWT}}
+  Authorization: {{JWT-M2M-ADMIN}}
   X-Correlation-Id: {{correlation-id}}
 }
 
 body:json {
     {
-  //     "description": "testone testone",
-      "audience": [
-          "string"
-      ],
+      "description": null,
+  //     "audience": [
+  //         "string"
+  //     ],
       "voucherLifespan": 86400,
       "dailyCallsPerConsumer": 100,
-      "dailyCallsTotal": 100,
-      "agreementApprovalPolicy": "AUTOMATIC",
-      "attributes": {
-          "certified": [
+      "dailyCallsTotal": 200,
+      "agreementApprovalPolicy": "MANUAL"
+  //     "attributes": {
+  //         "certified": [
   //           [{ "id": "{{certifiedAttributeId}}", "explicitAttributeVerification": false }]
-          ],
-          "declared": [
+  //         ],
+  //         "declared": [
   //           [{ "id": "{{declaredAttributeId}}", "explicitAttributeVerification": false }]
-          ],
-          "verified": [
+  //         ],
+  //         "verified": [
   //           [{ "id": "{{verifiedAttributeId}}", "explicitAttributeVerification": false }]
-          ]
-      }
+  //         ]
+  //     }
   }
 }
