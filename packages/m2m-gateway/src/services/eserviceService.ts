@@ -15,6 +15,8 @@ import {
   toM2MGatewayApiEServiceDescriptor,
   toCatalogApiEServiceDescriptorSeed,
   toM2MGatewayApiEServiceRiskAnalysis,
+  toM2MGatewayApiEServiceDescriptorAttributes,
+  toCatalogApiAttributesSeed,
   toCatalogApiPatchUpdateEServiceDescriptorSeed,
 } from "../api/eserviceApiConverter.js";
 import {
@@ -41,6 +43,37 @@ export function eserviceServiceBuilder(
   clients: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
+  async function patchEServiceDescriptorAttributes(
+    eserviceId: EServiceId,
+    descriptorId: DescriptorId,
+    attributeKind: keyof catalogApi.PatchAttributesSeed,
+    seed: m2mGatewayApi.EServiceDescriptorAttributes,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+    const response =
+      await clients.catalogProcessClient.patchUpdateDraftDescriptor(
+        {
+          attributes: {
+            [attributeKind]: toCatalogApiAttributesSeed(seed),
+          },
+        },
+        {
+          params: { eServiceId: eserviceId, descriptorId },
+          headers,
+        }
+      );
+    await pollEService(response, headers);
+
+    const updatedDescriptor = retrieveDescriptorByIdFromEService(
+      response.data,
+      unsafeBrandId(descriptorId)
+    );
+
+    return toM2MGatewayApiEServiceDescriptorAttributes(
+      updatedDescriptor.attributes.certified
+    );
+  }
+
   const retrieveEServiceById = async (
     headers: M2MGatewayAppContext["headers"],
     eserviceId: EServiceId
@@ -688,6 +721,60 @@ export function eserviceServiceBuilder(
       }
 
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
+    },
+    async updateEServiceDescriptorCertifiedAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApi.EServiceDescriptorAttributes,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+      logger.info(
+        `Updating Certified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      return patchEServiceDescriptorAttributes(
+        eserviceId,
+        descriptorId,
+        "certified",
+        seed,
+        headers
+      );
+    },
+    async updateEServiceDescriptorDeclaredAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApi.EServiceDescriptorAttributes,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+      logger.info(
+        `Updating Declared Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      return patchEServiceDescriptorAttributes(
+        eserviceId,
+        descriptorId,
+        "declared",
+        seed,
+        headers
+      );
+    },
+    async updateEServiceDescriptorVerifiedAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApi.EServiceDescriptorAttributes,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+      logger.info(
+        `Updating Verified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      return patchEServiceDescriptorAttributes(
+        eserviceId,
+        descriptorId,
+        "verified",
+        seed,
+        headers
+      );
     },
   };
 }
