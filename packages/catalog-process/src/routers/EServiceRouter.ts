@@ -577,12 +577,13 @@ const eservicesRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-          const updatedEService = await catalogService.updateDraftDescriptor(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.descriptorId),
-            req.body,
-            ctx
-          );
+          const { data: updatedEService } =
+            await catalogService.updateDraftDescriptor(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
           return res
             .status(200)
             .send(

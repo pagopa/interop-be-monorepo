@@ -76,7 +76,7 @@ describe("update draft descriptor", () => {
       },
     };
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       descriptors: [
         {
@@ -92,7 +92,7 @@ describe("update draft descriptor", () => {
         },
       ],
     };
-    await catalogService.updateDraftDescriptor(
+    const updateDescriptorResponse = await catalogService.updateDraftDescriptor(
       eservice.id,
       descriptor.id,
       expectedDescriptorSeed,
@@ -109,7 +109,14 @@ describe("update draft descriptor", () => {
       messageType: EServiceDraftDescriptorUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+      descriptorId: descriptor.id,
+    });
+    expect(updateDescriptorResponse).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
   it("should write on event-store for the update of a draft descriptor (delegate)", async () => {
     const descriptor: Descriptor = {
@@ -149,7 +156,7 @@ describe("update draft descriptor", () => {
       },
     };
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       descriptors: [
         {
@@ -165,7 +172,7 @@ describe("update draft descriptor", () => {
         },
       ],
     };
-    await catalogService.updateDraftDescriptor(
+    const updateDescriptorResponse = await catalogService.updateDraftDescriptor(
       eservice.id,
       descriptor.id,
       expectedDescriptorSeed,
@@ -182,7 +189,14 @@ describe("update draft descriptor", () => {
       messageType: EServiceDraftDescriptorUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+      descriptorId: descriptor.id,
+    });
+    expect(updateDescriptorResponse).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {

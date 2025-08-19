@@ -584,6 +584,20 @@ paths:
   /eservices/{eServiceId}/descriptors/{descriptorId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: The E-Service id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: The Descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
     delete:
       security:
         - bearerAuth: []
@@ -628,22 +642,9 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Updates a draft descriptor
+      summary: Updates a Draft Descriptor
       operationId: updateDraftDescriptor
-      description: Updates a draft descriptor for the specified E-Service
-      parameters:
-        - name: eServiceId
-          in: path
-          description: The E-Service id
-          required: true
-          schema:
-            type: string
-        - name: descriptorId
-          in: path
-          description: The Descriptor Id
-          required: true
-          schema:
-            type: string
+      description: Updates a Draft Descriptor for the specified E-Service
       requestBody:
         description: An E-Service Descriptor seed
         content:
@@ -653,7 +654,41 @@ paths:
         required: true
       responses:
         "200":
-          description: EService with draft descriptor updated.
+          description: E-Service with Draft Descriptor updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Partially updates a Draft Descriptor
+      operationId: patchUpdateDraftDescriptor
+      description: Partially updates a Draft Descriptor for the specified E-Service
+      requestBody:
+        description: A partial E-Service Descriptor seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUpdateEServiceDescriptorSeed"
+        required: true
+      responses:
+        "200":
+          description: E-Service with Draft Descriptor updated
           content:
             application/json:
               schema:
@@ -2665,6 +2700,41 @@ components:
         - dailyCallsTotal
         - agreementApprovalPolicy
         - attributes
+      type: object
+      additionalProperties: false
+      properties:
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        audience:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 250
+        voucherLifespan:
+          type: integer
+          format: int32
+          minimum: 60
+          maximum: 86400
+        dailyCallsPerConsumer:
+          description: "maximum number of daily calls that this descriptor can afford."
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        dailyCallsTotal:
+          description: "total daily calls available for this e-service."
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
+    PatchUpdateEServiceDescriptorSeed:
       type: object
       additionalProperties: false
       properties:
