@@ -1546,6 +1546,26 @@ export function catalogServiceBuilder(
       );
     },
 
+    async patchUpdateDraftDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.PatchUpdateEServiceDescriptorSeed,
+      ctx: WithLogger<AppContext<M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      ctx.logger.info(
+        `Partially updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      return updateDraftDescriptor(
+        eserviceId,
+        descriptorId,
+        { type: "patch", seed },
+        readModelService,
+        repository,
+        ctx
+      );
+    },
+
     async updateDraftDescriptorTemplateInstance(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -3848,15 +3868,16 @@ async function updateDraftDescriptor(
   descriptorId: DescriptorId,
   {
     seed,
-  }: // type,
-  {
-    type: "put";
-    seed: catalogApi.UpdateEServiceDescriptorSeed;
-  },
-  // | {
-  //     type: "patch";
-  //     seed: catalogApi.PatchUpdateEServiceDescriptorSeed;
-  //   },
+    type,
+  }:
+    | {
+        type: "put";
+        seed: catalogApi.UpdateEServiceDescriptorSeed;
+      }
+    | {
+        type: "patch";
+        seed: catalogApi.PatchUpdateEServiceDescriptorSeed;
+      },
   readModelService: ReadModelService,
   repository: ReturnType<typeof eventRepository<EServiceEvent>>,
   {
@@ -3875,30 +3896,54 @@ async function updateDraftDescriptor(
 
   const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-  if (descriptor.state !== descriptorState.draft) {
-    throw notValidDescriptorState(descriptorId, descriptor.state.toString());
-  }
+  assertIsDraftDescriptor(descriptor);
 
-  assertConsistentDailyCalls(seed);
+  const {
+    description,
+    audience,
+    voucherLifespan,
+    dailyCallsPerConsumer,
+    dailyCallsTotal,
+    agreementApprovalPolicy,
+    attributes,
+    ...rest
+  } = seed;
+  void (rest satisfies Record<string, never>);
+  // ^ To make sure we extract all the updated fields
 
-  const parsedAttributes = await parseAndCheckAttributes(
-    seed.attributes,
-    readModelService
-  );
+  const updatedDailyCallsPerConsuemer =
+    dailyCallsPerConsumer ?? descriptor.dailyCallsPerConsumer;
+  const updatedDailyCallsTotal = dailyCallsTotal ?? descriptor.dailyCallsTotal;
+
+  assertConsistentDailyCalls({
+    dailyCallsPerConsumer: updatedDailyCallsPerConsuemer,
+    dailyCallsTotal: updatedDailyCallsTotal,
+  });
+
+  const updatedAttributes = attributes
+    ? await parseAndCheckAttributes(attributes, readModelService)
+    : descriptor.attributes;
+
+  const updatedDescription = match(type)
+    .with("put", () => description)
+    .with("patch", () => description ?? descriptor.description)
+    .exhaustive();
+
+  const updatedAgreementApprovalPolicy = agreementApprovalPolicy
+    ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+        agreementApprovalPolicy
+      )
+    : descriptor.agreementApprovalPolicy;
 
   const updatedDescriptor: Descriptor = {
     ...descriptor,
-    description: seed.description,
-    audience: seed.audience,
-    voucherLifespan: seed.voucherLifespan,
-    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-    state: descriptorState.draft,
-    dailyCallsTotal: seed.dailyCallsTotal,
-    agreementApprovalPolicy:
-      apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-        seed.agreementApprovalPolicy
-      ),
-    attributes: parsedAttributes,
+    description: updatedDescription,
+    audience: audience ?? descriptor.audience,
+    voucherLifespan: voucherLifespan ?? descriptor.voucherLifespan,
+    dailyCallsPerConsumer: updatedDailyCallsPerConsuemer,
+    dailyCallsTotal: updatedDailyCallsTotal,
+    agreementApprovalPolicy: updatedAgreementApprovalPolicy,
+    attributes: updatedAttributes,
   };
 
   const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);

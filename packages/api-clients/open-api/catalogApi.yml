@@ -689,6 +689,9 @@ paths:
       responses:
         "200":
           description: E-Service with Draft Descriptor updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
