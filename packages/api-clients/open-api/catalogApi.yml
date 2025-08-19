@@ -665,6 +665,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
@@ -698,6 +704,12 @@ paths:
                 $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Unauthorized
           content:
             application/problem+json:
               schema:
