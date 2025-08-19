@@ -15,7 +15,6 @@ import {
 import { purposeTemplateInReadmodelPurposeTemplate } from "pagopa-interop-readmodel-models";
 import { and, ilike } from "drizzle-orm";
 import { escapeRegExp } from "pagopa-interop-commons";
-import { purposeTemplateNotFound } from "../model/errors.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -48,10 +47,10 @@ export function readModelServiceBuilderSQL({
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getPurposeTemplateById(
-      id: PurposeTemplateId
+      _id: PurposeTemplateId
     ): Promise<WithMetadata<PurposeTemplate>> {
       // TO DO: this is a placeholder function Replace with actual implementation to fetch the purpose template by ID
-      throw purposeTemplateNotFound(id);
+      return Promise.reject();
     },
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
