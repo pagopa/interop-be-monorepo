@@ -99,6 +99,7 @@ import {
   unchangedAttributes,
   templateMissingRequiredRiskAnalysis,
   checksumDuplicate,
+  attributeDuplicatedInGroup,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -413,12 +414,21 @@ async function parseAndCheckAttributesOfKind(
   kind: AttributeKind,
   readModelService: ReadModelService
 ): Promise<EServiceAttribute[][]> {
-  const parsedAttributesSeed = attributesSeedForKind.map((a) =>
-    a.map((a) => ({
-      ...a,
-      id: unsafeBrandId<AttributeId>(a.id),
-    }))
-  );
+  const parsedAttributesSeed = attributesSeedForKind.map((group) => {
+    const groupAttributesIdsFound: Set<AttributeId> = new Set();
+    return group.map((att) => {
+      const id = unsafeBrandId<AttributeId>(att.id);
+      if (groupAttributesIdsFound.has(id)) {
+        throw attributeDuplicatedInGroup(id);
+      }
+
+      groupAttributesIdsFound.add(id);
+      return {
+        ...att,
+        id,
+      };
+    });
+  });
 
   const attributesSeedIds: AttributeId[] = parsedAttributesSeed
     .flat()
@@ -3669,23 +3679,6 @@ async function applyVisibilityToEService(
 
   throw eServiceNotFound(eservice.id);
 }
-
-const deleteDescriptorInterfaceAndDocs = async (
-  descriptor: Descriptor,
-  fileManager: FileManager,
-  logger: Logger
-): Promise<void> => {
-  const descriptorInterface = descriptor.interface;
-  if (descriptorInterface !== undefined) {
-    await fileManager.delete(config.s3Bucket, descriptorInterface.path, logger);
-  }
-
-  const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
-    fileManager.delete(config.s3Bucket, doc.path, logger)
-  );
-
-  await Promise.all(deleteDescriptorDocs);
-};
 
 const processDescriptorPublication = async (
   eservice: EService,

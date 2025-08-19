@@ -4,7 +4,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import { parseAndCheckAttributes } from "../../src/services/catalogService.js";
 import { addOneAttribute, readModelService } from "../integrationUtils.js";
-import { attributeNotFound } from "../../src/model/domain/errors.js";
+import {
+  attributeDuplicatedInGroup,
+  attributeNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("parseAndCheckAttributes", () => {
   const certified1 = getMockAttribute("Certified");
@@ -158,5 +161,78 @@ describe("parseAndCheckAttributes", () => {
         readModelService
       )
     ).rejects.toThrowError(attributeNotFound(declared3.id));
+  });
+
+  it("Should throw attributeDuplicatedInGroup in case of attribute duplicated in group", async () => {
+    await expect(
+      parseAndCheckAttributes(
+        {
+          certified: [
+            [
+              { id: certified1.id, explicitAttributeVerification: false },
+              { id: certified1.id, explicitAttributeVerification: false },
+            ],
+          ],
+          declared: [
+            [{ id: declared1.id, explicitAttributeVerification: false }],
+          ],
+          verified: [
+            [{ id: verified1.id, explicitAttributeVerification: false }],
+          ],
+        },
+        readModelService
+      )
+    ).rejects.toThrowError(attributeDuplicatedInGroup(certified1.id));
+
+    await expect(
+      parseAndCheckAttributes(
+        {
+          certified: [
+            [{ id: certified1.id, explicitAttributeVerification: false }],
+          ],
+          declared: [
+            [
+              { id: declared2.id, explicitAttributeVerification: false },
+              { id: declared2.id, explicitAttributeVerification: false },
+            ],
+          ],
+          verified: [
+            [{ id: verified1.id, explicitAttributeVerification: false }],
+            [{ id: verified2.id, explicitAttributeVerification: false }],
+          ],
+        },
+        readModelService
+      )
+    ).rejects.toThrowError(attributeDuplicatedInGroup(declared2.id));
+
+    await expect(
+      parseAndCheckAttributes(
+        {
+          certified: [
+            [
+              { id: certified1.id, explicitAttributeVerification: false },
+              { id: certified2.id, explicitAttributeVerification: false },
+            ],
+          ],
+          declared: [
+            [
+              { id: declared2.id, explicitAttributeVerification: false },
+              { id: declared3.id, explicitAttributeVerification: false },
+            ],
+          ],
+          verified: [
+            [
+              { id: verified1.id, explicitAttributeVerification: false },
+              { id: verified2.id, explicitAttributeVerification: false },
+            ],
+            [
+              { id: verified3.id, explicitAttributeVerification: false },
+              { id: verified3.id, explicitAttributeVerification: false },
+            ],
+          ],
+        },
+        readModelService
+      )
+    ).rejects.toThrowError(attributeDuplicatedInGroup(verified3.id));
   });
 });
