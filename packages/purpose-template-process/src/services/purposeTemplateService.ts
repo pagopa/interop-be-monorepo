@@ -19,8 +19,11 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import { purposeTemplateNotFound } from "../model/domain/errors.js";
-import { tenantKindNotFound, tenantNotFound } from "../model/domain/errors.js";
+import {
+  purposeTemplateNotFound,
+  tenantKindNotFound,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
@@ -79,6 +82,7 @@ export function purposeTemplateServiceBuilder(
       {
         authData,
         logger,
+        correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<
       WithMetadata<{
@@ -119,6 +123,10 @@ export function purposeTemplateServiceBuilder(
         purposeDailyCalls: seed.purposeDailyCalls,
       };
 
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateAdded(purposeTemplate, correlationId)
+      );
+
       return {
         data: {
           purposeTemplate,
@@ -126,7 +134,7 @@ export function purposeTemplateServiceBuilder(
             validatedPurposeRiskAnalysisFormSeed !== undefined,
         },
         metadata: {
-          version: 0,
+          version: event.newVersion,
         },
       };
     },
