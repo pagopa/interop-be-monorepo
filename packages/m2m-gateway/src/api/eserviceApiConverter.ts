@@ -73,6 +73,25 @@ export function toM2MGatewayApiDocument(
   };
 }
 
+export function toCatalogApiEServiceDescriptorSeed(
+  descriptor: m2mGatewayApi.EServiceDescriptorSeed
+): catalogApi.EServiceDescriptorSeed {
+  return {
+    description: descriptor.description,
+    audience: descriptor.audience,
+    voucherLifespan: descriptor.voucherLifespan,
+    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+    dailyCallsTotal: descriptor.dailyCallsTotal,
+    agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
+    attributes: {
+      declared: [],
+      verified: [],
+      certified: [],
+    },
+    docs: [],
+  };
+}
+
 export function toM2MGatewayApiRiskAnalysisAnswers(
   singleAnswers: catalogApi.EServiceRiskAnalysisSingleAnswer[],
   multiAnswers: catalogApi.EServiceRiskAnalysisMultiAnswer[]
