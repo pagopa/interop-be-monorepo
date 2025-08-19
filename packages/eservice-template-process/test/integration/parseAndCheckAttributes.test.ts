@@ -2,7 +2,7 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import { getMockAttribute } from "pagopa-interop-commons-test/index.js";
 import { beforeEach, describe, expect, it } from "vitest";
 import { AttributeId, generateId } from "pagopa-interop-models";
-import { parseAndCheckAttributes } from "../../src/services/catalogService.js";
+import { parseAndCheckAttributes } from "../../src/services/eserviceTemplateService.js";
 import { addOneAttribute, readModelService } from "../integrationUtils.js";
 import {
   attributeDuplicatedInGroup,
