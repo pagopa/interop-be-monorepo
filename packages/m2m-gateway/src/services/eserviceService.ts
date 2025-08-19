@@ -13,6 +13,7 @@ import {
   toM2MGatewayApiDocument,
   toM2MGatewayApiEService,
   toM2MGatewayApiEServiceDescriptor,
+  toCatalogApiEServiceDescriptorSeed,
   toM2MGatewayApiEServiceRiskAnalysis,
 } from "../api/eserviceApiConverter.js";
 import {
@@ -50,6 +51,19 @@ export function eserviceServiceBuilder(
       headers,
     });
 
+  const retrieveDescriptorByIdFromEService = (
+    eservice: catalogApi.EService,
+    descriptorId: DescriptorId
+  ): catalogApi.EServiceDescriptor => {
+    const descriptor = eservice.descriptors.find((e) => e.id === descriptorId);
+
+    if (!descriptor) {
+      throw eserviceDescriptorNotFound(eservice.id, descriptorId);
+    }
+
+    return descriptor;
+  };
+
   const retrieveEServiceDescriptorById = async (
     headers: M2MGatewayAppContext["headers"],
     eserviceId: EServiceId,
@@ -61,14 +75,8 @@ export function eserviceServiceBuilder(
         headers,
       });
 
-    const descriptor = eservice.descriptors.find((e) => e.id === descriptorId);
-
-    if (!descriptor) {
-      throw eserviceDescriptorNotFound(eservice.id, descriptorId);
-    }
-
     return {
-      data: descriptor,
+      data: retrieveDescriptorByIdFromEService(eservice, descriptorId),
       metadata,
     };
   };
@@ -332,6 +340,39 @@ export function eserviceServiceBuilder(
         logger
       );
     },
+    async createDescriptor(
+      eserviceId: EServiceId,
+      eserviceDescriptorSeed: m2mGatewayApi.EServiceDescriptorSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
+      logger.info(`Creating Descriptor for EService ${eserviceId}`);
+
+      const {
+        data: { eservice, createdDescriptorId },
+        metadata,
+      } = await clients.catalogProcessClient.createDescriptor(
+        toCatalogApiEServiceDescriptorSeed(eserviceDescriptorSeed),
+        {
+          params: { eServiceId: eserviceId },
+          headers,
+        }
+      );
+
+      await pollEService(
+        {
+          data: eservice,
+          metadata,
+        },
+        headers
+      );
+
+      const createdDescriptor = retrieveDescriptorByIdFromEService(
+        eservice,
+        unsafeBrandId(createdDescriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(createdDescriptor);
+    },
     async deleteDraftEServiceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -362,7 +403,6 @@ export function eserviceServiceBuilder(
       );
       await pollEServiceById(eserviceId, metadata, headers);
     },
-
     async createEService(
       seed: m2mGatewayApi.EServiceSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
@@ -407,13 +447,10 @@ export function eserviceServiceBuilder(
 
       await pollEService(response, headers);
 
-      const descriptor = response.data.descriptors.find(
-        (d) => d.id === descriptorId
+      const descriptor = retrieveDescriptorByIdFromEService(
+        response.data,
+        unsafeBrandId(descriptorId)
       );
-
-      if (!descriptor) {
-        throw eserviceDescriptorNotFound(eserviceId, descriptorId);
-      }
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
@@ -436,13 +473,10 @@ export function eserviceServiceBuilder(
       );
       await pollEService(response, headers);
 
-      const descriptor = response.data.descriptors.find(
-        (d) => d.id === descriptorId
+      const descriptor = retrieveDescriptorByIdFromEService(
+        response.data,
+        unsafeBrandId(descriptorId)
       );
-
-      if (!descriptor) {
-        throw eserviceDescriptorNotFound(eserviceId, descriptorId);
-      }
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
@@ -465,13 +499,10 @@ export function eserviceServiceBuilder(
       );
       await pollEService(response, headers);
 
-      const descriptor = response.data.descriptors.find(
-        (d) => d.id === descriptorId
+      const descriptor = retrieveDescriptorByIdFromEService(
+        response.data,
+        unsafeBrandId(descriptorId)
       );
-
-      if (!descriptor) {
-        throw eserviceDescriptorNotFound(eserviceId, descriptorId);
-      }
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
@@ -494,13 +525,10 @@ export function eserviceServiceBuilder(
         );
       await pollEService(response, headers);
 
-      const descriptor = response.data.descriptors.find(
-        (d) => d.id === descriptorId
+      const descriptor = retrieveDescriptorByIdFromEService(
+        response.data,
+        unsafeBrandId(descriptorId)
       );
-
-      if (!descriptor) {
-        throw eserviceDescriptorNotFound(eserviceId, descriptorId);
-      }
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
@@ -524,13 +552,10 @@ export function eserviceServiceBuilder(
         );
       await pollEService(response, headers);
 
-      const descriptor = response.data.descriptors.find(
-        (d) => d.id === descriptorId
+      const descriptor = retrieveDescriptorByIdFromEService(
+        response.data,
+        unsafeBrandId(descriptorId)
       );
-
-      if (!descriptor) {
-        throw eserviceDescriptorNotFound(eserviceId, descriptorId);
-      }
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
