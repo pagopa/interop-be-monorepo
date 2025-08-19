@@ -3921,7 +3921,14 @@ async function updateDraftDescriptor(
   });
 
   const updatedAttributes = attributes
-    ? await parseAndCheckAttributes(attributes, readModelService)
+    ? await parseAndCheckAttributes(
+        {
+          certified: attributes.certified ?? descriptor.attributes.certified,
+          declared: attributes.declared ?? descriptor.attributes.declared,
+          verified: attributes.verified ?? descriptor.attributes.verified,
+        },
+        readModelService
+      )
     : descriptor.attributes;
 
   const updatedDescription = match(type)

@@ -2784,7 +2784,7 @@ components:
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
-          $ref: "#/components/schemas/AttributesSeed"
+          $ref: "#/components/schemas/PatchAttributesSeed"
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -2930,6 +2930,26 @@ components:
         - certified
         - declared
         - verified
+    PatchAttributesSeed:
+      properties:
+        certified:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
+        declared:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
+        verified:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
     AttributeSeed:
       type: object
       additionalProperties: false

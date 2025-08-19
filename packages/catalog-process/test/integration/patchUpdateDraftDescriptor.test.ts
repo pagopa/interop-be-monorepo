@@ -174,6 +174,25 @@ describe("patchUpdateDraftDescriptor", () => {
         ],
       },
     },
+    {
+      attributes: {
+        certified: [],
+        declared: [
+          [{ id: declaredAttribute.id, explicitAttributeVerification: false }],
+        ],
+      },
+    },
+    {
+      attributes: {
+        verified: [
+          [
+            { id: verifiedAttribute.id, explicitAttributeVerification: false },
+            { id: verifiedAttribute.id, explicitAttributeVerification: false },
+          ],
+        ],
+      },
+    },
+
     // nullable fields
     {
       description: null,
@@ -227,9 +246,13 @@ describe("patchUpdateDraftDescriptor", () => {
               : descriptor.agreementApprovalPolicy,
             attributes: (seed.attributes
               ? {
-                  certified: seed.attributes.certified,
-                  declared: seed.attributes.declared,
-                  verified: seed.attributes.verified,
+                  certified:
+                    seed.attributes.certified ??
+                    descriptor.attributes.certified,
+                  declared:
+                    seed.attributes.declared ?? descriptor.attributes.declared,
+                  verified:
+                    seed.attributes.verified ?? descriptor.attributes.verified,
                 }
               : descriptor.attributes) as Descriptor["attributes"],
           },

@@ -142,6 +142,24 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
         ],
       },
     },
+    {
+      attributes: {
+        certified: [],
+        declared: [
+          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+        ],
+      },
+    },
+    {
+      attributes: {
+        verified: [
+          [
+            { id: getMockAttribute().id, explicitAttributeVerification: false },
+            { id: getMockAttribute().id, explicitAttributeVerification: false },
+          ],
+        ],
+      },
+    },
     // With nullable fields
     {
       description: null,
@@ -226,11 +244,6 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
     [{ attributes: { invalid: [] } }, mockEService.id, descriptor.id],
     [
       { ...descriptorSeed, dailyCallsTotal: -1 },
-      mockEService.id,
-      descriptor.id,
-    ],
-    [
-      { ...descriptorSeed, attributes: { certified: [], declared: [] } },
       mockEService.id,
       descriptor.id,
     ],
