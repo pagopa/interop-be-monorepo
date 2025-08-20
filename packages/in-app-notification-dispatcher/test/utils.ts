@@ -3,6 +3,7 @@ import {
   Agreement,
   Delegation,
   EService,
+  EServiceTemplate,
   Purpose,
   Tenant,
 } from "pagopa-interop-models";
@@ -18,6 +19,7 @@ import {
   upsertAgreement,
   upsertDelegation,
   upsertEService,
+  upsertEServiceTemplate,
   upsertPurpose,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
@@ -70,6 +72,12 @@ export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await upsertDelegation(readModelDB, delegation, 0);
+};
+
+export const addOneEServiceTemplate = async (
+  eserviceTemplate: EServiceTemplate
+): Promise<void> => {
+  await upsertEServiceTemplate(readModelDB, eserviceTemplate, 0);
 };
 
 afterEach(cleanup);

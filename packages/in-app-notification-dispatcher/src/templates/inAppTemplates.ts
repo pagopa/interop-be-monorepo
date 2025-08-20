@@ -100,4 +100,6 @@ export const inAppTemplates = {
       .exhaustive();
     return `${delegatorName} ha ${action} una delega in ${delegationKind}.`;
   },
+  templateStatusChangedToProducer: (templateName: string): string =>
+    `Hai sospeso il tuo template "<strong>${templateName}</strong>".`,
 };
