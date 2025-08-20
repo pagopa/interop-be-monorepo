@@ -77,25 +77,24 @@ export type RiskAnalysisTemplateAnswerAnnotation = z.infer<
   typeof RiskAnalysisTemplateAnswerAnnotation
 >;
 
-export const RiskAnalysisTemplateSingleAnswer = RiskAnalysisSingleAnswer.and(
-  z.object({
+export const RiskAnalysisTemplateSingleAnswer = RiskAnalysisSingleAnswer.extend(
+  {
     editable: z.boolean(),
     annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
     assistiveText: z.string().optional(),
     suggestedValues: z.array(z.string()),
-  })
+  }
 );
 export type RiskAnalysisTemplateSingleAnswer = z.infer<
   typeof RiskAnalysisTemplateSingleAnswer
 >;
 
-export const RiskAnalysisTemplateMultiAnswer = RiskAnalysisMultiAnswer.and(
-  z.object({
-    editable: z.boolean(),
-    annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
-    assistiveText: z.string().optional(),
-  })
-);
+export const RiskAnalysisTemplateMultiAnswer = RiskAnalysisMultiAnswer.extend({
+  editable: z.boolean(),
+  annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
+  assistiveText: z.string().optional(),
+});
+
 export type RiskAnalysisTemplateMultiAnswer = z.infer<
   typeof RiskAnalysisTemplateMultiAnswer
 >;

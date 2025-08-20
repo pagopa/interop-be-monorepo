@@ -8,35 +8,47 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
 } from "../risk-analysis/riskAnalysis.js";
 
-export const RiskAnalysisTemplateAnswerAnnotationDocumentReadlmodel =
+export const RiskAnalysisTemplateAnswerAnnotationDocumentReadModel =
   RiskAnalysisTemplateAnswerAnnotationDocument.extend({
     createdAt: z.string().datetime(),
   });
+export type RiskAnalysisTemplateAnswerAnnotationDocumentReadmodel = z.infer<
+  typeof RiskAnalysisTemplateAnswerAnnotationDocumentReadModel
+>;
 
 export const RiskAnalysisTemplateAnswerAnnotationReadModel =
   RiskAnalysisTemplateAnswerAnnotation.extend({
-    docs: z.array(RiskAnalysisTemplateAnswerAnnotationDocumentReadlmodel),
+    docs: z.array(RiskAnalysisTemplateAnswerAnnotationDocumentReadModel),
+  });
+export type RiskAnalysisTemplateAnswerAnnotationReadModel = z.infer<
+  typeof RiskAnalysisTemplateAnswerAnnotationReadModel
+>;
+
+export const RiskAnalysisTemplateSingleAnswerReadModel =
+  RiskAnalysisTemplateSingleAnswer.extend({
+    annotation: RiskAnalysisTemplateAnswerAnnotationReadModel.optional(),
+  });
+export type RiskAnalysisTemplateSingleAnswerReadModel = z.infer<
+  typeof RiskAnalysisTemplateSingleAnswerReadModel
+>;
+
+export const RiskAnalysisTemplateMultiAnswerReadModel =
+  RiskAnalysisTemplateMultiAnswer.extend({
+    annotation: RiskAnalysisTemplateAnswerAnnotationReadModel.optional(),
   });
 
-export const RiskAnalysisTemplateSingleAnswerReadModel = z.intersection(
-  RiskAnalysisTemplateSingleAnswer,
-  z.object({
-    annotation: RiskAnalysisTemplateAnswerAnnotationReadModel.optional(),
-  })
-);
-
-export const RiskAnalysisTemplateMultiAnswerReadModel = z.intersection(
-  RiskAnalysisTemplateMultiAnswer,
-  z.object({
-    annotation: RiskAnalysisTemplateAnswerAnnotationReadModel.optional(),
-  })
-);
+export type RiskAnalysisTemplateMultiAnswerReadModel = z.infer<
+  typeof RiskAnalysisTemplateMultiAnswerReadModel
+>;
 
 export const RiskAnalysisFormTemplateReadModel =
   RiskAnalysisFormTemplate.extend({
     singleAnswers: z.array(RiskAnalysisTemplateSingleAnswerReadModel),
     multiAnswers: z.array(RiskAnalysisTemplateMultiAnswerReadModel),
   });
+export type RiskAnalysisFormTemplateReadModel = z.infer<
+  typeof RiskAnalysisFormTemplateReadModel
+>;
 
 export const PurposeTemplateReadModel = PurposeTemplate.extend({
   createdAt: z.string().datetime(),
