@@ -41,7 +41,6 @@ describe("POST /eservices/{eServiceId}/descriptors router test", () => {
     request(api)
       .post(`${appBasePath}/eservices/${eserviceId}/descriptors`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

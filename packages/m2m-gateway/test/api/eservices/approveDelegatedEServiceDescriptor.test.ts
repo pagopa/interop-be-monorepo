@@ -36,7 +36,6 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/approve router t
         `${appBasePath}/eservices/${eServiceId}/descriptors/${descriptorId}/approve`
       )
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
       .send(mockApiEservice);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

@@ -36,7 +36,6 @@ describe("POST /eservices/:eServiceId/descriptors/:descriptorId/suspend router t
         `${appBasePath}/eservices/${eServiceId}/descriptors/${descriptorId}/suspend`
       )
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
       .send(mockApiEservice);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

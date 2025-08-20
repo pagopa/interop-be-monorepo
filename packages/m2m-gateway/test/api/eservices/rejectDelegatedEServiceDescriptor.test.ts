@@ -47,7 +47,6 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/reject router te
         `${appBasePath}/eservices/${eServiceId}/descriptors/${descriptorId}/reject`
       )
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
