@@ -2,6 +2,7 @@ import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
+  eventRepository,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -12,12 +13,18 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   purposeTemplateState,
-  TenantKind,
-  TenantId,
   WithMetadata,
+  purposeTemplateEventToBinaryDataV2,
+  TenantId,
+  TenantKind,
   Tenant,
 } from "pagopa-interop-models";
-import { tenantKindNotFound, tenantNotFound } from "../model/domain/errors.js";
+import {
+  purposeTemplateNotFound,
+  tenantKindNotFound,
+  tenantNotFound,
+} from "../model/domain/errors.js";
+import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
@@ -48,14 +55,26 @@ const retrieveTenant = async (
   return tenant;
 };
 
+const retrievePurposeTemplate = async (
+  templateId: PurposeTemplateId,
+  readModelService: ReadModelServiceSQL
+): Promise<WithMetadata<PurposeTemplate>> => {
+  const template = await readModelService.getPurposeTemplateById(templateId);
+  if (template === undefined) {
+    throw purposeTemplateNotFound(templateId);
+  }
+  return template;
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
-  _dbInstance: DB,
+  dbInstance: DB,
   readModelService: ReadModelServiceSQL
 ) {
-  // TODO : use it to write purpose template events in the event store
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const repository = eventRepository(dbInstance, purposeEventToBinaryDataV2);
+  const repository = eventRepository(
+    dbInstance,
+    purposeTemplateEventToBinaryDataV2
+  );
 
   return {
     async createPurposeTemplate(
@@ -63,6 +82,7 @@ export function purposeTemplateServiceBuilder(
       {
         authData,
         logger,
+        correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<
       WithMetadata<{
@@ -103,6 +123,10 @@ export function purposeTemplateServiceBuilder(
         purposeDailyCalls: seed.purposeDailyCalls,
       };
 
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateAdded(purposeTemplate, correlationId)
+      );
+
       return {
         data: {
           purposeTemplate,
@@ -110,7 +134,7 @@ export function purposeTemplateServiceBuilder(
             validatedPurposeRiskAnalysisFormSeed !== undefined,
         },
         metadata: {
-          version: 0,
+          version: event.newVersion,
         },
       };
     },
@@ -121,7 +145,7 @@ export function purposeTemplateServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Retrieving purpose template ${id}`);
-      return readModelService.getPurposeTemplateById(id);
+      return retrievePurposeTemplate(id, readModelService);
     },
   };
 }

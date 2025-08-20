@@ -232,6 +232,42 @@ export function riskAnalysisFormToRiskAnalysisFormToValidate(
   };
 }
 
+export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
+  form: RiskAnalysisFormTemplate
+): RiskAnalysisFormTemplateToValidate {
+  return {
+    version: form.version,
+    answers: {
+      ...form.singleAnswers.reduce(
+        (acc, singleAnswer) => ({
+          ...acc,
+          [singleAnswer.key]: {
+            values: singleAnswer.value ? [singleAnswer.value] : [],
+            editable: singleAnswer.editable,
+            suggestedValues: singleAnswer.suggestedValues,
+            annotation: singleAnswer.annotation,
+            assistiveText: singleAnswer.assistiveText,
+          },
+        }),
+        {}
+      ),
+      ...form.multiAnswers.reduce(
+        (acc, multiAnswer) => ({
+          ...acc,
+          [multiAnswer.key]: {
+            values: multiAnswer.values,
+            editable: multiAnswer.editable,
+            suggestedValues: [],
+            annotation: multiAnswer.annotation,
+            assistiveText: multiAnswer.assistiveText,
+          },
+        }),
+        {}
+      ),
+    },
+  };
+}
+
 function mapAnnotation(
   annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation
 ): RiskAnalysisTemplateAnswerAnnotation | undefined {

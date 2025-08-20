@@ -76,6 +76,7 @@ export * from "./purpose-template/purposeTemplate.js";
 export * from "./purpose-template/purposeTemplateEvents.js";
 export * from "./purpose-template/protobufConverterFromV2.js";
 export * from "./purpose-template/protobufConverterToV2.js";
+export * from "./purpose-template/purposeTemplateReadModelAdapter.js";
 
 // Token generation read model
 export * from "./token-generation-readmodel/platform-states-entry.js";
@@ -97,6 +98,7 @@ export * from "./read-models/attributeReadModel.js";
 export * from "./read-models/eserviceReadModel.js";
 export * from "./read-models/tenantReadModel.js";
 export * from "./read-models/purposeReadModel.js";
+export * from "./read-models/purposeTemplateReadModel.js";
 export * from "./read-models/readModels.js";
 export * from "./read-models/authorizationReadModel.js";
 export * from "./read-models/delegationReadModel.js";
@@ -131,6 +133,8 @@ export * from "./gen/v2/eservice/events.js";
 export * from "./gen/v2/agreement/agreement.js";
 export * from "./gen/v2/agreement/events.js";
 export * from "./gen/v2/purpose/purpose.js";
+export * from "./gen/v2/purpose-template/purpose-template.js";
+export * from "./gen/v2/purpose-template/events.js";
 export * from "./gen/v2/purpose/events.js";
 export * from "./gen/v2/purpose/riskAnalysis.js";
 export * from "./gen/v2/authorization/client.js";

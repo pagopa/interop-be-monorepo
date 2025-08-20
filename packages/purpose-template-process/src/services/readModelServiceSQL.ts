@@ -10,18 +10,21 @@ import {
 import {
   CatalogReadModelService,
   TenantReadModelService,
+  PurposeTemplateReadModelService,
 } from "pagopa-interop-readmodel";
-import {
-  purposeTemplateNameConflict,
-  purposeTemplateNotFound,
-} from "../model/domain/errors.js";
+import { purposeTemplateInReadmodelPurposeTemplate } from "pagopa-interop-readmodel-models";
+import { and, ilike } from "drizzle-orm";
+import { escapeRegExp } from "pagopa-interop-commons";
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
+  purposeTemplateReadModelServiceSQL,
 }: {
   catalogReadModelServiceSQL: CatalogReadModelService;
   tenantReadModelServiceSQL: TenantReadModelService;
+  purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
 }) {
   return {
     async checkPurposeTemplateName(): Promise<boolean> {
@@ -31,17 +34,23 @@ export function readModelServiceBuilderSQL({
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
     async getPurposeTemplate(
-      _title: string
-    ): Promise<WithMetadata<PurposeTemplate>> {
-      // TODO : this is a placeholder function to replace with properly implementation
-      throw purposeTemplateNameConflict();
+      title: string
+    ): Promise<WithMetadata<PurposeTemplate> | undefined> {
+      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateByFilter(
+        and(
+          ilike(
+            purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
+            escapeRegExp(title)
+          )
+        )
+      );
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getPurposeTemplateById(
-      id: PurposeTemplateId
+      _id: PurposeTemplateId
     ): Promise<WithMetadata<PurposeTemplate>> {
       // TO DO: this is a placeholder function Replace with actual implementation to fetch the purpose template by ID
-      throw purposeTemplateNotFound(id);
+      return Promise.reject();
     },
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
