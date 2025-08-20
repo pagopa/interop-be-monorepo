@@ -1,0 +1,24 @@
+meta {
+  name: Update published eservice descripton
+  type: http
+}
+
+patch {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descripton
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "descripton": "updated descripton"
+  }
+}

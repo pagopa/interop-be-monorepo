@@ -428,27 +428,6 @@ export function eserviceServiceBuilder(
       await pollEserviceUntilDeletion(eserviceId, headers);
     },
 
-    async updatePublishedEServiceName(
-      eserviceId: EServiceId,
-      seed: m2mGatewayApi.EServiceNameUpdateSeed,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EService> {
-      logger.info(
-        `Updating name for published E-Service with id ${eserviceId}`
-      );
-
-      const response = await clients.catalogProcessClient.updateEServiceName(
-        seed,
-        {
-          params: { eServiceId: eserviceId },
-          headers,
-        }
-      );
-
-      const polledResource = await pollEService(response, headers);
-      return toM2MGatewayApiEService(polledResource.data);
-    },
-
     async updatePublishedEServiceDelegation(
       eserviceId: EServiceId,
       seed: m2mGatewayApi.EServiceDelegationUpdateSeed,
@@ -496,6 +475,27 @@ export function eserviceServiceBuilder(
           params: { eServiceId: eserviceId },
           headers,
         });
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async updatePublishedEServiceName(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceNameUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating name for published E-Service with id ${eserviceId}`
+      );
+
+      const response = await clients.catalogProcessClient.updateEServiceName(
+        seed,
+        {
+          params: { eServiceId: eserviceId },
+          headers,
+        }
+      );
 
       const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
