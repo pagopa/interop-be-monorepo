@@ -64,8 +64,8 @@ export function eserviceServiceBuilder(
       );
     await pollEService(response, headers);
 
-    const updatedDescriptor = retrieveDescriptorByIdFromEService(
-      response.data,
+    const updatedDescriptor = retrieveEServiceDescriptorById(
+      response,
       unsafeBrandId(descriptorId)
     );
 
