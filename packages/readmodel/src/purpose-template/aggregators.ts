@@ -197,7 +197,7 @@ export const toPurposeTemplateAggregator = (
     riskAnalysisTemplateAnswersSQL,
     riskAnalysisTemplateAnswersAnnotationsSQL,
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
-    eserviceDescriptorVersionsSQL: [],
+    eserviceDescriptorVersionsSQL: [], // temporary missing relationship with eservice descriptor
   };
 };
 
