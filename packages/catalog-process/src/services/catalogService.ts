@@ -1539,7 +1539,7 @@ export function catalogServiceBuilder(
       return updateDraftDescriptor(
         eserviceId,
         descriptorId,
-        { type: "put", seed },
+        seed,
         readModelService,
         repository,
         ctx
@@ -1559,7 +1559,7 @@ export function catalogServiceBuilder(
       return updateDraftDescriptor(
         eserviceId,
         descriptorId,
-        { type: "patch", seed },
+        seed,
         readModelService,
         repository,
         ctx
@@ -3866,18 +3866,9 @@ async function extractEServiceRiskAnalysisFromTemplate(
 async function updateDraftDescriptor(
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
-  {
-    type,
-    seed,
-  }:
-    | {
-        type: "put";
-        seed: catalogApi.UpdateEServiceDescriptorSeed;
-      }
-    | {
-        type: "patch";
-        seed: catalogApi.PatchUpdateEServiceDescriptorSeed;
-      },
+  seed:
+    | catalogApi.UpdateEServiceDescriptorSeed
+    | catalogApi.PatchUpdateEServiceDescriptorSeed,
   readModelService: ReadModelService,
   repository: ReturnType<typeof eventRepository<EServiceEvent>>,
   {
@@ -3931,16 +3922,6 @@ async function updateDraftDescriptor(
       )
     : descriptor.attributes;
 
-  const updatedDescription = match(type)
-    .with("put", () => description ?? undefined)
-    .with(
-      "patch",
-      () =>
-        description ??
-        (description === null ? undefined : descriptor.description)
-    )
-    .exhaustive();
-
   const updatedAgreementApprovalPolicy = agreementApprovalPolicy
     ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
         agreementApprovalPolicy
@@ -3949,7 +3930,7 @@ async function updateDraftDescriptor(
 
   const updatedDescriptor: Descriptor = {
     ...descriptor,
-    description: updatedDescription,
+    description: description ?? descriptor.description,
     audience: audience ?? descriptor.audience,
     voucherLifespan: voucherLifespan ?? descriptor.voucherLifespan,
     dailyCallsPerConsumer: updatedDailyCallsPerConsuemer,
