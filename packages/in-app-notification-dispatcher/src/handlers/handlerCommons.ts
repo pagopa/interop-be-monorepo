@@ -5,12 +5,15 @@ import {
   Tenant,
   TenantId,
   EServiceId,
+  PurposeId,
+  Purpose,
 } from "pagopa-interop-models";
 
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import {
   descriptorPublishedNotFound,
   eserviceNotFound,
+  purposeNotFound,
   tenantNotFound,
 } from "../models/errors.js";
 
@@ -47,4 +50,15 @@ export async function retrieveEservice(
     throw eserviceNotFound(eserviceId);
   }
   return eservice;
+}
+
+export async function retrievePurpose(
+  purposeId: PurposeId,
+  readModelService: ReadModelServiceSQL
+): Promise<Purpose> {
+  const purpose = await readModelService.getPurposeById(purposeId);
+  if (!purpose) {
+    throw purposeNotFound(purposeId);
+  }
+  return purpose;
 }
