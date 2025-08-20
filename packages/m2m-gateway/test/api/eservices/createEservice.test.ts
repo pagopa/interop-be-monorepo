@@ -17,7 +17,7 @@ describe("POST /eservices router test", () => {
 
   const mockApiEserviceWithDescriptor: m2mGatewayApi.DescriptorSeedForEServiceCreation =
     {
-      audience: [],
+      audience: ["audience"],
       voucherLifespan: 1000,
       dailyCallsPerConsumer: 100,
       dailyCallsTotal: 100,
@@ -105,8 +105,27 @@ describe("POST /eservices router test", () => {
         agreementApprovalPolicy: "invalid agreementApprovalPolicy",
       },
     },
+    {
+      ...mockEserviceSeed,
+      descriptor: {
+        audience: undefined,
+      },
+    },
+    {
+      ...mockEserviceSeed,
+      descriptor: {
+        audience: [],
+      },
+    },
+    {
+      ...mockEserviceSeed,
+      descriptor: {
+        audience: ["audience1", "audience2"],
+        // We currently do not support multiple audiences for consistency with front-end
+      },
+    },
   ])(
-    "Should return 400 if passed an invalid Eservice seed: %s",
+    "Should return 400 if passed an invalid Eservice seed (seed #%#)",
     async (body) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, body as m2mGatewayApi.EServiceSeed);
