@@ -4,6 +4,7 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -51,34 +52,34 @@ export function eserviceServiceBuilder(
       headers,
     });
 
-  const retrieveDescriptorByIdFromEService = (
-    eservice: catalogApi.EService,
+  const retrieveEServiceDescriptorById = (
+    eservice: WithMaybeMetadata<catalogApi.EService>,
     descriptorId: DescriptorId
   ): catalogApi.EServiceDescriptor => {
-    const descriptor = eservice.descriptors.find((e) => e.id === descriptorId);
+    const descriptor = eservice.data.descriptors.find(
+      (e) => e.id === descriptorId
+    );
 
     if (!descriptor) {
-      throw eserviceDescriptorNotFound(eservice.id, descriptorId);
+      throw eserviceDescriptorNotFound(eservice.data.id, descriptorId);
     }
 
     return descriptor;
   };
 
-  const retrieveEServiceDescriptorById = async (
-    headers: M2MGatewayAppContext["headers"],
-    eserviceId: EServiceId,
-    descriptorId: DescriptorId
-  ): Promise<WithMaybeMetadata<catalogApi.EServiceDescriptor>> => {
-    const { data: eservice, metadata } =
-      await clients.catalogProcessClient.getEServiceById({
-        params: { eServiceId: eserviceId },
-        headers,
-      });
+  const retrieveEServiceRiskAnalysisById = (
+    eservice: WithMaybeMetadata<catalogApi.EService>,
+    riskAnalysisId: RiskAnalysisId
+  ): catalogApi.EServiceRiskAnalysis => {
+    const riskAnalysis = eservice.data.riskAnalysis.find(
+      (r) => r.id === riskAnalysisId
+    );
 
-    return {
-      data: retrieveDescriptorByIdFromEService(eservice, descriptorId),
-      metadata,
-    };
+    if (!riskAnalysis) {
+      throw eserviceRiskAnalysisNotFound(eservice.data.id, riskAnalysisId);
+    }
+
+    return riskAnalysis;
   };
 
   const pollEserviceUntilDeletion = (
@@ -155,9 +156,8 @@ export function eserviceServiceBuilder(
         `Retrieving eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
       );
 
-      const { data: descriptor } = await retrieveEServiceDescriptorById(
-        headers,
-        eserviceId,
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
         descriptorId
       );
 
@@ -323,9 +323,8 @@ export function eserviceServiceBuilder(
         `Retrieving interface for eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
       );
 
-      const { data: descriptor } = await retrieveEServiceDescriptorById(
-        headers,
-        eserviceId,
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
         descriptorId
       );
 
@@ -366,8 +365,8 @@ export function eserviceServiceBuilder(
         headers
       );
 
-      const createdDescriptor = retrieveDescriptorByIdFromEService(
-        eservice,
+      const createdDescriptor = retrieveEServiceDescriptorById(
+        { data: eservice, metadata },
         unsafeBrandId(createdDescriptorId)
       );
 
@@ -463,8 +462,8 @@ export function eserviceServiceBuilder(
 
       await pollEService(response, headers);
 
-      const descriptor = retrieveDescriptorByIdFromEService(
-        response.data,
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
         unsafeBrandId(descriptorId)
       );
 
@@ -489,8 +488,8 @@ export function eserviceServiceBuilder(
       );
       await pollEService(response, headers);
 
-      const descriptor = retrieveDescriptorByIdFromEService(
-        response.data,
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
         unsafeBrandId(descriptorId)
       );
 
@@ -515,8 +514,8 @@ export function eserviceServiceBuilder(
       );
       await pollEService(response, headers);
 
-      const descriptor = retrieveDescriptorByIdFromEService(
-        response.data,
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
         unsafeBrandId(descriptorId)
       );
 
@@ -541,8 +540,8 @@ export function eserviceServiceBuilder(
         );
       await pollEService(response, headers);
 
-      const descriptor = retrieveDescriptorByIdFromEService(
-        response.data,
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
         unsafeBrandId(descriptorId)
       );
 
@@ -568,8 +567,8 @@ export function eserviceServiceBuilder(
         );
       await pollEService(response, headers);
 
-      const descriptor = retrieveDescriptorByIdFromEService(
-        response.data,
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
         unsafeBrandId(descriptorId)
       );
 
@@ -615,9 +614,8 @@ export function eserviceServiceBuilder(
         `Deleting interface document from eservice ${eserviceId} descriptor ${descriptorId}`
       );
 
-      const { data: descriptor } = await retrieveEServiceDescriptorById(
-        headers,
-        eserviceId,
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
         descriptorId
       );
 
@@ -664,13 +662,10 @@ export function eserviceServiceBuilder(
         headers
       );
 
-      const createdRiskAnalysis = eservice.riskAnalysis.find(
-        (r) => r.id === createdRiskAnalysisId
+      const createdRiskAnalysis = retrieveEServiceRiskAnalysisById(
+        { data: eservice, metadata },
+        unsafeBrandId(createdRiskAnalysisId)
       );
-
-      if (!createdRiskAnalysis) {
-        throw eserviceRiskAnalysisNotFound(eserviceId, createdRiskAnalysisId);
-      }
 
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
     },
