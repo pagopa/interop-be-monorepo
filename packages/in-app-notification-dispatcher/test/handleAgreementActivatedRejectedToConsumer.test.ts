@@ -87,7 +87,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
     const unknownTenantId = generateId<TenantId>();
     const agreementWithUnknownTenant = {
       ...agreement,
-      consumerId: unknownTenantId,
+      producerId: unknownTenantId,
     };
 
     // Mock notification service to return users (so the check doesn't exit early)
@@ -147,7 +147,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
 
   it.each<{
     eventType: "AgreementActivated" | "AgreementRejected";
-    expectedAction: "attivato" | "rifiuto";
+    expectedAction: "attivato" | "rifiutato";
   }>([
     {
       eventType: "AgreementActivated",
@@ -155,7 +155,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
     },
     {
       eventType: "AgreementRejected",
-      expectedAction: "rifiuto",
+      expectedAction: "rifiutato",
     },
   ])(
     "should handle $eventType event correctly",
