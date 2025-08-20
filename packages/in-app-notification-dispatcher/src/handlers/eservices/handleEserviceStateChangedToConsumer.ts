@@ -1,14 +1,12 @@
 import {
   EServiceV2,
   fromEServiceV2,
-  Notification,
-  generateId,
   missingKafkaMessageDataError,
+  NewNotification,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { config } from "../../config/config.js";
 import {
   retrieveLatestPublishedDescriptor,
   retrieveTenant,
@@ -18,7 +16,7 @@ export async function handleEserviceStateChangedToConsumer(
   eserviceV2Msg: EServiceV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL
-): Promise<Notification[]> {
+): Promise<NewNotification[]> {
   if (!eserviceV2Msg) {
     throw missingKafkaMessageDataError(
       "eservice",
@@ -54,12 +52,10 @@ export async function handleEserviceStateChangedToConsumer(
   const body = inAppTemplates.eserviceStateChangedToConsumer(eservice.name);
 
   return userNotificationConfigs.map(({ userId, tenantId }) => ({
-    id: generateId(),
-    createdAt: new Date(),
     userId,
     tenantId,
     body,
-    deepLink: `https://${config.interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${descriptor.id}`,
-    readAt: undefined,
+    notificationType: "eserviceStateChangedToConsumer",
+    entityId: descriptor.id,
   }));
 }

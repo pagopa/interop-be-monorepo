@@ -13,7 +13,6 @@ import {
   TenantId,
   toEServiceV2,
 } from "pagopa-interop-models";
-import { config } from "../src/config/config.js";
 import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
 import { tenantNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
@@ -117,13 +116,11 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
           eservice.name
         );
         const expectedNotifications = users.map((user) => ({
-          id: expect.any(String),
-          createdAt: expect.any(Date),
           userId: user.userId,
           tenantId: consumerId,
           body,
-          deepLink: `https://${config.interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${eservice.descriptors[0].id}`,
-          readAt: undefined,
+          notificationType: "eserviceStateChangedToConsumer",
+          entityId: eservice.descriptors[0].id,
         }));
         expect(notifications).toEqual(
           expect.arrayContaining(expectedNotifications)

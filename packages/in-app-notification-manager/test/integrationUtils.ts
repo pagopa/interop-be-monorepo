@@ -1,8 +1,10 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject, afterEach, beforeEach, vi } from "vitest";
 import {
+  IDS,
   Notification,
   NotificationId,
+  NotificationType,
   TenantId,
   UserId,
   generateId,
@@ -41,7 +43,8 @@ export const addNotifications = async (n: Notification[]): Promise<void> => {
       userId: n.userId,
       tenantId: n.tenantId,
       body: n.body,
-      deepLink: n.deepLink,
+      notificationType: n.notificationType,
+      entityId: n.entityId,
       readAt: n.readAt?.toISOString(),
       createdAt: n.createdAt.toISOString(),
     }))
@@ -53,7 +56,8 @@ export const getMockNotification = ({
   userId = generateId<UserId>(),
   tenantId = generateId<TenantId>(),
   body = "test",
-  deepLink = "test",
+  notificationType = "eserviceStateChangedToConsumer",
+  entityId = generateId<IDS>(),
   readAt = undefined,
   createdAt = new Date(),
 }: {
@@ -61,7 +65,8 @@ export const getMockNotification = ({
   userId?: UserId;
   tenantId?: TenantId;
   body?: string;
-  deepLink?: string;
+  notificationType?: NotificationType;
+  entityId?: IDS;
   readAt?: Date;
   createdAt?: Date;
 }): Notification => ({
@@ -69,7 +74,8 @@ export const getMockNotification = ({
   userId,
   tenantId,
   body,
-  deepLink,
+  notificationType,
+  entityId,
   readAt,
   createdAt,
 });
