@@ -2,7 +2,6 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import e from "express";
 import { ErrorCodes as M2MGatewayErrorCodes } from "../model/errors.js";
 
 type ErrorCodes = M2MGatewayErrorCodes | CommonErrorCodes;
