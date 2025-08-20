@@ -669,5 +669,40 @@ export function eserviceServiceBuilder(
 
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
     },
+
+    async getEServiceRiskAnalysis(
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceRiskAnalysis> {
+      logger.info(
+        `Retrieving Risk Analysis ${riskAnalysisId} for E-Service ${eserviceId}`
+      );
+
+      const riskAnalysis = retrieveEServiceRiskAnalysisById(
+        await retrieveEServiceById(headers, eserviceId),
+        unsafeBrandId(riskAnalysisId)
+      );
+
+      return toM2MGatewayApiEServiceRiskAnalysis(riskAnalysis);
+    },
+
+    async deleteEServiceRiskAnalysis(
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting Risk Analysis ${riskAnalysisId} for E-Service ${eserviceId}`
+      );
+
+      const { metadata } =
+        await clients.catalogProcessClient.deleteRiskAnalysis(undefined, {
+          params: { eServiceId: eserviceId, riskAnalysisId },
+          headers,
+        });
+
+      await pollEServiceById(eserviceId, metadata, headers);
+    },
   };
 }
