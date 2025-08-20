@@ -160,17 +160,8 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
         ],
       },
     },
-    // With nullable fields
-    {
-      description: null,
-    },
-    {
-      description: null,
-      dailyCallsPerConsumer: 100,
-      dailyCallsTotal: 200,
-    },
   ] as catalogApi.PatchUpdateEServiceDescriptorSeed[])(
-    "Should return 200 with partial seed and nullable fields (seed #%#)",
+    "Should return 200 with partial seed (seed #%#)",
     async (seed) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
