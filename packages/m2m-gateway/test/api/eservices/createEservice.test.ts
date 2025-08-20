@@ -6,7 +6,7 @@ import {
 import request from "supertest";
 import { authRole, AuthRole } from "pagopa-interop-commons";
 import { describe, expect, it, vi } from "vitest";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";

@@ -9,7 +9,6 @@ import request from "supertest";
 import {
   DescriptorId,
   EServiceId,
-  generateId,
   pollingMaxRetriesExceeded,
 } from "pagopa-interop-models";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
