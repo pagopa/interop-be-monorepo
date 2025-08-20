@@ -1,9 +1,10 @@
-import { InternalError } from "pagopa-interop-models";
+import { EServiceId, InternalError } from "pagopa-interop-models";
 
 type InAppNotificationDispatcherErrorCode =
   | "tenantNotFound"
   | "descriptorPublishedNotFound"
-  | "eserviceNotFound";
+  | "eserviceNotFound"
+  | "activeProducerDelegationNotFound";
 
 export class InAppNotificationDispatcherError extends InternalError<InAppNotificationDispatcherErrorCode> {
   constructor({
@@ -41,5 +42,14 @@ export function eserviceNotFound(
   return new InternalError({
     detail: `EService ${eServiceId} not found`,
     code: "eserviceNotFound",
+  });
+}
+
+export function activeProducerDelegationNotFound(
+  eServiceId: EServiceId
+): InAppNotificationDispatcherError {
+  return new InternalError({
+    detail: `Active producer delegation not found for EService ${eServiceId}`,
+    code: "activeProducerDelegationNotFound",
   });
 }
