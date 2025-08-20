@@ -4,6 +4,8 @@ import {
   EService,
   EServiceId,
   NotificationConfig,
+  Purpose,
+  PurposeId,
   Tenant,
   TenantId,
   UserId,
@@ -13,6 +15,7 @@ import {
   AgreementReadModelService,
   CatalogReadModelService,
   NotificationConfigReadModelService,
+  PurposeReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
 import { agreementInReadmodelAgreement } from "pagopa-interop-readmodel-models";
@@ -23,11 +26,13 @@ export function readModelServiceBuilderSQL({
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
+  purposeReadModelServiceSQL,
 }: {
   agreementReadModelServiceSQL: AgreementReadModelService;
   catalogReadModelServiceSQL: CatalogReadModelService;
   tenantReadModelServiceSQL: TenantReadModelService;
   notificationConfigReadModelServiceSQL: NotificationConfigReadModelService;
+  purposeReadModelServiceSQL: PurposeReadModelService;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -61,6 +66,9 @@ export function readModelServiceBuilderSQL({
         notificationName,
         "inApp"
       );
+    },
+    async getPurposeById(purposeId: PurposeId): Promise<Purpose | undefined> {
+      return (await purposeReadModelServiceSQL.getPurposeById(purposeId))?.data;
     },
   };
 }

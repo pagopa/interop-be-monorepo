@@ -3,7 +3,8 @@ import { InternalError } from "pagopa-interop-models";
 type InAppNotificationDispatcherErrorCode =
   | "tenantNotFound"
   | "descriptorPublishedNotFound"
-  | "eserviceNotFound";
+  | "eserviceNotFound"
+  | "purposeNotFound";
 
 export class InAppNotificationDispatcherError extends InternalError<InAppNotificationDispatcherErrorCode> {
   constructor({
@@ -41,5 +42,14 @@ export function eserviceNotFound(
   return new InternalError({
     detail: `EService ${eServiceId} not found`,
     code: "eserviceNotFound",
+  });
+}
+
+export function purposeNotFound(
+  purposeId: string
+): InAppNotificationDispatcherError {
+  return new InternalError({
+    detail: `Purpose ${purposeId} not found`,
+    code: "purposeNotFound",
   });
 }
