@@ -18,5 +18,7 @@ export const inAppTemplates = {
     eserviceName: string,
     action: "attivato" | "rifiutato"
   ): string =>
-    `${producerName} ha ${action} la richiesta di fruizione relativa all'e-service <strong>${eserviceName}</strong>.`,
+    `${producerName} ha ${action} la richiesta di fruizione relativa all'e-service <strong>${eserviceName}</strong>`,
+  templateStatusChangedToProducer: (templateName: string): string =>
+    `Hai sospeso il tuo template "<strong>${templateName}</strong>".`,
 };

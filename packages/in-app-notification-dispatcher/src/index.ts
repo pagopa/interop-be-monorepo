@@ -9,6 +9,7 @@ import {
   CorrelationId,
   DelegationEventV2,
   EServiceEventV2,
+  EServiceTemplateEventV2,
   EventEnvelope,
   generateId,
   genericInternalError,
@@ -39,6 +40,7 @@ import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
 import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
 import { handleAuthorizationEvent } from "./handlers/authorizations/handleAuthorizationEvent.js";
 import { handleAttributeEvent } from "./handlers/attributes/handleAttributeEvent.js";
+import { handleEServiceTemplateEvent } from "./handlers/eserviceTemplates/handleEserviceTemplates.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -47,6 +49,7 @@ interface TopicNames {
   delegationTopic: string;
   authorizationTopic: string;
   attributeTopic: string;
+  eserviceTemplateTopic: string;
 }
 
 const readModelDB = makeDrizzleConnection(config);
@@ -86,6 +89,7 @@ function processMessage(topicNames: TopicNames) {
       delegationTopic,
       authorizationTopic,
       attributeTopic,
+      eserviceTemplateTopic,
     } = topicNames;
 
     const handleWith = <T extends z.ZodType>(
@@ -136,6 +140,9 @@ function processMessage(topicNames: TopicNames) {
       .with(attributeTopic, async () =>
         handleWith(AttributeEvent, handleAttributeEvent)
       )
+      .with(eserviceTemplateTopic, async () =>
+        handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
+      )
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
@@ -153,6 +160,7 @@ await runConsumer(
     config.delegationTopic,
     config.authorizationTopic,
     config.attributeTopic,
+    config.eserviceTemplateTopic,
   ],
   processMessage({
     catalogTopic: config.catalogTopic,
@@ -161,6 +169,7 @@ await runConsumer(
     delegationTopic: config.delegationTopic,
     authorizationTopic: config.authorizationTopic,
     attributeTopic: config.attributeTopic,
+    eserviceTemplateTopic: config.eserviceTemplateTopic,
   }),
   "in-app-notification-dispatcher"
 );
