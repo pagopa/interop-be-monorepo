@@ -4,13 +4,13 @@
 import { fail } from "assert";
 import {
   PurposeTemplate,
-  PurposeTemplateAddedV2,
   RiskAnalysisFormTemplate,
   generateId,
   purposeTemplateState,
   tenantKind,
   toPurposeTemplateV2,
   unsafeBrandId,
+  PurposeTemplateAddedV2,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { describe, expect, it, vi } from "vitest";
@@ -31,9 +31,9 @@ import {
 } from "../mockUtils.js";
 import {
   addOnePurposeTemplate,
-  purposeTemplateService,
   readLastPurposeTemplateEvent,
-} from "./integrationUtils.js";
+  purposeTemplateService,
+} from "../integrationUtils.js";
 
 describe("createPurposeTemplate", () => {
   const mockPurposeTemplate: PurposeTemplate = {
