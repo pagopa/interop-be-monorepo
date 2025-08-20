@@ -45,7 +45,7 @@ export async function handlePurposeActivatedRejectedToConsumer(
     eservice.name,
     match(type)
       .with("PurposeVersionActivated", () => "attivato" as const)
-      .with("PurposeVersionRejected", () => "rifiuto" as const)
+      .with("PurposeVersionRejected", () => "rifiutato" as const)
       .exhaustive()
   );
 
