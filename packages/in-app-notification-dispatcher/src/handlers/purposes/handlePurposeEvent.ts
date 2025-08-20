@@ -2,13 +2,30 @@ import { PurposeEventEnvelopeV2, NewNotification } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
 
 export async function handlePurposeEvent(
   decodedMessage: PurposeEventEnvelopeV2,
   logger: Logger,
-  _readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
+    .with(
+      {
+        type: P.union(
+          "PurposeVersionSuspendedByConsumer",
+          "PurposeVersionUnsuspendedByConsumer",
+          "PurposeArchived"
+        ),
+      },
+      ({ data: { purpose }, type }) =>
+        handlePurposeStatusChangedToProducer(
+          purpose,
+          logger,
+          readModelService,
+          type
+        )
+    )
     .with(
       {
         type: P.union(
@@ -21,11 +38,8 @@ export async function handlePurposeEvent(
           "PurposeAdded",
           "DraftPurposeUpdated",
           "PurposeActivated",
-          "PurposeArchived",
           "PurposeVersionOverQuotaUnsuspended",
-          "PurposeVersionSuspendedByConsumer",
           "PurposeVersionSuspendedByProducer",
-          "PurposeVersionUnsuspendedByConsumer",
           "PurposeVersionUnsuspendedByProducer",
           "WaitingForApprovalPurposeVersionDeleted",
           "NewPurposeVersionActivated",
