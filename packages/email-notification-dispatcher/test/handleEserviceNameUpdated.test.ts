@@ -6,6 +6,7 @@ import {
   getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
+  getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
   agreementState,
@@ -19,7 +20,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { descriptorPublishedNotFound } from "../src/models/errors.js";
-import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEserviceDescriptorPublished.js";
+import { handleEserviceNameUpdated } from "../src/handlers/eservices/handleEserviceNameUpdated.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -29,7 +30,7 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("handleEserviceDescriptorPublished", async () => {
+describe("handleEserviceNameUpdated", async () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -70,7 +71,7 @@ describe("handleEserviceDescriptorPublished", async () => {
 
   it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
     await expect(() =>
-      handleEserviceDescriptorPublished({
+      handleEserviceNameUpdated({
         eserviceV2Msg: undefined,
         logger,
         templateService,
@@ -79,7 +80,7 @@ describe("handleEserviceDescriptorPublished", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("eservice", "EServiceDescriptorPublished")
+      missingKafkaMessageDataError("eservice", "EServiceNameUpdated")
     );
   });
 
@@ -97,7 +98,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleEserviceDescriptorPublished({
+      handleEserviceNameUpdated({
         eserviceV2Msg: toEServiceV2(eserviceNoDescriptor),
         logger,
         templateService,
@@ -108,8 +109,8 @@ describe("handleEserviceDescriptorPublished", async () => {
     ).rejects.toThrow(descriptorPublishedNotFound(agreement.eserviceId));
   });
 
-  it("should return empty array if no consumer is present for the eservice", async () => {
-    const messages = await handleEserviceDescriptorPublished({
+  it("should skip event if no consumer is present for the eservice", async () => {
+    const messages = await handleEserviceNameUpdated({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
@@ -132,7 +133,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleEserviceDescriptorPublished({
+    const messages = await handleEserviceNameUpdated({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
@@ -160,7 +161,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleEserviceDescriptorPublished({
+    const messages = await handleEserviceNameUpdated({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
@@ -172,7 +173,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
-      expect(message.email.body).toContain(`Nuova versione di un e-service`);
+      expect(message.email.body).toContain(`Nome di un e-service modificato`);
     });
   });
 });

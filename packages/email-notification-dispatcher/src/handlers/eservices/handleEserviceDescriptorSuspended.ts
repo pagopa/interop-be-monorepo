@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-let */
 import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import {
   EServiceV2,
@@ -20,7 +21,7 @@ import { UserServiceSQL } from "../../services/userServiceSQL.js";
 const notificationType: NotificationType =
   "purposeSuspendedUnsuspendedToConsumer";
 
-export type EServiceDescriptorPublishedData = {
+export type EServiceDescriptorSuspendedData = {
   eserviceV2Msg?: EServiceV2;
   readModelService: ReadModelServiceSQL;
   logger: Logger;
@@ -29,8 +30,8 @@ export type EServiceDescriptorPublishedData = {
   correlationId: CorrelationId;
 };
 
-export async function handleEserviceDescriptorPublished(
-  data: EServiceDescriptorPublishedData
+export async function handleEserviceDescriptorSuspended(
+  data: EServiceDescriptorSuspendedData
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     eserviceV2Msg,
@@ -44,7 +45,7 @@ export async function handleEserviceDescriptorPublished(
   if (!eserviceV2Msg) {
     throw missingKafkaMessageDataError(
       "eservice",
-      "EServiceDescriptorPublished"
+      "EServiceDescriptorSuspended"
     );
   }
 
@@ -52,7 +53,7 @@ export async function handleEserviceDescriptorPublished(
 
   const [htmlTemplate, agreements, descriptor] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceDescriptorPublishedMailTemplate
+      eventMailTemplateType.eserviceDescriptorSuspendedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
     retrieveLatestPublishedDescriptor(eservice),
@@ -81,9 +82,9 @@ export async function handleEserviceDescriptorPublished(
   return userEmails.map((email) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Nuova versione disponibile per ${eservice.name}`,
+      subject: `Una versione di ${eservice.name} è stata sospesa`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: "Nuova versione di un e-service",
+        title: "Versione di un e-service sospesa",
         notificationType,
         entityId: descriptor.id,
         eserviceName: eservice.name,
