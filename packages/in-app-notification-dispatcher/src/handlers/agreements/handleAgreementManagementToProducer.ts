@@ -8,7 +8,6 @@ import {
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { config } from "../../config/config.js";
 import { retrieveTenant, retrieveEservice } from "../handlerCommons.js";
 
 export async function handleAgreementManagementToProducer(
@@ -54,12 +53,12 @@ export async function handleAgreementManagementToProducer(
       .with("AgreementUpgraded", () => "aggiornato" as const)
       .exhaustive()
   );
-  const deepLink = `https://${config.interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`;
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
-    deepLink,
+    notificationType: "agreementManagementToProducer",
+    entityId: agreement.id,
   }));
 }

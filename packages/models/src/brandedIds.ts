@@ -211,48 +211,50 @@ export type RiskAnalysisTemplateAnswerAnnotationDocumentId = z.infer<
   typeof RiskAnalysisTemplateAnswerAnnotationDocumentId
 >;
 
-type IDS =
-  | CorrelationId
-  | SpanId
-  | EServiceId
-  | EServiceDocumentId
-  | AgreementId
-  | AgreementDocumentId
-  | DescriptorId
-  | AttributeId
-  | TenantId
-  | RiskAnalysisSingleAnswerId
-  | RiskAnalysisMultiAnswerId
-  | RiskAnalysisFormId
-  | RiskAnalysisId
-  | PurposeId
-  | PurposeVersionId
-  | PurposeVersionDocumentId
-  | ClientId
-  | UserId
-  | SelfcareId
-  | ProducerKeychainId
-  | DelegationId
-  | DelegationContractId
-  | PlatformStatesEServiceDescriptorPK
-  | PlatformStatesAgreementPK
-  | PlatformStatesPurposePK
-  | PlatformStatesClientPK
-  | GSIPKConsumerIdEServiceId
-  | TokenGenerationStatesClientKidPurposePK
-  | TokenGenerationStatesClientKidPK
-  | GSIPKEServiceIdDescriptorId
-  | GSIPKClientIdPurposeId
-  | GSIPKClientIdKid
-  | EServiceTemplateId
-  | EServiceTemplateVersionId
-  | NotificationId
-  | TenantNotificationConfigId
-  | UserNotificationConfigId
-  | PurposeTemplateId
-  | RiskAnalysisFormTemplateId
-  | RiskAnalysisTemplateAnswerAnnotationId
-  | RiskAnalysisTemplateAnswerAnnotationDocumentId;
+export const IDS = z.union([
+  CorrelationId,
+  SpanId,
+  EServiceId,
+  EServiceDocumentId,
+  AgreementId,
+  AgreementDocumentId,
+  DescriptorId,
+  AttributeId,
+  TenantId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisFormId,
+  RiskAnalysisId,
+  PurposeId,
+  PurposeVersionId,
+  PurposeVersionDocumentId,
+  ClientId,
+  UserId,
+  SelfcareId,
+  ProducerKeychainId,
+  DelegationId,
+  DelegationContractId,
+  PlatformStatesEServiceDescriptorPK,
+  PlatformStatesAgreementPK,
+  PlatformStatesPurposePK,
+  PlatformStatesClientPK,
+  GSIPKConsumerIdEServiceId,
+  TokenGenerationStatesClientKidPurposePK,
+  TokenGenerationStatesClientKidPK,
+  GSIPKEServiceIdDescriptorId,
+  GSIPKClientIdPurposeId,
+  GSIPKClientIdKid,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
+  NotificationId,
+  TenantNotificationConfigId,
+  UserNotificationConfigId,
+  PurposeTemplateId,
+  RiskAnalysisFormTemplateId,
+  RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+]);
+export type IDS = z.infer<typeof IDS>;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result
