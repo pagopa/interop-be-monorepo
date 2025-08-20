@@ -40,18 +40,18 @@ export async function handleAgreementActivatedRejectedToConsumer(
     return [];
   }
 
-  const consumer = await retrieveTenant(agreement.consumerId, readModelService);
   const eservice = await retrieveEservice(
     agreement.eserviceId,
     readModelService
   );
+  const producer = await retrieveTenant(agreement.producerId, readModelService);
 
   const body = inAppTemplates.agreementActivatedRejectedToConsumer(
-    consumer.name,
+    producer.name,
     eservice.name,
     match(eventType)
       .with("AgreementActivated", () => "attivato" as const)
-      .with("AgreementRejected", () => "rifiuto" as const)
+      .with("AgreementRejected", () => "rifiutato" as const)
       .exhaustive()
   );
   const deepLink = `https://${config.interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`;
