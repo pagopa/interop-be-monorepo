@@ -350,6 +350,9 @@ export async function setupTestContainersVitest(
         "TRUNCATE TABLE readmodel_purpose.purpose CASCADE"
       );
       await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_purpose_template.purpose_template CASCADE"
+      );
+      await readModelDB?.execute(
         "TRUNCATE TABLE readmodel_tenant.tenant CASCADE"
       );
       await readModelDB?.execute(
