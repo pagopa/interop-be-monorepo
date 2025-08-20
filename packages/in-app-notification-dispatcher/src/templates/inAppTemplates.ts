@@ -121,4 +121,11 @@ export const inAppTemplates = {
     action: "attivato" | "rifiutato"
   ): string =>
     `L'ente erogatore ${producerName} ha ${action} la finalità <strong>${purposeName}</strong>, associata all'e-service <strong>${eserviceName}</strong>.`,
+  clientAddedRemovedToProducer: (
+    purposeName: string,
+    eserviceName: string,
+    consumerName: string,
+    action: "associato" | "disassociato"
+  ): string =>
+    `L'ente ${consumerName} ha ${action} un proprio client alla finalità ${purposeName} per il tuo e-service ${eserviceName}`,
 };
