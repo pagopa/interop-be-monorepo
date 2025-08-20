@@ -18,6 +18,7 @@ import {
   uploadEServiceDescriptorInterfaceErrorMapper,
   deleteEServiceDescriptorInterfaceErrorMapper,
   deleteDraftEServiceDescriptorErrorMapper,
+  getEServiceRiskAnalysisErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -604,7 +605,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            getEServiceRiskAnalysisErrorMapper,
             ctx,
             `Error retrieving risk analysis ${req.params.riskAnalysisId} for eservice with id ${req.params.eserviceId}`
           );

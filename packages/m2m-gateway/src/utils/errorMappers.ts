@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import e from "express";
 import { ErrorCodes as M2MGatewayErrorCodes } from "../model/errors.js";
 
 type ErrorCodes = M2MGatewayErrorCodes | CommonErrorCodes;
@@ -175,4 +176,11 @@ export const deleteDraftEServiceDescriptorErrorMapper = (
 ): number =>
   match(error.code)
     .with("cannotDeleteLastEServiceDescriptor", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getEServiceRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceRiskAnalysisNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
