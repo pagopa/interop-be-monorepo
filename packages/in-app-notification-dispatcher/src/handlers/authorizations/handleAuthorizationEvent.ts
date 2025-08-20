@@ -5,13 +5,26 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { handleClientAddedRemovedToProducer } from "./handleClientAddedRemovedToProducer.js";
 
 export async function handleAuthorizationEvent(
   decodedMessage: AuthorizationEventEnvelopeV2,
   logger: Logger,
-  _readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
+    .with(
+      {
+        type: P.union("ClientPurposeAdded", "ClientPurposeRemoved"),
+      },
+      ({ data: { purposeId }, type }) =>
+        handleClientAddedRemovedToProducer(
+          purposeId,
+          logger,
+          readModelService,
+          type
+        )
+    )
     .with(
       {
         type: P.union(
@@ -22,8 +35,6 @@ export async function handleAuthorizationEvent(
           "ClientKeyDeleted",
           "ClientUserAdded",
           "ClientUserDeleted",
-          "ClientPurposeAdded",
-          "ClientPurposeRemoved",
           "ClientAdminRoleRevoked",
           "ClientAdminRemoved",
           "ProducerKeychainAdded",
