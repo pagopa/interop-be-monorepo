@@ -10,7 +10,6 @@ import { Logger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { config } from "../../config/config.js";
 import { retrieveTenant, retrieveEservice } from "../handlerCommons.js";
 
 export type AgreementSuspendedUnsuspendedEventType =
@@ -23,7 +22,7 @@ export type AgreementSuspendedUnsuspendedEventType =
   | "AgreementArchivedByConsumer";
 
 type NotificationAudience = "consumer" | "producer";
-type NotificationConfig =
+type NotificationType =
   | "agreementSuspendedUnsuspendedToConsumer"
   | "agreementSuspendedUnsuspendedToProducer";
 
@@ -69,14 +68,16 @@ export async function handleAgreementSuspendedUnsuspended(
     subjectName,
     eservice.name
   );
-  const deepLink = `https://${config.interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`;
 
-  return usersWithNotifications.map(({ userId, tenantId }) => ({
-    userId,
-    tenantId,
-    body,
-    deepLink,
-  }));
+  return usersWithNotifications.map(
+    ({ userId, tenantId, notificationType }) => ({
+      userId,
+      tenantId,
+      body,
+      notificationType,
+      entityId: agreement.id,
+    })
+  );
 }
 
 async function getSubjectName(
@@ -161,19 +162,23 @@ async function getUsersWithNotificationsEnabled(
   Array<{
     userId: UserId;
     tenantId: TenantId;
+    notificationType: NotificationType;
   }>
 > {
   const configPromises = audiences.map(async (audience) => {
     const audienceId =
       audience === "consumer" ? agreement.consumerId : agreement.producerId;
 
-    return readModelService.getTenantUsersWithNotificationEnabled(
-      [audienceId],
-      match<NotificationAudience, NotificationConfig>(audience)
-        .with("consumer", () => "agreementSuspendedUnsuspendedToConsumer")
-        .with("producer", () => "agreementSuspendedUnsuspendedToProducer")
-        .exhaustive()
-    );
+    const notificationType = match<NotificationAudience, NotificationType>(
+      audience
+    )
+      .with("consumer", () => "agreementSuspendedUnsuspendedToConsumer")
+      .with("producer", () => "agreementSuspendedUnsuspendedToProducer")
+      .exhaustive();
+
+    return readModelService
+      .getTenantUsersWithNotificationEnabled([audienceId], notificationType)
+      .then((config) => config.map((c) => ({ ...c, notificationType })));
   });
 
   const results = await Promise.all(configPromises);
