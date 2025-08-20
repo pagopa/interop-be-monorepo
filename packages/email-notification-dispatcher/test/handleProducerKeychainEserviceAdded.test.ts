@@ -8,20 +8,19 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
-  Agreement,
   agreementState,
   CorrelationId,
-  EService,
+  EServiceId,
   generateId,
-  missingKafkaMessageDataError,
-  Tenant,
   TenantId,
-  toEServiceV2,
   UserId,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
-import { descriptorPublishedNotFound } from "../src/models/errors.js";
-import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEserviceDescriptorPublished.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  descriptorPublishedNotFound,
+  eServiceNotFound,
+} from "../src/models/errors.js";
+import { handleProducerKeychainEserviceAdded } from "../src/handlers/authorization/handleProducerKeychainEserviceAdded.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -29,16 +28,15 @@ import {
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
-describe("handleEserviceDescriptorPublished", async () => {
+describe("handleProducerKeychainEserviceAdded", async () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
 
   const descriptor = getMockDescriptorPublished();
-  const eservice: EService = {
+  const eservice = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
@@ -71,39 +69,27 @@ describe("handleEserviceDescriptorPublished", async () => {
     );
   });
 
-  it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
+  it("should throw eServiceNotFound when eservice is not found", async () => {
+    const eserviceId = generateId<EServiceId>();
     await expect(() =>
-      handleEserviceDescriptorPublished({
-        eserviceV2Msg: undefined,
+      handleProducerKeychainEserviceAdded({
+        eserviceId,
         logger,
         templateService,
         userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(
-      missingKafkaMessageDataError("eservice", "EServiceDescriptorPublished")
-    );
+    ).rejects.toThrow(eServiceNotFound(eserviceId));
   });
 
   it("should throw descriptorPublishedNotFound when descriptor is not found", async () => {
-    const eservice = getMockEService();
-    await addOneEService(eservice);
+    const eserviceNoDescriptor = { ...getMockEService(), descriptors: [] };
+    await addOneEService(eserviceNoDescriptor);
 
-    const consumerTenant: Tenant = {
-      ...getMockTenant(),
-      mails: [getMockTenantMail()],
-    };
-    await addOneTenant(consumerTenant);
-
-    const producerTenant: Tenant = {
-      ...getMockTenant(),
-      mails: [getMockTenantMail()],
-    };
-    await addOneTenant(producerTenant);
-
-    const agreement: Agreement = {
+    const agreement = {
       ...getMockAgreement(),
+      state: agreementState.active,
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
       eserviceId: eserviceNoDescriptor.id,
@@ -112,8 +98,8 @@ describe("handleEserviceDescriptorPublished", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleEserviceDescriptorPublished({
-        eserviceV2Msg: toEServiceV2(eserviceNoDescriptor),
+      handleProducerKeychainEserviceAdded({
+        eserviceId: eserviceNoDescriptor.id,
         logger,
         templateService,
         userService,
@@ -124,8 +110,8 @@ describe("handleEserviceDescriptorPublished", async () => {
   });
 
   it("should return empty array if no consumer is present for the eservice", async () => {
-    const messages = await handleEserviceDescriptorPublished({
-      eserviceV2Msg: toEServiceV2(eservice),
+    const messages = await handleProducerKeychainEserviceAdded({
+      eserviceId: eservice.id,
       logger,
       templateService,
       userService,
@@ -135,15 +121,59 @@ describe("handleEserviceDescriptorPublished", async () => {
     expect(messages.length).toEqual(0);
   });
 
-  it("should generate no messages when no agreements exist for the eservice", async () => {
-    const messages = await handleEserviceDescriptorPublished({
-      eserviceV2Msg: toEServiceV2(eservice),
+  it("should generate one message per user of the consumers of the eservice", async () => {
+    const agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleProducerKeychainEserviceAdded({
+      eserviceId: eservice.id,
       logger,
       templateService,
       userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages).toEqual([]);
+    expect(messages.length).toEqual(2);
+    expect(messages[0].address).toEqual(users[0].email);
+    expect(messages[1].address).toEqual(users[1].email);
+  });
+
+  it("should generate a complete and correct message", async () => {
+    const activationDate = new Date();
+    const agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      stamps: {
+        activation: { when: activationDate, who: generateId<UserId>() },
+      },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleProducerKeychainEserviceAdded({
+      eserviceId: eservice.id,
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+    expect(messages.length).toBe(2);
+    messages.forEach((message) => {
+      expect(message.email.body).toContain("<!-- Footer -->");
+      expect(message.email.body).toContain("<!-- Title & Main Message -->");
+      expect(message.email.body).toContain(`Nuovo portachiavi di un e-service`);
+    });
   });
 });

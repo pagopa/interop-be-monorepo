@@ -55,7 +55,6 @@ export async function handleAuthorizationEvent(
           "ClientAdminRemoved",
           "ProducerKeychainAdded",
           "ProducerKeychainDeleted",
-          "ProducerKeychainKeyAdded",
           "ProducerKeychainKeyDeleted",
           "ProducerKeychainUserAdded",
           "ProducerKeychainUserDeleted",

@@ -8,6 +8,9 @@ import { handleEserviceDescriptorPublished } from "./handleEserviceDescriptorPub
 import { handleEserviceDescriptorSubmittedByDelegate } from "./handleEserviceDescriptorSubmittedByDelegate.js";
 import { handleEserviceDescriptorApprovedByDelegator } from "./handleEserviceDescriptorApprovedByDelegator.js";
 import { handleEserviceDescriptorRejectedByDelegator } from "./handleEserviceDescriptorRejectedByDelegator.js";
+import { handleEserviceDescriptorActivated } from "./handleEserviceDescriptorActivated.js";
+import { handleEserviceDescriptorSuspended } from "./handleEserviceDescriptorSuspended.js";
+import { handleEserviceNameUpdated } from "./handleEserviceNameUpdated.js";
 
 export async function handleEServiceEvent(
   params: HandlerParams<typeof EServiceEventV2>
@@ -23,6 +26,26 @@ export async function handleEServiceEvent(
   return match(decodedMessage)
     .with({ type: "EServiceDescriptorPublished" }, ({ data: { eservice } }) =>
       handleEserviceDescriptorPublished({
+        eserviceV2Msg: eservice,
+        logger,
+        readModelService,
+        userService,
+        templateService,
+        correlationId,
+      })
+    )
+    .with({ type: "EServiceDescriptorActivated" }, ({ data: { eservice } }) =>
+      handleEserviceDescriptorActivated({
+        eserviceV2Msg: eservice,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
+    .with({ type: "EServiceDescriptorSuspended" }, ({ data: { eservice } }) =>
+      handleEserviceDescriptorSuspended({
         eserviceV2Msg: eservice,
         logger,
         readModelService,
@@ -70,9 +93,23 @@ export async function handleEServiceEvent(
     .with(
       {
         type: P.union(
-          "EServiceDescriptorActivated",
-          "EServiceDescriptorSuspended",
-          "EServiceDescriptorArchived",
+          "EServiceNameUpdated",
+          "EServiceNameUpdatedByTemplateUpdate"
+        ),
+      },
+      ({ data: { eservice } }) =>
+        handleEserviceNameUpdated({
+          eserviceV2Msg: eservice,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })
+    )
+    .with(
+      {
+        type: P.union(
           "EServiceDescriptorQuotasUpdated",
           "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceAdded",
@@ -93,12 +130,10 @@ export async function handleEServiceEvent(
           "EServiceRiskAnalysisDeleted",
           "EServiceDescriptorAttributesUpdated",
           "EServiceDescriptionUpdated",
-          "EServiceNameUpdated",
           "EServiceIsConsumerDelegableEnabled",
           "EServiceIsConsumerDelegableDisabled",
           "EServiceIsClientAccessDelegableEnabled",
           "EServiceIsClientAccessDelegableDisabled",
-          "EServiceNameUpdatedByTemplateUpdate",
           "EServiceDescriptionUpdatedByTemplateUpdate",
           "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
           "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
@@ -107,7 +142,8 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
-          "EServicePersonalDataFlagUpdatedAfterPublication"
+          "EServicePersonalDataFlagUpdatedAfterPublication",
+          "EServiceDescriptorArchived"
         ),
       },
       () => {
