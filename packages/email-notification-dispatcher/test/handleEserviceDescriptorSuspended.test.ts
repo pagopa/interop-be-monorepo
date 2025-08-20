@@ -19,7 +19,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { descriptorPublishedNotFound } from "../src/models/errors.js";
-import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEserviceDescriptorPublished.js";
+import { handleEserviceDescriptorSuspended } from "../src/handlers/eservices/handleEserviceDescriptorSuspended.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -27,10 +27,9 @@ import {
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
-describe("handleEserviceDescriptorPublished", async () => {
+describe("handleEserviceDescriptorSuspended", async () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -71,7 +70,7 @@ describe("handleEserviceDescriptorPublished", async () => {
 
   it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
     await expect(() =>
-      handleEserviceDescriptorPublished({
+      handleEserviceDescriptorSuspended({
         eserviceV2Msg: undefined,
         logger,
         templateService,
@@ -80,7 +79,7 @@ describe("handleEserviceDescriptorPublished", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("eservice", "EServiceDescriptorPublished")
+      missingKafkaMessageDataError("eservice", "EServiceDescriptorSuspended")
     );
   });
 
@@ -98,7 +97,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleEserviceDescriptorPublished({
+      handleEserviceDescriptorSuspended({
         eserviceV2Msg: toEServiceV2(eserviceNoDescriptor),
         logger,
         templateService,
@@ -109,8 +108,8 @@ describe("handleEserviceDescriptorPublished", async () => {
     ).rejects.toThrow(descriptorPublishedNotFound(agreement.eserviceId));
   });
 
-  it("should return empty array if no consumer is present for the eservice", async () => {
-    const messages = await handleEserviceDescriptorPublished({
+  it("should skip event if no consumer is present for the eservice", async () => {
+    const messages = await handleEserviceDescriptorSuspended({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
@@ -121,54 +120,19 @@ describe("handleEserviceDescriptorPublished", async () => {
     expect(messages.length).toEqual(0);
   });
 
-  it("should generate no messages when no agreements exist for the eservice", async () => {
-    const messages = await handleEserviceDescriptorPublished({
-      eserviceV2Msg: toEServiceV2(eservice),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-    expect(messages).toEqual([]);
-  });
-
-  it("should generate one message per tenant", async () => {
-    const consumerId = generateId<TenantId>();
-    const agreement = getMockAgreement(
-      eservice.id,
-      consumerId,
-      agreementState.active
-    );
-    await addOneAgreement(agreement);
-
-    const consumerTenant = {
-      ...getMockTenant(consumerId),
-      mails: [getMockTenantMail(), getMockTenantMail()],
+  it("should generate one message per user of the consumers of the eservice", async () => {
+    const agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
     };
-    await addOneTenant(consumerTenant);
-
-    const messages = await handleEserviceDescriptorPublished({
-      eserviceV2Msg: toEServiceV2(eservice),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-    expect(messages.length).toEqual(1);
-  });
-
-  it("should generate a message using the latest mail registered per tenant", async () => {
-    const consumerId = generateId<TenantId>();
-    const agreement = getMockAgreement(
-      eservice.id,
-      consumerId,
-      agreementState.active
-    );
     await addOneAgreement(agreement);
 
-    const messages = await handleEserviceDescriptorPublished({
+    const messages = await handleEserviceDescriptorSuspended({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
@@ -196,7 +160,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleEserviceDescriptorPublished({
+    const messages = await handleEserviceDescriptorSuspended({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
@@ -208,7 +172,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
-      expect(message.email.body).toContain(`Nuova versione di un e-service`);
+      expect(message.email.body).toContain(`Versione di un e-service sospesa`);
     });
   });
 });
