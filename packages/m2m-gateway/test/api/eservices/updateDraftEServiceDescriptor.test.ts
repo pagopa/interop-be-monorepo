@@ -118,6 +118,15 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
         certified: [],
       },
     },
+    {
+      ...descriptorSeed,
+      audience: [],
+    },
+    {
+      ...descriptorSeed,
+      audience: ["audience1", "audience2"],
+      // We currently do not support multiple audiences for consistency with front-end
+    },
   ])(
     "Should return 400 if passed an invalid Descriptor seed (seed #%#)",
     async (body) => {
