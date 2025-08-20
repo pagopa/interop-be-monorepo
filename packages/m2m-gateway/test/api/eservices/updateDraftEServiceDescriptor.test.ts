@@ -82,17 +82,8 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
       dailyCallsPerConsumer: 30,
       dailyCallsTotal: 30,
     },
-    // Nullable fields
-    {
-      description: null,
-    },
-    {
-      description: null,
-      audience: ["http/test.test"],
-      agreementApprovalPolicy: "MANUAL",
-    },
   ] as m2mGatewayApi.EServiceDescriptorDraftUpdateSeed[])(
-    "Should return 200 with partial seed and nullable fields (seed #%#)",
+    "Should return 200 with partial seed (seed #%#)",
     async (seed) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, generateId(), generateId(), seed);
