@@ -43,7 +43,7 @@ export function eserviceServiceBuilder(
   clients: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
-  async function patchEServiceDescriptorAttributes(
+  async function replaceEServiceDescriptorAttributes(
     eserviceId: EServiceId,
     descriptorId: DescriptorId,
     attributeKind: keyof catalogApi.PatchAttributesSeed,
@@ -732,7 +732,7 @@ export function eserviceServiceBuilder(
         `Updating Certified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      return patchEServiceDescriptorAttributes(
+      return replaceEServiceDescriptorAttributes(
         eserviceId,
         descriptorId,
         "certified",
@@ -750,7 +750,7 @@ export function eserviceServiceBuilder(
         `Updating Declared Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      return patchEServiceDescriptorAttributes(
+      return replaceEServiceDescriptorAttributes(
         eserviceId,
         descriptorId,
         "declared",
@@ -768,7 +768,7 @@ export function eserviceServiceBuilder(
         `Updating Verified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      return patchEServiceDescriptorAttributes(
+      return replaceEServiceDescriptorAttributes(
         eserviceId,
         descriptorId,
         "verified",
