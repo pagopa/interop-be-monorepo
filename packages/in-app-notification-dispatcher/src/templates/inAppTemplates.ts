@@ -14,9 +14,9 @@ export const inAppTemplates = {
   ): string =>
     `${consumerName} ha ${action} la richiesta di fruizione relativa all'e-service <strong>${eserviceName}</strong>.`,
   agreementActivatedRejectedToConsumer: (
-    consumerName: string,
+    producerName: string,
     eserviceName: string,
-    action: "attivato" | "rifiuto"
+    action: "attivato" | "rifiutato"
   ): string =>
-    `${consumerName} ha ${action} la richiesta di fruizione relativa all'e-service <strong>${eserviceName}</strong>.`,
+    `${producerName} ha ${action} la richiesta di fruizione relativa all'e-service <strong>${eserviceName}</strong>.`,
 };
