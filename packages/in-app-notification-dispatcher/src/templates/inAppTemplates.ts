@@ -33,4 +33,11 @@ export const inAppTemplates = {
     action: "sospeso" | "riattivato"
   ): string =>
     `L'ente erogatore ${producerName} ha ${action} la finalità <strong>${purposeName}</strong>, associata all'e-service <strong>${eserviceName}</strong>.`,
+  purposeActivatedRejectedToConsumer: (
+    purposeName: string,
+    producerName: string,
+    eserviceName: string,
+    action: "attivato" | "rifiutato"
+  ): string =>
+    `L'ente erogatore ${producerName} ha ${action} la finalità <strong>${purposeName}</strong>, associata all'e-service <strong>${eserviceName}</strong>.`,
 };
