@@ -4,6 +4,7 @@ import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
+import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivatedRejectedToConsumer.js";
 
 export async function handlePurposeEvent(
   decodedMessage: PurposeEventEnvelopeV2,
@@ -44,11 +45,21 @@ export async function handlePurposeEvent(
     )
     .with(
       {
+        type: P.union("PurposeVersionActivated", "PurposeVersionRejected"),
+      },
+      ({ data: { purpose }, type }) =>
+        handlePurposeActivatedRejectedToConsumer(
+          purpose,
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
+      {
         type: P.union(
           "NewPurposeVersionWaitingForApproval",
           "PurposeWaitingForApproval",
-          "PurposeVersionRejected",
-          "PurposeVersionActivated",
           "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
