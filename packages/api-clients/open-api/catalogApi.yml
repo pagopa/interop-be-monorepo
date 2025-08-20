@@ -1667,6 +1667,9 @@ paths:
       responses:
         "200":
           description: EService description updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1718,6 +1721,9 @@ paths:
       responses:
         "200":
           description: EService flags updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1775,6 +1781,9 @@ paths:
       responses:
         "200":
           description: EService name updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:

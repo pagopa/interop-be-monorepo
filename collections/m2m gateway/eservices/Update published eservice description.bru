@@ -1,10 +1,10 @@
 meta {
-  name: Update published eservice descripton
+  name: Update published eservice description
   type: http
 }
 
 patch {
-  url: {{host-m2m-gw}}/eservices/:eserviceId/descripton
+  url: {{host-m2m-gw}}/eservices/:eserviceId/description
   body: json
   auth: none
 }
@@ -19,6 +19,6 @@ headers {
 
 body:json {
   {
-    "descripton": "updated descripton"
+    "description": "updated description"
   }
 }
