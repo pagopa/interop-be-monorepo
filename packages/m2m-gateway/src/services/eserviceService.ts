@@ -4,7 +4,6 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
-  RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -66,21 +65,6 @@ export function eserviceServiceBuilder(
     }
 
     return descriptor;
-  };
-
-  const retrieveEServiceRiskAnalysisById = (
-    eservice: WithMaybeMetadata<catalogApi.EService>,
-    riskAnalysisId: RiskAnalysisId
-  ): catalogApi.EServiceRiskAnalysis => {
-    const riskAnalysis = eservice.data.riskAnalysis.find(
-      (r) => r.id === riskAnalysisId
-    );
-
-    if (!riskAnalysis) {
-      throw eserviceRiskAnalysisNotFound(eservice.data.id, riskAnalysisId);
-    }
-
-    return riskAnalysis;
   };
 
   const pollEserviceUntilDeletion = (
@@ -395,8 +379,8 @@ export function eserviceServiceBuilder(
 
       await pollEService(response, headers);
 
-      const updatedDescriptor = retrieveDescriptorByIdFromEService(
-        response.data,
+      const updatedDescriptor = retrieveEServiceDescriptorById(
+        response,
         unsafeBrandId(descriptorId)
       );
 
@@ -677,10 +661,13 @@ export function eserviceServiceBuilder(
         headers
       );
 
-      const createdRiskAnalysis = retrieveEServiceRiskAnalysisById(
-        { data: eservice, metadata },
-        unsafeBrandId(createdRiskAnalysisId)
+      const createdRiskAnalysis = eservice.riskAnalysis.find(
+        (r) => r.id === createdRiskAnalysisId
       );
+
+      if (!createdRiskAnalysis) {
+        throw eserviceRiskAnalysisNotFound(eservice.id, createdRiskAnalysisId);
+      }
 
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
     },
