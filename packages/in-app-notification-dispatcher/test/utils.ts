@@ -1,5 +1,11 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { Agreement, EService, Purpose, Tenant } from "pagopa-interop-models";
+import {
+  Agreement,
+  Delegation,
+  EService,
+  Purpose,
+  Tenant,
+} from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
   agreementReadModelServiceBuilder,
@@ -10,6 +16,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertDelegation,
   upsertEService,
   upsertPurpose,
   upsertTenant,
@@ -57,6 +64,12 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await upsertPurpose(readModelDB, purpose, 0);
+};
+
+export const addOneDelegation = async (
+  delegation: Delegation
+): Promise<void> => {
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 afterEach(cleanup);

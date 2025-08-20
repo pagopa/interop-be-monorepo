@@ -43,12 +43,12 @@ export const inAppTemplates = {
       .with("ProducerDelegationRejected", () => ({
         action: "rifiutato",
         delegationKind: "erogazione",
-        reason: rejectionReason ? `Motivo: ${rejectionReason}.` : "",
+        reason: rejectionReason ? ` Motivo: ${rejectionReason}.` : "",
       }))
       .with("ConsumerDelegationRejected", () => ({
         action: "rifiutato",
         delegationKind: "fruizione",
-        reason: rejectionReason ? `Motivo: ${rejectionReason}.` : "",
+        reason: rejectionReason ? ` Motivo: ${rejectionReason}.` : "",
       }))
       .exhaustive();
     return `${delegateName} ha ${action} la delega in ${delegationKind}.${reason}`;
@@ -74,7 +74,7 @@ export const inAppTemplates = {
         reason: rejectionReason ? `Motivo: ${rejectionReason}.` : "",
       }))
       .exhaustive();
-    return `${delegatorName} ha ${action} la nuova versione dell'e-service in <strong>${eserviceName}</strong>.${reason}`;
+    return `${delegatorName} ha ${action} la nuova versione dell'e-service <strong>${eserviceName}</strong>.${reason}`;
   },
   delegationSubmittedRevokedToDelegate: (
     delegatorName: string,
