@@ -19,4 +19,18 @@ export const inAppTemplates = {
     action: "attivato" | "rifiutato"
   ): string =>
     `${producerName} ha ${action} la richiesta di fruizione relativa all'e-service <strong>${eserviceName}</strong>.`,
+  purposeStatusChangedToConsumer: (
+    purposeName: string,
+    consumerName: string,
+    eserviceName: string,
+    action: "sospeso" | "riattivato" | "archiviato"
+  ): string =>
+    `Ti informiamo che l'ente ${consumerName} ha ${action} la finalità <strong>${purposeName}</strong>, associata al tuo e-service <strong>${eserviceName}</strong>.`,
+  purposeSuspendedUnsuspendedToConsumer: (
+    purposeName: string,
+    producerName: string,
+    eserviceName: string,
+    action: "sospeso" | "riattivato"
+  ): string =>
+    `L'ente erogatore ${producerName} ha ${action} la finalità <strong>${purposeName}</strong>, associata all'e-service <strong>${eserviceName}</strong>.`,
 };

@@ -3,6 +3,7 @@ import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
+import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
 
 export async function handlePurposeEvent(
   decodedMessage: PurposeEventEnvelopeV2,
@@ -29,6 +30,21 @@ export async function handlePurposeEvent(
     .with(
       {
         type: P.union(
+          "PurposeVersionSuspendedByProducer",
+          "PurposeVersionUnsuspendedByProducer"
+        ),
+      },
+      ({ data: { purpose }, type }) =>
+        handlePurposeSuspendedUnsuspendedToConsumer(
+          purpose,
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
+      {
+        type: P.union(
           "NewPurposeVersionWaitingForApproval",
           "PurposeWaitingForApproval",
           "PurposeVersionRejected",
@@ -39,8 +55,6 @@ export async function handlePurposeEvent(
           "DraftPurposeUpdated",
           "PurposeActivated",
           "PurposeVersionOverQuotaUnsuspended",
-          "PurposeVersionSuspendedByProducer",
-          "PurposeVersionUnsuspendedByProducer",
           "WaitingForApprovalPurposeVersionDeleted",
           "NewPurposeVersionActivated",
           "PurposeCloned",
