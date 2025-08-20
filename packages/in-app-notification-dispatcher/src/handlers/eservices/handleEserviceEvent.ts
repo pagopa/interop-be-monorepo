@@ -13,18 +13,39 @@ export async function handleEServiceEvent(
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
-    .with({ type: "EServiceDescriptorPublished" }, ({ data: { eservice } }) =>
-      handleEserviceStateChangedToConsumer(eservice, logger, readModelService)
+    .with(
+      {
+        type: P.union(
+          "EServiceNameUpdated",
+          "EServiceDescriptionUpdated",
+          "EServiceDescriptorPublished",
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorActivated",
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorAgreementApprovalPolicyUpdated",
+          "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceNameUpdatedByTemplateUpdate",
+          "EServiceDescriptionUpdatedByTemplateUpdate",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+        ),
+      },
+      (msg) =>
+        handleEserviceStateChangedToConsumer(msg, logger, readModelService)
     )
     .with(
       {
         type: P.union(
-          "EServiceDescriptorActivated",
           "EServiceDescriptorApprovedByDelegator",
-          "EServiceDescriptorSuspended",
           "EServiceDescriptorArchived",
-          "EServiceDescriptorQuotasUpdated",
-          "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceAdded",
           "EServiceCloned",
           "EServiceDeleted",
@@ -32,31 +53,16 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAdded",
           "EServiceDraftDescriptorDeleted",
           "EServiceDraftDescriptorUpdated",
-          "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorDocumentUpdated",
-          "EServiceDescriptorDocumentDeleted",
-          "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorInterfaceDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
           "EServiceRiskAnalysisDeleted",
-          "EServiceDescriptorAttributesUpdated",
-          "EServiceDescriptionUpdated",
-          "EServiceNameUpdated",
           "EServiceDescriptorSubmittedByDelegate",
           "EServiceDescriptorRejectedByDelegator",
           "EServiceIsConsumerDelegableEnabled",
           "EServiceIsConsumerDelegableDisabled",
           "EServiceIsClientAccessDelegableEnabled",
           "EServiceIsClientAccessDelegableDisabled",
-          "EServiceNameUpdatedByTemplateUpdate",
-          "EServiceDescriptionUpdatedByTemplateUpdate",
-          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
-          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
-          "EServiceDescriptorDocumentAddedByTemplateUpdate",
-          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled"
         ),
