@@ -13,7 +13,7 @@ import {
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 import { DownloadedDocument } from "../src/utils/fileDownload.js";
 
@@ -77,3 +77,14 @@ export const buildRiskAnalysisSeed = (
     riskAnalysis.riskAnalysisForm
   ),
 });
+
+export function defaultExplicitAttributeVerification(
+  attributes: m2mGatewayApi.EServiceDescriptorAttributes
+): catalogApi.AttributeSeed[][] {
+  return attributes.map((group) =>
+    group.map((attr) => ({
+      id: attr.id,
+      explicitAttributeVerification: false,
+    }))
+  );
+}
