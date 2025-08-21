@@ -113,9 +113,10 @@ describe("updateDraftEService", () => {
   it("Should throw eserviceDescriptorNotFound in case the returned eservice has no descriptor with the given id", async () => {
     const nonExistingDescriptorId = generateId<DescriptorId>();
     await expect(
-      eserviceService.getEServiceDescriptor(
+      eserviceService.updateDraftEServiceDescriptor(
         unsafeBrandId(mockEService.id),
         nonExistingDescriptorId,
+        descriptorSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
