@@ -562,7 +562,7 @@ const eserviceRouter = (
         }
       }
     )
-    .post("/eservices/:eserviceId/riskAnalysis", async (req, res) => {
+    .post("/eservices/:eserviceId/riskAnalyses", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
       try {
@@ -586,7 +586,7 @@ const eserviceRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/eservices/:eserviceId/riskAnalysis", async (req, res) => {
+    .get("/eservices/:eserviceId/riskAnalyses", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
       try {
@@ -611,7 +611,7 @@ const eserviceRouter = (
       }
     })
     .get(
-      "/eservices/:eserviceId/riskAnalysis/:riskAnalysisId",
+      "/eservices/:eserviceId/riskAnalyses/:riskAnalysisId",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
@@ -638,7 +638,7 @@ const eserviceRouter = (
       }
     )
     .delete(
-      "/eservices/:eserviceId/riskAnalysis/:riskAnalysisId",
+      "/eservices/:eserviceId/riskAnalyses/:riskAnalysisId",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 

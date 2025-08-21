@@ -6429,7 +6429,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /eservices/{eserviceId}/riskAnalysis:
+  /eservices/{eserviceId}/riskAnalyses:
     parameters:
       - name: eserviceId
         in: path
@@ -6621,7 +6621,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /eservices/{eserviceId}/riskAnalysis/{riskAnalysisId}:
+  /eservices/{eserviceId}/riskAnalyses/{riskAnalysisId}:
     parameters:
       - name: eserviceId
         in: path
