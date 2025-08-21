@@ -4,6 +4,7 @@ import {
   Delegation,
   EService,
   EServiceId,
+  EServiceTemplateId,
   NotificationConfig,
   Tenant,
   TenantId,
@@ -22,6 +23,7 @@ import {
 import {
   agreementInReadmodelAgreement,
   delegationInReadmodelDelegation,
+  eserviceInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -88,6 +90,13 @@ export function readModelServiceBuilderSQL({
           )
         )
       )?.data;
+    },
+    async getEServicesByTemplateId(
+      templateId: EServiceTemplateId
+    ): Promise<EService[]> {
+      return await catalogReadModelServiceSQL.getEServicesByFilter(
+        eq(eserviceInReadmodelCatalog.templateId, templateId)
+      );
     },
   };
 }
