@@ -105,8 +105,12 @@ export const inAppTemplates = {
   newEserviceTemplateVersionToInstantiator: (
     creatorName: string,
     eserviceTemplateVersion: string,
-    eserviceTemplateName: string,
-    eserviceName: string
+    eserviceTemplateName: string
   ): string =>
-    `${creatorName} ha pubblicato una nuova versione ${eserviceTemplateVersion} del template "<strong>${eserviceTemplateName}</strong>" per l'e-service <strong>${eserviceName}</strong>.`,
+    `${creatorName} ha pubblicato una nuova versione ${eserviceTemplateVersion} del template "<strong>${eserviceTemplateName}</strong>" per il tuo e-service.`,
+  eserviceTemplateNameChangedToInstantiator: (
+    creatorName: string,
+    eserviceTemplateName: string
+  ): string =>
+    `${creatorName} ha aggiornato il nome del template "<strong>${eserviceTemplateName}</strong>" per il tuo e-service.`,
 };

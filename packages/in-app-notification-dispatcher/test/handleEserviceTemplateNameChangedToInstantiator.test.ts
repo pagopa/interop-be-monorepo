@@ -12,7 +12,7 @@ import {
   TenantId,
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
-import { handleNewEserviceTemplateVersionToInstantiator } from "../src/handlers/eserviceTemplates/handleNewEserviceTemplateVersionToInstantiator.js";
+import { handleEserviceTemplateNameChangedToInstantiator } from "../src/handlers/eserviceTemplates/handleEserviceTemplateNameChangedToInstantiator.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
   addOneEService,
@@ -21,10 +21,9 @@ import {
   readModelService,
 } from "./utils.js";
 
-describe("handleNewEserviceTemplateVersionToInstantiator", async () => {
+describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
   const eserviceTemplate = getMockEServiceTemplate();
   const eserviceTemplateV2 = toEServiceTemplateV2(eserviceTemplate);
-  const eserviceTemplateVersionId = eserviceTemplate.versions[0].id;
   const { logger } = getMockContext({});
   await addOneEServiceTemplate(eserviceTemplate);
   const creatorId = eserviceTemplate.creatorId;
@@ -33,16 +32,15 @@ describe("handleNewEserviceTemplateVersionToInstantiator", async () => {
 
   it("should throw missingKafkaMessageDataError when eserviceTemplateV2Msg is undefined", async () => {
     await expect(() =>
-      handleNewEserviceTemplateVersionToInstantiator(
+      handleEserviceTemplateNameChangedToInstantiator(
         undefined,
-        eserviceTemplateVersionId,
         logger,
         readModelService
       )
     ).rejects.toThrow(
       missingKafkaMessageDataError(
         "eserviceTemplate",
-        "EServiceTemplateVersionPublished"
+        "EServiceTemplateNameUpdated"
       )
     );
   });
@@ -55,9 +53,8 @@ describe("handleNewEserviceTemplateVersionToInstantiator", async () => {
     // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantById = vi.fn().mockResolvedValue(creatorTenant);
 
-    const notifications = await handleNewEserviceTemplateVersionToInstantiator(
+    const notifications = await handleEserviceTemplateNameChangedToInstantiator(
       eserviceTemplateV2,
-      eserviceTemplateVersionId,
       logger,
       readModelService
     );
@@ -80,9 +77,8 @@ describe("handleNewEserviceTemplateVersionToInstantiator", async () => {
     // eslint-disable-next-line functional/immutable-data
     readModelService.getEServicesByTemplateId = vi.fn().mockResolvedValue([]);
 
-    const notifications = await handleNewEserviceTemplateVersionToInstantiator(
+    const notifications = await handleEserviceTemplateNameChangedToInstantiator(
       eserviceTemplateV2,
-      eserviceTemplateVersionId,
       logger,
       readModelService
     );
@@ -126,16 +122,14 @@ describe("handleNewEserviceTemplateVersionToInstantiator", async () => {
       .fn()
       .mockResolvedValue([eservice1, eservice2]);
 
-    const notifications = await handleNewEserviceTemplateVersionToInstantiator(
+    const notifications = await handleEserviceTemplateNameChangedToInstantiator(
       eserviceTemplateV2,
-      eserviceTemplateVersionId,
       logger,
       readModelService
     );
 
-    const body = inAppTemplates.newEserviceTemplateVersionToInstantiator(
+    const body = inAppTemplates.eserviceTemplateNameChangedToInstantiator(
       creatorTenant.name,
-      eserviceTemplate.versions[0].version.toString(),
       eserviceTemplate.name
     );
 
@@ -144,14 +138,14 @@ describe("handleNewEserviceTemplateVersionToInstantiator", async () => {
         userId: user.userId,
         tenantId: producerId,
         body,
-        notificationType: "newEserviceTemplateVersionToInstantiator",
+        notificationType: "eserviceTemplateNameChangedToInstantiator",
         entityId: eservice1.id,
       },
       {
         userId: user.userId,
         tenantId: producerId,
         body,
-        notificationType: "newEserviceTemplateVersionToInstantiator",
+        notificationType: "eserviceTemplateNameChangedToInstantiator",
         entityId: eservice2.id,
       },
     ]);

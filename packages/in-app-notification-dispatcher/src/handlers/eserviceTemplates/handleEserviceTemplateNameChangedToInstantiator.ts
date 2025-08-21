@@ -1,32 +1,31 @@
-import { Logger } from "pagopa-interop-commons";
 import {
   EServiceId,
+  EServiceTemplateV2,
   fromEServiceTemplateV2,
   missingKafkaMessageDataError,
-  NewNotification,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { EServiceTemplateV2 } from "pagopa-interop-models";
+import { Logger } from "pagopa-interop-commons";
+import { NewNotification } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import { retrieveTenant } from "../handlerCommons.js";
 
-export async function handleNewEserviceTemplateVersionToInstantiator(
+export async function handleEserviceTemplateNameChangedToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
-  eserviceTemplateVersionId: string,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   if (!eserviceTemplateV2Msg) {
     throw missingKafkaMessageDataError(
       "eserviceTemplate",
-      "EServiceTemplateVersionPublished"
+      "EServiceTemplateNameUpdated"
     );
   }
 
   logger.info(
-    `Sending in-app notification for handleNewEserviceTemplateVersionToInstantiator ${eserviceTemplateV2Msg.id}`
+    `Sending in-app notification for handleEserviceTemplateNameChangedToInstantiator ${eserviceTemplateV2Msg.id}`
   );
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
@@ -51,38 +50,31 @@ export async function handleNewEserviceTemplateVersionToInstantiator(
       Object.keys(instantiatorEserviceMap).map((tenantId) =>
         unsafeBrandId(tenantId)
       ),
-      "newEserviceTemplateVersionToInstantiator"
+      "eserviceTemplateNameChangedToInstantiator"
     );
-
-  if (!userNotificationConfigs) {
-    logger.info(
-      `No user notification configs found for handleNewEserviceTemplateVersionToInstantiator ${eserviceTemplate.id}`
-    );
-    return [];
-  }
 
   const creator = await retrieveTenant(
     eserviceTemplate.creatorId,
     readModelService
   );
 
-  const eserviceTemplateVersion = eserviceTemplate.versions.find(
-    (version) => version.id === eserviceTemplateVersionId
-  );
+  if (!userNotificationConfigs) {
+    logger.info(
+      `No user notification configs found for handleEserviceTemplateNameChangedToInstantiator ${eserviceTemplate.id}`
+    );
+    return [];
+  }
 
   return userNotificationConfigs.flatMap(({ userId, tenantId }) => {
     const tenantEserviceIds = instantiatorEserviceMap[tenantId] || [];
     return tenantEserviceIds.map((eserviceId) => ({
       userId,
       tenantId,
-      body: inAppTemplates.newEserviceTemplateVersionToInstantiator(
+      body: inAppTemplates.eserviceTemplateNameChangedToInstantiator(
         creator.name,
-        eserviceTemplateVersion?.version
-          ? eserviceTemplateVersion.version.toString()
-          : "",
         eserviceTemplate.name
       ),
-      notificationType: "newEserviceTemplateVersionToInstantiator",
+      notificationType: "eserviceTemplateNameChangedToInstantiator",
       entityId: eserviceId,
     }));
   });
