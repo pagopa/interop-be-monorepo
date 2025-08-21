@@ -16,6 +16,7 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   TenantId,
+  TenantNotificationConfigId,
   toAgreementV2,
   unsafeBrandId,
   UserId,
@@ -74,6 +75,14 @@ describe("handleAgreementActivated", async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
+    readModelService.getTenantNotificationConfigByTenantId = vi
+      .fn()
+      .mockResolvedValue({
+        id: generateId<TenantNotificationConfigId>(),
+        tenantId: consumerTenant.id,
+        enabled: true,
+        createAt: new Date(),
+      });
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockImplementation((tenantIds: TenantId[], _: NotificationType) =>
@@ -249,6 +258,39 @@ describe("handleAgreementActivated", async () => {
     );
     expect(messages.some((message) => message.address === users[1].email)).toBe(
       true
+    );
+  });
+
+  it("should not generate a message if the user disabled this email notification", async () => {
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockResolvedValue([users[0]]);
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleAgreementActivatedToProducer({
+      agreementV2Msg: toAgreementV2(agreement),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(1);
+    expect(messages.some((message) => message.address === users[0].email)).toBe(
+      true
+    );
+    expect(messages.some((message) => message.address === users[1].email)).toBe(
+      false
     );
   });
 
