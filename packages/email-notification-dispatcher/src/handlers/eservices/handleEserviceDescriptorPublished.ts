@@ -21,7 +21,8 @@ import {
 } from "../../services/utils.js";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
-const notificationType: NotificationType = "eserviceStatusChangedToConsumer";
+const notificationType: NotificationType =
+  "purposeSuspendedUnsuspendedToConsumer";
 
 export type EServiceDescriptorPublishedData = {
   eserviceV2Msg?: EServiceV2;
