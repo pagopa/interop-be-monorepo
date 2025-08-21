@@ -1,40 +1,40 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
-  getMockedApiPurpose,
+  getMockedApiEservice,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
-import { generateMock } from "@anatine/zod-mock";
-import { api, mockPurposeService } from "../../vitest.api.setup.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
-import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
+import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
-describe("PATCH /purposes/:purposeId router test", () => {
-  const mockPurpose: purposeApi.Purpose = getMockedApiPurpose();
+describe("PATCH /eservices/:eserviceId router test", () => {
+  const mockEService: catalogApi.EService = getMockedApiEservice();
 
-  const mockUpdateSeed: m2mGatewayApi.PurposeDraftUpdateSeed = {
-    title: "updated title",
+  const mockUpdateSeed: m2mGatewayApi.EServiceDraftUpdateSeed = {
+    name: "updated name",
     description: "updated description",
-    dailyCalls: 99,
-    isFreeOfCharge: false,
-    freeOfChargeReason: null,
-    riskAnalysisForm: generateMock(m2mGatewayApi.RiskAnalysisFormSeed),
+    technology: "REST",
+    isSignalHubEnabled: true,
+    isConsumerDelegable: false,
+    isClientAccessDelegable: true,
+    mode: "RECEIVE",
   };
 
-  const mockM2MPurpose: m2mGatewayApi.Purpose =
-    toM2MGatewayApiPurpose(mockPurpose);
+  const mockM2MEService: m2mGatewayApi.EService =
+    toM2MGatewayApiEService(mockEService);
 
   const makeRequest = async (
     token: string,
-    purposeId: string = mockPurpose.id,
-    body: m2mGatewayApi.PurposeDraftUpdateSeed = mockUpdateSeed
+    eserviceId: string = mockEService.id,
+    body: m2mGatewayApi.EServiceDraftUpdateSeed = mockUpdateSeed
   ) =>
     request(api)
-      .patch(`${appBasePath}/purposes/${purposeId}`)
+      .patch(`${appBasePath}/eservices/${eserviceId}`)
       .set("Authorization", `Bearer ${token}`)
       .send(body);
 
@@ -42,17 +42,17 @@ describe("PATCH /purposes/:purposeId router test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockPurposeService.updateDraftPurpose = vi
+      mockEserviceService.updateDraftEService = vi
         .fn()
-        .mockResolvedValue(mockM2MPurpose);
+        .mockResolvedValue(mockM2MEService);
 
       const token = generateToken(role);
       const res = await makeRequest(token);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockM2MPurpose);
-      expect(mockPurposeService.updateDraftPurpose).toHaveBeenCalledWith(
-        mockPurpose.id,
+      expect(res.body).toEqual(mockM2MEService);
+      expect(mockEserviceService.updateDraftEService).toHaveBeenCalledWith(
+        mockEService.id,
         mockUpdateSeed,
         expect.any(Object) // context
       );
@@ -69,33 +69,47 @@ describe("PATCH /purposes/:purposeId router test", () => {
 
   it.each([
     {},
-    { title: "updated title" },
-    { description: "updated description" },
+    { name: "updated name" },
+    { name: "updated name", description: "updated description" },
     {
-      title: "updated title",
+      name: "updated name",
       description: "updated description",
+      technology: "REST",
     },
     {
-      title: "updated title",
+      name: "updated name",
       description: "updated description",
-      dailyCalls: 99,
+      technology: "REST",
+      isSignalHubEnabled: true,
     },
-
-    // With nullable fields
-    { freeOfChargeReason: null },
-    { title: "updated title", isFreeOfCharge: false, freeOfChargeReason: null },
-  ])(
+    {
+      name: "updated name",
+      description: "updated description",
+      technology: "REST",
+      isSignalHubEnabled: true,
+      isConsumerDelegable: false,
+    },
+    {
+      name: "updated name",
+      description: "updated description",
+      technology: "REST",
+      isSignalHubEnabled: true,
+      isConsumerDelegable: false,
+      isClientAccessDelegable: true,
+      mode: "RECEIVE",
+    },
+  ] satisfies m2mGatewayApi.EServiceDraftUpdateSeed[])(
     "Should return 200 with partial seed and nullable fields (seed #%#)",
-    async (seed: m2mGatewayApi.PurposeDraftUpdateSeed) => {
+    async (seed) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockPurpose.id, seed);
+      const res = await makeRequest(token, mockEService.id, seed);
       expect(res.status).toBe(200);
     }
   );
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
+  it("Should return 400 if passed an invalid eservice id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, "invalidPurposeId");
+    const res = await makeRequest(token, "invalidEServiceId");
     expect(res.status).toBe(400);
   });
 
@@ -107,8 +121,8 @@ describe("PATCH /purposes/:purposeId router test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      mockPurpose.id,
-      seed as m2mGatewayApi.PurposeDraftUpdateSeed
+      mockEService.id,
+      seed as m2mGatewayApi.EServiceDraftUpdateSeed
     );
 
     expect(res.status).toBe(400);
@@ -117,7 +131,9 @@ describe("PATCH /purposes/:purposeId router test", () => {
   it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
     "Should return 500 in case of $code error",
     async (error) => {
-      mockPurposeService.updateDraftPurpose = vi.fn().mockRejectedValue(error);
+      mockEserviceService.updateDraftEService = vi
+        .fn()
+        .mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token);
 
@@ -126,14 +142,14 @@ describe("PATCH /purposes/:purposeId router test", () => {
   );
 
   it.each([
-    { ...mockM2MPurpose, createdAt: undefined },
-    { ...mockM2MPurpose, eserviceId: "invalidId" },
-    { ...mockM2MPurpose, extraParam: "extraValue" },
+    { ...mockM2MEService, createdAt: undefined },
+    { ...mockM2MEService, id: "invalidId" },
+    { ...mockM2MEService, extraParam: "extraValue" },
     {},
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockPurposeService.updateDraftPurpose = vi.fn().mockResolvedValue(resp);
+      mockEserviceService.updateDraftEService = vi.fn().mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token);
 
