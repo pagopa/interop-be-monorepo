@@ -70,7 +70,7 @@ export function eserviceServiceBuilder(
     );
 
     return toM2MGatewayApiEServiceDescriptorAttributes(
-      updatedDescriptor.attributes.certified
+      updatedDescriptor.attributes[attributeKind]
     );
   }
 
