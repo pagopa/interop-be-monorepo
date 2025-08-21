@@ -22,6 +22,7 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
+    "@anatine/zod-mock": "3.14.0",
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.19.3",
     "@types/nodemailer": "6.4.17",
