@@ -15,6 +15,7 @@ import {
   generateId,
   missingKafkaMessageDataError,
   TenantId,
+  TenantNotificationConfigId,
   toAgreementV2,
   UserId,
 } from "pagopa-interop-models";
@@ -68,6 +69,14 @@ describe("handleAgreementRejected", async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
+    readModelService.getTenantNotificationConfigByTenantId = vi
+      .fn()
+      .mockResolvedValue({
+        id: generateId<TenantNotificationConfigId>(),
+        tenantId: consumerTenant.id,
+        enabled: true,
+        createAt: new Date(),
+      });
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockReturnValueOnce(
@@ -244,6 +253,39 @@ describe("handleAgreementRejected", async () => {
     );
   });
 
+  it("should not generate a message if the user disabled this email notification", async () => {
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockResolvedValue([users[0]]);
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleAgreementRejected({
+      agreementV2Msg: toAgreementV2(agreement),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(2);
+    expect(messages.some((message) => message.address === users[0].email)).toBe(
+      true
+    );
+    expect(messages.some((message) => message.address === users[1].email)).toBe(
+      false
+    );
+  });
+
   it("should generate one message to the consumer whose agreement was rejected", async () => {
     const agreement = {
       ...getMockAgreement(),
@@ -304,6 +346,43 @@ describe("handleAgreementRejected", async () => {
     expect(
       messages.some((message) => message.address === newMail.address)
     ).toBe(true);
+  });
+
+  it("should not generate a message to the consumer if they disabled email notification", async () => {
+    readModelService.getTenantNotificationConfigByTenantId = vi
+      .fn()
+      .mockResolvedValue({
+        id: generateId<TenantNotificationConfigId>(),
+        tenantId: consumerTenant.id,
+        enabled: false,
+        createAt: new Date(),
+      });
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleAgreementRejected({
+      agreementV2Msg: toAgreementV2(agreement),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(2);
+    expect(
+      messages.some(
+        (message) => message.address === consumerTenant.mails[0].address
+      )
+    ).toBe(false);
   });
 
   it("should generate a complete and correct message", async () => {
