@@ -603,7 +603,7 @@ const eserviceRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getEServiceRiskAnalysisErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error retrieving risk analyses for eservice with id ${req.params.eserviceId}`
         );
