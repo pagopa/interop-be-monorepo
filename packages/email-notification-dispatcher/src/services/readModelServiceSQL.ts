@@ -1,4 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
+import { TenantNotificationConfig } from "pagopa-interop-models";
+import { WithMetadata } from "pagopa-interop-models";
 import {
   Agreement,
   EService,
@@ -50,7 +52,7 @@ export function readModelServiceBuilderSQL({
             ])
           )
         )
-      ).map((agreement) => agreement.data);
+      ).map((agreement: WithMetadata<Agreement>) => agreement.data);
     },
     async getTenantUsersWithNotificationEnabled(
       tenantIds: TenantId[],
@@ -61,6 +63,16 @@ export function readModelServiceBuilderSQL({
         notificationName,
         "email"
       );
+    },
+    async getTenantNotificationConfigByTenantId(
+      tenantId: TenantId
+    ): Promise<TenantNotificationConfig | undefined> {
+      const notificationConfig =
+        await notificationConfigReadModelServiceSQL.getTenantNotificationConfigByTenantId(
+          tenantId
+        );
+
+      return notificationConfig?.data;
     },
   };
 }
