@@ -50,11 +50,6 @@ export async function handleAgreementActivatedToConsumer(
     retrieveTenant(agreement.consumerId, readModelService),
   ]);
 
-  const consumerEmail = getLatestTenantMailOfKind(
-    consumer.mails,
-    tenantMailKind.ContactEmail
-  );
-
   let userEmails: string[] = [];
   try {
     userEmails = await getUserEmailsToNotify(
@@ -99,28 +94,40 @@ export async function handleAgreementActivatedToConsumer(
     );
   }
 
-  if (consumerEmail) {
-    toDispatch.push({
-      correlationId: correlationId ?? generateId(),
-      email: {
-        subject: `Richiesta di fruizione ${agreement.id} attiva`,
-        body: templateService.compileHtml(htmlTemplate, {
-          title: "Nuova richiesta di fruizione",
-          notificationType,
-          entityId: agreement.id,
-          producerName: producer.name,
-          consumerName: consumer.name,
-          eserviceName: eservice.name,
-          eserviceVersion: descriptor.version,
-          activationDate,
-        }),
-      },
-      address: consumerEmail.address,
-    });
-  } else {
-    logger.warn(
-      `No consumer email found for agreement ${agreement.id}. No email to dispatch.`
+  const consumerConfig =
+    await readModelService.getTenantNotificationConfigByTenantId(consumer.id);
+
+  if (consumerConfig === undefined) {
+    logger.warn(`No tenant configuration found for tenant ${consumer.id}.`);
+  } else if (consumerConfig.enabled) {
+    const consumerEmail = getLatestTenantMailOfKind(
+      consumer.mails,
+      tenantMailKind.ContactEmail
     );
+
+    if (consumerEmail !== undefined) {
+      toDispatch.push({
+        correlationId: correlationId ?? generateId(),
+        email: {
+          subject: `Richiesta di fruizione ${agreement.id} attiva`,
+          body: templateService.compileHtml(htmlTemplate, {
+            title: "Nuova richiesta di fruizione",
+            notificationType,
+            entityId: agreement.id,
+            producerName: producer.name,
+            consumerName: consumer.name,
+            eserviceName: eservice.name,
+            eserviceVersion: descriptor.version,
+            activationDate,
+          }),
+        },
+        address: consumerEmail.address,
+      });
+    } else {
+      logger.warn(
+        `No consumer email found for agreement ${agreement.id}. No email to dispatch.`
+      );
+    }
   }
 
   return toDispatch;

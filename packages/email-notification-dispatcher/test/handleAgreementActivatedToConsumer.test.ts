@@ -16,6 +16,7 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   TenantId,
+  TenantNotificationConfigId,
   toAgreementV2,
   unsafeBrandId,
   UserId,
@@ -74,6 +75,14 @@ describe("handleAgreementActivated", async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
+    readModelService.getTenantNotificationConfigByTenantId = vi
+      .fn()
+      .mockResolvedValue({
+        id: generateId<TenantNotificationConfigId>(),
+        tenantId: consumerTenant.id,
+        enabled: true,
+        createAt: new Date(),
+      });
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockImplementation((tenantIds: TenantId[], _: NotificationType) =>
@@ -312,6 +321,43 @@ describe("handleAgreementActivated", async () => {
     expect(
       messages.some((message) => message.address === newMail.address)
     ).toBe(true);
+  });
+
+  it("should not generate a message to the consumer if they disabled email notification", async () => {
+    readModelService.getTenantNotificationConfigByTenantId = vi
+      .fn()
+      .mockResolvedValue({
+        id: generateId<TenantNotificationConfigId>(),
+        tenantId: consumerTenant.id,
+        enabled: false,
+        createAt: new Date(),
+      });
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleAgreementActivatedToConsumer({
+      agreementV2Msg: toAgreementV2(agreement),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(2);
+    expect(
+      messages.some(
+        (message) => message.address === consumerTenant.mails[0].address
+      )
+    ).toBe(false);
   });
 
   it("should generate a complete and correct message", async () => {
