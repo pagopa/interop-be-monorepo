@@ -31,14 +31,14 @@ export async function handleAgreementEvent(
         userService,
         correlationId,
       })),
-      // ...(await handleAgreementActivatedToConsumer({
-      //   agreementV2Msg: agreement,
-      //   logger,
-      //   readModelService,
-      //   templateService,
-      //   userService,
-      //   correlationId,
-      // })),
+      ...(await handleAgreementActivatedToConsumer({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })),
     ])
     .with({ type: "AgreementRejected" }, ({ data: { agreement } }) =>
       handleAgreementRejected({
