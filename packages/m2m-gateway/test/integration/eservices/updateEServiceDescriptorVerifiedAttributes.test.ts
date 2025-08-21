@@ -30,7 +30,7 @@ import {
   getMockM2MAdminAppContext,
 } from "../../mockUtils.js";
 
-describe("updateEServiceDescriptorCertifiedAttributes", () => {
+describe("updateEServiceDescriptorVerifiedAttributes", () => {
   const mockDescriptor = getMockedApiEserviceDescriptor();
   const mockEService = getMockedApiEservice({
     descriptors: [mockDescriptor, getMockedApiEserviceDescriptor()],
@@ -51,7 +51,7 @@ describe("updateEServiceDescriptorCertifiedAttributes", () => {
         ...mockDescriptor,
         attributes: {
           ...mockDescriptor.attributes,
-          certified: eserviceAttributes,
+          verified: eserviceAttributes,
         },
       },
       mockEService.descriptors[1],
@@ -77,7 +77,7 @@ describe("updateEServiceDescriptorCertifiedAttributes", () => {
 
   it("Should succeed and perform service calls", async () => {
     const result =
-      await eserviceService.updateEServiceDescriptorCertifiedAttributes(
+      await eserviceService.updateEServiceDescriptorVerifiedAttributes(
         unsafeBrandId(mockEService.id),
         unsafeBrandId(mockDescriptor.id),
         m2mAttributes,
@@ -92,7 +92,7 @@ describe("updateEServiceDescriptorCertifiedAttributes", () => {
         eServiceId: mockEService.id,
         descriptorId: mockDescriptor.id,
       },
-      body: { attributes: { certified: eserviceAttributes } },
+      body: { attributes: { verified: eserviceAttributes } },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
@@ -111,7 +111,7 @@ describe("updateEServiceDescriptorCertifiedAttributes", () => {
   it("Should throw eserviceDescriptorNotFound in case the returned eservice has no descriptor with the given id", async () => {
     const nonExistingDescriptorId = generateId<DescriptorId>();
     await expect(
-      eserviceService.updateEServiceDescriptorCertifiedAttributes(
+      eserviceService.updateEServiceDescriptorVerifiedAttributes(
         unsafeBrandId(mockEService.id),
         nonExistingDescriptorId,
         m2mAttributes,
@@ -129,7 +129,7 @@ describe("updateEServiceDescriptorCertifiedAttributes", () => {
     });
 
     await expect(
-      eserviceService.updateEServiceDescriptorCertifiedAttributes(
+      eserviceService.updateEServiceDescriptorVerifiedAttributes(
         unsafeBrandId(mockEService.id),
         unsafeBrandId(mockDescriptor.id),
         m2mAttributes,
@@ -145,7 +145,7 @@ describe("updateEServiceDescriptorCertifiedAttributes", () => {
     });
 
     await expect(
-      eserviceService.updateEServiceDescriptorCertifiedAttributes(
+      eserviceService.updateEServiceDescriptorVerifiedAttributes(
         unsafeBrandId(mockEService.id),
         unsafeBrandId(mockDescriptor.id),
         m2mAttributes,
@@ -163,7 +163,7 @@ describe("updateEServiceDescriptorCertifiedAttributes", () => {
     );
 
     await expect(
-      eserviceService.updateEServiceDescriptorCertifiedAttributes(
+      eserviceService.updateEServiceDescriptorVerifiedAttributes(
         unsafeBrandId(mockEService.id),
         unsafeBrandId(mockDescriptor.id),
         m2mAttributes,
