@@ -21,6 +21,10 @@ import {
   getMockValidRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test";
 import {
+  invalidTemplateResult,
+  unexpectedTemplateRulesVersionError,
+} from "pagopa-interop-commons";
+import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   riskAnalysisTemplateValidationFailed,
@@ -191,6 +195,14 @@ describe("createPurposeTemplate", () => {
           authData: getMockAuthData(mockPurposeTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(riskAnalysisTemplateValidationFailed([]));
+    ).rejects.toThrowError(
+      riskAnalysisTemplateValidationFailed(
+        invalidTemplateResult([
+          unexpectedTemplateRulesVersionError(
+            seedWithInvalidRiskAnalysis.purposeRiskAnalysisForm!.version
+          ),
+        ]).issues
+      )
+    );
   });
 });
