@@ -4,10 +4,11 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
-import { handleAgreementActivated } from "./handleAgreementActivated.js";
+import { handleAgreementActivatedToConsumer } from "./handleAgreementActivatedToConsumer.js";
 import { handleAgreementRejected } from "./handleAgreementRejected.js";
 import { handleAgreementSubmitted } from "./handleAgreementSubmitted.js";
 import { handleAgreementUpgraded } from "./handleAgreementUpgraded.js";
+import { handleAgreementActivatedToProducer } from "./handleAgreementActivatedToProducer.js";
 
 export async function handleAgreementEvent(
   params: HandlerParams<typeof AgreementEventV2>
@@ -21,16 +22,24 @@ export async function handleAgreementEvent(
     correlationId,
   } = params;
   return match(decodedMessage)
-    .with({ type: "AgreementActivated" }, ({ data: { agreement } }) =>
-      handleAgreementActivated({
+    .with({ type: "AgreementActivated" }, async ({ data: { agreement } }) => [
+      ...(await handleAgreementActivatedToProducer({
         agreementV2Msg: agreement,
         logger,
         readModelService,
         templateService,
         userService,
         correlationId,
-      })
-    )
+      })),
+      // ...(await handleAgreementActivatedToConsumer({
+      //   agreementV2Msg: agreement,
+      //   logger,
+      //   readModelService,
+      //   templateService,
+      //   userService,
+      //   correlationId,
+      // })),
+    ])
     .with({ type: "AgreementRejected" }, ({ data: { agreement } }) =>
       handleAgreementRejected({
         agreementV2Msg: agreement,
