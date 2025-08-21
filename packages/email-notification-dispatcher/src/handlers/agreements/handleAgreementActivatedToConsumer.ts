@@ -25,7 +25,7 @@ import {
 const notificationType: NotificationType =
   "agreementActivatedRejectedToConsumer";
 
-export async function handleAgreementActivated(
+export async function handleAgreementActivatedToConsumer(
   data: HandleAgreementData
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
