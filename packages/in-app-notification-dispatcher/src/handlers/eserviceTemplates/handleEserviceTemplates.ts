@@ -8,6 +8,7 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleTemplateStatusChangedToProducer } from "./handleTemplateStatusChangedToProducer.js";
 import { handleNewEserviceTemplateVersionToInstantiator } from "./handleNewEserviceTemplateVersionToInstantiator.js";
 import { handleEserviceTemplateNameChangedToInstantiator } from "./handleEserviceTemplateNameChangedToInstantiator.js";
+import { handleEserviceTemplateStatusChangedToInstantiator } from "./handleEserviceTemplateStatusChangedToInstantiator.js";
 
 export async function handleEServiceTemplateEvent(
   decodedMessage: EServiceTemplateEventEnvelopeV2,
@@ -19,12 +20,18 @@ export async function handleEServiceTemplateEvent(
       {
         type: "EServiceTemplateVersionSuspended",
       },
-      ({ data: { eserviceTemplate } }) =>
-        handleTemplateStatusChangedToProducer(
+      async ({ data: { eserviceTemplate } }) => [
+        ...(await handleTemplateStatusChangedToProducer(
           eserviceTemplate,
           logger,
           readModelService
-        )
+        )),
+        ...(await handleEserviceTemplateStatusChangedToInstantiator(
+          eserviceTemplate,
+          logger,
+          readModelService
+        )),
+      ]
     )
     .with(
       {
