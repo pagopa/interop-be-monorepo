@@ -19,4 +19,14 @@ export const inAppTemplates = {
     action: "attivato" | "rifiutato"
   ): string =>
     `${producerName} ha ${action} la richiesta di fruizione relativa all'e-service <strong>${eserviceName}</strong>.`,
+  certifiedVerifiedAttributeAssignedToAssignee: (
+    attributeName: string,
+    attributeKind: "certificato" | "verificato"
+  ): string =>
+    `Ti è stato conferito l'attributo ${attributeKind} "${attributeName}". Puoi ora utilizzarlo nelle richieste di fruizione.`,
+  certifiedVerifiedAttributeRevokedToAssignee: (
+    attributeName: string,
+    attributeKind: "certificato" | "verificato"
+  ): string =>
+    `Ti informiamo che ti è stato revocato l'attributo ${attributeKind} "${attributeName}". Tutte le richieste di fruizione che utilizzano tale attributo subiranno una sospensione. Non potrai più utilizzare questo attributo per le future richieste di fruizione`,
 };
