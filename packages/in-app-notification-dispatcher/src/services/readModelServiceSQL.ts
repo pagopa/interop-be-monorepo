@@ -1,6 +1,8 @@
 import { and, eq, inArray } from "drizzle-orm";
 import {
   Agreement,
+  Attribute,
+  AttributeId,
   EService,
   EServiceId,
   NotificationConfig,
@@ -11,6 +13,7 @@ import {
 } from "pagopa-interop-models";
 import {
   AgreementReadModelService,
+  AttributeReadModelService,
   CatalogReadModelService,
   NotificationConfigReadModelService,
   TenantReadModelService,
@@ -20,11 +23,13 @@ import { agreementInReadmodelAgreement } from "pagopa-interop-readmodel-models";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
+  attributeReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
 }: {
   agreementReadModelServiceSQL: AgreementReadModelService;
+  attributeReadModelServiceSQL: AttributeReadModelService;
   catalogReadModelServiceSQL: CatalogReadModelService;
   tenantReadModelServiceSQL: TenantReadModelService;
   notificationConfigReadModelServiceSQL: NotificationConfigReadModelService;
@@ -61,6 +66,17 @@ export function readModelServiceBuilderSQL({
         notificationName,
         "inApp"
       );
+    },
+    async getAttributeById(
+      attributeId: AttributeId
+    ): Promise<Attribute | undefined> {
+      const attributeWithMetadata =
+        await attributeReadModelServiceSQL.getAttributeById(attributeId);
+
+      if (!attributeWithMetadata) {
+        return undefined;
+      }
+      return attributeWithMetadata.data;
     },
   };
 }

@@ -5,10 +5,13 @@ import {
   Tenant,
   TenantId,
   EServiceId,
+  AttributeId,
+  Attribute,
 } from "pagopa-interop-models";
 
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import {
+  attributeNotFound,
   descriptorPublishedNotFound,
   eserviceNotFound,
   tenantNotFound,
@@ -47,4 +50,15 @@ export async function retrieveEservice(
     throw eserviceNotFound(eserviceId);
   }
   return eservice;
+}
+
+export async function retrieveAttribute(
+  attributeId: AttributeId,
+  readModelService: ReadModelServiceSQL
+): Promise<Attribute> {
+  const attribute = await readModelService.getAttributeById(attributeId);
+  if (!attribute) {
+    throw attributeNotFound(attributeId);
+  }
+  return attribute;
 }
