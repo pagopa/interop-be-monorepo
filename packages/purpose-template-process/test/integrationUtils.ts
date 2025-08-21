@@ -2,7 +2,6 @@ import {
   ReadEvent,
   readLastEventByStreamId,
   setupTestContainersVitest,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
 import {
