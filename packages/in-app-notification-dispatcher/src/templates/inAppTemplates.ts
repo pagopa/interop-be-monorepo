@@ -21,4 +21,11 @@ export const inAppTemplates = {
     `${producerName} ha ${action} la richiesta di fruizione relativa all'e-service <strong>${eserviceName}</strong>`,
   templateStatusChangedToProducer: (templateName: string): string =>
     `Hai sospeso il tuo template "<strong>${templateName}</strong>".`,
+  newEserviceTemplateVersionToInstantiator: (
+    creatorName: string,
+    eserviceTemplateVersion: string,
+    eserviceTemplateName: string,
+    eserviceName: string
+  ): string =>
+    `${creatorName} ha pubblicato una nuova versione ${eserviceTemplateVersion} del template "<strong>${eserviceTemplateName}</strong>" per l'e-service <strong>${eserviceName}</strong>.`,
 };
