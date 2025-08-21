@@ -670,6 +670,30 @@ export function eserviceServiceBuilder(
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
     },
 
+    async getEServiceRiskAnalyses(
+      eserviceId: EServiceId,
+      { limit, offset }: m2mGatewayApi.GetEServiceRiskAnalysesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceRiskAnalyses> {
+      logger.info(`Retrieving Risk Analyses for E-Service ${eserviceId}`);
+
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
+      );
+
+      const paginated = eservice.riskAnalysis.slice(offset, offset + limit);
+
+      return {
+        results: paginated.map(toM2MGatewayApiEServiceRiskAnalysis),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eservice.riskAnalysis.length,
+        },
+      };
+    },
+
     async getEServiceRiskAnalysis(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysisId,
