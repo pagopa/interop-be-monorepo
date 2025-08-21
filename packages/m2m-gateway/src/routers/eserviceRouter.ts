@@ -18,6 +18,7 @@ import {
   uploadEServiceDescriptorInterfaceErrorMapper,
   deleteEServiceDescriptorInterfaceErrorMapper,
   deleteDraftEServiceDescriptorErrorMapper,
+  getEServiceDescriptorAttributesErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -616,7 +617,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            getEServiceDescriptorAttributesErrorMapper,
             ctx,
             `Error updating certified attributes for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
           );
@@ -649,7 +650,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            getEServiceDescriptorAttributesErrorMapper,
             ctx,
             `Error updating declared attributes for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
           );
@@ -682,7 +683,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            getEServiceDescriptorAttributesErrorMapper,
             ctx,
             `Error updating verified attributes for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
           );
