@@ -113,4 +113,9 @@ export const inAppTemplates = {
     eserviceTemplateName: string
   ): string =>
     `${creatorName} ha aggiornato il nome del template "<strong>${eserviceTemplateName}</strong>" per il tuo e-service.`,
+  eserviceTemplateStatusChangedToInstantiator: (
+    creatorName: string,
+    eserviceTemplateName: string
+  ): string =>
+    `${creatorName} ha sospeso il template "<strong>${eserviceTemplateName}</strong>" per il tuo e-service.`,
 };
