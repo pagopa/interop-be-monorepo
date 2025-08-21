@@ -186,6 +186,39 @@ describe("handleAgreementSubmitted", async () => {
     );
   });
 
+  it("should not generate a message if the user disabled this email notification", async () => {
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockResolvedValue([users[0]]);
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleAgreementSubmitted({
+      agreementV2Msg: toAgreementV2(agreement),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(1);
+    expect(messages.some((message) => message.address === users[0].email)).toBe(
+      true
+    );
+    expect(messages.some((message) => message.address === users[1].email)).toBe(
+      false
+    );
+  });
+
   it("should generate a complete and correct message", async () => {
     const activationDate = new Date();
     const agreement = {
