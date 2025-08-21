@@ -7,6 +7,7 @@ import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleTemplateStatusChangedToProducer } from "./handleTemplateStatusChangedToProducer.js";
 import { handleNewEserviceTemplateVersionToInstantiator } from "./handleNewEserviceTemplateVersionToInstantiator.js";
+import { handleEserviceTemplateNameChangedToInstantiator } from "./handleEserviceTemplateNameChangedToInstantiator.js";
 
 export async function handleEServiceTemplateEvent(
   decodedMessage: EServiceTemplateEventEnvelopeV2,
@@ -39,6 +40,17 @@ export async function handleEServiceTemplateEvent(
     )
     .with(
       {
+        type: "EServiceTemplateNameUpdated",
+      },
+      ({ data: { eserviceTemplate } }) =>
+        handleEserviceTemplateNameChangedToInstantiator(
+          eserviceTemplate,
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      {
         type: P.union(
           "EServiceTemplateAdded",
           "EServiceTemplateRiskAnalysisAdded",
@@ -54,7 +66,6 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionDocumentDeleted",
           "EServiceTemplateVersionInterfaceUpdated",
           "EServiceTemplateVersionDocumentUpdated",
-          "EServiceTemplateNameUpdated",
           "EServiceTemplateIntendedTargetUpdated",
           "EServiceTemplateDescriptionUpdated",
           "EServiceTemplateVersionQuotasUpdated",
