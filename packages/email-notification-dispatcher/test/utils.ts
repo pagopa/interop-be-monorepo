@@ -26,6 +26,8 @@ import {
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { UserDB } from "pagopa-interop-selfcare-user-db-models";
+import { z } from "zod";
+import { generateMock } from "@anatine/zod-mock";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
@@ -88,11 +90,11 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
 afterEach(cleanup);
 
 export const getMockUser = (tenantId?: string, userId?: string): UserDB => ({
-  email: "name@mailcom",
-  familyName: "familyName",
+  email: generateMock(z.string().email()),
+  familyName: generateMock(z.string()),
   institutionId: generateId(),
-  name: "name",
-  productRole: "productRole",
+  name: generateMock(z.string()),
+  productRole: generateMock(z.string()),
   tenantId: tenantId ?? generateId<TenantId>(),
   userId: userId ?? generateId<UserId>(),
 });

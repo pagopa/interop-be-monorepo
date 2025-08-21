@@ -6,19 +6,28 @@ import {
   getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
+  getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
   CorrelationId,
+  DescriptorId,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
+  NotificationType,
   TenantId,
   toAgreementV2,
+  unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handleAgreementSubmitted } from "../src/handlers/agreements/handleAgreementSubmitted.js";
+import {
+  agreementStampDateNotFound,
+  descriptorNotFound,
+  eServiceNotFound,
+  tenantNotFound,
+} from "../src/models/errors.js";
+import { handleAgreementActivatedToProducer } from "../src/handlers/agreements/handleAgreementActivatedToProducer.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -28,7 +37,7 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("handleAgreementSubmitted", async () => {
+describe("handleAgreementActivated", async () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -41,11 +50,19 @@ describe("handleAgreementSubmitted", async () => {
     consumerId,
     descriptors: [descriptor],
   };
-  const producerTenant = getMockTenant(producerId);
-  const consumerTenant = getMockTenant(consumerId);
+  const producerTenant = {
+    ...getMockTenant(producerId),
+    mails: [getMockTenantMail()],
+  };
+  const consumerTenant = {
+    ...getMockTenant(consumerId),
+    mails: [getMockTenantMail()],
+  };
   const users = [
     getMockUser(producerTenant.id),
     getMockUser(producerTenant.id),
+    getMockUser(consumerTenant.id),
+    getMockUser(consumerTenant.id),
   ];
 
   const userService = {
@@ -59,8 +76,10 @@ describe("handleAgreementSubmitted", async () => {
     await addOneTenant(consumerTenant);
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
-      .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.userId, tenantId: user.tenantId }))
+      .mockImplementation((tenantIds: TenantId[], _: NotificationType) =>
+        users.filter((user) =>
+          tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
+        )
       );
     userService.readUser.mockImplementation((userId) =>
       users.find((user) => user.userId === userId)
@@ -69,7 +88,7 @@ describe("handleAgreementSubmitted", async () => {
 
   it("should throw missingKafkaMessageDataError when agreement is undefined", async () => {
     await expect(() =>
-      handleAgreementSubmitted({
+      handleAgreementActivatedToProducer({
         agreementV2Msg: undefined,
         logger,
         templateService,
@@ -78,12 +97,12 @@ describe("handleAgreementSubmitted", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("eservice", "AgreementSubmitted")
+      missingKafkaMessageDataError("eservice", "AgreementActivated")
     );
   });
 
   it("should throw tenantNotFound when consumer is not found", async () => {
-    const unkonwnConsumerId = generateId<TenantId>();
+    const unknownConsumerId = generateId<TenantId>();
 
     const agreement = {
       ...getMockAgreement(),
@@ -91,12 +110,12 @@ describe("handleAgreementSubmitted", async () => {
       producerId: producerTenant.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
-      consumerId: unkonwnConsumerId,
+      consumerId: unknownConsumerId,
     };
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleAgreementSubmitted({
+      handleAgreementActivatedToProducer({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
@@ -104,7 +123,7 @@ describe("handleAgreementSubmitted", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(tenantNotFound(unkonwnConsumerId));
+    ).rejects.toThrow(tenantNotFound(unknownConsumerId));
   });
 
   it("should throw tenantNotFound when producer is not found", async () => {
@@ -121,7 +140,7 @@ describe("handleAgreementSubmitted", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleAgreementSubmitted({
+      handleAgreementActivatedToProducer({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
@@ -132,9 +151,31 @@ describe("handleAgreementSubmitted", async () => {
     ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
+  it("should throw agreementStampDateNotFound when activation date is not found", async () => {
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: {},
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    await expect(() =>
+      handleAgreementActivatedToProducer({
+        agreementV2Msg: toAgreementV2(agreement),
+        logger,
+        templateService,
+        userService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      })
+    ).rejects.toThrow(agreementStampDateNotFound("activation", agreement.id));
+  });
+
   it("should throw eServiceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
-
     const agreement = {
       ...getMockAgreement(),
       stamps: {},
@@ -146,7 +187,7 @@ describe("handleAgreementSubmitted", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleAgreementSubmitted({
+      handleAgreementActivatedToProducer({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
@@ -155,6 +196,31 @@ describe("handleAgreementSubmitted", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
+  });
+
+  it("should throw descriptorNotFound when descriptor is not found", async () => {
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      descriptorId: generateId<DescriptorId>(),
+      producerId: producerTenant.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    await expect(() =>
+      handleAgreementActivatedToProducer({
+        agreementV2Msg: toAgreementV2(agreement),
+        logger,
+        templateService,
+        userService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      })
+    ).rejects.toThrow(
+      descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
+    );
   });
 
   it("should generate one message per user of the tenant that produced the eservice", async () => {
@@ -168,7 +234,7 @@ describe("handleAgreementSubmitted", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementSubmitted({
+    const messages = await handleAgreementActivatedToProducer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
@@ -200,7 +266,7 @@ describe("handleAgreementSubmitted", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementSubmitted({
+    const messages = await handleAgreementActivatedToProducer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
@@ -214,6 +280,11 @@ describe("handleAgreementSubmitted", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(`Nuova richiesta di fruizione`);
+      expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(consumerTenant.name);
+      expect(message.email.body).toContain(eservice.name);
+      expect(message.email.body).toContain(descriptor.version);
+      // expect(message.email.body).toContain(dateAtRomeZone(activationDate));
     });
   });
 });
