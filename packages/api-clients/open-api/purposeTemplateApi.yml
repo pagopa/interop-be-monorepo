@@ -412,7 +412,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RiskAnalysisFormTemplateSeed"
+                $ref: "#/components/schemas/RiskAnalysisFormTemplate"
         "403":
           description: Forbidden
           content:
