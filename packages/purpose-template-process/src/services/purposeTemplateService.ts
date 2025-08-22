@@ -11,7 +11,19 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
+import { purposeTemplateNotFound } from "../model/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+
+async function retrievePurposeTemplate(
+  id: PurposeTemplateId,
+  readModelService: ReadModelServiceSQL
+): Promise<WithMetadata<PurposeTemplate>> {
+  const purposeTemplate = await readModelService.getPurposeTemplateById(id);
+  if (!purposeTemplate) {
+    throw purposeTemplateNotFound(id);
+  }
+  return purposeTemplate;
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
@@ -30,7 +42,7 @@ export function purposeTemplateServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Retrieving purpose template ${id}`);
-      return readModelService.getPurposeTemplateById(id);
+      return retrievePurposeTemplate(id, readModelService);
     },
   };
 }
