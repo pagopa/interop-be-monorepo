@@ -191,7 +191,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: EServices retrieved
+          description: E-Services retrieved
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
@@ -483,12 +483,12 @@ paths:
     get:
       tags:
         - purposeTemplate
-      summary: Get Purpose Template EServices
+      summary: Get Purpose Template E-Services
       operationId: getPurposeTemplateEServices
-      description: Retrieve a purpose template eservices
+      description: Retrieve a purpose template e-services
       responses:
         "200":
-          description: Purpose Template EServices retrieved
+          description: Purpose Template E-Services retrieved
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
