@@ -15,7 +15,6 @@ import {
   generateId,
   missingKafkaMessageDataError,
   TenantId,
-  TenantNotificationConfigId,
   toAgreementV2,
   UserId,
 } from "pagopa-interop-models";
@@ -63,14 +62,6 @@ describe("handleAgreementSuspendedByPlatform", async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
-    readModelService.getTenantNotificationConfigByTenantId = vi
-      .fn()
-      .mockResolvedValue({
-        id: generateId<TenantNotificationConfigId>(),
-        tenantId: consumerTenant.id,
-        enabled: true,
-        createAt: new Date(),
-      });
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockReturnValueOnce(
