@@ -48,6 +48,7 @@ paths:
     get:
       tags:
         - purposeTemplate
+      summary: List Purpose Templates
       operationId: getPurposeTemplates
       description: Retrieve Purpose Templates with pagination and filters
       parameters:
@@ -114,6 +115,7 @@ paths:
     post:
       tags:
         - purposeTemplate
+      summary: Create Purpose Template
       operationId: createPurposeTemplate
       description: Create a Purpose Template (Draft state)
       requestBody:
@@ -148,6 +150,7 @@ paths:
     get:
       tags:
         - purposeTemplate
+      summary: List Eservice associated to Purpose Templates
       operationId: getEServices
       description: Retrieve associations between all Purpose Templates and all their linked E-Services
       parameters:
@@ -214,6 +217,7 @@ paths:
     get:
       tags:
         - purposeTemplate
+      summary: Retrieve Purpose Template Risk Analysis 
       operationId: getRiskAnalysis
       description: Retrieve the Risk Analysis for all purpose templates.
       parameters:
@@ -289,6 +293,7 @@ paths:
     get:
       tags:
         - purposeTemplate
+      summary: Get Purpose Template
       operationId: getPurposeTemplate
       description: Retrieve the Purpose template
       responses:
@@ -316,6 +321,7 @@ paths:
     post:
       tags:
         - purposeTemplate
+      summary: Update Purpose Template
       operationId: updatePurposeTemplate
       description: Updates the Purpose Template (Draft state)
       requestBody:
@@ -363,6 +369,7 @@ paths:
         - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
         - purposeTemplate
+      summary: Delete Purpose Template
       operationId: deletePurposeTemplate
       description: Deletes a specific purpose template if it is in Draft state
       responses:
@@ -393,6 +400,7 @@ paths:
     get:
       tags:
         - purposeTemplate
+      summary: Get Purpose Template Risk Analysis
       operationId: getPurposeTemplateRiskAnalysis
       description: Retrieve the purpose template risk analysis
       responses:
@@ -420,6 +428,7 @@ paths:
     post:
       tags:
         - purposeTemplate
+      summary: Update Purpose Template Risk Analysis
       operationId: updatePurposeTemplateRiskAnalysis
       description: Updates the purpose template (in Draft state) risk analysis
       requestBody:
@@ -474,6 +483,7 @@ paths:
     get:
       tags:
         - purposeTemplate
+      summary: Get Purpose Template EServices
       operationId: getPurposeTemplateEServices
       description: Retrieve the purpose template eservices
       responses:
@@ -503,6 +513,7 @@ paths:
     post:
       tags:
         - purposeTemplate
+      summary: Add EService to Purpose Template
       operationId: addEServiceToPurposeTemplate
       description: Add an eservice to a purpose template (in Draft state)
       requestBody:
@@ -548,6 +559,7 @@ paths:
     delete:
       tags:
         - purposeTemplate
+      summary: Remove EService from Purpose Template
       operationId: removeEServiceFromPurposeTemplate
       description: Remove an eservice from a purpose template (in Draft state)
       requestBody:
