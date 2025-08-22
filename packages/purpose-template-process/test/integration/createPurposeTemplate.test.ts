@@ -55,12 +55,11 @@ describe("createPurposeTemplate", () => {
     purposeDailyCalls: 10,
   };
 
-  const mockValidRiskAnalysisForm = getMockValidRiskAnalysisFormTemplate(
-    tenantKind.PA
-  );
+  const mockValidRiskAnalysisTemplateForm =
+    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
 
   const purposeTemplateSeed = getMockPurposeTemplateSeed(
-    buildRiskAnalysisFormTemplateSeed(mockValidRiskAnalysisForm)
+    buildRiskAnalysisFormTemplateSeed(mockValidRiskAnalysisTemplateForm)
   );
 
   it("should write on event-store for the creation of a purpose template", async () => {
@@ -96,23 +95,25 @@ describe("createPurposeTemplate", () => {
     });
 
     const expectedRiskAnalysisForm: RiskAnalysisFormTemplate = {
-      ...mockValidRiskAnalysisForm,
+      ...mockValidRiskAnalysisTemplateForm,
       id: unsafeBrandId(
         createPurposeTemplateResponse.data.purposeTemplate
           .purposeRiskAnalysisForm!.id
       ),
-      singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
+      singleAnswers: mockValidRiskAnalysisTemplateForm.singleAnswers.map(
         (answer, i) => ({
           ...answer,
           id: createPurposeTemplateResponse.data.purposeTemplate
             .purposeRiskAnalysisForm!.singleAnswers[i].id,
         })
       ),
-      multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map((answer, i) => ({
-        ...answer,
-        id: createPurposeTemplateResponse.data.purposeTemplate
-          .purposeRiskAnalysisForm!.multiAnswers[i].id,
-      })),
+      multiAnswers: mockValidRiskAnalysisTemplateForm.multiAnswers.map(
+        (answer, i) => ({
+          ...answer,
+          id: createPurposeTemplateResponse.data.purposeTemplate
+            .purposeRiskAnalysisForm!.multiAnswers[i].id,
+        })
+      ),
     };
 
     const expectedPurposeTemplate: PurposeTemplate = {
