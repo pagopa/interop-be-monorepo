@@ -5272,9 +5272,9 @@ paths:
     put:
       tags:
         - eservices
-      summary: Update the Certified Attributes of an E-Service Descriptor
+      summary: Replace the Certified Attributes of an E-Service Descriptor
       description: |
-        Update the Certified Attributes for the specified E-Service Descriptor.
+        Replace the Certified Attributes for the specified E-Service Descriptor.
         The Descriptor must be in Draft state.
       operationId: updateEServiceDescriptorCertifiedAttributes
       requestBody:
@@ -5380,9 +5380,9 @@ paths:
     put:
       tags:
         - eservices
-      summary: Update the Declared Attributes of an E-Service Descriptor
+      summary: Replace the Declared Attributes of an E-Service Descriptor
       description: |
-        Update the Declared Attributes for the specified E-Service Descriptor.
+        Replace the Declared Attributes for the specified E-Service Descriptor.
         The Descriptor must be in Draft state.
       operationId: updateEServiceDescriptorDeclaredAttributes
       requestBody:
@@ -5488,9 +5488,9 @@ paths:
     put:
       tags:
         - eservices
-      summary: Update the Verified Attributes of an E-Service Descriptor
+      summary: Replace the Verified Attributes of an E-Service Descriptor
       description: |
-        Update the Verified Attributes for the specified E-Service Descriptor.
+        Replace the Verified Attributes for the specified E-Service Descriptor.
         The Descriptor must be in Draft state.
       operationId: updateEServiceDescriptorVerifiedAttributes
       requestBody:
