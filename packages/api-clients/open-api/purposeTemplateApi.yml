@@ -17,7 +17,7 @@ security:
   - bearerAuth: []
 tags:
   - name: purposeTemplate
-    description: Implements purpose template process
+    description: Implement purpose template process
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
@@ -295,7 +295,7 @@ paths:
         - purposeTemplate
       summary: Get Purpose Template
       operationId: getPurposeTemplate
-      description: Retrieve the Purpose template
+      description: Retrieve a Purpose template
       responses:
         "200":
           description: Purpose template retrieved
@@ -323,7 +323,7 @@ paths:
         - purposeTemplate
       summary: Update Purpose Template
       operationId: updatePurposeTemplate
-      description: Updates the Purpose Template (Draft state)
+      description: Updates a Purpose Template (Draft state)
       requestBody:
         content:
           application/json:
@@ -369,7 +369,7 @@ paths:
         - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
         - purposeTemplate
-      summary: Delete Purpose Template
+      summary: Delete a Purpose Template
       operationId: deletePurposeTemplate
       description: Deletes a specific purpose template if it is in Draft state
       responses:
@@ -402,7 +402,7 @@ paths:
         - purposeTemplate
       summary: Get Purpose Template Risk Analysis
       operationId: getPurposeTemplateRiskAnalysis
-      description: Retrieve the purpose template risk analysis
+      description: Retrieve a purpose template risk analysis
       responses:
         "200":
           description: Purpose Template Risk Analysis retrieved
@@ -430,7 +430,7 @@ paths:
         - purposeTemplate
       summary: Update Purpose Template Risk Analysis
       operationId: updatePurposeTemplateRiskAnalysis
-      description: Updates the purpose template (in Draft state) risk analysis
+      description: Updates a purpose template (in Draft state) risk analysis
       requestBody:
         content:
           application/json:
@@ -485,7 +485,7 @@ paths:
         - purposeTemplate
       summary: Get Purpose Template EServices
       operationId: getPurposeTemplateEServices
-      description: Retrieve the purpose template eservices
+      description: Retrieve a purpose template eservices
       responses:
         "200":
           description: Purpose Template EServices retrieved
@@ -594,7 +594,7 @@ paths:
           format: uuid
     post:
       summary: Suspend Purpose Template
-      description: Suspends the purpose template by id (from Active State to Suspended State)
+      description: Suspends a purpose template by id (from Active State to Suspended State)
       operationId: suspendPurposeTemplate
       tags:
         - purposeTemplate
@@ -643,7 +643,7 @@ paths:
           format: uuid
     post:
       summary: Unsuspend Purpose Template
-      description: Unsuspends the purpose template by id (from Suspended State to Active State)
+      description: Unsuspends a purpose template by id (from Suspended State to Active State)
       operationId: unsuspendPurposeTemplate
       tags:
         - purposeTemplate
@@ -692,7 +692,7 @@ paths:
           format: uuid
     post:
       summary: Archive Purpose Template
-      description: Archives the purpose template by id (from Suspended State to Archived State)
+      description: Archives a purpose template by id (from Suspended State to Archived State)
       operationId: archivePurposeTemplate
       tags:
         - purposeTemplate
@@ -741,7 +741,7 @@ paths:
           format: uuid
     post:
       summary: Publish Purpose Template
-      description: Publishes the purpose template by id (from Draft State to Active State)
+      description: Publishes a purpose template by id (from Draft State to Active State)
       operationId: publishPurposeTemplate
       tags:
         - purposeTemplate
