@@ -223,7 +223,7 @@ paths:
       parameters:
         - in: query
           name: eserviceIds
-          description: comma separated sequence of EService IDs
+          description: comma separated sequence of E-Service IDs
           schema:
             type: array
             items:
@@ -513,7 +513,7 @@ paths:
     post:
       tags:
         - purposeTemplate
-      summary: Add EService to Purpose Template
+      summary: Add E-Service to Purpose Template
       operationId: addEServiceToPurposeTemplate
       description: Add an eservice to a purpose template (in Draft state)
       requestBody:
@@ -524,7 +524,7 @@ paths:
         required: true
       responses:
         "200":
-          description: EService added to purpose template
+          description: E-Service added to purpose template
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
@@ -559,7 +559,7 @@ paths:
     delete:
       tags:
         - purposeTemplate
-      summary: Remove EService from Purpose Template
+      summary: Remove E-Service from Purpose Template
       operationId: removeEServiceFromPurposeTemplate
       description: Remove an eservice from a purpose template (in Draft state)
       requestBody:
@@ -570,7 +570,7 @@ paths:
         required: true
       responses:
         "204":
-          description: EService removed from purpose template
+          description: E-Service removed from purpose template
         "403":
           description: Forbidden
           content:
