@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
+  getMockedApiDelegation,
   getMockedApiPurpose,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -9,15 +10,18 @@ import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  missingMetadata,
+  notAnActiveConsumerDelegation,
+} from "../../../src/model/errors.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("POST /reversePurposes router test", () => {
   const mockPurpose: purposeApi.Purpose = getMockedApiPurpose();
 
-  const mockEServicePurposeSeed: m2mGatewayApi.EServicePurposeSeed = {
+  const mockReversePurposeSeed: m2mGatewayApi.ReversePurposeSeed = {
     eserviceId: mockPurpose.eserviceId,
-    consumerId: mockPurpose.consumerId,
+    delegationId: generateId(),
     riskAnalysisId: generateId(),
     description: mockPurpose.description,
     dailyCalls: mockPurpose.versions[0].dailyCalls,
@@ -30,7 +34,7 @@ describe("POST /reversePurposes router test", () => {
 
   const makeRequest = async (
     token: string,
-    body: m2mGatewayApi.EServicePurposeSeed
+    body: m2mGatewayApi.ReversePurposeSeed
   ) =>
     request(api)
       .post(`${appBasePath}/reversePurposes`)
@@ -46,7 +50,7 @@ describe("POST /reversePurposes router test", () => {
         .mockResolvedValue(mockM2MPurpose);
 
       const token = generateToken(role);
-      const res = await makeRequest(token, mockEServicePurposeSeed);
+      const res = await makeRequest(token, mockReversePurposeSeed);
 
       expect(res.status).toBe(201);
       expect(res.body).toEqual(mockM2MPurpose);
@@ -57,22 +61,38 @@ describe("POST /reversePurposes router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockEServicePurposeSeed);
+    const res = await makeRequest(token, mockReversePurposeSeed);
     expect(res.status).toBe(403);
   });
 
   it.each([
     { invalidParam: "invalidValue" },
-    { ...mockEServicePurposeSeed, extraParam: -1 },
-    { ...mockEServicePurposeSeed, description: "short" },
-  ])("Should return 400 if passed invalid delegation seed", async (body) => {
+    { ...mockReversePurposeSeed, extraParam: -1 },
+    { ...mockReversePurposeSeed, description: "short" },
+  ])("Should return 400 if passed invalid purpose seed", async (body) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      body as m2mGatewayApi.EServicePurposeSeed
+      body as m2mGatewayApi.ReversePurposeSeed
     );
 
     expect(res.status).toBe(400);
+  });
+
+  it("Should return 403 in case of notAnActiveConsumerDelegation error", async () => {
+    mockPurposeService.createReversePurpose = vi
+      .fn()
+      .mockRejectedValue(
+        notAnActiveConsumerDelegation(
+          generateId(),
+          generateId(),
+          getMockedApiDelegation()
+        )
+      );
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockReversePurposeSeed);
+
+    expect(res.status).toBe(403);
   });
 
   it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
@@ -82,7 +102,7 @@ describe("POST /reversePurposes router test", () => {
         .fn()
         .mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockEServicePurposeSeed);
+      const res = await makeRequest(token, mockReversePurposeSeed);
 
       expect(res.status).toBe(500);
     }
@@ -98,7 +118,7 @@ describe("POST /reversePurposes router test", () => {
     async (resp) => {
       mockPurposeService.createReversePurpose = vi.fn().mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockEServicePurposeSeed);
+      const res = await makeRequest(token, mockReversePurposeSeed);
 
       expect(res.status).toBe(500);
     }

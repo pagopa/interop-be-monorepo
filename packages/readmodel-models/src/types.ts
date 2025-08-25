@@ -39,7 +39,7 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
-  purposeTemplateEserviceDescriptorVersionInReadmodelPurposeTemplate,
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
@@ -303,8 +303,8 @@ export type UserNotificationConfigItemsSQL = {
 export type PurposeTemplateSQL = InferSelectModel<
   typeof purposeTemplateInReadmodelPurposeTemplate
 >;
-export type PurposeTemplateEServiceDescriptorVersionSQL = InferSelectModel<
-  typeof purposeTemplateEserviceDescriptorVersionInReadmodelPurposeTemplate
+export type PurposeTemplateEServiceDescriptorSQL = InferSelectModel<
+  typeof purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
 >;
 export type PurposeTemplateRiskAnalysisFormSQL = InferSelectModel<
   typeof purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate
@@ -321,7 +321,6 @@ export type PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL =
   >;
 export type PurposeTemplateItemsSQL = {
   purposeTemplateSQL: PurposeTemplateSQL;
-  eserviceDescriptorVersionsSQL: PurposeTemplateEServiceDescriptorVersionSQL[];
   riskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSQL | undefined;
   riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
   riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];

@@ -32,6 +32,7 @@ export * from "./eservice/protobufConverterToV2.js";
 export * from "./institution/institution.js";
 
 export * from "./risk-analysis/riskAnalysis.js";
+export * from "./risk-analysis/riskAnalysisTemplate.js";
 
 export * from "./tenant/tenant.js";
 export * from "./tenant/tenantEvents.js";
@@ -133,6 +134,8 @@ export * from "./gen/v2/agreement/events.js";
 export * from "./gen/v2/purpose/purpose.js";
 export * from "./gen/v2/purpose/events.js";
 export * from "./gen/v2/purpose/riskAnalysis.js";
+export * from "./gen/v2/purpose-template/events.js";
+export * from "./gen/v2/purpose-template/purpose-template.js";
 export * from "./gen/v2/authorization/client.js";
 export * from "./gen/v2/authorization/key.js";
 export * from "./gen/v2/authorization/events.js";

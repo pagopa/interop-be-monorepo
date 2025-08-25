@@ -18,11 +18,12 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template (
   UNIQUE (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_eservice_descriptor_version (
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_eservice_descriptor (
   metadata_version INTEGER NOT NULL,
   purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
-  eservice_id UUID,
-  descriptor_id UUID,
+  eservice_id UUID NOT NULL,
+  descriptor_id UUID NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (purpose_template_id, eservice_id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
@@ -46,7 +47,6 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
   "key" VARCHAR NOT NULL,
   "value" VARCHAR ARRAY NOT NULL,
   editable BOOLEAN NOT NULL,
-  assistive_text VARCHAR,
   suggested_values VARCHAR ARRAY,
   PRIMARY KEY (id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
   purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   answer_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_answer (id) ON DELETE CASCADE,
-  "text" VARCHAR,
+  "text" VARCHAR NOT NULL,
   UNIQUE (answer_id),
   PRIMARY KEY (id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
@@ -65,10 +65,11 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
 
 CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_analysis_answer_annotation_document (
   id UUID,
-  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template,
+  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   annotation_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_answer_annotation (id) ON DELETE CASCADE,
   "name" VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
   content_type VARCHAR NOT NULL,
   "path" VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,

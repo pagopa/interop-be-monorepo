@@ -40,8 +40,7 @@ message RiskAnalysisTemplateSingleAnswerV2 {
   optional string value = 3;
   bool editable = 4;
   optional RiskAnalysisTemplateAnswerAnnotationV2 annotation = 5;
-  optional string assistiveText = 6;
-  repeated string suggestedValues = 7;
+  repeated string suggestedValues = 6;
 }
 
 message RiskAnalysisTemplateMultiAnswerV2 {
@@ -50,20 +49,19 @@ message RiskAnalysisTemplateMultiAnswerV2 {
   repeated string values = 3;
   bool editable = 4;
   optional RiskAnalysisTemplateAnswerAnnotationV2 annotation = 5;
-  optional string assistiveText = 6;
 }
 
 message RiskAnalysisTemplateAnswerAnnotationV2 {
   string id = 1;
-  optional string text = 2;
+  string text = 2;
   repeated RiskAnalysisTemplateAnswerAnnotationDocumentV2 docs = 3;
 }
 
 message RiskAnalysisTemplateAnswerAnnotationDocumentV2 {
   string id = 1;
   string name = 2;
-  string contentType = 3;
-  string prettyName = 4;
+  string prettyName = 3;
+  string contentType = 4;
   string path = 5;
   int64 createdAt = 6;
 }
