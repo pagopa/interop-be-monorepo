@@ -6,7 +6,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
@@ -36,7 +36,6 @@ describe("POST /eservices/:eServiceId/descriptors/:descriptorId/suspend router t
         `${appBasePath}/eservices/${eServiceId}/descriptors/${descriptorId}/suspend`
       )
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
       .send(mockApiEservice);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

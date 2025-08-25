@@ -20,8 +20,7 @@ describe("DELETE /eservices/:eServiceId/descriptors/:descriptorId router test", 
       .delete(
         `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}`
       )
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+      .set("Authorization", `Bearer ${token}`);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
