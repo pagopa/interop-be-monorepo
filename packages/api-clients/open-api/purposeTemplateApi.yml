@@ -150,7 +150,7 @@ paths:
     get:
       tags:
         - purposeTemplate
-      summary: List Eservice associated to Purpose Templates
+      summary: List E-Service associated to Purpose Templates
       operationId: getEServices
       description: Retrieve associations between all Purpose Templates and all their linked E-Services
       parameters:
@@ -515,7 +515,7 @@ paths:
         - purposeTemplate
       summary: Add E-Service to Purpose Template
       operationId: addEServiceToPurposeTemplate
-      description: Add an eservice to a purpose template (in Draft state)
+      description: Add an E-Service to a purpose template (in Draft state)
       requestBody:
         content:
           application/json:
@@ -561,7 +561,7 @@ paths:
         - purposeTemplate
       summary: Remove E-Service from Purpose Template
       operationId: removeEServiceFromPurposeTemplate
-      description: Remove an eservice from a purpose template (in Draft state)
+      description: Remove an E-Service from a purpose template (in Draft state)
       requestBody:
         content:
           application/json:
