@@ -2307,8 +2307,12 @@ export function catalogServiceBuilder(
     async deleteRiskAnalysis(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysisId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Deleting Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
       );
@@ -2337,15 +2341,21 @@ export function catalogServiceBuilder(
           (r) => r.id !== riskAnalysisId
         ),
       };
-      const event = toCreateEventEServiceRiskAnalysisDeleted(
-        eservice.data.id,
-        eservice.metadata.version,
-        riskAnalysisId,
-        eserviceWithRiskAnalysisDeleted,
-        correlationId
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceRiskAnalysisDeleted(
+          eservice.data.id,
+          eservice.metadata.version,
+          riskAnalysisId,
+          eserviceWithRiskAnalysisDeleted,
+          correlationId
+        )
       );
 
-      await repository.createEvent(event);
+      return {
+        data: eserviceWithRiskAnalysisDeleted,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateEServiceDescription(
       eserviceId: EServiceId,
