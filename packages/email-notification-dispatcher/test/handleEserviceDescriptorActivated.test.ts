@@ -146,6 +146,40 @@ describe("handleEserviceDescriptorActivated", async () => {
     expect(messages[1].address).toEqual(users[1].email);
   });
 
+  it("should not generate a message if the user disabled this email notification", async () => {
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockResolvedValue([users[0]]);
+
+    const agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleEserviceDescriptorActivated({
+      eserviceV2Msg: toEServiceV2(eservice),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(1);
+    expect(messages.some((message) => message.address === users[0].email)).toBe(
+      true
+    );
+    expect(messages.some((message) => message.address === users[1].email)).toBe(
+      false
+    );
+  });
+
   it("should generate a complete and correct message", async () => {
     const activationDate = new Date();
     const agreement = {
