@@ -32,6 +32,7 @@ import {
   unsafeBrandId,
   EServiceDocumentId,
   stringToDate,
+  AttributeKind,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -693,12 +694,18 @@ export function readModelServiceBuilderSQL(
     },
 
     async getAttributesByIds(
-      attributesIds: AttributeId[]
+      attributesIds: AttributeId[],
+      kind: AttributeKind
     ): Promise<Attribute[]> {
       const res = await readmodelDB
         .select()
         .from(attributeInReadmodelAttribute)
-        .where(inArray(attributeInReadmodelAttribute.id, attributesIds))
+        .where(
+          and(
+            inArray(attributeInReadmodelAttribute.id, attributesIds),
+            eq(attributeInReadmodelAttribute.kind, kind)
+          )
+        )
         .orderBy(attributeInReadmodelAttribute.name);
 
       const attributes = aggregateAttributeArray(res);

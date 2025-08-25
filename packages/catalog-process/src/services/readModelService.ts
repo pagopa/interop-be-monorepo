@@ -34,6 +34,7 @@ import {
   EServiceTemplate,
   EServiceTemplateId,
   Document,
+  AttributeKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -642,11 +643,13 @@ export function readModelServiceBuilder(
     },
 
     async getAttributesByIds(
-      attributesIds: AttributeId[]
+      attributesIds: AttributeId[],
+      kind: AttributeKind
     ): Promise<Attribute[]> {
       const data = await attributes
         .find({
           "data.id": { $in: attributesIds },
+          "data.kind": kind,
         })
         .toArray();
 

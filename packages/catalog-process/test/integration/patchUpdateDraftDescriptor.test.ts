@@ -185,10 +185,7 @@ describe("patchUpdateDraftDescriptor", () => {
     {
       attributes: {
         verified: [
-          [
-            { id: verifiedAttribute.id, explicitAttributeVerification: false },
-            { id: verifiedAttribute.id, explicitAttributeVerification: false },
-          ],
+          [{ id: verifiedAttribute.id, explicitAttributeVerification: false }],
         ],
       },
     },

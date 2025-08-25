@@ -9,6 +9,7 @@ import {
 import {
   Attribute,
   AttributeId,
+  AttributeKind,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersionState,
@@ -95,11 +96,15 @@ export function readModelServiceBuilderSQL({
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
     },
     async getAttributesByIds(
-      attributesIds: AttributeId[]
+      attributesIds: AttributeId[],
+      kind: AttributeKind
     ): Promise<Attribute[]> {
       return (
         await attributeReadModelServiceSQL.getAttributesByFilter(
-          inArray(attributeInReadmodelAttribute.id, attributesIds)
+          and(
+            inArray(attributeInReadmodelAttribute.id, attributesIds),
+            eq(attributeInReadmodelAttribute.kind, kind)
+          )
         )
       ).map((a) => a.data);
     },
