@@ -15,7 +15,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@358a7306cd9d78ceffc19271e69cd8528462fccf
         with:
           path: |
             .turbo
@@ -39,7 +39,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@358a7306cd9d78ceffc19271e69cd8528462fccf
         with:
           path: |
             .turbo
@@ -63,7 +63,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@358a7306cd9d78ceffc19271e69cd8528462fccf
         with:
           path: |
             .turbo
@@ -86,7 +86,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@358a7306cd9d78ceffc19271e69cd8528462fccf
         with:
           path: |
             .turbo
@@ -111,7 +111,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: stoplightio/spectral-action@577bade2d6e0eeb50528c94182a5588bf961ae8f # v0.8.12
+      - uses: stoplightio/spectral-action@6416fd018ae38e60136775066eb3e98172143141 # v0.8.13
         with:
           file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
 
@@ -164,7 +164,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2
 
       - name: Build Docker image
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
+        uses: docker/build-push-action@55146d969b0dff1a5c12630229609757af5b1081
         with:
           context: .
           file: packages/${{ matrix.package }}/Dockerfile

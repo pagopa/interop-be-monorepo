@@ -14,10 +14,14 @@ import {
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
-  agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import {
+  upsertAgreement,
+  upsertEService,
+  upsertTenant,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { certifiedEmailSenderServiceBuilder } from "../src/services/certifiedEmailSenderService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -36,8 +40,6 @@ export const { cleanup, readModelRepository, pecEmailManager, readModelDB } =
     inject("readModelSQLConfig")
   );
 
-const agreementReadModelServiceSQL =
-  agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
@@ -76,7 +78,7 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
     readModelRepository.tenants
   );
 
-  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
+  await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
@@ -85,7 +87,7 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
     readModelRepository.agreements
   );
 
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
@@ -94,7 +96,7 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
     readModelRepository.eservices
   );
 
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 type Mail = {

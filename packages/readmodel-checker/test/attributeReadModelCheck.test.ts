@@ -2,10 +2,11 @@ import { getMockAttribute } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { Attribute, WithMetadata, attributeKind } from "pagopa-interop-models";
+import { upsertAttribute } from "pagopa-interop-readmodel/testUtils";
 import { compare } from "../src/utils.js";
 import {
   addOneAttribute,
-  attributeReadModelServiceSQL,
+  readModelDB,
   readModelService,
   readModelServiceSQL,
 } from "./utils.js";
@@ -42,7 +43,8 @@ describe("Check attribute readmodels", () => {
 
     await addOneAttribute(attribute);
 
-    await attributeReadModelServiceSQL.upsertAttribute(
+    await upsertAttribute(
+      readModelDB,
       attribute.data,
       attribute.metadata.version
     );
@@ -76,7 +78,8 @@ describe("Check attribute readmodels", () => {
     await addOneAttribute(attribute1);
     await addOneAttribute(attribute2);
 
-    await attributeReadModelServiceSQL.upsertAttribute(
+    await upsertAttribute(
+      readModelDB,
       attribute2.data,
       attribute2.metadata.version
     );
@@ -109,11 +112,13 @@ describe("Check attribute readmodels", () => {
 
     await addOneAttribute(attribute1);
 
-    await attributeReadModelServiceSQL.upsertAttribute(
+    await upsertAttribute(
+      readModelDB,
       attribute1.data,
       attribute1.metadata.version
     );
-    await attributeReadModelServiceSQL.upsertAttribute(
+    await upsertAttribute(
+      readModelDB,
       attribute2.data,
       attribute2.metadata.version
     );
@@ -152,7 +157,8 @@ describe("Check attribute readmodels", () => {
 
     await addOneAttribute(attribute1);
 
-    await attributeReadModelServiceSQL.upsertAttribute(
+    await upsertAttribute(
+      readModelDB,
       attribute1InPostgresDb.data,
       attribute1InPostgresDb.metadata.version
     );
@@ -187,7 +193,8 @@ describe("Check attribute readmodels", () => {
 
     await addOneAttribute(attribute1);
 
-    await attributeReadModelServiceSQL.upsertAttribute(
+    await upsertAttribute(
+      readModelDB,
       attribute1InPostgresDb.data,
       attribute1InPostgresDb.metadata.version
     );

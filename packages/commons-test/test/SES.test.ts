@@ -7,7 +7,11 @@ import {
 } from "@aws-sdk/client-sesv2";
 import { mockClient } from "aws-sdk-client-mock";
 import { describe, it, expect, beforeEach } from "vitest";
-import { AWSSesConfig, initSesMailManager } from "pagopa-interop-commons";
+import {
+  AWSSesConfig,
+  initSesMailManager,
+  logger,
+} from "pagopa-interop-commons";
 
 const sesMock = mockClient(SESv2Client);
 
@@ -25,13 +29,14 @@ describe("initSesMailManager", () => {
       awsSesEndpoint: undefined,
     };
     const emailManager = initSesMailManager(awsSesConfig);
+    const loggerInstance = logger({});
 
     const from = "test@example.com";
     const to = ["recipient@example.com"];
     const subject = "Test Subject";
     const html = "<h1>Hello World</h1>";
 
-    await emailManager.send({ from, to, subject, html });
+    await emailManager.send({ from, to, subject, html }, loggerInstance);
 
     expect(sesMock.calls()).toHaveLength(1);
 
@@ -57,6 +62,7 @@ describe("initSesMailManager", () => {
       awsSesEndpoint: undefined,
     };
     const emailManager = initSesMailManager(awsSesConfig);
+    const loggerInstance = logger({});
 
     const from = "test@example.com";
     const to = ["recipient@example.com"];
@@ -64,7 +70,7 @@ describe("initSesMailManager", () => {
     const html = "<h1>Hello World</h1>";
 
     await expect(
-      emailManager.send({ from, to, subject, html })
+      emailManager.send({ from, to, subject, html }, loggerInstance)
     ).rejects.toThrowError(expectedGenericError);
 
     expect(sesMock.calls()).toHaveLength(1);
@@ -91,13 +97,14 @@ describe("initSesMailManager", () => {
       awsSesEndpoint: undefined,
     };
     const emailManager = initSesMailManager(awsSesConfig);
+    const loggerInstance = logger({});
 
     const from = "test@example.com";
     const to = ["recipient@example.com"];
     const subject = "Test Subject";
     const html = "<h1>Hello World</h1>";
 
-    await emailManager.send({ from, to, subject, html });
+    await emailManager.send({ from, to, subject, html }, loggerInstance);
 
     expect(sesMock.calls()).toHaveLength(1);
 

@@ -415,6 +415,53 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+    patch:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      tags:
+        - purpose
+      operationId: patchUpdatePurpose
+      description: Partially update a Purpose if not yet activated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchPurposeUpdateContent"
+        required: true
+      responses:
+        "200":
+          description: Purpose updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Organization not allowed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Duplicated purpose title
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     delete:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1184,6 +1231,35 @@ components:
         - description
         - isFreeOfCharge
         - dailyCalls
+    PatchPurposeUpdateContent:
+      type: object
+      additionalProperties: false
+      description: Contains the expected payload for purpose update
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        isFreeOfCharge:
+          type: boolean
+        freeOfChargeReason:
+          type: string
+          nullable: true
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+          description: |
+            Optional in the purpose model, but a purpose cannot exist without a risk analysis.
+            There is no practical use in letting the user remove it, we don't make it nullable.
+        dailyCalls:
+          description: Maximum number of daily calls that this version can perform
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
     ReversePurposeUpdateContent:
       type: object
       additionalProperties: false

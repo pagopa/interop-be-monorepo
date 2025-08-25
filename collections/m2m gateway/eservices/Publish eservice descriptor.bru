@@ -1,0 +1,20 @@
+meta {
+  name: Publish eservice descriptor
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/publish
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

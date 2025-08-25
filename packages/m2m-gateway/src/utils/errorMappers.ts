@@ -135,3 +135,51 @@ export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("notAnActiveConsumerDelegation", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const uploadEServiceDescriptorInterfaceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "invalidContentTypeDetected",
+      "invalidEserviceInterfaceFileDetected",
+      "invalidServerUrl",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteEServiceDescriptorInterfaceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceDescriptorInterfaceNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const assignTenantDeclaredAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "requesterIsNotTheDelegateConsumer",
+      "cannotEditDeclaredAttributesForTenant",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteDraftEServiceDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("cannotDeleteLastEServiceDescriptor", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getEServiceRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceRiskAnalysisNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

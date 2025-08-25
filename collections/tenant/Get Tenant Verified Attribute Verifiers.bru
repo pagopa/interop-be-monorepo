@@ -1,0 +1,26 @@
+meta {
+  name: Get Tenant Verified Attribute Verifiers
+  type: http
+  seq: 28
+}
+
+get {
+  url: {{host-tenant}}/tenants/:tenantId/attributes/verified/:attributeId/verifiers?offset={{offset}}&limit={{limit}}
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+params:path {
+  tenantId: {{tenantId}}
+  attributeId: {{attributeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  X-Correlation-Id: {{correlation-id}}
+}

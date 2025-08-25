@@ -109,6 +109,7 @@ import {
   NotificationConfig,
   TenantNotificationConfig,
   UserNotificationConfig,
+  DelegationStamps,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -415,6 +416,7 @@ export const getMockClient = ({
   purposes = [],
   keys = [],
   adminId = undefined,
+  description = "Client description",
 }: {
   consumerId?: TenantId;
   users?: UserId[];
@@ -422,12 +424,13 @@ export const getMockClient = ({
   purposes?: PurposeId[];
   keys?: Key[];
   adminId?: UserId;
+  description?: string;
 } = {}): Client => ({
   id: generateId(),
   consumerId,
   name: "Test client",
   purposes,
-  description: "Client description",
+  ...(description ? { description } : {}),
   users,
   kind,
   createdAt: new Date(),
@@ -435,9 +438,13 @@ export const getMockClient = ({
   ...(adminId ? { adminId } : {}),
 });
 
-export const getMockProducerKeychain = (): ProducerKeychain => ({
+export const getMockProducerKeychain = ({
+  producerId = generateId<TenantId>(),
+}: {
+  producerId?: TenantId;
+} = {}): ProducerKeychain => ({
   id: generateId(),
-  producerId: generateId(),
+  producerId,
   name: "Test producer keychain",
   eservices: [],
   description: "producer keychain description",
@@ -514,6 +521,9 @@ export const getMockDelegation = ({
   submitterId = generateId<UserId>(),
   activationContract,
   revocationContract,
+  rejectionReason,
+  updatedAt,
+  stamps,
 }: {
   kind: DelegationKind;
   id?: DelegationId;
@@ -524,6 +534,9 @@ export const getMockDelegation = ({
   submitterId?: UserId;
   activationContract?: DelegationContractDocument;
   revocationContract?: DelegationContractDocument;
+  rejectionReason?: string;
+  updatedAt?: Date;
+  stamps?: DelegationStamps;
 }): Delegation => {
   const creationTime = new Date();
 
@@ -534,10 +547,12 @@ export const getMockDelegation = ({
     eserviceId,
     createdAt: creationTime,
     state,
+    kind,
     ...(activationContract ? { activationContract } : {}),
     ...(revocationContract ? { revocationContract } : {}),
-    kind,
-    stamps: {
+    ...(rejectionReason ? { rejectionReason } : {}),
+    ...(updatedAt ? { updatedAt } : {}),
+    stamps: stamps ?? {
       submission: {
         who: submitterId,
         when: creationTime,

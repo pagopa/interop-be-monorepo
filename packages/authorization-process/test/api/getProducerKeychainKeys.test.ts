@@ -37,17 +37,18 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
   const keyUserId3: UserId = generateId();
 
   const keyWithUser1: Key = {
-    ...getMockKey(),
+    ...mockKey,
     userId: keyUserId1,
   };
   const keyWithUser2: Key = {
-    ...getMockKey(),
+    ...mockKey,
     userId: keyUserId2,
   };
   const keyWithUser3: Key = {
-    ...getMockKey(),
+    ...mockKey,
     userId: keyUserId3,
   };
+
   const producerKeychainWithKeyUser: ProducerKeychain = {
     ...mockProducerKeychain,
     keys: [keyWithUser1, keyWithUser2, keyWithUser3],
@@ -59,26 +60,33 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
     totalCount: 3,
   });
 
-  authorizationService.getProducerKeychainKeys = vi
-    .fn()
-    .mockResolvedValue([keyWithUser1, keyWithUser2, keyWithUser3]);
+  authorizationService.getProducerKeychainKeys = vi.fn().mockResolvedValue({
+    results: [keyWithUser1, keyWithUser2, keyWithUser3],
+    totalCount: 3,
+  });
+
+  const queryParams = {
+    offset: 0,
+    limit: 50,
+    userIds: [keyUserId1, keyUserId2, keyUserId3],
+  };
 
   const makeRequest = async (
     token: string,
-    producerKeychainId: ProducerKeychainId
+    producerKeychainId: ProducerKeychainId,
+    query: typeof queryParams = queryParams
   ) =>
     request(api)
       .get(`/producerKeychains/${producerKeychainId}/keys`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        userIds: [keyUserId1, keyUserId2, keyUserId3],
-      });
+      .query(query);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
   ];
 
@@ -96,13 +104,13 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, producerKeychainWithKeyUser.id);
+    const res = await makeRequest(token, mockProducerKeychain.id);
     expect(res.status).toBe(403);
   });
 
   it.each([
     {
-      error: producerKeychainNotFound(mockProducerKeychain.id),
+      error: producerKeychainNotFound(producerKeychainWithKeyUser.id),
       expectedStatus: 404,
     },
     {
@@ -115,25 +123,30 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      if (error) {
-        authorizationService.getProducerKeychainKeys = vi
-          .fn()
-          .mockRejectedValue(error);
-      }
-
+      authorizationService.getProducerKeychainKeys = vi
+        .fn()
+        .mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, mockProducerKeychain.id);
       expect(res.status).toBe(expectedStatus);
     }
   );
 
-  it.each([{}, { producerKeychainId: "invalidId" }])(
-    "Should return 400 if passed invalid params: %s",
-    async ({ producerKeychainId }) => {
+  it.each([
+    [{}, mockProducerKeychain.id],
+    [{ ...queryParams, offset: "invalid" }, mockProducerKeychain.id],
+    [{ ...queryParams, limit: "invalid" }, mockProducerKeychain.id],
+    [{ ...queryParams, offset: -2 }, mockProducerKeychain.id],
+    [{ ...queryParams, limit: 100 }, mockProducerKeychain.id],
+    [{ ...queryParams }, "invalid"],
+  ])(
+    "Should return 400 if passed invalid params: %s (producerKeychainId: %s)",
+    async (query, producerKeychainId) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        producerKeychainId as ProducerKeychainId
+        producerKeychainId as ProducerKeychainId,
+        query as typeof queryParams
       );
 
       expect(res.status).toBe(400);

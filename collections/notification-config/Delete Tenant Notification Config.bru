@@ -1,0 +1,20 @@
+meta {
+  name: Delete Tenant Notification Config
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{host-notification-config}}/internal/tenantNotificationConfigs/tenantId/:tenantId
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  x-correlation-id: {{correlation-id}}
+  Authorization: {{JWT}}
+}

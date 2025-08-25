@@ -83,7 +83,7 @@ describe("create risk analysis", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    await catalogService.createRiskAnalysis(
+    const creationResponse = await catalogService.createRiskAnalysis(
       eservice.id,
       riskAnalysisSeed,
       getMockContext({ authData: getMockAuthData(producer.id) })
@@ -100,7 +100,7 @@ describe("create risk analysis", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice: EService = {
       ...eservice,
       riskAnalysis: [
         {
@@ -139,12 +139,19 @@ describe("create risk analysis", () => {
           },
         },
       ],
-    });
+    };
 
-    expect(writtenPayload.riskAnalysisId).toEqual(
-      expectedEservice.riskAnalysis[0].id
-    );
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEservice),
+      riskAnalysisId: expectedEservice.riskAnalysis[0].id,
+    });
+    expect(creationResponse).toEqual({
+      data: {
+        eservice: expectedEservice,
+        createdRiskAnalysisId: writtenPayload.riskAnalysisId,
+      },
+      metadata: { version: 1 },
+    });
   });
   it("should write on event-store for the creation of a risk analysis (delegate)", async () => {
     const producerTenantKind: TenantKind = randomArrayItem(
@@ -180,7 +187,7 @@ describe("create risk analysis", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    await catalogService.createRiskAnalysis(
+    const creationResponse = await catalogService.createRiskAnalysis(
       eservice.id,
       riskAnalysisSeed,
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
@@ -197,7 +204,7 @@ describe("create risk analysis", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice: EService = {
       ...eservice,
       riskAnalysis: [
         {
@@ -236,12 +243,19 @@ describe("create risk analysis", () => {
           },
         },
       ],
-    });
+    };
 
-    expect(writtenPayload.riskAnalysisId).toEqual(
-      expectedEservice.riskAnalysis[0].id
-    );
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEservice),
+      riskAnalysisId: expectedEservice.riskAnalysis[0].id,
+    });
+    expect(creationResponse).toEqual({
+      data: {
+        eservice: expectedEservice,
+        createdRiskAnalysisId: writtenPayload.riskAnalysisId,
+      },
+      metadata: { version: 1 },
+    });
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     expect(
