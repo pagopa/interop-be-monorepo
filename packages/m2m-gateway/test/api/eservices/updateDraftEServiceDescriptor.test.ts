@@ -154,7 +154,7 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockEserviceService.getEServiceDescriptor = vi
+      mockEserviceService.updateDraftEServiceDescriptor = vi
         .fn()
         .mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
