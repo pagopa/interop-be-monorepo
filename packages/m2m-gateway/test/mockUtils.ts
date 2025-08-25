@@ -13,7 +13,7 @@ import {
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 import { DownloadedDocument } from "../src/utils/fileDownload.js";
 
@@ -77,3 +77,30 @@ export const buildRiskAnalysisSeed = (
     riskAnalysis.riskAnalysisForm
   ),
 });
+
+export function testToM2MEServiceRiskAnalysisAnswers(
+  riskAnalysisForm: catalogApi.EServiceRiskAnalysis["riskAnalysisForm"]
+): m2mGatewayApi.EServiceRiskAnalysis["riskAnalysisForm"]["answers"] {
+  const expectedSingleAnswers = riskAnalysisForm.singleAnswers.reduce<
+    Record<string, string[]>
+  >((singleAnswersMap, { key, value }) => {
+    if (value) {
+      singleAnswersMap[key] = [value];
+    }
+    return singleAnswersMap;
+  }, {});
+
+  const expectedMultiAnswers = riskAnalysisForm.multiAnswers.reduce<
+    Record<string, string[]>
+  >((multiAnswersMap, { key, values }) => {
+    if (values.length > 0) {
+      multiAnswersMap[key] = values;
+    }
+    return multiAnswersMap;
+  }, {});
+
+  return {
+    ...expectedSingleAnswers,
+    ...expectedMultiAnswers,
+  };
+}
