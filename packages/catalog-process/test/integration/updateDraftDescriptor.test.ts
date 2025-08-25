@@ -9,6 +9,7 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockDocument,
+  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -22,7 +23,7 @@ import {
   delegationState,
   delegationKind,
 } from "pagopa-interop-models";
-import { expect, describe, it } from "vitest";
+import { expect, describe, it, beforeEach } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -41,10 +42,23 @@ import {
 } from "../integrationUtils.js";
 import { buildUpdateDescriptorSeed } from "../mockUtils.js";
 
-describe("update draft descriptor", () => {
+describe("updateDraftDescriptor", () => {
   const mockDescriptor = getMockDescriptor();
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
+
+  const certifiedAttribute: Attribute = getMockAttribute("Certified");
+
+  const verifiedAttribute: Attribute = getMockAttribute("Verified");
+
+  const declaredAttribute: Attribute = getMockAttribute("Declared");
+
+  beforeEach(async () => {
+    await addOneAttribute(certifiedAttribute);
+    await addOneAttribute(verifiedAttribute);
+    await addOneAttribute(declaredAttribute);
+  });
+
   it("should write on event-store for the update of a draft descriptor", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -55,47 +69,62 @@ describe("update draft descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    const attribute: Attribute = {
-      name: "Attribute name",
-      id: generateId(),
-      kind: "Declared",
-      description: "Attribute Description",
-      creationTime: new Date(),
-    };
-    await addOneAttribute(attribute);
 
-    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+    const descriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
       ...buildUpdateDescriptorSeed(descriptor),
       dailyCallsTotal: 200,
       attributes: {
-        certified: [],
-        declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
+        certified: [
+          [{ id: certifiedAttribute.id, explicitAttributeVerification: false }],
         ],
-        verified: [],
+        declared: [
+          [{ id: declaredAttribute.id, explicitAttributeVerification: false }],
+        ],
+        verified: [
+          [{ id: verifiedAttribute.id, explicitAttributeVerification: false }],
+        ],
       },
     };
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       descriptors: [
         {
           ...descriptor,
           dailyCallsTotal: 200,
           attributes: {
-            certified: [],
-            declared: [
-              [{ id: attribute.id, explicitAttributeVerification: false }],
+            certified: [
+              [
+                {
+                  id: certifiedAttribute.id,
+                  explicitAttributeVerification: false,
+                },
+              ],
             ],
-            verified: [],
+            declared: [
+              [
+                {
+                  id: declaredAttribute.id,
+                  explicitAttributeVerification: false,
+                },
+              ],
+            ],
+            verified: [
+              [
+                {
+                  id: verifiedAttribute.id,
+                  explicitAttributeVerification: false,
+                },
+              ],
+            ],
           },
         },
       ],
     };
-    await catalogService.updateDraftDescriptor(
+    const updateDescriptorResponse = await catalogService.updateDraftDescriptor(
       eservice.id,
       descriptor.id,
-      expectedDescriptorSeed,
+      descriptorSeed,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -109,8 +138,16 @@ describe("update draft descriptor", () => {
       messageType: EServiceDraftDescriptorUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+      descriptorId: descriptor.id,
+    });
+    expect(updateDescriptorResponse).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
+
   it("should write on event-store for the update of a draft descriptor (delegate)", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -128,28 +165,20 @@ describe("update draft descriptor", () => {
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);
-    const attribute: Attribute = {
-      name: "Attribute name",
-      id: generateId(),
-      kind: "Declared",
-      description: "Attribute Description",
-      creationTime: new Date(),
-    };
-    await addOneAttribute(attribute);
 
-    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+    const descriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
       ...buildUpdateDescriptorSeed(descriptor),
       dailyCallsTotal: 200,
       attributes: {
         certified: [],
         declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
+          [{ id: declaredAttribute.id, explicitAttributeVerification: false }],
         ],
         verified: [],
       },
     };
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       descriptors: [
         {
@@ -158,17 +187,22 @@ describe("update draft descriptor", () => {
           attributes: {
             certified: [],
             declared: [
-              [{ id: attribute.id, explicitAttributeVerification: false }],
+              [
+                {
+                  id: declaredAttribute.id,
+                  explicitAttributeVerification: false,
+                },
+              ],
             ],
             verified: [],
           },
         },
       ],
     };
-    await catalogService.updateDraftDescriptor(
+    const updateDescriptorResponse = await catalogService.updateDraftDescriptor(
       eservice.id,
       descriptor.id,
-      expectedDescriptorSeed,
+      descriptorSeed,
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -182,7 +216,14 @@ describe("update draft descriptor", () => {
       messageType: EServiceDraftDescriptorUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+      descriptorId: descriptor.id,
+    });
+    expect(updateDescriptorResponse).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
@@ -220,101 +261,34 @@ describe("update draft descriptor", () => {
     );
   });
 
-  it("should throw notValidDescriptorState if the descriptor is in published state", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.published,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
+  it.each(
+    Object.values(descriptorState).filter(
+      (state) => state !== descriptorState.draft
+    )
+  )(
+    "should throw notValidDescriptorState if the descriptor is in $s state",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        interface: mockDocument,
+        state,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
 
-    expect(
-      catalogService.updateDraftDescriptor(
-        eservice.id,
-        descriptor.id,
-        buildUpdateDescriptorSeed(descriptor),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(
-      notValidDescriptorState(mockDescriptor.id, descriptorState.published)
-    );
-  });
-
-  it("should throw notValidDescriptorState if the descriptor is in deprecated state", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.deprecated,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-
-    expect(
-      catalogService.updateDraftDescriptor(
-        eservice.id,
-        descriptor.id,
-        buildUpdateDescriptorSeed(descriptor),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(
-      notValidDescriptorState(mockDescriptor.id, descriptorState.deprecated)
-    );
-  });
-
-  it("should throw notValidDescriptorState if the descriptor is in suspended state", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.suspended,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-
-    expect(
-      catalogService.updateDraftDescriptor(
-        eservice.id,
-        descriptor.id,
-        buildUpdateDescriptorSeed(descriptor),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(
-      notValidDescriptorState(mockDescriptor.id, descriptorState.suspended)
-    );
-  });
-
-  it("should throw notValidDescriptorState if the descriptor is in archived state", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.archived,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-
-    expect(
-      catalogService.updateDraftDescriptor(
-        eservice.id,
-        descriptor.id,
-        buildUpdateDescriptorSeed(descriptor),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(
-      notValidDescriptorState(mockDescriptor.id, descriptorState.archived)
-    );
-  });
+      expect(
+        catalogService.updateDraftDescriptor(
+          eservice.id,
+          descriptor.id,
+          buildUpdateDescriptorSeed(descriptor),
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(notValidDescriptorState(mockDescriptor.id, state));
+    }
+  );
 
   it("should throw operationForbidden if the requester is not the producer", async () => {
     const descriptor: Descriptor = {
@@ -327,15 +301,11 @@ describe("update draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const expectedDescriptor = {
-      ...descriptor,
-      dailyCallsTotal: 200,
-    };
     expect(
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
-        buildUpdateDescriptorSeed(expectedDescriptor),
+        buildUpdateDescriptorSeed(descriptor),
         getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
@@ -360,15 +330,11 @@ describe("update draft descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    const expectedDescriptor = {
-      ...descriptor,
-      dailyCallsTotal: 200,
-    };
     expect(
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
-        buildUpdateDescriptorSeed(expectedDescriptor),
+        buildUpdateDescriptorSeed(descriptor),
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
@@ -385,16 +351,15 @@ describe("update draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const expectedDescriptor: Descriptor = {
-      ...descriptor,
-      dailyCallsPerConsumer: 100,
-      dailyCallsTotal: 50,
-    };
     expect(
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
-        buildUpdateDescriptorSeed(expectedDescriptor),
+        buildUpdateDescriptorSeed({
+          ...descriptor,
+          dailyCallsPerConsumer: 100,
+          dailyCallsTotal: 50,
+        }),
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
@@ -416,14 +381,6 @@ describe("update draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const attribute: Attribute = {
-      name: "Attribute name",
-      id: generateId(),
-      kind: "Declared",
-      description: "Attribute Description",
-      creationTime: new Date(),
-    };
-    await addOneAttribute(attribute);
     const notExistingId1 = generateId();
     const notExistingId2 = generateId();
 
@@ -433,7 +390,7 @@ describe("update draft descriptor", () => {
         certified: [],
         declared: [
           [
-            { id: attribute.id, explicitAttributeVerification: false },
+            { id: declaredAttribute.id, explicitAttributeVerification: false },
             {
               id: notExistingId1,
               explicitAttributeVerification: false,
@@ -479,43 +436,11 @@ describe("update draft descriptor", () => {
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
 
-    const attribute: Attribute = {
-      name: "Attribute name",
-      id: generateId(),
-      kind: "Declared",
-      description: "Attribute Description",
-      creationTime: new Date(),
-    };
-    await addOneAttribute(attribute);
-    const notExistingId1 = generateId();
-    const notExistingId2 = generateId();
-
-    const descriptorSeed = {
-      ...buildUpdateDescriptorSeed(mockDescriptor),
-      attributes: {
-        certified: [],
-        declared: [
-          [
-            { id: attribute.id, explicitAttributeVerification: false },
-            {
-              id: notExistingId1,
-              explicitAttributeVerification: false,
-            },
-            {
-              id: notExistingId2,
-              explicitAttributeVerification: false,
-            },
-          ],
-        ],
-        verified: [],
-      },
-    };
-
     expect(
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
-        descriptorSeed,
+        buildUpdateDescriptorSeed(descriptor),
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(

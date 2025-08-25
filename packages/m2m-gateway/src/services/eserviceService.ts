@@ -15,6 +15,7 @@ import {
   toM2MGatewayApiEServiceDescriptor,
   toCatalogApiEServiceDescriptorSeed,
   toM2MGatewayApiEServiceRiskAnalysis,
+  toCatalogApiPatchUpdateEServiceDescriptorSeed,
 } from "../api/eserviceApiConverter.js";
 import {
   cannotDeleteLastEServiceDescriptor,
@@ -51,34 +52,19 @@ export function eserviceServiceBuilder(
       headers,
     });
 
-  const retrieveDescriptorByIdFromEService = (
-    eservice: catalogApi.EService,
+  const retrieveEServiceDescriptorById = (
+    eservice: WithMaybeMetadata<catalogApi.EService>,
     descriptorId: DescriptorId
   ): catalogApi.EServiceDescriptor => {
-    const descriptor = eservice.descriptors.find((e) => e.id === descriptorId);
+    const descriptor = eservice.data.descriptors.find(
+      (e) => e.id === descriptorId
+    );
 
     if (!descriptor) {
-      throw eserviceDescriptorNotFound(eservice.id, descriptorId);
+      throw eserviceDescriptorNotFound(eservice.data.id, descriptorId);
     }
 
     return descriptor;
-  };
-
-  const retrieveEServiceDescriptorById = async (
-    headers: M2MGatewayAppContext["headers"],
-    eserviceId: EServiceId,
-    descriptorId: DescriptorId
-  ): Promise<WithMaybeMetadata<catalogApi.EServiceDescriptor>> => {
-    const { data: eservice, metadata } =
-      await clients.catalogProcessClient.getEServiceById({
-        params: { eServiceId: eserviceId },
-        headers,
-      });
-
-    return {
-      data: retrieveDescriptorByIdFromEService(eservice, descriptorId),
-      metadata,
-    };
   };
 
   const pollEserviceUntilDeletion = (
@@ -155,9 +141,8 @@ export function eserviceServiceBuilder(
         `Retrieving eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
       );
 
-      const { data: descriptor } = await retrieveEServiceDescriptorById(
-        headers,
-        eserviceId,
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
         descriptorId
       );
 
@@ -323,9 +308,8 @@ export function eserviceServiceBuilder(
         `Retrieving interface for eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
       );
 
-      const { data: descriptor } = await retrieveEServiceDescriptorById(
-        headers,
-        eserviceId,
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
         descriptorId
       );
 
@@ -366,13 +350,43 @@ export function eserviceServiceBuilder(
         headers
       );
 
-      const createdDescriptor = retrieveDescriptorByIdFromEService(
-        eservice,
+      const createdDescriptor = retrieveEServiceDescriptorById(
+        { data: eservice, metadata },
         unsafeBrandId(createdDescriptorId)
       );
 
       return toM2MGatewayApiEServiceDescriptor(createdDescriptor);
     },
+
+    async updateDraftEServiceDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApi.EServiceDescriptorDraftUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
+      logger.info(
+        `Updating draft descriptor ${descriptorId} for eservice ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.patchUpdateDraftDescriptor(
+          toCatalogApiPatchUpdateEServiceDescriptorSeed(seed),
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+
+      await pollEService(response, headers);
+
+      const updatedDescriptor = retrieveEServiceDescriptorById(
+        response,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(updatedDescriptor);
+    },
+
     async deleteDraftEServiceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -463,8 +477,8 @@ export function eserviceServiceBuilder(
 
       await pollEService(response, headers);
 
-      const descriptor = retrieveDescriptorByIdFromEService(
-        response.data,
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
         unsafeBrandId(descriptorId)
       );
 
@@ -489,8 +503,8 @@ export function eserviceServiceBuilder(
       );
       await pollEService(response, headers);
 
-      const descriptor = retrieveDescriptorByIdFromEService(
-        response.data,
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
         unsafeBrandId(descriptorId)
       );
 
@@ -515,8 +529,8 @@ export function eserviceServiceBuilder(
       );
       await pollEService(response, headers);
 
-      const descriptor = retrieveDescriptorByIdFromEService(
-        response.data,
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
         unsafeBrandId(descriptorId)
       );
 
@@ -541,8 +555,8 @@ export function eserviceServiceBuilder(
         );
       await pollEService(response, headers);
 
-      const descriptor = retrieveDescriptorByIdFromEService(
-        response.data,
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
         unsafeBrandId(descriptorId)
       );
 
@@ -568,8 +582,8 @@ export function eserviceServiceBuilder(
         );
       await pollEService(response, headers);
 
-      const descriptor = retrieveDescriptorByIdFromEService(
-        response.data,
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
         unsafeBrandId(descriptorId)
       );
 
@@ -615,9 +629,8 @@ export function eserviceServiceBuilder(
         `Deleting interface document from eservice ${eserviceId} descriptor ${descriptorId}`
       );
 
-      const { data: descriptor } = await retrieveEServiceDescriptorById(
-        headers,
-        eserviceId,
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
         descriptorId
       );
 
@@ -669,7 +682,7 @@ export function eserviceServiceBuilder(
       );
 
       if (!createdRiskAnalysis) {
-        throw eserviceRiskAnalysisNotFound(eserviceId, createdRiskAnalysisId);
+        throw eserviceRiskAnalysisNotFound(eservice.id, createdRiskAnalysisId);
       }
 
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
