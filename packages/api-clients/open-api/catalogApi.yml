@@ -199,6 +199,13 @@ paths:
   /eservices/{eServiceId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: The E-Service id
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       security:
         - bearerAuth: []
@@ -207,13 +214,6 @@ paths:
       summary: Get an e-service
       operationId: getEServiceById
       description: Retrieves an E-Service by its ID
-      parameters:
-        - name: eServiceId
-          in: path
-          description: The E-Service id
-          required: true
-          schema:
-            type: string
       responses:
         "200":
           description: E-Service retrieved
@@ -241,16 +241,9 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Updates e-service general information
+      summary: Updates Draft E-Service general information
       operationId: updateEServiceById
-      description: Updates the general information of the specified E-Service
-      parameters:
-        - name: eServiceId
-          in: path
-          description: The E-Service id to update
-          required: true
-          schema:
-            type: string
+      description: Updates the general information of the specified Draft E-Service
       requestBody:
         description: An E-Service update seed containing the possible updatable fields
         required: true
@@ -265,14 +258,74 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EService"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: E-Service not found
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Partially updates Draft E-Service general information
+      operationId: patchUpdateEServiceById
+      description: Partially updates the general information of the specified Draft E-Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUpdateEServiceSeed"
+      responses:
+        "200":
+          description: E-Service updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "400":
           description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: E-Service not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name Conflict
           content:
             application/problem+json:
               schema:
@@ -2511,6 +2564,28 @@ components:
         - description
         - technology
         - mode
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        technology:
+          $ref: "#/components/schemas/EServiceTechnology"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+    PatchUpdateEServiceSeed:
+      type: object
+      additionalProperties: false
       properties:
         name:
           type: string
