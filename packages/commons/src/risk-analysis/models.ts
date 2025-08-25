@@ -1,5 +1,16 @@
-import { RiskAnalysisValidationIssue } from "./riskAnalysisValidationErrors.js";
+import {
+  EServiceTemplateRiskAnalysis,
+  RiskAnalysis,
+  RiskAnalysisForm,
+  RiskAnalysisFormId,
+  RiskAnalysisId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  TenantKind,
+  generateId,
+} from "pagopa-interop-models";
 import { DataType } from "./rules/riskAnalysisFormRules.js";
+import { RiskAnalysisValidationIssue } from "./riskAnalysisValidationErrors.js";
 
 export type RiskAnalysisValidationInvalid = {
   type: "invalid";
@@ -58,3 +69,72 @@ export type ValidationRule = {
   dependencies: ValidationRuleDependency[];
   allowedValues: Set<string> | undefined;
 };
+
+export function riskAnalysisValidatedFormToNewRiskAnalysis(
+  validatedForm: RiskAnalysisValidatedForm,
+  name: RiskAnalysis["name"]
+): RiskAnalysis {
+  return {
+    id: generateId<RiskAnalysisId>(),
+    name,
+    createdAt: new Date(),
+    riskAnalysisForm:
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+  };
+}
+
+export function riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
+  validatedForm: RiskAnalysisValidatedForm,
+  name: RiskAnalysis["name"],
+  tenantKind: TenantKind
+): EServiceTemplateRiskAnalysis {
+  return {
+    id: generateId<RiskAnalysisId>(),
+    name,
+    createdAt: new Date(),
+    riskAnalysisForm:
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+    tenantKind,
+  };
+}
+
+export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
+  validatedForm: RiskAnalysisValidatedForm
+): RiskAnalysisForm {
+  return {
+    id: generateId<RiskAnalysisFormId>(),
+    version: validatedForm.version,
+    singleAnswers: validatedForm.singleAnswers.map((a) => ({
+      ...a,
+      id: generateId<RiskAnalysisSingleAnswerId>(),
+    })),
+    multiAnswers: validatedForm.multiAnswers.map((a) => ({
+      ...a,
+      id: generateId<RiskAnalysisMultiAnswerId>(),
+    })),
+  };
+}
+
+export function riskAnalysisFormToRiskAnalysisFormToValidate(
+  form: RiskAnalysisForm
+): RiskAnalysisFormToValidate {
+  return {
+    version: form.version,
+    answers: {
+      ...form.singleAnswers.reduce(
+        (acc, singleAnswer) => ({
+          ...acc,
+          [singleAnswer.key]: singleAnswer.value ? [singleAnswer.value] : [],
+        }),
+        {}
+      ),
+      ...form.multiAnswers.reduce(
+        (acc, multiAnswer) => ({
+          ...acc,
+          [multiAnswer.key]: multiAnswer.values,
+        }),
+        {}
+      ),
+    },
+  };
+}

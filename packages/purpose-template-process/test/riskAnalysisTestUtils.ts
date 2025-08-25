@@ -1,8 +1,4 @@
 import {
-  RiskAnalysisTemplateValidatedForm,
-  riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
-} from "pagopa-interop-commons";
-import {
   validRiskAnalysis3_0_Pa,
   validRiskAnalysis2_0_Private,
 } from "pagopa-interop-commons-test";
@@ -12,6 +8,10 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import {
+  RiskAnalysisTemplateValidatedForm,
+  riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
+} from "../src/model/riskAnalysisFormTemplate.js";
 
 export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedForm =
   {

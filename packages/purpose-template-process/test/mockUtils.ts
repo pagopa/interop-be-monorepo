@@ -1,7 +1,7 @@
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { RiskAnalysisFormTemplate, tenantKind } from "pagopa-interop-models";
-import { getMockValidRiskAnalysisFormTemplate } from "pagopa-interop-commons-test/src/riskAnalysisTestUtils.js";
-import { riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate } from "pagopa-interop-commons";
+import { riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate } from "../src/model/riskAnalysisFormTemplate.js";
+import { getMockValidRiskAnalysisFormTemplate } from "./riskAnalysisTestUtils.js";
 
 export const buildRiskAnalysisFormTemplateSeed = (
   riskAnalysisFormTemplate: RiskAnalysisFormTemplate

@@ -20,10 +20,6 @@ import {
   getMockContext,
 } from "pagopa-interop-commons-test";
 import {
-  invalidTemplateResult,
-  unexpectedTemplateRulesVersionError,
-} from "pagopa-interop-commons";
-import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   riskAnalysisTemplateValidationFailed,
@@ -38,6 +34,10 @@ import {
   purposeTemplateService,
 } from "../integrationUtils.js";
 import { getMockValidRiskAnalysisFormTemplate } from "../riskAnalysisTestUtils.js";
+import {
+  invalidTemplateResult,
+  unexpectedTemplateRulesVersionError,
+} from "../../src/model/riskAnalysisTemplateValidationErrors.js";
 
 describe("createPurposeTemplate", () => {
   const mockPurposeTemplate: PurposeTemplate = {

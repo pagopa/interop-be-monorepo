@@ -6,7 +6,7 @@ import {
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
-} from "../risk-analysis/riskAnalysis.js";
+} from "../risk-analysis/riskAnalysisTemplate.js";
 
 export const RiskAnalysisTemplateAnswerAnnotationDocumentReadModel =
   RiskAnalysisTemplateAnswerAnnotationDocument.extend({

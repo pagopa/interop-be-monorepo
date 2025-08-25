@@ -1,10 +1,10 @@
-import { RiskAnalysisTemplateValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
   makeApiProblemBuilder,
   PurposeTemplateId,
   TenantId,
 } from "pagopa-interop-models";
+import { RiskAnalysisTemplateValidationIssue } from "../riskAnalysisTemplateValidationErrors.js";
 
 export const errorCodes = {
   missingFreeOfChargeReason: "0001",

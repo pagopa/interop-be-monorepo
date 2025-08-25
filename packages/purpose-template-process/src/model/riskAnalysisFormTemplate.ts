@@ -1,18 +1,11 @@
-import { RiskAnalysisValidatedForm } from "pagopa-interop-commons";
 import {
-  EServiceTemplateRiskAnalysis,
-  RiskAnalysis,
-  RiskAnalysisForm,
-  RiskAnalysisFormId,
   RiskAnalysisFormTemplate,
   RiskAnalysisFormTemplateId,
-  RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
-  TenantKind,
   generateId,
 } from "pagopa-interop-models";
 
@@ -73,51 +66,6 @@ export type RiskAnalysisTemplateValidatedMultiAnswer = {
   annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation;
   assistiveText?: string;
 };
-
-export function riskAnalysisValidatedFormToNewRiskAnalysis(
-  validatedForm: RiskAnalysisValidatedForm,
-  name: RiskAnalysis["name"]
-): RiskAnalysis {
-  return {
-    id: generateId<RiskAnalysisId>(),
-    name,
-    createdAt: new Date(),
-    riskAnalysisForm:
-      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
-  };
-}
-
-export function riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
-  validatedForm: RiskAnalysisValidatedForm,
-  name: RiskAnalysis["name"],
-  tenantKind: TenantKind
-): EServiceTemplateRiskAnalysis {
-  return {
-    id: generateId<RiskAnalysisId>(),
-    name,
-    createdAt: new Date(),
-    riskAnalysisForm:
-      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
-    tenantKind,
-  };
-}
-
-export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
-  validatedForm: RiskAnalysisValidatedForm
-): RiskAnalysisForm {
-  return {
-    id: generateId<RiskAnalysisFormId>(),
-    version: validatedForm.version,
-    singleAnswers: validatedForm.singleAnswers.map((a) => ({
-      ...a,
-      id: generateId<RiskAnalysisSingleAnswerId>(),
-    })),
-    multiAnswers: validatedForm.multiAnswers.map((a) => ({
-      ...a,
-      id: generateId<RiskAnalysisMultiAnswerId>(),
-    })),
-  };
-}
 
 export function riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
   validatedForm: RiskAnalysisTemplateValidatedForm

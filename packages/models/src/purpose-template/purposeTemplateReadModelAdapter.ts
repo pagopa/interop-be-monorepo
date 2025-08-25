@@ -9,11 +9,11 @@ import {
 } from "../read-models/purposeTemplateReadModel.js";
 import {
   RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisTemplateSingleAnswer,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
-} from "../risk-analysis/riskAnalysis.js";
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswer,
+} from "../risk-analysis/riskAnalysisTemplate.js";
 
 export const toRiskAnalysisTemplateAnswerAnnotationDocumentsReadModel = (
   docs: RiskAnalysisTemplateAnswerAnnotationDocument[]
