@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
   "key" VARCHAR NOT NULL,
   "value" VARCHAR ARRAY NOT NULL,
   editable BOOLEAN NOT NULL,
+  assistive_text VARCHAR,
   suggested_values VARCHAR ARRAY,
   PRIMARY KEY (id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
