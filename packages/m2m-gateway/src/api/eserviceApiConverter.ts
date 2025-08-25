@@ -73,6 +73,23 @@ export function toM2MGatewayApiDocument(
   };
 }
 
+function toCatalogApiAttributeSeed(
+  attribute: m2mGatewayApi.EServiceDescriptorAttribute
+): catalogApi.AttributeSeed {
+  return {
+    id: attribute.id,
+    explicitAttributeVerification: false,
+  };
+}
+
+export function toCatalogApiAttributesSeed(
+  attributeGroups: m2mGatewayApi.EServiceDescriptorAttribute[][]
+): catalogApi.AttributeSeed[][] {
+  return attributeGroups.map((group) =>
+    group.map((attribute) => toCatalogApiAttributeSeed(attribute))
+  );
+}
+
 export function toCatalogApiEServiceDescriptorSeed(
   descriptor: m2mGatewayApi.EServiceDescriptorSeed
 ): catalogApi.EServiceDescriptorSeed {
@@ -164,4 +181,22 @@ export function toM2MGatewayApiEServiceRiskAnalysis(
       riskAnalysis.riskAnalysisForm
     ),
   };
+}
+
+function toM2MGatewayApiEServiceDescriptorAttribute(
+  attribute: catalogApi.Attribute
+): m2mGatewayApi.EServiceDescriptorAttribute {
+  return {
+    id: attribute.id,
+  };
+}
+
+export function toM2MGatewayApiEServiceDescriptorAttributes(
+  attributeGroups: catalogApi.Attributes["certified" | "declared" | "verified"]
+): m2mGatewayApi.EServiceDescriptorAttributes {
+  return attributeGroups.map((group) =>
+    group.map((attribute) =>
+      toM2MGatewayApiEServiceDescriptorAttribute(attribute)
+    )
+  );
 }

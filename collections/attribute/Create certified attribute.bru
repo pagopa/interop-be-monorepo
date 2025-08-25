@@ -30,7 +30,7 @@ vars:post-response {
 
 script:pre-request {
   const randomCode = Math.round(Math.random() * 10000)
-  
+
   bru.setVar("randomCode", randomCode)
   bru.setVar("randomName", `test name ${randomCode}`)
 }
