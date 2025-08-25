@@ -26,6 +26,7 @@ import {
 import {
   buildRiskAnalysisSeed,
   getMockM2MAdminAppContext,
+  testToM2MEServiceRiskAnalysisAnswers,
 } from "../../mockUtils.js";
 
 describe("createEServiceRiskAnalysis", () => {
@@ -65,25 +66,6 @@ describe("createEServiceRiskAnalysis", () => {
       getMockM2MAdminAppContext()
     );
 
-    const expectedSingleAnswers =
-      mockRiskAnalysis.riskAnalysisForm.singleAnswers.reduce<
-        Record<string, string[]>
-      >((singleAnswersMap, { key, value }) => {
-        if (value) {
-          singleAnswersMap[key] = [value];
-        }
-        return singleAnswersMap;
-      }, {});
-    const expectedMultiAnswers =
-      mockRiskAnalysis.riskAnalysisForm.multiAnswers.reduce<
-        Record<string, string[]>
-      >((multiAnswersMap, { key, values }) => {
-        if (values.length > 0) {
-          multiAnswersMap[key] = values;
-        }
-        return multiAnswersMap;
-      }, {});
-
     const expectedRiskAnalysis: m2mGatewayApi.EServiceRiskAnalysis = {
       id: mockRiskAnalysis.id,
       name: mockRiskAnalysis.name,
@@ -91,10 +73,9 @@ describe("createEServiceRiskAnalysis", () => {
       riskAnalysisForm: {
         id: mockRiskAnalysis.riskAnalysisForm.id,
         version: mockRiskAnalysis.riskAnalysisForm.version,
-        answers: {
-          ...expectedSingleAnswers,
-          ...expectedMultiAnswers,
-        },
+        answers: testToM2MEServiceRiskAnalysisAnswers(
+          mockRiskAnalysis.riskAnalysisForm
+        ),
       },
     };
     expect(result).toEqual(expectedRiskAnalysis);
