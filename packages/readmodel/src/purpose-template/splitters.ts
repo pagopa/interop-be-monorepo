@@ -75,7 +75,6 @@ export const splitPurposeTemplateIntoObjectsSQL = (
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL:
       splitPurposeRiskAnalysisSQL?.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL ??
       [],
-    eserviceDescriptorVersionsSQL: [], // temporary missing relationship with eservice descriptor
   };
 };
 

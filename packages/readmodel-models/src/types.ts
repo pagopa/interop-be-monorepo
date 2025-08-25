@@ -60,7 +60,6 @@ import {
   tenantEnabledNotificationInReadmodelNotificationConfig,
   userEnabledInAppNotificationInReadmodelNotificationConfig,
   userEnabledEmailNotificationInReadmodelNotificationConfig,
-  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -303,9 +302,6 @@ export type UserNotificationConfigItemsSQL = {
 
 export type PurposeTemplateSQL = InferSelectModel<
   typeof purposeTemplateInReadmodelPurposeTemplate
->;
-export type PurposeTemplateEServiceDescriptorSQL = InferSelectModel<
-  typeof purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
 >;
 export type PurposeTemplateEServiceDescriptorSQL = InferSelectModel<
   typeof purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate

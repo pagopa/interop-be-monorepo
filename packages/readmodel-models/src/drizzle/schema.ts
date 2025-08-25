@@ -1911,7 +1911,7 @@ export const purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate =
   );
 
 export const purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate =
-  readmodelPurposeTemplate.table(
+   readmodelPurposeTemplate.table(
     "purpose_template_risk_analysis_answer",
     {
       id: uuid().primaryKey().notNull(),
@@ -1922,6 +1922,7 @@ export const purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate =
       key: varchar().notNull(),
       value: varchar().array().notNull(),
       editable: boolean().notNull(),
+      assistiveText: varchar("assistive_text"),
       suggestedValues: varchar("suggested_values").array(),
     },
     (table) => [
@@ -2023,40 +2024,6 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTempla
       unique(
         "purpose_template_risk_analysis_answer_annotation_answer_id_key"
       ).on(table.answerId),
-    ]
-  );
-
-export const purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate =
-  readmodelPurposeTemplate.table(
-    "purpose_template_eservice_descriptor",
-    {
-      metadataVersion: integer("metadata_version").notNull(),
-      purposeTemplateId: uuid("purpose_template_id").notNull(),
-      eserviceId: uuid("eservice_id").notNull(),
-      descriptorId: uuid("descriptor_id").notNull(),
-      createdAt: timestamp("created_at", {
-        withTimezone: true,
-        mode: "string",
-      }).notNull(),
-    },
-    (table) => [
-      foreignKey({
-        columns: [table.purposeTemplateId],
-        foreignColumns: [purposeTemplateInReadmodelPurposeTemplate.id],
-        name: "purpose_template_eservice_descriptor_purpose_template_id_fkey",
-      }).onDelete("cascade"),
-      foreignKey({
-        columns: [table.metadataVersion, table.purposeTemplateId],
-        foreignColumns: [
-          purposeTemplateInReadmodelPurposeTemplate.id,
-          purposeTemplateInReadmodelPurposeTemplate.metadataVersion,
-        ],
-        name: "purpose_template_eservice_des_purpose_template_id_metadata_fkey",
-      }),
-      primaryKey({
-        columns: [table.purposeTemplateId, table.eserviceId],
-        name: "purpose_template_eservice_descriptor_pkey",
-      }),
     ]
   );
 

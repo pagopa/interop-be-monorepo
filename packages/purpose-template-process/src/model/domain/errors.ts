@@ -70,13 +70,3 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
     title: "Tenant kind not found",
   });
 }
-
-export function purposeTemplateNotFound(
-  purposeTemplateId: PurposeTemplateId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `No Purpose Template found for ID ${purposeTemplateId}`,
-    code: "purposeTemplateNotFound",
-    title: "Purpose Template Not Found",
-  });
-}
