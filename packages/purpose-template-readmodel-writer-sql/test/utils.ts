@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   getMockPurposeTemplate,
-  getMockRiskAnalysisFormTemplate,
   getMockRiskAnalysisTemplateAnswerAnnotation,
   getMockRiskAnalysisTemplateAnswerAnnotationDocument,
+  getMockValidRiskAnalysisFormTemplate,
   setupTestContainersVitest,
 } from "pagopa-interop-commons-test";
 import { inject, afterEach, expect } from "vitest";
@@ -51,9 +51,8 @@ export const purposeTemplateWriterService =
   purposeTemplateWriterServiceBuilder(readModelDB);
 
 export const getCompleteMockPurposeTemplate = (): PurposeTemplate => {
-  const incompleteRiskAnalysisFormTemplate = getMockRiskAnalysisFormTemplate(
-    tenantKind.PA
-  );
+  const incompleteRiskAnalysisFormTemplate =
+    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
   const riskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
     ...incompleteRiskAnalysisFormTemplate,
     singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
@@ -128,7 +127,7 @@ export const checkCompletePurposeTemplate = async (
   ).toHaveLength(answersLength);
 
   return {
-    purposeTemplateSQL: retrievedPurposeTemplateSQL!,
+    purposeTemplateSQL: retrievedPurposeTemplateSQL,
     riskAnalysisFormTemplateSQL: retrievedRiskAnalysisFormTemplateSQL,
     riskAnalysisTemplateAnswersSQL: retrievedRiskAnalysisTemplateAnswersSQL,
     riskAnalysisTemplateAnswersAnnotationsSQL:
