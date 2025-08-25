@@ -907,13 +907,16 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const updatedEService = await catalogService.updateEServiceDescription(
-          unsafeBrandId(req.params.eServiceId),
-          req.body.description,
-          ctx
-        );
+        const { data: updatedEService, metadata } =
+          await catalogService.updateEServiceDescription(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.description,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
@@ -932,15 +935,16 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const updatedEService =
+        const { data: updatedEService, metadata } =
           await catalogService.updateEServiceDelegationFlags(
             unsafeBrandId(req.params.eServiceId),
             req.body,
             ctx
           );
 
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
@@ -958,14 +962,16 @@ const eservicesRouter = (
     .post("/eservices/:eServiceId/name/update", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const updatedEService = await catalogService.updateEServiceName(
-          unsafeBrandId(req.params.eServiceId),
-          req.body.name,
-          ctx
-        );
+        const { data: updatedEService, metadata } =
+          await catalogService.updateEServiceName(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.name,
+            ctx
+          );
 
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(

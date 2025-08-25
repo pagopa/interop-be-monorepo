@@ -443,6 +443,79 @@ export function eserviceServiceBuilder(
       await pollEserviceUntilDeletion(eserviceId, headers);
     },
 
+    async updatePublishedEServiceDelegation(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceDelegationUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating delegation configurations for published E-Service with id ${eserviceId}`
+      );
+
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateEServiceDelegationFlags(
+          {
+            isConsumerDelegable:
+              seed.isConsumerDelegable ?? Boolean(eservice.isConsumerDelegable),
+            isClientAccessDelegable:
+              seed.isClientAccessDelegable ??
+              Boolean(eservice.isClientAccessDelegable),
+          },
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async updatePublishedEServiceDescription(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceDescriptionUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating description for published E-Service with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateEServiceDescription(seed, {
+          params: { eServiceId: eserviceId },
+          headers,
+        });
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async updatePublishedEServiceName(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceNameUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating name for published E-Service with id ${eserviceId}`
+      );
+
+      const response = await clients.catalogProcessClient.updateEServiceName(
+        seed,
+        {
+          params: { eServiceId: eserviceId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
     async suspendDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
