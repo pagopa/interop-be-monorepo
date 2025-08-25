@@ -192,9 +192,6 @@ paths:
       responses:
         "200":
           description: E-Services retrieved
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -259,9 +256,6 @@ paths:
       responses:
         "200":
           description: Risk Analysis retrieved
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -489,9 +483,6 @@ paths:
       responses:
         "200":
           description: Purpose Template E-Services retrieved
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
