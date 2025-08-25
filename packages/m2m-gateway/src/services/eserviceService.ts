@@ -462,6 +462,22 @@ export function eserviceServiceBuilder(
       const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
     },
+
+    async updateDraftEService(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceDraftUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(`Updating draft EService with id ${eserviceId}`);
+
+      const response =
+        await clients.catalogProcessClient.patchUpdateEServiceById(seed, {
+          params: { eServiceId: eserviceId },
+          headers,
+        });
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
     async deleteEService(
       eserviceId: EServiceId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
