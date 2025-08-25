@@ -35,7 +35,13 @@ export const eventMailTemplateType = {
   // otherPurposeVersionRejectedMailTemplate:
   //   "other-purpose-version-rejected-mail",
   // purposeWaitingForApprovalMailTemplate: "purpose-waiting-for-approval-mail",
+  eserviceDescriptorSuspendedMailTemplate: "eservice-descriptor-suspended-mail",
+  eserviceDescriptorActivatedMailTemplate: "eservice-descriptor-activated-mail",
   eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
+  eserviceDescriptorUpdatedMailTemplate: "eservice-descriptor-updated-mail",
+  producerKeychainEserviceAddedMailTemplate:
+    "producer-keychain-eservice-added-mail",
+  eserviceNameUpdatedMailTemplate: "eservice-name-updated-mail",
   // purposeVersionActivatedMailTemplate: "purpose-version-activated-mail",
 } as const;
 

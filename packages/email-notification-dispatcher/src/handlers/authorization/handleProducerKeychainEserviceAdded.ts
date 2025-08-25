@@ -1,12 +1,11 @@
+/* eslint-disable functional/no-let */
 import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import {
-  EServiceV2,
-  fromEServiceV2,
   EmailNotificationMessagePayload,
   generateId,
   CorrelationId,
-  missingKafkaMessageDataError,
   NotificationType,
+  EServiceId,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -16,12 +15,13 @@ import {
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { getUserEmailsToNotify } from "../handlerCommons.js";
 import { UserServiceSQL } from "../../services/userServiceSQL.js";
+import { eServiceNotFound } from "../../models/errors.js";
 
 const notificationType: NotificationType =
   "purposeSuspendedUnsuspendedToConsumer";
 
-export type EServiceDescriptorPublishedData = {
-  eserviceV2Msg?: EServiceV2;
+export type ProductKeychainEServiceAddedData = {
+  eserviceId: EServiceId;
   readModelService: ReadModelServiceSQL;
   logger: Logger;
   templateService: HtmlTemplateService;
@@ -29,11 +29,11 @@ export type EServiceDescriptorPublishedData = {
   correlationId: CorrelationId;
 };
 
-export async function handleEserviceDescriptorPublished(
-  data: EServiceDescriptorPublishedData
+export async function handleProducerKeychainEserviceAdded(
+  data: ProductKeychainEServiceAddedData
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
-    eserviceV2Msg,
+    eserviceId,
     readModelService,
     logger,
     templateService,
@@ -41,18 +41,15 @@ export async function handleEserviceDescriptorPublished(
     correlationId,
   } = data;
 
-  if (!eserviceV2Msg) {
-    throw missingKafkaMessageDataError(
-      "eservice",
-      "EServiceDescriptorPublished"
-    );
-  }
+  const eservice = await readModelService.getEServiceById(eserviceId);
 
-  const eservice = fromEServiceV2(eserviceV2Msg);
+  if (eservice === undefined) {
+    throw eServiceNotFound(eserviceId);
+  }
 
   const [htmlTemplate, agreements, descriptor] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceDescriptorPublishedMailTemplate
+      eventMailTemplateType.producerKeychainEserviceAddedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
     retrieveLatestPublishedDescriptor(eservice),
@@ -81,9 +78,9 @@ export async function handleEserviceDescriptorPublished(
   return userEmails.map((email) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Nuova versione disponibile per ${eservice.name}`,
+      subject: `Nuovo livello di sicurezza per ${eservice.name}`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: "Nuova versione di un e-service",
+        title: "Nuovo portachiavi di un e-service",
         notificationType,
         entityId: descriptor.id,
         eserviceName: eservice.name,
