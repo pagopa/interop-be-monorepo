@@ -168,7 +168,7 @@ describe("Purpose Template splitter", () => {
               riskAnalysisFormId: riskAnalysisFormTemplate.id,
               kind: riskAnalysisAnswerKind.single,
               key: singleAnswer.key,
-              value: [singleAnswer.value!],
+              value: singleAnswer.value ? [singleAnswer.value] : [],
               editable: singleAnswer.editable,
               suggestedValues: singleAnswer.suggestedValues,
             } satisfies PurposeTemplateRiskAnalysisAnswerSQL,
@@ -339,7 +339,7 @@ describe("Purpose Template splitter", () => {
           riskAnalysisFormId: riskAnalysisFormTemplate.id,
           kind: riskAnalysisAnswerKind.single,
           key: singleAnswer.key,
-          value: [singleAnswer.value!],
+          value: singleAnswer.value ? [singleAnswer.value] : [],
           editable: singleAnswer.editable,
           suggestedValues: singleAnswer.suggestedValues,
         })
