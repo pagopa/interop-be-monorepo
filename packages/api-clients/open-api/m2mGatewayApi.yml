@@ -5288,7 +5288,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptorAttributes"
+                $ref: "#/components/schemas/EServiceDescriptorCertifiedAttributesResponse"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5396,7 +5396,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptorAttributes"
+                $ref: "#/components/schemas/EServiceDescriptorDeclaredAttributesResponse"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5504,7 +5504,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptorAttributes"
+                $ref: "#/components/schemas/EServiceDescriptorVerifiedAttributesResponse"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -11116,6 +11116,30 @@ components:
         type: array
         items:
           $ref: "#/components/schemas/EServiceDescriptorAttribute"
+    EServiceDescriptorCertifiedAttributesResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        certifiedAttributes:
+          $ref: "#/components/schemas/EServiceDescriptorAttributes"
+      required:
+        - certifiedAttributes
+    EServiceDescriptorDeclaredAttributesResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        declaredAttributes:
+          $ref: "#/components/schemas/EServiceDescriptorAttributes"
+      required:
+        - declaredAttributes
+    EServiceDescriptorVerifiedAttributesResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        verifiedAttributes:
+          $ref: "#/components/schemas/EServiceDescriptorAttributes"
+      required:
+        - verifiedAttributes
     EServiceDescriptorAttribute:
       type: object
       additionalProperties: false

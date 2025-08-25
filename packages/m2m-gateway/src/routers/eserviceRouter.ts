@@ -610,7 +610,7 @@ const eserviceRouter = (
           return res
             .status(200)
             .send(
-              m2mGatewayApi.EServiceDescriptorAttributes.parse(
+              m2mGatewayApi.EServiceDescriptorCertifiedAttributesResponse.parse(
                 updatedAttributes
               )
             );
@@ -643,7 +643,7 @@ const eserviceRouter = (
           return res
             .status(200)
             .send(
-              m2mGatewayApi.EServiceDescriptorAttributes.parse(
+              m2mGatewayApi.EServiceDescriptorDeclaredAttributesResponse.parse(
                 updatedAttributes
               )
             );
@@ -676,7 +676,7 @@ const eserviceRouter = (
           return res
             .status(200)
             .send(
-              m2mGatewayApi.EServiceDescriptorAttributes.parse(
+              m2mGatewayApi.EServiceDescriptorVerifiedAttributesResponse.parse(
                 updatedAttributes
               )
             );

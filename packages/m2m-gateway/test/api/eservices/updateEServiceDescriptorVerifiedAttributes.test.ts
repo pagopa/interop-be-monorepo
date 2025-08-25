@@ -18,9 +18,14 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttribu
     [{ id: generateId() }, { id: generateId() }],
   ];
 
+  const expectedResponse: m2mGatewayApi.EServiceDescriptorVerifiedAttributesResponse =
+    {
+      verifiedAttributes: m2mAttributes,
+    };
+
   mockEserviceService.updateEServiceDescriptorVerifiedAttributes = vi
     .fn()
-    .mockResolvedValue(m2mAttributes);
+    .mockResolvedValue(expectedResponse);
 
   const makeRequest = async (
     token: string,
@@ -42,7 +47,7 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttribu
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(m2mAttributes);
+      expect(res.body).toEqual(expectedResponse);
     }
   );
 

@@ -709,54 +709,60 @@ export function eserviceServiceBuilder(
       descriptorId: DescriptorId,
       seed: m2mGatewayApi.EServiceDescriptorAttributes,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+    ): Promise<m2mGatewayApi.EServiceDescriptorCertifiedAttributesResponse> {
       logger.info(
         `Updating Certified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      return replaceEServiceDescriptorAttributes(
+      const updatedAttributes = await replaceEServiceDescriptorAttributes(
         eserviceId,
         descriptorId,
         "certified",
         seed,
         headers
       );
+
+      return { certifiedAttributes: updatedAttributes };
     },
     async updateEServiceDescriptorDeclaredAttributes(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: m2mGatewayApi.EServiceDescriptorAttributes,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+    ): Promise<m2mGatewayApi.EServiceDescriptorDeclaredAttributesResponse> {
       logger.info(
         `Updating Declared Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      return replaceEServiceDescriptorAttributes(
+      const updatedAttributes = await replaceEServiceDescriptorAttributes(
         eserviceId,
         descriptorId,
         "declared",
         seed,
         headers
       );
+
+      return { declaredAttributes: updatedAttributes };
     },
     async updateEServiceDescriptorVerifiedAttributes(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: m2mGatewayApi.EServiceDescriptorAttributes,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+    ): Promise<m2mGatewayApi.EServiceDescriptorVerifiedAttributesResponse> {
       logger.info(
         `Updating Verified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      return replaceEServiceDescriptorAttributes(
+      const updatedAttributes = await replaceEServiceDescriptorAttributes(
         eserviceId,
         descriptorId,
         "verified",
         seed,
         headers
       );
+
+      return { verifiedAttributes: updatedAttributes };
     },
   };
 }
