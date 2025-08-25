@@ -9,7 +9,7 @@ import {
 } from "pagopa-interop-models";
 import {
   getMockPurposeTemplate,
-  getMockRiskAnalysisFormTemplate,
+  getMockValidRiskAnalysisFormTemplate,
   getMockRiskAnalysisTemplateAnswerAnnotation,
   getMockRiskAnalysisTemplateAnswerAnnotationDocument,
 } from "pagopa-interop-commons-test/index.js";
@@ -18,9 +18,8 @@ import { aggregatePurposeTemplate } from "../src/purpose-template/aggregators.js
 
 describe("Purpose template aggregator", () => {
   it("should convert complete purpose template SQL objects into a business logic purpose template", () => {
-    const incompleteRiskAnalysisFormTemplate = getMockRiskAnalysisFormTemplate(
-      tenantKind.PA
-    );
+    const incompleteRiskAnalysisFormTemplate =
+      getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
     const riskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
       ...incompleteRiskAnalysisFormTemplate,
       singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
@@ -76,7 +75,7 @@ describe("Purpose template aggregator", () => {
 
   it("should convert incomplete purpose SQL objects into a business logic purpose template (null -> undefined)", () => {
     const metadataVersion = 1;
-    const riskAnalysisFormTemplate = getMockRiskAnalysisFormTemplate(
+    const riskAnalysisFormTemplate = getMockValidRiskAnalysisFormTemplate(
       tenantKind.PA
     );
     const purposeTemplate: WithMetadata<PurposeTemplate> = {

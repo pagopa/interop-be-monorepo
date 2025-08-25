@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   getMockPurposeTemplate,
-  getMockRiskAnalysisFormTemplate,
+  getMockValidRiskAnalysisFormTemplate,
   getMockRiskAnalysisTemplateAnswerAnnotationDocument,
   getMockRiskAnalysisTemplateAnswerAnnotation,
 } from "pagopa-interop-commons-test";
@@ -32,9 +32,8 @@ import {
 describe("Purpose Template splitter", () => {
   it("should convert a complete purpose template into purpose template SQL objects", () => {
     const metadataVersion = 1;
-    const incompleteRiskAnalysisFormTemplate = getMockRiskAnalysisFormTemplate(
-      tenantKind.PA
-    );
+    const incompleteRiskAnalysisFormTemplate =
+      getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
     const riskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
       ...incompleteRiskAnalysisFormTemplate,
       singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
@@ -169,7 +168,7 @@ describe("Purpose Template splitter", () => {
               riskAnalysisFormId: riskAnalysisFormTemplate.id,
               kind: riskAnalysisAnswerKind.single,
               key: singleAnswer.key,
-              value: [singleAnswer.value!],
+              value: singleAnswer.value ? [singleAnswer.value] : [],
               editable: singleAnswer.editable,
               suggestedValues: singleAnswer.suggestedValues,
             } satisfies PurposeTemplateRiskAnalysisAnswerSQL,
@@ -288,7 +287,7 @@ describe("Purpose Template splitter", () => {
 
   it("should convert an incomplete purpose template into purpose template SQL objects (undefined -> null)", () => {
     const metadataVersion = 1;
-    const riskAnalysisFormTemplate = getMockRiskAnalysisFormTemplate(
+    const riskAnalysisFormTemplate = getMockValidRiskAnalysisFormTemplate(
       tenantKind.PA
     );
     const purposeTemplate: PurposeTemplate = {
@@ -340,7 +339,7 @@ describe("Purpose Template splitter", () => {
           riskAnalysisFormId: riskAnalysisFormTemplate.id,
           kind: riskAnalysisAnswerKind.single,
           key: singleAnswer.key,
-          value: [singleAnswer.value!],
+          value: singleAnswer.value ? [singleAnswer.value] : [],
           editable: singleAnswer.editable,
           suggestedValues: singleAnswer.suggestedValues,
         })
