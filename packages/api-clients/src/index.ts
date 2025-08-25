@@ -5,6 +5,7 @@ export * as authorizationManagementApi from "./generated/authorizationManagement
 export * as bffApi from "./bffApi.js";
 export * as catalogApi from "./catalogApi.js";
 export * as purposeApi from "./purposeApi.js";
+export * as purposeTemplateApi from "./purposeTemplateApi.js";
 export * as selfcareV2ClientApi from "./generated/selfcareV2ClientApi.js";
 export * as tenantApi from "./tenantApi.js";
 export * as apiGatewayApi from "./apiGatewayApi.js";
