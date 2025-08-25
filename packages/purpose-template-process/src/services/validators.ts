@@ -1,11 +1,9 @@
-import {
-  RiskAnalysisTemplateValidatedForm,
-  riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
-  validatePurposeTemplateRiskAnalysis,
-} from "pagopa-interop-commons";
-import { RiskAnalysisFormTemplate, TenantKind } from "pagopa-interop-models";
+import { riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate } from "pagopa-interop-commons";
 
+import { RiskAnalysisFormTemplate, TenantKind } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { RiskAnalysisTemplateValidatedForm } from "../model/riskAnalysisFormTemplate.js";
+import { validatePurposeTemplateRiskAnalysis } from "../model/riskAnalysisTemplateValidation.js";
 import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,

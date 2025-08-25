@@ -9,7 +9,7 @@ import {
   getMockValidRiskAnalysisFormTemplate,
   validatedRiskAnalysisTemplate2_0_Private,
   validatedRiskAnalysisTemplate3_0_Pa,
-} from "../src/riskAnalysisTestUtils.js";
+} from "../riskAnalysisTestUtils.js";
 
 describe("Risk Analysis Template Validation", () => {
   it("should succeed on correct form 3.0 on tenant kind PA", () => {

@@ -1,13 +1,17 @@
 import { TenantKind } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
+  ValidationRule,
+  ValidationRuleDependency,
+  buildValidationRules,
+  getLatestVersionFormRules,
+} from "pagopa-interop-commons";
+import {
   RiskAnalysisFormTemplateToValidate,
   RiskAnalysisTemplateAnswerToValidate,
   RiskAnalysisTemplateValidatedForm,
   RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
-  ValidationRule,
-  ValidationRuleDependency,
-} from "./models.js";
+} from "./riskAnalysisFormTemplate.js";
 import {
   invalidTemplateResult,
   malformedTemplateFieldValueOrSuggestion,
@@ -24,10 +28,6 @@ import {
   unexpectedTemplateRulesVersionError,
   validTemplateResult,
 } from "./riskAnalysisTemplateValidationErrors.js";
-import {
-  buildValidationRules,
-  getLatestVersionFormRules,
-} from "./riskAnalysisValidation.js";
 
 export function validatePurposeTemplateRiskAnalysis(
   riskAnalysisFormTemplate: RiskAnalysisFormTemplateToValidate,

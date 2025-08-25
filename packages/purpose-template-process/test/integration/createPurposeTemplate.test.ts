@@ -18,7 +18,6 @@ import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockContext,
-  getMockValidRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test";
 import {
   invalidTemplateResult,
@@ -38,6 +37,7 @@ import {
   readLastPurposeTemplateEvent,
   purposeTemplateService,
 } from "../integrationUtils.js";
+import { getMockValidRiskAnalysisFormTemplate } from "../riskAnalysisTestUtils.js";
 
 describe("createPurposeTemplate", () => {
   const mockPurposeTemplate: PurposeTemplate = {
