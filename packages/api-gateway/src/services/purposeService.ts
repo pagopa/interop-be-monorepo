@@ -9,6 +9,7 @@ import {
   catalogApi,
   delegationApi,
 } from "pagopa-interop-api-clients";
+import { operationForbidden } from "pagopa-interop-models";
 import {
   AgreementProcessClient,
   CatalogProcessClient,
@@ -69,6 +70,7 @@ const retrievePurpose = async (
     })
     .catch((res) => {
       throw clientStatusCodeToError(res, {
+        403: operationForbidden,
         404: purposeNotFound(purposeId),
       });
     });
