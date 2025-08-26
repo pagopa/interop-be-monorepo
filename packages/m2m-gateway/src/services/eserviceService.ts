@@ -4,6 +4,7 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -65,6 +66,21 @@ export function eserviceServiceBuilder(
     }
 
     return descriptor;
+  };
+
+  const retrieveEServiceRiskAnalysisById = (
+    eservice: WithMaybeMetadata<catalogApi.EService>,
+    riskAnalysisId: RiskAnalysisId
+  ): catalogApi.EServiceRiskAnalysis => {
+    const riskAnalysis = eservice.data.riskAnalysis.find(
+      (r) => r.id === riskAnalysisId
+    );
+
+    if (!riskAnalysis) {
+      throw eserviceRiskAnalysisNotFound(eservice.data.id, riskAnalysisId);
+    }
+
+    return riskAnalysis;
   };
 
   const pollEserviceUntilDeletion = (
@@ -458,6 +474,79 @@ export function eserviceServiceBuilder(
       await pollEserviceUntilDeletion(eserviceId, headers);
     },
 
+    async updatePublishedEServiceDelegation(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceDelegationUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating delegation configurations for published E-Service with id ${eserviceId}`
+      );
+
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateEServiceDelegationFlags(
+          {
+            isConsumerDelegable:
+              seed.isConsumerDelegable ?? Boolean(eservice.isConsumerDelegable),
+            isClientAccessDelegable:
+              seed.isClientAccessDelegable ??
+              Boolean(eservice.isClientAccessDelegable),
+          },
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async updatePublishedEServiceDescription(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceDescriptionUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating description for published E-Service with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateEServiceDescription(seed, {
+          params: { eServiceId: eserviceId },
+          headers,
+        });
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async updatePublishedEServiceName(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceNameUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating name for published E-Service with id ${eserviceId}`
+      );
+
+      const response = await clients.catalogProcessClient.updateEServiceName(
+        seed,
+        {
+          params: { eServiceId: eserviceId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
     async suspendDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -677,8 +766,9 @@ export function eserviceServiceBuilder(
         headers
       );
 
-      const createdRiskAnalysis = eservice.riskAnalysis.find(
-        (r) => r.id === createdRiskAnalysisId
+      const createdRiskAnalysis = retrieveEServiceRiskAnalysisById(
+        { data: eservice, metadata },
+        unsafeBrandId(createdRiskAnalysisId)
       );
 
       if (!createdRiskAnalysis) {
@@ -686,6 +776,65 @@ export function eserviceServiceBuilder(
       }
 
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
+    },
+
+    async getEServiceRiskAnalyses(
+      eserviceId: EServiceId,
+      { limit, offset }: m2mGatewayApi.GetEServiceRiskAnalysesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceRiskAnalyses> {
+      logger.info(`Retrieving Risk Analyses for E-Service ${eserviceId}`);
+
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
+      );
+
+      const paginated = eservice.riskAnalysis.slice(offset, offset + limit);
+
+      return {
+        results: paginated.map(toM2MGatewayApiEServiceRiskAnalysis),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eservice.riskAnalysis.length,
+        },
+      };
+    },
+
+    async getEServiceRiskAnalysis(
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceRiskAnalysis> {
+      logger.info(
+        `Retrieving Risk Analysis ${riskAnalysisId} for E-Service ${eserviceId}`
+      );
+
+      const riskAnalysis = retrieveEServiceRiskAnalysisById(
+        await retrieveEServiceById(headers, eserviceId),
+        unsafeBrandId(riskAnalysisId)
+      );
+
+      return toM2MGatewayApiEServiceRiskAnalysis(riskAnalysis);
+    },
+
+    async deleteEServiceRiskAnalysis(
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting Risk Analysis ${riskAnalysisId} for E-Service ${eserviceId}`
+      );
+
+      const { metadata } =
+        await clients.catalogProcessClient.deleteRiskAnalysis(undefined, {
+          params: { eServiceId: eserviceId, riskAnalysisId },
+          headers,
+        });
+
+      await pollEServiceById(eserviceId, metadata, headers);
     },
   };
 }

@@ -2277,8 +2277,12 @@ export function catalogServiceBuilder(
     async deleteRiskAnalysis(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysisId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Deleting Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
       );
@@ -2307,21 +2311,31 @@ export function catalogServiceBuilder(
           (r) => r.id !== riskAnalysisId
         ),
       };
-      const event = toCreateEventEServiceRiskAnalysisDeleted(
-        eservice.data.id,
-        eservice.metadata.version,
-        riskAnalysisId,
-        eserviceWithRiskAnalysisDeleted,
-        correlationId
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceRiskAnalysisDeleted(
+          eservice.data.id,
+          eservice.metadata.version,
+          riskAnalysisId,
+          eserviceWithRiskAnalysisDeleted,
+          correlationId
+        )
       );
 
-      await repository.createEvent(event);
+      return {
+        data: eserviceWithRiskAnalysisDeleted,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateEServiceDescription(
       eserviceId: EServiceId,
       description: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Updating EService ${eserviceId} description`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -2344,14 +2358,17 @@ export function catalogServiceBuilder(
         description,
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceDescriptionUpdated(
           eservice.metadata.version,
           updatedEservice,
           correlationId
         )
       );
-      return updatedEservice;
+      return {
+        data: updatedEservice,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateEServiceDelegationFlags(
       eserviceId: EServiceId,
@@ -2362,8 +2379,12 @@ export function catalogServiceBuilder(
         isConsumerDelegable: boolean;
         isClientAccessDelegable: boolean;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Updating EService ${eserviceId} delegation flags`);
       const eservice = await retrieveEService(eserviceId, readModelService);
       await assertRequesterIsDelegateProducerOrProducer(
@@ -2494,16 +2515,29 @@ export function catalogServiceBuilder(
         .exhaustive();
 
       if (events) {
-        await repository.createEvents(events);
-      }
+        const createdEvents = await repository.createEvents(events);
 
-      return updatedEservice;
+        const newVersion = Math.max(
+          0,
+          ...createdEvents.map((event) => event.newVersion)
+        );
+
+        return {
+          data: updatedEservice,
+          metadata: { version: newVersion },
+        };
+      }
+      return eservice;
     },
     async updateEServiceName(
       eserviceId: EServiceId,
       name: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Updating name of EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -2539,14 +2573,19 @@ export function catalogServiceBuilder(
         name,
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceNameUpdated(
           eservice.metadata.version,
           updatedEservice,
           correlationId
         )
       );
-      return updatedEservice;
+      return {
+        data: updatedEservice,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
 
     async updateEServiceSignalHubFlag(
