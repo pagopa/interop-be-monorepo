@@ -149,7 +149,7 @@ const delegationRouter = (
 
         const producerDelegation = await delegationService.getDelegation(
           req.params.delegationId,
-          "PRODUCER",
+          "DELEGATED_PRODUCER",
           ctx
         );
         return res

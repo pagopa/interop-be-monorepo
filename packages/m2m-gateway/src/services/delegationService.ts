@@ -214,7 +214,7 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async getDelegation(
       delegationId: string,
-      kind: "CONSUMER" | "PRODUCER",
+      kind: "DELEGATED_CONSUMER" | "DELEGATED_PRODUCER",
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<
       m2mGatewayApi.ProducerDelegation | m2mGatewayApi.ConsumerDelegation
@@ -226,7 +226,12 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
       const polledResource = await pollDelegation(response, headers);
-      if (kind === "CONSUMER") {
+      if (polledResource.data.kind !== kind) {
+        throw new Error(
+          `Delegation ${delegationId} is of kind ${polledResource.data.kind}, not ${kind}`
+        );
+      }
+      if (kind === "DELEGATED_CONSUMER") {
         return toM2MGatewayApiConsumerDelegation(polledResource.data);
       }
       return toM2MGatewayApiProducerDelegation(polledResource.data);
