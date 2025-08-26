@@ -1462,70 +1462,40 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.UpdateEServiceDescriptorSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
-      logger.info(
+      ctx: WithLogger<AppContext<UIAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      ctx.logger.info(
         `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateProducerOrProducer(
-        eservice.data.producerId,
-        eservice.data.id,
-        authData,
-        readModelService
-      );
-      assertEServiceNotTemplateInstance(
-        eservice.data.id,
-        eservice.data.templateId
-      );
-
-      const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-      if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptorState(
-          descriptorId,
-          descriptor.state.toString()
-        );
-      }
-
-      assertConsistentDailyCalls(seed);
-
-      const parsedAttributes = await parseAndCheckAttributes(
-        seed.attributes,
-        readModelService
-      );
-
-      const updatedDescriptor: Descriptor = {
-        ...descriptor,
-        description: seed.description,
-        audience: seed.audience,
-        voucherLifespan: seed.voucherLifespan,
-        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-        state: descriptorState.draft,
-        dailyCallsTotal: seed.dailyCallsTotal,
-        agreementApprovalPolicy:
-          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.agreementApprovalPolicy
-          ),
-        attributes: parsedAttributes,
-      };
-
-      const updatedEService = replaceDescriptor(
-        eservice.data,
-        updatedDescriptor
-      );
-
-      const event = toCreateEventEServiceDraftDescriptorUpdated(
+      return updateDraftDescriptor(
         eserviceId,
-        eservice.metadata.version,
         descriptorId,
-        updatedEService,
-        correlationId
+        seed,
+        readModelService,
+        repository,
+        ctx
       );
-      await repository.createEvent(event);
+    },
 
-      return updatedEService;
+    async patchUpdateDraftDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.PatchUpdateEServiceDescriptorSeed,
+      ctx: WithLogger<AppContext<M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      ctx.logger.info(
+        `Partially updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      return updateDraftDescriptor(
+        eserviceId,
+        descriptorId,
+        seed,
+        readModelService,
+        repository,
+        ctx
+      );
     },
 
     async updateDraftDescriptorTemplateInstance(
@@ -4010,6 +3980,98 @@ async function updateDraftEService(
   );
 
   return { data: updatedEService, metadata: { version: event.newVersion } };
+}
+
+async function updateDraftDescriptor(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  seed:
+    | catalogApi.UpdateEServiceDescriptorSeed
+    | catalogApi.PatchUpdateEServiceDescriptorSeed,
+  readModelService: ReadModelService,
+  repository: ReturnType<typeof eventRepository<EServiceEvent>>,
+  {
+    authData,
+    correlationId,
+  }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+): Promise<WithMetadata<EService>> {
+  const eservice = await retrieveEService(eserviceId, readModelService);
+  await assertRequesterIsDelegateProducerOrProducer(
+    eservice.data.producerId,
+    eservice.data.id,
+    authData,
+    readModelService
+  );
+  assertEServiceNotTemplateInstance(eservice.data.id, eservice.data.templateId);
+  const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+  assertIsDraftDescriptor(descriptor);
+
+  const {
+    description,
+    audience,
+    voucherLifespan,
+    dailyCallsPerConsumer,
+    dailyCallsTotal,
+    agreementApprovalPolicy,
+    attributes,
+    ...rest
+  } = seed;
+  void (rest satisfies Record<string, never>);
+  // ^ To make sure we extract all the updated fields
+
+  const updatedDailyCallsPerConsuemer =
+    dailyCallsPerConsumer ?? descriptor.dailyCallsPerConsumer;
+  const updatedDailyCallsTotal = dailyCallsTotal ?? descriptor.dailyCallsTotal;
+
+  assertConsistentDailyCalls({
+    dailyCallsPerConsumer: updatedDailyCallsPerConsuemer,
+    dailyCallsTotal: updatedDailyCallsTotal,
+  });
+
+  const updatedAttributes = attributes
+    ? await parseAndCheckAttributes(
+        {
+          certified: attributes.certified ?? descriptor.attributes.certified,
+          declared: attributes.declared ?? descriptor.attributes.declared,
+          verified: attributes.verified ?? descriptor.attributes.verified,
+        },
+        readModelService
+      )
+    : descriptor.attributes;
+
+  const updatedAgreementApprovalPolicy = agreementApprovalPolicy
+    ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+        agreementApprovalPolicy
+      )
+    : descriptor.agreementApprovalPolicy;
+
+  const updatedDescriptor: Descriptor = {
+    ...descriptor,
+    description: description ?? descriptor.description,
+    audience: audience ?? descriptor.audience,
+    voucherLifespan: voucherLifespan ?? descriptor.voucherLifespan,
+    dailyCallsPerConsumer: updatedDailyCallsPerConsuemer,
+    dailyCallsTotal: updatedDailyCallsTotal,
+    agreementApprovalPolicy: updatedAgreementApprovalPolicy,
+    attributes: updatedAttributes,
+  };
+
+  const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
+
+  const event = await repository.createEvent(
+    toCreateEventEServiceDraftDescriptorUpdated(
+      eserviceId,
+      eservice.metadata.version,
+      descriptorId,
+      updatedEService,
+      correlationId
+    )
+  );
+  return {
+    data: updatedEService,
+    metadata: { version: event.newVersion },
+  };
 }
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

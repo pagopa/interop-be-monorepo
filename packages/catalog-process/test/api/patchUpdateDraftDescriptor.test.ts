@@ -20,7 +20,6 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
-import { buildUpdateDescriptorSeed } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   attributeNotFound,
@@ -31,7 +30,7 @@ import {
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", () => {
+describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test", () => {
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.draft,
@@ -48,19 +47,27 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
     eServiceToApiEService(mockEService)
   );
 
-  const descriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
-    ...buildUpdateDescriptorSeed(descriptor),
+  const descriptorSeed: catalogApi.PatchUpdateEServiceDescriptorSeed = {
+    audience: ["new audience"],
+    voucherLifespan: 1000,
+    dailyCallsPerConsumer: 100,
     dailyCallsTotal: 200,
+    agreementApprovalPolicy: "AUTOMATIC",
+    description: "new description",
     attributes: {
-      certified: [],
+      certified: [
+        [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+      ],
       declared: [
         [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
       ],
-      verified: [],
+      verified: [
+        [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+      ],
     },
   };
 
-  catalogService.updateDraftDescriptor = vi
+  catalogService.patchUpdateDraftDescriptor = vi
     .fn()
     .mockResolvedValue(serviceResponse);
 
@@ -68,15 +75,15 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
     token: string,
     eServiceId: EServiceId,
     descriptorId: DescriptorId,
-    body: catalogApi.UpdateEServiceDescriptorSeed = descriptorSeed
+    body: catalogApi.PatchUpdateEServiceDescriptorSeed = descriptorSeed
   ) =>
     request(api)
-      .put(`/eservices/${eServiceId}/descriptors/${descriptorId}`)
+      .patch(`/eservices/${eServiceId}/descriptors/${descriptorId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -84,6 +91,86 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
       const res = await makeRequest(token, mockEService.id, descriptor.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiEservice);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+    }
+  );
+
+  it.each([
+    {},
+    {
+      description: "new description",
+    },
+    {
+      description: "new description",
+      voucherLifespan: 1000,
+    },
+    {
+      description: "new description",
+      voucherLifespan: 1000,
+      dailyCallsPerConsumer: 100,
+    },
+    {
+      description: "new description",
+      voucherLifespan: 1000,
+      dailyCallsPerConsumer: 100,
+      dailyCallsTotal: 200,
+    },
+    {
+      description: "new description",
+      voucherLifespan: 1000,
+      dailyCallsPerConsumer: 100,
+      dailyCallsTotal: 200,
+      agreementApprovalPolicy: "AUTOMATIC",
+    },
+    {
+      description: "new description",
+      voucherLifespan: 1000,
+      dailyCallsPerConsumer: 100,
+      dailyCallsTotal: 200,
+      agreementApprovalPolicy: "AUTOMATIC",
+      attributes: {
+        certified: [
+          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+        ],
+        declared: [
+          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+        ],
+        verified: [
+          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+        ],
+      },
+    },
+    {
+      attributes: {
+        certified: [],
+        declared: [
+          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+        ],
+      },
+    },
+    {
+      attributes: {
+        verified: [
+          [
+            { id: getMockAttribute().id, explicitAttributeVerification: false },
+            { id: getMockAttribute().id, explicitAttributeVerification: false },
+          ],
+        ],
+      },
+    },
+  ] as catalogApi.PatchUpdateEServiceDescriptorSeed[])(
+    "Should return 200 with partial seed (seed #%#)",
+    async (seed) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockEService.id,
+        descriptor.id,
+        seed
+      );
+      expect(res.status).toBe(200);
     }
   );
 
@@ -118,7 +205,7 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
       expectedStatus: 400,
     },
     {
-      error: attributeNotFound(descriptorSeed.attributes.declared[0][0].id),
+      error: attributeNotFound(generateId()),
       expectedStatus: 400,
     },
     {
@@ -132,11 +219,11 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      catalogService.updateDraftDescriptor = vi
+      catalogService.patchUpdateDraftDescriptor = vi
         .fn()
         .mockRejectedValueOnce(error);
 
-      const token = generateToken(authRole.ADMIN_ROLE);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockEService.id, descriptor.id);
 
       expect(res.status).toBe(expectedStatus);
@@ -144,25 +231,19 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
   );
 
   it.each([
-    [{}, mockEService.id, descriptor.id],
     [{ dailyCallsTotal: "invalid" }, mockEService.id, descriptor.id],
-    [{ attributes: undefined }, mockEService.id, descriptor.id],
+    [{ attributes: { invalid: [] } }, mockEService.id, descriptor.id],
     [
       { ...descriptorSeed, dailyCallsTotal: -1 },
-      mockEService.id,
-      descriptor.id,
-    ],
-    [
-      { ...descriptorSeed, attributes: { certified: [], declared: [] } },
       mockEService.id,
       descriptor.id,
     ],
     [{ ...descriptorSeed }, "invalidId", descriptor.id],
     [{ ...descriptorSeed }, mockEService.id, "invalidId"],
   ])(
-    "Should return 400 if passed invalid seed or e-service id (seed #%#)",
+    "Should return 400 if passed invalid seed or ids in params (seed #%#)",
     async (body, eServiceId, descriptorId) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,
