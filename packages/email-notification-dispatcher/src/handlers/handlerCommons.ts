@@ -6,7 +6,6 @@ import {
   NotificationConfig,
   TenantId,
 } from "pagopa-interop-models";
-import { UserDB } from "pagopa-interop-selfcare-user-db-models";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { UserServiceSQL } from "../services/userServiceSQL.js";
 import { HandlerCommonParams } from "../models/handlerParams.js";
@@ -24,13 +23,8 @@ export async function getUserEmailsToNotify(
       notificationName
     );
 
-  const userResults = await Promise.all(
-    tenantUsers
-      .map((config) => config.userId)
-      .map((userId) => userService.readUser(userId))
-  );
-  const usersToNotify = userResults.filter(
-    (userResult): userResult is UserDB => userResult !== undefined
+  const usersToNotify = await userService.readUsers(
+    tenantUsers.map((config) => config.userId)
   );
   return usersToNotify.map((user) => user.email);
 }
