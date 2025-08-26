@@ -53,7 +53,7 @@ describe("getProducerDelegations", () => {
 
     const result = await delegationService.getDelegation(
       m2mDelegationResponse.id,
-      "PRODUCER",
+      "DELEGATED_PRODUCER",
       getMockM2MAdminAppContext()
     );
 
