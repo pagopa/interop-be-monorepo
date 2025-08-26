@@ -2,42 +2,42 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
+} from "pagopa-interop-commons-test";
+import { getMockValidRiskAnalysisFormTemplate } from "pagopa-interop-commons-test/src/riskAnalysisTemplateTestUtils.js";
 import {
   PurposeTemplate,
+  PurposeTemplateAddedV2,
   RiskAnalysisFormTemplate,
   generateId,
   purposeTemplateState,
   tenantKind,
   toPurposeTemplateV2,
   unsafeBrandId,
-  PurposeTemplateAddedV2,
 } from "pagopa-interop-models";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { describe, expect, it, vi } from "vitest";
-import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockContext,
-} from "pagopa-interop-commons-test";
 import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   riskAnalysisTemplateValidationFailed,
 } from "../../src/model/domain/errors.js";
 import {
-  buildRiskAnalysisFormTemplateSeed,
-  getMockPurposeTemplateSeed,
-} from "../mockUtils.js";
-import {
-  addOnePurposeTemplate,
-  readLastPurposeTemplateEvent,
-  purposeTemplateService,
-} from "../integrationUtils.js";
-import { getMockValidRiskAnalysisFormTemplate } from "../riskAnalysisTestUtils.js";
-import {
   invalidTemplateResult,
   unexpectedTemplateRulesVersionError,
 } from "../../src/model/riskAnalysisTemplateValidationErrors.js";
+import {
+  addOnePurposeTemplate,
+  purposeTemplateService,
+  readLastPurposeTemplateEvent,
+} from "../integrationUtils.js";
+import {
+  buildRiskAnalysisFormTemplateSeed,
+  getMockPurposeTemplateSeed,
+} from "../mockUtils.js";
 
 describe("createPurposeTemplate", () => {
   const mockPurposeTemplate: PurposeTemplate = {

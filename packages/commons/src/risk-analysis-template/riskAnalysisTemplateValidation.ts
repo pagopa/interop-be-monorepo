@@ -3,9 +3,11 @@ import { match, P } from "ts-pattern";
 import {
   ValidationRule,
   ValidationRuleDependency,
+} from "../risk-analysis/models.js";
+import {
   buildValidationRules,
   getLatestVersionFormRules,
-} from "pagopa-interop-commons";
+} from "../risk-analysis/riskAnalysisValidation.js";
 import {
   RiskAnalysisFormTemplateToValidate,
   RiskAnalysisTemplateAnswerToValidate,

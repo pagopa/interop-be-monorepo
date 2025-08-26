@@ -3,8 +3,8 @@ import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   RiskAnalysisTemplateValidatedForm,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
-} from "../model/riskAnalysisFormTemplate.js";
-import { validatePurposeTemplateRiskAnalysis } from "../model/riskAnalysisTemplateValidation.js";
+  validatePurposeTemplateRiskAnalysis,
+} from "pagopa-interop-commons";
 import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
