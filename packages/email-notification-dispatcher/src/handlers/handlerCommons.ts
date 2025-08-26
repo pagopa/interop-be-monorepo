@@ -1,5 +1,7 @@
 import {
+  Agreement,
   AgreementV2,
+  EService,
   EServiceV2,
   NotificationConfig,
   TenantId,
@@ -8,6 +10,7 @@ import { UserDB } from "pagopa-interop-selfcare-user-db-models";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { UserServiceSQL } from "../services/userServiceSQL.js";
 import { HandlerCommonParams } from "../models/handlerParams.js";
+import { eServiceNotFound } from "../models/errors.js";
 
 export async function getUserEmailsToNotify(
   tenantId: TenantId,
@@ -30,6 +33,19 @@ export async function getUserEmailsToNotify(
     (userResult): userResult is UserDB => userResult !== undefined
   );
   return usersToNotify.map((user) => user.email);
+}
+
+export async function retrieveAgreementEservice(
+  agreement: Agreement,
+  readModelService: ReadModelServiceSQL
+): Promise<EService> {
+  const eservice = await readModelService.getEServiceById(agreement.eserviceId);
+
+  if (!eservice) {
+    throw eServiceNotFound(agreement.eserviceId);
+  }
+
+  return eservice;
 }
 
 export type AgreementHandlerParams = HandlerCommonParams & {
