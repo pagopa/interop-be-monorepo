@@ -11394,6 +11394,8 @@ components:
           maxLength: 250
         audience:
           type: array
+          minItems: 1
+          maxItems: 1
           items:
             type: string
             minLength: 0
@@ -11433,6 +11435,8 @@ components:
           maxLength: 250
         audience:
           type: array
+          minItems: 1
+          maxItems: 1
           items:
             type: string
             minLength: 1
@@ -11660,6 +11664,8 @@ components:
           maxLength: 250
         audience:
           type: array
+          minItems: 1
+          maxItems: 1
           items:
             type: string
             minLength: 0
