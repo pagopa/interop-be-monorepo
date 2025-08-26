@@ -19,6 +19,7 @@ import {
   deleteEServiceDescriptorInterfaceErrorMapper,
   deleteDraftEServiceDescriptorErrorMapper,
   getEServiceDescriptorAttributesErrorMapper,
+  getEServiceRiskAnalysisErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -132,6 +133,77 @@ const eserviceRouter = (
           emptyErrorMapper,
           ctx,
           `Error deleting eservice with id ${req.params.eserviceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/eservices/:eserviceId/delegation", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const eservice =
+          await eserviceService.updatePublishedEServiceDelegation(
+            unsafeBrandId(req.params.eserviceId),
+            req.body,
+            ctx
+          );
+
+        return res.status(200).send(m2mGatewayApi.EService.parse(eservice));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating delegation configurations of eservice with id ${req.params.eserviceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/eservices/:eserviceId/description", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const eservice =
+          await eserviceService.updatePublishedEServiceDescription(
+            unsafeBrandId(req.params.eserviceId),
+            req.body,
+            ctx
+          );
+
+        return res.status(200).send(m2mGatewayApi.EService.parse(eservice));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating description of eservice with id ${req.params.eserviceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/eservices/:eserviceId/name", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const eservice = await eserviceService.updatePublishedEServiceName(
+          unsafeBrandId(req.params.eserviceId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.EService.parse(eservice));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating name of eservice with id ${req.params.eserviceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -591,7 +663,7 @@ const eserviceRouter = (
         }
       }
     )
-    .post("/eservices/:eserviceId/riskAnalysis", async (req, res) => {
+    .post("/eservices/:eserviceId/riskAnalyses", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
       try {
@@ -615,6 +687,82 @@ const eserviceRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/eservices/:eserviceId/riskAnalyses", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const riskAnalysis = await eserviceService.getEServiceRiskAnalyses(
+          unsafeBrandId(req.params.eserviceId),
+          req.query,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(m2mGatewayApi.EServiceRiskAnalyses.parse(riskAnalysis));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving risk analyses for eservice with id ${req.params.eserviceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get(
+      "/eservices/:eserviceId/riskAnalyses/:riskAnalysisId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const riskAnalysis = await eserviceService.getEServiceRiskAnalysis(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            ctx
+          );
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceRiskAnalysis.parse(riskAnalysis));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceRiskAnalysisErrorMapper,
+            ctx,
+            `Error retrieving risk analysis ${req.params.riskAnalysisId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eserviceId/riskAnalyses/:riskAnalysisId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await eserviceService.deleteEServiceRiskAnalysis(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error deleting risk analysis ${req.params.riskAnalysisId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
     .put(
       "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes",
       async (req, res) => {

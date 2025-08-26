@@ -22,7 +22,7 @@ import {
 import { buildRiskAnalysisSeed } from "../../mockUtils.js";
 import { toM2MGatewayApiEServiceRiskAnalysis } from "../../../src/api/eserviceApiConverter.js";
 
-describe("POST /eservice/:eserviceId/riskAnalysis router test", () => {
+describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
   const mockRiskAnalysisSeed: m2mGatewayApi.EServiceRiskAnalysisSeed =
     buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA));
 
@@ -39,7 +39,7 @@ describe("POST /eservice/:eserviceId/riskAnalysis router test", () => {
     body: m2mGatewayApi.EServiceRiskAnalysisSeed
   ) =>
     request(api)
-      .post(`${appBasePath}/eservices/${eserviceId}/riskAnalysis`)
+      .post(`${appBasePath}/eservices/${eserviceId}/riskAnalyses`)
       .set("Authorization", `Bearer ${token}`)
       .send(body);
 

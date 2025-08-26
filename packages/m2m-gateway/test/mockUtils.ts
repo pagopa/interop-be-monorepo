@@ -87,4 +87,30 @@ export function defaultExplicitAttributeVerification(
       explicitAttributeVerification: false,
     }))
   );
+
+export function testToM2MEServiceRiskAnalysisAnswers(
+  riskAnalysisForm: catalogApi.EServiceRiskAnalysis["riskAnalysisForm"]
+): m2mGatewayApi.EServiceRiskAnalysis["riskAnalysisForm"]["answers"] {
+  const expectedSingleAnswers = riskAnalysisForm.singleAnswers.reduce<
+    Record<string, string[]>
+  >((singleAnswersMap, { key, value }) => {
+    if (value) {
+      singleAnswersMap[key] = [value];
+    }
+    return singleAnswersMap;
+  }, {});
+
+  const expectedMultiAnswers = riskAnalysisForm.multiAnswers.reduce<
+    Record<string, string[]>
+  >((multiAnswersMap, { key, values }) => {
+    if (values.length > 0) {
+      multiAnswersMap[key] = values;
+    }
+    return multiAnswersMap;
+  }, {});
+
+  return {
+    ...expectedSingleAnswers,
+    ...expectedMultiAnswers,
+  };
 }
