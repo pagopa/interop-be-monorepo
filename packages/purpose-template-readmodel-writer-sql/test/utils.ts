@@ -127,7 +127,7 @@ export const checkCompletePurposeTemplate = async (
   ).toHaveLength(answersLength);
 
   return {
-    purposeTemplateSQL: retrievedPurposeTemplateSQL,
+    purposeTemplateSQL: retrievedPurposeTemplateSQL!,
     riskAnalysisFormTemplateSQL: retrievedRiskAnalysisFormTemplateSQL,
     riskAnalysisTemplateAnswersSQL: retrievedRiskAnalysisTemplateAnswersSQL,
     riskAnalysisTemplateAnswersAnnotationsSQL:
