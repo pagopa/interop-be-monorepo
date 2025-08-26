@@ -18,7 +18,6 @@ export const NotificationConfig = z.object({
   agreementSuspendedUnsuspendedToConsumer: z.boolean(), // 13: Sospensione o riattivazione richiesta di fruizione
   eserviceStateChangedToConsumer: z.boolean(), // 11: Variazione di stato e-service
   agreementActivatedRejectedToConsumer: z.boolean(), // 12: Attivazione o rifiuto richiesta di fruizione
-  purposeVersionOverQuotaToConsumer: z.boolean(), // 14: Stato delle soglie di carico
   purposeActivatedRejectedToConsumer: z.boolean(), // 15: Attivazione o rifiuto finalità
   purposeSuspendedUnsuspendedToConsumer: z.boolean(), // 16: Sospensione o riattivazione finalità
   newEserviceTemplateVersionToInstantiator: z.boolean(), // 17: Nuova versione di template

@@ -464,7 +464,6 @@ components:
         - agreementSuspendedUnsuspendedToConsumer
         - eserviceStateChangedToConsumer
         - agreementActivatedRejectedToConsumer
-        - purposeVersionOverQuotaToConsumer
         - purposeActivatedRejectedToConsumer
         - purposeSuspendedUnsuspendedToConsumer
         - newEserviceTemplateVersionToInstantiator
@@ -492,8 +491,6 @@ components:
         eserviceStateChangedToConsumer:
           type: boolean
         agreementActivatedRejectedToConsumer:
-          type: boolean
-        purposeVersionOverQuotaToConsumer:
           type: boolean
         purposeActivatedRejectedToConsumer:
           type: boolean

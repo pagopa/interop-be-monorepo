@@ -47,8 +47,6 @@ describe("updateTenantNotificationConfig", () => {
         !tenantNotificationConfig.config.eserviceStateChangedToConsumer,
       agreementActivatedRejectedToConsumer:
         !tenantNotificationConfig.config.agreementActivatedRejectedToConsumer,
-      purposeVersionOverQuotaToConsumer:
-        !tenantNotificationConfig.config.purposeVersionOverQuotaToConsumer,
       purposeActivatedRejectedToConsumer:
         !tenantNotificationConfig.config.purposeActivatedRejectedToConsumer,
       purposeSuspendedUnsuspendedToConsumer:

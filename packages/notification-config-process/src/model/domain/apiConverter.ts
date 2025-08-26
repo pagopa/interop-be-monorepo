@@ -16,7 +16,6 @@ export function tenantNotificationConfigToApiTenantNotificationConfig({
     agreementSuspendedUnsuspendedToConsumer,
     eserviceStateChangedToConsumer,
     agreementActivatedRejectedToConsumer,
-    purposeVersionOverQuotaToConsumer,
     purposeActivatedRejectedToConsumer,
     purposeSuspendedUnsuspendedToConsumer,
     newEserviceTemplateVersionToInstantiator,
@@ -45,7 +44,6 @@ export function tenantNotificationConfigToApiTenantNotificationConfig({
       agreementSuspendedUnsuspendedToConsumer,
       eserviceStateChangedToConsumer,
       agreementActivatedRejectedToConsumer,
-      purposeVersionOverQuotaToConsumer,
       purposeActivatedRejectedToConsumer,
       purposeSuspendedUnsuspendedToConsumer,
       newEserviceTemplateVersionToInstantiator,
@@ -79,7 +77,6 @@ export function userNotificationConfigToApiUserNotificationConfig({
     eserviceStateChangedToConsumer: eserviceStateChangedToConsumerInApp,
     agreementActivatedRejectedToConsumer:
       agreementActivatedRejectedToConsumerInApp,
-    purposeVersionOverQuotaToConsumer: purposeVersionOverQuotaToConsumerInApp,
     purposeActivatedRejectedToConsumer: purposeActivatedRejectedToConsumerInApp,
     purposeSuspendedUnsuspendedToConsumer:
       purposeSuspendedUnsuspendedToConsumerInApp,
@@ -113,7 +110,6 @@ export function userNotificationConfigToApiUserNotificationConfig({
     eserviceStateChangedToConsumer: eserviceStateChangedToConsumerEmail,
     agreementActivatedRejectedToConsumer:
       agreementActivatedRejectedToConsumerEmail,
-    purposeVersionOverQuotaToConsumer: purposeVersionOverQuotaToConsumerEmail,
     purposeActivatedRejectedToConsumer: purposeActivatedRejectedToConsumerEmail,
     purposeSuspendedUnsuspendedToConsumer:
       purposeSuspendedUnsuspendedToConsumerEmail,
@@ -155,7 +151,6 @@ export function userNotificationConfigToApiUserNotificationConfig({
       eserviceStateChangedToConsumer: eserviceStateChangedToConsumerInApp,
       agreementActivatedRejectedToConsumer:
         agreementActivatedRejectedToConsumerInApp,
-      purposeVersionOverQuotaToConsumer: purposeVersionOverQuotaToConsumerInApp,
       purposeActivatedRejectedToConsumer:
         purposeActivatedRejectedToConsumerInApp,
       purposeSuspendedUnsuspendedToConsumer:
@@ -191,7 +186,6 @@ export function userNotificationConfigToApiUserNotificationConfig({
       eserviceStateChangedToConsumer: eserviceStateChangedToConsumerEmail,
       agreementActivatedRejectedToConsumer:
         agreementActivatedRejectedToConsumerEmail,
-      purposeVersionOverQuotaToConsumer: purposeVersionOverQuotaToConsumerEmail,
       purposeActivatedRejectedToConsumer:
         purposeActivatedRejectedToConsumerEmail,
       purposeSuspendedUnsuspendedToConsumer:

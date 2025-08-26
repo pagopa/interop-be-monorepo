@@ -55,9 +55,6 @@ export const aggregateTenantNotificationConfig = ({
     agreementActivatedRejectedToConsumer: enabledNotifications.includes(
       "agreementActivatedRejectedToConsumer"
     ),
-    purposeVersionOverQuotaToConsumer: enabledNotifications.includes(
-      "purposeVersionOverQuotaToConsumer"
-    ),
     purposeActivatedRejectedToConsumer: enabledNotifications.includes(
       "purposeActivatedRejectedToConsumer"
     ),
@@ -154,9 +151,6 @@ export const aggregateUserNotificationConfig = ({
     agreementActivatedRejectedToConsumer: enabledInAppNotifications.includes(
       "agreementActivatedRejectedToConsumer"
     ),
-    purposeVersionOverQuotaToConsumer: enabledInAppNotifications.includes(
-      "purposeVersionOverQuotaToConsumer"
-    ),
     purposeActivatedRejectedToConsumer: enabledInAppNotifications.includes(
       "purposeActivatedRejectedToConsumer"
     ),
@@ -220,9 +214,6 @@ export const aggregateUserNotificationConfig = ({
     ),
     agreementActivatedRejectedToConsumer: enabledEmailNotifications.includes(
       "agreementActivatedRejectedToConsumer"
-    ),
-    purposeVersionOverQuotaToConsumer: enabledEmailNotifications.includes(
-      "purposeVersionOverQuotaToConsumer"
     ),
     purposeActivatedRejectedToConsumer: enabledEmailNotifications.includes(
       "purposeActivatedRejectedToConsumer"

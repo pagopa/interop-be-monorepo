@@ -31,7 +31,6 @@ describe("createTenantNotificationConfig", () => {
     agreementSuspendedUnsuspendedToConsumer: false,
     eserviceStateChangedToConsumer: false,
     agreementActivatedRejectedToConsumer: false,
-    purposeVersionOverQuotaToConsumer: false,
     purposeActivatedRejectedToConsumer: false,
     purposeSuspendedUnsuspendedToConsumer: false,
     newEserviceTemplateVersionToInstantiator: false,
