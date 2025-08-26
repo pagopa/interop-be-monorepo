@@ -14,13 +14,13 @@ import {
   eventMailTemplateType,
   getFormattedAgreementStampDate,
   retrieveAgreementDescriptor,
-  retrieveAgreementEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
   AgreementHandlerParams,
   getUserEmailsToNotify,
+  retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
