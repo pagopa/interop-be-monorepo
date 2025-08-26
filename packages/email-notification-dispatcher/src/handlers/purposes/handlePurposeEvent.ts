@@ -4,8 +4,8 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
-
-// const interopFeBaseUrl = config.interopFeBaseUrl;
+import { handlePurposeVersionSuspendedByProducer } from "./handlePurposeVersionSuspendedByProducer.js";
+import { handlePurposeVersionUnsuspendedByProducer } from "./handlePurposeVersionUnsuspendedByProducer.js";
 
 export async function handlePurposeEvent(
   params: HandlerParams<typeof PurposeEventV2>
@@ -13,12 +13,36 @@ export async function handlePurposeEvent(
   const {
     decodedMessage,
     logger,
-    // readModelService,
-    // templateService,
-    // userService,
-    // correlationId,
+    readModelService,
+    templateService,
+    userService,
+    correlationId,
   } = params;
   return match(decodedMessage)
+    .with(
+      { type: "PurposeVersionSuspendedByProducer" },
+      ({ data: { purpose } }) =>
+        handlePurposeVersionSuspendedByProducer({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })
+    )
+    .with(
+      { type: "PurposeVersionUnsuspendedByProducer" },
+      ({ data: { purpose } }) =>
+        handlePurposeVersionUnsuspendedByProducer({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })
+    )
     .with(
       {
         type: P.union(
@@ -34,9 +58,7 @@ export async function handlePurposeEvent(
           "PurposeArchived",
           "PurposeVersionOverQuotaUnsuspended",
           "PurposeVersionSuspendedByConsumer",
-          "PurposeVersionSuspendedByProducer",
           "PurposeVersionUnsuspendedByConsumer",
-          "PurposeVersionUnsuspendedByProducer",
           "WaitingForApprovalPurposeVersionDeleted",
           "NewPurposeVersionActivated",
           "PurposeCloned",
