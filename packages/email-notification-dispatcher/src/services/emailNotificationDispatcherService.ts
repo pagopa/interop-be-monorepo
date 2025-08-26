@@ -2,7 +2,7 @@ import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 import { initProducer } from "kafka-iam-auth";
 import { logger } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
-import { encodeEmailEvent } from "../handlers/utils.js";
+import { encodeEmailEvent } from "./utils.js";
 
 const producer = await initProducer(config, config.emailSenderTopic);
 

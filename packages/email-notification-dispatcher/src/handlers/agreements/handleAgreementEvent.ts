@@ -21,7 +21,7 @@ export async function handleAgreementEvent(
     userService,
     correlationId,
   } = params;
-  return match(decodedMessage)
+  return match(params.decodedMessage)
     .with({ type: "AgreementActivated" }, async ({ data: { agreement } }) => [
       ...(await handleAgreementActivatedToProducer({
         agreementV2Msg: agreement,

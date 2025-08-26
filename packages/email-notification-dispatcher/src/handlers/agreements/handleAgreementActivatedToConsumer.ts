@@ -19,14 +19,14 @@ import {
 } from "../../services/utils.js";
 import {
   getUserEmailsToNotify,
-  HandleAgreementData,
+  AgreementHandlerParams,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
   "agreementActivatedRejectedToConsumer";
 
 export async function handleAgreementActivatedToConsumer(
-  data: HandleAgreementData
+  data: AgreementHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     agreementV2Msg,
