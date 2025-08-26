@@ -13,19 +13,16 @@ import {
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId}/declaredAttributes router test", () => {
-  const m2mAttributes: m2mGatewayApi.EServiceDescriptorAttributes = [
-    [{ id: generateId() }],
-    [{ id: generateId() }, { id: generateId() }],
-  ];
-
-  const expectedResponse: m2mGatewayApi.EServiceDescriptorDeclaredAttributesResponse =
-    {
-      declaredAttributes: m2mAttributes,
-    };
+  const m2mAttributes: m2mGatewayApi.EServiceDescriptorAttributes = {
+    attributes: [
+      [{ id: generateId() }],
+      [{ id: generateId() }, { id: generateId() }],
+    ],
+  };
 
   mockEserviceService.updateEServiceDescriptorDeclaredAttributes = vi
     .fn()
-    .mockResolvedValue(expectedResponse);
+    .mockResolvedValue(m2mAttributes);
 
   const makeRequest = async (
     token: string,
@@ -47,7 +44,7 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId}/declaredAttribu
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(expectedResponse);
+      expect(res.body).toEqual(m2mAttributes);
     }
   );
 
@@ -61,19 +58,14 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId}/declaredAttribu
   });
 
   it.each([
-    [...m2mAttributes, [{ id: undefined }]],
-    [...m2mAttributes, [{ id: "invalid" }]],
-    [...m2mAttributes, [{}]],
-  ] as unknown as m2mGatewayApi.EServiceDescriptorAttributes)(
+    { attributes: [...m2mAttributes.attributes, [{ id: undefined }]] },
+    { attributes: [...m2mAttributes.attributes, [{ id: "invalid" }]] },
+    { attributes: [...m2mAttributes.attributes, [{}]] },
+  ] as unknown as m2mGatewayApi.EServiceDescriptorAttributes[])(
     "Should return 400 if passed an invalid Descriptor seed (seed #%#)",
     async (body) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        generateId(),
-        generateId(),
-        body as unknown as m2mGatewayApi.EServiceDescriptorAttributes
-      );
+      const res = await makeRequest(token, generateId(), generateId(), body);
 
       expect(res.status).toBe(400);
     }
@@ -105,10 +97,10 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId}/declaredAttribu
   );
 
   it.each([
-    [...m2mAttributes, [{ id: undefined }]],
-    [...m2mAttributes, [{ id: "invalid" }]],
-    [...m2mAttributes, [{}]],
-  ] as unknown as m2mGatewayApi.EServiceDescriptorAttributes)(
+    { attributes: [...m2mAttributes.attributes, [{ id: undefined }]] },
+    { attributes: [...m2mAttributes.attributes, [{ id: "invalid" }]] },
+    { attributes: [...m2mAttributes.attributes, [{}]] },
+  ] as m2mGatewayApi.EServiceDescriptorAttributes[])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
       mockEserviceService.updateEServiceDescriptorDeclaredAttributes = vi

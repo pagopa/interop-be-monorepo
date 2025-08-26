@@ -36,14 +36,13 @@ describe("updateEServiceDescriptorDeclaredAttributes", () => {
     descriptors: [mockDescriptor, getMockedApiEserviceDescriptor()],
   });
 
-  const m2mAttributes: m2mGatewayApi.EServiceDescriptorAttributes = [
-    [{ id: generateId() }],
-    [{ id: generateId() }, { id: generateId() }],
-  ];
-  const expectedResponse: m2mGatewayApi.EServiceDescriptorDeclaredAttributesResponse =
-    {
-      declaredAttributes: m2mAttributes,
-    };
+  const m2mAttributes: m2mGatewayApi.EServiceDescriptorAttributes = {
+    attributes: [
+      [{ id: generateId() }],
+      [{ id: generateId() }, { id: generateId() }],
+    ],
+  };
+
   const eserviceAttributes =
     defaultExplicitAttributeVerification(m2mAttributes);
 
@@ -87,7 +86,7 @@ describe("updateEServiceDescriptorDeclaredAttributes", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(expectedResponse);
+    expect(result).toEqual(m2mAttributes);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
