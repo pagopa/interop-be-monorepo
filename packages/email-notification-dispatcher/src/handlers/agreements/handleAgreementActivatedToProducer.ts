@@ -2,9 +2,9 @@
 /* eslint-disable functional/no-let */
 import {
   EmailNotificationMessagePayload,
+  fromAgreementV2,
   generateId,
   missingKafkaMessageDataError,
-  fromAgreementV2,
   NotificationType,
 } from "pagopa-interop-models";
 import {
@@ -16,14 +16,14 @@ import {
   retrieveTenant,
 } from "../../services/utils.js";
 import {
+  AgreementHandlerParams,
   getUserEmailsToNotify,
-  HandleAgreementData,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "agreementManagementToProducer";
 
 export async function handleAgreementActivatedToProducer(
-  data: HandleAgreementData
+  params: AgreementHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     agreementV2Msg,
@@ -32,7 +32,7 @@ export async function handleAgreementActivatedToProducer(
     templateService,
     userService,
     correlationId,
-  } = data;
+  } = params;
 
   if (!agreementV2Msg) {
     throw missingKafkaMessageDataError("eservice", "AgreementActivated");
