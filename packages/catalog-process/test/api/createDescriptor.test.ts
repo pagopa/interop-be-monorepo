@@ -21,6 +21,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import { buildCreateDescriptorSeed } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  attributeDuplicatedInGroup,
   attributeNotFound,
   draftDescriptorAlreadyExists,
   eServiceNotFound,
@@ -143,6 +144,10 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     },
     {
       error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDuplicatedInGroup(generateId()),
       expectedStatus: 400,
     },
   ])(
