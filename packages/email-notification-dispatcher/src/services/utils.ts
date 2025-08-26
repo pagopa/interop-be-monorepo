@@ -12,6 +12,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { dateAtRomeZone } from "pagopa-interop-commons";
+import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 import {
   agreementStampDateNotFound,
   descriptorNotFound,
@@ -135,4 +136,17 @@ export function retrieveLatestPublishedDescriptor(
     throw descriptorPublishedNotFound(eservice.id);
   }
   return latestDescriptor;
+}
+
+export function encodeEmailEvent(
+  event: EmailNotificationMessagePayload
+): string {
+  return JSON.stringify({
+    correlationId: event.correlationId,
+    email: {
+      subject: event.email.subject,
+      body: event.email.body,
+    },
+    address: event.address,
+  });
 }
