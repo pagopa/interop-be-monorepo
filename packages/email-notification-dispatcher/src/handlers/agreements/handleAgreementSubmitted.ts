@@ -14,14 +14,14 @@ import {
   retrieveTenant,
 } from "../../services/utils.js";
 import {
+  AgreementHandlerParams,
   getUserEmailsToNotify,
-  HandleAgreementData,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "agreementManagementToProducer";
 
 export async function handleAgreementSubmitted(
-  data: HandleAgreementData
+  data: AgreementHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     agreementV2Msg,

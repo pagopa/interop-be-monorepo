@@ -14,6 +14,7 @@ export async function handleEServiceEvent(
     logger,
     readModelService,
     templateService,
+    userService,
     correlationId,
   } = params;
   return match(decodedMessage)
@@ -23,6 +24,7 @@ export async function handleEServiceEvent(
         logger,
         readModelService,
         templateService,
+        userService,
         correlationId,
       })
     )
