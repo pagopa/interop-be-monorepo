@@ -11,7 +11,6 @@ type EmailNotificationDispatcherErrorCode =
   | "agreementStampDateNotFound"
   | "eServiceNotFound"
   | "tenantNotFound"
-  | "tenantDigitalAddressNotFound"
   | "descriptorNotFound"
   | "eserviceAgreementsNotFound"
   | "descriptorPublishedNotFound";
