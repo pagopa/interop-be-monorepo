@@ -5,6 +5,7 @@ import {
   EServiceV2,
   NotificationConfig,
   NotificationType,
+  PurposeV2,
   Tenant,
   TenantId,
   tenantMailKind,
@@ -21,6 +22,10 @@ export type AgreementHandlerParams = HandlerCommonParams & {
 
 export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
+};
+
+export type PurposeHandlerParams = HandlerCommonParams & {
+  pursposeV2Msg?: PurposeV2;
 };
 
 type EmailNotificationRecipient = { type: "Tenant" | "User"; address: string };
