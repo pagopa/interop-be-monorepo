@@ -20,11 +20,21 @@ headers {
 }
 
 body:json {
-  [
-    [{ "id": "{{declaredAttributeId}}" }],
-    [
-     { "id": "d58ccdbd-0c7e-4730-87d3-9cd9e030ba64" }, 
-     { "id": "85171a36-08da-44ab-8617-5d98344c380a" }
+  {
+    "attributes": [
+      [
+        {
+          "id": "{{declaredAttributeId}}"
+        }
+      ],
+      [
+        {
+          "id": "d58ccdbd-0c7e-4730-87d3-9cd9e030ba64"
+        },
+        {
+          "id": "85171a36-08da-44ab-8617-5d98344c380a"
+        }
+      ]
     ]
-  ]
+  }
 }
