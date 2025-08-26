@@ -9,13 +9,13 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveAgreementEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
   AgreementHandlerParams,
   getUserEmailsToNotify,
+  retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "agreementManagementToProducer";

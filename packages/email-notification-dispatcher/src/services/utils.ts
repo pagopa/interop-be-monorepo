@@ -47,19 +47,6 @@ const EventMailTemplateType = z.enum([
 
 export type EventMailTemplateType = z.infer<typeof EventMailTemplateType>;
 
-export async function retrieveAgreementEservice(
-  agreement: Agreement,
-  readModelService: ReadModelServiceSQL
-): Promise<EService> {
-  const eservice = await readModelService.getEServiceById(agreement.eserviceId);
-
-  if (!eservice) {
-    throw eServiceNotFound(agreement.eserviceId);
-  }
-
-  return eservice;
-}
-
 export async function retrieveTenant(
   tenantId: TenantId,
   readModelService: ReadModelServiceSQL
