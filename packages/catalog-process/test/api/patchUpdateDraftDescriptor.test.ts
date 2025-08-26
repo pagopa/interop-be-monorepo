@@ -22,6 +22,7 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  attributeDuplicatedInGroup,
   attributeNotFound,
   eServiceDescriptorNotFound,
   eServiceNotFound,
@@ -214,6 +215,10 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDuplicatedInGroup(generateId()),
       expectedStatus: 400,
     },
   ])(
