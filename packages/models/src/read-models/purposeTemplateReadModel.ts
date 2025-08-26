@@ -2,11 +2,11 @@ import { z } from "zod";
 import { PurposeTemplate } from "../purpose-template/purposeTemplate.js";
 import {
   RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateSingleAnswer,
-  RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
-} from "../risk-analysis/riskAnalysisTemplate.js";
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswer,
+} from "../risk-analysis-template/riskAnalysisTemplate.js";
 
 export const RiskAnalysisTemplateAnswerAnnotationDocumentReadModel =
   RiskAnalysisTemplateAnswerAnnotationDocument.extend({

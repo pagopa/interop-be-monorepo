@@ -1,13 +1,13 @@
 import { z } from "zod";
 import {
+  RiskAnalysisFormTemplateId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
-  RiskAnalysisFormTemplateId,
 } from "../brandedIds.js";
 import {
   RiskAnalysisMultiAnswer,
   RiskAnalysisSingleAnswer,
-} from "./riskAnalysis.js";
+} from "../risk-analysis/riskAnalysis.js";
 
 export const RiskAnalysisTemplateAnswerAnnotationDocument = z.object({
   id: RiskAnalysisTemplateAnswerAnnotationDocumentId,

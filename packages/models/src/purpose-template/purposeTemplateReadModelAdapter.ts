@@ -2,10 +2,10 @@ import { PurposeTemplate } from "../purpose-template/purposeTemplate.js";
 import {
   PurposeTemplateReadModel,
   RiskAnalysisFormTemplateReadModel,
-  RiskAnalysisTemplateAnswerAnnotationReadModel,
-  RiskAnalysisTemplateSingleAnswerReadModel,
-  RiskAnalysisTemplateMultiAnswerReadModel,
   RiskAnalysisTemplateAnswerAnnotationDocumentReadmodel,
+  RiskAnalysisTemplateAnswerAnnotationReadModel,
+  RiskAnalysisTemplateMultiAnswerReadModel,
+  RiskAnalysisTemplateSingleAnswerReadModel,
 } from "../read-models/purposeTemplateReadModel.js";
 import {
   RiskAnalysisFormTemplate,
@@ -13,7 +13,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
-} from "../risk-analysis/riskAnalysisTemplate.js";
+} from "../risk-analysis-template/riskAnalysisTemplate.js";
 
 export const toRiskAnalysisTemplateAnswerAnnotationDocumentsReadModel = (
   docs: RiskAnalysisTemplateAnswerAnnotationDocument[]
