@@ -194,9 +194,11 @@ function toM2MGatewayApiEServiceDescriptorAttribute(
 export function toM2MGatewayApiEServiceDescriptorAttributes(
   attributeGroups: catalogApi.Attributes["certified" | "declared" | "verified"]
 ): m2mGatewayApi.EServiceDescriptorAttributes {
-  return attributeGroups.map((group) =>
-    group.map((attribute) =>
-      toM2MGatewayApiEServiceDescriptorAttribute(attribute)
-    )
-  );
+  return {
+    attributes: attributeGroups.map((group) =>
+      group.map((attribute) =>
+        toM2MGatewayApiEServiceDescriptorAttribute(attribute)
+      )
+    ),
+  };
 }

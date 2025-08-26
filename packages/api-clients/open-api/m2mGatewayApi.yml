@@ -5719,7 +5719,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptorCertifiedAttributesResponse"
+                $ref: "#/components/schemas/EServiceDescriptorAttributes"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5827,7 +5827,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptorDeclaredAttributesResponse"
+                $ref: "#/components/schemas/EServiceDescriptorAttributes"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5935,7 +5935,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptorVerifiedAttributesResponse"
+                $ref: "#/components/schemas/EServiceDescriptorAttributes"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -11805,7 +11805,7 @@ components:
       enum:
         - REST
         - SOAP
-    EServiceDescriptorAttributes:
+    EServiceDescriptorAttributesGroup:
       description: |
         A list of groups of attributes associated with an E-Service descriptor.
         An E-Service descriptor can have multiple attribute groups for each
@@ -11819,30 +11819,14 @@ components:
         type: array
         items:
           $ref: "#/components/schemas/EServiceDescriptorAttribute"
-    EServiceDescriptorCertifiedAttributesResponse:
+    EServiceDescriptorAttributes:
       type: object
       additionalProperties: false
       properties:
-        certifiedAttributes:
-          $ref: "#/components/schemas/EServiceDescriptorAttributes"
+        attributes:
+          $ref: "#/components/schemas/EServiceDescriptorAttributesGroup"
       required:
-        - certifiedAttributes
-    EServiceDescriptorDeclaredAttributesResponse:
-      type: object
-      additionalProperties: false
-      properties:
-        declaredAttributes:
-          $ref: "#/components/schemas/EServiceDescriptorAttributes"
-      required:
-        - declaredAttributes
-    EServiceDescriptorVerifiedAttributesResponse:
-      type: object
-      additionalProperties: false
-      properties:
-        verifiedAttributes:
-          $ref: "#/components/schemas/EServiceDescriptorAttributes"
-      required:
-        - verifiedAttributes
+        - attributes
     EServiceDescriptorAttribute:
       type: object
       additionalProperties: false

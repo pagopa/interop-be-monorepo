@@ -55,7 +55,7 @@ export function eserviceServiceBuilder(
       await clients.catalogProcessClient.patchUpdateDraftDescriptor(
         {
           attributes: {
-            [attributeKind]: toCatalogApiAttributesSeed(seed),
+            [attributeKind]: toCatalogApiAttributesSeed(seed.attributes),
           },
         },
         {
@@ -816,61 +816,55 @@ export function eserviceServiceBuilder(
       descriptorId: DescriptorId,
       seed: m2mGatewayApi.EServiceDescriptorAttributes,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorCertifiedAttributesResponse> {
+    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
       logger.info(
         `Updating Certified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      const updatedAttributes = await replaceEServiceDescriptorAttributes(
+      return await replaceEServiceDescriptorAttributes(
         eserviceId,
         descriptorId,
         "certified",
         seed,
         headers
       );
-
-      return { certifiedAttributes: updatedAttributes };
     },
     async updateEServiceDescriptorDeclaredAttributes(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: m2mGatewayApi.EServiceDescriptorAttributes,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorDeclaredAttributesResponse> {
+    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
       logger.info(
         `Updating Declared Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      const updatedAttributes = await replaceEServiceDescriptorAttributes(
+      return await replaceEServiceDescriptorAttributes(
         eserviceId,
         descriptorId,
         "declared",
         seed,
         headers
       );
-
-      return { declaredAttributes: updatedAttributes };
     },
     async updateEServiceDescriptorVerifiedAttributes(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: m2mGatewayApi.EServiceDescriptorAttributes,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorVerifiedAttributesResponse> {
+    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
       logger.info(
         `Updating Verified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      const updatedAttributes = await replaceEServiceDescriptorAttributes(
+      return await replaceEServiceDescriptorAttributes(
         eserviceId,
         descriptorId,
         "verified",
         seed,
         headers
       );
-
-      return { verifiedAttributes: updatedAttributes };
-
+    },
     async getEServiceRiskAnalyses(
       eserviceId: EServiceId,
       { limit, offset }: m2mGatewayApi.GetEServiceRiskAnalysesQueryParams,
