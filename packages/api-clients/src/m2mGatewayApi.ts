@@ -64,6 +64,10 @@ export type GetTenantVerifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
   "getTenantVerifiedAttributes"
 >;
+export type GetTenantVerifiedAttributeVerifiersQueryParams =
+  QueryParametersByAlias<TenantApi, "getTenantVerifiedAttributeVerifiers">;
+export type GetTenantVerifiedAttributeRevokersQueryParams =
+  QueryParametersByAlias<TenantApi, "getTenantVerifiedAttributeRevokers">;
 
 export type GetTenantDeclaredAttributesQueryParams = QueryParametersByAlias<
   TenantApi,

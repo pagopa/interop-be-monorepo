@@ -8,20 +8,14 @@ import {
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  tenantReadModelServiceBuilder,
-  makeDrizzleConnection,
-} from "pagopa-interop-readmodel";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
-import { readModelServiceBuilder } from "./readModelService.js";
+import { tenantWriterServiceBuilder } from "./tenantWriterService.js";
 
 const db = makeDrizzleConnection(config);
-const readModelService = readModelServiceBuilder(
-  db,
-  tenantReadModelServiceBuilder(db)
-);
+const tenantWriterService = tenantWriterServiceBuilder(db);
 
 async function processMessage({
   message,
@@ -41,8 +35,12 @@ async function processMessage({
   });
 
   await match(decodedMessage)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, readModelService))
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, readModelService))
+    .with({ event_version: 1 }, (msg) =>
+      handleMessageV1(msg, tenantWriterService)
+    )
+    .with({ event_version: 2 }, (msg) =>
+      handleMessageV2(msg, tenantWriterService)
+    )
     .exhaustive();
   loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`

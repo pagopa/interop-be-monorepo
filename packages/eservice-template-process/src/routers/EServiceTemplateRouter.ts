@@ -45,6 +45,7 @@ import {
   eserviceTemplateToApiEServiceTemplate,
   eserviceTemplateVersionToApiEServiceTemplateVersion,
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
+  documentToApiDocument,
 } from "../model/domain/apiConverter.js";
 
 const eserviceTemplatesRouter = (
@@ -399,6 +400,7 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
+          // The same check is done in the backend-for-frontend, if you change this check, change it there too
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
           const updatedEServiceTemplate =
@@ -444,7 +446,9 @@ const eserviceTemplatesRouter = (
               },
               ctx
             );
-          return res.status(200).send(eServiceTemplateDocument);
+          return res
+            .status(200)
+            .send(documentToApiDocument(eServiceTemplateDocument));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
