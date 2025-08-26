@@ -762,7 +762,7 @@ const eserviceRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
     .put(
       "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes",
       async (req, res) => {
@@ -781,7 +781,7 @@ const eserviceRouter = (
           return res
             .status(200)
             .send(
-              m2mGatewayApi.EServiceDescriptorCertifiedAttributesResponse.parse(
+              m2mGatewayApi.EServiceDescriptorAttributes.parse(
                 updatedAttributes
               )
             );
@@ -814,7 +814,7 @@ const eserviceRouter = (
           return res
             .status(200)
             .send(
-              m2mGatewayApi.EServiceDescriptorDeclaredAttributesResponse.parse(
+              m2mGatewayApi.EServiceDescriptorAttributes.parse(
                 updatedAttributes
               )
             );
@@ -847,7 +847,7 @@ const eserviceRouter = (
           return res
             .status(200)
             .send(
-              m2mGatewayApi.EServiceDescriptorVerifiedAttributesResponse.parse(
+              m2mGatewayApi.EServiceDescriptorAttributes.parse(
                 updatedAttributes
               )
             );
