@@ -4,11 +4,14 @@ import { z } from "zod";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { UserServiceSQL } from "../services/userServiceSQL.js";
 
-export type HandlerParams<T extends z.ZodType> = {
-  decodedMessage: EventEnvelope<z.infer<T>>;
-  correlationId: CorrelationId;
-  logger: Logger;
+export type HandlerCommonParams = {
   readModelService: ReadModelServiceSQL;
+  logger: Logger;
   templateService: HtmlTemplateService;
   userService: UserServiceSQL;
+  correlationId: CorrelationId;
+};
+
+export type HandlerParams<T extends z.ZodType> = HandlerCommonParams & {
+  decodedMessage: EventEnvelope<z.infer<T>>;
 };

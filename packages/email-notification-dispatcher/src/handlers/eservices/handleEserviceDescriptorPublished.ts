@@ -1,15 +1,9 @@
+import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
 import {
-  getLatestTenantMailOfKind,
-  HtmlTemplateService,
-  Logger,
-} from "pagopa-interop-commons";
-import {
-  EServiceV2,
   fromEServiceV2,
   tenantMailKind,
   EmailNotificationMessagePayload,
   generateId,
-  CorrelationId,
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
@@ -19,21 +13,13 @@ import {
   retrieveLatestPublishedDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { EServiceHandlerParams } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
   "purposeSuspendedUnsuspendedToConsumer";
 
-export type EServiceDescriptorPublishedData = {
-  eserviceV2Msg?: EServiceV2;
-  readModelService: ReadModelServiceSQL;
-  logger: Logger;
-  templateService: HtmlTemplateService;
-  correlationId: CorrelationId;
-};
-
 export async function handleEserviceDescriptorPublished(
-  data: EServiceDescriptorPublishedData
+  data: EServiceHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     eserviceV2Msg,
