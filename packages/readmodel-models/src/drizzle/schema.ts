@@ -17,6 +17,7 @@ import {
   readmodelClient,
   readmodelProducerKeychain,
   readmodelPurpose,
+  readmodelPurposeTemplate,
   readmodelTenant,
   readmodelClientJwkKey,
   readmodelProducerJwkKey,
@@ -763,6 +764,7 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
     updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }),
     isFreeOfCharge: boolean("is_free_of_charge").notNull(),
     freeOfChargeReason: varchar("free_of_charge_reason"),
+    purposeTemplateId: uuid("purpose_template_id"),
   },
   (table) => [
     unique("purpose_id_metadata_version_unique").on(
@@ -1811,6 +1813,217 @@ export const userEnabledEmailNotificationInReadmodelNotificationConfig =
       primaryKey({
         columns: [table.userNotificationConfigId, table.notificationType],
         name: "user_enabled_email_notification_pkey",
+      }),
+    ]
+  );
+
+export const purposeTemplateInReadmodelPurposeTemplate =
+  readmodelPurposeTemplate.table(
+    "purpose_template",
+    {
+      id: uuid().primaryKey().notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      targetDescription: varchar("target_description").notNull(),
+      targetTenantKind: varchar("target_tenant_kind").notNull(),
+      creatorId: uuid("creator_id").notNull(),
+      state: varchar().notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      updatedAt: timestamp("updated_at", {
+        withTimezone: true,
+        mode: "string",
+      }),
+      purposeTitle: varchar("purpose_title").notNull(),
+      purposeDescription: varchar("purpose_description").notNull(),
+      purposeIsFreeOfCharge: boolean("purpose_is_free_of_charge").notNull(),
+      purposeFreeOfChargeReason: varchar("purpose_free_of_charge_reason"),
+      purposeDailyCalls: integer("purpose_daily_calls"),
+    },
+    (table) => [
+      unique("purpose_template_id_metadata_version_key").on(
+        table.id,
+        table.metadataVersion
+      ),
+    ]
+  );
+
+export const purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate =
+  readmodelPurposeTemplate.table(
+    "purpose_template_risk_analysis_form",
+    {
+      id: uuid().primaryKey().notNull(),
+      purposeTemplateId: uuid("purpose_template_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      version: varchar().notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.purposeTemplateId],
+        foreignColumns: [purposeTemplateInReadmodelPurposeTemplate.id],
+        name: "purpose_template_risk_analysis_form_purpose_template_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.purposeTemplateId, table.metadataVersion],
+        foreignColumns: [
+          purposeTemplateInReadmodelPurposeTemplate.id,
+          purposeTemplateInReadmodelPurposeTemplate.metadataVersion,
+        ],
+        name: "purpose_template_risk_analysi_purpose_template_id_metadata_fkey",
+      }),
+      unique("purpose_template_risk_analysis_form_purpose_template_id_key").on(
+        table.purposeTemplateId
+      ),
+    ]
+  );
+
+export const purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate =
+  readmodelPurposeTemplate.table(
+    "purpose_template_risk_analysis_answer",
+    {
+      id: uuid().primaryKey().notNull(),
+      purposeTemplateId: uuid("purpose_template_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
+      kind: varchar().notNull(),
+      key: varchar().notNull(),
+      value: varchar().array().notNull(),
+      editable: boolean().notNull(),
+      suggestedValues: varchar("suggested_values").array(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.purposeTemplateId],
+        foreignColumns: [purposeTemplateInReadmodelPurposeTemplate.id],
+        name: "purpose_template_risk_analysis_answer_purpose_template_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.riskAnalysisFormId],
+        foreignColumns: [
+          purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+        ],
+        name: "purpose_template_risk_analysis_answe_risk_analysis_form_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.purposeTemplateId, table.metadataVersion],
+        foreignColumns: [
+          purposeTemplateInReadmodelPurposeTemplate.id,
+          purposeTemplateInReadmodelPurposeTemplate.metadataVersion,
+        ],
+        name: "purpose_template_risk_analys_purpose_template_id_metadata_fkey1",
+      }),
+    ]
+  );
+
+export const purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate =
+  readmodelPurposeTemplate.table(
+    "purpose_template_risk_analysis_answer_annotation_document",
+    {
+      id: uuid().primaryKey().notNull(),
+      purposeTemplateId: uuid("purpose_template_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      annotationId: uuid("annotation_id").notNull(),
+      name: varchar().notNull(),
+      prettyName: varchar("pretty_name").notNull(),
+      contentType: varchar("content_type").notNull(),
+      path: varchar().notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.purposeTemplateId],
+        foreignColumns: [purposeTemplateInReadmodelPurposeTemplate.id],
+        name: "purpose_template_risk_analysis_answer_purpose_template_id_fkey1",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.annotationId],
+        foreignColumns: [
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+        ],
+        name: "purpose_template_risk_analysis_answer_annota_annotation_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.purposeTemplateId, table.metadataVersion],
+        foreignColumns: [
+          purposeTemplateInReadmodelPurposeTemplate.id,
+          purposeTemplateInReadmodelPurposeTemplate.metadataVersion,
+        ],
+        name: "purpose_template_risk_analys_purpose_template_id_metadata_fkey3",
+      }),
+    ]
+  );
+
+export const purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate =
+  readmodelPurposeTemplate.table(
+    "purpose_template_risk_analysis_answer_annotation",
+    {
+      id: uuid().primaryKey().notNull(),
+      purposeTemplateId: uuid("purpose_template_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      answerId: uuid("answer_id").notNull(),
+      text: varchar().notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.purposeTemplateId],
+        foreignColumns: [purposeTemplateInReadmodelPurposeTemplate.id],
+        name: "purpose_template_risk_analysis_answer__purpose_template_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.answerId],
+        foreignColumns: [
+          purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+        ],
+        name: "purpose_template_risk_analysis_answer_annotation_answer_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.purposeTemplateId, table.metadataVersion],
+        foreignColumns: [
+          purposeTemplateInReadmodelPurposeTemplate.id,
+          purposeTemplateInReadmodelPurposeTemplate.metadataVersion,
+        ],
+        name: "purpose_template_risk_analys_purpose_template_id_metadata_fkey2",
+      }),
+      unique(
+        "purpose_template_risk_analysis_answer_annotation_answer_id_key"
+      ).on(table.answerId),
+    ]
+  );
+
+export const purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate =
+  readmodelPurposeTemplate.table(
+    "purpose_template_eservice_descriptor",
+    {
+      metadataVersion: integer("metadata_version").notNull(),
+      purposeTemplateId: uuid("purpose_template_id").notNull(),
+      eserviceId: uuid("eservice_id").notNull(),
+      descriptorId: uuid("descriptor_id").notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.purposeTemplateId],
+        foreignColumns: [purposeTemplateInReadmodelPurposeTemplate.id],
+        name: "purpose_template_eservice_descriptor_purpose_template_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.metadataVersion, table.purposeTemplateId],
+        foreignColumns: [
+          purposeTemplateInReadmodelPurposeTemplate.id,
+          purposeTemplateInReadmodelPurposeTemplate.metadataVersion,
+        ],
+        name: "purpose_template_eservice_des_purpose_template_id_metadata_fkey",
+      }),
+      primaryKey({
+        columns: [table.purposeTemplateId, table.eserviceId],
+        name: "purpose_template_eservice_descriptor_pkey",
       }),
     ]
   );

@@ -53,8 +53,6 @@ describe("updateUserNotificationConfig", () => {
         agreementActivatedRejectedToConsumer:
           !userNotificationConfig.inAppConfig
             .agreementActivatedRejectedToConsumer,
-        purposeVersionOverQuotaToConsumer:
-          !userNotificationConfig.inAppConfig.purposeVersionOverQuotaToConsumer,
         purposeActivatedRejectedToConsumer:
           !userNotificationConfig.inAppConfig
             .purposeActivatedRejectedToConsumer,

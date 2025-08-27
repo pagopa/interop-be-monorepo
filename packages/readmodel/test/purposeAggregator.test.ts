@@ -4,6 +4,7 @@ import {
   generateId,
   Purpose,
   PurposeRiskAnalysisForm,
+  PurposeTemplateId,
   PurposeVersion,
   RiskAnalysisId,
   tenantKind,
@@ -44,6 +45,7 @@ describe("Purpose aggregator", () => {
         freeOfChargeReason: "Free of charge reason",
         riskAnalysisForm: purposeRiskAnalysisForm,
         versions: [purposeVersion],
+        purposeTemplateId: generateId<PurposeTemplateId>(),
       },
       metadata: { version: 1 },
     };

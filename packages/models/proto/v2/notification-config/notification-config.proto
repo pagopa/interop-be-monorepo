@@ -12,7 +12,6 @@ message NotificationConfigV2 {
   bool agreementSuspendedUnsuspendedToConsumer = 6;
   bool eserviceStateChangedToConsumer = 7;
   bool agreementActivatedRejectedToConsumer = 8;
-  bool purposeVersionOverQuotaToConsumer = 9;
   bool purposeActivatedRejectedToConsumer = 10;
   bool purposeSuspendedUnsuspendedToConsumer = 11;
   bool newEserviceTemplateVersionToInstantiator = 12;
