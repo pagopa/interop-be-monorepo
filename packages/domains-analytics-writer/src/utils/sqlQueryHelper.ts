@@ -187,7 +187,7 @@ export async function mergeDeletingCascadeById<
 }
 
 export type ColumnValue = string | number | Date | undefined | null | boolean;
-const sanitizeColumnValue = (s: string): string => s.replace(/\\/g, "\\\\");
+const sanitizeColumnValue = (s: string): string => s.replace(/\\$/, "\\\\");
 
 /**
  * Builds a pg-promise ColumnSet for performing bulk insert/update operations on a given table.
