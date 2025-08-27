@@ -16,6 +16,7 @@ import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /eservices/:eserviceId/descriptors/:descriptorId/reject router test", () => {
   const mockApiDescriptor: catalogApi.EServiceDescriptor = {
@@ -99,20 +100,23 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/reject router te
     expect(res.status).toBe(403);
   });
 
-  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockEserviceService.rejectDelegatedEServiceDescriptor = vi
-        .fn()
-        .mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        mockApiEservice.id,
-        mockApiDescriptor.id
-      );
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockEserviceService.rejectDelegatedEServiceDescriptor = vi
+      .fn()
+      .mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      mockApiEservice.id,
+      mockApiDescriptor.id
+    );
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 });
