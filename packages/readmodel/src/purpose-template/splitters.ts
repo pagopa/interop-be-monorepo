@@ -1,5 +1,6 @@
 import {
   dateToString,
+  EServiceDescriptorPurposeTemplate,
   PurposeTemplate,
   PurposeTemplateId,
   riskAnalysisAnswerKind,
@@ -11,6 +12,7 @@ import {
   RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
 import {
+  PurposeTemplateEServiceDescriptorSQL,
   PurposeTemplateItemsSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationSQL,
@@ -125,7 +127,6 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
         editable,
         annotation,
         suggestedValues,
-        assistiveText,
         ...answerRest
       }: RiskAnalysisTemplateSingleAnswer = riskAnalysisTemplateSingleAnswer;
 
@@ -148,7 +149,6 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
             id,
             purposeTemplateId,
             metadataVersion,
-            assistiveText: assistiveText ? assistiveText : null,
             riskAnalysisFormId: riskAnalysisFormTemplate.id,
             kind: riskAnalysisAnswerKind.single,
             key,
@@ -195,7 +195,6 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
         values,
         editable,
         annotation,
-        assistiveText,
         ...answerRest
       }: RiskAnalysisTemplateMultiAnswer = riskAnalysisTemplateMultiAnswer;
 
@@ -224,7 +223,6 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
             value: values,
             editable,
             suggestedValues: null,
-            assistiveText: assistiveText ? assistiveText : null,
           },
         ],
         riskAnalysisTemplateMultiAnswersAnnotations: [
@@ -313,3 +311,14 @@ const splitRiskAnalysisTemplateAnswerAnnotationsIntoObjectsSQL = (
     riskAnalysisAnswerAnnotationDocumentsSQL,
   };
 };
+
+export const toPurposeTemplateEServiceDescriptorSQL = (
+  purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate,
+  metadataVersion: number
+): PurposeTemplateEServiceDescriptorSQL => ({
+  metadataVersion,
+  purposeTemplateId: purposeTemplateEServiceDescriptor.purposeTemplateId,
+  eserviceId: purposeTemplateEServiceDescriptor.eserviceId,
+  descriptorId: purposeTemplateEServiceDescriptor.descriptorId,
+  createdAt: dateToString(purposeTemplateEServiceDescriptor.createdAt),
+});

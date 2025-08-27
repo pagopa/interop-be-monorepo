@@ -340,23 +340,6 @@ export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
   freeOfChargeReason: "test",
 });
 
-export const getMockPurposeTemplate = (
-  creatorId: TenantId = generateId<TenantId>(),
-  state: PurposeTemplateState = purposeTemplateState.draft
-): PurposeTemplate => ({
-  id: generateId(),
-  targetDescription: "Target description",
-  targetTenantKind: tenantKind.PA,
-  creatorId,
-  state,
-  createdAt: new Date(),
-  purposeTitle: "Purpose title",
-  purposeDescription: "Purpose description",
-
-  purposeIsFreeOfCharge: false,
-  purposeDailyCalls: 100,
-});
-
 export const getMockPurposeVersion = (
   state?: PurposeVersionState
 ): PurposeVersion => ({
@@ -1313,4 +1296,19 @@ export const getMockUserNotificationConfig = (): UserNotificationConfig => ({
   emailConfig: getMockNotificationConfig(),
   createdAt: generateMock(z.coerce.date()),
   updatedAt: generateMock(z.coerce.date().optional()),
+});
+
+export const getMockPurposeTemplate = (
+  creatorId: TenantId = generateId<TenantId>(),
+  state: PurposeTemplateState = purposeTemplateState.draft
+): PurposeTemplate => ({
+  id: generateId(),
+  targetDescription: "Mock purpose template target",
+  targetTenantKind: tenantKind.PA,
+  creatorId,
+  state,
+  createdAt: new Date(),
+  purposeTitle: "Mock purpose template title",
+  purposeDescription: "Mock purpose template description",
+  purposeIsFreeOfCharge: false,
 });

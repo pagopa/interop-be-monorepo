@@ -1,11 +1,16 @@
 import { and, eq, SQL } from "drizzle-orm";
 import {
+  EServiceDescriptorPurposeTemplate,
   genericInternalError,
   PurposeTemplate,
+  PurposeTemplateId,
+  stringToDate,
+  unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
@@ -14,12 +19,21 @@ import {
 } from "pagopa-interop-readmodel-models";
 import {
   aggregatePurposeTemplate,
+  aggregatePurposeTemplateArray,
   toPurposeTemplateAggregator,
+  toPurposeTemplateAggregatorArray,
 } from "./purpose-template/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
+    async getPurposeTemplateById(
+      purposeTemplateId: PurposeTemplateId
+    ): Promise<WithMetadata<PurposeTemplate> | undefined> {
+      return await this.getPurposeTemplateByFilter(
+        eq(purposeTemplateInReadmodelPurposeTemplate.id, purposeTemplateId)
+      );
+    },
     async getPurposeTemplateByFilter(
       filter: SQL | undefined
     ): Promise<WithMetadata<PurposeTemplate> | undefined> {
@@ -27,16 +41,19 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
         throw genericInternalError("Filter cannot be undefined");
       }
 
+      /*
+        purpose template -> 1 purpose_risk_analysis_form_template -> 2 purpose_risk_analysis_template_answer -> 3 purpose_risk_analysis_template_answer_annotation -> 4 purpose_risk_analysis_template_answer_annotation_document
+      */
       const queryResult = await db
         .select({
           purposeTemplate: purposeTemplateInReadmodelPurposeTemplate,
-          purposeTemplateRiskAnalysisForm:
+          purposeRiskAnalysisFormTemplate:
             purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
-          purposeTemplateRiskAnalysisAnswer:
+          purposeRiskAnalysisTemplateAnswer:
             purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-          purposeTemplateRiskAnalysisAnswerAnnotation:
+          purposeRiskAnalysisTemplateAnswerAnnotation:
             purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-          purposeTemplateRiskAnalysisAnswerAnnotationDocument:
+          purposeRiskAnalysisTemplateAnswerAnnotationDocument:
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
         })
         .from(purposeTemplateInReadmodelPurposeTemplate)
@@ -54,10 +71,6 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
           purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
           and(
             eq(
-              purposeTemplateInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.purposeTemplateId
-            ),
-            eq(
               purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
               purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
             )
@@ -66,17 +79,21 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
         .leftJoin(
           // 3
           purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateInReadmodelPurposeTemplate.id,
-            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.purposeTemplateId
+          and(
+            eq(
+              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
+            )
           )
         )
         .leftJoin(
           // 4
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
-            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId
+          and(
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+            )
           )
         );
 
@@ -86,9 +103,97 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
 
       return aggregatePurposeTemplate(toPurposeTemplateAggregator(queryResult));
     },
+    async getPurposeTemplatesByFilter(
+      filter: SQL | undefined
+    ): Promise<Array<WithMetadata<PurposeTemplate>>> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
+      const queryResult = await db
+        .select({
+          purposeTemplate: purposeTemplateInReadmodelPurposeTemplate,
+          purposeRiskAnalysisFormTemplate:
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswer:
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswerAnnotation:
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswerAnnotationDocument:
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+        })
+        .from(purposeTemplateInReadmodelPurposeTemplate)
+        .where(filter)
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+          and(
+            eq(
+              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
+            )
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          and(
+            eq(
+              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
+            )
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          and(
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+            )
+          )
+        );
+
+      return aggregatePurposeTemplateArray(
+        toPurposeTemplateAggregatorArray(queryResult)
+      );
+    },
+    async getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
+      purposeTemplateId: PurposeTemplateId
+    ): Promise<EServiceDescriptorPurposeTemplate[]> {
+      return await this.getPurposeTemplateEServiceDescriptorsByFilter(
+        eq(
+          purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+          purposeTemplateId
+        )
+      );
+    },
+    async getPurposeTemplateEServiceDescriptorsByFilter(
+      filter: SQL | undefined
+    ): Promise<EServiceDescriptorPurposeTemplate[]> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
+      const queryResult = await db
+        .select()
+        .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+        .where(filter);
+
+      return queryResult.map((row) => ({
+        purposeTemplateId: unsafeBrandId(row.purposeTemplateId),
+        eserviceId: unsafeBrandId(row.eserviceId),
+        descriptorId: unsafeBrandId(row.descriptorId),
+        createdAt: stringToDate(row.createdAt),
+      }));
+    },
   };
 }
-
 export type PurposeTemplateReadModelService = ReturnType<
   typeof purposeTemplateReadModelServiceBuilder
 >;

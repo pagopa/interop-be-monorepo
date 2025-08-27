@@ -1,11 +1,6 @@
 import {
   RiskAnalysisFormTemplate,
-  RiskAnalysisFormTemplateId,
-  RiskAnalysisMultiAnswerId,
-  RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotation,
-  RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  RiskAnalysisTemplateAnswerAnnotationId,
   generateId,
 } from "pagopa-interop-models";
 
@@ -19,7 +14,6 @@ export type RiskAnalysisTemplateAnswerToValidate = {
   editable: boolean;
   annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation;
   suggestedValues: string[];
-  assistiveText?: string;
 };
 
 export type RiskAnalysisTemplateValidatedAnswerAnnotation = {
@@ -56,7 +50,6 @@ export type RiskAnalysisTemplateValidatedSingleAnswer = {
   editable: boolean;
   annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation;
   suggestedValues: string[];
-  assistiveText?: string;
 };
 
 export type RiskAnalysisTemplateValidatedMultiAnswer = {
@@ -64,31 +57,28 @@ export type RiskAnalysisTemplateValidatedMultiAnswer = {
   values: string[];
   editable: boolean;
   annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation;
-  assistiveText?: string;
 };
 
 export function riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
   validatedForm: RiskAnalysisTemplateValidatedForm
 ): RiskAnalysisFormTemplate {
   return {
-    id: generateId<RiskAnalysisFormTemplateId>(),
+    id: generateId(),
     version: validatedForm.version,
     singleAnswers: validatedForm.singleAnswers.map((a) => ({
-      id: generateId<RiskAnalysisSingleAnswerId>(),
+      id: generateId(),
       key: a.key,
       value: a.value,
       editable: a.editable,
-      annotation: mapAnnotation(a.annotation),
-      assistiveText: a.assistiveText,
       suggestedValues: a.suggestedValues,
+      ...(a.annotation ? { annotation: mapAnnotation(a.annotation) } : {}),
     })),
     multiAnswers: validatedForm.multiAnswers.map((a) => ({
-      id: generateId<RiskAnalysisMultiAnswerId>(),
+      id: generateId(),
       key: a.key,
       values: a.values,
       editable: a.editable,
-      annotation: mapAnnotation(a.annotation),
-      assistiveText: a.assistiveText,
+      ...(a.annotation ? { annotation: mapAnnotation(a.annotation) } : {}),
     })),
   };
 }
@@ -107,7 +97,6 @@ export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
             editable: singleAnswer.editable,
             suggestedValues: singleAnswer.suggestedValues,
             annotation: singleAnswer.annotation,
-            assistiveText: singleAnswer.assistiveText,
           },
         }),
         {}
@@ -120,7 +109,6 @@ export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
             editable: multiAnswer.editable,
             suggestedValues: [],
             annotation: multiAnswer.annotation,
-            assistiveText: multiAnswer.assistiveText,
           },
         }),
         {}
@@ -130,17 +118,15 @@ export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
 }
 
 function mapAnnotation(
-  annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation
-): RiskAnalysisTemplateAnswerAnnotation | undefined {
-  return annotation
-    ? {
-        id: generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
-        text: annotation.text,
-        docs: annotation.docs.map((d) => ({
-          id: generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
-          ...d,
-          createdAt: new Date(),
-        })),
-      }
-    : undefined;
+  annotation: RiskAnalysisTemplateValidatedAnswerAnnotation
+): RiskAnalysisTemplateAnswerAnnotation {
+  return {
+    id: generateId(),
+    text: annotation.text,
+    docs: annotation.docs.map((d) => ({
+      id: generateId(),
+      ...d,
+      createdAt: new Date(),
+    })),
+  };
 }

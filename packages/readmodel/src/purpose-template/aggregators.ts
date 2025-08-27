@@ -1,145 +1,115 @@
-/* eslint-disable sonarjs/no-collapsible-if */
 import {
-  PurposeTemplateItemsSQL,
-  PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL,
-  PurposeTemplateRiskAnalysisAnswerAnnotationSQL,
-  PurposeTemplateRiskAnalysisAnswerSQL,
-  PurposeTemplateRiskAnalysisFormSQL,
-  PurposeTemplateSQL,
-} from "pagopa-interop-readmodel-models";
-import {
-  genericInternalError,
   PurposeTemplate,
+  PurposeTemplateId,
   PurposeTemplateState,
   RiskAnalysisAnswerKind,
   riskAnalysisAnswerKind,
   RiskAnalysisFormTemplate,
-  RiskAnalysisFormTemplateId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
+  stringToDate,
   TenantKind,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
+import {
+  PurposeTemplateRiskAnalysisAnswerSQL,
+  PurposeTemplateRiskAnalysisAnswerAnnotationSQL,
+  PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL,
+  PurposeTemplateRiskAnalysisFormSQL,
+  PurposeTemplateItemsSQL,
+  PurposeTemplateSQL,
+} from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
-import { makeUniqueKey, throwIfMultiple } from "../utils.js";
+import { throwIfMultiple } from "../utils.js";
 
-// Helper function to add unique items to arrays
-function addUniqueItem<T extends { id: string; purposeTemplateId: string }>(
-  item: T | null,
-  idSet: Set<string>,
-  array: T[]
-): void {
-  if (!item) {
-    return;
-  }
-
-  const uniqueKey = makeUniqueKey([item.id, item.purposeTemplateId]);
-  if (!idSet.has(uniqueKey)) {
-    idSet.add(uniqueKey);
-    // eslint-disable-next-line functional/immutable-data
-    array.push(item);
-  }
-}
-
-// Helper function to add simple unique items (only id)
-function addUniqueSimpleItem<T extends { id: string }>(
-  item: T | null,
-  idSet: Set<string>,
-  array: T[]
-): void {
-  if (!item) {
-    return;
-  }
-
-  if (!idSet.has(item.id)) {
-    idSet.add(item.id);
-    // eslint-disable-next-line functional/immutable-data
-    array.push(item);
-  }
-}
-
-const purposeTemplateRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
-  riskAnalysisFormSQL: PurposeTemplateRiskAnalysisFormSQL | undefined,
-  answers: PurposeTemplateRiskAnalysisAnswerSQL[] | undefined
-): RiskAnalysisFormTemplate | undefined => {
-  if (!riskAnalysisFormSQL) {
-    return undefined;
-  }
-
-  if (!answers) {
-    throw genericInternalError(
-      `Purpose template risk analysis form with id ${riskAnalysisFormSQL.id} found without answers`
+export const aggregatePurposeTemplateArray = ({
+  purposeTemplatesSQL,
+  riskAnalysisFormTemplatesSQL,
+  riskAnalysisTemplateAnswersSQL,
+  riskAnalysisTemplateAnswersAnnotationsSQL,
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+}: {
+  purposeTemplatesSQL: PurposeTemplateSQL[];
+  riskAnalysisFormTemplatesSQL: PurposeTemplateRiskAnalysisFormSQL[];
+  riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
+  riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+}): Array<WithMetadata<PurposeTemplate>> => {
+  const riskAnalysisFormTemplateByPurposeTemplateId =
+    createPurposeTemplateSQLPropertyMap(riskAnalysisFormTemplatesSQL);
+  const riskAnalysisTemplateAnswersByPurposeTemplateId =
+    createPurposeTemplateSQLPropertyMap(riskAnalysisTemplateAnswersSQL);
+  const riskAnalysisTemplateAnswerAnnotationsByPurposeTemplateId =
+    createPurposeTemplateSQLPropertyMap(
+      riskAnalysisTemplateAnswersAnnotationsSQL
     );
-  }
+  const riskAnalysisTemplateAnswerAnnotationDocumentsByPurposeTemplateId =
+    createPurposeTemplateSQLPropertyMap(
+      riskAnalysisTemplateAnswersAnnotationsDocumentsSQL
+    );
 
-  const { singleAnswers, multiAnswers } = answers.reduce<{
-    singleAnswers: RiskAnalysisTemplateSingleAnswer[];
-    multiAnswers: RiskAnalysisTemplateMultiAnswer[];
-  }>(
-    (acc, answer) =>
-      match({
-        ...answer,
-        kind: RiskAnalysisAnswerKind.parse(answer.kind),
-      })
-        .with({ kind: riskAnalysisAnswerKind.single }, (a) => ({
-          singleAnswers: [
-            ...acc.singleAnswers,
-            {
-              id: unsafeBrandId<RiskAnalysisSingleAnswerId>(a.id),
-              key: a.key,
-              value: a.value.length > 0 ? a.value[0] : undefined,
-              editable: a.editable,
-              assistiveText: a.assistiveText || undefined,
-              suggestedValues: a.suggestedValues || [],
-            },
-          ],
-          multiAnswers: acc.multiAnswers,
-        }))
-        .with({ kind: riskAnalysisAnswerKind.multi }, (a) => ({
-          singleAnswers: acc.singleAnswers,
-          multiAnswers: [
-            ...acc.multiAnswers,
-            {
-              id: unsafeBrandId<RiskAnalysisMultiAnswerId>(a.id),
-              key: a.key,
-              values: a.value || [],
-              editable: a.editable,
-              assistiveText: a.assistiveText || undefined,
-            },
-          ],
-        }))
-        .exhaustive(),
-    {
-      singleAnswers: [],
-      multiAnswers: [],
-    }
-  );
-
-  return {
-    id: unsafeBrandId<RiskAnalysisFormTemplateId>(riskAnalysisFormSQL.id),
-    version: riskAnalysisFormSQL.version,
-    singleAnswers,
-    multiAnswers,
-  };
+  return purposeTemplatesSQL.map((purposeTemplateSQL) => {
+    const purposeTemplateId = unsafeBrandId<PurposeTemplateId>(
+      purposeTemplateSQL.id
+    );
+    return aggregatePurposeTemplate({
+      purposeTemplateSQL,
+      riskAnalysisFormTemplateSQL:
+        riskAnalysisFormTemplateByPurposeTemplateId.get(purposeTemplateId)?.[0],
+      riskAnalysisTemplateAnswersSQL:
+        riskAnalysisTemplateAnswersByPurposeTemplateId.get(purposeTemplateId) ||
+        [],
+      riskAnalysisTemplateAnswersAnnotationsSQL:
+        riskAnalysisTemplateAnswerAnnotationsByPurposeTemplateId.get(
+          purposeTemplateId
+        ) || [],
+      riskAnalysisTemplateAnswersAnnotationsDocumentsSQL:
+        riskAnalysisTemplateAnswerAnnotationDocumentsByPurposeTemplateId.get(
+          purposeTemplateId
+        ) || [],
+    });
+  });
 };
+
+const createPurposeTemplateSQLPropertyMap = <
+  T extends
+    | PurposeTemplateRiskAnalysisFormSQL
+    | PurposeTemplateRiskAnalysisAnswerSQL
+    | PurposeTemplateRiskAnalysisAnswerAnnotationSQL
+    | PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL
+>(
+  items: T[]
+): Map<PurposeTemplateId, T[]> =>
+  items.reduce((acc, item) => {
+    const purposeTemplateId = unsafeBrandId<PurposeTemplateId>(
+      item.purposeTemplateId
+    );
+    const values = acc.get(purposeTemplateId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(purposeTemplateId, values);
+
+    return acc;
+  }, new Map<PurposeTemplateId, T[]>());
 
 export const aggregatePurposeTemplate = ({
   purposeTemplateSQL,
   riskAnalysisFormTemplateSQL,
   riskAnalysisTemplateAnswersSQL,
-  riskAnalysisTemplateAnswersAnnotationsSQL:
-    _riskAnalysisTemplateAnswersAnnotationsSQL,
-  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL:
-    _riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+  riskAnalysisTemplateAnswersAnnotationsSQL,
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
 }: PurposeTemplateItemsSQL): WithMetadata<PurposeTemplate> => {
-  const riskAnalysisForm =
-    purposeTemplateRiskAnalysisFormSQLToPurposeRiskAnalysisForm(
-      riskAnalysisFormTemplateSQL,
-      riskAnalysisTemplateAnswersSQL
-    );
+  const purposeRiskAnalysisForm = aggregatePurposeTemplateRiskAnalysisForm({
+    riskAnalysisFormTemplateSQL,
+    riskAnalysisTemplateAnswersSQL,
+    riskAnalysisTemplateAnswersAnnotationsSQL,
+    riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+  });
 
   const purposeTemplate: PurposeTemplate = {
     id: unsafeBrandId(purposeTemplateSQL.id),
@@ -147,11 +117,18 @@ export const aggregatePurposeTemplate = ({
     targetTenantKind: TenantKind.parse(purposeTemplateSQL.targetTenantKind),
     creatorId: unsafeBrandId(purposeTemplateSQL.creatorId),
     state: PurposeTemplateState.parse(purposeTemplateSQL.state),
-    createdAt: new Date(purposeTemplateSQL.createdAt),
+    createdAt: stringToDate(purposeTemplateSQL.createdAt),
+    ...(purposeTemplateSQL.updatedAt
+      ? { updatedAt: stringToDate(purposeTemplateSQL.updatedAt) }
+      : {}),
     purposeTitle: purposeTemplateSQL.purposeTitle,
     purposeDescription: purposeTemplateSQL.purposeDescription,
+    ...(purposeRiskAnalysisForm
+      ? {
+          purposeRiskAnalysisForm,
+        }
+      : {}),
     purposeIsFreeOfCharge: purposeTemplateSQL.purposeIsFreeOfCharge,
-    ...(riskAnalysisForm ? { purposeRiskAnalysisForm: riskAnalysisForm } : {}),
     ...(purposeTemplateSQL.purposeFreeOfChargeReason
       ? {
           purposeFreeOfChargeReason:
@@ -161,39 +138,168 @@ export const aggregatePurposeTemplate = ({
     ...(purposeTemplateSQL.purposeDailyCalls
       ? { purposeDailyCalls: purposeTemplateSQL.purposeDailyCalls }
       : {}),
-    ...(purposeTemplateSQL.updatedAt
-      ? { updatedAt: new Date(purposeTemplateSQL.updatedAt) }
-      : {}),
   };
 
   return {
     data: purposeTemplate,
-    metadata: { version: purposeTemplateSQL.metadataVersion },
+    metadata: {
+      version: purposeTemplateSQL.metadataVersion,
+    },
+  };
+};
+
+export const aggregatePurposeTemplateRiskAnalysisForm = ({
+  riskAnalysisFormTemplateSQL,
+  riskAnalysisTemplateAnswersSQL,
+  riskAnalysisTemplateAnswersAnnotationsSQL,
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+}: {
+  riskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSQL | undefined;
+  riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
+  riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+}): RiskAnalysisFormTemplate | undefined => {
+  if (!riskAnalysisFormTemplateSQL) {
+    return undefined;
+  }
+
+  const riskAnalysisTemplateAnswersAnnotationsByAnswerId =
+    riskAnalysisTemplateAnswersAnnotationsSQL.reduce((acc, annotationSQL) => {
+      const answerId = unsafeBrandId<
+        RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+      >(annotationSQL.answerId);
+      acc.set(answerId, annotationSQL);
+
+      return acc;
+    }, new Map<RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId, PurposeTemplateRiskAnalysisAnswerAnnotationSQL>());
+
+  const riskAnalysisTemplateAnswersAnnotationsDocumentsByAnnotationId =
+    riskAnalysisTemplateAnswersAnnotationsDocumentsSQL.reduce(
+      (acc, documentSQL) => {
+        const annotationId =
+          unsafeBrandId<RiskAnalysisTemplateAnswerAnnotationId>(
+            documentSQL.annotationId
+          );
+        const documentsSQL = acc.get(annotationId) || [];
+        // eslint-disable-next-line functional/immutable-data
+        documentsSQL.push(documentSQL);
+        acc.set(annotationId, documentsSQL);
+
+        return acc;
+      },
+      new Map<
+        RiskAnalysisTemplateAnswerAnnotationId,
+        PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[]
+      >()
+    );
+
+  const {
+    riskAnalysisTemplateSingleAnswers,
+    riskAnalysisTemplateMultiAnswers,
+  } = riskAnalysisTemplateAnswersSQL.reduce(
+    (acc, answerSQL) => {
+      const answerId = unsafeBrandId<
+        RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+      >(answerSQL.id);
+      const annotationSQL =
+        riskAnalysisTemplateAnswersAnnotationsByAnswerId.get(answerId);
+
+      const annotationDocumentSQL = annotationSQL
+        ? riskAnalysisTemplateAnswersAnnotationsDocumentsByAnnotationId.get(
+            unsafeBrandId(annotationSQL.id)
+          )
+        : undefined;
+
+      const answerAnnotation: RiskAnalysisTemplateAnswerAnnotation | undefined =
+        annotationSQL
+          ? {
+              id: unsafeBrandId(annotationSQL.id),
+              text: annotationSQL.text,
+              docs: annotationDocumentSQL
+                ? annotationDocumentSQL.map((doc) => ({
+                    id: unsafeBrandId(doc.id),
+                    name: doc.name,
+                    prettyName: doc.prettyName,
+                    contentType: doc.contentType,
+                    path: doc.path,
+                    createdAt: stringToDate(doc.createdAt),
+                  }))
+                : [],
+            }
+          : undefined;
+
+      return match(RiskAnalysisAnswerKind.parse(answerSQL.kind))
+        .with(riskAnalysisAnswerKind.single, () => ({
+          riskAnalysisTemplateSingleAnswers: [
+            ...acc.riskAnalysisTemplateSingleAnswers,
+            {
+              id: unsafeBrandId(answerSQL.id),
+              key: answerSQL.key,
+              value: answerSQL.value[0],
+              editable: answerSQL.editable,
+              ...(answerAnnotation ? { annotation: answerAnnotation } : {}),
+              suggestedValues: answerSQL.suggestedValues || [],
+            } satisfies RiskAnalysisTemplateSingleAnswer,
+          ],
+          riskAnalysisTemplateMultiAnswers: [
+            ...acc.riskAnalysisTemplateMultiAnswers,
+          ],
+        }))
+        .with(riskAnalysisAnswerKind.multi, () => ({
+          riskAnalysisTemplateSingleAnswers: [
+            ...acc.riskAnalysisTemplateSingleAnswers,
+          ],
+          riskAnalysisTemplateMultiAnswers: [
+            ...acc.riskAnalysisTemplateMultiAnswers,
+            {
+              id: unsafeBrandId(answerSQL.id),
+              key: answerSQL.key,
+              values: answerSQL.value,
+              editable: answerSQL.editable,
+              ...(answerAnnotation ? { annotation: answerAnnotation } : {}),
+            } satisfies RiskAnalysisTemplateMultiAnswer,
+          ],
+        }))
+        .exhaustive();
+    },
+    {
+      riskAnalysisTemplateSingleAnswers:
+        new Array<RiskAnalysisTemplateSingleAnswer>(),
+      riskAnalysisTemplateMultiAnswers:
+        new Array<RiskAnalysisTemplateMultiAnswer>(),
+    }
+  );
+
+  return {
+    id: unsafeBrandId(riskAnalysisFormTemplateSQL.id),
+    version: riskAnalysisFormTemplateSQL.version,
+    singleAnswers: riskAnalysisTemplateSingleAnswers,
+    multiAnswers: riskAnalysisTemplateMultiAnswers,
   };
 };
 
 export const toPurposeTemplateAggregator = (
   queryRes: Array<{
     purposeTemplate: PurposeTemplateSQL;
-    purposeTemplateRiskAnalysisForm: PurposeTemplateRiskAnalysisFormSQL | null;
-    purposeTemplateRiskAnalysisAnswer: PurposeTemplateRiskAnalysisAnswerSQL | null;
-    purposeTemplateRiskAnalysisAnswerAnnotation: PurposeTemplateRiskAnalysisAnswerAnnotationSQL | null;
-    purposeTemplateRiskAnalysisAnswerAnnotationDocument: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL | null;
+    purposeRiskAnalysisFormTemplate: PurposeTemplateRiskAnalysisFormSQL | null;
+    purposeRiskAnalysisTemplateAnswer: PurposeTemplateRiskAnalysisAnswerSQL | null;
+    purposeRiskAnalysisTemplateAnswerAnnotation: PurposeTemplateRiskAnalysisAnswerAnnotationSQL | null;
+    purposeRiskAnalysisTemplateAnswerAnnotationDocument: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL | null;
   }>
 ): PurposeTemplateItemsSQL => {
   const {
     purposeTemplatesSQL,
-    riskAnalysisFormsTemplateSQL,
+    riskAnalysisFormTemplatesSQL,
     riskAnalysisTemplateAnswersSQL,
     riskAnalysisTemplateAnswersAnnotationsSQL,
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
   } = toPurposeTemplateAggregatorArray(queryRes);
 
-  throwIfMultiple(purposeTemplatesSQL, "purposeTemplate");
+  throwIfMultiple(purposeTemplatesSQL, "purpose template");
 
   return {
     purposeTemplateSQL: purposeTemplatesSQL[0],
-    riskAnalysisFormTemplateSQL: riskAnalysisFormsTemplateSQL[0],
+    riskAnalysisFormTemplateSQL: riskAnalysisFormTemplatesSQL[0],
     riskAnalysisTemplateAnswersSQL,
     riskAnalysisTemplateAnswersAnnotationsSQL,
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
@@ -203,67 +309,103 @@ export const toPurposeTemplateAggregator = (
 export const toPurposeTemplateAggregatorArray = (
   queryRes: Array<{
     purposeTemplate: PurposeTemplateSQL;
-    purposeTemplateRiskAnalysisForm: PurposeTemplateRiskAnalysisFormSQL | null;
-    purposeTemplateRiskAnalysisAnswer: PurposeTemplateRiskAnalysisAnswerSQL | null;
-    purposeTemplateRiskAnalysisAnswerAnnotation: PurposeTemplateRiskAnalysisAnswerAnnotationSQL | null;
-    purposeTemplateRiskAnalysisAnswerAnnotationDocument: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL | null;
+    purposeRiskAnalysisFormTemplate: PurposeTemplateRiskAnalysisFormSQL | null;
+    purposeRiskAnalysisTemplateAnswer: PurposeTemplateRiskAnalysisAnswerSQL | null;
+    purposeRiskAnalysisTemplateAnswerAnnotation: PurposeTemplateRiskAnalysisAnswerAnnotationSQL | null;
+    purposeRiskAnalysisTemplateAnswerAnnotationDocument: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL | null;
   }>
 ): {
   purposeTemplatesSQL: PurposeTemplateSQL[];
-  riskAnalysisFormsTemplateSQL: PurposeTemplateRiskAnalysisFormSQL[];
+  riskAnalysisFormTemplatesSQL: PurposeTemplateRiskAnalysisFormSQL[];
   riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
   riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
   riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
 } => {
-  const purposeTemplateIdSet = new Set<string>();
+  const purposeTemplateIdsSet = new Set<string>();
   const purposeTemplatesSQL: PurposeTemplateSQL[] = [];
 
-  const riskAnalysisFormIdSet = new Set<string>();
-  const riskAnalysisFormsTemplateSQL: PurposeTemplateRiskAnalysisFormSQL[] = [];
+  const riskAnalysisFormTemplateIdsSet = new Set<string>();
+  const riskAnalysisFormTemplatesSQL: PurposeTemplateRiskAnalysisFormSQL[] = [];
 
-  const riskAnalysisAnswerIdSet = new Set<string>();
+  const riskAnalysisTemplateAnswerIdsSet = new Set<string>();
   const riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[] =
     [];
 
-  const riskAnalysisAnswerAnnotationIdSet = new Set<string>();
+  const riskAnalysisTemplateAnswerAnnotationsIdsSet = new Set<string>();
   const riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[] =
     [];
 
-  const riskAnalysisAnswerAnnotationDocumentIdSet = new Set<string>();
+  const riskAnalysisTemplateAnswerAnnotationsDocumentsIdsSet =
+    new Set<string>();
   const riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[] =
     [];
 
   queryRes.forEach((row) => {
-    addUniqueSimpleItem(
-      row.purposeTemplate,
-      purposeTemplateIdSet,
-      purposeTemplatesSQL
-    );
-    addUniqueItem(
-      row.purposeTemplateRiskAnalysisForm,
-      riskAnalysisFormIdSet,
-      riskAnalysisFormsTemplateSQL
-    );
-    addUniqueItem(
-      row.purposeTemplateRiskAnalysisAnswer,
-      riskAnalysisAnswerIdSet,
-      riskAnalysisTemplateAnswersSQL
-    );
-    addUniqueItem(
-      row.purposeTemplateRiskAnalysisAnswerAnnotation,
-      riskAnalysisAnswerAnnotationIdSet,
-      riskAnalysisTemplateAnswersAnnotationsSQL
-    );
-    addUniqueItem(
-      row.purposeTemplateRiskAnalysisAnswerAnnotationDocument,
-      riskAnalysisAnswerAnnotationDocumentIdSet,
-      riskAnalysisTemplateAnswersAnnotationsDocumentsSQL
-    );
+    const purposeTemplateSQL = row.purposeTemplate;
+    if (!purposeTemplateIdsSet.has(purposeTemplateSQL.id)) {
+      purposeTemplateIdsSet.add(purposeTemplateSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      purposeTemplatesSQL.push(purposeTemplateSQL);
+    }
+
+    const riskAnalysisFormTemplateSQL = row.purposeRiskAnalysisFormTemplate;
+    if (
+      riskAnalysisFormTemplateSQL &&
+      !riskAnalysisFormTemplateIdsSet.has(riskAnalysisFormTemplateSQL.id)
+    ) {
+      riskAnalysisFormTemplateIdsSet.add(riskAnalysisFormTemplateSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      riskAnalysisFormTemplatesSQL.push(riskAnalysisFormTemplateSQL);
+    }
+
+    const riskAnalysisTemplateAnswerSQL = row.purposeRiskAnalysisTemplateAnswer;
+    if (
+      riskAnalysisTemplateAnswerSQL &&
+      !riskAnalysisTemplateAnswerIdsSet.has(riskAnalysisTemplateAnswerSQL.id)
+    ) {
+      riskAnalysisTemplateAnswerIdsSet.add(riskAnalysisTemplateAnswerSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      riskAnalysisTemplateAnswersSQL.push(riskAnalysisTemplateAnswerSQL);
+    }
+
+    const riskAnalysisTemplateAnswerAnnotationSQL =
+      row.purposeRiskAnalysisTemplateAnswerAnnotation;
+    if (
+      riskAnalysisTemplateAnswerAnnotationSQL &&
+      !riskAnalysisTemplateAnswerAnnotationsIdsSet.has(
+        riskAnalysisTemplateAnswerAnnotationSQL.id
+      )
+    ) {
+      riskAnalysisTemplateAnswerAnnotationsIdsSet.add(
+        riskAnalysisTemplateAnswerAnnotationSQL.id
+      );
+      // eslint-disable-next-line functional/immutable-data
+      riskAnalysisTemplateAnswersAnnotationsSQL.push(
+        riskAnalysisTemplateAnswerAnnotationSQL
+      );
+    }
+
+    const riskAnalysisTemplateAnswerAnnotationDocumentSQL =
+      row.purposeRiskAnalysisTemplateAnswerAnnotationDocument;
+    if (
+      riskAnalysisTemplateAnswerAnnotationDocumentSQL &&
+      !riskAnalysisTemplateAnswerAnnotationsDocumentsIdsSet.has(
+        riskAnalysisTemplateAnswerAnnotationDocumentSQL.id
+      )
+    ) {
+      riskAnalysisTemplateAnswerAnnotationsDocumentsIdsSet.add(
+        riskAnalysisTemplateAnswerAnnotationDocumentSQL.id
+      );
+      // eslint-disable-next-line functional/immutable-data
+      riskAnalysisTemplateAnswersAnnotationsDocumentsSQL.push(
+        riskAnalysisTemplateAnswerAnnotationDocumentSQL
+      );
+    }
   });
 
   return {
     purposeTemplatesSQL,
-    riskAnalysisFormsTemplateSQL,
+    riskAnalysisFormTemplatesSQL,
     riskAnalysisTemplateAnswersSQL,
     riskAnalysisTemplateAnswersAnnotationsSQL,
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
