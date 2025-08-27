@@ -81,7 +81,10 @@ describe("get eservice by id", () => {
       eservice1.id,
       getMockContext({ authData })
     );
-    expect(result).toStrictEqual(eservice1);
+    expect(result).toStrictEqual({
+      data: eservice1,
+      metadata: { version: 0 },
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
@@ -191,7 +194,7 @@ describe("get eservice by id", () => {
             eservice.id,
             context
           );
-          expect(result.descriptors).toEqual([descriptorB]);
+          expect(result.data.descriptors).toEqual([descriptorB]);
         }
       );
     }
@@ -226,7 +229,7 @@ describe("get eservice by id", () => {
           eservice.id,
           getMockContext({ authData })
         );
-        expect(result.descriptors).toEqual([descriptorB]);
+        expect(result.data.descriptors).toEqual([descriptorB]);
       });
 
       it("if the eservice has both of that state and not (requester is delegate, but user role is 'security')", async () => {
@@ -262,7 +265,7 @@ describe("get eservice by id", () => {
           eservice.id,
           getMockContext({ authData })
         );
-        expect(result.descriptors).toEqual([descriptorB]);
+        expect(result.data.descriptors).toEqual([descriptorB]);
       });
     }
   );
@@ -295,7 +298,7 @@ describe("get eservice by id", () => {
             eservice.id,
             context
           );
-          expect(result.descriptors).toEqual([descriptorA, descriptorB]);
+          expect(result.data.descriptors).toEqual([descriptorA, descriptorB]);
         }
       );
 
@@ -330,7 +333,7 @@ describe("get eservice by id", () => {
             eservice.id,
             context
           );
-          expect(result.descriptors).toEqual([descriptorA, descriptorB]);
+          expect(result.data.descriptors).toEqual([descriptorA, descriptorB]);
         }
       );
     }

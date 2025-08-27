@@ -361,6 +361,29 @@ export async function setupTestContainersVitest(
         "TRUNCATE TABLE readmodel_notification_config.user_notification_config CASCADE"
       );
 
+      // CLEANUP ANALYTICS-SQL TABLES
+      await analyticsPostgresDB?.none(
+        "TRUNCATE TABLE domains.agreement CASCADE"
+      );
+      await analyticsPostgresDB?.none(
+        "TRUNCATE TABLE domains.attribute CASCADE"
+      );
+      await analyticsPostgresDB?.none(
+        "TRUNCATE TABLE domains.eservice, domains.eservice_risk_analysis_answer, domains.eservice_risk_analysis CASCADE"
+      );
+      await analyticsPostgresDB?.none("TRUNCATE TABLE domains.client CASCADE");
+      await analyticsPostgresDB?.none(
+        "TRUNCATE TABLE domains.delegation CASCADE"
+      );
+      await analyticsPostgresDB?.none(
+        "TRUNCATE TABLE domains.producer_keychain CASCADE"
+      );
+      await analyticsPostgresDB?.none("TRUNCATE TABLE domains.purpose CASCADE");
+      await analyticsPostgresDB?.none("TRUNCATE TABLE domains.tenant CASCADE");
+      await analyticsPostgresDB?.none(
+        "TRUNCATE TABLE domains.eservice_template CASCADE"
+      );
+
       if (fileManagerConfig && fileManager) {
         const s3OriginalBucket =
           fileManagerConfig?.s3Bucket ?? "interop-local-bucket";
