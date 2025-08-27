@@ -1995,7 +1995,7 @@ paths:
         - delegations
       summary: Retrieve a Consumer Delegation
       description: Retrieve a specific Consumer Delegation by its ID
-      operationId: getDelegation
+      operationId: getConsumerDelegation
       responses:
         "200":
           description: Consumer Delegation retrieved
@@ -2387,7 +2387,7 @@ paths:
         - delegations
       summary: Retrieve a Producer Delegation
       description: Retrieve a specific Producer Delegation by its ID
-      operationId: getDelegation
+      operationId: getProducerDelegation
       responses:
         "200":
           description: Producer Delegation retrieved
