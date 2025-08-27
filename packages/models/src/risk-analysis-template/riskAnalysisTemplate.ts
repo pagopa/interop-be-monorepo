@@ -34,7 +34,6 @@ export const RiskAnalysisTemplateSingleAnswer = RiskAnalysisSingleAnswer.extend(
   {
     editable: z.boolean(),
     annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
-    assistiveText: z.string().optional(),
     suggestedValues: z.array(z.string()),
   }
 );
@@ -45,7 +44,6 @@ export type RiskAnalysisTemplateSingleAnswer = z.infer<
 export const RiskAnalysisTemplateMultiAnswer = RiskAnalysisMultiAnswer.extend({
   editable: z.boolean(),
   annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
-  assistiveText: z.string().optional(),
 });
 
 export type RiskAnalysisTemplateMultiAnswer = z.infer<

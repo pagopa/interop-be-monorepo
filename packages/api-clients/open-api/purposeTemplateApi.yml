@@ -214,7 +214,7 @@ paths:
     get:
       tags:
         - purposeTemplate
-      summary: Retrieve Purpose Template Risk Analysis 
+      summary: Retrieve Purpose Template Risk Analysis
       operationId: getRiskAnalysis
       description: Retrieve the Risk Analysis for all purpose templates.
       parameters:
@@ -966,9 +966,6 @@ components:
             type: string
             minLength: 1
             maxLength: 250
-        assistiveText:
-          type: string
-          maxLength: 250
       required:
         - values
         - editable
