@@ -214,7 +214,7 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async getDelegation(
       delegationId: string,
-      kind: "DELEGATED_CONSUMER" | "DELEGATED_PRODUCER",
+      kind: delegationApi.DelegationKind,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<
       m2mGatewayApi.ProducerDelegation | m2mGatewayApi.ConsumerDelegation
@@ -231,7 +231,7 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
           `Delegation ${delegationId} is of kind ${polledResource.data.kind}, not ${kind}`
         );
       }
-      if (kind === "DELEGATED_CONSUMER") {
+      if (kind === delegationApi.DelegationKind.Values.DELEGATED_CONSUMER) {
         return toM2MGatewayApiConsumerDelegation(polledResource.data);
       }
       return toM2MGatewayApiProducerDelegation(polledResource.data);

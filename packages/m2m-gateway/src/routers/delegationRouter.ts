@@ -1,6 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   ZodiosContext,
   ExpressContext,
@@ -149,7 +149,7 @@ const delegationRouter = (
 
         const producerDelegation = await delegationService.getDelegation(
           req.params.delegationId,
-          "DELEGATED_PRODUCER",
+          delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
           ctx
         );
         return res
