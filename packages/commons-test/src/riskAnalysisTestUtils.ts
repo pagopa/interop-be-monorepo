@@ -4,7 +4,12 @@ import {
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysis,
 } from "pagopa-interop-commons";
-import { RiskAnalysis, TenantKind, tenantKind } from "pagopa-interop-models";
+import {
+  EServiceTemplateRiskAnalysis,
+  RiskAnalysis,
+  TenantKind,
+  tenantKind,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
 
@@ -159,3 +164,10 @@ export const getMockValidRiskAnalysis = (
       )
     )
     .exhaustive();
+
+export const getMockValidEServiceTemplateRiskAnalysis = (
+  producerTenantKind: TenantKind
+): EServiceTemplateRiskAnalysis => ({
+  ...getMockValidRiskAnalysis(producerTenantKind),
+  tenantKind: producerTenantKind,
+});
