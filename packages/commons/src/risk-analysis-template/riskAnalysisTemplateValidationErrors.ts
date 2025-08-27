@@ -116,12 +116,12 @@ export function unexpectedTemplateRulesVersionError(
 }
 export function unexpectedTemplateDependencyValueError(
   dependentField: string,
-  depencencyField: string,
+  dependencyField: string,
   expectedValue: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "unexpectedTemplateDependencyValueError",
-    detail: `Field ${dependentField} requires field ${depencencyField} value to be ${expectedValue}`,
+    detail: `Field ${dependentField} requires field ${dependencyField} value to be ${expectedValue}`,
   });
 }
 
