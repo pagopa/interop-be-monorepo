@@ -46,6 +46,30 @@ const delegationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/consumerDelegations/:delegationId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const consumerDelegation = await delegationService.getDelegation(
+          req.params.delegationId,
+          delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(m2mGatewayApi.ConsumerDelegation.parse(consumerDelegation));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error retrieving producer delegations"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/consumerDelegations", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
