@@ -65,7 +65,7 @@ const delegationRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          "Error retrieving producer delegations"
+          "Error retrieving consumer delegation"
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -184,7 +184,7 @@ const delegationRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          "Error retrieving producer delegations"
+          "Error retrieving producer delegation"
         );
         return res.status(errorRes.status).send(errorRes);
       }
