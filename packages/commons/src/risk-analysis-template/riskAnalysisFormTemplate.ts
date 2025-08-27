@@ -1,11 +1,6 @@
 import {
   RiskAnalysisFormTemplate,
-  RiskAnalysisFormTemplateId,
-  RiskAnalysisMultiAnswerId,
-  RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotation,
-  RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  RiskAnalysisTemplateAnswerAnnotationId,
   generateId,
 } from "pagopa-interop-models";
 
