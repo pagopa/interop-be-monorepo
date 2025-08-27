@@ -68,72 +68,36 @@ export function riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
   validatedForm: RiskAnalysisTemplateValidatedForm
 ): RiskAnalysisFormTemplate {
   return {
-    id: generateId<RiskAnalysisFormTemplateId>(),
+    id: generateId(),
     version: validatedForm.version,
     singleAnswers: validatedForm.singleAnswers.map((a) => ({
-      id: generateId<RiskAnalysisSingleAnswerId>(),
+      id: generateId(),
       key: a.key,
       value: a.value,
       editable: a.editable,
-      annotation: mapAnnotation(a.annotation),
       suggestedValues: a.suggestedValues,
+      ...(a.annotation ? { annotation: mapAnnotation(a.annotation) } : {}),
     })),
     multiAnswers: validatedForm.multiAnswers.map((a) => ({
-      id: generateId<RiskAnalysisMultiAnswerId>(),
+      id: generateId(),
       key: a.key,
       values: a.values,
       editable: a.editable,
-      annotation: mapAnnotation(a.annotation),
+      ...(a.annotation ? { annotation: mapAnnotation(a.annotation) } : {}),
     })),
-  };
-}
-
-export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
-  form: RiskAnalysisFormTemplate
-): RiskAnalysisFormTemplateToValidate {
-  return {
-    version: form.version,
-    answers: {
-      ...form.singleAnswers.reduce(
-        (acc, singleAnswer) => ({
-          ...acc,
-          [singleAnswer.key]: {
-            values: singleAnswer.value ? [singleAnswer.value] : [],
-            editable: singleAnswer.editable,
-            suggestedValues: singleAnswer.suggestedValues,
-            annotation: singleAnswer.annotation,
-          },
-        }),
-        {}
-      ),
-      ...form.multiAnswers.reduce(
-        (acc, multiAnswer) => ({
-          ...acc,
-          [multiAnswer.key]: {
-            values: multiAnswer.values,
-            editable: multiAnswer.editable,
-            suggestedValues: [],
-            annotation: multiAnswer.annotation,
-          },
-        }),
-        {}
-      ),
-    },
   };
 }
 
 function mapAnnotation(
-  annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation
-): RiskAnalysisTemplateAnswerAnnotation | undefined {
-  return annotation
-    ? {
-        id: generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
-        text: annotation.text,
-        docs: annotation.docs.map((d) => ({
-          id: generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
-          ...d,
-          createdAt: new Date(),
-        })),
-      }
-    : undefined;
+  annotation: RiskAnalysisTemplateValidatedAnswerAnnotation
+): RiskAnalysisTemplateAnswerAnnotation {
+  return {
+    id: generateId(),
+    text: annotation.text,
+    docs: annotation.docs.map((d) => ({
+      id: generateId(),
+      ...d,
+      createdAt: new Date(),
+    })),
+  };
 }
