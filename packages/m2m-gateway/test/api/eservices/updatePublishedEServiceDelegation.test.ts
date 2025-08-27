@@ -12,6 +12,7 @@ import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("PATCH /eservices/:eserviceId/delegation router test", () => {
   const mockEService: catalogApi.EService = getMockedApiEservice();
@@ -103,18 +104,21 @@ describe("PATCH /eservices/:eserviceId/delegation router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockEserviceService.updatePublishedEServiceDelegation = vi
-        .fn()
-        .mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token);
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockEserviceService.updatePublishedEServiceDelegation = vi
+      .fn()
+      .mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token);
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 
   it.each([
     { ...mockM2MEService, createdAt: undefined },

@@ -20,6 +20,7 @@ import {
   tenantCertifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenantApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
   const mockApiResponse = getMockedApiCertifiedTenantAttribute();
@@ -87,7 +88,10 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
   it.each([
     tenantCertifiedAttributeNotFound(getMockedApiTenant(), generateId()),
     missingMetadata(),
-    pollingMaxRetriesExceeded(3, 10),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
   ])("Should return 500 in case of $code error", async (error) => {
     mockTenantService.assignTenantCertifiedAttribute = vi
       .fn()
