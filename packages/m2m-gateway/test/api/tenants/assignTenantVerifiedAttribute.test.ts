@@ -20,6 +20,7 @@ import {
   tenantVerifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiTenantVerifiedAttribute } from "../../../src/api/tenantApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /tenants/:tenantId/verifiedAttributes router test", () => {
   const mockApiResponse = getMockedApiVerifiedTenantAttribute();
@@ -92,7 +93,10 @@ describe("POST /tenants/:tenantId/verifiedAttributes router test", () => {
   it.each([
     tenantVerifiedAttributeNotFound(getMockedApiTenant(), generateId()),
     missingMetadata(),
-    pollingMaxRetriesExceeded(3, 10),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
   ])("Should return 500 in case of $code error", async (error) => {
     mockTenantService.assignTenantVerifiedAttribute = vi
       .fn()

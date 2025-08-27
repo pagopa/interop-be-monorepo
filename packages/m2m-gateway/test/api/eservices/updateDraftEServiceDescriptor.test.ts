@@ -15,6 +15,7 @@ import {
   missingMetadata,
 } from "../../../src/model/errors.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 
 describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test", () => {
   const descriptorSeed: m2mGatewayApi.EServiceDescriptorDraftUpdateSeed = {
@@ -136,7 +137,10 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
   it.each([
     eserviceDescriptorNotFound(generateId(), generateId()),
     missingMetadata(),
-    pollingMaxRetriesExceeded(3, 10),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
   ])("Should return 500 in case of $code error", async (error) => {
     mockEserviceService.updateDraftEServiceDescriptor = vi
       .fn()

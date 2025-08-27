@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
+import { config } from "../../../src/config/config.js";
 import {
   eserviceDescriptorNotFound,
   missingMetadata,
@@ -115,7 +116,10 @@ describe("POST /eservices/{eServiceId}/descriptors router test", () => {
   it.each([
     eserviceDescriptorNotFound(generateId(), generateId()),
     missingMetadata(),
-    pollingMaxRetriesExceeded(3, 10),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
   ])("Should return 500 in case of $code error", async (error) => {
     mockEserviceService.createDescriptor = vi.fn().mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
