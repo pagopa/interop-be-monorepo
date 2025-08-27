@@ -78,6 +78,16 @@ export const buildRiskAnalysisSeed = (
   ),
 });
 
+export function defaultExplicitAttributeVerification(
+  attributes: m2mGatewayApi.EServiceDescriptorAttributes
+): catalogApi.AttributeSeed[][] {
+  return attributes.attributes.map((group) =>
+    group.map((attr) => ({
+      id: attr.id,
+      explicitAttributeVerification: false,
+    }))
+  );
+}
 export function testToM2MEServiceRiskAnalysisAnswers(
   riskAnalysisForm: catalogApi.EServiceRiskAnalysis["riskAnalysisForm"]
 ): m2mGatewayApi.EServiceRiskAnalysis["riskAnalysisForm"]["answers"] {

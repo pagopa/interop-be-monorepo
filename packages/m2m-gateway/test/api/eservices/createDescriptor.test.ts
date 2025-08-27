@@ -41,7 +41,6 @@ describe("POST /eservices/{eServiceId}/descriptors router test", () => {
     request(api)
       .post(`${appBasePath}/eservices/${eserviceId}/descriptors`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
@@ -85,6 +84,19 @@ describe("POST /eservices/{eServiceId}/descriptors router test", () => {
         verified: [],
         certified: [],
       },
+    },
+    {
+      ...descriptorSeed,
+      audience: undefined,
+    },
+    {
+      ...descriptorSeed,
+      audience: [],
+    },
+    {
+      ...descriptorSeed,
+      audience: ["audience1", "audience2"],
+      // We currently do not support multiple audiences for consistency with front-end
     },
   ])(
     "Should return 400 if passed an invalid Descriptor seed (seed #%#)",
