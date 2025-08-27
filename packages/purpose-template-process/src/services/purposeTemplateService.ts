@@ -32,7 +32,7 @@ export function purposeTemplateServiceBuilder(
 ) {
   // TODO : use it to write purpose template events in the event store
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const repository = eventRepository(dbInstance, purposeEventToBinaryDataV2);
+  // const repository = eventRepository(dbInstance, purposeTemplateEventToBinaryDataV2);
 
   return {
     async getPurposeTemplateById(
