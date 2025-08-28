@@ -285,7 +285,7 @@ function validateTemplateRequiredFields(
       const hasValues = templateAnswer.values.length > 0;
       const hasSuggestions = templateAnswer.suggestedValues.length > 0;
 
-      // if the field is editable, require fields are not checked
+      // if the field is editable, required fields are not checked
       if (templateAnswer.editable) {
         return hasValues || hasSuggestions
           ? [unexpectedTemplateFieldValueOrSuggestionError(rule.fieldName)]
