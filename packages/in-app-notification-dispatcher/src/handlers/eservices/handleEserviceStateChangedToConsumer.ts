@@ -14,7 +14,7 @@ import {
   retrieveTenant,
 } from "../handlerCommons.js";
 
-export async function handleNewEServiceVersionPublished(
+export async function handleEserviceStateChangedToConsumer(
   eserviceV2Msg: EServiceV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL
@@ -26,7 +26,7 @@ export async function handleNewEServiceVersionPublished(
     );
   }
   logger.info(
-    `Sending in-app notification for handleNewEServiceVersionPublished ${eserviceV2Msg.id}`
+    `Sending in-app notification for handleEserviceStateChangedToConsumer ${eserviceV2Msg.id}`
   );
 
   const eservice = fromEServiceV2(eserviceV2Msg);
@@ -48,10 +48,10 @@ export async function handleNewEServiceVersionPublished(
   const userNotificationConfigs =
     await readModelService.getTenantUsersWithNotificationEnabled(
       consumers.map((consumer) => consumer.id),
-      "newEServiceVersionPublished"
+      "eserviceStateChangedToConsumer"
     );
 
-  const body = inAppTemplates.newEServiceVersionPublished(eservice.name);
+  const body = inAppTemplates.eserviceStateChangedToConsumer(eservice.name);
 
   return userNotificationConfigs.map(({ userId, tenantId }) => ({
     id: generateId(),
