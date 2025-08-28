@@ -92,7 +92,6 @@ const purposeTemplateRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
               key: a.key,
               value: a.value.length > 0 ? a.value[0] : undefined,
               editable: a.editable,
-              assistiveText: a.assistiveText || undefined,
               suggestedValues: a.suggestedValues || [],
             },
           ],
@@ -107,7 +106,6 @@ const purposeTemplateRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
               key: a.key,
               values: a.value || [],
               editable: a.editable,
-              assistiveText: a.assistiveText || undefined,
             },
           ],
         }))

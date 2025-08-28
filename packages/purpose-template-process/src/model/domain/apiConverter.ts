@@ -105,6 +105,7 @@ export const purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation
   ): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotation | undefined =>
     annotation
       ? {
+          id: annotation.id,
           text: annotation.text,
           docs: annotation.docs.map((doc) => ({
             ...doc,
