@@ -125,7 +125,6 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
         editable,
         annotation,
         suggestedValues,
-        assistiveText,
         ...answerRest
       }: RiskAnalysisTemplateSingleAnswer = riskAnalysisTemplateSingleAnswer;
 
@@ -148,7 +147,6 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
             id,
             purposeTemplateId,
             metadataVersion,
-            assistiveText: assistiveText ? assistiveText : null,
             riskAnalysisFormId: riskAnalysisFormTemplate.id,
             kind: riskAnalysisAnswerKind.single,
             key,
@@ -195,7 +193,6 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
         values,
         editable,
         annotation,
-        assistiveText,
         ...answerRest
       }: RiskAnalysisTemplateMultiAnswer = riskAnalysisTemplateMultiAnswer;
 
@@ -224,7 +221,6 @@ const splitRiskAnalysisTemplateFormIntoObjectsSQL = (
             value: values,
             editable,
             suggestedValues: null,
-            assistiveText: assistiveText ? assistiveText : null,
           },
         ],
         riskAnalysisTemplateMultiAnswersAnnotations: [

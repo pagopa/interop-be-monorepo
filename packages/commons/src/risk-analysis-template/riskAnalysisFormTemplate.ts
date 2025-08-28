@@ -19,7 +19,6 @@ export type RiskAnalysisTemplateAnswerToValidate = {
   editable: boolean;
   annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation;
   suggestedValues: string[];
-  assistiveText?: string;
 };
 
 export type RiskAnalysisTemplateValidatedAnswerAnnotation = {
@@ -56,7 +55,6 @@ export type RiskAnalysisTemplateValidatedSingleAnswer = {
   editable: boolean;
   annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation;
   suggestedValues: string[];
-  assistiveText?: string;
 };
 
 export type RiskAnalysisTemplateValidatedMultiAnswer = {
@@ -64,7 +62,6 @@ export type RiskAnalysisTemplateValidatedMultiAnswer = {
   values: string[];
   editable: boolean;
   annotation?: RiskAnalysisTemplateValidatedAnswerAnnotation;
-  assistiveText?: string;
 };
 
 export function riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
@@ -79,7 +76,6 @@ export function riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
       value: a.value,
       editable: a.editable,
       annotation: mapAnnotation(a.annotation),
-      assistiveText: a.assistiveText,
       suggestedValues: a.suggestedValues,
     })),
     multiAnswers: validatedForm.multiAnswers.map((a) => ({
@@ -88,7 +84,6 @@ export function riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
       values: a.values,
       editable: a.editable,
       annotation: mapAnnotation(a.annotation),
-      assistiveText: a.assistiveText,
     })),
   };
 }
@@ -107,7 +102,6 @@ export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
             editable: singleAnswer.editable,
             suggestedValues: singleAnswer.suggestedValues,
             annotation: singleAnswer.annotation,
-            assistiveText: singleAnswer.assistiveText,
           },
         }),
         {}
@@ -120,7 +114,6 @@ export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
             editable: multiAnswer.editable,
             suggestedValues: [],
             annotation: multiAnswer.annotation,
-            assistiveText: multiAnswer.assistiveText,
           },
         }),
         {}

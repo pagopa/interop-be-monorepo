@@ -70,7 +70,6 @@ export const multiAnswersToApiMultiAnswers = (
     responseValue: {
       values: answer.values,
       editable: answer.editable,
-      assistiveText: answer.assistiveText,
       suggestedValues: [], // always empty for multi answers
       annotation:
         purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation(
@@ -90,7 +89,6 @@ export const singleAnswersToApiSingleAnswers = (
     responseValue: {
       values: answer.value ? [answer.value] : [],
       editable: answer.editable,
-      assistiveText: answer.assistiveText,
       suggestedValues: answer.suggestedValues,
       annotation:
         purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation(
