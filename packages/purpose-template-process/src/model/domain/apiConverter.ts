@@ -37,7 +37,8 @@ export function apiPurposeTemplateStateToPurposeTemplateState(
 }
 
 export const purposeTemplateToApiPurposeTemplate = (
-  purposeTemplate: PurposeTemplate
+  purposeTemplate: PurposeTemplate,
+  isRiskAnalysisValid: boolean
 ): purposeTemplateApi.PurposeTemplate => ({
   ...purposeTemplate,
   state: purposeTemplateStateToApiPurposeTemplateState(purposeTemplate.state),
@@ -48,6 +49,7 @@ export const purposeTemplateToApiPurposeTemplate = (
         purposeTemplate.purposeRiskAnalysisForm
       )
     : undefined,
+  isRiskAnalysisValid,
 });
 
 function riskAnalysisFormToApiRiskAnalysisForm(
