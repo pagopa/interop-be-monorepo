@@ -13,6 +13,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   emptyErrorMapper,
+  EServiceId,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -63,6 +64,7 @@ const purposeTemplateRouter = (
         const {
           purposeTitle,
           creatorIds,
+          eserviceIds,
           states,
           excludeDraft,
           offset,
@@ -73,6 +75,7 @@ const purposeTemplateRouter = (
             {
               purposeTitle,
               creatorIds: creatorIds?.map(unsafeBrandId<TenantId>),
+              eserviceIds: eserviceIds?.map(unsafeBrandId<EServiceId>),
               states: states?.map(
                 apiPurposeTemplateStateToPurposeTemplateState
               ),

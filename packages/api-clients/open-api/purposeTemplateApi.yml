@@ -68,6 +68,16 @@ paths:
             default: []
           explode: false
         - in: query
+          name: eserviceIds
+          description: comma separated sequence of e-service IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: states
           description: filter by template state
           schema:
