@@ -32,7 +32,6 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
-  tenantEnabledNotificationInReadmodelNotificationConfig,
   tenantNotificationConfigInReadmodelNotificationConfig,
   userEnabledInAppNotificationInReadmodelNotificationConfig,
   userEnabledEmailNotificationInReadmodelNotificationConfig,
@@ -99,7 +98,7 @@ export const insertTenantNotificationConfig = async (
   tenantNotificationConfig: TenantNotificationConfig,
   metadataVersion: number
 ): Promise<void> => {
-  const { tenantNotificationConfigSQL, enabledNotificationsSQL } =
+  const tenantNotificationConfigSQL =
     splitTenantNotificationConfigIntoObjectsSQL(
       tenantNotificationConfig,
       metadataVersion
@@ -109,11 +108,6 @@ export const insertTenantNotificationConfig = async (
     await tx
       .insert(tenantNotificationConfigInReadmodelNotificationConfig)
       .values(tenantNotificationConfigSQL);
-    if (enabledNotificationsSQL.length > 0) {
-      await tx
-        .insert(tenantEnabledNotificationInReadmodelNotificationConfig)
-        .values(enabledNotificationsSQL);
-    }
   });
 };
 

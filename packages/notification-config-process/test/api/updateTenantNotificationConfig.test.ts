@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TenantNotificationConfig, generateId } from "pagopa-interop-models";
 import {
   generateToken,
-  getMockNotificationConfig,
   getMockTenantNotificationConfig,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
@@ -16,13 +15,12 @@ import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.
 
 describe("API POST /tenantNotificationConfigs test", () => {
   const tenantId = mockTokenOrganizationId;
-  const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigUpdateSeed =
-    getMockNotificationConfig();
   const serviceResponse: TenantNotificationConfig = {
     ...getMockTenantNotificationConfig(),
     tenantId,
-    config: notificationConfigSeed,
   };
+  const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigUpdateSeed =
+    { enabled: serviceResponse.enabled };
   const apiResponse: notificationConfigApi.TenantNotificationConfig =
     tenantNotificationConfigToApiTenantNotificationConfig(serviceResponse);
 

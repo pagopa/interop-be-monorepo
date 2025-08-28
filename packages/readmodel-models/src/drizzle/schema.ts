@@ -1707,6 +1707,7 @@ export const tenantNotificationConfigInReadmodelNotificationConfig =
       id: uuid().primaryKey().notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       tenantId: uuid("tenant_id").notNull(),
+      enabled: boolean().notNull(),
       createdAt: timestamp("created_at", {
         withTimezone: true,
         mode: "string",
@@ -1751,39 +1752,6 @@ export const userNotificationConfigInReadmodelNotificationConfig =
         table.userId,
         table.tenantId
       ),
-    ]
-  );
-
-export const tenantEnabledNotificationInReadmodelNotificationConfig =
-  readmodelNotificationConfig.table(
-    "tenant_enabled_notification",
-    {
-      tenantNotificationConfigId: uuid(
-        "tenant_notification_config_id"
-      ).notNull(),
-      metadataVersion: integer("metadata_version").notNull(),
-      notificationType: varchar("notification_type").notNull(),
-    },
-    (table) => [
-      foreignKey({
-        columns: [table.tenantNotificationConfigId],
-        foreignColumns: [
-          tenantNotificationConfigInReadmodelNotificationConfig.id,
-        ],
-        name: "tenant_enabled_notification_tenant_notification_config_id_fkey",
-      }).onDelete("cascade"),
-      foreignKey({
-        columns: [table.tenantNotificationConfigId, table.metadataVersion],
-        foreignColumns: [
-          tenantNotificationConfigInReadmodelNotificationConfig.id,
-          tenantNotificationConfigInReadmodelNotificationConfig.metadataVersion,
-        ],
-        name: "tenant_enabled_notification_tenant_notification_config_id__fkey",
-      }),
-      primaryKey({
-        columns: [table.tenantNotificationConfigId, table.notificationType],
-        name: "tenant_enabled_notification_pkey",
-      }),
     ]
   );
 

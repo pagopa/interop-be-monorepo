@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { generateMock } from "@anatine/zod-mock";
 import {
-  TenantEnabledNotificationSQL,
   TenantNotificationConfigSQL,
   UserEnabledInAppNotificationSQL,
   UserEnabledEmailNotificationSQL,
@@ -32,7 +31,7 @@ describe("Notification config splitters", () => {
         ...getMockTenantNotificationConfig(),
         updatedAt,
       };
-      const { tenantNotificationConfigSQL, enabledNotificationsSQL } =
+      const tenantNotificationConfigSQL =
         splitTenantNotificationConfigIntoObjectsSQL(
           tenantNotificationConfig,
           1
@@ -42,48 +41,13 @@ describe("Notification config splitters", () => {
         id: tenantNotificationConfig.id,
         tenantId: tenantNotificationConfig.tenantId,
         metadataVersion: 1,
+        enabled: tenantNotificationConfig.enabled,
         createdAt: tenantNotificationConfig.createdAt.toISOString(),
         updatedAt: expectedUpdatedAt,
       };
 
-      const expectedEnabledNotificationsSQL: TenantEnabledNotificationSQL[] = (
-        [
-          "agreementSuspendedUnsuspendedToProducer",
-          "agreementManagementToProducer",
-          "clientAddedRemovedToProducer",
-          "purposeStatusChangedToProducer",
-          "templateStatusChangedToProducer",
-          "agreementSuspendedUnsuspendedToConsumer",
-          "eserviceStateChangedToConsumer",
-          "agreementActivatedRejectedToConsumer",
-          "purposeActivatedRejectedToConsumer",
-          "purposeSuspendedUnsuspendedToConsumer",
-          "newEserviceTemplateVersionToInstantiator",
-          "eserviceTemplateNameChangedToInstantiator",
-          "eserviceTemplateStatusChangedToInstantiator",
-          "delegationApprovedRejectedToDelegator",
-          "eserviceNewVersionSubmittedToDelegator",
-          "eserviceNewVersionApprovedRejectedToDelegate",
-          "delegationSubmittedRevokedToDelegate",
-          "certifiedVerifiedAttributeAssignedRevokedToAssignee",
-          "clientKeyAddedDeletedToClientUsers",
-        ] as const
-      )
-        .filter(
-          (notificationType) =>
-            tenantNotificationConfig.config[notificationType]
-        )
-        .map((notificationType) => ({
-          tenantNotificationConfigId: tenantNotificationConfig.id,
-          metadataVersion: 1,
-          notificationType,
-        }));
-
       expect(tenantNotificationConfigSQL).toStrictEqual(
         expectedTenantNotificationConfigSQL
-      );
-      expect(enabledNotificationsSQL).toStrictEqual(
-        expectedEnabledNotificationsSQL
       );
     }
   );
