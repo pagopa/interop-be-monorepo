@@ -21,14 +21,6 @@ export const assertConsistentFreeOfCharge = (
   }
 };
 
-export const assertValidPuposeTemplateName = (
-  purposeTemplateName: string | undefined
-): void => {
-  if (!purposeTemplateName || purposeTemplateName.length < 3) {
-    throw purposeTemplateNameConflict();
-  }
-};
-
 export const assertPurposeTemplateTitleIsNotDuplicated = async ({
   readModelService,
   title,
