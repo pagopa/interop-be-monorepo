@@ -49,6 +49,7 @@ const purposeTemplateRouter = (
   } = authRole;
 
   purposeTemplateRouter
+    // TODO: this endpoint should also show all the purpose templates without visibility restrictions
     .get("/purposeTemplates", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
