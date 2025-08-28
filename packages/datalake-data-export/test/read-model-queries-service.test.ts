@@ -2,8 +2,14 @@
 /* eslint-disable fp/no-delete */
 import {
   agreementState,
+  DelegationId,
+  delegationKind,
+  delegationState,
   descriptorState,
   EServiceId,
+  EServiceTemplateId,
+  EServiceTemplateVersion,
+  eserviceTemplateVersionState,
   generateId,
   purposeVersionState,
   Tenant,
@@ -17,9 +23,13 @@ import {
 import { describe, it, expect } from "vitest";
 import {
   getMockAgreement,
+  getMockDelegation,
   getMockDescriptor,
   getMockDescriptorList,
+  getMockDocument,
   getMockEService,
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
   getMockPurpose,
   getMockPurposeVersion,
   getMockTenant,
@@ -36,6 +46,10 @@ import {
   seedPurposes,
   seedTenants,
   tenants,
+  delegations,
+  seedDelegations,
+  eserviceTemplates,
+  seedEServiceTemplates,
 } from "./utils.js";
 
 describe("read-model-queries.service", () => {
@@ -322,6 +336,152 @@ describe("read-model-queries.service", () => {
 
       expect(result).toHaveLength(1);
       expect(result.at(0)?.id).toEqual(purposesData.at(0)?.id);
+    });
+  });
+
+  describe("getDelegations", async () => {
+    const validDelegationStates = Object.values(delegationState).filter(
+      (state) => state !== delegationState.waitingForApproval
+    );
+
+    it("should return all delegations", async () => {
+      const delegationsData = [
+        getMockDelegation({
+          kind: delegationKind.delegatedConsumer,
+          id: generateId<DelegationId>(),
+          state: randomArrayItem(validDelegationStates),
+        }),
+        getMockDelegation({
+          kind: delegationKind.delegatedConsumer,
+          id: generateId<DelegationId>(),
+          state: randomArrayItem(validDelegationStates),
+        }),
+      ];
+
+      await seedCollection(delegationsData, delegations);
+      await seedDelegations(delegationsData);
+
+      const result = await readModelService.getDelegations();
+      expect(result).toHaveLength(delegationsData.length);
+    });
+
+    it("should return empty array if no delegations are found", async () => {
+      const result = await readModelService.getDelegations();
+      expect(result).toHaveLength(0);
+    });
+
+    it("should not return delegations in 'Waiting for approval' state", async () => {
+      const delegationsData = [
+        getMockDelegation({
+          kind: delegationKind.delegatedConsumer,
+          id: generateId<DelegationId>(),
+          state: randomArrayItem(validDelegationStates),
+        }),
+        getMockDelegation({
+          kind: delegationKind.delegatedConsumer,
+          id: generateId<DelegationId>(),
+          state: delegationState.waitingForApproval,
+        }),
+      ];
+
+      await seedCollection(delegationsData, delegations);
+      await seedDelegations(delegationsData);
+
+      const result = await readModelService.getDelegations();
+      expect(result).toHaveLength(1);
+    });
+  });
+
+  describe("getEServiceTemplates", async () => {
+    const validEserviceTemplateVersionStates = Object.values(
+      eserviceTemplateVersionState
+    ).filter((state) => state !== eserviceTemplateVersionState.draft);
+
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: randomArrayItem(validEserviceTemplateVersionStates),
+      interface: getMockDocument(),
+    };
+
+    it("should return all eService templates", async () => {
+      const eserviceTemplateVersion: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        state: randomArrayItem(validEserviceTemplateVersionStates),
+        interface: getMockDocument(),
+      };
+
+      const eserviceTemplatesData = [
+        getMockEServiceTemplate(
+          generateId<EServiceTemplateId>(),
+          generateId<TenantId>(),
+          [eserviceTemplateVersion]
+        ),
+      ];
+      await seedCollection(eserviceTemplatesData, eserviceTemplates);
+      await seedEServiceTemplates(eserviceTemplatesData);
+
+      const result = await readModelService.getEServiceTemplates();
+      expect(result).toHaveLength(eserviceTemplatesData.length);
+    });
+
+    it("should not return draft versions in the eService Template", async () => {
+      const eserviceTemplatesData = [
+        getMockEServiceTemplate(
+          generateId<EServiceTemplateId>(),
+          generateId<TenantId>(),
+          [
+            {
+              ...getMockEServiceTemplateVersion(),
+              state: eserviceTemplateVersionState.published,
+              interface: getMockDocument(),
+            },
+            {
+              ...getMockEServiceTemplateVersion(),
+              state: eserviceTemplateVersionState.draft,
+            },
+          ]
+        ),
+      ];
+
+      await seedCollection(eserviceTemplatesData, eserviceTemplates);
+      await seedEServiceTemplates(eserviceTemplatesData);
+
+      const result = await readModelService.getEServiceTemplates();
+      expect(result).toHaveLength(eserviceTemplatesData.length);
+      expect(result.at(0)?.versions).toHaveLength(1);
+      expect(result.at(0)?.versions.at(0)?.state).toEqual("Published");
+    });
+
+    it("should return empty array if no eService templates are found", async () => {
+      const result = await readModelService.getEServiceTemplates();
+      expect(result).toHaveLength(0);
+    });
+
+    it("should not return eService templates with only one version with Draft state", async () => {
+      const eserviceTemplatesData = [
+        getMockEServiceTemplate(
+          generateId<EServiceTemplateId>(),
+          generateId<TenantId>(),
+          [eserviceTemplateVersion]
+        ),
+        getMockEServiceTemplate(
+          generateId<EServiceTemplateId>(),
+          generateId<TenantId>(),
+          [
+            {
+              ...getMockEServiceTemplateVersion(),
+              state: eserviceTemplateVersionState.draft,
+            },
+          ]
+        ),
+      ];
+
+      await seedCollection(eserviceTemplatesData, eserviceTemplates);
+      await seedEServiceTemplates(eserviceTemplatesData);
+
+      const result = await readModelService.getEServiceTemplates();
+      expect(result).toHaveLength(1);
+      expect(result.at(0)?.id).toEqual(eserviceTemplatesData.at(0)?.id);
     });
   });
 });

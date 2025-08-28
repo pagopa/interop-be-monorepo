@@ -8,6 +8,7 @@ import {
   generateToken,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
@@ -22,6 +23,8 @@ describe("API /eservices authorization test", () => {
     ...getMockEService(),
     descriptors: [getMockDescriptor()],
   };
+
+  const serviceResponse = getMockWithMetadata(mockEService);
 
   const apiEservice: catalogApi.EService = catalogApi.EService.parse(
     eServiceToApiEService(mockEService)
@@ -42,7 +45,7 @@ describe("API /eservices authorization test", () => {
     },
   };
 
-  catalogService.createEService = vi.fn().mockResolvedValue(mockEService);
+  catalogService.createEService = vi.fn().mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -54,15 +57,22 @@ describe("API /eservices authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 201 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
 
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body).toEqual(apiEservice);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 

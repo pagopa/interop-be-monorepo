@@ -47,7 +47,7 @@ describe("suspend descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    await catalogService.suspendDescriptor(
+    const suspendDescriptorResponse = await catalogService.suspendDescriptor(
       eservice.id,
       descriptor.id,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -63,7 +63,7 @@ describe("suspend descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice = {
       ...eservice,
       descriptors: [
         {
@@ -74,10 +74,13 @@ describe("suspend descriptor", () => {
           ),
         },
       ],
+    };
+    expect(suspendDescriptorResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
   });
   it("should write on event-store for the suspension of a descriptor (delegate)", async () => {
     const descriptor: Descriptor = {
@@ -100,7 +103,7 @@ describe("suspend descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    await catalogService.suspendDescriptor(
+    const suspendDescriptorResponse = await catalogService.suspendDescriptor(
       eservice.id,
       descriptor.id,
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
@@ -116,7 +119,7 @@ describe("suspend descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice = {
       ...eservice,
       descriptors: [
         {
@@ -127,10 +130,13 @@ describe("suspend descriptor", () => {
           ),
         },
       ],
+    };
+    expect(suspendDescriptorResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
