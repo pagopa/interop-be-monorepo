@@ -268,9 +268,6 @@ function validateTemplateRequiredFields(
     .filter((r) => r.required)
     .flatMap((rule) => {
       const templateAnswer = answers[rule.fieldName];
-      const isFreeText = rule.dataType === "freeText";
-      const hasValues = templateAnswer.values.length > 0;
-      const hasSuggestions = templateAnswer.suggestedValues.length > 0;
 
       const depsSatisfied = rule.dependencies.every((dependency) =>
         formContainsDependency(answers, dependency)
@@ -283,6 +280,10 @@ function validateTemplateRequiredFields(
       if (templateAnswer === undefined) {
         return [];
       }
+
+      const isFreeText = rule.dataType === "freeText";
+      const hasValues = templateAnswer.values.length > 0;
+      const hasSuggestions = templateAnswer.suggestedValues.length > 0;
 
       // if the field is editable, require fields are not checked
       if (templateAnswer.editable) {
