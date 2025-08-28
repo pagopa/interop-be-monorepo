@@ -38,7 +38,7 @@ export type RiskAnalysisTemplateValidationResult<T> =
   | RiskAnalysisTemplateValidationValid<T>
   | RiskAnalysisTemplateValidationInvalid;
 
-export function unexpectedTemplateFieldValueOrSuggestion(
+export function unexpectedTemplateFieldValueOrSuggestionError(
   fieldName: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
@@ -68,7 +68,7 @@ export function unexpectedTemplateFieldError(
   });
 }
 
-export function malformedTemplateFieldValueOrSuggestion(
+export function malformedTemplateFieldValueOrSuggestionError(
   fieldName: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({

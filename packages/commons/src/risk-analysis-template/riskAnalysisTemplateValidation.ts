@@ -16,7 +16,7 @@ import {
 } from "./riskAnalysisFormTemplate.js";
 import {
   invalidTemplateResult,
-  malformedTemplateFieldValueOrSuggestion,
+  malformedTemplateFieldValueOrSuggestionError,
   missingExpectedTemplateFieldError,
   noRulesVersionTemplateFoundError,
   RiskAnalysisTemplateValidationIssue,
@@ -26,7 +26,7 @@ import {
   unexpectedTemplateDependencyValueError,
   unexpectedTemplateFieldError,
   unexpectedTemplateFieldValueError,
-  unexpectedTemplateFieldValueOrSuggestion,
+  unexpectedTemplateFieldValueOrSuggestionError,
   unexpectedTemplateRulesVersionError,
   validTemplateResult,
 } from "./riskAnalysisTemplateValidationErrors.js";
@@ -159,7 +159,7 @@ function validateAnswerValue(
 ): RiskAnalysisTemplateValidationIssue[] {
   if (answer.editable) {
     return answer.values.length > 0 || answer.suggestedValues.length > 0
-      ? [unexpectedTemplateFieldValueOrSuggestion(rule.fieldName)]
+      ? [malformedTemplateFieldValueOrSuggestionError(rule.fieldName)]
       : [];
   }
 
@@ -169,11 +169,11 @@ function validateAnswerValue(
     .with(P.nullish, () => [])
     .with({ dataType: "freeText" }, (r) => {
       if (!hasValue && !hasSuggestions) {
-        return [unexpectedTemplateFieldValueOrSuggestion(r.fieldName)];
+        return [malformedTemplateFieldValueOrSuggestionError(r.fieldName)];
       }
 
       if (hasValue && hasSuggestions) {
-        return [malformedTemplateFieldValueOrSuggestion(r.fieldName)];
+        return [malformedTemplateFieldValueOrSuggestionError(r.fieldName)];
       }
 
       return [];
@@ -268,6 +268,10 @@ function validateTemplateRequiredFields(
     .filter((r) => r.required)
     .flatMap((rule) => {
       const templateAnswer = answers[rule.fieldName];
+      const isFreeText = rule.dataType === "freeText";
+      const hasValues = templateAnswer.values.length > 0;
+      const hasSuggestions = templateAnswer.suggestedValues.length > 0;
+
       const depsSatisfied = rule.dependencies.every((dependency) =>
         formContainsDependency(answers, dependency)
       );
@@ -282,20 +286,20 @@ function validateTemplateRequiredFields(
 
       // if the field is editable, require fields are not checked
       if (templateAnswer.editable) {
-        return [];
+        return hasValues || hasSuggestions
+          ? [unexpectedTemplateFieldValueOrSuggestionError(rule.fieldName)]
+          : [];
       }
 
       if (
-        rule.dataType === "freeText" &&
-        !templateAnswer.editable &&
-        !templateAnswer.values.length &&
-        !templateAnswer.suggestedValues.length
+        isFreeText &&
+        ((!hasValues && !hasSuggestions) || (hasValues && hasSuggestions))
       ) {
-        return [unexpectedTemplateFieldValueOrSuggestion(rule.fieldName)];
+        return [unexpectedTemplateFieldValueOrSuggestionError(rule.fieldName)];
       }
 
-      if (!templateAnswer.editable && !templateAnswer.values.length) {
-        return [unexpectedTemplateFieldValueOrSuggestion(rule.fieldName)];
+      if (!isFreeText && (hasSuggestions || !hasValues)) {
+        return [unexpectedTemplateFieldValueOrSuggestionError(rule.fieldName)];
       }
 
       return [];
