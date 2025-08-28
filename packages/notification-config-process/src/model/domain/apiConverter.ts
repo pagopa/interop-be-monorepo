@@ -4,36 +4,171 @@ import {
   UserNotificationConfig,
 } from "pagopa-interop-models";
 
-export function tenantNotificationConfigToApiTenantNotificationConfig(
-  input: TenantNotificationConfig
-): notificationConfigApi.TenantNotificationConfig {
+export function tenantNotificationConfigToApiTenantNotificationConfig({
+  id,
+  tenantId,
+  enabled,
+  createdAt,
+  updatedAt,
+}: TenantNotificationConfig): notificationConfigApi.TenantNotificationConfig {
   return {
-    id: input.id,
-    tenantId: input.tenantId,
-    config: {
-      newEServiceVersionPublished: input.config.newEServiceVersionPublished,
-    },
-    createdAt: input.createdAt.toJSON(),
-    updatedAt: input.updatedAt?.toJSON(),
+    id,
+    tenantId,
+    enabled,
+    createdAt: createdAt.toJSON(),
+    updatedAt: updatedAt?.toJSON(),
   };
 }
 
-export function userNotificationConfigToApiUserNotificationConfig(
-  input: UserNotificationConfig
-): notificationConfigApi.UserNotificationConfig {
+export function userNotificationConfigToApiUserNotificationConfig({
+  id,
+  userId,
+  tenantId,
+  inAppConfig: {
+    agreementSuspendedUnsuspendedToProducer:
+      agreementSuspendedUnsuspendedToProducerInApp,
+    agreementManagementToProducer: agreementManagementToProducerInApp,
+    clientAddedRemovedToProducer: clientAddedRemovedToProducerInApp,
+    purposeStatusChangedToProducer: purposeStatusChangedToProducerInApp,
+    templateStatusChangedToProducer: templateStatusChangedToProducerInApp,
+    agreementSuspendedUnsuspendedToConsumer:
+      agreementSuspendedUnsuspendedToConsumerInApp,
+    eserviceStateChangedToConsumer: eserviceStateChangedToConsumerInApp,
+    agreementActivatedRejectedToConsumer:
+      agreementActivatedRejectedToConsumerInApp,
+    purposeActivatedRejectedToConsumer: purposeActivatedRejectedToConsumerInApp,
+    purposeSuspendedUnsuspendedToConsumer:
+      purposeSuspendedUnsuspendedToConsumerInApp,
+    newEserviceTemplateVersionToInstantiator:
+      newEserviceTemplateVersionToInstantiatorInApp,
+    eserviceTemplateNameChangedToInstantiator:
+      eserviceTemplateNameChangedToInstantiatorInApp,
+    eserviceTemplateStatusChangedToInstantiator:
+      eserviceTemplateStatusChangedToInstantiatorInApp,
+    delegationApprovedRejectedToDelegator:
+      delegationApprovedRejectedToDelegatorInApp,
+    eserviceNewVersionSubmittedToDelegator:
+      eserviceNewVersionSubmittedToDelegatorInApp,
+    eserviceNewVersionApprovedRejectedToDelegate:
+      eserviceNewVersionApprovedRejectedToDelegateInApp,
+    delegationSubmittedRevokedToDelegate:
+      delegationSubmittedRevokedToDelegateInApp,
+    certifiedVerifiedAttributeAssignedRevokedToAssignee:
+      certifiedVerifiedAttributeAssignedRevokedToAssigneeInApp,
+    clientKeyAddedDeletedToClientUsers: clientKeyAddedDeletedToClientUsersInApp,
+  },
+  emailConfig: {
+    agreementSuspendedUnsuspendedToProducer:
+      agreementSuspendedUnsuspendedToProducerEmail,
+    agreementManagementToProducer: agreementManagementToProducerEmail,
+    clientAddedRemovedToProducer: clientAddedRemovedToProducerEmail,
+    purposeStatusChangedToProducer: purposeStatusChangedToProducerEmail,
+    templateStatusChangedToProducer: templateStatusChangedToProducerEmail,
+    agreementSuspendedUnsuspendedToConsumer:
+      agreementSuspendedUnsuspendedToConsumerEmail,
+    eserviceStateChangedToConsumer: eserviceStateChangedToConsumerEmail,
+    agreementActivatedRejectedToConsumer:
+      agreementActivatedRejectedToConsumerEmail,
+    purposeActivatedRejectedToConsumer: purposeActivatedRejectedToConsumerEmail,
+    purposeSuspendedUnsuspendedToConsumer:
+      purposeSuspendedUnsuspendedToConsumerEmail,
+    newEserviceTemplateVersionToInstantiator:
+      newEserviceTemplateVersionToInstantiatorEmail,
+    eserviceTemplateNameChangedToInstantiator:
+      eserviceTemplateNameChangedToInstantiatorEmail,
+    eserviceTemplateStatusChangedToInstantiator:
+      eserviceTemplateStatusChangedToInstantiatorEmail,
+    delegationApprovedRejectedToDelegator:
+      delegationApprovedRejectedToDelegatorEmail,
+    eserviceNewVersionSubmittedToDelegator:
+      eserviceNewVersionSubmittedToDelegatorEmail,
+    eserviceNewVersionApprovedRejectedToDelegate:
+      eserviceNewVersionApprovedRejectedToDelegateEmail,
+    delegationSubmittedRevokedToDelegate:
+      delegationSubmittedRevokedToDelegateEmail,
+    certifiedVerifiedAttributeAssignedRevokedToAssignee:
+      certifiedVerifiedAttributeAssignedRevokedToAssigneeEmail,
+    clientKeyAddedDeletedToClientUsers: clientKeyAddedDeletedToClientUsersEmail,
+  },
+  createdAt,
+  updatedAt,
+}: UserNotificationConfig): notificationConfigApi.UserNotificationConfig {
+  // No need for rest assertion as we're explicitly destructuring all fields
   return {
-    id: input.id,
-    userId: input.userId,
-    tenantId: input.tenantId,
+    id,
+    userId,
+    tenantId,
     inAppConfig: {
-      newEServiceVersionPublished:
-        input.inAppConfig.newEServiceVersionPublished,
+      agreementSuspendedUnsuspendedToProducer:
+        agreementSuspendedUnsuspendedToProducerInApp,
+      agreementManagementToProducer: agreementManagementToProducerInApp,
+      clientAddedRemovedToProducer: clientAddedRemovedToProducerInApp,
+      purposeStatusChangedToProducer: purposeStatusChangedToProducerInApp,
+      templateStatusChangedToProducer: templateStatusChangedToProducerInApp,
+      agreementSuspendedUnsuspendedToConsumer:
+        agreementSuspendedUnsuspendedToConsumerInApp,
+      eserviceStateChangedToConsumer: eserviceStateChangedToConsumerInApp,
+      agreementActivatedRejectedToConsumer:
+        agreementActivatedRejectedToConsumerInApp,
+      purposeActivatedRejectedToConsumer:
+        purposeActivatedRejectedToConsumerInApp,
+      purposeSuspendedUnsuspendedToConsumer:
+        purposeSuspendedUnsuspendedToConsumerInApp,
+      newEserviceTemplateVersionToInstantiator:
+        newEserviceTemplateVersionToInstantiatorInApp,
+      eserviceTemplateNameChangedToInstantiator:
+        eserviceTemplateNameChangedToInstantiatorInApp,
+      eserviceTemplateStatusChangedToInstantiator:
+        eserviceTemplateStatusChangedToInstantiatorInApp,
+      delegationApprovedRejectedToDelegator:
+        delegationApprovedRejectedToDelegatorInApp,
+      eserviceNewVersionSubmittedToDelegator:
+        eserviceNewVersionSubmittedToDelegatorInApp,
+      eserviceNewVersionApprovedRejectedToDelegate:
+        eserviceNewVersionApprovedRejectedToDelegateInApp,
+      delegationSubmittedRevokedToDelegate:
+        delegationSubmittedRevokedToDelegateInApp,
+      certifiedVerifiedAttributeAssignedRevokedToAssignee:
+        certifiedVerifiedAttributeAssignedRevokedToAssigneeInApp,
+      clientKeyAddedDeletedToClientUsers:
+        clientKeyAddedDeletedToClientUsersInApp,
     },
     emailConfig: {
-      newEServiceVersionPublished:
-        input.emailConfig.newEServiceVersionPublished,
+      agreementSuspendedUnsuspendedToProducer:
+        agreementSuspendedUnsuspendedToProducerEmail,
+      agreementManagementToProducer: agreementManagementToProducerEmail,
+      clientAddedRemovedToProducer: clientAddedRemovedToProducerEmail,
+      purposeStatusChangedToProducer: purposeStatusChangedToProducerEmail,
+      templateStatusChangedToProducer: templateStatusChangedToProducerEmail,
+      agreementSuspendedUnsuspendedToConsumer:
+        agreementSuspendedUnsuspendedToConsumerEmail,
+      eserviceStateChangedToConsumer: eserviceStateChangedToConsumerEmail,
+      agreementActivatedRejectedToConsumer:
+        agreementActivatedRejectedToConsumerEmail,
+      purposeActivatedRejectedToConsumer:
+        purposeActivatedRejectedToConsumerEmail,
+      purposeSuspendedUnsuspendedToConsumer:
+        purposeSuspendedUnsuspendedToConsumerEmail,
+      newEserviceTemplateVersionToInstantiator:
+        newEserviceTemplateVersionToInstantiatorEmail,
+      eserviceTemplateNameChangedToInstantiator:
+        eserviceTemplateNameChangedToInstantiatorEmail,
+      eserviceTemplateStatusChangedToInstantiator:
+        eserviceTemplateStatusChangedToInstantiatorEmail,
+      delegationApprovedRejectedToDelegator:
+        delegationApprovedRejectedToDelegatorEmail,
+      eserviceNewVersionSubmittedToDelegator:
+        eserviceNewVersionSubmittedToDelegatorEmail,
+      eserviceNewVersionApprovedRejectedToDelegate:
+        eserviceNewVersionApprovedRejectedToDelegateEmail,
+      delegationSubmittedRevokedToDelegate:
+        delegationSubmittedRevokedToDelegateEmail,
+      certifiedVerifiedAttributeAssignedRevokedToAssignee:
+        certifiedVerifiedAttributeAssignedRevokedToAssigneeEmail,
+      clientKeyAddedDeletedToClientUsers:
+        clientKeyAddedDeletedToClientUsersEmail,
     },
-    createdAt: input.createdAt.toJSON(),
-    updatedAt: input.updatedAt?.toJSON(),
+    createdAt: createdAt.toJSON(),
+    updatedAt: updatedAt?.toJSON(),
   };
 }

@@ -119,6 +119,75 @@ const attributeRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .get("/certifiedAttributes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const attributes = await attributeService.getCertifiedAttributes(
+          req.query,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.CertifiedAttributes.parse(attributes));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error retrieving certified attributes"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/verifiedAttributes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const attribute = await attributeService.createVerifiedAttribute(
+          req.body,
+          ctx
+        );
+        return res
+          .status(201)
+          .send(m2mGatewayApi.VerifiedAttribute.parse(attribute));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error creating verified attribute"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/declaredAttributes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const attribute = await attributeService.createDeclaredAttribute(
+          req.body,
+          ctx
+        );
+        return res
+          .status(201)
+          .send(m2mGatewayApi.DeclaredAttribute.parse(attribute));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error creating declared attribute"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return attributeRouter;

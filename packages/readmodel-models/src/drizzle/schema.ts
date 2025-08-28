@@ -8,7 +8,6 @@ import {
   timestamp,
   foreignKey,
   primaryKey,
-  json,
 } from "drizzle-orm/pg-core";
 import {
   readmodelAgreement,
@@ -765,6 +764,7 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
     updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }),
     isFreeOfCharge: boolean("is_free_of_charge").notNull(),
     freeOfChargeReason: varchar("free_of_charge_reason"),
+    purposeTemplateId: uuid("purpose_template_id"),
   },
   (table) => [
     unique("purpose_id_metadata_version_unique").on(
@@ -1707,6 +1707,7 @@ export const tenantNotificationConfigInReadmodelNotificationConfig =
       id: uuid().primaryKey().notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       tenantId: uuid("tenant_id").notNull(),
+      enabled: boolean().notNull(),
       createdAt: timestamp("created_at", {
         withTimezone: true,
         mode: "string",
@@ -1715,9 +1716,6 @@ export const tenantNotificationConfigInReadmodelNotificationConfig =
         withTimezone: true,
         mode: "string",
       }),
-      newEserviceVersionPublished: boolean(
-        "new_eservice_version_published"
-      ).notNull(),
     },
     (table) => [
       unique("tenant_notification_config_id_metadata_version_unique").on(
@@ -1744,12 +1742,6 @@ export const userNotificationConfigInReadmodelNotificationConfig =
         withTimezone: true,
         mode: "string",
       }),
-      newEserviceVersionPublishedInApp: boolean(
-        "new_eservice_version_published_in_app"
-      ).notNull(),
-      newEserviceVersionPublishedEmail: boolean(
-        "new_eservice_version_published_email"
-      ).notNull(),
     },
     (table) => [
       unique("user_notification_config_id_metadata_version_unique").on(
@@ -1763,14 +1755,76 @@ export const userNotificationConfigInReadmodelNotificationConfig =
     ]
   );
 
+export const userEnabledInAppNotificationInReadmodelNotificationConfig =
+  readmodelNotificationConfig.table(
+    "user_enabled_in_app_notification",
+    {
+      userNotificationConfigId: uuid("user_notification_config_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      notificationType: varchar("notification_type").notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.userNotificationConfigId],
+        foreignColumns: [
+          userNotificationConfigInReadmodelNotificationConfig.id,
+        ],
+        name: "user_enabled_in_app_notificati_user_notification_config_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.userNotificationConfigId, table.metadataVersion],
+        foreignColumns: [
+          userNotificationConfigInReadmodelNotificationConfig.id,
+          userNotificationConfigInReadmodelNotificationConfig.metadataVersion,
+        ],
+        name: "user_enabled_in_app_notificat_user_notification_config_id__fkey",
+      }),
+      primaryKey({
+        columns: [table.userNotificationConfigId, table.notificationType],
+        name: "user_enabled_in_app_notification_pkey",
+      }),
+    ]
+  );
+
+export const userEnabledEmailNotificationInReadmodelNotificationConfig =
+  readmodelNotificationConfig.table(
+    "user_enabled_email_notification",
+    {
+      userNotificationConfigId: uuid("user_notification_config_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      notificationType: varchar("notification_type").notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.userNotificationConfigId],
+        foreignColumns: [
+          userNotificationConfigInReadmodelNotificationConfig.id,
+        ],
+        name: "user_enabled_email_notificatio_user_notification_config_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.userNotificationConfigId, table.metadataVersion],
+        foreignColumns: [
+          userNotificationConfigInReadmodelNotificationConfig.id,
+          userNotificationConfigInReadmodelNotificationConfig.metadataVersion,
+        ],
+        name: "user_enabled_email_notificati_user_notification_config_id__fkey",
+      }),
+      primaryKey({
+        columns: [table.userNotificationConfigId, table.notificationType],
+        name: "user_enabled_email_notification_pkey",
+      }),
+    ]
+  );
+
 export const purposeTemplateInReadmodelPurposeTemplate =
   readmodelPurposeTemplate.table(
     "purpose_template",
     {
       id: uuid().primaryKey().notNull(),
       metadataVersion: integer("metadata_version").notNull(),
-      name: varchar().notNull(),
-      target: varchar().notNull(),
+      targetDescription: varchar("target_description").notNull(),
+      targetTenantKind: varchar("target_tenant_kind").notNull(),
       creatorId: uuid("creator_id").notNull(),
       state: varchar().notNull(),
       createdAt: timestamp("created_at", {
@@ -1836,7 +1890,6 @@ export const purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate =
       key: varchar().notNull(),
       value: varchar().array().notNull(),
       editable: boolean().notNull(),
-      assistiveText: varchar("assistive_text"),
       suggestedValues: varchar("suggested_values").array(),
     },
     (table) => [
@@ -1872,6 +1925,7 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurpo
       metadataVersion: integer("metadata_version").notNull(),
       annotationId: uuid("annotation_id").notNull(),
       name: varchar().notNull(),
+      prettyName: varchar("pretty_name").notNull(),
       contentType: varchar("content_type").notNull(),
       path: varchar().notNull(),
       createdAt: timestamp("created_at", {
@@ -1884,7 +1938,7 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurpo
         columns: [table.purposeTemplateId],
         foreignColumns: [purposeTemplateInReadmodelPurposeTemplate.id],
         name: "purpose_template_risk_analysis_answer_purpose_template_id_fkey1",
-      }),
+      }).onDelete("cascade"),
       foreignKey({
         columns: [table.annotationId],
         foreignColumns: [
@@ -1911,8 +1965,7 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTempla
       purposeTemplateId: uuid("purpose_template_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       answerId: uuid("answer_id").notNull(),
-      text: varchar(),
-      urls: json(),
+      text: varchar().notNull(),
     },
     (table) => [
       foreignKey({
@@ -1941,20 +1994,24 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTempla
     ]
   );
 
-export const purposeTemplateEserviceDescriptorVersionInReadmodelPurposeTemplate =
+export const purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate =
   readmodelPurposeTemplate.table(
-    "purpose_template_eservice_descriptor_version",
+    "purpose_template_eservice_descriptor",
     {
       metadataVersion: integer("metadata_version").notNull(),
       purposeTemplateId: uuid("purpose_template_id").notNull(),
       eserviceId: uuid("eservice_id").notNull(),
-      descriptorId: uuid("descriptor_id"),
+      descriptorId: uuid("descriptor_id").notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
     },
     (table) => [
       foreignKey({
         columns: [table.purposeTemplateId],
         foreignColumns: [purposeTemplateInReadmodelPurposeTemplate.id],
-        name: "purpose_template_eservice_descriptor_v_purpose_template_id_fkey",
+        name: "purpose_template_eservice_descriptor_purpose_template_id_fkey",
       }).onDelete("cascade"),
       foreignKey({
         columns: [table.metadataVersion, table.purposeTemplateId],
@@ -1966,7 +2023,7 @@ export const purposeTemplateEserviceDescriptorVersionInReadmodelPurposeTemplate 
       }),
       primaryKey({
         columns: [table.purposeTemplateId, table.eserviceId],
-        name: "purpose_template_eservice_descriptor_version_pkey",
+        name: "purpose_template_eservice_descriptor_pkey",
       }),
     ]
   );

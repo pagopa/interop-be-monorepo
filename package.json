@@ -1,6 +1,7 @@
 {
   "private": true,
   "name": "root",
+  "license": "EUPL-1.2",
   "engines": {
     "node": ">=20"
   },
@@ -47,10 +48,13 @@
     "start:eservice-template": "turbo start --filter pagopa-interop-eservice-template-process",
     "start:eservice-template-readmodel-writer": "turbo start --filter pagopa-interop-eservice-template-readmodel-writer",
     "start:notification-email-sender": "turbo start --filter pagopa-interop-notification-email-sender",
+    "start:email-sender": "turbo start --filter pagopa-interop-email-sender",
     "start:m2m-gateway": "turbo start --filter pagopa-interop-m2m-gateway",
     "start:in-app-notification": "turbo start --filter pagopa-interop-in-app-notification-manager",
     "start:notification-config": "turbo start --filter pagopa-interop-notification-config-process",
     "start:notification-config-readmodel-writer-sql": "turbo start --filter pagopa-interop-notification-config-readmodel-writer-sql",
+    "start:notification-user-lifecycle": "turbo start --filter pagopa-interop-notification-user-lifecycle-consumer",
+    "start:in-app-notification-dispatcher": "turbo start --filter pagopa-interop-in-app-notification-dispatcher",
     "test": "turbo test",
     "test:integration": "turbo test:integration",
     "test:api": "turbo test:api",

@@ -2,6 +2,7 @@ import * as m2mGatewayApi from "./generated/m2mGatewayApi.js";
 import { QueryParametersByAlias } from "./utils.js";
 
 type AgreementApi = typeof m2mGatewayApi.agreementsApi.api;
+type AttributeApi = typeof m2mGatewayApi.attributesApi.api;
 type EServiceApi = typeof m2mGatewayApi.eservicesApi.api;
 type PurposeApi = typeof m2mGatewayApi.purposesApi.api;
 type TenantApi = typeof m2mGatewayApi.tenantsApi.api;
@@ -22,6 +23,11 @@ export type GetAgreementConsumerDocumentsQueryParams = QueryParametersByAlias<
 export type GetAgreementPurposesQueryParams = QueryParametersByAlias<
   AgreementApi,
   "getAgreementPurposes"
+>;
+
+export type GetCertifiedAttributesQueryParams = QueryParametersByAlias<
+  AttributeApi,
+  "getCertifiedAttributes"
 >;
 
 export type GetEServicesQueryParams = QueryParametersByAlias<
@@ -51,17 +57,21 @@ export type GetTenantsQueryParams = QueryParametersByAlias<
 
 export type GetTenantCertifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
-  "getCertifiedAttributes"
+  "getTenantCertifiedAttributes"
 >;
 
 export type GetTenantVerifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
-  "getVerifiedAttributes"
+  "getTenantVerifiedAttributes"
 >;
+export type GetTenantVerifiedAttributeVerifiersQueryParams =
+  QueryParametersByAlias<TenantApi, "getTenantVerifiedAttributeVerifiers">;
+export type GetTenantVerifiedAttributeRevokersQueryParams =
+  QueryParametersByAlias<TenantApi, "getTenantVerifiedAttributeRevokers">;
 
 export type GetTenantDeclaredAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
-  "getDeclaredAttributes"
+  "getTenantDeclaredAttributes"
 >;
 
 export type GetConsumerDelegationsQueryParams = QueryParametersByAlias<

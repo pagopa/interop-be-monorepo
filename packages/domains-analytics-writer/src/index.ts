@@ -24,6 +24,7 @@ import {
   ClientDbTable,
   ProducerKeychainDbTable,
   PurposeTemplateDbTable,
+  ClientDbTablePartialTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 import { EserviceTemplateDbTable } from "./model/db/eserviceTemplate.js";
@@ -107,6 +108,7 @@ await retryConnection(
     await setupDbService.setupPartialStagingTables([
       TenantDbPartialTable.tenant_self_care_id,
       CatalogDbPartialTable.descriptor_server_urls,
+      ClientDbTablePartialTable.key_relationship_migrated,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
@@ -136,7 +138,7 @@ await retryConnection(
       },
       {
         name: DeletingDbTable.client_key_deleting_table,
-        columns: ["clientId", "kid"],
+        columns: ["clientId", "kid", "deleted_at"],
       },
       {
         name: DeletingDbTable.producer_keychain_deleting_table,
@@ -148,7 +150,7 @@ await retryConnection(
       },
     ]);
   },
-  logger({ serviceName: config.serviceName })
+  logger({ serviceName: config.serviceName }),
 );
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
@@ -159,7 +161,7 @@ async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   genericLogger.info(
     `Handled batch. Partition: ${
       batch.partition
-    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`
+    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`,
   );
 }
 
@@ -177,5 +179,5 @@ await runBatchConsumer(
     config.eserviceTemplateTopic,
   ],
   processBatch,
-  "domains-analytics-writer"
+  "domains-analytics-writer",
 );

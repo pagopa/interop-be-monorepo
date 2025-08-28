@@ -203,16 +203,13 @@ export type RiskAnalysisTemplateAnswerAnnotationId = z.infer<
   typeof RiskAnalysisTemplateAnswerAnnotationId
 >;
 
-export const RiskAnalysisTemplateAnnotationDocumentId = z
+export const RiskAnalysisTemplateAnswerAnnotationDocumentId = z
   .string()
   .uuid()
-  .brand("RiskAnalysisTemplateAnnotationDocumentId");
-export type RiskAnalysisTemplateAnnotationDocumentId = z.infer<
-  typeof RiskAnalysisTemplateAnnotationDocumentId
+  .brand("RiskAnalysisTemplateAnswerAnnotationDocumentId");
+export type RiskAnalysisTemplateAnswerAnnotationDocumentId = z.infer<
+  typeof RiskAnalysisTemplateAnswerAnnotationDocumentId
 >;
-
-export const LinkId = z.string().uuid().brand("LinkId");
-export type LinkId = z.infer<typeof LinkId>;
 
 type IDS =
   | CorrelationId
@@ -255,8 +252,7 @@ type IDS =
   | PurposeTemplateId
   | RiskAnalysisFormTemplateId
   | RiskAnalysisTemplateAnswerAnnotationId
-  | RiskAnalysisTemplateAnnotationDocumentId
-  | LinkId;
+  | RiskAnalysisTemplateAnswerAnnotationDocumentId;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result

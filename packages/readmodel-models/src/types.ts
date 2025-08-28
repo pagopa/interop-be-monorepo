@@ -39,7 +39,7 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
-  purposeTemplateEserviceDescriptorVersionInReadmodelPurposeTemplate,
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
@@ -57,6 +57,8 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   userNotificationConfigInReadmodelNotificationConfig,
+  userEnabledInAppNotificationInReadmodelNotificationConfig,
+  userEnabledEmailNotificationInReadmodelNotificationConfig,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -278,12 +280,23 @@ export type TenantNotificationConfigSQL = InferSelectModel<
 export type UserNotificationConfigSQL = InferSelectModel<
   typeof userNotificationConfigInReadmodelNotificationConfig
 >;
+export type UserEnabledInAppNotificationSQL = InferSelectModel<
+  typeof userEnabledInAppNotificationInReadmodelNotificationConfig
+>;
+export type UserEnabledEmailNotificationSQL = InferSelectModel<
+  typeof userEnabledEmailNotificationInReadmodelNotificationConfig
+>;
+export type UserNotificationConfigItemsSQL = {
+  userNotificationConfigSQL: UserNotificationConfigSQL;
+  enabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[];
+  enabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[];
+};
 
 export type PurposeTemplateSQL = InferSelectModel<
   typeof purposeTemplateInReadmodelPurposeTemplate
 >;
-export type PurposeTemplateEServiceDescriptorVersionSQL = InferSelectModel<
-  typeof purposeTemplateEserviceDescriptorVersionInReadmodelPurposeTemplate
+export type PurposeTemplateEServiceDescriptorSQL = InferSelectModel<
+  typeof purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
 >;
 export type PurposeTemplateRiskAnalysisFormSQL = InferSelectModel<
   typeof purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate
@@ -300,9 +313,8 @@ export type PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL =
   >;
 export type PurposeTemplateItemsSQL = {
   purposeTemplateSQL: PurposeTemplateSQL;
-  eserviceDescriptorVersionsSQL: PurposeTemplateEServiceDescriptorVersionSQL[];
-  riskAnalysisFormSQL: PurposeTemplateRiskAnalysisFormSQL | undefined;
-  riskAnalysisAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
-  riskAnalysisAnswerAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
-  riskAnalysisAnswerAnnotationDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+  riskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSQL | undefined;
+  riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
+  riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
 };

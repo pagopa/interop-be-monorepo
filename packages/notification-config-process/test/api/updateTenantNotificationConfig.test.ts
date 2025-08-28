@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TenantNotificationConfig, generateId } from "pagopa-interop-models";
 import {
   generateToken,
-  getMockNotificationConfig,
   getMockTenantNotificationConfig,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
@@ -12,22 +11,22 @@ import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { api, notificationConfigService } from "../vitest.api.setup.js";
 import { tenantNotificationConfigToApiTenantNotificationConfig } from "../../src/model/domain/apiConverter.js";
 import { expectedOrganizationId } from "../utils.js";
+import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 
 describe("API POST /tenantNotificationConfigs test", () => {
   const tenantId = mockTokenOrganizationId;
-  const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed =
-    getMockNotificationConfig();
   const serviceResponse: TenantNotificationConfig = {
     ...getMockTenantNotificationConfig(),
     tenantId,
-    config: notificationConfigSeed,
   };
+  const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigUpdateSeed =
+    { enabled: serviceResponse.enabled };
   const apiResponse: notificationConfigApi.TenantNotificationConfig =
     tenantNotificationConfigToApiTenantNotificationConfig(serviceResponse);
 
   const makeRequest = async (
     token: string,
-    body: notificationConfigApi.NotificationConfigSeed = notificationConfigSeed
+    body: notificationConfigApi.TenantNotificationConfigUpdateSeed = notificationConfigSeed
   ) =>
     request(api)
       .post("/tenantNotificationConfigs")
@@ -70,15 +69,30 @@ describe("API POST /tenantNotificationConfigs test", () => {
     ).not.toHaveBeenCalled();
   });
 
+  it("Should return 404 for tenantNotificationConfigNotFound", async () => {
+    notificationConfigService.updateTenantNotificationConfig = vi
+      .fn()
+      .mockRejectedValue(tenantNotificationConfigNotFound(tenantId));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+    expect(
+      notificationConfigService.updateTenantNotificationConfig
+    ).toHaveBeenCalledWith(
+      notificationConfigSeed,
+      expectedOrganizationId(tenantId)
+    );
+  });
+
   it.each([
     { body: {} },
-    { body: { newEServiceVersionPublished: "invalid" } },
+    { body: { agreementSuspendedUnsuspendedToProducer: "invalid" } },
     { body: { ...notificationConfigSeed, extraField: 1 } },
   ])("Should return 400 if passed invalid params: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      body as notificationConfigApi.NotificationConfigSeed
+      body as notificationConfigApi.TenantNotificationConfigUpdateSeed
     );
     expect(res.status).toBe(400);
     expect(
