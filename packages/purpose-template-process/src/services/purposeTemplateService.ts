@@ -8,6 +8,7 @@ import {
   TenantId,
   Tenant,
   purposeTemplateEventToBinaryDataV2,
+  ListResult,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -25,7 +26,10 @@ import {
   tenantNotFound,
 } from "../model/domain/errors.js";
 import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import {
+  GetPurposeTemplatesFilters,
+  ReadModelServiceSQL,
+} from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
   assertPurposeTemplateTitleIsNotDuplicated,
@@ -137,6 +141,30 @@ export function purposeTemplateServiceBuilder(
           version: event.newVersion,
         },
       };
+    },
+    async getPurposeTemplates(
+      filters: GetPurposeTemplatesFilters,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<PurposeTemplate>> {
+      logger.info(
+        `Getting purpose templates with filters: ${JSON.stringify(
+          filters
+        )}, limit = ${limit}, offset = ${offset}`
+      );
+
+      // Permissions are checked in the readModelService
+      return await readModelService.getPurposeTemplates(
+        authData.organizationId,
+        filters,
+        {
+          offset,
+          limit,
+        }
+      );
     },
     async getPurposeTemplateById(
       id: PurposeTemplateId,
