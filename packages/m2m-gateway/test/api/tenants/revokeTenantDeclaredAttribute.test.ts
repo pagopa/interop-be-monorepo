@@ -20,6 +20,7 @@ import {
   tenantDeclaredAttributeNotFound,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiTenantDeclaredAttribute } from "../../../src/api/tenantApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("DELETE /tenants/:tenantId/declaredAttributes/:attributeId router test", () => {
   const mockApiResponse = getMockedApiDeclaredTenantAttribute();
@@ -73,7 +74,10 @@ describe("DELETE /tenants/:tenantId/declaredAttributes/:attributeId router test"
   it.each([
     tenantDeclaredAttributeNotFound(getMockedApiTenant(), generateId()),
     missingMetadata(),
-    pollingMaxRetriesExceeded(3, 10),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
   ])("Should return 500 in case of $code error", async (error) => {
     mockTenantService.revokeTenantDeclaredAttribute = vi
       .fn()

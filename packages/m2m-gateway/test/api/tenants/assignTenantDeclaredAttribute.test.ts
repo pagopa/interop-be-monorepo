@@ -22,6 +22,7 @@ import {
   requesterIsNotTheDelegateConsumer,
   cannotEditDeclaredAttributesForTenant,
 } from "../../../src/model/errors.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /tenants/:tenantId/declaredAttributes router test", () => {
   const mockApiResponse = getMockedApiDeclaredTenantAttribute();
@@ -105,7 +106,10 @@ describe("POST /tenants/:tenantId/declaredAttributes router test", () => {
   it.each([
     tenantDeclaredAttributeNotFound(getMockedApiTenant(), generateId()),
     missingMetadata(),
-    pollingMaxRetriesExceeded(3, 10),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
   ])("Should return 500 in case of $code error", async (error) => {
     mockTenantService.assignTenantDeclaredAttribute = vi
       .fn()

@@ -11,6 +11,7 @@ import {
   missingMetadata,
 } from "../../../src/model/errors.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 
 describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttributes router test", () => {
   const m2mAttributes: m2mGatewayApi.EServiceDescriptorAttributes = {
@@ -83,18 +84,21 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttribu
     expect(res.status).toBe(404);
   });
 
-  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockEserviceService.updateEServiceDescriptorVerifiedAttributes = vi
-        .fn()
-        .mockRejectedValueOnce(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, generateId());
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockEserviceService.updateEServiceDescriptorVerifiedAttributes = vi
+      .fn()
+      .mockRejectedValueOnce(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId());
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 
   it.each([
     { attributes: [...m2mAttributes.attributes, [{ id: undefined }]] },
