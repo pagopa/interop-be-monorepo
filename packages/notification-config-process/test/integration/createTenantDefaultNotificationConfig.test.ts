@@ -5,7 +5,6 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   generateId,
-  NotificationConfig,
   TenantId,
   TenantNotificationConfig,
   TenantNotificationConfigCreatedV2,
@@ -21,28 +20,6 @@ import { tenantNotificationConfigAlreadyExists } from "../../src/model/domain/er
 
 describe("createTenantNotificationConfig", () => {
   const tenantId: TenantId = generateId();
-
-  const defaultConfig: NotificationConfig = {
-    agreementSuspendedUnsuspendedToProducer: false,
-    agreementManagementToProducer: false,
-    clientAddedRemovedToProducer: false,
-    purposeStatusChangedToProducer: false,
-    templateStatusChangedToProducer: false,
-    agreementSuspendedUnsuspendedToConsumer: false,
-    eserviceStateChangedToConsumer: false,
-    agreementActivatedRejectedToConsumer: false,
-    purposeActivatedRejectedToConsumer: false,
-    purposeSuspendedUnsuspendedToConsumer: false,
-    newEserviceTemplateVersionToInstantiator: false,
-    eserviceTemplateNameChangedToInstantiator: false,
-    eserviceTemplateStatusChangedToInstantiator: false,
-    delegationApprovedRejectedToDelegator: false,
-    eserviceNewVersionSubmittedToDelegator: false,
-    eserviceNewVersionApprovedRejectedToDelegate: false,
-    delegationSubmittedRevokedToDelegate: false,
-    certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-    clientKeyAddedDeletedToClientUsers: false,
-  };
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -69,7 +46,7 @@ describe("createTenantNotificationConfig", () => {
     const expectedTenantNotificationConfig: TenantNotificationConfig = {
       id: serviceReturnValue.id,
       tenantId,
-      config: defaultConfig,
+      enabled: true,
       createdAt: new Date(),
     };
     expect(serviceReturnValue).toEqual(expectedTenantNotificationConfig);

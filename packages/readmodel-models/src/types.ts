@@ -57,7 +57,6 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   userNotificationConfigInReadmodelNotificationConfig,
-  tenantEnabledNotificationInReadmodelNotificationConfig,
   userEnabledInAppNotificationInReadmodelNotificationConfig,
   userEnabledEmailNotificationInReadmodelNotificationConfig,
 } from "./drizzle/schema.js";
@@ -277,13 +276,6 @@ export type DelegationItemsSQL = {
 export type TenantNotificationConfigSQL = InferSelectModel<
   typeof tenantNotificationConfigInReadmodelNotificationConfig
 >;
-export type TenantEnabledNotificationSQL = InferSelectModel<
-  typeof tenantEnabledNotificationInReadmodelNotificationConfig
->;
-export type TenantNotificationConfigItemsSQL = {
-  tenantNotificationConfigSQL: TenantNotificationConfigSQL;
-  enabledNotificationsSQL: TenantEnabledNotificationSQL[];
-};
 
 export type UserNotificationConfigSQL = InferSelectModel<
   typeof userNotificationConfigInReadmodelNotificationConfig
