@@ -14,7 +14,7 @@ import {
 } from "../../services/utils.js";
 import {
   AgreementHandlerParams,
-  getUserEmailsToNotify,
+  getRecipientsForTenant,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
@@ -45,41 +45,35 @@ export async function handleAgreementUpgraded(
     retrieveTenant(agreement.consumerId, readModelService),
   ]);
 
-  let userEmails: string[] = [];
-  try {
-    userEmails = await getUserEmailsToNotify(
-      producer.id,
-      notificationType,
-      readModelService,
-      userService
+  const targets = await getRecipientsForTenant({
+    tenant: producer,
+    notificationType,
+    readModelService,
+    logger,
+    userService,
+    includeTenantContactEmail: false,
+  });
+
+  if (targets.length === 0) {
+    logger.info(
+      `No targets found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
     );
-  } catch (error) {
-    logger.warn(`Error reading user email. Reason: ${error}`);
     return [];
   }
 
-  let toDispatch: EmailNotificationMessagePayload[] = [];
-  if (userEmails.length > 0) {
-    toDispatch = userEmails.map((email: string) => ({
-      correlationId: correlationId ?? generateId(),
-      email: {
-        subject: `Richiesta di fruizione ${agreement.id} attiva`,
-        body: templateService.compileHtml(htmlTemplate, {
-          title: "Nuova richiesta di fruizione",
-          notificationType,
-          entityId: agreement.id,
-          producerName: producer.name,
-          consumerName: consumer.name,
-          eserviceName: eservice.name,
-        }),
-      },
-      address: email,
-    }));
-  } else {
-    logger.info(
-      `No users found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
-    );
-  }
-
-  return toDispatch;
+  return targets.map(({ address }) => ({
+    correlationId: correlationId ?? generateId(),
+    email: {
+      subject: `Richiesta di fruizione aggiornata per un tuo e-service`,
+      body: templateService.compileHtml(htmlTemplate, {
+        title: `Richiesta di fruizione aggiornata per un tuo e-service`,
+        notificationType,
+        entityId: agreement.id,
+        producerName: producer.name,
+        consumerName: consumer.name,
+        eserviceName: eservice.name,
+      }),
+    },
+    address,
+  }));
 }

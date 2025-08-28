@@ -63,6 +63,7 @@ const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
+  readModelDB,
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
