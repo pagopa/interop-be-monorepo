@@ -31,8 +31,63 @@ export const aggregateTenantNotificationConfig = ({
   );
 
   const config: NotificationConfig = {
-    newEServiceVersionPublished: enabledNotifications.includes(
-      "newEServiceVersionPublished"
+    agreementSuspendedUnsuspendedToProducer: enabledNotifications.includes(
+      "agreementSuspendedUnsuspendedToProducer"
+    ),
+    agreementManagementToProducer: enabledNotifications.includes(
+      "agreementManagementToProducer"
+    ),
+    clientAddedRemovedToProducer: enabledNotifications.includes(
+      "clientAddedRemovedToProducer"
+    ),
+    purposeStatusChangedToProducer: enabledNotifications.includes(
+      "purposeStatusChangedToProducer"
+    ),
+    templateStatusChangedToProducer: enabledNotifications.includes(
+      "templateStatusChangedToProducer"
+    ),
+    agreementSuspendedUnsuspendedToConsumer: enabledNotifications.includes(
+      "agreementSuspendedUnsuspendedToConsumer"
+    ),
+    eserviceStateChangedToConsumer: enabledNotifications.includes(
+      "eserviceStateChangedToConsumer"
+    ),
+    agreementActivatedRejectedToConsumer: enabledNotifications.includes(
+      "agreementActivatedRejectedToConsumer"
+    ),
+    purposeActivatedRejectedToConsumer: enabledNotifications.includes(
+      "purposeActivatedRejectedToConsumer"
+    ),
+    purposeSuspendedUnsuspendedToConsumer: enabledNotifications.includes(
+      "purposeSuspendedUnsuspendedToConsumer"
+    ),
+    newEserviceTemplateVersionToInstantiator: enabledNotifications.includes(
+      "newEserviceTemplateVersionToInstantiator"
+    ),
+    eserviceTemplateNameChangedToInstantiator: enabledNotifications.includes(
+      "eserviceTemplateNameChangedToInstantiator"
+    ),
+    eserviceTemplateStatusChangedToInstantiator: enabledNotifications.includes(
+      "eserviceTemplateStatusChangedToInstantiator"
+    ),
+    delegationApprovedRejectedToDelegator: enabledNotifications.includes(
+      "delegationApprovedRejectedToDelegator"
+    ),
+    eserviceNewVersionSubmittedToDelegator: enabledNotifications.includes(
+      "eserviceNewVersionSubmittedToDelegator"
+    ),
+    eserviceNewVersionApprovedRejectedToDelegate: enabledNotifications.includes(
+      "eserviceNewVersionApprovedRejectedToDelegate"
+    ),
+    delegationSubmittedRevokedToDelegate: enabledNotifications.includes(
+      "delegationSubmittedRevokedToDelegate"
+    ),
+    certifiedVerifiedAttributeAssignedRevokedToAssignee:
+      enabledNotifications.includes(
+        "certifiedVerifiedAttributeAssignedRevokedToAssignee"
+      ),
+    clientKeyAddedDeletedToClientUsers: enabledNotifications.includes(
+      "clientKeyAddedDeletedToClientUsers"
     ),
   };
 
@@ -72,13 +127,131 @@ export const aggregateUserNotificationConfig = ({
   );
 
   const inAppConfig: NotificationConfig = {
-    newEServiceVersionPublished: enabledInAppNotifications.includes(
-      "newEServiceVersionPublished"
+    agreementSuspendedUnsuspendedToProducer: enabledInAppNotifications.includes(
+      "agreementSuspendedUnsuspendedToProducer"
+    ),
+    agreementManagementToProducer: enabledInAppNotifications.includes(
+      "agreementManagementToProducer"
+    ),
+    clientAddedRemovedToProducer: enabledInAppNotifications.includes(
+      "clientAddedRemovedToProducer"
+    ),
+    purposeStatusChangedToProducer: enabledInAppNotifications.includes(
+      "purposeStatusChangedToProducer"
+    ),
+    templateStatusChangedToProducer: enabledInAppNotifications.includes(
+      "templateStatusChangedToProducer"
+    ),
+    agreementSuspendedUnsuspendedToConsumer: enabledInAppNotifications.includes(
+      "agreementSuspendedUnsuspendedToConsumer"
+    ),
+    eserviceStateChangedToConsumer: enabledInAppNotifications.includes(
+      "eserviceStateChangedToConsumer"
+    ),
+    agreementActivatedRejectedToConsumer: enabledInAppNotifications.includes(
+      "agreementActivatedRejectedToConsumer"
+    ),
+    purposeActivatedRejectedToConsumer: enabledInAppNotifications.includes(
+      "purposeActivatedRejectedToConsumer"
+    ),
+    purposeSuspendedUnsuspendedToConsumer: enabledInAppNotifications.includes(
+      "purposeSuspendedUnsuspendedToConsumer"
+    ),
+    newEserviceTemplateVersionToInstantiator:
+      enabledInAppNotifications.includes(
+        "newEserviceTemplateVersionToInstantiator"
+      ),
+    eserviceTemplateNameChangedToInstantiator:
+      enabledInAppNotifications.includes(
+        "eserviceTemplateNameChangedToInstantiator"
+      ),
+    eserviceTemplateStatusChangedToInstantiator:
+      enabledInAppNotifications.includes(
+        "eserviceTemplateStatusChangedToInstantiator"
+      ),
+    delegationApprovedRejectedToDelegator: enabledInAppNotifications.includes(
+      "delegationApprovedRejectedToDelegator"
+    ),
+    eserviceNewVersionSubmittedToDelegator: enabledInAppNotifications.includes(
+      "eserviceNewVersionSubmittedToDelegator"
+    ),
+    eserviceNewVersionApprovedRejectedToDelegate:
+      enabledInAppNotifications.includes(
+        "eserviceNewVersionApprovedRejectedToDelegate"
+      ),
+    delegationSubmittedRevokedToDelegate: enabledInAppNotifications.includes(
+      "delegationSubmittedRevokedToDelegate"
+    ),
+    certifiedVerifiedAttributeAssignedRevokedToAssignee:
+      enabledInAppNotifications.includes(
+        "certifiedVerifiedAttributeAssignedRevokedToAssignee"
+      ),
+    clientKeyAddedDeletedToClientUsers: enabledInAppNotifications.includes(
+      "clientKeyAddedDeletedToClientUsers"
     ),
   };
   const emailConfig: NotificationConfig = {
-    newEServiceVersionPublished: enabledEmailNotifications.includes(
-      "newEServiceVersionPublished"
+    agreementSuspendedUnsuspendedToProducer: enabledEmailNotifications.includes(
+      "agreementSuspendedUnsuspendedToProducer"
+    ),
+    agreementManagementToProducer: enabledEmailNotifications.includes(
+      "agreementManagementToProducer"
+    ),
+    clientAddedRemovedToProducer: enabledEmailNotifications.includes(
+      "clientAddedRemovedToProducer"
+    ),
+    purposeStatusChangedToProducer: enabledEmailNotifications.includes(
+      "purposeStatusChangedToProducer"
+    ),
+    templateStatusChangedToProducer: enabledEmailNotifications.includes(
+      "templateStatusChangedToProducer"
+    ),
+    agreementSuspendedUnsuspendedToConsumer: enabledEmailNotifications.includes(
+      "agreementSuspendedUnsuspendedToConsumer"
+    ),
+    eserviceStateChangedToConsumer: enabledEmailNotifications.includes(
+      "eserviceStateChangedToConsumer"
+    ),
+    agreementActivatedRejectedToConsumer: enabledEmailNotifications.includes(
+      "agreementActivatedRejectedToConsumer"
+    ),
+    purposeActivatedRejectedToConsumer: enabledEmailNotifications.includes(
+      "purposeActivatedRejectedToConsumer"
+    ),
+    purposeSuspendedUnsuspendedToConsumer: enabledEmailNotifications.includes(
+      "purposeSuspendedUnsuspendedToConsumer"
+    ),
+    newEserviceTemplateVersionToInstantiator:
+      enabledEmailNotifications.includes(
+        "newEserviceTemplateVersionToInstantiator"
+      ),
+    eserviceTemplateNameChangedToInstantiator:
+      enabledEmailNotifications.includes(
+        "eserviceTemplateNameChangedToInstantiator"
+      ),
+    eserviceTemplateStatusChangedToInstantiator:
+      enabledEmailNotifications.includes(
+        "eserviceTemplateStatusChangedToInstantiator"
+      ),
+    delegationApprovedRejectedToDelegator: enabledEmailNotifications.includes(
+      "delegationApprovedRejectedToDelegator"
+    ),
+    eserviceNewVersionSubmittedToDelegator: enabledEmailNotifications.includes(
+      "eserviceNewVersionSubmittedToDelegator"
+    ),
+    eserviceNewVersionApprovedRejectedToDelegate:
+      enabledEmailNotifications.includes(
+        "eserviceNewVersionApprovedRejectedToDelegate"
+      ),
+    delegationSubmittedRevokedToDelegate: enabledEmailNotifications.includes(
+      "delegationSubmittedRevokedToDelegate"
+    ),
+    certifiedVerifiedAttributeAssignedRevokedToAssignee:
+      enabledEmailNotifications.includes(
+        "certifiedVerifiedAttributeAssignedRevokedToAssignee"
+      ),
+    clientKeyAddedDeletedToClientUsers: enabledEmailNotifications.includes(
+      "clientKeyAddedDeletedToClientUsers"
     ),
   };
 

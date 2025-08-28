@@ -39,6 +39,12 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  purposeTemplateInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
@@ -292,4 +298,31 @@ export type UserNotificationConfigItemsSQL = {
   userNotificationConfigSQL: UserNotificationConfigSQL;
   enabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[];
   enabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[];
+};
+
+export type PurposeTemplateSQL = InferSelectModel<
+  typeof purposeTemplateInReadmodelPurposeTemplate
+>;
+export type PurposeTemplateEServiceDescriptorSQL = InferSelectModel<
+  typeof purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+>;
+export type PurposeTemplateRiskAnalysisFormSQL = InferSelectModel<
+  typeof purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate
+>;
+export type PurposeTemplateRiskAnalysisAnswerSQL = InferSelectModel<
+  typeof purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate
+>;
+export type PurposeTemplateRiskAnalysisAnswerAnnotationSQL = InferSelectModel<
+  typeof purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate
+>;
+export type PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL =
+  InferSelectModel<
+    typeof purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+  >;
+export type PurposeTemplateItemsSQL = {
+  purposeTemplateSQL: PurposeTemplateSQL;
+  riskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSQL | undefined;
+  riskAnalysisTemplateAnswersSQL: PurposeTemplateRiskAnalysisAnswerSQL[];
+  riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
 };
