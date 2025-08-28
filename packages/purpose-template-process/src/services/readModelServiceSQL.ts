@@ -43,14 +43,10 @@ export type GetPurposeTemplatesFilters = {
   excludeDraft: boolean | undefined;
 };
 
-// TODO: delete if function is used once
-const getVisibilityFilter = (requesterId: TenantId): SQL | undefined =>
-  eq(purposeTemplateInReadmodelPurposeTemplate.creatorId, requesterId);
-
 const getPurposeTemplatesFilters = (
   readModelDB: DrizzleReturnType,
   filters: GetPurposeTemplatesFilters
-): Array<SQL | undefined> => {
+): SQL | undefined => {
   const { purposeTitle, creatorIds, eserviceIds, states, excludeDraft } =
     filters;
 
@@ -94,13 +90,13 @@ const getPurposeTemplatesFilters = (
       )
     : undefined;
 
-  return [
+  return and(
     purposeTitleFilter,
     creatorIdsFilter,
     eserviceIdsFilter,
     statesFilter,
-    draftFilter,
-  ];
+    draftFilter
+  );
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -153,12 +149,7 @@ export function readModelServiceBuilderSQL({
             purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId
           )
         )
-        .where(
-          and(
-            getVisibilityFilter(requesterId),
-            ...getPurposeTemplatesFilters(readModelDB, filters)
-          )
-        )
+        .where(getPurposeTemplatesFilters(readModelDB, filters))
         .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
         .orderBy(
           ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
