@@ -97,9 +97,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PurposeTemplate"
+                $ref: "#/components/schemas/PurposeTemplates"
         "400":
           description: Bad Request
           content:
@@ -785,6 +783,20 @@ components:
       schema:
         type: string
   schemas:
+    PurposeTemplates:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeTemplate"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     PurposeTemplate:
       type: object
       description: Business representation of a purpose template
