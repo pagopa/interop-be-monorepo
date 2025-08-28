@@ -2498,7 +2498,7 @@ paths:
       tags:
         - attributes
       summary: List Certified Attributes
-      description: Retrieve a list of Certified Attributes with pagination
+      description: Retrieve a list of Certified Attributes
       operationId: getCertifiedAttributes
       parameters:
         - in: query
@@ -2914,7 +2914,7 @@ paths:
       tags:
         - attributes
       summary: List Verified Attributes
-      description: Retrieve a list of Verified Attributes with pagination
+      description: Retrieve a list of Verified Attributes
       operationId: getVerifiedAttributes
       parameters:
         - in: query
@@ -3085,7 +3085,7 @@ paths:
       tags:
         - attributes
       summary: List Declared Attributes
-      description: Retrieve a list of Declared Attributes with pagination
+      description: Retrieve a list of Declared Attributes
       operationId: getDeclaredAttributes
       parameters:
         - in: query
