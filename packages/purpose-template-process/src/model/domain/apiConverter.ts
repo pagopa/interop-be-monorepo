@@ -31,13 +31,13 @@ export const purposeTemplateToApiPurposeTemplate = (
   createdAt: purposeTemplate.createdAt?.toJSON(),
   updatedAt: purposeTemplate.updatedAt?.toJSON(),
   purposeRiskAnalysisForm: purposeTemplate.purposeRiskAnalysisForm
-    ? riskAnalysisFormToApiRiskAnalysisForm(
+    ? riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
         purposeTemplate.purposeRiskAnalysisForm
       )
     : undefined,
 });
 
-function riskAnalysisFormToApiRiskAnalysisForm(
+function riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
   riskAnalysisForm: RiskAnalysisFormTemplate
 ): purposeTemplateApi.RiskAnalysisFormTemplate {
   const apiSingleAnswersMap = singleAnswersToApiSingleAnswers(
