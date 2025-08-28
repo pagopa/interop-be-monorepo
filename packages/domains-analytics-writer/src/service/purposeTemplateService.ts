@@ -30,7 +30,7 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
   const formRepo = purposeTemplateRiskAnalysisFormRepository(db.conn);
   const answerRepo = purposeTemplateRiskAnalysisAnswerRepository(db.conn);
   const annotationRepo = purposeTemplateRiskAnalysisAnswerAnnotationRepository(
-    db.conn,
+    db.conn
   );
   const documentRepo =
     purposeTemplateRiskAnalysisAnswerAnnotationDocumentRepository(db.conn);
@@ -40,26 +40,26 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
   return {
     async upsertBatchPurposeTemplate(
       dbContext: DBContext,
-      items: PurposeTemplateItemsSchema[],
+      items: PurposeTemplateItemsSchema[]
     ): Promise<void> {
       await dbContext.conn.tx(async (t) => {
         for (const batch of batchMessages(
           items,
-          config.dbMessagesToInsertPerBatch,
+          config.dbMessagesToInsertPerBatch
         )) {
           const batchItems = {
             templateSQL: batch.map((i) => i.purposeTemplateSQL),
             riskAnalysisFormTemplateSQL: batch.flatMap(
-              (item) => item.riskAnalysisFormTemplateSQL ?? [],
+              (item) => item.riskAnalysisFormTemplateSQL ?? []
             ),
             riskAnalysisTemplateAnswersSQL: batch.flatMap(
-              (item) => item.riskAnalysisTemplateAnswersSQL,
+              (item) => item.riskAnalysisTemplateAnswersSQL
             ),
             riskAnalysisTemplateAnswersAnnotationsSQL: batch.flatMap(
-              (item) => item.riskAnalysisTemplateAnswersAnnotationsSQL,
+              (item) => item.riskAnalysisTemplateAnswersAnnotationsSQL
             ),
             riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: batch.flatMap(
-              (item) => item.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+              (item) => item.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL
             ),
           };
 
@@ -70,21 +70,21 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
             await formRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.riskAnalysisFormTemplateSQL,
+              batchItems.riskAnalysisFormTemplateSQL
             );
           }
           if (batchItems.riskAnalysisTemplateAnswersSQL.length) {
             await answerRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.riskAnalysisTemplateAnswersSQL,
+              batchItems.riskAnalysisTemplateAnswersSQL
             );
           }
           if (batchItems.riskAnalysisTemplateAnswersAnnotationsSQL.length) {
             await annotationRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.riskAnalysisTemplateAnswersAnnotationsSQL,
+              batchItems.riskAnalysisTemplateAnswersAnnotationsSQL
             );
           }
           if (
@@ -93,14 +93,14 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
             await documentRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+              batchItems.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL
             );
           }
 
           genericLogger.info(
             `Staged purpose template batch: ${batch
               .map((i) => i.purposeTemplateSQL.id)
-              .join(", ")}`,
+              .join(", ")}`
           );
         }
 
@@ -121,7 +121,7 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
             PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
             PurposeTemplateDbTable.purpose_template_risk_analysis_form,
           ],
-          PurposeTemplateDbTable.purpose_template,
+          PurposeTemplateDbTable.purpose_template
         );
       });
 
@@ -138,18 +138,18 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
 
     async upsertBatchTemplateEServiceDescriptor(
       dbContext: DBContext,
-      items: PurposeTemplateEServiceDescriptorSchema[],
+      items: PurposeTemplateEServiceDescriptorSchema[]
     ) {
       await dbContext.conn.tx(async (t) => {
         for (const batch of batchMessages(
           items,
-          config.dbMessagesToInsertPerBatch,
+          config.dbMessagesToInsertPerBatch
         )) {
           await templateEserviceDescriptorRepo.insert(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging data inserted for purpose template eservice descriptor batch: ${batch
               .map((r) => r.purposeTemplateId)
-              .join(", ")}`,
+              .join(", ")}`
           );
         }
 
@@ -157,29 +157,29 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
       });
 
       genericLogger.info(
-        `Staging data merged into target tables for purpose template eservice descriptor`,
+        `Staging data merged into target tables for purpose template eservice descriptor`
       );
 
       await templateEserviceDescriptorRepo.clean();
       genericLogger.info(
-        `Staging table cleaned for purpose template eservice descriptor`,
+        `Staging table cleaned for purpose template eservice descriptor`
       );
     },
 
     async deleteBatchPurposeTemplate(
       dbContext: DBContext,
-      records: PurposeTemplateDeletingSchema[],
+      records: PurposeTemplateDeletingSchema[]
     ) {
       await dbContext.conn.tx(async (t) => {
         for (const batch of batchMessages(
           records,
-          config.dbMessagesToInsertPerBatch,
+          config.dbMessagesToInsertPerBatch
         )) {
           await templateRepo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for purpose template batch: ${batch
               .map((r) => r.id)
-              .join(", ")}`,
+              .join(", ")}`
           );
         }
 
@@ -194,7 +194,7 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
             PurposeTemplateDbTable.purpose_template_risk_analysis_form,
             PurposeTemplateDbTable.purpose_template_eservice_descriptor,
           ],
-          DeletingDbTable.purpose_template_deleting_table,
+          DeletingDbTable.purpose_template_deleting_table
         );
       });
 
@@ -204,22 +204,22 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
 
     async deleteBatchTemplateEServiceDescriptor(
       dbContext: DBContext,
-      records: PurposeTemplateEServiceDescriptorDeletingSchema[],
+      records: PurposeTemplateEServiceDescriptorDeletingSchema[]
     ) {
       await dbContext.conn.tx(async (t) => {
         for (const batch of batchMessages(
           records,
-          config.dbMessagesToInsertPerBatch,
+          config.dbMessagesToInsertPerBatch
         )) {
           await templateEserviceDescriptorRepo.insertDeleting(
             t,
             dbContext.pgp,
-            batch,
+            batch
           );
           genericLogger.info(
             `Staging deletion inserted for purpose template eservice descriptor batch: ${batch
               .map((r) => JSON.stringify(r))
-              .join(", ")}`,
+              .join(", ")}`
           );
         }
 
@@ -227,12 +227,12 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
       });
 
       genericLogger.info(
-        `Staging deletion merged into target tables for purpose template eservice descriptor`,
+        `Staging deletion merged into target tables for purpose template eservice descriptor`
       );
 
       await templateEserviceDescriptorRepo.cleanDeleting();
       genericLogger.info(
-        `Staging deletion table cleaned for purpose template eservice descriptor`,
+        `Staging deletion table cleaned for purpose template eservice descriptor`
       );
     },
   };

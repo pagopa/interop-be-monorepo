@@ -19,7 +19,7 @@ import {
 } from "../../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
 
 export function purposeTemplateEServiceDescriptorRepository(
-  conn: DBConnection,
+  conn: DBConnection
 ) {
   const schemaName = config.dbSchemaName;
   const tableName = PurposeTemplateDbTable.purpose_template_eservice_descriptor;
@@ -32,24 +32,24 @@ export function purposeTemplateEServiceDescriptorRepository(
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: PurposeTemplateEServiceDescriptorSchema[],
+      records: PurposeTemplateEServiceDescriptorSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
           pgp,
           tableName,
-          PurposeTemplateEServiceDescriptorSchema,
+          PurposeTemplateEServiceDescriptorSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(
           generateStagingDeleteQuery(tableName, [
             "purposeTemplateId",
             "eserviceId",
-          ]),
+          ])
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTableName}: ${error}`,
+          `Error inserting into staging table ${stagingTableName}: ${error}`
         );
       }
     },
@@ -60,12 +60,12 @@ export function purposeTemplateEServiceDescriptorRepository(
           PurposeTemplateEServiceDescriptorSchema,
           schemaName,
           tableName,
-          ["purposeTemplateId", "eserviceId"],
+          ["purposeTemplateId", "eserviceId"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`,
+          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
@@ -75,7 +75,7 @@ export function purposeTemplateEServiceDescriptorRepository(
         await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTableName}: ${error}`,
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },
@@ -83,18 +83,18 @@ export function purposeTemplateEServiceDescriptorRepository(
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      records: PurposeTemplateEServiceDescriptorDeletingSchema[],
+      records: PurposeTemplateEServiceDescriptorDeletingSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
           pgp,
           deletingTableName,
-          PurposeTemplateEServiceDescriptorDeletingSchema,
+          PurposeTemplateEServiceDescriptorDeletingSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`,
+          `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
         );
       }
     },
@@ -107,12 +107,12 @@ export function purposeTemplateEServiceDescriptorRepository(
           deletingTableName,
           ["purposeTemplateId", "eserviceId", "descriptorId"],
           false,
-          false,
+          false
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging deleting table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`,
+          `Error merging deleting table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
@@ -122,7 +122,7 @@ export function purposeTemplateEServiceDescriptorRepository(
         await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`,
+          `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`
         );
       }
     },

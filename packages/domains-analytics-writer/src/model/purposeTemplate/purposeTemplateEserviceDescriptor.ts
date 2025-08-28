@@ -3,7 +3,7 @@ import { z } from "zod";
 import { purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate } from "pagopa-interop-readmodel-models";
 
 export const PurposeTemplateEServiceDescriptorSchema = createSelectSchema(
-  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
 ).extend({
   deleted: z.boolean().default(false).optional(),
 });
