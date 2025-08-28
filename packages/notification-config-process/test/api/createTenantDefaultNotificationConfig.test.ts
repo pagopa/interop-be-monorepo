@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
-  NotificationConfig,
   TenantId,
   TenantNotificationConfig,
   generateId,
@@ -18,27 +17,6 @@ import { tenantNotificationConfigAlreadyExists } from "../../src/model/domain/er
 
 describe("API POST /internal/tenantNotificationConfigs test", () => {
   const defaultTenantId: TenantId = generateId();
-  const defaultConfig: NotificationConfig = {
-    agreementSuspendedUnsuspendedToProducer: false,
-    agreementManagementToProducer: false,
-    clientAddedRemovedToProducer: false,
-    purposeStatusChangedToProducer: false,
-    templateStatusChangedToProducer: false,
-    agreementSuspendedUnsuspendedToConsumer: false,
-    eserviceStateChangedToConsumer: false,
-    agreementActivatedRejectedToConsumer: false,
-    purposeActivatedRejectedToConsumer: false,
-    purposeSuspendedUnsuspendedToConsumer: false,
-    newEserviceTemplateVersionToInstantiator: false,
-    eserviceTemplateNameChangedToInstantiator: false,
-    eserviceTemplateStatusChangedToInstantiator: false,
-    delegationApprovedRejectedToDelegator: false,
-    eserviceNewVersionSubmittedToDelegator: false,
-    eserviceNewVersionApprovedRejectedToDelegate: false,
-    delegationSubmittedRevokedToDelegate: false,
-    certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-    clientKeyAddedDeletedToClientUsers: false,
-  };
   const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigSeed =
     {
       tenantId: defaultTenantId,
@@ -46,7 +24,7 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
   const serviceResponse: TenantNotificationConfig = {
     ...getMockTenantNotificationConfig(),
     tenantId: defaultTenantId,
-    config: defaultConfig,
+    enabled: true,
   };
   const apiResponse: notificationConfigApi.TenantNotificationConfig =
     tenantNotificationConfigToApiTenantNotificationConfig(serviceResponse);
