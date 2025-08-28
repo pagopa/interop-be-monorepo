@@ -14,7 +14,7 @@ import {
   UserId,
   UserRole,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
+import { afterEach, inject, vi } from "vitest";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
