@@ -28,6 +28,7 @@ import {
   addOneTenant,
   readModelService,
   templateService,
+  userService,
 } from "./utils.js";
 
 describe("handleNewEServiceDescriptorPublished", async () => {
@@ -48,32 +49,13 @@ describe("handleNewEServiceDescriptorPublished", async () => {
         eserviceV2Msg: undefined,
         logger,
         templateService,
+        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
       missingKafkaMessageDataError("eservice", "EServiceDescriptorPublished")
     );
-  });
-
-  it("should throw tenantNotFound when consumer is not found", async () => {
-    const consumerId = generateId<TenantId>();
-    const agreement = getMockAgreement(
-      eservice.id,
-      consumerId,
-      agreementState.active
-    );
-    await addOneAgreement(agreement);
-
-    await expect(() =>
-      handleEserviceDescriptorPublished({
-        eserviceV2Msg: toEServiceV2(eservice),
-        logger,
-        templateService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      })
-    ).rejects.toThrow(tenantNotFound(consumerId));
   });
 
   it("should throw descriptorPublishedNotFound when descriptor is not found", async () => {
@@ -106,6 +88,7 @@ describe("handleNewEServiceDescriptorPublished", async () => {
         eserviceV2Msg: toEServiceV2(eservice),
         logger,
         templateService,
+        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -128,6 +111,7 @@ describe("handleNewEServiceDescriptorPublished", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
+      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -139,6 +123,7 @@ describe("handleNewEServiceDescriptorPublished", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
+      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -164,6 +149,7 @@ describe("handleNewEServiceDescriptorPublished", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
+      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -191,6 +177,7 @@ describe("handleNewEServiceDescriptorPublished", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
+      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -217,6 +204,7 @@ describe("handleNewEServiceDescriptorPublished", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
+      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
