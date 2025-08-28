@@ -30,6 +30,14 @@ export type GetCertifiedAttributesQueryParams = QueryParametersByAlias<
   AttributeApi,
   "getCertifiedAttributes"
 >;
+export type GetDeclaredAttributesQueryParams = QueryParametersByAlias<
+  AttributeApi,
+  "getDeclaredAttributes"
+>;
+export type GetVerifiedAttributesQueryParams = QueryParametersByAlias<
+  AttributeApi,
+  "getVerifiedAttributes"
+>;
 
 export type GetEServicesQueryParams = QueryParametersByAlias<
   EServiceApi,
