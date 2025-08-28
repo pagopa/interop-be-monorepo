@@ -13,6 +13,14 @@ export const PurposeTemplateSchema = createSelectSchema(
 });
 export type PurposeTemplateSchema = z.infer<typeof PurposeTemplateSchema>;
 
+export const PurposeTemplateDeletingSchema = PurposeTemplateSchema.pick({
+  id: true,
+  deleted: true,
+});
+export type PurposeTemplateDeletingSchema = z.infer<
+  typeof PurposeTemplateDeletingSchema
+>;
+
 export const PurposeTemplateItemsSchema = z.object({
   purposeTemplateSQL: PurposeTemplateSchema,
   riskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSchema.optional(),

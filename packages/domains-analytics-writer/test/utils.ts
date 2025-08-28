@@ -122,7 +122,7 @@ export const producerKeychainTables: ProducerKeychainDbTable[] = [
 
 export const purposeTemplateTables: PurposeTemplateDbTable[] = [
   PurposeTemplateDbTable.purpose_template,
-  PurposeTemplateDbTable.purpose_template_eservice_descriptor, // TODO: to update or remove?
+  PurposeTemplateDbTable.purpose_template_eservice_descriptor,
   PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
   PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation,
   PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document,
@@ -134,6 +134,7 @@ export const partialTables = [
   CatalogDbPartialTable.descriptor_server_urls,
   ClientDbTablePartialTable.key_relationship_migrated,
 ];
+
 export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.agreement_deleting_table,
   DeletingDbTable.attribute_deleting_table,
@@ -148,6 +149,8 @@ export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.client_key_deleting_table,
   DeletingDbTable.producer_keychain_deleting_table,
   DeletingDbTable.eservice_template_deleting_table,
+  DeletingDbTable.purpose_template_deleting_table,
+  DeletingDbTable.purpose_template_eservice_descriptor_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
@@ -200,6 +203,14 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   {
     name: DeletingDbTable.eservice_template_deleting_table,
     columns: ["id"],
+  },
+  {
+    name: DeletingDbTable.purpose_template_deleting_table,
+    columns: ["id"],
+  },
+  {
+    name: DeletingDbTable.purpose_template_eservice_descriptor_deleting_table,
+    columns: ["purposeTemplateId", "eserviceId", "descriptorId"],
   },
 ];
 

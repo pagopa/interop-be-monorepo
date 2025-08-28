@@ -99,7 +99,7 @@ await retryConnection(
       EserviceTemplateDbTable.eservice_template_risk_analysis,
       EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
       PurposeTemplateDbTable.purpose_template,
-      PurposeTemplateDbTable.purpose_template_eservice_descriptor, // TODO: to update or remove?
+      PurposeTemplateDbTable.purpose_template_eservice_descriptor,
       PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
       PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation,
       PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document,
@@ -148,9 +148,17 @@ await retryConnection(
         name: DeletingDbTable.eservice_template_deleting_table,
         columns: ["id"],
       },
+      {
+        name: DeletingDbTable.purpose_template_deleting_table,
+        columns: ["id"],
+      },
+      {
+        name: DeletingDbTable.purpose_template_eservice_descriptor_deleting_table,
+        columns: ["purposeTemplateId", "eserviceId", "descriptorId"],
+      },
     ]);
   },
-  logger({ serviceName: config.serviceName })
+  logger({ serviceName: config.serviceName }),
 );
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
@@ -161,7 +169,7 @@ async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   genericLogger.info(
     `Handled batch. Partition: ${
       batch.partition
-    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`
+    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`,
   );
 }
 
@@ -179,5 +187,5 @@ await runBatchConsumer(
     config.eserviceTemplateTopic,
   ],
   processBatch,
-  "domains-analytics-writer"
+  "domains-analytics-writer",
 );

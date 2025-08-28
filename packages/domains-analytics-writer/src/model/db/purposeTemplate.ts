@@ -16,7 +16,7 @@ import { PurposeTemplateEServiceDescriptorSchema } from "../purposeTemplate/purp
 
 export const PurposeTemplateDbTableConfig = {
   purpose_template: PurposeTemplateSchema,
-  purpose_template_eservice_descriptor: PurposeTemplateEServiceDescriptorSchema, // TODO: to update or remove?
+  purpose_template_eservice_descriptor: PurposeTemplateEServiceDescriptorSchema,
   purpose_template_risk_analysis_form: PurposeTemplateRiskAnalysisFormSchema,
   purpose_template_risk_analysis_answer:
     PurposeTemplateRiskAnalysisAnswerSchema,
@@ -30,7 +30,7 @@ export type PurposeTemplateDbTableConfig = typeof PurposeTemplateDbTableConfig;
 export const PurposeTemplateDbTableReadModel = {
   purpose_template: purposeTemplateInReadmodelPurposeTemplate,
   purpose_template_eservice_descriptor:
-    purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate, // TODO: to update or remove?
+    purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purpose_template_risk_analysis_form:
     purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purpose_template_risk_analysis_answer:
@@ -46,5 +46,5 @@ export type PurposeTemplateDbTableReadModel =
 export type PurposeTemplateDbTable = keyof typeof PurposeTemplateDbTableConfig;
 
 export const PurposeTemplateDbTable = Object.fromEntries(
-  Object.keys(PurposeTemplateDbTableConfig).map((k) => [k, k])
+  Object.keys(PurposeTemplateDbTableConfig).map((k) => [k, k]),
 ) as { [K in PurposeTemplateDbTable]: K };
