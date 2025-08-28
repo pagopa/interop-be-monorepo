@@ -42,12 +42,12 @@ const purposeTemplateRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
+          API_ROLE,
           M2M_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
       } catch (error) {
         return res.status(501);
