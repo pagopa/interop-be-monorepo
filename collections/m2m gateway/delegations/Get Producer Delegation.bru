@@ -4,8 +4,8 @@ meta {
   seq: 9
 }
 
-post {
-  url: {{host-m2m-gw}}/producerDelegations/{delegationId}
+get {
+  url: {{host-m2m-gw}}/producerDelegations/:delegationId
   body: json
   auth: none
 }
