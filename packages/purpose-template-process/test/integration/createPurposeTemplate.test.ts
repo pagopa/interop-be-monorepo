@@ -21,14 +21,14 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import {
+  invalidTemplateResult,
+  unexpectedTemplateRulesVersionError,
+} from "pagopa-interop-commons";
+import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   riskAnalysisTemplateValidationFailed,
 } from "../../src/model/domain/errors.js";
-import {
-  invalidTemplateResult,
-  unexpectedTemplateRulesVersionError,
-} from "../../src/model/riskAnalysisTemplateValidationErrors.js";
 import {
   addOnePurposeTemplate,
   purposeTemplateService,

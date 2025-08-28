@@ -1,12 +1,14 @@
 import {
+  riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
+  validatePurposeTemplateRiskAnalysis,
+} from "pagopa-interop-commons";
+import {
   getMockValidRiskAnalysisFormTemplate,
   validatedRiskAnalysisTemplate2_0_Private,
   validatedRiskAnalysisTemplate3_0_Pa,
 } from "pagopa-interop-commons-test/src/riskAnalysisTemplateTestUtils.js";
 import { tenantKind } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate } from "../../src/model/riskAnalysisFormTemplate.js";
-import { validatePurposeTemplateRiskAnalysis } from "../../src/model/riskAnalysisTemplateValidation.js";
 
 describe("Risk Analysis Template Validation", () => {
   it("should succeed on correct form 3.0 on tenant kind PA", () => {
