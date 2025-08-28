@@ -23,9 +23,11 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
+  addOneUser,
   getMockUser,
   readModelService,
   templateService,
+  userService,
 } from "./utils.js";
 
 describe("handleAgreementUpgraded", async () => {
@@ -48,23 +50,20 @@ describe("handleAgreementUpgraded", async () => {
     getMockUser(producerTenant.id),
   ];
 
-  const userService = {
-    readUser: vi.fn(),
-  };
   const { logger } = getMockContext({});
 
   beforeEach(async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
+    for (const user of users) {
+      await addOneUser(user);
+    }
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.userId, tenantId: user.tenantId }))
+        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
       );
-    userService.readUser.mockImplementation((userId) =>
-      users.find((user) => user.userId === userId)
-    );
   });
 
   it("should throw missingKafkaMessageDataError when agreement is undefined", async () => {
@@ -189,7 +188,9 @@ describe("handleAgreementUpgraded", async () => {
   it("should not generate a message if the user disabled this email notification", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
-      .mockResolvedValue([users[0]]);
+      .mockResolvedValue([
+        { userId: users[0].id, tenantId: users[0].tenantId },
+      ]);
 
     const agreement = {
       ...getMockAgreement(),
@@ -246,7 +247,9 @@ describe("handleAgreementUpgraded", async () => {
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
-      expect(message.email.body).toContain(`Nuova richiesta di fruizione`);
+      expect(message.email.body).toContain(
+        `Richiesta di fruizione aggiornata per un tuo e-service`
+      );
     });
   });
 });
