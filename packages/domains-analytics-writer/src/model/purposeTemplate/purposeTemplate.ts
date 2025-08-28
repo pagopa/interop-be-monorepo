@@ -5,7 +5,6 @@ import { PurposeTemplateRiskAnalysisAnswerSchema } from "./purposeTemplateRiskAn
 import { PurposeTemplateRiskAnalysisAnswerAnnotationSchema } from "./purposeTemplateRiskAnalysisAnswerAnnotation.js";
 import { PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSchema } from "./purposeTemplateRiskAnalysisAnswerAnnotationDocument.js";
 import { PurposeTemplateRiskAnalysisFormSchema } from "./purposeTemplateRiskAnalysisForm.js";
-import { PurposeTemplateEServiceDescriptorVersionSchema } from "./purposeTemplateEserviceDescriptorVersion.js";
 
 export const PurposeTemplateSchema = createSelectSchema(
   purposeTemplateInReadmodelPurposeTemplate
@@ -16,15 +15,14 @@ export type PurposeTemplateSchema = z.infer<typeof PurposeTemplateSchema>;
 
 export const PurposeTemplateItemsSchema = z.object({
   purposeTemplateSQL: PurposeTemplateSchema,
-  eserviceDescriptorVersionsSQL: z.array(
-    PurposeTemplateEServiceDescriptorVersionSchema
+  riskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSchema.optional(),
+  riskAnalysisTemplateAnswersSQL: z.array(
+    PurposeTemplateRiskAnalysisAnswerSchema
   ),
-  riskAnalysisFormSQL: PurposeTemplateRiskAnalysisFormSchema.optional(),
-  riskAnalysisAnswersSQL: z.array(PurposeTemplateRiskAnalysisAnswerSchema),
-  riskAnalysisAnswerAnnotationsSQL: z.array(
+  riskAnalysisTemplateAnswersAnnotationsSQL: z.array(
     PurposeTemplateRiskAnalysisAnswerAnnotationSchema
   ),
-  riskAnalysisAnswerAnnotationDocumentsSQL: z.array(
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: z.array(
     PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSchema
   ),
 });

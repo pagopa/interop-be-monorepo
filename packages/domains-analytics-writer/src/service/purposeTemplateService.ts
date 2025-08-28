@@ -9,7 +9,6 @@ import { cleaningTargetTables } from "../utils/sqlQueryHelper.js";
 import { config } from "../config/config.js";
 import { PurposeTemplateItemsSchema } from "../model/purposeTemplate/purposeTemplate.js";
 import { purposeTemplateRepository } from "../repository/purposeTemplate/purposeTemplate.repository.js";
-import { purposeTemplateEServiceDescriptorVersionRepository } from "../repository/purposeTemplate/purposeTemplateEServiceDescriptorVersion.repository.js";
 import { purposeTemplateRiskAnalysisAnswerRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisAnswer.repository.js";
 import { purposeTemplateRiskAnalysisAnswerAnnotationRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotation.repository.js";
 import { purposeTemplateRiskAnalysisAnswerAnnotationDocumentRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotationDocument.repository.js";
@@ -17,9 +16,6 @@ import { purposeTemplateRiskAnalysisFormRepository } from "../repository/purpose
 
 export function purposeTemplateServiceBuilder(db: DBContext) {
   const templateRepo = purposeTemplateRepository(db.conn);
-  const eserviceRepo = purposeTemplateEServiceDescriptorVersionRepository(
-    db.conn
-  );
   const formRepo = purposeTemplateRiskAnalysisFormRepository(db.conn);
   const answerRepo = purposeTemplateRiskAnalysisAnswerRepository(db.conn);
   const annotationRepo = purposeTemplateRiskAnalysisAnswerAnnotationRepository(
@@ -40,59 +36,51 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
         )) {
           const batchItems = {
             templateSQL: batch.map((i) => i.purposeTemplateSQL),
-            eserviceDescriptorVersionsSQL: batch.flatMap(
-              (item) => item.eserviceDescriptorVersionsSQL
+            riskAnalysisFormTemplateSQL: batch.flatMap(
+              (item) => item.riskAnalysisFormTemplateSQL ?? []
             ),
-            riskAnalysisFormSQL: batch.flatMap(
-              (item) => item.riskAnalysisFormSQL ?? []
+            riskAnalysisTemplateAnswersSQL: batch.flatMap(
+              (item) => item.riskAnalysisTemplateAnswersSQL
             ),
-            riskAnalysisAnswersSQL: batch.flatMap(
-              (item) => item.riskAnalysisAnswersSQL
+            riskAnalysisTemplateAnswersAnnotationsSQL: batch.flatMap(
+              (item) => item.riskAnalysisTemplateAnswersAnnotationsSQL
             ),
-            riskAnalysisAnswerAnnotationsSQL: batch.flatMap(
-              (item) => item.riskAnalysisAnswerAnnotationsSQL
-            ),
-            riskAnalysisAnswerAnnotationDocumentsSQL: batch.flatMap(
-              (item) => item.riskAnalysisAnswerAnnotationDocumentsSQL
+            riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: batch.flatMap(
+              (item) => item.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL
             ),
           };
 
           if (batchItems.templateSQL.length) {
             await templateRepo.insert(t, dbContext.pgp, batchItems.templateSQL);
           }
-          if (batchItems.eserviceDescriptorVersionsSQL.length) {
-            await eserviceRepo.insert(
-              t,
-              dbContext.pgp,
-              batchItems.eserviceDescriptorVersionsSQL
-            );
-          }
-          if (batchItems.riskAnalysisFormSQL.length) {
+          if (batchItems.riskAnalysisFormTemplateSQL.length) {
             await formRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.riskAnalysisFormSQL
+              batchItems.riskAnalysisFormTemplateSQL
             );
           }
-          if (batchItems.riskAnalysisAnswersSQL.length) {
+          if (batchItems.riskAnalysisTemplateAnswersSQL.length) {
             await answerRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.riskAnalysisAnswersSQL
+              batchItems.riskAnalysisTemplateAnswersSQL
             );
           }
-          if (batchItems.riskAnalysisAnswerAnnotationsSQL.length) {
+          if (batchItems.riskAnalysisTemplateAnswersAnnotationsSQL.length) {
             await annotationRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.riskAnalysisAnswerAnnotationsSQL
+              batchItems.riskAnalysisTemplateAnswersAnnotationsSQL
             );
           }
-          if (batchItems.riskAnalysisAnswerAnnotationDocumentsSQL.length) {
+          if (
+            batchItems.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL.length
+          ) {
             await documentRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.riskAnalysisAnswerAnnotationDocumentsSQL
+              batchItems.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL
             );
           }
 
@@ -104,7 +92,6 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
         }
 
         await templateRepo.merge(t);
-        await eserviceRepo.merge(t);
         await formRepo.merge(t);
         await answerRepo.merge(t);
         await annotationRepo.merge(t);
@@ -120,7 +107,6 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
             PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation,
             PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
             PurposeTemplateDbTable.purpose_template_risk_analysis_form,
-            PurposeTemplateDbTable.purpose_template_eservice_descriptor_version,
           ],
           PurposeTemplateDbTable.purpose_template
         );
@@ -129,7 +115,6 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
       genericLogger.info(`Merged all staged purpose template data`);
 
       await templateRepo.clean();
-      await eserviceRepo.clean();
       await formRepo.clean();
       await answerRepo.clean();
       await annotationRepo.clean();

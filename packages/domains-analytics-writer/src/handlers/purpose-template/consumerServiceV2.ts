@@ -3,16 +3,14 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import {
   PurposeTemplateEventEnvelope,
+  fromPurposeTemplateV2,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
+import { splitPurposeTemplateIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { DBContext } from "../../db/db.js";
 import { PurposeTemplateItemsSchema } from "../../model/purposeTemplate/purposeTemplate.js";
-import {
-  fromPurposeTemplateV2,
-  splitPurposeTemplateIntoObjectsSQL,
-} from "../../utils/splitPurposeTemplateIntoObjectsSQL.js";
 import { purposeTemplateServiceBuilder } from "../../service/purposeTemplateService.js";
 
 export async function handlePurposeTemplateMessageV2(
@@ -24,21 +22,22 @@ export async function handlePurposeTemplateMessageV2(
   const upsertPurposeTemplateBatch: PurposeTemplateItemsSchema[] = [];
 
   for (const message of messages) {
-    match(message)
+    await match(message)
       .with(
         {
           type: P.union(
-            "PurposeTemplatePublished",
             "PurposeTemplateAdded",
+            "PurposeTemplateDraftUpdated",
+            "PurposeTemplateDraftDeleted",
+            "PurposeTemplatePublished",
             "PurposeTemplateUnsuspended",
             "PurposeTemplateSuspended",
-            "PurposeTemplateArchived",
-            "PurposeTemplateDraftUpdated",
-            "PurposeTemplateDraftDeleted"
+            "PurposeTemplateArchived"
           ),
         },
         (msg) => {
-          const purposeTemplateV2 = message.data.purposeTemplate;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const purposeTemplateV2 = (message.data as any).purposeTemplate; // TODO: remove any casting
           if (!purposeTemplateV2) {
             throw missingKafkaMessageDataError("purposeTemplate", message.type);
           }
@@ -51,16 +50,28 @@ export async function handlePurposeTemplateMessageV2(
           upsertPurposeTemplateBatch.push(
             PurposeTemplateItemsSchema.parse({
               purposeTemplateSQL: splitResult.purposeTemplateSQL,
-              eserviceDescriptorVersionsSQL:
-                splitResult.eserviceDescriptorVersionsSQL,
-              riskAnalysisFormSQL: splitResult.riskAnalysisFormSQL,
-              riskAnalysisAnswersSQL: splitResult.riskAnalysisAnswersSQL,
-              riskAnalysisAnswerAnnotationsSQL:
-                splitResult.riskAnalysisAnswerAnnotationsSQL,
-              riskAnalysisAnswerAnnotationDocumentsSQL:
-                splitResult.riskAnalysisAnswerAnnotationDocumentsSQL,
+              riskAnalysisFormTemplateSQL:
+                splitResult.riskAnalysisFormTemplateSQL,
+              riskAnalysisTemplateAnswersSQL:
+                splitResult.riskAnalysisTemplateAnswersSQL,
+              riskAnalysisTemplateAnswersAnnotationsSQL:
+                splitResult.riskAnalysisTemplateAnswersAnnotationsSQL,
+              riskAnalysisTemplateAnswersAnnotationsDocumentsSQL:
+                splitResult.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
             } satisfies z.input<typeof PurposeTemplateItemsSchema>)
           );
+        }
+      )
+      .with(
+        {
+          type: P.union(
+            "PurposeTemplateEServiceLinked",
+            "PurposeTemplateEServiceUnlinked"
+          ),
+        },
+        async (_msg) => {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          await Promise.resolve();
         }
       )
       .exhaustive();

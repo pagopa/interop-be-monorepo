@@ -608,10 +608,10 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template_risk_analysis_answer (
 CREATE TABLE IF NOT EXISTS domains.purpose_template (
   id VARCHAR(36),
   metadata_version INTEGER NOT NULL,
-  "name" VARCHAR(2048) NOT NULL,
-  "target" VARCHAR(2048) NOT NULL,
+  target_description VARCHAR(2048) NOT NULL,
+  target_tenant_kind VARCHAR(2048) NOT NULL,
   creator_id VARCHAR(36) NOT NULL,
-  "state" VARCHAR(2048) NOT NULL,
+  state VARCHAR(2048) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE,
   purpose_title VARCHAR(2048) NOT NULL,
@@ -622,11 +622,12 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS domains.purpose_template_eservice_descriptor_version (
+CREATE TABLE IF NOT EXISTS domains.purpose_template_eservice_descriptor (
   metadata_version INTEGER NOT NULL,
   purpose_template_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_template (id),
   eservice_id VARCHAR(36),
   descriptor_id VARCHAR(36),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (purpose_template_id, eservice_id)
 );
 
@@ -634,7 +635,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template_risk_analysis_form (
   id VARCHAR(36),
   purpose_template_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_template (id),
   metadata_version INTEGER NOT NULL,
-  "version" VARCHAR(2048) NOT NULL,
+  version VARCHAR(2048) NOT NULL,
   UNIQUE (purpose_template_id),
   PRIMARY KEY (id)
 );
@@ -645,8 +646,8 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template_risk_analysis_answer (
   metadata_version INTEGER NOT NULL,
   risk_analysis_form_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_template_risk_analysis_form (id),
   kind VARCHAR(2048) NOT NULL,
-  "key" VARCHAR(2048) NOT NULL,
-  "value" VARCHAR(2048) [] NOT NULL,
+  key VARCHAR(2048) NOT NULL,
+  value VARCHAR(2048) [] NOT NULL,
   editable BOOLEAN NOT NULL,
   assistive_text VARCHAR(2048),
   suggested_values VARCHAR(2048) [],
@@ -658,8 +659,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template_risk_analysis_answer_annotat
   purpose_template_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_template (id),
   metadata_version INTEGER NOT NULL,
   answer_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_template_risk_analysis_answer (id),
-  "text" VARCHAR(2048),
-  "urls" VARCHAR(2048),
+  "text" VARCHAR(2048) NOT NULL,
   UNIQUE (answer_id),
   PRIMARY KEY (id)
 );
@@ -669,9 +669,9 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template_risk_analysis_answer_annotat
   purpose_template_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_template (id),
   metadata_version INTEGER NOT NULL,
   annotation_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_template_risk_analysis_answer_annotation (id),
-  "name" VARCHAR(2048) NOT NULL,
+  name VARCHAR(2048) NOT NULL,
   content_type VARCHAR(2048) NOT NULL,
-  "path" VARCHAR(2048) NOT NULL,
+  path VARCHAR(2048) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id)
 );

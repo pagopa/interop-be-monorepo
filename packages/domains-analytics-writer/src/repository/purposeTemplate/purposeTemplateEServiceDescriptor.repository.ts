@@ -9,27 +9,26 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { PurposeTemplateDbTable } from "../../model/db/index.js";
-import { PurposeTemplateEServiceDescriptorVersionSchema } from "../../model/purposeTemplate/purposeTemplateEserviceDescriptorVersion.js";
-
-export function purposeTemplateEServiceDescriptorVersionRepository(
+import { PurposeTemplateEServiceDescriptorSchema } from "../../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
+// TODO: to update or remove?
+export function purposeTemplateEServiceDescriptorRepository(
   conn: DBConnection
 ) {
   const schemaName = config.dbSchemaName;
-  const tableName =
-    PurposeTemplateDbTable.purpose_template_eservice_descriptor_version;
+  const tableName = PurposeTemplateDbTable.purpose_template_eservice_descriptor;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: PurposeTemplateEServiceDescriptorVersionSchema[]
+      records: PurposeTemplateEServiceDescriptorSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
           pgp,
           tableName,
-          PurposeTemplateEServiceDescriptorVersionSchema
+          PurposeTemplateEServiceDescriptorSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(
@@ -48,7 +47,7 @@ export function purposeTemplateEServiceDescriptorVersionRepository(
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          PurposeTemplateEServiceDescriptorVersionSchema,
+          PurposeTemplateEServiceDescriptorSchema,
           schemaName,
           tableName,
           ["purposeTemplateId", "eserviceId"]
@@ -73,6 +72,6 @@ export function purposeTemplateEServiceDescriptorVersionRepository(
   };
 }
 
-export type PurposeTemplateEServiceDescriptorVersionRepository = ReturnType<
-  typeof purposeTemplateEServiceDescriptorVersionRepository
+export type PurposeTemplateEServiceDescriptorRepository = ReturnType<
+  typeof purposeTemplateEServiceDescriptorRepository
 >;

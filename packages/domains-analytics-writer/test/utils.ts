@@ -40,7 +40,7 @@ export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  inject("analyticsSQLConfig"),
+  inject("analyticsSQLConfig")
 );
 const connection = await analyticsPostgresDB.connect();
 
@@ -122,7 +122,7 @@ export const producerKeychainTables: ProducerKeychainDbTable[] = [
 
 export const purposeTemplateTables: PurposeTemplateDbTable[] = [
   PurposeTemplateDbTable.purpose_template,
-  PurposeTemplateDbTable.purpose_template_eservice_descriptor_version,
+  PurposeTemplateDbTable.purpose_template_eservice_descriptor, // TODO: to update or remove?
   PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
   PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation,
   PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document,
@@ -213,11 +213,11 @@ await retryConnection(
     await setupDbService.setupPartialStagingTables(partialTables);
     await setupDbService.setupStagingDeletingTables(setupStagingDeletingTables);
   },
-  genericLogger,
+  genericLogger
 );
 
 export async function resetTargetTables(
-  tables: DomainDbTable[],
+  tables: DomainDbTable[]
 ): Promise<void> {
   await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")} CASCADE;`);
 }
@@ -227,7 +227,7 @@ export const setupDbService = setupDbServiceBuilder(dbContext.conn, config);
 
 export async function getTablesByName(
   db: DBConnection,
-  tables: string[],
+  tables: string[]
 ): Promise<Array<{ tablename: string }>> {
   const query = `
       SELECT tablename
@@ -241,7 +241,7 @@ export async function getTablesByName(
 export async function getOneFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
-  where: Partial<z.infer<DomainDbTableSchemas[T]>>,
+  where: Partial<z.infer<DomainDbTableSchemas[T]>>
 ): Promise<z.infer<DomainDbTableSchemas[T]> | undefined> {
   const snakeCaseMapper = getColumnNameMapper(tableName);
 
@@ -253,7 +253,7 @@ export async function getOneFromDb<T extends DomainDbTable>(
 
   const row = await db.conn.oneOrNone(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE ${clause}`,
-    values,
+    values
   );
 
   return row ? camelcaseKeys(row) : undefined;
@@ -262,7 +262,7 @@ export async function getOneFromDb<T extends DomainDbTable>(
 export async function getManyFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
-  where: Partial<z.infer<DomainDbTableSchemas[T]>>,
+  where: Partial<z.infer<DomainDbTableSchemas[T]>>
 ): Promise<Array<z.infer<DomainDbTableSchemas[T]>>> {
   const snakeCaseMapper = getColumnNameMapper(tableName);
 
@@ -274,7 +274,7 @@ export async function getManyFromDb<T extends DomainDbTable>(
 
   const rows = await db.conn.any(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE ${clause}`,
-    values,
+    values
   );
 
   return rows.map((row) => camelcaseKeys(row));

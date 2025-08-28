@@ -1,6 +1,6 @@
 import {
   purposeTemplateInReadmodelPurposeTemplate,
-  purposeTemplateEserviceDescriptorVersionInReadmodelPurposeTemplate,
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
@@ -12,12 +12,11 @@ import { PurposeTemplateRiskAnalysisFormSchema } from "../purposeTemplate/purpos
 import { PurposeTemplateRiskAnalysisAnswerSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisAnswer.js";
 import { PurposeTemplateRiskAnalysisAnswerAnnotationSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotation.js";
 import { PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotationDocument.js";
-import { PurposeTemplateEServiceDescriptorVersionSchema } from "../purposeTemplate/purposeTemplateEserviceDescriptorVersion.js";
+import { PurposeTemplateEServiceDescriptorSchema } from "../purposeTemplate/purposeTemplateEserviceDescriptor.js";
 
 export const PurposeTemplateDbTableConfig = {
   purpose_template: PurposeTemplateSchema,
-  purpose_template_eservice_descriptor_version:
-    PurposeTemplateEServiceDescriptorVersionSchema,
+  purpose_template_eservice_descriptor: PurposeTemplateEServiceDescriptorSchema, // TODO: to update or remove?
   purpose_template_risk_analysis_form: PurposeTemplateRiskAnalysisFormSchema,
   purpose_template_risk_analysis_answer:
     PurposeTemplateRiskAnalysisAnswerSchema,
@@ -30,8 +29,8 @@ export type PurposeTemplateDbTableConfig = typeof PurposeTemplateDbTableConfig;
 
 export const PurposeTemplateDbTableReadModel = {
   purpose_template: purposeTemplateInReadmodelPurposeTemplate,
-  purpose_template_eservice_descriptor_version:
-    purposeTemplateEserviceDescriptorVersionInReadmodelPurposeTemplate,
+  purpose_template_eservice_descriptor:
+    purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate, // TODO: to update or remove?
   purpose_template_risk_analysis_form:
     purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purpose_template_risk_analysis_answer:
