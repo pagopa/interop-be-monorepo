@@ -6,6 +6,7 @@ import {
   ReadModelDbConfig,
   ReadModelSQLDbConfig,
   S3Config,
+  UserSQLDbConfig,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
 

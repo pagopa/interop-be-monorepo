@@ -10,9 +10,11 @@ import {
   Purpose,
   Tenant,
   TenantId,
+  User,
   UserId,
+  UserRole,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
+import { afterEach, inject, vi } from "vitest";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -25,19 +27,27 @@ import {
   upsertPurpose,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { UserDB } from "pagopa-interop-selfcare-user-db-models";
+import {
+  user as userTable,
+  UserDB,
+} from "pagopa-interop-selfcare-user-db-models";
 import { z } from "zod";
 import { generateMock } from "@anatine/zod-mock";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { userServiceBuilderSQL } from "../src/services/userServiceSQL.js";
 
-export const { cleanup, readModelDB } = await setupTestContainersVitest(
+export const { cleanup, readModelDB, userDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
   undefined,
   undefined,
   undefined,
-  inject("readModelSQLConfig")
+  inject("readModelSQLConfig"),
+  undefined,
+  undefined,
+  inject("userSQLConfig")
 );
 
 const agreementReadModelServiceSQL =
@@ -48,11 +58,14 @@ const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
+  readModelDB,
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
 });
+
+export const userService = userServiceBuilderSQL(userDB);
 
 export const templateService = buildHTMLTemplateService();
 const filename = fileURLToPath(import.meta.url);
@@ -87,14 +100,33 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await upsertPurpose(readModelDB, purpose, 0);
 };
 
+export const addOneUser = async (user: User): Promise<void> => {
+  await insertUser(userDB, user);
+};
+
+const insertUser = async (
+  userDB: ReturnType<typeof drizzle>,
+  user: User
+): Promise<void> => {
+  const toInsert: UserDB = {
+    userId: user.id,
+    email: user.email,
+    familyName: user.familyName,
+    institutionId: generateId(),
+    name: user.name,
+    productRole: user.productRole,
+    tenantId: user.tenantId,
+  };
+  await userDB.insert(userTable).values(toInsert);
+};
+
 afterEach(cleanup);
 
-export const getMockUser = (tenantId?: string, userId?: string): UserDB => ({
+export const getMockUser = (tenantId?: TenantId, userId?: UserId): User => ({
   email: generateMock(z.string().email()),
   familyName: generateMock(z.string()),
-  institutionId: generateId(),
   name: generateMock(z.string()),
-  productRole: generateMock(z.string()),
+  productRole: generateMock(UserRole),
   tenantId: tenantId ?? generateId<TenantId>(),
-  userId: userId ?? generateId<UserId>(),
+  id: userId ?? generateId<UserId>(),
 });

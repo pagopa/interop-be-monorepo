@@ -27,6 +27,7 @@ import {
   AnalyticsSQLDbConfig,
   InAppNotificationDBConfig,
   M2MEventSQLDbConfig,
+  UserSQLDbConfig,
 } from "pagopa-interop-commons";
 import axios from "axios";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -152,7 +153,8 @@ export async function setupTestContainersVitest(
   awsSESConfig?: AWSSesConfig,
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
-  inAppNotificationDbConfig?: InAppNotificationDBConfig
+  inAppNotificationDbConfig?: InAppNotificationDBConfig,
+  userDbConfig?: UserSQLDbConfig
 ): Promise<{
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
@@ -163,6 +165,7 @@ export async function setupTestContainersVitest(
   readModelDB: DrizzleReturnType;
   analyticsPostgresDB: DB;
   inAppNotificationDB: DrizzleReturnType;
+  userDB: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }>;
 export async function setupTestContainersVitest(
@@ -200,6 +203,7 @@ export async function setupTestContainersVitest(
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
   inAppNotificationDbConfig?: InAppNotificationDBConfig,
+  userDbConfig?: UserSQLDbConfig
   m2mEventDbConfig?: M2MEventSQLDbConfig
 ): Promise<{
   readModelRepository?: ReadModelRepository;
@@ -211,6 +215,7 @@ export async function setupTestContainersVitest(
   readModelDB?: DrizzleReturnType;
   analyticsPostgresDB?: DB;
   inAppNotificationDB?: DrizzleReturnType;
+  userDB?: DrizzleReturnType;
   m2mEventDB?: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }> {
@@ -224,6 +229,7 @@ export async function setupTestContainersVitest(
   let readModelDB: DrizzleReturnType | undefined;
   let analyticsPostgresDB: DB | undefined;
   let inAppNotificationDB: DrizzleReturnType | undefined;
+  let userDB: DrizzleReturnType | undefined;
   let m2mEventDB: DrizzleReturnType | undefined;
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
@@ -300,6 +306,17 @@ export async function setupTestContainersVitest(
     });
     inAppNotificationDB = drizzle({ client: pool });
   }
+
+  if (userDbConfig) {
+    const pool = new pg.Pool({
+      user: userDbConfig.userSQLDbUsername,
+      password: userDbConfig.userSQLDbPassword,
+      host: userDbConfig.userSQLDbHost,
+      port: userDbConfig.userSQLDbPort,
+      database: userDbConfig.userSQLDbName,
+      ssl: userDbConfig.userSQLDbUseSSL,
+    });
+    userDB = drizzle({ client: pool });
   if (m2mEventDbConfig) {
     const pool = new pg.Pool({
       user: m2mEventDbConfig.m2mEventSQLDbUsername,
@@ -322,6 +339,7 @@ export async function setupTestContainersVitest(
     readModelDB,
     analyticsPostgresDB,
     inAppNotificationDB,
+    userDB,
     m2mEventDB,
     cleanup: async (): Promise<void> => {
       await readModelRepository?.agreements.deleteMany({});
@@ -427,6 +445,9 @@ export async function setupTestContainersVitest(
       await analyticsPostgresDB?.none(
         "TRUNCATE TABLE domains.eservice_template CASCADE"
       );
+
+      // CLEANUP USER-SQL TABLES
+      await userDB?.execute(`TRUNCATE TABLE "user"."user" CASCADE`);
 
       if (fileManagerConfig && fileManager) {
         const s3OriginalBucket =

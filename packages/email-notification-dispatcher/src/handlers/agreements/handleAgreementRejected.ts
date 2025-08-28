@@ -1,13 +1,10 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
 import {
   EmailNotificationMessagePayload,
   generateId,
-  CorrelationId,
   missingKafkaMessageDataError,
   fromAgreementV2,
-  tenantMailKind,
   NotificationType,
 } from "pagopa-interop-models";
 import {
@@ -19,7 +16,7 @@ import {
 } from "../../services/utils.js";
 import {
   AgreementHandlerParams,
-  getUserEmailsToNotify,
+  getRecipientsForTenant,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
@@ -51,82 +48,40 @@ export async function handleAgreementRejected(
     retrieveTenant(agreement.consumerId, readModelService),
   ]);
 
-  let userEmails: string[] = [];
-  try {
-    userEmails = await getUserEmailsToNotify(
-      consumer.id,
-      notificationType,
-      readModelService,
-      userService
+  const targets = await getRecipientsForTenant({
+    tenant: consumer,
+    notificationType,
+    readModelService,
+    logger,
+    userService,
+    includeTenantContactEmail: true,
+  });
+
+  if (targets.length === 0) {
+    logger.info(
+      `No targets found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
     );
-  } catch (error) {
-    logger.warn(`Error reading user email. Reason: ${error}`);
     return [];
   }
 
   const rejectionDate = getFormattedAgreementStampDate(agreement, "rejection");
   const descriptor = retrieveAgreementDescriptor(eservice, agreement);
 
-  let toDispatch: EmailNotificationMessagePayload[] = [];
-  if (userEmails.length > 0) {
-    toDispatch = userEmails.map((email: string) => ({
-      correlationId: correlationId ?? generateId<CorrelationId>(),
-      email: {
-        subject: `Richiesta di fruizione ${agreement.id} attiva`,
-        body: templateService.compileHtml(htmlTemplate, {
-          title: "Nuova richiesta di fruizione",
-          notificationType,
-          entityId: agreement.id,
-          producerName: producer.name,
-          consumerName: consumer.name,
-          eserviceName: eservice.name,
-          eserviceVersion: descriptor.version,
-          rejectionDate,
-        }),
-      },
-      address: email,
-    }));
-  } else {
-    logger.info(
-      `No users found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
-    );
-  }
-
-  const consumerConfig =
-    await readModelService.getTenantNotificationConfigByTenantId(consumer.id);
-
-  if (consumerConfig === undefined) {
-    logger.warn(`No tenant configuration found for tenant ${consumer.id}.`);
-  } else if (consumerConfig.enabled) {
-    const consumerEmail = getLatestTenantMailOfKind(
-      consumer.mails,
-      tenantMailKind.ContactEmail
-    );
-
-    if (consumerEmail !== undefined) {
-      toDispatch.push({
-        correlationId: correlationId ?? generateId<CorrelationId>(),
-        email: {
-          subject: `Richiesta di fruizione ${agreement.id} attiva`,
-          body: templateService.compileHtml(htmlTemplate, {
-            title: "Nuova richiesta di fruizione",
-            notificationType,
-            entityId: agreement.id,
-            producerName: producer.name,
-            consumerName: consumer.name,
-            eserviceName: eservice.name,
-            eserviceVersion: descriptor.version,
-            rejectionDate,
-          }),
-        },
-        address: consumerEmail.address,
-      });
-    } else {
-      logger.warn(
-        `No consumer email found for agreement ${agreement.id}. No email to dispatch.`
-      );
-    }
-  }
-
-  return toDispatch;
+  return targets.map(({ address }) => ({
+    correlationId: correlationId ?? generateId(),
+    email: {
+      subject: `La tua richiesta per "${eservice.name}" è stata rifiutata`,
+      body: templateService.compileHtml(htmlTemplate, {
+        title: `La tua richiesta per "${eservice.name}" è stata rifiutata`,
+        notificationType,
+        entityId: agreement.id,
+        producerName: producer.name,
+        consumerName: consumer.name,
+        eserviceName: eservice.name,
+        eserviceVersion: descriptor.version,
+        rejectionDate,
+      }),
+    },
+    address,
+  }));
 }

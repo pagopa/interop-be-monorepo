@@ -32,9 +32,11 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
+  addOneUser,
   getMockUser,
   readModelService,
   templateService,
+  userService,
 } from "./utils.js";
 
 describe("handleAgreementRejected", async () => {
@@ -60,15 +62,15 @@ describe("handleAgreementRejected", async () => {
     getMockUser(consumerTenant.id),
   ];
 
-  const userService = {
-    readUser: vi.fn(),
-  };
   const { logger } = getMockContext({});
 
   beforeEach(async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
+    for (const user of users) {
+      await addOneUser(user);
+    }
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -80,11 +82,8 @@ describe("handleAgreementRejected", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.userId, tenantId: user.tenantId }))
+        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
       );
-    userService.readUser.mockImplementation((userId) =>
-      users.find((user) => user.userId === userId)
-    );
   });
 
   it("should throw missingKafkaMessageDataError when agreement is undefined", async () => {
@@ -256,7 +255,9 @@ describe("handleAgreementRejected", async () => {
   it("should not generate a message if the user disabled this email notification", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
-      .mockResolvedValue([users[0]]);
+      .mockResolvedValue([
+        { userId: users[0].id, tenantId: users[0].tenantId },
+      ]);
 
     const agreement = {
       ...getMockAgreement(),
@@ -409,7 +410,9 @@ describe("handleAgreementRejected", async () => {
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain("<!-- Footer -->");
-      expect(message.email.body).toContain(`Nuova richiesta di fruizione`);
+      expect(message.email.body).toContain(
+        `La tua richiesta per &quot;${eservice.name}&quot; è stata rifiutata`
+      );
       expect(message.email.body).toContain(producerTenant.name);
       expect(message.email.body).toContain(consumerTenant.name);
       expect(message.email.body).toContain(eservice.name);
