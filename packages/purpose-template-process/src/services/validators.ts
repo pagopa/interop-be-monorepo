@@ -47,7 +47,7 @@ export function validateAndTransformRiskAnalysisTemplate(
     return undefined;
   }
 
-  const validatedForm = validateRiskAnalysisOrThrow({
+  const validatedForm = validateRiskAnalysisTemplateOrThrow({
     riskAnalysisForm: purposeRiskAnalysisForm,
     tenantKind,
   });
@@ -57,7 +57,7 @@ export function validateAndTransformRiskAnalysisTemplate(
   );
 }
 
-export function validateRiskAnalysisOrThrow({
+export function validateRiskAnalysisTemplateOrThrow({
   riskAnalysisForm,
   tenantKind,
 }: {
