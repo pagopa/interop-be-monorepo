@@ -1,6 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   ZodiosContext,
   ExpressContext,
@@ -131,6 +131,30 @@ const delegationRouter = (
         return res
           .status(200)
           .send(m2mGatewayApi.ProducerDelegations.parse(producerDelegations));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error retrieving producer delegations"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/producerDelegations/:delegationId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const producerDelegation = await delegationService.getDelegation(
+          req.params.delegationId,
+          delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(m2mGatewayApi.ProducerDelegation.parse(producerDelegation));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
