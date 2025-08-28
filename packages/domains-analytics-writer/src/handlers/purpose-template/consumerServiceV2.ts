@@ -28,7 +28,6 @@ export async function handlePurposeTemplateMessageV2(
           type: P.union(
             "PurposeTemplateAdded",
             "PurposeTemplateDraftUpdated",
-            "PurposeTemplateDraftDeleted",
             "PurposeTemplatePublished",
             "PurposeTemplateUnsuspended",
             "PurposeTemplateSuspended",
@@ -36,8 +35,7 @@ export async function handlePurposeTemplateMessageV2(
           ),
         },
         (msg) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const purposeTemplateV2 = (message.data as any).purposeTemplate; // TODO: remove any casting
+          const purposeTemplateV2 = msg.data.purposeTemplate;
           if (!purposeTemplateV2) {
             throw missingKafkaMessageDataError("purposeTemplate", message.type);
           }
@@ -62,18 +60,21 @@ export async function handlePurposeTemplateMessageV2(
           );
         }
       )
-      .with(
-        {
-          type: P.union(
-            "PurposeTemplateEServiceLinked",
-            "PurposeTemplateEServiceUnlinked"
-          ),
-        },
-        async (_msg) => {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          await Promise.resolve();
+      .with({ type: "PurposeTemplateDraftDeleted" }, async (msg) => {
+        if (!msg.data.purposeTemplate) {
+          throw missingKafkaMessageDataError("purposeTemplate", msg.type);
         }
-      )
+
+        // const purposeTemplate = fromPurposeTemplateV2(msg.data.purposeTemplate);
+
+        // TODO: delete batch
+      })
+      .with({ type: "PurposeTemplateEServiceLinked" }, async (_msg) => {
+        // TODO: partial batch purposeTemplateWriterService.upsertPurposeTemplateEServiceDescriptor
+      })
+      .with({ type: "PurposeTemplateEServiceUnlinked" }, async (_msg) => {
+        // TODO: partial batch purposeTemplateWriterService.deletePurposeTemplateEServiceDescriptorsByEServiceIdAndDescriptorId
+      })
       .exhaustive();
   }
 
