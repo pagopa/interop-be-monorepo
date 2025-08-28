@@ -1879,7 +1879,7 @@ export const purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate =
   );
 
 export const purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate =
-   readmodelPurposeTemplate.table(
+  readmodelPurposeTemplate.table(
     "purpose_template_risk_analysis_answer",
     {
       id: uuid().primaryKey().notNull(),
