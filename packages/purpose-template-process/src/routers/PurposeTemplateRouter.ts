@@ -104,14 +104,19 @@ const purposeTemplateRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const {
-          data: { purposeTemplate },
+          data: { purposeTemplate, isRiskAnalysisValid },
           metadata,
         } = await purposeTemplateService.createPurposeTemplate(req.body, ctx);
 
         setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
-          .send(purposeTemplateToApiPurposeTemplate(purposeTemplate));
+          .send(
+            purposeTemplateToApiPurposeTemplate(
+              purposeTemplate,
+              isRiskAnalysisValid
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
