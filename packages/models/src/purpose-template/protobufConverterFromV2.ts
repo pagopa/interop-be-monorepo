@@ -81,7 +81,7 @@ export const fromPurposeTemplateV2 = (
   creatorId: unsafeBrandId(input.creatorId),
   state: fromPurposeTemplateStateV2(input.state),
   createdAt: bigIntToDate(input.createdAt),
-  updatedAt: input.updatedAt ? bigIntToDate(input.updatedAt) : undefined,
+  updatedAt: bigIntToDate(input.updatedAt),
   purposeRiskAnalysisForm: input.purposeRiskAnalysisForm
     ? fromPurposeRiskAnalysisFormTemplateV2(input.purposeRiskAnalysisForm)
     : undefined,
