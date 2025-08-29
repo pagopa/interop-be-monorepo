@@ -6,8 +6,8 @@ import {
 } from "pagopa-interop-commons";
 import {
   getMockValidRiskAnalysisFormTemplate,
-  validatedRiskAnalysisTemplate3_0_Pa,
   validatedRiskAnalysisTemplate2_0_Private,
+  validatedRiskAnalysisTemplate3_0_Pa,
 } from "../src/riskAnalysisTemplateTestUtils.js";
 
 describe("Risk Analysis Template Validation", () => {

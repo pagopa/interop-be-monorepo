@@ -287,7 +287,6 @@ export async function setupTestContainersVitest(
       await readModelRepository?.eservices.deleteMany({});
       await readModelRepository?.tenants.deleteMany({});
       await readModelRepository?.purposes.deleteMany({});
-      await readModelRepository?.purposeTemplates.deleteMany({});
       await readModelRepository?.attributes.deleteMany({});
       await readModelRepository?.clients.deleteMany({});
       await readModelRepository?.keys.deleteMany({});
