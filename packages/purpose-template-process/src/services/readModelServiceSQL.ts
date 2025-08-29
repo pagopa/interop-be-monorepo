@@ -40,15 +40,13 @@ export type GetPurposeTemplatesFilters = {
   creatorIds: TenantId[];
   eserviceIds: EServiceId[];
   states: PurposeTemplateState[];
-  excludeDraft: boolean | undefined;
 };
 
 const getPurposeTemplatesFilters = (
   readModelDB: DrizzleReturnType,
   filters: GetPurposeTemplatesFilters
 ): SQL | undefined => {
-  const { purposeTitle, creatorIds, eserviceIds, states, excludeDraft } =
-    filters;
+  const { purposeTitle, creatorIds, eserviceIds, states } = filters;
 
   const purposeTitleFilter = purposeTitle
     ? ilike(
@@ -83,19 +81,11 @@ const getPurposeTemplatesFilters = (
       ? inArray(purposeTemplateInReadmodelPurposeTemplate.state, states)
       : undefined;
 
-  const draftFilter = excludeDraft
-    ? ne(
-        purposeTemplateInReadmodelPurposeTemplate.state,
-        purposeTemplateState.draft
-      )
-    : undefined;
-
   return and(
     purposeTitleFilter,
     creatorIdsFilter,
     eserviceIdsFilter,
-    statesFilter,
-    draftFilter
+    statesFilter
   );
 };
 
@@ -131,7 +121,6 @@ export function readModelServiceBuilderSQL({
       );
     },
     async getPurposeTemplates(
-      requesterId: TenantId,
       filters: GetPurposeTemplatesFilters,
       { limit, offset }: { limit: number; offset: number }
     ): Promise<ListResult<PurposeTemplate>> {

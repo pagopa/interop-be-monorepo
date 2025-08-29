@@ -87,11 +87,6 @@ paths:
             default: []
           explode: false
         - in: query
-          name: excludeDraft
-          schema:
-            type: boolean
-            default: false
-        - in: query
           name: offset
           required: true
           schema:

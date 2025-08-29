@@ -116,7 +116,6 @@ export function purposeTemplateServiceBuilder(
       filters: GetPurposeTemplatesFilters,
       { offset, limit }: { offset: number; limit: number },
       {
-        authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<PurposeTemplate>> {
@@ -127,14 +126,10 @@ export function purposeTemplateServiceBuilder(
       );
 
       // Permissions are checked in the readModelService
-      return await readModelService.getPurposeTemplates(
-        authData.organizationId,
-        filters,
-        {
-          offset,
-          limit,
-        }
-      );
+      return await readModelService.getPurposeTemplates(filters, {
+        offset,
+        limit,
+      });
     },
     async getPurposeTemplateById(
       id: PurposeTemplateId,
