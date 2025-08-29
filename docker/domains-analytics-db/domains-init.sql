@@ -675,6 +675,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template_risk_analysis_answer_annotat
   metadata_version INTEGER NOT NULL,
   annotation_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_template_risk_analysis_answer_annotation (id),
   name VARCHAR(2048) NOT NULL,
+  pretty_name VARCHAR(2048) NOT NULL,
   content_type VARCHAR(2048) NOT NULL,
   path VARCHAR(2048) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,

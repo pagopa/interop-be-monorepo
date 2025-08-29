@@ -6,7 +6,7 @@ export const PurposeTemplateRiskAnalysisAnswerSchema = createSelectSchema(
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate
 ).extend({
   deleted: z.boolean().default(false).optional(),
-  suggested_values: z
+  suggestedValues: z
     .array(z.string())
     .transform((val) => JSON.stringify(val))
     .pipe(z.string())
