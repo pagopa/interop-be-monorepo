@@ -7,22 +7,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # find_packages:
-  #   name: Find Packages
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     packages: ${{ steps.set_packages_output.outputs.packages }}
-  #   steps:
-  #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-  #     - name: Find packages
-  #       id: set_packages_output
-  #       run: |
-  #         # PACKAGES=$(find packages -type d -path "packages/*" -d 1 | awk -F'/' '{print $2}' | jq -R -s -c 'split("\n")[:-1]')
-  #         PACKAGES="[\"commons\", \"catalog-process\", \"api-clients\"]" # TODO: remove after testing
-  #         echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+  find_packages:
+    name: Find Packages
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.set_packages_output.outputs.packages }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Find packages
+        id: set_packages_output
+        run: |
+          # PACKAGES=$(find packages -type d -path "packages/*" -d 1 | awk -F'/' '{print $2}' | jq -R -s -c 'split("\n")[:-1]')
+          PACKAGES="[\"commons\", \"catalog-process\", \"api-clients\"]" # TODO: remove after testing
+          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
 
-  common_packages_validation:
-    name: Common packages validation
+  packages_validation:
+    name: Packages validation
+    needs: [find_packages]
     runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     strategy:
       fail-fast: false
@@ -54,6 +55,12 @@ jobs:
             .turbo
             packages/${{ matrix.package }}/.turbo
           key: turbo-${{ github.ref_name }}-${{ matrix.package }}
+
+      # - name: Extract Turbo package name
+      #   run: |
+      #     set -euo pipefail
+      #     TURBO_PACKAGE_NAME="$(jq -r '.name' packages/${{ matrix.package }}/package.json)"
+      #     echo "TURBO_PACKAGE_NAME=$TURBO_PACKAGE_NAME" >> "$GITHUB_ENV"
 
       - name: Check formatting
         run: |
