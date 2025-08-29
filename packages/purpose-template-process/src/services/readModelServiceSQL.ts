@@ -26,7 +26,7 @@ import {
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, exists, ilike, inArray, SQL } from "drizzle-orm";
+import { and, eq, exists, ilike, inArray, isNotNull, SQL } from "drizzle-orm";
 import {
   ascLower,
   createListResult,
@@ -62,16 +62,21 @@ const getPurposeTemplatesFilters = (
   // TODO: better solution?
   const eserviceIdsFilter =
     eserviceIds.length > 0
-      ? exists(
-          readModelDB
-            .select()
-            .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
-            .where(
-              inArray(
-                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
-                eserviceIds
+      ? and(
+          exists(
+            readModelDB
+              .select()
+              .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+              .where(
+                inArray(
+                  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+                  eserviceIds
+                )
               )
-            )
+          ),
+          isNotNull(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId
+          )
         )
       : undefined;
 
@@ -130,7 +135,7 @@ export function readModelServiceBuilderSQL({
           })
         )
         .from(purposeTemplateInReadmodelPurposeTemplate)
-        .innerJoin(
+        .leftJoin(
           purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
           eq(
             purposeTemplateInReadmodelPurposeTemplate.id,
