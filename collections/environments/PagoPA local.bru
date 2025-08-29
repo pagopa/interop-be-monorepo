@@ -3,11 +3,12 @@ vars {
   JWT: Bearer {{process.env.JWT}}
   host-catalog: http://localhost:3000
   correlation-id: 79eb4963-3866-422f-8ef0-87871e5f9a71
-  JWT-Invalid: 
+  JWT-Invalid:
   host-bff: http://localhost:3600/backend-for-frontend/0.0
   host-attribute: http://localhost:3200
   host-tenant: http://localhost:3500
   host-purpose: http://localhost:3400
+  host-purpose-template: http://localhost:4300
   host-authorization: http://localhost:3300
   host-delegation: http://localhost:3800
   host-api-gw: http://localhost:3700/api-gateway/0.0
@@ -16,6 +17,9 @@ vars {
   JWT-M2M: Bearer {{process.env.JWT-M2M}}
   JWT2: Bearer {{process.env.JWT2}}
   host-template: http://localhost:3900
+  host-notification-config: http://localhost:4100
   JWT-API-SEC: Bearer {{process.env.JWT-API-SEC}}
   JWT-M2M-ADMIN: Bearer {{process.env.JWT-M2M-ADMIN}}
+  JWT2-M2M-ADMIN: Bearer {{process.env.JWT2-M2M-ADMIN}}
+  host-in-app-notification: http://localhost:4200
 }

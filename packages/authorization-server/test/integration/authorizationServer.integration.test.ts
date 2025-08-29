@@ -78,6 +78,7 @@ import {
   tokenService,
 } from "../integrationUtils.js";
 import {
+  dpopConfig,
   getMockTokenRequest,
   mockKMSClient,
   mockProducer,
@@ -119,6 +120,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(
@@ -151,6 +153,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )
@@ -187,6 +190,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )
@@ -235,6 +239,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(
@@ -280,6 +285,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )
@@ -337,6 +343,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(
@@ -393,6 +400,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(
@@ -446,6 +454,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       );
       expect(response.limitReached).toBe(false);
@@ -458,6 +467,7 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({}),
+      () => {},
       () => {},
       () => {}
     );
@@ -528,6 +538,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(
@@ -579,6 +590,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )
@@ -640,6 +652,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(fallbackAuditFailed(clientId));
@@ -672,6 +685,7 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(
@@ -679,12 +693,13 @@ describe("authorization server tests", () => {
     );
   });
 
-  it("should throw dpopProofValidationFailed - iat is more than 60 seconds ago", async () => {
+  it("should throw dpopProofValidationFailed - iat is too old", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
     const clientId = generateId<ClientId>();
-    const expiredIat = Math.floor(Date.now() / 1000) - 61;
+    const expiredIat =
+      Math.floor(Date.now() / 1000) - dpopConfig!.dpopDurationSeconds - 1;
 
     const { dpopProofJWS } = await getMockDPoPProof({
       customPayload: {
@@ -710,12 +725,17 @@ describe("authorization server tests", () => {
         request.body,
         getMockContext({}),
         () => {},
+        () => {},
         () => {}
       )
     ).rejects.toThrowError(
       dpopProofValidationFailed(
         request.body.client_id,
-        expiredDPoPProof(expiredIat, dateToSeconds(new Date())).detail
+        expiredDPoPProof(
+          expiredIat,
+          dateToSeconds(new Date()),
+          dpopConfig!.dpopDurationSeconds
+        ).detail
       )
     );
 
@@ -752,6 +772,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )
@@ -818,6 +839,7 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({ correlationId }),
+      () => {},
       () => {},
       () => {}
     );
@@ -963,6 +985,7 @@ describe("authorization server tests", () => {
       request.body,
       getMockContext({ correlationId }),
       () => {},
+      () => {},
       () => {}
     );
 
@@ -1085,6 +1108,7 @@ describe("authorization server tests", () => {
       request.headers,
       request.body,
       getMockContext({ correlationId }),
+      () => {},
       () => {},
       () => {}
     );
@@ -1247,6 +1271,7 @@ describe("authorization server tests", () => {
       request.body,
       getMockContext({ correlationId }),
       () => {},
+      () => {},
       () => {}
     );
 
@@ -1362,6 +1387,7 @@ describe("authorization server tests", () => {
       request.body,
       getMockContext({}),
       () => {},
+      () => {},
       () => {}
     );
 
@@ -1432,6 +1458,7 @@ describe("authorization server tests", () => {
       request.body,
       getMockContext({}),
       () => {},
+      () => {},
       () => {}
     );
 
@@ -1491,6 +1518,7 @@ describe("authorization server tests", () => {
         request.headers,
         request.body,
         getMockContext({}),
+        () => {},
         () => {},
         () => {}
       )

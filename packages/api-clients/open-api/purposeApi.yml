@@ -256,11 +256,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServicePurposeSeed"
+              $ref: "#/components/schemas/ReversePurposeSeed"
         required: true
       responses:
         "200":
           description: Purpose created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -515,6 +518,9 @@ paths:
       operationId: deletePurposeVersion
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: Purpose Version Deleted
         "403":
           description: Organization not allowed
@@ -670,6 +676,11 @@ paths:
     post:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose Version Activated
@@ -765,6 +776,11 @@ paths:
     post:
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Purpose Version Suspended
@@ -929,6 +945,14 @@ components:
       schema:
         type: string
   schemas:
+    DelegationRef:
+      type: object
+      additionalProperties: false
+      description: sets the delegation ID in order to operate as a delegate for a specific active delegation
+      properties:
+        delegationId:
+          type: string
+          format: uuid
     RejectPurposeVersionPayload:
       type: object
       additionalProperties: false
@@ -1153,7 +1177,8 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
       required:
         - title
         - description
@@ -1180,7 +1205,8 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
       required:
         - title
         - description
@@ -1211,7 +1237,8 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
         riskAnalysis:
           $ref: "#/components/schemas/PurposeVersionDocument"
         rejectionReason:
@@ -1260,15 +1287,19 @@ components:
           format: uuid
       required:
         - eserviceId
-    EServicePurposeSeed:
+    ReversePurposeSeed:
       type: object
       additionalProperties: false
       description: contains the expected payload for purpose creation.
       properties:
-        eServiceId:
+        eserviceId:
           type: string
           format: uuid
         consumerId:
+          description: |
+            The ID of the tenant that will consume the e-service. It can be:
+            - the ID of your tenant
+            - the ID of a tenant for which you are the consumer delegate
           type: string
           format: uuid
         riskAnalysisId:
@@ -1289,8 +1320,10 @@ components:
         dailyCalls:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
-        - eServiceId
+        - eserviceId
         - consumerId
         - title
         - riskAnalysisId
@@ -1306,6 +1339,10 @@ components:
           type: string
           format: uuid
         consumerId:
+          description: |
+            The ID of the tenant that will consume the e-service. It can be:
+            - the ID of your tenant
+            - the ID of a tenant for which you are the consumer delegate
           type: string
           format: uuid
         riskAnalysisForm:
@@ -1325,6 +1362,8 @@ components:
         dailyCalls:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
         - eserviceId
         - consumerId
@@ -1343,7 +1382,8 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
     RiskAnalysisForm:
       type: object
       additionalProperties: false
@@ -1358,7 +1398,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 500
+              maxLength: 2000
         riskAnalysisId:
           type: string
           format: uuid
@@ -1379,7 +1419,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 500
+              maxLength: 2000
       required:
         - version
         - answers

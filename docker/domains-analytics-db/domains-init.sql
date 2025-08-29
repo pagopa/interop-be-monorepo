@@ -20,7 +20,7 @@ CREATE TABLE domains.eservice (
   name VARCHAR(2048) NOT NULL,
   description VARCHAR(2048) NOT NULL,
   technology VARCHAR(2048) NOT NULL,
-  created_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   mode VARCHAR(2048) NOT NULL,
   is_signal_hub_enabled BOOLEAN,
   is_consumer_delegable BOOLEAN,
@@ -42,12 +42,12 @@ CREATE TABLE domains.eservice_descriptor (
   daily_calls_per_consumer INTEGER NOT NULL,
   daily_calls_total INTEGER NOT NULL,
   agreement_approval_policy VARCHAR(2048),
-  created_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   server_urls VARCHAR(65535) NOT NULL,
-  published_at TIMESTAMP,
-  suspended_at TIMESTAMP,
-  deprecated_at TIMESTAMP,
-  archived_at TIMESTAMP,
+  published_at TIMESTAMP WITH TIME ZONE,
+  suspended_at TIMESTAMP WITH TIME ZONE,
+  deprecated_at TIMESTAMP WITH TIME ZONE,
+  archived_at TIMESTAMP WITH TIME ZONE,
   deleted BOOLEAN,
   PRIMARY KEY (id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
@@ -72,7 +72,7 @@ CREATE TABLE domains.eservice_descriptor_rejection_reason (
   metadata_version INTEGER,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   rejection_reason VARCHAR(2048) NOT NULL,
-  rejected_at TIMESTAMP NOT NULL,
+  rejected_at TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
@@ -87,7 +87,7 @@ CREATE TABLE domains.eservice_descriptor_interface (
   pretty_name VARCHAR(2048) NOT NULL,
   path VARCHAR(2048) NOT NULL,
   checksum VARCHAR(2048) NOT NULL,
-  upload_date TIMESTAMP NOT NULL,
+  upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
@@ -103,7 +103,7 @@ CREATE TABLE domains.eservice_descriptor_document (
   pretty_name VARCHAR(2048) NOT NULL,
   path VARCHAR(2048) NOT NULL,
   checksum VARCHAR(2048) NOT NULL,
-  upload_date TIMESTAMP NOT NULL,
+  upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
@@ -127,7 +127,7 @@ CREATE TABLE domains.eservice_risk_analysis (
   eservice_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER,
   name VARCHAR(2048) NOT NULL,
-  created_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   risk_analysis_form_id VARCHAR(36) UNIQUE NOT NULL,
   risk_analysis_form_version VARCHAR(2048) NOT NULL,
   deleted BOOLEAN,
@@ -223,10 +223,11 @@ CREATE TABLE IF NOT EXISTS domains.purpose (
   suspended_by_producer BOOLEAN,
   title VARCHAR(2048) NOT NULL,
   description VARCHAR(2048) NOT NULL,
-  created_at TIMESTAMP NOT NULL,
-  updated_at TIMESTAMP,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE,
   is_free_of_charge BOOLEAN NOT NULL,
   free_of_charge_reason VARCHAR(2048),
+  purpose_template_id VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
@@ -261,10 +262,10 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version (
   state VARCHAR(2048) NOT NULL,
   daily_calls INTEGER NOT NULL,
   rejection_reason VARCHAR(2048),
-  created_at TIMESTAMP NOT NULL,
-  updated_at TIMESTAMP,
-  first_activation_at TIMESTAMP,
-  suspended_at TIMESTAMP,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE,
+  first_activation_at TIMESTAMP WITH TIME ZONE,
+  suspended_at TIMESTAMP WITH TIME ZONE,
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
@@ -276,7 +277,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version_document (
   purpose_version_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_version(id),
   content_type VARCHAR(2048) NOT NULL,
   path VARCHAR(2048) NOT NULL,
-  created_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id, purpose_version_id)
 );
@@ -460,6 +461,47 @@ CREATE TABLE IF NOT EXISTS domains.client_key (
   deleted_at TIMESTAMP WITH TIME ZONE,
   deleted BOOLEAN,
   PRIMARY KEY (client_id, kid)
+);
+
+CREATE TABLE IF NOT EXISTS domains.producer_keychain (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  producer_id VARCHAR(36) NOT NULL,
+  name VARCHAR(2048) NOT NULL,
+  description VARCHAR(2048) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.producer_keychain_user (
+  metadata_version INTEGER NOT NULL,
+  producer_keychain_id VARCHAR(36) NOT NULL REFERENCES domains.producer_keychain (id),
+  user_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (producer_keychain_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.producer_keychain_eservice (
+  metadata_version INTEGER NOT NULL,
+  producer_keychain_id VARCHAR(36) NOT NULL REFERENCES domains.producer_keychain (id),
+  eservice_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (producer_keychain_id, eservice_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.producer_keychain_key (
+  metadata_version INTEGER NOT NULL,
+  producer_keychain_id VARCHAR(36) NOT NULL REFERENCES domains.producer_keychain (id),
+  user_id VARCHAR(36) NOT NULL,
+  kid VARCHAR(2048) NOT NULL,
+  name VARCHAR(2048) NOT NULL,
+  encoded_pem VARCHAR(8192) NOT NULL,
+  "algorithm" VARCHAR(2048) NOT NULL,
+  "use" VARCHAR(2048) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (producer_keychain_id, kid)
 );
 
 CREATE TABLE IF NOT EXISTS domains.eservice_template (

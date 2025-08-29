@@ -8,18 +8,15 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  clientReadModelServiceBuilder,
-  makeDrizzleConnection,
-} from "pagopa-interop-readmodel";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { handleMessageV1 } from "./clientConsumerServiceV1.js";
 import { handleMessageV2 } from "./clientConsumerServiceV2.js";
 import { config } from "./config/config.js";
-import { readModelServiceBuilder } from "./readModelService.js";
+import { clientWriterServiceBuilder } from "./clientWriterService.js";
 
 const db = makeDrizzleConnection(config);
-const clientReadModelService = clientReadModelServiceBuilder(db);
-const readModelService = readModelServiceBuilder(db, clientReadModelService);
+const clientWriterService = clientWriterServiceBuilder(db);
+
 async function processMessage({
   message,
   partition,
@@ -37,8 +34,12 @@ async function processMessage({
       : generateId<CorrelationId>(),
   });
   await match(decodedMessage)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, readModelService))
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, readModelService))
+    .with({ event_version: 1 }, (msg) =>
+      handleMessageV1(msg, clientWriterService)
+    )
+    .with({ event_version: 2 }, (msg) =>
+      handleMessageV2(msg, clientWriterService)
+    )
     .exhaustive();
 
   loggerInstance.info(
@@ -46,4 +47,9 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.authorizationTopic], processMessage);
+await runConsumer(
+  config,
+  [config.authorizationTopic],
+  processMessage,
+  "client-readmodel-writer-sql"
+);

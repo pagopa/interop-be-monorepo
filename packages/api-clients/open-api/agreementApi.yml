@@ -112,6 +112,11 @@ paths:
     post:
       summary: Agreement Activation
       operationId: activateAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Pending agreement activated.
@@ -158,6 +163,49 @@ paths:
           type: string
           format: uuid
         required: true
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - agreement
+      summary: Retrieve consumer Documents of an Agreement
+      description: Retrieve consumer Documents of an Agreement
+      operationId: getAgreementConsumerDocuments
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Documents retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Documents"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -176,6 +224,9 @@ paths:
       responses:
         "200":
           description: Returns the document.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -250,6 +301,9 @@ paths:
       operationId: removeAgreementConsumerDocument
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: Document removed
         "403":
           description: Forbidden
@@ -276,6 +330,11 @@ paths:
     post:
       summary: Suspend Agreement
       operationId: suspendAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Active agreement suspended.
@@ -790,6 +849,9 @@ paths:
       responses:
         "200":
           description: Agreement cloned.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1065,6 +1127,14 @@ components:
       schema:
         type: string
   schemas:
+    DelegationRef:
+      type: object
+      additionalProperties: false
+      description: sets the delegation ID in order to operate as a delegate for a specific active delegation
+      properties:
+        delegationId:
+          type: string
+          format: uuid
     AgreementPayload:
       type: object
       additionalProperties: false
@@ -1414,6 +1484,20 @@ components:
           type: string
         path:
           type: string
+    Documents:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Document"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     Document:
       type: object
       additionalProperties: false

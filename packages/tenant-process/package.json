@@ -5,8 +5,9 @@
   "main": "dist",
   "type": "module",
   "scripts": {
+    "test:integration": "echo \"SQL readmodel\" && vitest --config vitest.integrationsql.config.ts",
+    "test:integration:old": "echo \"Old readmodel\" && vitest --config vitest.integration.config.ts ",
     "test:api": "vitest --config vitest.api.config.ts",
-    "test:integration": "echo \"Old readmodel\" && vitest --config vitest.integration.config.ts && echo \"SQL readmodel\" && vitest --config vitest.integrationsql.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -21,8 +22,8 @@
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/express": "4.17.21",
-    "@types/node": "20.14.6",
-    "@types/supertest": "6.0.2",
+    "@types/node": "20.19.9",
+    "@types/supertest": "6.0.3",
     "pagopa-interop-commons-test": "workspace:*",
     "pg-promise": "11.8.0",
     "prettier": "2.8.8",

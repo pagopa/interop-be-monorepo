@@ -1,11 +1,11 @@
 import { constants } from "http2";
-import { randomUUID } from "crypto";
 import {
   ZodiosRouterContextRequestHandler,
   zodiosContext,
 } from "@zodios/express";
 import {
   ClientId,
+  ClientKindTokenGenStates,
   CorrelationId,
   generateId,
   makeApiProblemBuilder,
@@ -28,6 +28,7 @@ export type AppContext<A extends AuthData = AuthData> = {
 
 export type AuthServerAppContext = AppContext & {
   clientId?: ClientId;
+  clientKind?: ClientKindTokenGenStates;
   organizationId?: TenantId;
 };
 
@@ -75,8 +76,11 @@ export const contextMiddleware =
       }
 
       setCtx(correlationIdHeader);
+      res.header("X-Correlation-Id", correlationIdHeader);
     } else {
-      setCtx(randomUUID());
+      const correlationId = generateId<CorrelationId>();
+      setCtx(correlationId);
+      res.header("X-Correlation-Id", correlationId);
     }
 
     return next();

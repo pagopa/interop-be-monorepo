@@ -6,7 +6,7 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
@@ -25,11 +25,15 @@ describe("POST /agreements/:agreementId/approve router test", () => {
 
   const makeRequest = async (
     token: string,
-    agreementId: string = mockApiAgreement.id
+    agreementId: string = mockApiAgreement.id,
+    body: m2mGatewayApi.DelegationRef | undefined = {
+      delegationId: generateId(),
+    }
   ) =>
     request(api)
       .post(`${appBasePath}/agreements/${agreementId}/approve`)
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `Bearer ${token}`)
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
@@ -46,6 +50,32 @@ describe("POST /agreements/:agreementId/approve router test", () => {
       expect(res.body).toEqual(mockM2MAgreementResponse);
     }
   );
+
+  it("Should return 200 when no body is passed", async () => {
+    mockAgreementService.approveAgreement = vi
+      .fn()
+      .mockResolvedValue(mockM2MAgreementResponse);
+
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockApiAgreement.id, undefined);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockM2MAgreementResponse);
+  });
+
+  it.each([
+    { delegationId: "INVALID ID" },
+    {
+      unsupportedField: "unsupportedValue",
+    },
+  ])("Should return 400 for incorrect value for body", async (body) => {
+    mockAgreementService.approveAgreement = vi
+      .fn()
+      .mockResolvedValue(mockM2MAgreementResponse);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockApiAgreement.id, body);
+    expect(res.status).toBe(400);
+  });
 
   it("Should return 400 for incorrect value for agreement id", async () => {
     mockAgreementService.approveAgreement = vi

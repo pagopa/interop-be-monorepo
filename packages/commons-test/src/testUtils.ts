@@ -105,6 +105,11 @@ import {
   JWKKeyES256,
   Algorithm,
   algorithm,
+  ClientKind,
+  NotificationConfig,
+  TenantNotificationConfig,
+  UserNotificationConfig,
+  DelegationStamps,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -132,6 +137,12 @@ export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
     new Date(Number(timestamp)) && new Date(Number(timestamp)) <= new Date()
   );
+}
+
+export function randomSubArray<T>(array: T[]): T[] {
+  const count = Math.floor(Math.random() * array.length) + 1;
+  const start = Math.floor(Math.random() * (array.length - count + 1));
+  return array.slice(start, start + count);
 }
 
 export function randomArrayItem<T>(array: T[]): T {
@@ -398,16 +409,33 @@ export const getMockAgreementDocument = (): AgreementDocument => ({
   createdAt: new Date(),
 });
 
-export const getMockClient = (): Client => ({
+export const getMockClient = ({
+  consumerId = generateId<TenantId>(),
+  users = [],
+  kind = clientKind.consumer,
+  purposes = [],
+  keys = [],
+  adminId = undefined,
+  description = "Client description",
+}: {
+  consumerId?: TenantId;
+  users?: UserId[];
+  kind?: ClientKind;
+  purposes?: PurposeId[];
+  keys?: Key[];
+  adminId?: UserId;
+  description?: string;
+} = {}): Client => ({
   id: generateId(),
-  consumerId: generateId(),
+  consumerId,
   name: "Test client",
-  purposes: [],
-  description: "Client description",
-  users: [],
-  kind: clientKind.consumer,
+  purposes,
+  ...(description ? { description } : {}),
+  users,
+  kind,
   createdAt: new Date(),
-  keys: [],
+  keys,
+  ...(adminId ? { adminId } : {}),
 });
 
 export const getMockProducerKeychain = (): ProducerKeychain => ({
@@ -489,6 +517,9 @@ export const getMockDelegation = ({
   submitterId = generateId<UserId>(),
   activationContract,
   revocationContract,
+  rejectionReason,
+  updatedAt,
+  stamps,
 }: {
   kind: DelegationKind;
   id?: DelegationId;
@@ -499,6 +530,9 @@ export const getMockDelegation = ({
   submitterId?: UserId;
   activationContract?: DelegationContractDocument;
   revocationContract?: DelegationContractDocument;
+  rejectionReason?: string;
+  updatedAt?: Date;
+  stamps?: DelegationStamps;
 }): Delegation => {
   const creationTime = new Date();
 
@@ -509,10 +543,12 @@ export const getMockDelegation = ({
     eserviceId,
     createdAt: creationTime,
     state,
+    kind,
     ...(activationContract ? { activationContract } : {}),
     ...(revocationContract ? { revocationContract } : {}),
-    kind,
-    stamps: {
+    ...(rejectionReason ? { rejectionReason } : {}),
+    ...(updatedAt ? { updatedAt } : {}),
+    stamps: stamps ?? {
       submission: {
         who: submitterId,
         when: creationTime,
@@ -689,7 +725,7 @@ export const getMockClientAssertion = async (props?: {
   };
 
   const headers: jose.JWTHeaderParameters = {
-    alg: "RS256",
+    alg: algorithm.RS256,
     kid: "kid",
     ...props?.customHeader,
   };
@@ -1214,9 +1250,12 @@ export const getMockSessionClaims = (
   },
 });
 
-export const getMockWithMetadata = <T>(data: T): WithMetadata<T> => ({
+export const getMockWithMetadata = <T>(
+  data: T,
+  version?: number
+): WithMetadata<T> => ({
   data,
-  metadata: { version: generateMock(z.number().int()) },
+  metadata: { version: version ?? generateMock(z.number().int()) },
 });
 
 export const readFileContent = async (fileName: string): Promise<string> => {
@@ -1227,3 +1266,33 @@ export const readFileContent = async (fileName: string): Promise<string> => {
   const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
   return htmlTemplateBuffer.toString();
 };
+
+export function createDummyStub<T>(): T {
+  return {} as T;
+}
+
+export const getMockNotificationConfig = (): NotificationConfig =>
+  Object.keys(NotificationConfig.shape).reduce((acc, key) => {
+    // eslint-disable-next-line functional/immutable-data
+    acc[key as keyof NotificationConfig] = generateMock(z.boolean());
+    return acc;
+  }, {} as NotificationConfig);
+
+export const getMockTenantNotificationConfig =
+  (): TenantNotificationConfig => ({
+    id: generateId(),
+    tenantId: generateId(),
+    enabled: generateMock(z.boolean()),
+    createdAt: generateMock(z.coerce.date()),
+    updatedAt: generateMock(z.coerce.date().optional()),
+  });
+
+export const getMockUserNotificationConfig = (): UserNotificationConfig => ({
+  id: generateId(),
+  userId: generateId(),
+  tenantId: generateId(),
+  inAppConfig: getMockNotificationConfig(),
+  emailConfig: getMockNotificationConfig(),
+  createdAt: generateMock(z.coerce.date()),
+  updatedAt: generateMock(z.coerce.date().optional()),
+});

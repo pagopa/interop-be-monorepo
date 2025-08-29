@@ -5,7 +5,6 @@ extends:
   ]
 rules:
   servers-use-https: off
-  paths-status: off # Enable this once authorization server migration is completed and we can remove the /authorization-server prefix
   paths-kebab-case: off # Disabled for compatibility with current endpoint naming
   cache-responses-indeterminate-behavior: off # Disabled to avoid warnings on cache management
   missing-ratelimit: off # Disabled to avoid warnings on rate limit headers

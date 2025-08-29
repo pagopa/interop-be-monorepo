@@ -34,7 +34,7 @@ export const InteropJwtHeader = z.object({
 });
 export type InteropJwtHeader = z.infer<typeof InteropJwtHeader>;
 
-const InteropJwtCommonPayload = z.object({
+export const InteropJwtCommonPayload = z.object({
   // All standard claims except "sub", which is not present in UI tokens
   iss: z.string(),
   aud: z.union([z.array(z.string()), CommaSeparatedStringToArray(z.string())]),

@@ -9,6 +9,7 @@ import {
 } from "pagopa-interop-commons";
 import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
+  ApiError,
   Descriptor,
   EService,
   EServiceTemplate,
@@ -61,6 +62,18 @@ export const toEserviceTemplateProcessMock = (
   versions: [
     {
       ...eserviceTemplateVersion,
+      docs: eserviceTemplateVersion.docs.map((doc) => ({
+        ...doc,
+        uploadDate: new Date(doc.uploadDate).toISOString(),
+      })),
+      interface: eserviceTemplateVersion.interface
+        ? {
+            ...eserviceTemplateVersion.interface,
+            uploadDate: new Date(
+              eserviceTemplateVersion.interface.uploadDate
+            ).toISOString(),
+          }
+        : undefined,
       state: "PUBLISHED" as const,
       suspendedAt: undefined,
       deprecatedAt: undefined,
@@ -82,6 +95,17 @@ export const toEserviceCatalogProcessMock = (
   descriptors: [
     {
       ...descriptor,
+      docs: descriptor.docs.map((doc) => ({
+        ...doc,
+        uploadDate: new Date(doc.uploadDate).toISOString(),
+      })),
+      interface: descriptor.interface
+        ? {
+            ...descriptor.interface,
+            uploadDate: new Date(descriptor.interface.uploadDate).toISOString(),
+          }
+        : undefined,
+      serverUrls: [],
       state: "DRAFT",
       version: "1",
       agreementApprovalPolicy: "AUTOMATIC",
@@ -106,3 +130,28 @@ export const getBffMockContext = (
   },
   logger: genericLogger,
 });
+
+const catalogErrorCodes = {
+  eserviceTemplateInterfaceNotFound: "0035",
+  eserviceTemplateInterfaceDataNotValid: "0036",
+};
+export type CatalogErrorCodes = keyof typeof catalogErrorCodes;
+
+export function eserviceTemplateInterfaceNotFound(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string
+): ApiError<CatalogErrorCodes> {
+  return new ApiError({
+    detail: `EService template interface for template ${eserviceTemplateId} with version ${eserviceTemplateVersionId} not found`,
+    code: "eserviceTemplateInterfaceNotFound",
+    title: "EService template interface document not found",
+  });
+}
+
+export function eserviceInterfaceDataNotValid(): ApiError<CatalogErrorCodes> {
+  return new ApiError({
+    detail: `EService template interface data not valid`,
+    code: "eserviceTemplateInterfaceDataNotValid",
+    title: "EService template interface data not valid",
+  });
+}

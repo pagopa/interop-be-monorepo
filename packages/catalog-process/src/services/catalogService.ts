@@ -8,7 +8,6 @@ import {
   eventRepository,
   FileManager,
   InternalAuthData,
-  interpolateApiSpec,
   Logger,
   M2MAuthData,
   riskAnalysisValidatedFormToNewRiskAnalysis,
@@ -20,6 +19,9 @@ import {
   assertFeatureFlagEnabled,
   isFeatureFlagEnabled,
   M2MAdminAuthData,
+  interpolateTemplateApiSpec,
+  authRole,
+  retrieveOriginFromAuthData,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -54,8 +56,8 @@ import {
   Tenant,
   TenantId,
   unsafeBrandId,
-  WithMetadata,
   tenantKind,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -215,7 +217,7 @@ const retrieveDocument = (
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: Pick<ReadModelService, "getTenantById">
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
@@ -242,7 +244,7 @@ const retrieveRiskAnalysis = (
 const assertRequesterCanPublish = (
   producerDelegation: Delegation | undefined,
   eservice: EService,
-  authData: UIAuthData
+  authData: UIAuthData | M2MAdminAuthData
 ): void => {
   if (producerDelegation) {
     if (
@@ -465,7 +467,7 @@ function isTenantInSignalHubWhitelist(
     : false;
 }
 
-function innerCreateEService(
+async function innerCreateEService(
   {
     seed,
     template,
@@ -480,10 +482,23 @@ function innerCreateEService(
         }
       | undefined;
   },
-  { authData, correlationId }: WithLogger<AppContext<UIAuthData>>
-): { eService: EService; events: Array<CreateEvent<EServiceEvent>> } {
-  if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
-    throw originNotCompliant(authData.externalId.origin);
+  readModelService: ReadModelService,
+  {
+    authData,
+    correlationId,
+  }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+): Promise<{
+  eService: EService;
+  events: Array<CreateEvent<EServiceEvent>>;
+}> {
+  const origin = await retrieveOriginFromAuthData(
+    authData,
+    readModelService,
+    retrieveTenant
+  );
+
+  if (!config.producerAllowedOrigins.includes(origin)) {
+    throw originNotCompliant(origin);
   }
 
   const creationDate = new Date();
@@ -580,10 +595,11 @@ async function innerAddDocumentToEserviceEvent(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed,
-  ctx: WithLogger<AppContext<UIAuthData>>
+  ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
 ): Promise<{
   eService: EService;
   descriptor: Descriptor;
+  createdDocument: Document;
   event: CreateEvent<EServiceEvent>;
 }> {
   const descriptor = retrieveDescriptor(descriptorId, eService);
@@ -607,7 +623,7 @@ async function innerAddDocumentToEserviceEvent(
   }
 
   const isInterface = documentSeed.kind === "INTERFACE";
-  const newDocument: Document = {
+  const createdDocument: Document = {
     id: unsafeBrandId(documentSeed.documentId),
     name: documentSeed.fileName,
     contentType: documentSeed.contentType,
@@ -619,8 +635,8 @@ async function innerAddDocumentToEserviceEvent(
 
   const updatedDescriptor: Descriptor = {
     ...descriptor,
-    interface: isInterface ? newDocument : descriptor.interface,
-    docs: isInterface ? descriptor.docs : [...descriptor.docs, newDocument],
+    interface: isInterface ? createdDocument : descriptor.interface,
+    docs: isInterface ? descriptor.docs : [...descriptor.docs, createdDocument],
     serverUrls: isInterface ? documentSeed.serverUrls : descriptor.serverUrls,
     templateVersionRef: evaluateTemplateVersionRef(descriptor, documentSeed),
   };
@@ -652,7 +668,12 @@ async function innerAddDocumentToEserviceEvent(
           ctx.correlationId
         );
 
-  return { eService: updatedEService, descriptor: updatedDescriptor, event };
+  return {
+    eService: updatedEService,
+    descriptor: updatedDescriptor,
+    createdDocument,
+    event,
+  };
 }
 
 function createNextDescriptor(
@@ -710,16 +731,26 @@ export function catalogServiceBuilder(
       {
         authData,
         logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<EService> {
+      }: WithLogger<
+        AppContext<
+          UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
+        >
+      >
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      return await applyVisibilityToEService(
+      const data = await applyVisibilityToEService(
         eservice.data,
         authData,
         readModelService
       );
+      return {
+        data,
+        metadata: {
+          version: eservice.metadata.version,
+        },
+      };
     },
 
     async getEServices(
@@ -732,7 +763,7 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EService>> {
       logger.info(
-        `Getting EServices with name = ${filters.name}, ids = ${filters.eservicesIds}, producers = ${filters.producersIds}, states = ${filters.states}, agreementStates = ${filters.agreementStates}, mode = ${filters.mode}, isConsumerDelegable = ${filters.isConsumerDelegable}, limit = ${limit}, offset = ${offset}`
+        `Getting EServices with name = ${filters.name}, ids = ${filters.eservicesIds}, producers = ${filters.producersIds}, states = ${filters.states}, agreementStates = ${filters.agreementStates}, technology = ${filters.technology}, mode = ${filters.mode}, isSignalHubEnabled = ${filters.isSignalHubEnabled}, isConsumerDelegable = ${filters.isConsumerDelegable}, isClientAccessDelegable = ${filters.isClientAccessDelegable}, limit = ${limit}, offset = ${offset}`
       );
       const eservicesList = await readModelService.getEServices(
         authData,
@@ -798,8 +829,8 @@ export function catalogServiceBuilder(
 
     async createEService(
       seed: catalogApi.EServiceSeed,
-      ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       ctx.logger.info(`Creating EService with name ${seed.name}`);
 
       await assertEServiceNameAvailableForProducer(
@@ -812,14 +843,23 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const { eService, events } = innerCreateEService(
+      const { eService, events } = await innerCreateEService(
         { seed, template: undefined },
+        readModelService,
         ctx
       );
 
-      await repository.createEvents(events);
+      const createdEvents = await repository.createEvents(events);
 
-      return eService;
+      const newVersion = Math.max(
+        0,
+        ...createdEvents.map((event) => event.newVersion)
+      );
+
+      return {
+        data: eService,
+        metadata: { version: newVersion },
+      };
     },
 
     async updateEService(
@@ -900,9 +940,9 @@ export function catalogServiceBuilder(
         )
           ? isTenantInSignalHubWhitelist(
               authData.organizationId,
-              eservice.data.isSignalHubEnabled
+              eserviceSeed.isSignalHubEnabled
             )
-          : eservice.data.isSignalHubEnabled,
+          : eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
           .with(P.nullish, () => undefined)
@@ -945,9 +985,9 @@ export function catalogServiceBuilder(
         isSignalHubEnabled: config.featureFlagSignalhubWhitelist
           ? isTenantInSignalHubWhitelist(
               authData.organizationId,
-              eservice.data.isSignalHubEnabled
+              eserviceSeed.isSignalHubEnabled
             )
-          : eservice.data.isSignalHubEnabled,
+          : eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
           .with(P.nullish, () => undefined)
@@ -969,7 +1009,11 @@ export function catalogServiceBuilder(
 
     async deleteEService(
       eserviceId: EServiceId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(`Deleting EService ${eserviceId}`);
 
@@ -1023,8 +1067,8 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       document: catalogApi.CreateEServiceDescriptorDocumentSeed,
-      ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Document>> {
       ctx.logger.info(
         `Creating EService Document ${document.documentId.toString()} of kind ${
           document.kind
@@ -1047,25 +1091,33 @@ export function catalogServiceBuilder(
         eservice.data.templateId
       );
 
-      const { eService: updatedEService, event } =
-        await innerAddDocumentToEserviceEvent(
-          eservice,
-          descriptorId,
-          document,
-          ctx
-        );
+      const { createdDocument, event } = await innerAddDocumentToEserviceEvent(
+        eservice,
+        descriptorId,
+        document,
+        ctx
+      );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return updatedEService;
+      return {
+        data: createdDocument,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
 
     async deleteDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Deleting Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1132,7 +1184,14 @@ export function catalogServiceBuilder(
             correlationId
           );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: newEservice,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
 
     // eslint-disable-next-line max-params
@@ -1520,8 +1579,12 @@ export function catalogServiceBuilder(
     async publishDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Publishing Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1565,7 +1628,7 @@ export function catalogServiceBuilder(
           eservice.data,
           updateDescriptorState(descriptor, descriptorState.waitingForApproval)
         );
-        await repository.createEvent(
+        const event = await repository.createEvent(
           toCreateEventEServiceDescriptorSubmittedByDelegate(
             eservice.metadata.version,
             descriptor.id,
@@ -1573,6 +1636,12 @@ export function catalogServiceBuilder(
             correlationId
           )
         );
+        return {
+          data: eserviceWithWaitingForApprovalDescriptor,
+          metadata: {
+            version: event.newVersion,
+          },
+        };
       } else {
         const updatedEService = await processDescriptorPublication(
           eservice.data,
@@ -1581,7 +1650,7 @@ export function catalogServiceBuilder(
           logger
         );
 
-        await repository.createEvent(
+        const event = await repository.createEvent(
           toCreateEventEServiceDescriptorPublished(
             eserviceId,
             eservice.metadata.version,
@@ -1590,14 +1659,24 @@ export function catalogServiceBuilder(
             correlationId
           )
         );
+        return {
+          data: updatedEService,
+          metadata: {
+            version: event.newVersion,
+          },
+        };
       }
     },
 
     async suspendDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Suspending Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1628,21 +1707,33 @@ export function catalogServiceBuilder(
 
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
-      const event = toCreateEventEServiceDescriptorSuspended(
-        eserviceId,
-        eservice.metadata.version,
-        descriptorId,
-        newEservice,
-        correlationId
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorSuspended(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          newEservice,
+          correlationId
+        )
       );
-      await repository.createEvent(event);
+
+      return {
+        data: newEservice,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
 
     async activateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Activating descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1678,7 +1769,7 @@ export function catalogServiceBuilder(
       const recentDescriptorVersion = Math.max(...descriptorVersions);
 
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      const event = () => {
+      const createActivationEvent = async () => {
         if (
           recentDescriptorVersion !== null &&
           parseInt(descriptor.version, 10) === recentDescriptorVersion
@@ -1688,30 +1779,54 @@ export function catalogServiceBuilder(
             updatedDescriptor
           );
 
-          return toCreateEventEServiceDescriptorActivated(
-            eserviceId,
-            eservice.metadata.version,
-            descriptorId,
-            newEservice,
-            correlationId
+          const event = await repository.createEvent(
+            toCreateEventEServiceDescriptorActivated(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            )
           );
+
+          return {
+            data: newEservice,
+            metadata: {
+              version: event.newVersion,
+            },
+          };
         } else {
           const newEservice = replaceDescriptor(
             eservice.data,
             deprecateDescriptor(eserviceId, descriptor, logger)
           );
 
-          return toCreateEventEServiceDescriptorActivated(
-            eserviceId,
-            eservice.metadata.version,
-            descriptorId,
-            newEservice,
-            correlationId
+          const event = await repository.createEvent(
+            toCreateEventEServiceDescriptorActivated(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            )
           );
+          return {
+            data: newEservice,
+            metadata: {
+              version: event.newVersion,
+            },
+          };
         }
       };
 
-      await repository.createEvent(event());
+      const response = await createActivationEvent();
+
+      return {
+        data: response.data,
+        metadata: {
+          version: response.metadata.version,
+        },
+      };
     },
 
     async cloneDescriptor(
@@ -2509,8 +2624,12 @@ export function catalogServiceBuilder(
     async approveDelegatedEServiceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Approving EService ${eserviceId} version ${descriptorId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -2532,7 +2651,7 @@ export function catalogServiceBuilder(
         logger
       );
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceDescriptorApprovedByDelegator(
           eservice.metadata.version,
           descriptor.id,
@@ -2540,6 +2659,12 @@ export function catalogServiceBuilder(
           correlationId
         )
       );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async rejectDelegatedEServiceDescriptor(
       eserviceId: EServiceId,
@@ -3061,7 +3186,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const { eService: createdEService, events } = innerCreateEService(
+      const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
             name: template.name,
@@ -3092,6 +3217,7 @@ export function catalogServiceBuilder(
             riskAnalysis,
           },
         },
+        readModelService,
         ctx
       );
 
@@ -3363,7 +3489,7 @@ async function createOpenApiInterfaceByTemplate(
   }
 
   const documentId = unsafeBrandId<EServiceDocumentId>(randomUUID());
-  const newInterfaceFile = await interpolateApiSpec(
+  const newInterfaceFile = await interpolateTemplateApiSpec(
     eservice,
     Buffer.from(interfaceTemplate).toString(),
     eserviceTemplateInterface,
@@ -3373,7 +3499,7 @@ async function createOpenApiInterfaceByTemplate(
 
   return await verifyAndCreateDocument(
     fileManager,
-    eservice.id,
+    { id: eservice.id, isEserviceTemplate: true },
     eservice.technology,
     "INTERFACE",
     newInterfaceFile,
@@ -3413,9 +3539,13 @@ async function createOpenApiInterfaceByTemplate(
 
 async function applyVisibilityToEService(
   eservice: EService,
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData,
   readModelService: ReadModelService
 ): Promise<EService> {
+  if (authData.systemRole === authRole.INTERNAL_ROLE) {
+    return eservice;
+  }
+
   if (hasRoleToAccessInactiveDescriptors(authData)) {
     /* Inactive descriptors are visible only if both conditions are met:
        1) The request is made with a role that can access inactive descriptors.
@@ -3429,7 +3559,7 @@ async function applyVisibilityToEService(
 
     const producerDelegation = await readModelService.getLatestDelegation({
       eserviceId: eservice.id,
-      states: [delegationState.active],
+      states: [delegationState.active, delegationState.waitingForApproval],
       kind: delegationKind.delegatedProducer,
     });
 

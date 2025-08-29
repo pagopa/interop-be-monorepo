@@ -6,6 +6,7 @@ import {
   WithLogger,
   AppContext,
   CreateEvent,
+  getLatestTenantMailOfKind,
   UIAuthData,
   InternalAuthData,
   MaintenanceAuthData,
@@ -41,6 +42,7 @@ import {
   Agreement,
   AgreementState,
   DelegationId,
+  TenantRevoker,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { bffApi, tenantApi } from "pagopa-interop-api-clients";
@@ -147,6 +149,25 @@ export async function retrieveAttribute(
     throw attributeNotFound(attributeId);
   }
   return attribute;
+}
+
+async function retrieveTenantVerifiedAttribute(
+  tenantId: TenantId,
+  attributeId: AttributeId,
+  readModelService: ReadModelService
+): Promise<{ tenant: WithMetadata<Tenant> }> {
+  const tenant = await retrieveTenant(tenantId, readModelService);
+
+  const tenantAttribute = tenant.data.attributes.find(
+    (attr): attr is VerifiedTenantAttribute =>
+      attr.type === tenantAttributeType.VERIFIED && attr.id === attributeId
+  );
+
+  if (!tenantAttribute) {
+    throw attributeNotFoundInTenant(attributeId, tenantId);
+  }
+
+  return { tenant };
 }
 
 async function retrieveCertifiedAttribute({
@@ -332,7 +353,9 @@ export function tenantServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | InternalAuthData>>
     ): Promise<TenantId> {
       logger.info(
-        `Upsert tenant by selfcare with externalId: ${tenantSeed.externalId}`
+        `Upsert tenant by selfcare with externalId: ${JSON.stringify(
+          tenantSeed.externalId
+        )}`
       );
       const existingTenant = await readModelService.getTenantByExternalId(
         tenantSeed.externalId
@@ -583,7 +606,7 @@ export function tenantServiceBuilder(
             throw delegationNotFound(delegationId);
           }
           logger.info(
-            `Add declared attribute ${tenantAttributeSeed.id} to delegatator tenant ${delegation.delegatorId}`
+            `Add declared attribute ${tenantAttributeSeed.id} to delegator tenant ${delegation.delegatorId}`
           );
 
           if (delegation.delegateId !== authData.organizationId) {
@@ -1262,9 +1285,19 @@ export function tenantServiceBuilder(
 
       const validatedAddress = validateAddress(mailSeed.address);
 
-      if (tenant.data.mails.find((m) => m.address === validatedAddress)) {
+      // could be simplified when the tenants will have only one mail of each kind
+      const latestMail = getLatestTenantMailOfKind(
+        tenant.data.mails,
+        mailSeed.kind
+      );
+
+      if (latestMail?.address === validatedAddress) {
         throw mailAlreadyExists();
       }
+
+      const filteredMails = tenant.data.mails.filter(
+        (mail) => mail.kind !== mailSeed.kind
+      );
 
       const newMail: TenantMail = {
         kind: mailSeed.kind,
@@ -1276,7 +1309,7 @@ export function tenantServiceBuilder(
 
       const updatedTenant: Tenant = {
         ...tenant.data,
-        mails: [...tenant.data.mails, newMail],
+        mails: [...filteredMails, newMail],
         updatedAt: new Date(),
       };
 
@@ -1824,6 +1857,56 @@ export function tenantServiceBuilder(
         .with([P.nullish, P.nullish], () => Promise.resolve())
         .exhaustive();
     },
+    async getTenantVerifiedAttributeVerifiers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<TenantVerifier>> {
+      logger.info(
+        `Retrieving verifiers for verified attribute ${attributeId} of tenant ${tenantId}`
+      );
+
+      // Validate that tenant and verified attribute exist
+      await retrieveTenantVerifiedAttribute(
+        tenantId,
+        attributeId,
+        readModelService
+      );
+
+      return await readModelService.getTenantVerifiedAttributeVerifiers(
+        tenantId,
+        attributeId,
+        { offset, limit }
+      );
+    },
+    async getTenantVerifiedAttributeRevokers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<TenantRevoker>> {
+      logger.info(
+        `Retrieving revokers for verified attribute ${attributeId} of tenant ${tenantId}`
+      );
+
+      // Validate that tenant and verified attribute exist
+      await retrieveTenantVerifiedAttribute(
+        tenantId,
+        attributeId,
+        readModelService
+      );
+
+      return await readModelService.getTenantVerifiedAttributeRevokers(
+        tenantId,
+        attributeId,
+        { offset, limit }
+      );
+    },
   };
 }
 
@@ -2187,7 +2270,7 @@ function validateAddress(address: string): string {
     // eslint-disable-next-line no-useless-escape
     /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   if (!emailPattern.test(sanitizedMail)) {
-    throw notValidMailAddress(address);
+    throw notValidMailAddress();
   }
   return sanitizedMail;
 }

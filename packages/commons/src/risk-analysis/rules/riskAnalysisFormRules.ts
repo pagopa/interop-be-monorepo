@@ -32,6 +32,7 @@ export type HideOptionConfig = z.infer<typeof HideOptionConfig>;
 const ValidationOption = z.object({
   maxLength: z.number().optional(),
 });
+export type ValidationOption = z.infer<typeof ValidationOption>;
 
 const LabeledValue = z.object({
   label: LocalizedText,

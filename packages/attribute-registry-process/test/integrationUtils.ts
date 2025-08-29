@@ -21,6 +21,10 @@ import {
   attributeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import {
+  upsertAttribute,
+  upsertTenant,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { attributeRegistryServiceBuilder } from "../src/services/attributeRegistryService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -88,12 +92,12 @@ export const writeAttributeInEventstore = async (
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeAttributeInEventstore(attribute);
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-  await attributeReadModelServiceSQL.upsertAttribute(attribute, 0);
+  await upsertAttribute(readModelDB, attribute, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
-  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
+  await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const readLastAttributeEvent = async (

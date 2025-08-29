@@ -1,5 +1,6 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  InternalAuthData,
   M2MAdminAuthData,
   M2MAuthData,
   RiskAnalysisValidatedForm,
@@ -114,7 +115,7 @@ function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
 export async function assertRequesterIsDelegateProducerOrProducer(
   producerId: TenantId,
   eserviceId: EServiceId,
-  authData: UIAuthData | M2MAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   readModelService: ReadModelService
 ): Promise<void> {
   // Search for active producer delegation
@@ -140,7 +141,7 @@ export async function assertRequesterIsDelegateProducerOrProducer(
 
 export function assertRequesterIsProducer(
   producerId: TenantId,
-  authData: UIAuthData | M2MAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): void {
   if (producerId !== authData.organizationId) {
     throw operationForbidden;
@@ -358,7 +359,7 @@ export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
  * from the producer tenant or the delegate producer tenant.
  */
 export function hasRoleToAccessInactiveDescriptors(
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
 ): boolean {
   return (
     hasAtLeastOneUserRole(authData, [
