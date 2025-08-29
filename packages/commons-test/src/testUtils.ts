@@ -114,6 +114,7 @@ import {
   tenantKind,
   purposeTemplateState,
   PurposeTemplateState,
+  PurposeTemplateV2,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -1039,6 +1040,73 @@ export const sortPurpose = <
               multiAnswers: [...purpose.riskAnalysisForm.multiAnswers].sort(
                 sortBy((answer) => answer.key)
               ),
+            },
+          }
+        : {}),
+    };
+  }
+};
+
+export const sortPurposeTemplate = <
+  T extends
+    | PurposeTemplate
+    | PurposeTemplateV2
+    | WithMetadata<PurposeTemplate>
+    | undefined
+>(
+  purposeTemplate: T
+): T => {
+  if (!purposeTemplate) {
+    return purposeTemplate;
+  } else if ("data" in purposeTemplate) {
+    return {
+      ...purposeTemplate,
+      data: sortPurposeTemplate(purposeTemplate.data),
+    };
+  } else {
+    return {
+      ...purposeTemplate,
+      ...(purposeTemplate.purposeRiskAnalysisForm
+        ? {
+            purposeRiskAnalysisForm: {
+              ...purposeTemplate.purposeRiskAnalysisForm,
+              singleAnswers: [
+                ...purposeTemplate.purposeRiskAnalysisForm.singleAnswers.map(
+                  (answer) => ({
+                    ...answer,
+                    ...(answer.annotation
+                      ? {
+                          annotation: {
+                            ...answer.annotation,
+                            docs: [...answer.annotation.docs].sort(
+                              sortBy((doc) => doc.id)
+                            ),
+                          },
+                        }
+                      : {}),
+                    ...(answer.suggestedValues
+                      ? { suggestedValues: [...answer.suggestedValues].sort() }
+                      : {}),
+                  })
+                ),
+              ].sort(sortBy((answer) => answer.key)),
+              multiAnswers: [
+                ...purposeTemplate.purposeRiskAnalysisForm.multiAnswers.map(
+                  (answer) => ({
+                    ...answer,
+                    ...(answer.annotation
+                      ? {
+                          annotation: {
+                            ...answer.annotation,
+                            docs: [...answer.annotation.docs].sort(
+                              sortBy((doc) => doc.id)
+                            ),
+                          },
+                        }
+                      : {}),
+                  })
+                ),
+              ].sort(sortBy((answer) => answer.key)),
             },
           }
         : {}),
