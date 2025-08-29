@@ -87,6 +87,17 @@ export async function handlePurposeTemplateMessageV2(
         );
       })
       .with({ type: "PurposeTemplateEServiceLinked" }, async (msg) => {
+        upsertPurposeTemplateEserviceDescriptorBatch.push(
+          PurposeTemplateEServiceDescriptorSchema.parse({
+            purposeTemplateId: msg.data.purposeTemplateId,
+            eserviceId: msg.data.eserviceId,
+            descriptorId: msg.data.descriptorId,
+            createdAt: new Date().toISOString(),
+            metadataVersion: msg.version,
+          } satisfies z.input<typeof PurposeTemplateEServiceDescriptorSchema>)
+        );
+      })
+      .with({ type: "PurposeTemplateEServiceUnlinked" }, async (msg) => {
         deletePurposeTemplateEserviceDescriptorBatch.push(
           PurposeTemplateEServiceDescriptorDeletingSchema.parse({
             purposeTemplateId: msg.data.purposeTemplateId,
@@ -94,17 +105,6 @@ export async function handlePurposeTemplateMessageV2(
             descriptorId: msg.data.descriptorId,
             deleted: true,
           } satisfies z.input<typeof PurposeTemplateEServiceDescriptorDeletingSchema>)
-        );
-      })
-      .with({ type: "PurposeTemplateEServiceUnlinked" }, async (msg) => {
-        upsertPurposeTemplateEserviceDescriptorBatch.push(
-          PurposeTemplateEServiceDescriptorSchema.parse({
-            purposeTemplateId: msg.data.purposeTemplateId,
-            eserviceId: msg.data.eserviceId,
-            descriptorId: msg.data.descriptorId,
-            createdAt: msg.data.descriptorId,
-            metadataVersion: msg.version,
-          } satisfies z.input<typeof PurposeTemplateEServiceDescriptorSchema>)
         );
       })
       .exhaustive();
