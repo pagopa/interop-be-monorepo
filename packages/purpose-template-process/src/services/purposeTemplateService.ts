@@ -6,6 +6,9 @@ import {
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
   ListResult,
+  Tenant,
+  TenantId,
+  TenantKind,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -17,7 +20,11 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import { purposeTemplateNotFound } from "../model/domain/errors.js";
+import {
+  purposeTemplateNotFound,
+  tenantKindNotFound,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
 import {
   GetPurposeTemplatesFilters,
@@ -26,6 +33,8 @@ import {
 import {
   assertConsistentFreeOfCharge,
   assertPurposeTemplateTitleIsNotDuplicated,
+  assertRequesterCanRetrievePurposeTemplate,
+  isRiskAnalysisTemplateValid,
   validateAndTransformRiskAnalysisTemplate,
 } from "./validators.js";
 
@@ -39,6 +48,28 @@ async function retrievePurposeTemplate(
   }
   return purposeTemplate;
 }
+
+export async function retrieveTenantKind(
+  tenantId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<TenantKind> {
+  const tenant = await retrieveTenant(tenantId, readModelService);
+  if (!tenant.kind) {
+    throw tenantKindNotFound(tenant.id);
+  }
+  return tenant.kind;
+}
+
+const retrieveTenant = async (
+  tenantId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<Tenant> => {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (tenant === undefined) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
@@ -132,17 +163,48 @@ export function purposeTemplateServiceBuilder(
       });
     },
     async getPurposeTemplateById(
-      id: PurposeTemplateId,
+      purposeTemplateId: PurposeTemplateId,
       {
+        authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<PurposeTemplate>> {
-      logger.info(`Retrieving purpose template ${id}`);
-      return retrievePurposeTemplate(id, readModelService);
+    ): Promise<
+      WithMetadata<{
+        purposeTemplate: PurposeTemplate;
+        isRiskAnalysisValid: boolean;
+      }>
+    > {
+      logger.info(`Retrieving purpose template ${purposeTemplateId}`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+      const tenantKind = await retrieveTenantKind(
+        authData.organizationId,
+        readModelService
+      );
+
+      await assertRequesterCanRetrievePurposeTemplate(
+        purposeTemplate.data,
+        authData
+      );
+
+      const isRiskAnalysisValid =
+        purposeTemplate.data.state === purposeTemplateState.draft
+          ? isRiskAnalysisTemplateValid(
+              purposeTemplate.data.purposeRiskAnalysisForm,
+              tenantKind
+            )
+          : true;
+
+      return {
+        data: { purposeTemplate: purposeTemplate.data, isRiskAnalysisValid },
+        metadata: purposeTemplate.metadata,
+      };
     },
   };
 }
-
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;
