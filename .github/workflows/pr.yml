@@ -79,7 +79,7 @@ jobs:
           turbo check
 
       - name: Test
-        environment:
+        env:
             DEBUG: "testcontainers*"
         run: |
           cd "packages/${{ matrix.package }}"
