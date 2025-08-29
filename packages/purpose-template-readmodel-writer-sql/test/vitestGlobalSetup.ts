@@ -1,3 +1,3 @@
-import { setupTestContainersVitestGlobal } from "pagopa-interop-commons-test";
+import { setupTestContainersVitestGlobal } from "pagopa-interop-commons-test/index.js";
 
 export default setupTestContainersVitestGlobal();
