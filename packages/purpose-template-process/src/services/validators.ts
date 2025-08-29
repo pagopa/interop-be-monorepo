@@ -16,8 +16,8 @@ import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   riskAnalysisTemplateValidationFailed,
+  tenantNotAllowed,
 } from "../model/domain/errors.js";
-import { tenantNotAllowed } from "../model/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const assertConsistentFreeOfCharge = (

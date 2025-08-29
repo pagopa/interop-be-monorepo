@@ -13,6 +13,7 @@ export const errorCodes = {
   riskAnalysisTemplateValidationFailed: "0004",
   tenantNotFound: "0005",
   tenantKindNotFound: "0006",
+  tenantNotAllowed: "0007",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -68,5 +69,13 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant kind for tenant ${tenantId} not found`,
     code: "tenantKindNotFound",
     title: "Tenant kind not found",
+  });
+}
+
+export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because it's not the creator`,
+    code: "tenantNotAllowed",
+    title: "Tenant not allowed",
   });
 }
