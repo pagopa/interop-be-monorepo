@@ -4,7 +4,6 @@ import {
   ListResult,
   PurposeTemplate,
   PurposeTemplateId,
-  purposeTemplateState,
   PurposeTemplateState,
   Tenant,
   TenantId,
@@ -27,7 +26,7 @@ import {
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, exists, ilike, inArray, ne, SQL } from "drizzle-orm";
+import { and, eq, exists, ilike, inArray, SQL } from "drizzle-orm";
 import {
   ascLower,
   createListResult,
