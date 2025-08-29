@@ -542,8 +542,8 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
     const payloadPurposeTemplateEServiceLinked: PurposeTemplateEServiceLinkedV2 =
       {
         purposeTemplateId: purposeTemplate.id,
-        eserviceId: eserviceId,
-        descriptorId: descriptorId,
+        eserviceId,
+        descriptorId,
       };
     const messagePurposeTemplateEServiceLinked: PurposeTemplateEventEnvelope = {
       sequence_num: 1,
@@ -595,8 +595,8 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
     const payloadPurposeTemplateEServiceLinked: PurposeTemplateEServiceLinkedV2 =
       {
         purposeTemplateId: purposeTemplate.id,
-        eserviceId: eserviceId,
-        descriptorId: descriptorId,
+        eserviceId,
+        descriptorId,
       };
     const messagePurposeTemplateEServiceLinked: PurposeTemplateEventEnvelope = {
       sequence_num: 1,
@@ -612,8 +612,8 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
     const payloadPurposeTemplateEServiceUnlinked: PurposeTemplateEServiceUnlinkedV2 =
       {
         purposeTemplateId: purposeTemplate.id,
-        eserviceId: eserviceId,
-        descriptorId: descriptorId,
+        eserviceId,
+        descriptorId,
       };
     const messagePurposeTemplateEServiceUnlinked: PurposeTemplateEventEnvelope =
       {
