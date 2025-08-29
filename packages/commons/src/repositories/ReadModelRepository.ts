@@ -11,7 +11,6 @@ import {
   ProducerJWKKey,
   Delegation,
   EServiceTemplate,
-  PurposeTemplateReadModel,
 } from "pagopa-interop-models";
 import {
   Collection,
@@ -41,8 +40,6 @@ export type AgreementCollection = GenericCollection<AgreementReadModel>;
 export type TenantCollection = GenericCollection<TenantReadModel>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
 export type PurposeCollection = GenericCollection<PurposeReadModel>;
-export type PurposeTemplateCollection =
-  GenericCollection<PurposeTemplateReadModel>;
 export type ClientCollection = GenericCollection<ClientReadModel>;
 export type ClientKeyCollection = GenericCollection<ClientJWKKey>;
 export type ProducerKeychainCollection =
@@ -57,7 +54,6 @@ export type Collections =
   | TenantCollection
   | AttributeCollection
   | PurposeCollection
-  | PurposeTemplateCollection
   | ClientCollection
   | ClientKeyCollection
   | ProducerKeychainCollection
@@ -166,8 +162,6 @@ export class ReadModelRepository {
 
   public purposes: PurposeCollection;
 
-  public purposeTemplates: PurposeTemplateCollection;
-
   public clients: ClientCollection;
 
   public keys: ClientKeyCollection;
@@ -211,9 +205,6 @@ export class ReadModelRepository {
       ignoreUndefined: true,
     });
     this.purposes = this.db.collection("purposes", { ignoreUndefined: true });
-    this.purposeTemplates = this.db.collection("purpose_templates", {
-      ignoreUndefined: true,
-    });
     this.clients = this.db.collection("clients", { ignoreUndefined: true });
     this.keys = this.db.collection("keys", { ignoreUndefined: true });
     this.producerKeychains = this.db.collection("producer_keychains", {

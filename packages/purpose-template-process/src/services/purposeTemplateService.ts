@@ -4,9 +4,6 @@ import {
   PurposeTemplateId,
   purposeTemplateState,
   WithMetadata,
-  TenantKind,
-  TenantId,
-  Tenant,
   purposeTemplateEventToBinaryDataV2,
   ListResult,
 } from "pagopa-interop-models";
@@ -20,11 +17,7 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import {
-  purposeTemplateNotFound,
-  tenantKindNotFound,
-  tenantNotFound,
-} from "../model/domain/errors.js";
+import { purposeTemplateNotFound } from "../model/domain/errors.js";
 import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
 import {
   GetPurposeTemplatesFilters,
@@ -46,29 +39,6 @@ async function retrievePurposeTemplate(
   }
   return purposeTemplate;
 }
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function retrieveTenantKind(
-  tenantId: TenantId,
-  readModelService: ReadModelServiceSQL
-): Promise<TenantKind> {
-  const tenant = await retrieveTenant(tenantId, readModelService);
-  if (!tenant.kind) {
-    throw tenantKindNotFound(tenant.id);
-  }
-  return tenant.kind;
-}
-
-const retrieveTenant = async (
-  tenantId: TenantId,
-  readModelService: ReadModelServiceSQL
-): Promise<Tenant> => {
-  const tenant = await readModelService.getTenantById(tenantId);
-  if (tenant === undefined) {
-    throw tenantNotFound(tenantId);
-  }
-  return tenant;
-};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(

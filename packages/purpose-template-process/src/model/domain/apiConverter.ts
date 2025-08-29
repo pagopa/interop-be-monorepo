@@ -45,14 +45,14 @@ export const purposeTemplateToApiPurposeTemplate = (
   createdAt: purposeTemplate.createdAt?.toJSON(),
   updatedAt: purposeTemplate.updatedAt?.toJSON(),
   purposeRiskAnalysisForm: purposeTemplate.purposeRiskAnalysisForm
-    ? riskAnalysisFormToApiRiskAnalysisForm(
+    ? riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
         purposeTemplate.purposeRiskAnalysisForm
       )
     : undefined,
   isRiskAnalysisValid,
 });
 
-function riskAnalysisFormToApiRiskAnalysisForm(
+function riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
   riskAnalysisForm: RiskAnalysisFormTemplate
 ): purposeTemplateApi.RiskAnalysisFormTemplate {
   const apiSingleAnswersMap = singleAnswersToApiSingleAnswers(
@@ -118,6 +118,7 @@ export const purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation
   ): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotation | undefined =>
     annotation
       ? {
+          id: annotation.id,
           text: annotation.text,
           docs: annotation.docs.map((doc) => ({
             ...doc,

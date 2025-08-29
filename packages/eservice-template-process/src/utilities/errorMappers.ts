@@ -253,7 +253,11 @@ export const createEServiceTemplateDocumentErrorMapper = (
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("interfaceAlreadyExists", () => HTTP_STATUS_BAD_REQUEST)
-    .with("documentPrettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "documentPrettyNameDuplicate",
+      "checksumDuplicate",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getEServiceTemplateDocumentErrorMapper = (

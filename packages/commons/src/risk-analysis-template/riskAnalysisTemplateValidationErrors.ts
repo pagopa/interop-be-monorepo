@@ -38,7 +38,7 @@ export type RiskAnalysisTemplateValidationResult<T> =
   | RiskAnalysisTemplateValidationValid<T>
   | RiskAnalysisTemplateValidationInvalid;
 
-export function unexpectedTemplateFieldValueOrSuggestion(
+export function unexpectedTemplateFieldValueOrSuggestionError(
   fieldName: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
@@ -68,7 +68,7 @@ export function unexpectedTemplateFieldError(
   });
 }
 
-export function malformedTemplateFieldValueOrSuggestion(
+export function malformedTemplateFieldValueOrSuggestionError(
   fieldName: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
@@ -116,12 +116,12 @@ export function unexpectedTemplateRulesVersionError(
 }
 export function unexpectedTemplateDependencyValueError(
   dependentField: string,
-  depencencyField: string,
+  dependencyField: string,
   expectedValue: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "unexpectedTemplateDependencyValueError",
-    detail: `Field ${dependentField} requires field ${depencencyField} value to be ${expectedValue}`,
+    detail: `Field ${dependentField} requires field ${dependencyField} value to be ${expectedValue}`,
   });
 }
 

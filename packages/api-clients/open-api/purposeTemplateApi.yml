@@ -1004,6 +1004,9 @@ components:
       type: object
       additionalProperties: false
       properties:
+        id:
+          type: string
+          format: uuid
         text:
           type: string
         docs:
@@ -1012,11 +1015,15 @@ components:
             $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
       required:
         - text
+        - id
         - docs
     RiskAnalysisTemplateAnswerAnnotationDocument:
       type: object
       additionalProperties: false
       properties:
+        id:
+          type: string
+          format: uuid
         name:
           type: string
         contentType:
@@ -1025,11 +1032,16 @@ components:
           type: string
         path:
           type: string
+        createdAt:
+          type: string
+          format: date-time
       required:
+        - id
         - name
         - contentType
         - prettyName
         - path
+        - createdAt
     Problem:
       properties:
         type:
