@@ -25,7 +25,8 @@ jobs:
   packages_validation:
     name: Packages validation
     needs: [find_packages]
-    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
+    # runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
