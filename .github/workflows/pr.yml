@@ -63,20 +63,20 @@ jobs:
       #     TURBO_PACKAGE_NAME="$(jq -r '.name' packages/${{ matrix.package }}/package.json)"
       #     echo "TURBO_PACKAGE_NAME=$TURBO_PACKAGE_NAME" >> "$GITHUB_ENV"
 
-      # - name: Check formatting
-      #   run: |
-      #     cd "packages/${{ matrix.package }}"
-      #     turbo format:check
-      #
-      # - name: Lint
-      #   run: |
-      #     cd "packages/${{ matrix.package }}"
-      #     turbo lint
-      #
-      # - name: Check
-      #   run: |
-      #     cd "packages/${{ matrix.package }}"
-      #     turbo check
+      - name: Check formatting
+        run: |
+          cd "packages/${{ matrix.package }}"
+          turbo format:check
+
+      - name: Lint
+        run: |
+          cd "packages/${{ matrix.package }}"
+          turbo lint
+
+      - name: Check
+        run: |
+          cd "packages/${{ matrix.package }}"
+          turbo check
 
       - name: Test
         env:
