@@ -7,104 +7,88 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  formatting:
-    name: Check formatting
+  find_packages:
+    name: Find Packages
     runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.set_packages_output.outputs.packages }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Cache turbo setup
-        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
-        with:
-          path: |
-            .turbo
-            packages/*/.turbo
-          key: ${{ runner.os }}-turbo-check-formatting-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-check-formatting
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
-        with:
-          run_install: true
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: ./package.json
-      - run: pnpm format:check
+      
+      - name: Find packages
+        id: set_packages_output
+        run: |
+          # PACKAGES=$(find packages -type d -path "packages/*" -d 1 | awk -F'/' '{print $2}' | jq -R -s -c 'split("\n")[:-1]')
+          PACKAGES="[\"commons\", \"catalog-process\", \"api-clients\"]" # TODO: remove after testing
+          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
 
-  lint:
-    name: Lint
+  packages_validation:
+    name: Packages validation
+    needs: [find_packages]
+    # runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Cache turbo setup
-        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
-        with:
-          path: |
-            .turbo
-            packages/*/.turbo
-          key: ${{ runner.os }}-turbo-lint-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-lint-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: ./package.json
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
-        with:
-          run_install: true
-      - run: pnpm lint
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.find_packages.outputs.packages) }}
 
-  check:
-    name: Check
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Cache turbo setup
-        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
-        with:
-          path: |
-            .turbo
-            packages/*/.turbo
-          key: ${{ runner.os }}-turbo-check-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-check
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: ./package.json
+
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           run_install: true
-      - run: pnpm check
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Cache turbo setup
-        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
-        with:
-          path: |
-            .turbo
-            packages/*/.turbo
-          key: ${{ runner.os }}-turbo-test-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-test
+
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+
+      - name: Install Turbo (global)
+        run: |
+          set -euo pipefail
+
+          TURBO_VERSION="$(jq -r '.devDependencies.turbo' package.json)"
+          pnpm install add "turbo@$TURBO_VERSION" --global
+
+      - name: Restore Turbo cache for ${{ matrix.package }}
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
-          run_install: true
-      - run: pnpm test
+          path: |
+            .turbo
+            packages/${{ matrix.package }}/.turbo
+          key: turbo-${{ github.ref_name }}-${{ matrix.package }}
+
+      # - name: Extract Turbo package name
+      #   run: |
+      #     set -euo pipefail
+      #     TURBO_PACKAGE_NAME="$(jq -r '.name' packages/${{ matrix.package }}/package.json)"
+      #     echo "TURBO_PACKAGE_NAME=$TURBO_PACKAGE_NAME" >> "$GITHUB_ENV"
+
+      - name: Check formatting
+        run: |
+          cd "packages/${{ matrix.package }}"
+          turbo format:check
+
+      - name: Lint
+        run: |
+          cd "packages/${{ matrix.package }}"
+          turbo lint
+
+      - name: Check
+        run: |
+          cd "packages/${{ matrix.package }}"
+          turbo check
+
+      - name: Test
+        env:
+          DEBUG: "testcontainers*"
+        run: |
+          cd "packages/${{ matrix.package }}"
+          pnpm run test:integration:old
 
   lint-openapi:
     name: Lint Open Api specification
-    runs-on: ubuntu-latest
+    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     permissions:
       contents: read
     steps:
@@ -117,8 +101,8 @@ jobs:
 
   find_dockerfiles:
     name: Find Dockerfiles
-    needs: [formatting, lint, check, test, lint-openapi]
-    if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
+    needs: [packages_validation, lint-openapi]
+    if: ${{ github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.set_packages_output.outputs.packages }}
@@ -136,7 +120,7 @@ jobs:
     name: Build
     needs: [find_dockerfiles]
     if: ${{ github.base_ref == 'main' }}
-    runs-on: ubuntu-latest
+    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     environment: ecr-ro
     permissions:
       contents: read
@@ -150,14 +134,6 @@ jobs:
       DOCKER_BUILD_SUMMARY: "false"
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
-        with:
-          aws-region: ${{ vars.AWS_REGION }}
-          role-to-assume: ${{ vars.IAM_ROLE_ARN }}
-          role-session-name: be-monorepo-pr-validation-${{ github.run_number }}
 
       - name: Login to Amazon ECR
         id: login-ecr
