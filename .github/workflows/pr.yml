@@ -80,10 +80,10 @@ jobs:
 
       - name: Test
         env:
-            DEBUG: "testcontainers*"
+          DEBUG: "testcontainers*"
         run: |
           cd "packages/${{ matrix.package }}"
-          turbo test
+          pnpm run test integration:old
 
   lint-openapi:
     name: Lint Open Api specification
