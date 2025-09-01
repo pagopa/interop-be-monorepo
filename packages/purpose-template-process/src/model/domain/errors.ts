@@ -59,6 +59,7 @@ export function riskAnalysisTemplateValidationFailed(
   });
 }
 
+// TODO: delete if not used in the future
 export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
@@ -67,6 +68,7 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   });
 }
 
+// TODO: delete if not used in the future
 export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant kind for tenant ${tenantId} not found`,

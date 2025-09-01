@@ -48,6 +48,7 @@ async function retrievePurposeTemplate(
   return purposeTemplate;
 }
 
+// TODO: delete if not used in the future
 export async function retrieveTenantKind(
   tenantId: TenantId,
   readModelService: ReadModelServiceSQL
