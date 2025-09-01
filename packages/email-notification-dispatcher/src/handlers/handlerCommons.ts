@@ -56,7 +56,7 @@ export async function retrieveAgreementEservice(
   return eservice;
 }
 
-export const getTenantContactEmailIfEnabled = async (
+const getTenantContactEmailIfEnabled = async (
   tenant: Tenant,
   readModelService: ReadModelServiceSQL,
   logger: Logger
@@ -81,68 +81,54 @@ export const getTenantContactEmailIfEnabled = async (
   return email.address;
 };
 
-export const getRecipientsForTenant = async ({
-  tenant,
+export const getRecipientsForTenants = async ({
+  tenants,
   notificationType,
-  includeTenantContactEmail,
+  includeTenantContactEmails,
   readModelService,
   userService,
   logger,
 }: {
-  tenant: Tenant;
+  tenants: Tenant[];
   notificationType: NotificationType;
-  includeTenantContactEmail: boolean;
+  includeTenantContactEmails: boolean;
   readModelService: ReadModelServiceSQL;
   userService: UserServiceSQL;
   logger: Logger;
 }): Promise<EmailNotificationRecipient[]> => {
   const tenantUsers =
     await readModelService.getTenantUsersWithNotificationEnabled(
-      [tenant.id],
+      tenants.map((tenant) => tenant.id),
       notificationType
     );
 
   const userEmails: string[] = (
     await userService.readUsers(tenantUsers.map((u) => u.userId))
   ).map((u) => u.email);
-  const tenantContactEmail = includeTenantContactEmail
-    ? await getTenantContactEmailIfEnabled(tenant, readModelService, logger)
-    : undefined;
+
+  const tenantContactEmails = includeTenantContactEmails
+    ? (
+      await Promise.all(
+        tenants.map(
+          async (tenant) =>
+            await getTenantContactEmailIfEnabled(
+              tenant,
+              readModelService,
+              logger
+            )
+        )
+      )
+    ).filter((email): email is string => email !== undefined)
+    : [];
+
   return [
-    ...(tenantContactEmail !== undefined
-      ? [{ type: "Tenant" as const, address: tenantContactEmail }]
-      : []),
+    ...tenantContactEmails.map((tenantContactEmail) => ({
+      type: "Tenant" as const,
+      address: tenantContactEmail,
+    })),
     ...userEmails.map((address) => ({
       type: "User" as const,
       address,
     })),
   ];
-};
-
-export const getConsumerRepicientsForAgreements = async ({
-  agreements,
-  readModelService,
-  logger,
-}: {
-  agreements: Agreement[];
-  readModelService: ReadModelServiceSQL;
-  logger: Logger;
-}): Promise<EmailNotificationRecipient[]> => {
-  const consumers = await readModelService.getTenantsById(
-    (agreements ?? []).map((agreement) => agreement.consumerId)
-  );
-
-  return consumers.flatMap((consumer) => {
-    const email = getLatestTenantMailOfKind(
-      consumer.mails,
-      tenantMailKind.ContactEmail
-    );
-    if (!email) {
-      logger.warn(
-        `Consumer email not found for consumer ${consumer.id}, skipping email`
-      );
-      return [];
-    }
-    return [{ type: "Tenant", address: email.address }];
-  });
 };
