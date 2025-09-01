@@ -34,7 +34,6 @@ import {
   assertConsistentFreeOfCharge,
   assertPurposeTemplateTitleIsNotDuplicated,
   assertRequesterCanRetrievePurposeTemplate,
-  isRiskAnalysisTemplateValid,
   validateAndTransformRiskAnalysisTemplate,
 } from "./validators.js";
 
@@ -89,11 +88,7 @@ export function purposeTemplateServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{
-        purposeTemplate: PurposeTemplate;
-      }>
-    > {
+    ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Creating purpose template`);
 
       assertConsistentFreeOfCharge(
@@ -132,9 +127,7 @@ export function purposeTemplateServiceBuilder(
       );
 
       return {
-        data: {
-          purposeTemplate,
-        },
+        data: purposeTemplate,
         metadata: {
           version: event.newVersion,
         },
@@ -165,20 +158,11 @@ export function purposeTemplateServiceBuilder(
         authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{
-        purposeTemplate: PurposeTemplate;
-        isRiskAnalysisValid: boolean;
-      }>
-    > {
+    ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Retrieving purpose template ${purposeTemplateId}`);
 
       const purposeTemplate = await retrievePurposeTemplate(
         purposeTemplateId,
-        readModelService
-      );
-      const tenantKind = await retrieveTenantKind(
-        authData.organizationId,
         readModelService
       );
 
@@ -187,16 +171,8 @@ export function purposeTemplateServiceBuilder(
         authData
       );
 
-      const isRiskAnalysisValid =
-        purposeTemplate.data.state === purposeTemplateState.draft
-          ? isRiskAnalysisTemplateValid(
-              purposeTemplate.data.purposeRiskAnalysisForm,
-              tenantKind
-            )
-          : true;
-
       return {
-        data: { purposeTemplate: purposeTemplate.data, isRiskAnalysisValid },
+        data: purposeTemplate.data,
         metadata: purposeTemplate.metadata,
       };
     },

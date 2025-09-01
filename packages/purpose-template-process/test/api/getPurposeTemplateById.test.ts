@@ -6,11 +6,7 @@ import {
   getMockPurposeTemplate,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import {
-  PurposeTemplate,
-  PurposeTemplateId,
-  generateId,
-} from "pagopa-interop-models";
+import { PurposeTemplateId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
@@ -22,15 +18,13 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("API GET /purposeTemplates/{id}", () => {
-  const purposeTemplate: PurposeTemplate = getMockPurposeTemplate();
-  const isRiskAnalysisValid = true;
+  const purposeTemplate = getMockPurposeTemplate();
 
   const serviceResponse = getMockWithMetadata({
     purposeTemplate,
-    isRiskAnalysisValid,
   });
   const apiResponse = purposeTemplateApi.PurposeTemplate.parse(
-    purposeTemplateToApiPurposeTemplate(purposeTemplate, isRiskAnalysisValid)
+    purposeTemplateToApiPurposeTemplate(purposeTemplate)
   );
 
   beforeEach(() => {

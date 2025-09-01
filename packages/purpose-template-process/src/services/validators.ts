@@ -84,24 +84,6 @@ export function validateRiskAnalysisTemplateOrThrow({
   }
 }
 
-export const isRiskAnalysisTemplateValid = (
-  riskAnalysisFormTemplate: RiskAnalysisFormTemplate | undefined,
-  tenantKind: TenantKind
-): boolean => {
-  if (riskAnalysisFormTemplate === undefined) {
-    return false;
-  } else {
-    return (
-      validatePurposeTemplateRiskAnalysis(
-        riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
-          riskAnalysisFormTemplate
-        ),
-        tenantKind
-      ).type === "valid"
-    );
-  }
-};
-
 export const assertRequesterCanRetrievePurposeTemplate = async (
   purposeTemplate: PurposeTemplate,
   authData: Pick<UIAuthData, "organizationId">
