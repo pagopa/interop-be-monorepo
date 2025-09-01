@@ -31,9 +31,9 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
   const purposeTemplateWithSameName = await readModelService.getPurposeTemplate(
     title
   );
-
-  if (purposeTemplateWithSameName) {
-    throw purposeTemplateNameConflict();
+  const purposeTemplateId = purposeTemplateWithSameName?.data.id;
+  if (purposeTemplateWithSameName && purposeTemplateId) {
+    throw purposeTemplateNameConflict(purposeTemplateId, title);
   }
 };
 
