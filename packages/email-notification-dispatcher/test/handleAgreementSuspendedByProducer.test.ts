@@ -3,7 +3,6 @@
 import {
   getMockAgreement,
   getMockContext,
-  getMockDescriptor,
   getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
@@ -25,9 +24,11 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
+  addOneUser,
   getMockUser,
   readModelService,
   templateService,
+  userService,
 } from "./utils.js";
 
 describe("handleAgreementSuspendedByProducer", async () => {
@@ -53,23 +54,20 @@ describe("handleAgreementSuspendedByProducer", async () => {
     getMockUser(consumerTenant.id),
   ];
 
-  const userService = {
-    readUser: vi.fn(),
-  };
   const { logger } = getMockContext({});
 
   beforeEach(async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
+    for (const user of users) {
+      await addOneUser(user);
+    }
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.userId, tenantId: user.tenantId }))
+        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
       );
-    userService.readUser.mockImplementation((userId) =>
-      users.find((user) => user.userId === userId)
-    );
   });
 
   it("should throw missingKafkaMessageDataError when agreement is undefined", async () => {
@@ -88,30 +86,20 @@ describe("handleAgreementSuspendedByProducer", async () => {
   });
 
   it("should throw tenantNotFound when consumer is not found", async () => {
-    const descriptor = getMockDescriptor();
-    const eservice = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-
-    const consumerId = generateId<TenantId>();
-
-    const producerTenant = {
-      ...getMockTenant(),
-      mails: [getMockTenantMail()],
-    };
-    await addOneTenant(producerTenant);
+    const unknownConsumerId = generateId<TenantId>();
 
     const agreement = {
       ...getMockAgreement(),
       stamps: {
-        suspensionByProducer: { when: new Date(), who: generateId<UserId>() },
+        suspensionByProducer: {
+          when: new Date(),
+          who: generateId<UserId>(),
+        },
       },
       producerId: producerTenant.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
-      consumerId,
+      consumerId: unknownConsumerId,
     };
     await addOneAgreement(agreement);
 
@@ -124,31 +112,19 @@ describe("handleAgreementSuspendedByProducer", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(tenantNotFound(consumerId));
+    ).rejects.toThrow(tenantNotFound(unknownConsumerId));
   });
 
   it("should throw tenantNotFound when producer is not found", async () => {
-    const descriptor = getMockDescriptor();
-    const eservice = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-
-    const consumerTenant = {
-      ...getMockTenant(),
-      mails: [getMockTenantMail()],
-    };
-    await addOneTenant(consumerTenant);
-
-    const producerId = generateId<TenantId>();
+    const unknownProducerId = generateId<TenantId>();
 
     const agreement = {
       ...getMockAgreement(),
-      stamps: {
-        suspensionByProducer: { when: new Date(), who: generateId<UserId>() },
+      suspensionByProducer: {
+        when: new Date(),
+        who: generateId<UserId>(),
       },
-      producerId,
+      producerId: unknownProducerId,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
@@ -164,31 +140,20 @@ describe("handleAgreementSuspendedByProducer", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(tenantNotFound(producerId));
+    ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
   it("should throw eServiceNotFound when eservice is not found", async () => {
-    const descriptor = getMockDescriptor();
-    const eServiceId = generateId<EServiceId>();
-
-    const consumerTenant = {
-      ...getMockTenant(),
-      mails: [getMockTenantMail()],
-    };
-    await addOneTenant(consumerTenant);
-
-    const producerTenant = {
-      ...getMockTenant(),
-      mails: [getMockTenantMail()],
-    };
-    await addOneTenant(producerTenant);
-
+    const unknownEServiceId = generateId<EServiceId>();
     const agreement = {
       ...getMockAgreement(),
-      stamps: {},
+      suspensionByProducer: {
+        when: new Date(),
+        who: generateId<UserId>(),
+      },
       producerId: producerTenant.id,
       descriptorId: descriptor.id,
-      eserviceId: eServiceId,
+      eserviceId: unknownEServiceId,
       consumerId: consumerTenant.id,
     };
     await addOneAgreement(agreement);
@@ -202,36 +167,10 @@ describe("handleAgreementSuspendedByProducer", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(eServiceNotFound(eServiceId));
+    ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
   });
 
   it("should generate one message per user of the tenant that consumed the eservice", async () => {
-    const descriptor = getMockDescriptor();
-    const eservice = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-
-    const consumerTenant = getMockTenant();
-    await addOneTenant(consumerTenant);
-
-    const producerTenant = getMockTenant();
-    await addOneTenant(producerTenant);
-
-    const users = [
-      getMockUser(consumerTenant.id),
-      getMockUser(consumerTenant.id),
-    ];
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.userId, tenantId: user.tenantId }))
-      );
-    userService.readUser.mockImplementation((userId) =>
-      users.find((user) => user.userId === userId)
-    );
-
     const agreement = {
       ...getMockAgreement(),
       stamps: {
@@ -260,11 +199,15 @@ describe("handleAgreementSuspendedByProducer", async () => {
   it("should not generate a message if the user disabled this email notification", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
-      .mockResolvedValue([users[0]]);
+      .mockResolvedValue([
+        { userId: users[0].id, tenantId: users[0].tenantId },
+      ]);
 
     const agreement = {
       ...getMockAgreement(),
-      stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
+      stamps: {
+        suspensionByProducer: { when: new Date(), who: generateId<UserId>() },
+      },
       producerId: producerTenant.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
@@ -291,34 +234,12 @@ describe("handleAgreementSuspendedByProducer", async () => {
   });
 
   it("should generate a complete and correct message", async () => {
-    const descriptor = getMockDescriptor();
-    const eservice = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-
-    const consumerTenant = {
-      ...getMockTenant(),
-      mails: [getMockTenantMail()],
-    };
-    await addOneTenant(consumerTenant);
-
-    const producerTenant = getMockTenant();
-    await addOneTenant(producerTenant);
-
-    const user = getMockUser(consumerTenant.id);
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockReturnValueOnce([{ userId: user.userId, tenantId: user.tenantId }]);
-    userService.readUser.mockImplementation((_) => user);
-
-    const activationDate = new Date();
+    const suspensionDate = new Date();
     const agreement = {
       ...getMockAgreement(),
       stamps: {
         suspensionByProducer: {
-          when: activationDate,
+          when: suspensionDate,
           who: generateId<UserId>(),
         },
       },
@@ -337,11 +258,13 @@ describe("handleAgreementSuspendedByProducer", async () => {
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages.length).toBe(1);
+    expect(messages.length).toBe(2);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
-      expect(message.email.body).toContain(`Nuova richiesta di fruizione`);
+      expect(message.email.body).toContain(
+        `Sospensione richiesta di fruizione per &quot;${eservice.name}&quot;`
+      );
     });
   });
 });
