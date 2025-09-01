@@ -99,6 +99,10 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
+        const {
+          data: { purposeTemplate },
+          metadata,
+        } = await purposeTemplateService.createPurposeTemplate(req.body, ctx);
         const { data: purposeTemplate, metadata } =
           await purposeTemplateService.createPurposeTemplate(req.body, ctx);
 
