@@ -1,5 +1,3 @@
-/* eslint-disable functional/immutable-data */
-/* eslint-disable functional/no-let */
 import {
   EmailNotificationMessagePayload,
   fromAgreementV2,
@@ -16,7 +14,7 @@ import {
 } from "../../services/utils.js";
 import {
   AgreementHandlerParams,
-  getRecipientsForTenant,
+  getRecipientsForTenants,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
@@ -47,13 +45,13 @@ export async function handleAgreementActivatedToProducer(
     retrieveTenant(agreement.consumerId, readModelService),
   ]);
 
-  const targets = await getRecipientsForTenant({
-    tenant: producer,
+  const targets = await getRecipientsForTenants({
+    tenants: [producer],
     notificationType,
     readModelService,
-    logger,
     userService,
-    includeTenantContactEmail: false,
+    logger,
+    includeTenantContactEmails: false,
   });
 
   if (targets.length === 0) {

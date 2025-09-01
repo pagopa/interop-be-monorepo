@@ -12,7 +12,7 @@ import {
 } from "../../services/utils.js";
 import {
   EServiceHandlerParams,
-  getConsumerRepicientsForAgreements,
+  getRecipientsForTenants,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
@@ -26,6 +26,7 @@ export async function handleEserviceDescriptorPublished(
     readModelService,
     logger,
     templateService,
+    userService,
     correlationId,
   } = data;
 
@@ -53,10 +54,17 @@ export async function handleEserviceDescriptorPublished(
     return [];
   }
 
-  const targets = await getConsumerRepicientsForAgreements({
-    agreements,
+  const tenants = await readModelService.getTenantsById(
+    agreements.map((agreement) => agreement.consumerId)
+  );
+
+  const targets = await getRecipientsForTenants({
+    tenants,
+    notificationType,
     readModelService,
+    userService,
     logger,
+    includeTenantContactEmails: false,
   });
 
   if (targets.length === 0) {

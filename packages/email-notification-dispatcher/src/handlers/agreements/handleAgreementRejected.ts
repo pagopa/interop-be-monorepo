@@ -1,5 +1,3 @@
-/* eslint-disable functional/immutable-data */
-/* eslint-disable functional/no-let */
 import {
   EmailNotificationMessagePayload,
   generateId,
@@ -16,7 +14,7 @@ import {
 } from "../../services/utils.js";
 import {
   AgreementHandlerParams,
-  getRecipientsForTenant,
+  getRecipientsForTenants,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
@@ -48,13 +46,13 @@ export async function handleAgreementRejected(
     retrieveTenant(agreement.consumerId, readModelService),
   ]);
 
-  const targets = await getRecipientsForTenant({
-    tenant: consumer,
+  const targets = await getRecipientsForTenants({
+    tenants: [consumer],
     notificationType,
     readModelService,
-    logger,
     userService,
-    includeTenantContactEmail: true,
+    logger,
+    includeTenantContactEmails: true,
   });
 
   if (targets.length === 0) {
