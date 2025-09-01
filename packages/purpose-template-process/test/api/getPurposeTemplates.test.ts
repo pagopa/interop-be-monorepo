@@ -41,7 +41,7 @@ describe("API GET /purposeTemplates", () => {
 
   const apiResponse = purposeTemplateApi.PurposeTemplates.parse({
     results: purposeTemplates.results.map((purpose) =>
-      purposeTemplateToApiPurposeTemplate(purpose, false)
+      purposeTemplateToApiPurposeTemplate(purpose)
     ),
     totalCount: purposeTemplates.totalCount,
   });
