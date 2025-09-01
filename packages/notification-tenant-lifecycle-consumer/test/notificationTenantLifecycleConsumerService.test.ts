@@ -2,8 +2,8 @@
 import { AxiosError, AxiosResponse } from "axios";
 import { logger } from "pagopa-interop-commons";
 import {
-  getMockNotificationConfig,
   getMockTenant,
+  getMockTenantNotificationConfig,
   toTenantV1,
 } from "pagopa-interop-commons-test";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
@@ -37,9 +37,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
 
   const mockTenantNotificationConfig: notificationConfigApi.TenantNotificationConfig =
     {
-      id: generateId(),
-      tenantId: generateId(),
-      config: getMockNotificationConfig(),
+      ...getMockTenantNotificationConfig(),
       createdAt: new Date().toJSON(),
       updatedAt: undefined,
     };

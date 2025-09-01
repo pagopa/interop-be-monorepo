@@ -9,7 +9,6 @@ import {
 } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
-  tenantEnabledNotificationInReadmodelNotificationConfig,
   tenantNotificationConfigInReadmodelNotificationConfig,
   userEnabledInAppNotificationInReadmodelNotificationConfig,
   userEnabledEmailNotificationInReadmodelNotificationConfig,
@@ -19,7 +18,6 @@ import { and, eq, inArray } from "drizzle-orm";
 import {
   aggregateTenantNotificationConfig,
   aggregateUserNotificationConfig,
-  toTenantNotificationConfigAggregator,
   toUserNotificationConfigAggregator,
 } from "./notification-config/aggregators.js";
 import { NotificationType } from "./notification-config/utils.js";
@@ -33,24 +31,12 @@ export function notificationConfigReadModelServiceBuilder(
       tenantId: TenantId
     ): Promise<WithMetadata<TenantNotificationConfig> | undefined> {
       const queryResult = await db
-        .select({
-          tenantNotificationConfig:
-            tenantNotificationConfigInReadmodelNotificationConfig,
-          enabledNotification:
-            tenantEnabledNotificationInReadmodelNotificationConfig,
-        })
+        .select()
         .from(tenantNotificationConfigInReadmodelNotificationConfig)
         .where(
           eq(
             tenantNotificationConfigInReadmodelNotificationConfig.tenantId,
             tenantId
-          )
-        )
-        .leftJoin(
-          tenantEnabledNotificationInReadmodelNotificationConfig,
-          eq(
-            tenantNotificationConfigInReadmodelNotificationConfig.id,
-            tenantEnabledNotificationInReadmodelNotificationConfig.tenantNotificationConfigId
           )
         );
 
@@ -58,9 +44,7 @@ export function notificationConfigReadModelServiceBuilder(
         return undefined;
       }
 
-      return aggregateTenantNotificationConfig(
-        toTenantNotificationConfigAggregator(queryResult)
-      );
+      return aggregateTenantNotificationConfig(queryResult[0]);
     },
 
     async getUserNotificationConfigByUserIdAndTenantId(
