@@ -6,7 +6,6 @@ import {
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
-  riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
   RiskAnalysisTemplateValidatedForm,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   UIAuthData,
@@ -89,7 +88,7 @@ export const assertRequesterCanRetrievePurposeTemplate = async (
   authData: Pick<UIAuthData, "organizationId">
 ): Promise<void> => {
   if (
-    purposeTemplate.state === purposeTemplateState.draft &&
+    purposeTemplate.state !== purposeTemplateState.active &&
     purposeTemplate.creatorId !== authData.organizationId
   ) {
     throw tenantNotAllowed(authData.organizationId);
