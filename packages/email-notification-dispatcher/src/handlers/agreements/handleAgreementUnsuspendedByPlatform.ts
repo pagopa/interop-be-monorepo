@@ -1,5 +1,3 @@
-/* eslint-disable functional/immutable-data */
-/* eslint-disable functional/no-let */
 import {
   EmailNotificationMessagePayload,
   generateId,
@@ -9,20 +7,20 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveAgreementEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
-  getUserEmailsToNotify,
-  HandleAgreementData,
+  AgreementHandlerParams,
+  getRecipientsForTenants,
+  retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
   "agreementSuspendedUnsuspendedToConsumer";
 
 export async function handleAgreementUnsuspendedByPlatform(
-  data: HandleAgreementData
+  data: AgreementHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     agreementV2Msg,
@@ -49,41 +47,35 @@ export async function handleAgreementUnsuspendedByPlatform(
     retrieveTenant(agreement.consumerId, readModelService),
   ]);
 
-  let userEmails: string[] = [];
-  try {
-    userEmails = await getUserEmailsToNotify(
-      consumer.id,
-      notificationType,
-      readModelService,
-      userService
+  const targets = await getRecipientsForTenants({
+    tenants: [producer],
+    notificationType,
+    readModelService,
+    userService,
+    logger,
+    includeTenantContactEmails: false,
+  });
+
+  if (targets.length === 0) {
+    logger.info(
+      `No targets found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
     );
-  } catch (error) {
-    logger.warn(`Error reading user email. Reason: ${error}`);
     return [];
   }
 
-  let toDispatch: EmailNotificationMessagePayload[] = [];
-  if (userEmails.length > 0) {
-    toDispatch = userEmails.map((email: string) => ({
-      correlationId: correlationId ?? generateId(),
-      email: {
-        subject: `Richiesta di fruizione ${agreement.id} attiva`,
-        body: templateService.compileHtml(htmlTemplate, {
-          title: "Nuova richiesta di fruizione",
-          notificationType,
-          entityId: agreement.id,
-          producerName: producer.name,
-          consumerName: consumer.name,
-          eserviceName: eservice.name,
-        }),
-      },
-      address: email,
-    }));
-  } else {
-    logger.info(
-      `No users found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
-    );
-  }
-
-  return toDispatch;
+  return targets.map(({ address }) => ({
+    correlationId: correlationId ?? generateId(),
+    email: {
+      subject: `Riattivazione richiesta da parte della Piattaforma`,
+      body: templateService.compileHtml(htmlTemplate, {
+        title: `Riattivazione richiesta da parte della Piattaforma`,
+        notificationType,
+        entityId: agreement.id,
+        producerName: producer.name,
+        consumerName: consumer.name,
+        eserviceName: eservice.name,
+      }),
+    },
+    address,
+  }));
 }

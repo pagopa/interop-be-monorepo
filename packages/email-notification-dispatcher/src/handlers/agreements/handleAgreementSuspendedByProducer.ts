@@ -1,5 +1,3 @@
-/* eslint-disable functional/immutable-data */
-/* eslint-disable functional/no-let */
 import {
   EmailNotificationMessagePayload,
   generateId,
@@ -9,20 +7,20 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveAgreementEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
-  getUserEmailsToNotify,
-  HandleAgreementData,
+  AgreementHandlerParams,
+  getRecipientsForTenants,
+  retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
   "agreementSuspendedUnsuspendedToConsumer";
 
 export async function handleAgreementSuspendedByProducer(
-  data: HandleAgreementData
+  data: AgreementHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     agreementV2Msg,
@@ -49,41 +47,28 @@ export async function handleAgreementSuspendedByProducer(
     retrieveTenant(agreement.consumerId, readModelService),
   ]);
 
-  let userEmails: string[] = [];
-  try {
-    userEmails = await getUserEmailsToNotify(
-      consumer.id,
-      notificationType,
-      readModelService,
-      userService
-    );
-  } catch (error) {
-    logger.warn(`Error reading user email. Reason: ${error}`);
-    return [];
-  }
+  const targets = await getRecipientsForTenants({
+    tenants: [consumer],
+    notificationType,
+    readModelService,
+    userService,
+    logger,
+    includeTenantContactEmails: false,
+  });
 
-  let toDispatch: EmailNotificationMessagePayload[] = [];
-  if (userEmails.length > 0) {
-    toDispatch = userEmails.map((email: string) => ({
-      correlationId: correlationId ?? generateId(),
-      email: {
-        subject: `Richiesta di fruizione ${agreement.id} attiva`,
-        body: templateService.compileHtml(htmlTemplate, {
-          title: "Nuova richiesta di fruizione",
-          notificationType,
-          entityId: agreement.id,
-          producerName: producer.name,
-          consumerName: consumer.name,
-          eserviceName: eservice.name,
-        }),
-      },
-      address: email,
-    }));
-  } else {
-    logger.info(
-      `No users found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
-    );
-  }
-
-  return toDispatch;
+  return targets.map(({ address }) => ({
+    correlationId: correlationId ?? generateId(),
+    email: {
+      subject: `Sospensione richiesta di fruizione per "${eservice.name}"`,
+      body: templateService.compileHtml(htmlTemplate, {
+        title: `Sospensione richiesta di fruizione per "${eservice.name}"`,
+        notificationType,
+        entityId: agreement.id,
+        producerName: producer.name,
+        consumerName: consumer.name,
+        eserviceName: eservice.name,
+      }),
+    },
+    address,
+  }));
 }
