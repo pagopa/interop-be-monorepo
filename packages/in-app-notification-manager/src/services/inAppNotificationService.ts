@@ -99,6 +99,78 @@ export function inAppNotificationServiceBuilder(
           )
         );
     },
+    markNotificationsAsUnread: async (
+      ids: NotificationId[],
+      {
+        logger,
+        authData: { userId, organizationId },
+      }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> => {
+      logger.info(`Marking ${ids.length} notifications as unread`);
+
+      if (ids.length === 0) {
+        return;
+      }
+
+      await db
+        .update(notification)
+        .set({ readAt: null })
+        .where(
+          and(
+            inArray(notification.id, ids),
+            eq(notification.userId, userId),
+            eq(notification.tenantId, organizationId)
+          )
+        );
+    },
+    markNotificationAsUnread: async (
+      notificationId: NotificationId,
+      {
+        logger,
+        authData: { userId, organizationId },
+      }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> => {
+      logger.info(`Marking notification ${notificationId} as unread`);
+
+      const updated = await db
+        .update(notification)
+        .set({ readAt: null })
+        .where(
+          and(
+            eq(notification.id, notificationId),
+            eq(notification.userId, userId),
+            eq(notification.tenantId, organizationId)
+          )
+        )
+        .returning({ id: notification.id });
+
+      if (!updated.length) {
+        throw notificationNotFound(notificationId);
+      }
+    },
+    deleteNotifications: async (
+      notificationIds: NotificationId[],
+      {
+        logger,
+        authData: { userId, organizationId },
+      }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> => {
+      logger.info(`Deleting notifications ${notificationIds}`);
+
+      if (notificationIds.length === 0) {
+        return;
+      }
+
+      await db
+        .delete(notification)
+        .where(
+          and(
+            inArray(notification.id, notificationIds),
+            eq(notification.userId, userId),
+            eq(notification.tenantId, organizationId)
+          )
+        );
+    },
     deleteNotification: async (
       notificationId: NotificationId,
       {
