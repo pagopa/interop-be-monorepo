@@ -98,8 +98,8 @@ import {
 import {
   GetClientsFilters,
   GetProducerKeychainsFilters,
-  ReadModelService,
-} from "./readModelService.js";
+} from "./readModelServiceSQL.js";
+import { ReadModelService } from "./readModelService.js";
 import {
   assertClientKeysCountIsBelowThreshold,
   assertKeyDoesNotAlreadyExist,
@@ -298,6 +298,15 @@ export function authorizationServiceBuilder(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
       );
 
+      const consumerId =
+        (filters.userIds && filters.userIds.length > 0) ||
+        filters.purposeId ||
+        filters.name
+          ? authData.organizationId
+          : filters.consumerId;
+      // ^ in case the caller sets filters on fields visible only to the client owner (consumer),
+      // we restrict the results to clients owned by the caller.
+
       const userIds =
         isUiAuthData(authData) &&
         hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
@@ -305,7 +314,7 @@ export function authorizationServiceBuilder(
           : filters.userIds;
 
       return await readModelService.getClients(
-        { ...filters, userIds },
+        { ...filters, userIds, consumerId },
         {
           offset,
           limit,
@@ -913,6 +922,16 @@ export function authorizationServiceBuilder(
       logger.info(
         `Retrieving producer keychains by name ${filters.name}, userIds ${filters.userIds}, producerId ${filters.producerId}, eserviceId ${filters.eserviceId}`
       );
+
+      const producerId =
+        (filters.userIds && filters.userIds.length > 0) ||
+        filters.eserviceId ||
+        filters.name
+          ? authData.organizationId
+          : filters.producerId;
+      // ^ in case the caller sets filters on fields visible only to the keychain owner (producer),
+      // we restrict the results to keychain owned by the caller.
+
       const userIds =
         isUiAuthData(authData) &&
         hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
@@ -920,7 +939,7 @@ export function authorizationServiceBuilder(
           : filters.userIds;
 
       return await readModelService.getProducerKeychains(
-        { ...filters, userIds },
+        { ...filters, userIds, producerId },
         {
           offset,
           limit,
