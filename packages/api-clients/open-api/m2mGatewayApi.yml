@@ -3435,7 +3435,7 @@ paths:
           in: query
           description: |
             Filter Clients by Consumer ID (Client owner).
-            If not specified, return Clients for any Consumer
+            If not specified, return Clients for any Consumer.
           schema:
             type: string
             format: uuid
@@ -4035,7 +4035,7 @@ paths:
           in: query
           description:
             Filter Producer Keychains by Producer ID (Producer Keychain owner).
-            If not specified, return Producer Keychains for any Producer
+            If not specified, return Producer Keychains for any Producer.
           schema:
             type: string
             format: uuid

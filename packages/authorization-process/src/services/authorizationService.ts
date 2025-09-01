@@ -7,6 +7,7 @@ import {
   Delegation,
   Descriptor,
   DescriptorId,
+  emptyListResult,
   EService,
   EServiceId,
   generateId,
@@ -298,12 +299,22 @@ export function authorizationServiceBuilder(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
       );
 
-      const consumerId =
+      const areOwnerFiltersSet =
         (filters.userIds && filters.userIds.length > 0) ||
         filters.purposeId ||
-        filters.name
-          ? authData.organizationId
-          : filters.consumerId;
+        filters.name;
+
+      if (
+        areOwnerFiltersSet &&
+        filters.consumerId &&
+        filters.consumerId !== authData.organizationId
+      ) {
+        return emptyListResult;
+      }
+
+      const consumerId = areOwnerFiltersSet
+        ? authData.organizationId
+        : filters.consumerId;
       // ^ in case the caller sets filters on fields visible only to the client owner (consumer),
       // we restrict the results to clients owned by the caller.
 
@@ -923,12 +934,22 @@ export function authorizationServiceBuilder(
         `Retrieving producer keychains by name ${filters.name}, userIds ${filters.userIds}, producerId ${filters.producerId}, eserviceId ${filters.eserviceId}`
       );
 
-      const producerId =
+      const areOwnerFiltersSet =
         (filters.userIds && filters.userIds.length > 0) ||
         filters.eserviceId ||
-        filters.name
-          ? authData.organizationId
-          : filters.producerId;
+        filters.name;
+
+      if (
+        areOwnerFiltersSet &&
+        filters.producerId &&
+        filters.producerId !== authData.organizationId
+      ) {
+        return emptyListResult;
+      }
+
+      const producerId = areOwnerFiltersSet
+        ? authData.organizationId
+        : filters.producerId;
       // ^ in case the caller sets filters on fields visible only to the keychain owner (producer),
       // we restrict the results to keychain owned by the caller.
 

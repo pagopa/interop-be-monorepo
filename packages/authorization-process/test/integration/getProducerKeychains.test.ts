@@ -388,4 +388,57 @@ describe("getProducerKeychains", async () => {
       results: [mockKeychain4].map(sortProducerKeychain),
     });
   });
+
+  it(`should return empty result in case some owner filters are set and
+      producerId is set to a tenant different from the requester`, async () => {
+    const authData = getMockAuthData(producerId);
+    const result1 = await authorizationService.getProducerKeychains(
+      {
+        filters: {
+          name: "test",
+          userIds: [],
+          producerId: generateId<TenantId>(),
+          eserviceId: undefined,
+        },
+        offset: 0,
+        limit: 50,
+      },
+      getMockContext({ authData })
+    );
+
+    const result2 = await authorizationService.getProducerKeychains(
+      {
+        filters: {
+          name: undefined,
+          userIds: [userId1],
+          producerId: generateId<TenantId>(),
+          eserviceId: undefined,
+        },
+        offset: 0,
+        limit: 50,
+      },
+      getMockContext({ authData })
+    );
+
+    const result3 = await authorizationService.getProducerKeychains(
+      {
+        filters: {
+          name: undefined,
+          userIds: [],
+          producerId: generateId<TenantId>(),
+          eserviceId,
+        },
+        offset: 0,
+        limit: 50,
+      },
+      getMockContext({ authData })
+    );
+
+    expect(result1).toEqual({
+      totalCount: 0,
+      results: [],
+    });
+    expect(result2).toEqual(result1);
+    expect(result3).toEqual(result1);
+  });
 });

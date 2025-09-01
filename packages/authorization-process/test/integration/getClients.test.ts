@@ -430,4 +430,60 @@ describe("getClients", async () => {
       results: [mockClient4].map(sortClient),
     });
   });
+
+  it(`should return empty result in case some owner filters are set and
+        consumerId is set to a tenant different from the requester`, async () => {
+    const authData = getMockAuthData(consumerId);
+    const result1 = await authorizationService.getClients(
+      {
+        filters: {
+          name: "test",
+          userIds: [],
+          consumerId: generateId<TenantId>(),
+          purposeId: undefined,
+          kind: undefined,
+        },
+        offset: 0,
+        limit: 50,
+      },
+      getMockContext({ authData })
+    );
+
+    const result2 = await authorizationService.getClients(
+      {
+        filters: {
+          name: undefined,
+          userIds: [userId1],
+          consumerId: generateId<TenantId>(),
+          purposeId: undefined,
+          kind: undefined,
+        },
+        offset: 0,
+        limit: 50,
+      },
+      getMockContext({ authData })
+    );
+
+    const result3 = await authorizationService.getClients(
+      {
+        filters: {
+          name: undefined,
+          userIds: [],
+          consumerId: generateId<TenantId>(),
+          purposeId,
+          kind: undefined,
+        },
+        offset: 0,
+        limit: 50,
+      },
+      getMockContext({ authData })
+    );
+
+    expect(result1).toEqual({
+      totalCount: 0,
+      results: [],
+    });
+    expect(result2).toEqual(result1);
+    expect(result3).toEqual(result1);
+  });
 });
