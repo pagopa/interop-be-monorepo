@@ -74,7 +74,7 @@ describe("createPurposeTemplate", () => {
       );
 
     const writtenEvent = await readLastPurposeTemplateEvent(
-      createPurposeTemplateResponse.data.purposeTemplate.id
+      createPurposeTemplateResponse.data.id
     );
 
     if (!writtenEvent) {
@@ -82,7 +82,7 @@ describe("createPurposeTemplate", () => {
     }
 
     expect(writtenEvent).toMatchObject({
-      stream_id: createPurposeTemplateResponse.data.purposeTemplate.id,
+      stream_id: createPurposeTemplateResponse.data.id,
       version: "0",
       type: "PurposeTemplateAdded",
       event_version: 2,
@@ -96,27 +96,26 @@ describe("createPurposeTemplate", () => {
     const expectedRiskAnalysisForm: RiskAnalysisFormTemplate = {
       ...mockValidRiskAnalysisTemplateForm,
       id: unsafeBrandId(
-        createPurposeTemplateResponse.data.purposeTemplate
-          .purposeRiskAnalysisForm!.id
+        createPurposeTemplateResponse.data.purposeRiskAnalysisForm!.id
       ),
       singleAnswers: mockValidRiskAnalysisTemplateForm.singleAnswers.map(
         (answer, i) => ({
           ...answer,
-          id: createPurposeTemplateResponse.data.purposeTemplate
-            .purposeRiskAnalysisForm!.singleAnswers[i].id,
+          id: createPurposeTemplateResponse.data.purposeRiskAnalysisForm!
+            .singleAnswers[i].id,
         })
       ),
       multiAnswers: mockValidRiskAnalysisTemplateForm.multiAnswers.map(
         (answer, i) => ({
           ...answer,
-          id: createPurposeTemplateResponse.data.purposeTemplate
-            .purposeRiskAnalysisForm!.multiAnswers[i].id,
+          id: createPurposeTemplateResponse.data.purposeRiskAnalysisForm!
+            .multiAnswers[i].id,
         })
       ),
     };
 
     const expectedPurposeTemplate: PurposeTemplate = {
-      id: unsafeBrandId(createPurposeTemplateResponse.data.purposeTemplate.id),
+      id: unsafeBrandId(createPurposeTemplateResponse.data.id),
       createdAt: new Date(),
       targetDescription: purposeTemplateSeed.targetDescription,
       targetTenantKind: purposeTemplateSeed.targetTenantKind,

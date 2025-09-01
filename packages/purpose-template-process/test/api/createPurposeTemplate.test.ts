@@ -20,7 +20,6 @@ describe("API POST /purposeTemplates", () => {
   ];
 
   const mockPurposeTemplate: PurposeTemplate = getMockPurposeTemplate();
-  const isRiskAnalysisValid = true;
   const validPurposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed = {
     targetDescription: "Target description",
     targetTenantKind: tenantKind.PA,
@@ -29,13 +28,7 @@ describe("API POST /purposeTemplates", () => {
     purposeIsFreeOfCharge: false,
   };
 
-  const purposeTemplateResponse = getMockWithMetadata(
-    {
-      purposeTemplate: mockPurposeTemplate,
-      isRiskAnalysisValid,
-    },
-    0
-  );
+  const purposeTemplateResponse = getMockWithMetadata(mockPurposeTemplate, 0);
 
   beforeEach(() => {
     purposeTemplateService.createPurposeTemplate = vi
