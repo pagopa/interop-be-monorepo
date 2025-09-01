@@ -80,7 +80,7 @@ const purposeTemplateRouter = (
         return res.status(200).send(
           purposeTemplateApi.PurposeTemplates.parse({
             results: purposeTemplates.results.map((purposeTemplate) =>
-              purposeTemplateToApiPurposeTemplate(purposeTemplate, false)
+              purposeTemplateToApiPurposeTemplate(purposeTemplate)
             ),
             totalCount: purposeTemplates.totalCount,
           })
@@ -100,19 +100,14 @@ const purposeTemplateRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const {
-          data: { purposeTemplate, isRiskAnalysisValid },
+          data: { purposeTemplate },
           metadata,
         } = await purposeTemplateService.createPurposeTemplate(req.body, ctx);
 
         setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
-          .send(
-            purposeTemplateToApiPurposeTemplate(
-              purposeTemplate,
-              isRiskAnalysisValid
-            )
-          );
+          .send(purposeTemplateToApiPurposeTemplate(purposeTemplate));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
