@@ -83,6 +83,40 @@ export function riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
   };
 }
 
+export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
+  form: RiskAnalysisFormTemplate
+): RiskAnalysisFormTemplateToValidate {
+  return {
+    version: form.version,
+    answers: {
+      ...form.singleAnswers.reduce(
+        (acc, singleAnswer) => ({
+          ...acc,
+          [singleAnswer.key]: {
+            values: singleAnswer.value ? [singleAnswer.value] : [],
+            editable: singleAnswer.editable,
+            suggestedValues: singleAnswer.suggestedValues,
+            annotation: singleAnswer.annotation,
+          },
+        }),
+        {}
+      ),
+      ...form.multiAnswers.reduce(
+        (acc, multiAnswer) => ({
+          ...acc,
+          [multiAnswer.key]: {
+            values: multiAnswer.values,
+            editable: multiAnswer.editable,
+            suggestedValues: [],
+            annotation: multiAnswer.annotation,
+          },
+        }),
+        {}
+      ),
+    },
+  };
+}
+
 function mapAnnotation(
   annotation: RiskAnalysisTemplateValidatedAnswerAnnotation
 ): RiskAnalysisTemplateAnswerAnnotation {
