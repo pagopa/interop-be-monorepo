@@ -149,7 +149,7 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
 
   it.each<{
     eventType: "PurposeVersionActivated" | "PurposeVersionRejected";
-    expectedAction: "attivato" | "rifiuto";
+    expectedAction: "attivato" | "rifiutato";
   }>([
     {
       eventType: "PurposeVersionActivated",
@@ -157,7 +157,7 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
     },
     {
       eventType: "PurposeVersionRejected",
-      expectedAction: "rifiuto",
+      expectedAction: "rifiutato",
     },
   ])(
     "should handle $eventType event correctly",
