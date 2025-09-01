@@ -175,7 +175,12 @@ describe("createPurposeTemplate", () => {
           authData: getMockAuthData(mockPurposeTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(purposeTemplateNameConflict());
+    ).rejects.toThrowError(
+      purposeTemplateNameConflict(
+        existingPurposeTemplate.id,
+        purposeTemplateSeed.purposeTitle
+      )
+    );
   });
 
   it("should throw riskAnalysisTemplateValidationFailed if the purpose template has a non valid risk analysis", async () => {
