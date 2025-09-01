@@ -136,7 +136,6 @@ describe("createPurposeTemplate", () => {
     expect(createPurposeTemplateResponse).toEqual({
       data: {
         purposeTemplate: expectedPurposeTemplate,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 0 },
     });

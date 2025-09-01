@@ -964,10 +964,64 @@ components:
           maxLength: 250
         answers:
           additionalProperties:
-            $ref: "#/components/schemas/RiskAnalysisTemplateAnswer"
+            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerSeed"
       required:
         - version
         - answers
+    RiskAnalysisTemplateAnswerSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        values:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2000
+        editable:
+          type: boolean
+        annotation:
+          $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationSeed"
+        suggestedValues:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 250
+      required:
+        - values
+        - editable
+        - suggestedValues
+    RiskAnalysisTemplateAnswerAnnotationSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        text:
+          type: string
+        docs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocumentSeed"
+      required:
+        - text
+        - docs
+    RiskAnalysisTemplateAnswerAnnotationDocumentSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        contentType:
+          type: string
+        prettyName:
+          type: string
+        path:
+          type: string
+      required:
+        - name
+        - contentType
+        - prettyName
+        - path
     RiskAnalysisTemplateAnswer:
       type: object
       additionalProperties: false
