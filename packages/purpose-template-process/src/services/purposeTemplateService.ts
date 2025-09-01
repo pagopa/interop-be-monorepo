@@ -92,7 +92,6 @@ export function purposeTemplateServiceBuilder(
     ): Promise<
       WithMetadata<{
         purposeTemplate: PurposeTemplate;
-        isRiskAnalysisValid: boolean;
       }>
     > {
       logger.info(`Creating purpose template`);
@@ -135,8 +134,6 @@ export function purposeTemplateServiceBuilder(
       return {
         data: {
           purposeTemplate,
-          isRiskAnalysisValid:
-            validatedPurposeRiskAnalysisFormSeed !== undefined,
         },
         metadata: {
           version: event.newVersion,

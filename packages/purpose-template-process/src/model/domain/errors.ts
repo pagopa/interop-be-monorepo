@@ -28,9 +28,12 @@ export function missingFreeOfChargeReason(): ApiError<ErrorCodes> {
   });
 }
 
-export function purposeTemplateNameConflict(): ApiError<ErrorCodes> {
+export function purposeTemplateNameConflict(
+  purposeTemplateId: PurposeTemplateId,
+  name: string
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose Template name conflict`,
+    detail: `Purpose Template name conflict for ID ${purposeTemplateId} and name ${name}`,
     code: "purposeTemplateNameConflict",
     title: "Purpose Template name conflict",
   });
