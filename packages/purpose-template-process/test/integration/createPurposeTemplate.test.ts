@@ -133,9 +133,7 @@ describe("createPurposeTemplate", () => {
       toPurposeTemplateV2(expectedPurposeTemplate)
     );
     expect(createPurposeTemplateResponse).toEqual({
-      data: {
-        purposeTemplate: expectedPurposeTemplate,
-      },
+      data: expectedPurposeTemplate,
       metadata: { version: 0 },
     });
 
