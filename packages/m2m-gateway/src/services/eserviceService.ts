@@ -75,6 +75,18 @@ export function eserviceServiceBuilder(
     );
   }
 
+  async function retrieveEServiceDescriptorAttributes(
+    eservice: WithMaybeMetadata<catalogApi.EService>,
+    descriptorId: DescriptorId,
+    attributeKind: keyof catalogApi.Attributes
+  ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+    const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
+
+    return toM2MGatewayApiEServiceDescriptorAttributes(
+      descriptor.attributes[attributeKind]
+    );
+  }
+
   const retrieveEServiceById = async (
     headers: M2MGatewayAppContext["headers"],
     eserviceId: EServiceId
@@ -809,6 +821,48 @@ export function eserviceServiceBuilder(
       }
 
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
+    },
+    async getEserviceDescriptorCertifiedAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+      logger.info(
+        `Retrieving Certified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+      return await retrieveEServiceDescriptorAttributes(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId,
+        "certified"
+      );
+    },
+    async getEserviceDescriptorDeclaredAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+      logger.info(
+        `Retrieving Declared Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+      return await retrieveEServiceDescriptorAttributes(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId,
+        "declared"
+      );
+    },
+    async getEserviceDescriptorVerifiedAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+      logger.info(
+        `Retrieving Verified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+      return await retrieveEServiceDescriptorAttributes(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId,
+        "certified"
+      );
     },
 
     async updateEServiceDescriptorCertifiedAttributes(
