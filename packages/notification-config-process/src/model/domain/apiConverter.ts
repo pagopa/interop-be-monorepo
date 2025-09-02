@@ -7,57 +7,14 @@ import {
 export function tenantNotificationConfigToApiTenantNotificationConfig({
   id,
   tenantId,
-  config: {
-    agreementSuspendedUnsuspendedToProducer,
-    agreementManagementToProducer,
-    clientAddedRemovedToProducer,
-    purposeStatusChangedToProducer,
-    templateStatusChangedToProducer,
-    agreementSuspendedUnsuspendedToConsumer,
-    eserviceStateChangedToConsumer,
-    agreementActivatedRejectedToConsumer,
-    purposeVersionOverQuotaToConsumer,
-    purposeActivatedRejectedToConsumer,
-    purposeSuspendedUnsuspendedToConsumer,
-    newEserviceTemplateVersionToInstantiator,
-    eserviceTemplateNameChangedToInstantiator,
-    eserviceTemplateStatusChangedToInstantiator,
-    delegationApprovedRejectedToDelegator,
-    eserviceNewVersionSubmittedToDelegator,
-    eserviceNewVersionApprovedRejectedToDelegate,
-    delegationSubmittedRevokedToDelegate,
-    certifiedVerifiedAttributeAssignedRevokedToAssignee,
-    clientKeyAddedDeletedToClientUsers,
-  },
+  enabled,
   createdAt,
   updatedAt,
 }: TenantNotificationConfig): notificationConfigApi.TenantNotificationConfig {
-  // No need for rest assertion as we're explicitly destructuring all fields
   return {
     id,
     tenantId,
-    config: {
-      agreementSuspendedUnsuspendedToProducer,
-      agreementManagementToProducer,
-      clientAddedRemovedToProducer,
-      purposeStatusChangedToProducer,
-      templateStatusChangedToProducer,
-      agreementSuspendedUnsuspendedToConsumer,
-      eserviceStateChangedToConsumer,
-      agreementActivatedRejectedToConsumer,
-      purposeVersionOverQuotaToConsumer,
-      purposeActivatedRejectedToConsumer,
-      purposeSuspendedUnsuspendedToConsumer,
-      newEserviceTemplateVersionToInstantiator,
-      eserviceTemplateNameChangedToInstantiator,
-      eserviceTemplateStatusChangedToInstantiator,
-      delegationApprovedRejectedToDelegator,
-      eserviceNewVersionSubmittedToDelegator,
-      eserviceNewVersionApprovedRejectedToDelegate,
-      delegationSubmittedRevokedToDelegate,
-      certifiedVerifiedAttributeAssignedRevokedToAssignee,
-      clientKeyAddedDeletedToClientUsers,
-    },
+    enabled,
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),
   };
@@ -79,7 +36,6 @@ export function userNotificationConfigToApiUserNotificationConfig({
     eserviceStateChangedToConsumer: eserviceStateChangedToConsumerInApp,
     agreementActivatedRejectedToConsumer:
       agreementActivatedRejectedToConsumerInApp,
-    purposeVersionOverQuotaToConsumer: purposeVersionOverQuotaToConsumerInApp,
     purposeActivatedRejectedToConsumer: purposeActivatedRejectedToConsumerInApp,
     purposeSuspendedUnsuspendedToConsumer:
       purposeSuspendedUnsuspendedToConsumerInApp,
@@ -113,7 +69,6 @@ export function userNotificationConfigToApiUserNotificationConfig({
     eserviceStateChangedToConsumer: eserviceStateChangedToConsumerEmail,
     agreementActivatedRejectedToConsumer:
       agreementActivatedRejectedToConsumerEmail,
-    purposeVersionOverQuotaToConsumer: purposeVersionOverQuotaToConsumerEmail,
     purposeActivatedRejectedToConsumer: purposeActivatedRejectedToConsumerEmail,
     purposeSuspendedUnsuspendedToConsumer:
       purposeSuspendedUnsuspendedToConsumerEmail,
@@ -155,7 +110,6 @@ export function userNotificationConfigToApiUserNotificationConfig({
       eserviceStateChangedToConsumer: eserviceStateChangedToConsumerInApp,
       agreementActivatedRejectedToConsumer:
         agreementActivatedRejectedToConsumerInApp,
-      purposeVersionOverQuotaToConsumer: purposeVersionOverQuotaToConsumerInApp,
       purposeActivatedRejectedToConsumer:
         purposeActivatedRejectedToConsumerInApp,
       purposeSuspendedUnsuspendedToConsumer:
@@ -191,7 +145,6 @@ export function userNotificationConfigToApiUserNotificationConfig({
       eserviceStateChangedToConsumer: eserviceStateChangedToConsumerEmail,
       agreementActivatedRejectedToConsumer:
         agreementActivatedRejectedToConsumerEmail,
-      purposeVersionOverQuotaToConsumer: purposeVersionOverQuotaToConsumerEmail,
       purposeActivatedRejectedToConsumer:
         purposeActivatedRejectedToConsumerEmail,
       purposeSuspendedUnsuspendedToConsumer:

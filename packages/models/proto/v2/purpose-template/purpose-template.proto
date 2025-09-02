@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package purpose.template.v2;
+
+import "v2/tenant/tenant.proto";
+
+enum PurposeTemplateStateV2 {
+  DRAFT = 0;
+  ACTIVE = 1;
+  SUSPENDED = 2;
+  ARCHIVED = 3;
+}
+
+message PurposeTemplateV2 {
+  string id = 1;
+  string targetDescription = 2;
+  tenant.v2.TenantKindV2 targetTenantKind = 3;
+  string creatorId = 4;
+  PurposeTemplateStateV2 state = 5;
+  int64 createdAt = 6;
+  optional int64 updatedAt = 7;
+  string purposeTitle = 8;
+  string purposeDescription = 9;
+  optional RiskAnalysisFormTemplateV2 purposeRiskAnalysisForm = 10;
+  bool purposeIsFreeOfCharge = 11;
+  optional string purposeFreeOfChargeReason = 12;
+  optional int32 purposeDailyCalls = 13;
+}
+
+message RiskAnalysisFormTemplateV2 {
+  string id = 1;
+  string version = 2;
+  repeated RiskAnalysisTemplateSingleAnswerV2 singleAnswers = 3;
+  repeated RiskAnalysisTemplateMultiAnswerV2 multiAnswers = 4;
+}
+
+message RiskAnalysisTemplateSingleAnswerV2 {
+  string id = 1;
+  string key = 2;
+  optional string value = 3;
+  bool editable = 4;
+  optional RiskAnalysisTemplateAnswerAnnotationV2 annotation = 5;
+  repeated string suggestedValues = 6;
+}
+
+message RiskAnalysisTemplateMultiAnswerV2 {
+  string id = 1;
+  string key = 2;
+  repeated string values = 3;
+  bool editable = 4;
+  optional RiskAnalysisTemplateAnswerAnnotationV2 annotation = 5;
+}
+
+message RiskAnalysisTemplateAnswerAnnotationV2 {
+  string id = 1;
+  string text = 2;
+  repeated RiskAnalysisTemplateAnswerAnnotationDocumentV2 docs = 3;
+}
+
+message RiskAnalysisTemplateAnswerAnnotationDocumentV2 {
+  string id = 1;
+  string name = 2;
+  string prettyName = 3;
+  string contentType = 4;
+  string path = 5;
+  int64 createdAt = 6;
+}

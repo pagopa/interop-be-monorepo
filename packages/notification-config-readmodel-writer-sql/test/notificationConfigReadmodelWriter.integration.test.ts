@@ -91,34 +91,8 @@ describe("database test", async () => {
     });
 
     it("TenantNotificationConfigUpdated", async () => {
-      const tenantNotificationConfig: TenantNotificationConfig = {
-        id: generateId(),
-        tenantId: generateId(),
-        config: {
-          agreementSuspendedUnsuspendedToProducer: false,
-          agreementManagementToProducer: false,
-          clientAddedRemovedToProducer: false,
-          purposeStatusChangedToProducer: false,
-          templateStatusChangedToProducer: false,
-          agreementSuspendedUnsuspendedToConsumer: false,
-          eserviceStateChangedToConsumer: false,
-          agreementActivatedRejectedToConsumer: false,
-          purposeVersionOverQuotaToConsumer: false,
-          purposeActivatedRejectedToConsumer: false,
-          purposeSuspendedUnsuspendedToConsumer: false,
-          newEserviceTemplateVersionToInstantiator: false,
-          eserviceTemplateNameChangedToInstantiator: false,
-          eserviceTemplateStatusChangedToInstantiator: false,
-          delegationApprovedRejectedToDelegator: false,
-          eserviceNewVersionSubmittedToDelegator: false,
-          eserviceNewVersionApprovedRejectedToDelegate: false,
-          delegationSubmittedRevokedToDelegate: false,
-          certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-          clientKeyAddedDeletedToClientUsers: false,
-        },
-        createdAt: generateMock(z.coerce.date()),
-        updatedAt: generateMock(z.coerce.date().optional()),
-      };
+      const tenantNotificationConfig: TenantNotificationConfig =
+        getMockTenantNotificationConfig();
       await notificationConfigReadModelWriteService.upsertTenantNotificationConfig(
         tenantNotificationConfig,
         1
@@ -126,28 +100,7 @@ describe("database test", async () => {
 
       const updatedTenantNotificationConfig: TenantNotificationConfig = {
         ...tenantNotificationConfig,
-        config: {
-          agreementSuspendedUnsuspendedToProducer: true,
-          agreementManagementToProducer: true,
-          clientAddedRemovedToProducer: true,
-          purposeStatusChangedToProducer: true,
-          templateStatusChangedToProducer: true,
-          agreementSuspendedUnsuspendedToConsumer: true,
-          eserviceStateChangedToConsumer: true,
-          agreementActivatedRejectedToConsumer: true,
-          purposeVersionOverQuotaToConsumer: true,
-          purposeActivatedRejectedToConsumer: true,
-          purposeSuspendedUnsuspendedToConsumer: true,
-          newEserviceTemplateVersionToInstantiator: true,
-          eserviceTemplateNameChangedToInstantiator: true,
-          eserviceTemplateStatusChangedToInstantiator: true,
-          delegationApprovedRejectedToDelegator: true,
-          eserviceNewVersionSubmittedToDelegator: true,
-          eserviceNewVersionApprovedRejectedToDelegate: true,
-          delegationSubmittedRevokedToDelegate: true,
-          certifiedVerifiedAttributeAssignedRevokedToAssignee: true,
-          clientKeyAddedDeletedToClientUsers: true,
-        },
+        enabled: !tenantNotificationConfig.enabled,
       };
 
       const payload: TenantNotificationConfigUpdatedV2 = {
@@ -192,7 +145,6 @@ describe("database test", async () => {
           agreementSuspendedUnsuspendedToConsumer: false,
           eserviceStateChangedToConsumer: false,
           agreementActivatedRejectedToConsumer: false,
-          purposeVersionOverQuotaToConsumer: false,
           purposeActivatedRejectedToConsumer: false,
           purposeSuspendedUnsuspendedToConsumer: false,
           newEserviceTemplateVersionToInstantiator: false,
@@ -214,7 +166,6 @@ describe("database test", async () => {
           agreementSuspendedUnsuspendedToConsumer: false,
           eserviceStateChangedToConsumer: false,
           agreementActivatedRejectedToConsumer: false,
-          purposeVersionOverQuotaToConsumer: false,
           purposeActivatedRejectedToConsumer: false,
           purposeSuspendedUnsuspendedToConsumer: false,
           newEserviceTemplateVersionToInstantiator: false,
@@ -246,7 +197,6 @@ describe("database test", async () => {
           agreementSuspendedUnsuspendedToConsumer: true,
           eserviceStateChangedToConsumer: true,
           agreementActivatedRejectedToConsumer: true,
-          purposeVersionOverQuotaToConsumer: true,
           purposeActivatedRejectedToConsumer: true,
           purposeSuspendedUnsuspendedToConsumer: true,
           newEserviceTemplateVersionToInstantiator: true,
@@ -268,7 +218,6 @@ describe("database test", async () => {
           agreementSuspendedUnsuspendedToConsumer: true,
           eserviceStateChangedToConsumer: true,
           agreementActivatedRejectedToConsumer: true,
-          purposeVersionOverQuotaToConsumer: true,
           purposeActivatedRejectedToConsumer: true,
           purposeSuspendedUnsuspendedToConsumer: true,
           newEserviceTemplateVersionToInstantiator: true,

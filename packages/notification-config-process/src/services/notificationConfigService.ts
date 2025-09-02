@@ -39,27 +39,8 @@ import {
 
 const defaultNotificationConfigs = {
   tenant: {
-    agreementSuspendedUnsuspendedToProducer: false,
-    agreementManagementToProducer: false,
-    clientAddedRemovedToProducer: false,
-    purposeStatusChangedToProducer: false,
-    templateStatusChangedToProducer: false,
-    agreementSuspendedUnsuspendedToConsumer: false,
-    eserviceStateChangedToConsumer: false,
-    agreementActivatedRejectedToConsumer: false,
-    purposeVersionOverQuotaToConsumer: false,
-    purposeActivatedRejectedToConsumer: false,
-    purposeSuspendedUnsuspendedToConsumer: false,
-    newEserviceTemplateVersionToInstantiator: false,
-    eserviceTemplateNameChangedToInstantiator: false,
-    eserviceTemplateStatusChangedToInstantiator: false,
-    delegationApprovedRejectedToDelegator: false,
-    eserviceNewVersionSubmittedToDelegator: false,
-    eserviceNewVersionApprovedRejectedToDelegate: false,
-    delegationSubmittedRevokedToDelegate: false,
-    certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-    clientKeyAddedDeletedToClientUsers: false,
-  } satisfies NotificationConfig,
+    enabled: true,
+  },
   user: {
     inApp: {
       agreementSuspendedUnsuspendedToProducer: false,
@@ -70,7 +51,6 @@ const defaultNotificationConfigs = {
       agreementSuspendedUnsuspendedToConsumer: false,
       eserviceStateChangedToConsumer: false,
       agreementActivatedRejectedToConsumer: false,
-      purposeVersionOverQuotaToConsumer: false,
       purposeActivatedRejectedToConsumer: false,
       purposeSuspendedUnsuspendedToConsumer: false,
       newEserviceTemplateVersionToInstantiator: false,
@@ -92,7 +72,6 @@ const defaultNotificationConfigs = {
       agreementSuspendedUnsuspendedToConsumer: false,
       eserviceStateChangedToConsumer: false,
       agreementActivatedRejectedToConsumer: false,
-      purposeVersionOverQuotaToConsumer: false,
       purposeActivatedRejectedToConsumer: false,
       purposeSuspendedUnsuspendedToConsumer: false,
       newEserviceTemplateVersionToInstantiator: false,
@@ -178,7 +157,7 @@ export function notificationConfigServiceBuilder(
       const tenantNotificationConfig: TenantNotificationConfig = {
         id: existingConfig.data.id,
         tenantId: organizationId,
-        config: seed,
+        enabled: seed.enabled,
         createdAt: existingConfig.data.createdAt,
         updatedAt: new Date(),
       };
@@ -261,7 +240,7 @@ export function notificationConfigServiceBuilder(
       const tenantNotificationConfig: TenantNotificationConfig = {
         id: generateId<TenantNotificationConfigId>(),
         tenantId,
-        config: defaultNotificationConfigs.tenant,
+        enabled: defaultNotificationConfigs.tenant.enabled,
         createdAt: new Date(),
         updatedAt: undefined,
       };

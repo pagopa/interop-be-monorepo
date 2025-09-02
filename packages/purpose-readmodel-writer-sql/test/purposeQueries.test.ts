@@ -12,6 +12,7 @@ import {
   generateId,
   DelegationId,
   tenantKind,
+  PurposeTemplateId,
 } from "pagopa-interop-models";
 import { aggregatePurpose } from "pagopa-interop-readmodel";
 import { describe, it, expect } from "vitest";
@@ -55,6 +56,7 @@ describe("Purpose queries", () => {
         riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
+        purposeTemplateId: generateId<PurposeTemplateId>(),
       };
 
       await purposeWriterService.upsertPurpose(purpose, 1);
@@ -151,6 +153,7 @@ describe("Purpose queries", () => {
         riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
+        purposeTemplateId: generateId<PurposeTemplateId>(),
       };
 
       await purposeWriterService.upsertPurpose(purpose, 1);
@@ -207,6 +210,7 @@ describe("Purpose queries", () => {
         riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
+        purposeTemplateId: generateId<PurposeTemplateId>(),
       };
       await purposeWriterService.upsertPurpose(purpose1, 1);
       await checkCompletePurpose(purpose1);
@@ -237,6 +241,7 @@ describe("Purpose queries", () => {
         riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
+        purposeTemplateId: generateId<PurposeTemplateId>(),
       };
       await purposeWriterService.upsertPurpose(purpose2, 1);
       await checkCompletePurpose(purpose2);
