@@ -8,7 +8,6 @@
 /* eslint-disable prefer-rest-params */
 /* eslint-disable no-eval */
 /* eslint-disable sonarjs/prefer-single-boolean-return */
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import * as fs from "fs";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import type { OpenAPIObject } from "openapi3-ts";

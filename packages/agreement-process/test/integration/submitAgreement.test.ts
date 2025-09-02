@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/immutable-data */
 import { fileURLToPath } from "url";
@@ -1242,7 +1241,7 @@ describe("submit agreement", () => {
             decodeProtobufPayload({
               messageType: AgreementActivatedV2,
               payload: actualAgreementData.data,
-            }).agreement!;
+            }).agreement;
 
           const contractDocumentId = submitAgreementResponse.data.contract!.id;
           const contractCreatedAt =
@@ -1387,7 +1386,7 @@ describe("submit agreement", () => {
             await fileManager.listFiles(config.s3Bucket, genericLogger)
           ).toContain(expectedContract.path);
 
-          expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+          expect(fromAgreementV2(actualAgreement!)).toEqual(expectedAgreement);
           expect(submitAgreementResponse).toEqual({
             data: expectedAgreement,
             metadata: { version: 1 },
@@ -1489,7 +1488,7 @@ describe("submit agreement", () => {
       const actualAgreement: AgreementV2 | undefined = decodeProtobufPayload({
         messageType: AgreementActivatedV2,
         payload: actualAgreementData.data,
-      }).agreement!;
+      }).agreement;
 
       const uploadedFiles = await fileManager.listFiles(
         config.s3Bucket,
@@ -1526,7 +1525,7 @@ describe("submit agreement", () => {
         },
       };
 
-      expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+      expect(fromAgreementV2(actualAgreement!)).toEqual(expectedAgreement);
       expect(submitAgreementResponse).toEqual({
         data: expectedAgreement,
         metadata: { version: 1 },
@@ -1696,7 +1695,7 @@ describe("submit agreement", () => {
             decodeProtobufPayload({
               messageType: AgreementActivatedV2,
               payload: actualAgreementData.data,
-            }).agreement!;
+            }).agreement;
 
           const contractDocumentId = submitAgreementResponse.data.contract!.id;
           const contractCreatedAt =
@@ -1756,7 +1755,7 @@ describe("submit agreement", () => {
             await fileManager.listFiles(config.s3Bucket, genericLogger)
           ).toContain(expectedContract.path);
 
-          expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+          expect(fromAgreementV2(actualAgreement!)).toEqual(expectedAgreement);
           expect(submitAgreementResponse).toEqual({
             data: expectedAgreement,
             metadata: { version: 1 },
@@ -1969,7 +1968,7 @@ describe("submit agreement", () => {
       const actualAgreement: AgreementV2 | undefined = decodeProtobufPayload({
         messageType: AgreementSubmittedV2,
         payload: actualAgreementData.data,
-      }).agreement!;
+      }).agreement;
 
       const uploadedFiles = await fileManager.listFiles(
         config.s3Bucket,
@@ -1998,7 +1997,7 @@ describe("submit agreement", () => {
         },
       };
 
-      expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+      expect(fromAgreementV2(actualAgreement!)).toEqual(expectedAgreement);
       expect(submitAgreementResponse).toEqual({
         data: expectedAgreement,
         metadata: { version: 1 },
@@ -2123,7 +2122,7 @@ describe("submit agreement", () => {
       const actualAgreement: AgreementV2 | undefined = decodeProtobufPayload({
         messageType: AgreementSubmittedV2,
         payload: actualAgreementData.data,
-      }).agreement!;
+      }).agreement;
 
       const uploadedFiles = await fileManager.listFiles(
         config.s3Bucket,
@@ -2151,7 +2150,7 @@ describe("submit agreement", () => {
         },
       };
 
-      expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
+      expect(fromAgreementV2(actualAgreement!)).toEqual(expectedAgreement);
       expect(submitAgreementResponse).toEqual({
         data: expectedAgreement,
         metadata: { version: 1 },
