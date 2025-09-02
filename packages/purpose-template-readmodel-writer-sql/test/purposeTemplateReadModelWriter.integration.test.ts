@@ -5,6 +5,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import {
+  dateToBigInt,
   EService,
   EServiceDescriptorPurposeTemplate,
   PurposeTemplate,
@@ -314,6 +315,8 @@ describe("Integration tests", async () => {
         ...getMockEService(),
         descriptors: [getMockDescriptor()],
       };
+      const createdAt1 = new Date();
+      const createdAt2 = new Date();
 
       await purposeTemplateWriterService.upsertPurposeTemplate(
         purposeTemplate,
@@ -324,7 +327,7 @@ describe("Integration tests", async () => {
           purposeTemplateId: purposeTemplate.id,
           eserviceId: eservice1.id,
           descriptorId: eservice1.descriptors[0].id,
-          createdAt: new Date(),
+          createdAt: createdAt1,
         },
         1
       );
@@ -333,6 +336,7 @@ describe("Integration tests", async () => {
         purposeTemplate: toPurposeTemplateV2(purposeTemplate),
         eservice: toEServiceV2(eservice2),
         descriptorId: eservice2.descriptors[0].id,
+        createdAt: dateToBigInt(createdAt2),
       };
       const message: PurposeTemplateEventEnvelope = {
         sequence_num: 1,
@@ -355,13 +359,13 @@ describe("Integration tests", async () => {
           purposeTemplateId: purposeTemplate.id,
           eserviceId: eservice1.id,
           descriptorId: eservice1.descriptors[0].id,
-          createdAt: expect.any(Date),
+          createdAt: createdAt1,
         },
         {
           purposeTemplateId: purposeTemplate.id,
           eserviceId: eservice2.id,
           descriptorId: eservice2.descriptors[0].id,
-          createdAt: expect.any(Date),
+          createdAt: createdAt2,
         },
       ] satisfies EServiceDescriptorPurposeTemplate[]);
     });
@@ -376,6 +380,7 @@ describe("Integration tests", async () => {
         ...getMockEService(),
         descriptors: [getMockDescriptor()],
       };
+      const createdAt = new Date();
       await purposeTemplateWriterService.upsertPurposeTemplate(
         purposeTemplate,
         0
@@ -394,7 +399,7 @@ describe("Integration tests", async () => {
           purposeTemplateId: purposeTemplate.id,
           eserviceId: eservice2.id,
           descriptorId: eservice2.descriptors[0].id,
-          createdAt: new Date(),
+          createdAt,
         },
         2
       );
@@ -403,6 +408,7 @@ describe("Integration tests", async () => {
         purposeTemplate: toPurposeTemplateV2(purposeTemplate),
         eservice: toEServiceV2(eservice1),
         descriptorId: eservice1.descriptors[0].id,
+        createdAt: dateToBigInt(new Date()),
       };
       const message: PurposeTemplateEventEnvelope = {
         sequence_num: 1,
@@ -425,7 +431,7 @@ describe("Integration tests", async () => {
           purposeTemplateId: purposeTemplate.id,
           eserviceId: eservice2.id,
           descriptorId: eservice2.descriptors[0].id,
-          createdAt: expect.any(Date),
+          createdAt,
         } satisfies EServiceDescriptorPurposeTemplate,
       ]);
     });
