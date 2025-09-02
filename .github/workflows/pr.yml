@@ -64,7 +64,7 @@ jobs:
           file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
 
   get_packages_to_test:
-    name: Get packages to shard
+    name: Get packages
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.get-packages.outputs.packages }}
@@ -73,7 +73,11 @@ jobs:
       - name: Find packages with test directories
         id: get-packages
         run: |
-          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print -printf "%f\n" | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
+          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
+            PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
+            echo "$PACKAGE_NAME"
+          done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
+          
           echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
 
   create_shards:
