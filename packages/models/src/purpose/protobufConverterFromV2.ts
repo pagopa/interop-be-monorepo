@@ -2,6 +2,7 @@ import { DelegationId, RiskAnalysisId, unsafeBrandId } from "../brandedIds.js";
 import {
   PurposeStateV2,
   PurposeVersionDocumentV2,
+  PurposeVersionStampV2,
   PurposeVersionV2,
   PurposeV2,
 } from "../gen/v2/purpose/purpose.js";
@@ -12,6 +13,7 @@ import {
   Purpose,
   PurposeVersion,
   PurposeVersionDocument,
+  PurposeVersionStamp,
   PurposeVersionState,
   purposeVersionState,
 } from "./purpose.js";
@@ -43,6 +45,18 @@ export const fromPurposeVersionDocumentV2 = (
   createdAt: bigIntToDate(input.createdAt),
 });
 
+export const fromPurposeVersionStampV2 = (
+  input: PurposeVersionStampV2 | undefined
+): PurposeVersionStamp | undefined =>
+  input
+    ? {
+        creation: {
+          who: unsafeBrandId(input.who),
+          when: bigIntToDate(input.when),
+        },
+      }
+    : undefined;
+
 export const fromPurposeVersionV2 = (
   input: PurposeVersionV2
 ): PurposeVersion => ({
@@ -56,6 +70,9 @@ export const fromPurposeVersionV2 = (
   updatedAt: bigIntToDate(input.updatedAt),
   firstActivationAt: bigIntToDate(input.firstActivationAt),
   suspendedAt: bigIntToDate(input.suspendedAt),
+  purposeVersionStamp: input.purposeVersionStamp
+    ? fromPurposeVersionStampV2(input.purposeVersionStamp)
+    : undefined,
 });
 
 export const fromPurposeRiskAnalysisFormV2 = (

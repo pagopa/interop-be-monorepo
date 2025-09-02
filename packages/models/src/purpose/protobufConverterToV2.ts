@@ -3,6 +3,7 @@ import {
   PurposeStateV2,
   PurposeV2,
   PurposeVersionDocumentV2,
+  PurposeVersionStampV2,
   PurposeVersionV2,
 } from "../gen/v2/purpose/purpose.js";
 import { dateToBigInt } from "../utils.js";
@@ -10,6 +11,7 @@ import {
   Purpose,
   PurposeVersion,
   PurposeVersionDocument,
+  PurposeVersionStamp,
   PurposeVersionState,
   purposeVersionState,
 } from "./purpose.js";
@@ -36,6 +38,16 @@ export const toPurposeVersionDocumentV2 = (
   createdAt: dateToBigInt(input.createdAt),
 });
 
+export const toPurposeVersionStampV2 = (
+  input: PurposeVersionStamp
+): PurposeVersionStampV2 | undefined =>
+  input
+    ? {
+        who: input.creation.who,
+        when: dateToBigInt(input.creation.when),
+      }
+    : undefined;
+
 export const toPurposeVersionV2 = (
   input: PurposeVersion
 ): PurposeVersionV2 => ({
@@ -47,6 +59,9 @@ export const toPurposeVersionV2 = (
   suspendedAt: dateToBigInt(input.suspendedAt),
   riskAnalysis: input.riskAnalysis
     ? toPurposeVersionDocumentV2(input.riskAnalysis)
+    : undefined,
+  purposeVersionStamp: input.purposeVersionStamp
+    ? toPurposeVersionStampV2(input.purposeVersionStamp)
     : undefined,
 });
 
