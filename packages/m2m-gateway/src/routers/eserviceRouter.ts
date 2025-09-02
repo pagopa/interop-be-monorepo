@@ -763,6 +763,86 @@ const eserviceRouter = (
         }
       }
     )
+    .get(
+      "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const attributes =
+            await eserviceService.getEserviceDescriptorCertifiedAttributes(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceDescriptorAttributes.parse(attributes));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceDescriptorAttributesErrorMapper,
+            ctx,
+            `Error retrieving certified attributes for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eservices/:eserviceId/descriptors/:descriptorId/declaredAttributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const attributes =
+            await eserviceService.getEserviceDescriptorDeclaredAttributes(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceDescriptorAttributes.parse(attributes));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceDescriptorAttributesErrorMapper,
+            ctx,
+            `Error retrieving declared attributes for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eservices/:eserviceId/descriptors/:descriptorId/verifiedAttributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const attributes =
+            await eserviceService.getEserviceDescriptorVerifiedAttributes(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceDescriptorAttributes.parse(attributes));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceDescriptorAttributesErrorMapper,
+            ctx,
+            `Error retrieving verified attributes for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .put(
       "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes",
       async (req, res) => {
