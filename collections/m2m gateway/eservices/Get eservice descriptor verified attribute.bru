@@ -1,0 +1,25 @@
+meta {
+  name: Get eservice descriptor verified attribute
+  type: http
+  seq: 35
+}
+
+get {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/verifiedAttributes?offset=0&limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 50
+}
+
+params:path {
+  descriptorId: {{descriptorId}}
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
