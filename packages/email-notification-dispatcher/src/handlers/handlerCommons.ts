@@ -25,7 +25,7 @@ export type EServiceHandlerParams = HandlerCommonParams & {
 };
 
 export type PurposeHandlerParams = HandlerCommonParams & {
-  pursposeV2Msg?: PurposeV2;
+  purposeV2Msg?: PurposeV2;
 };
 
 type EmailNotificationRecipient = { type: "Tenant" | "User"; address: string };
