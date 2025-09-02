@@ -6,9 +6,9 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
+  eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
-  eserviceService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
@@ -23,16 +23,16 @@ describe("getEserviceDescriptorDeclaredAttributes", () => {
 
   const mockEServiceProcessResponse = getMockWithMetadata(mockEService);
 
-  const mockGetEService = vi
+  const mockGetEServiceById = vi
     .fn()
     .mockResolvedValue(mockEServiceProcessResponse);
 
   mockInteropBeClients.catalogProcessClient = {
-    getEServiceById: mockGetEService,
+    getEServiceById: mockGetEServiceById,
   } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
   beforeEach(() => {
-    mockGetEService.mockClear();
+    mockGetEServiceById.mockClear();
   });
 
   it("Should succeed and perform service calls", async () => {
@@ -49,7 +49,7 @@ describe("getEserviceDescriptorDeclaredAttributes", () => {
 
     expect(result).toEqual(expectedResponse);
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
+      mockGet: mockGetEServiceById,
       params: { eServiceId: mockEService.id },
     });
   });

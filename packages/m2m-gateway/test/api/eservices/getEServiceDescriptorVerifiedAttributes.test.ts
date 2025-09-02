@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
+import { generateToken } from "pagopa-interop-commons-test";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId } from "pagopa-interop-models";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateToken } from "pagopa-interop-commons-test";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttributes router test", () => {
-  const m2mAttributes: m2mGatewayApi.EServiceDescriptorAttributes = {
+  const mockDescriptorAttributes: m2mGatewayApi.EServiceDescriptorAttributes = {
     attributes: [
       [{ id: generateId() }],
       [{ id: generateId() }, { id: generateId() }],
@@ -19,7 +19,7 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttribu
 
   mockEserviceService.getEserviceDescriptorVerifiedAttributes = vi
     .fn()
-    .mockResolvedValue(m2mAttributes);
+    .mockResolvedValue(mockDescriptorAttributes);
 
   const makeRequest = async (
     token: string,
@@ -43,7 +43,7 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttribu
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(m2mAttributes);
+      expect(res.body).toEqual(mockDescriptorAttributes);
     }
   );
 
@@ -70,13 +70,13 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttribu
 
   it.each([
     {
-      attributes: [...m2mAttributes.attributes, [{ id: undefined }]],
+      attributes: [...mockDescriptorAttributes.attributes, [{ id: undefined }]],
     },
     {
-      attributes: [...m2mAttributes.attributes, [{ id: "invalid" }]],
+      attributes: [...mockDescriptorAttributes.attributes, [{ id: "invalid" }]],
     },
     {
-      attributes: [...m2mAttributes.attributes, [{}]],
+      attributes: [...mockDescriptorAttributes.attributes, [{}]],
     },
   ] as unknown as m2mGatewayApi.EServiceDescriptorAttributes[])(
     "Should return 500 when API model parsing fails for response",

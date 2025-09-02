@@ -6,9 +6,9 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
+  eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
-  eserviceService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
@@ -21,11 +21,9 @@ describe("getEserviceDescriptorVerifiedAttributes", () => {
     descriptors: [mockDescriptor, getMockedApiEserviceDescriptor()],
   });
 
-  const mockEServiceProcessResponse = getMockWithMetadata(mockEService);
+  const mockProcessResponse = getMockWithMetadata(mockEService);
 
-  const mockGetEService = vi
-    .fn()
-    .mockResolvedValue(mockEServiceProcessResponse);
+  const mockGetEService = vi.fn().mockResolvedValue(mockProcessResponse);
 
   mockInteropBeClients.catalogProcessClient = {
     getEServiceById: mockGetEService,
@@ -49,12 +47,12 @@ describe("getEserviceDescriptorVerifiedAttributes", () => {
 
     expect(result).toEqual(expectedResponse);
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
+      mockGet: mockGetEService,
       params: { eServiceId: mockEService.id },
     });
   });
 
-  it("Should throw eserviceDescriptorNotFound in case the returned eservice has no descriptor with the given id", async () => {
+  it("Should throw eserviceDescriptorNotFound when the descriptor does not exist", async () => {
     const nonExistingDescriptorId = generateId();
     await expect(
       eserviceService.getEserviceDescriptorVerifiedAttributes(
