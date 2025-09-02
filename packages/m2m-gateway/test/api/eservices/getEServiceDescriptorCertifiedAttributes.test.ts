@@ -31,6 +31,7 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttrib
         `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/certifiedAttributes`
       )
       .set("Authorization", `Bearer ${token}`)
+      .query({ offset: 0, limit: 10 })
       .send();
 
   const authorizedRoles: AuthRole[] = [
