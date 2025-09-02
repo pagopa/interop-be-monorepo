@@ -6020,7 +6020,7 @@ paths:
       tags:
         - eservices
       summary: List E-Service Descriptor Certified Attributes
-      description: Retrieve a list of E-Service Descriptors Certified Attributes
+      description: Retrieve a list of E-Service Descriptor Certified Attributes
       operationId: getEServiceDescriptorCertifiedAttributes
       parameters:
         - in: query
