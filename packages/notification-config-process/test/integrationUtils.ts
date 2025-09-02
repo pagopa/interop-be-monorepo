@@ -16,13 +16,12 @@ import {
 } from "pagopa-interop-models";
 import {
   notificationConfigReadModelServiceBuilder,
-  splitTenantNotificationConfigIntoObjectsSQL,
-  splitUserNotificationConfigIntoObjectsSQL,
+  tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
-  tenantNotificationConfigInReadmodelNotificationConfig,
-  userNotificationConfigInReadmodelNotificationConfig,
-} from "pagopa-interop-readmodel-models";
+  insertTenantNotificationConfig,
+  insertUserNotificationConfig,
+} from "pagopa-interop-readmodel/testUtils";
 import { inject, afterEach } from "vitest";
 import { notificationConfigServiceBuilder } from "../src/services/notificationConfigService.js";
 
@@ -42,9 +41,12 @@ afterEach(cleanup);
 const notificationConfigReadModelService =
   notificationConfigReadModelServiceBuilder(readModelDB);
 
+const tenantReadModelService = tenantReadModelServiceBuilder(readModelDB);
+
 export const notificationConfigService = notificationConfigServiceBuilder(
   postgresDB,
-  notificationConfigReadModelService
+  notificationConfigReadModelService,
+  tenantReadModelService
 );
 
 export const readLastNotificationConfigEvent = async (
@@ -56,7 +58,7 @@ const writeTenantNotificationConfigInEventstore = async (
   tenantNotificationConfig: TenantNotificationConfig
 ): Promise<void> => {
   const event: NotificationConfigEvent = {
-    type: "TenantNotificationConfigUpdated",
+    type: "TenantNotificationConfigCreated",
     event_version: 2,
     data: {
       tenantNotificationConfig: toTenantNotificationConfigV2(
@@ -76,19 +78,19 @@ const writeTenantNotificationConfigInEventstore = async (
 export const addOneTenantNotificationConfig = async (
   tenantNotificationConfig: TenantNotificationConfig
 ): Promise<void> => {
-  writeTenantNotificationConfigInEventstore(tenantNotificationConfig);
-  await readModelDB
-    .insert(tenantNotificationConfigInReadmodelNotificationConfig)
-    .values(
-      splitTenantNotificationConfigIntoObjectsSQL(tenantNotificationConfig, 0)
-    );
+  await writeTenantNotificationConfigInEventstore(tenantNotificationConfig);
+  await insertTenantNotificationConfig(
+    readModelDB,
+    tenantNotificationConfig,
+    0
+  );
 };
 
 const writeUserNotificationConfigInEventstore = async (
   userNotificationConfig: UserNotificationConfig
 ): Promise<void> => {
   const event: NotificationConfigEvent = {
-    type: "UserNotificationConfigUpdated",
+    type: "UserNotificationConfigCreated",
     event_version: 2,
     data: {
       userNotificationConfig: toUserNotificationConfigV2(
@@ -108,10 +110,6 @@ const writeUserNotificationConfigInEventstore = async (
 export const addOneUserNotificationConfig = async (
   userNotificationConfig: UserNotificationConfig
 ): Promise<void> => {
-  writeUserNotificationConfigInEventstore(userNotificationConfig);
-  await readModelDB
-    .insert(userNotificationConfigInReadmodelNotificationConfig)
-    .values(
-      splitUserNotificationConfigIntoObjectsSQL(userNotificationConfig, 0)
-    );
+  await writeUserNotificationConfigInEventstore(userNotificationConfig);
+  await insertUserNotificationConfig(readModelDB, userNotificationConfig, 0);
 };

@@ -167,6 +167,9 @@ export type EServiceTemplateVersionId = z.infer<
   typeof EServiceTemplateVersionId
 >;
 
+export const NotificationId = z.string().uuid().brand("NotificationId");
+export type NotificationId = z.infer<typeof NotificationId>;
+
 export const TenantNotificationConfigId = z
   .string()
   .uuid()
@@ -180,6 +183,33 @@ export const UserNotificationConfigId = z
   .uuid()
   .brand("UserNotificationConfigId");
 export type UserNotificationConfigId = z.infer<typeof UserNotificationConfigId>;
+
+export const PurposeTemplateId = z.string().uuid().brand("PurposeTemplateId");
+export type PurposeTemplateId = z.infer<typeof PurposeTemplateId>;
+
+export const RiskAnalysisFormTemplateId = z
+  .string()
+  .uuid()
+  .brand("RiskAnalysisFormTemplateId");
+export type RiskAnalysisFormTemplateId = z.infer<
+  typeof RiskAnalysisFormTemplateId
+>;
+
+export const RiskAnalysisTemplateAnswerAnnotationId = z
+  .string()
+  .uuid()
+  .brand("RiskAnalysisTemplateAnswerAnnotationId");
+export type RiskAnalysisTemplateAnswerAnnotationId = z.infer<
+  typeof RiskAnalysisTemplateAnswerAnnotationId
+>;
+
+export const RiskAnalysisTemplateAnswerAnnotationDocumentId = z
+  .string()
+  .uuid()
+  .brand("RiskAnalysisTemplateAnswerAnnotationDocumentId");
+export type RiskAnalysisTemplateAnswerAnnotationDocumentId = z.infer<
+  typeof RiskAnalysisTemplateAnswerAnnotationDocumentId
+>;
 
 type IDS =
   | CorrelationId
@@ -216,8 +246,13 @@ type IDS =
   | GSIPKClientIdKid
   | EServiceTemplateId
   | EServiceTemplateVersionId
+  | NotificationId
   | TenantNotificationConfigId
-  | UserNotificationConfigId;
+  | UserNotificationConfigId
+  | PurposeTemplateId
+  | RiskAnalysisFormTemplateId
+  | RiskAnalysisTemplateAnswerAnnotationId
+  | RiskAnalysisTemplateAnswerAnnotationDocumentId;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result

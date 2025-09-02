@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose (
   updated_at TIMESTAMP WITH TIME ZONE,
   is_free_of_charge BOOLEAN NOT NULL,
   free_of_charge_reason VARCHAR,
+  purpose_template_id UUID,
   PRIMARY KEY (id),
   CONSTRAINT purpose_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
@@ -35,7 +36,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_risk_analysis_answer (
   risk_analysis_form_id UUID NOT NULL,
   kind VARCHAR NOT NULL,
   "key" VARCHAR NOT NULL,
-  value VARCHAR ARRAY,
+  value VARCHAR ARRAY NOT NULL,
   PRIMARY KEY (id, purpose_id),
   FOREIGN KEY (risk_analysis_form_id, purpose_id) REFERENCES readmodel_purpose.purpose_risk_analysis_form (id, purpose_id) ON DELETE CASCADE,
   FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version) DEFERRABLE INITIALLY DEFERRED

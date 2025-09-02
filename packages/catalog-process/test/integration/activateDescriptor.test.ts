@@ -46,7 +46,7 @@ describe("activate descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    await catalogService.activateDescriptor(
+    const activateDescriptorResponse = await catalogService.activateDescriptor(
       eservice.id,
       descriptor.id,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -67,11 +67,15 @@ describe("activate descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice = {
       ...eservice,
       descriptors: [expectedDescriptor],
+    };
+    expect(activateDescriptorResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
   });
 
@@ -99,7 +103,7 @@ describe("activate descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    await catalogService.activateDescriptor(
+    const activateDescriptorResponse = await catalogService.activateDescriptor(
       eservice.id,
       descriptor.id,
       getMockContext({ authData: delegate })
@@ -120,11 +124,15 @@ describe("activate descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice = {
       ...eservice,
       descriptors: [expectedDescriptor],
+    };
+    expect(activateDescriptorResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
   });
 

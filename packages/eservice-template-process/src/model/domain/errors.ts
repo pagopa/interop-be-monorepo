@@ -255,12 +255,11 @@ export function documentPrettyNameDuplicate(
 }
 
 export function checksumDuplicate(
-  fileName: string,
   eserviceTemplateId: string,
   eserviceTemplateVersionId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `The document ${fileName} content already exists in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
+    detail: `A document with the same content already exists in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
     code: "checksumDuplicate",
     title: "Duplicated checksum",
   });

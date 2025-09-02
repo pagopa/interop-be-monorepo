@@ -4,6 +4,7 @@ import {
   Purpose,
   PurposeId,
   PurposeRiskAnalysisForm,
+  PurposeTemplateId,
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionId,
@@ -178,6 +179,13 @@ export const aggregatePurpose = ({
     ...(purposeSQL.updatedAt
       ? { updatedAt: stringToDate(purposeSQL.updatedAt) }
       : {}),
+    ...(purposeSQL.purposeTemplateId
+      ? {
+          purposeTemplateId: unsafeBrandId<PurposeTemplateId>(
+            purposeSQL.purposeTemplateId
+          ),
+        }
+      : {}),
   };
 
   return {
@@ -215,11 +223,7 @@ const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
             {
               id: unsafeBrandId<RiskAnalysisSingleAnswerId>(a.id),
               key: a.key,
-              ...(a.value
-                ? {
-                    value: a.value[0],
-                  }
-                : undefined),
+              value: a.value.length > 0 ? a.value[0] : undefined,
             },
           ],
           multiAnswers: acc.multiAnswers,

@@ -4,6 +4,7 @@ import {
   generateId,
   Purpose,
   PurposeRiskAnalysisForm,
+  PurposeTemplateId,
   PurposeVersion,
   RiskAnalysisId,
   tenantKind,
@@ -14,7 +15,7 @@ import {
   getMockPurposeVersion,
   getMockPurposeVersionDocument,
   getMockValidRiskAnalysisForm,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { aggregatePurpose } from "../src/purpose/aggregators.js";
 import { splitPurposeIntoObjectsSQL } from "../src/purpose/splitters.js";
 
@@ -44,6 +45,7 @@ describe("Purpose aggregator", () => {
         freeOfChargeReason: "Free of charge reason",
         riskAnalysisForm: purposeRiskAnalysisForm,
         versions: [purposeVersion],
+        purposeTemplateId: generateId<PurposeTemplateId>(),
       },
       metadata: { version: 1 },
     };

@@ -56,6 +56,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant notification config not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -68,7 +74,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NotificationConfigSeed"
+              $ref: "#/components/schemas/TenantNotificationConfigUpdateSeed"
         required: true
       responses:
         "200":
@@ -91,6 +97,103 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant notification config not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/tenantNotificationConfigs:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Create a tenant's default notification configuration
+      operationId: createTenantDefaultNotificationConfig
+      requestBody:
+        description: A tenant notification config seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantNotificationConfigSeed"
+        required: true
+      responses:
+        "200":
+          description: The tenant's newly created notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantNotificationConfig"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/tenantNotificationConfigs/tenantId/{tenantId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Delete a tenant's notification configuration
+      operationId: deleteTenantNotificationConfig
+      responses:
+        "204":
+          description: Tenant notification config deleted
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant notification config not found
           content:
             application/problem+json:
               schema:
@@ -124,6 +227,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "404":
+          description: User notification config not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -136,7 +245,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserNotificationConfigSeed"
+              $ref: "#/components/schemas/UserNotificationConfigUpdateSeed"
         required: true
       responses:
         "200":
@@ -159,6 +268,109 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: User notification config not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/userNotificationConfigs:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Create a user's default notification configuration
+      operationId: createUserDefaultNotificationConfig
+      requestBody:
+        description: A user notification config seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserNotificationConfigSeed"
+        required: true
+      responses:
+        "200":
+          description: The user's newly created notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserNotificationConfig"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/userNotificationConfigs/tenantId/{tenantId}/userId/{userId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Delete a user's notification configuration
+      operationId: deleteUserNotificationConfig
+      responses:
+        "204":
+          description: User notification config deleted
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: User notification config not found
           content:
             application/problem+json:
               schema:
@@ -193,7 +405,7 @@ components:
       required:
         - id
         - tenantId
-        - config
+        - enabled
         - createdAt
       properties:
         id:
@@ -202,8 +414,8 @@ components:
         tenantId:
           type: string
           format: uuid
-        config:
-          $ref: "#/components/schemas/NotificationConfig"
+        enabled:
+          type: boolean
         createdAt:
           type: string
           format: date-time
@@ -244,11 +456,95 @@ components:
       type: object
       additionalProperties: false
       required:
-        - newEServiceVersionPublished
+        - agreementSuspendedUnsuspendedToProducer
+        - agreementManagementToProducer
+        - clientAddedRemovedToProducer
+        - purposeStatusChangedToProducer
+        - templateStatusChangedToProducer
+        - agreementSuspendedUnsuspendedToConsumer
+        - eserviceStateChangedToConsumer
+        - agreementActivatedRejectedToConsumer
+        - purposeActivatedRejectedToConsumer
+        - purposeSuspendedUnsuspendedToConsumer
+        - newEserviceTemplateVersionToInstantiator
+        - eserviceTemplateNameChangedToInstantiator
+        - eserviceTemplateStatusChangedToInstantiator
+        - delegationApprovedRejectedToDelegator
+        - eserviceNewVersionSubmittedToDelegator
+        - eserviceNewVersionApprovedRejectedToDelegate
+        - delegationSubmittedRevokedToDelegate
+        - certifiedVerifiedAttributeAssignedRevokedToAssignee
+        - clientKeyAddedDeletedToClientUsers
       properties:
-        newEServiceVersionPublished:
+        agreementSuspendedUnsuspendedToProducer:
           type: boolean
+        agreementManagementToProducer:
+          type: boolean
+        clientAddedRemovedToProducer:
+          type: boolean
+        purposeStatusChangedToProducer:
+          type: boolean
+        templateStatusChangedToProducer:
+          type: boolean
+        agreementSuspendedUnsuspendedToConsumer:
+          type: boolean
+        eserviceStateChangedToConsumer:
+          type: boolean
+        agreementActivatedRejectedToConsumer:
+          type: boolean
+        purposeActivatedRejectedToConsumer:
+          type: boolean
+        purposeSuspendedUnsuspendedToConsumer:
+          type: boolean
+        newEserviceTemplateVersionToInstantiator:
+          type: boolean
+        eserviceTemplateNameChangedToInstantiator:
+          type: boolean
+        eserviceTemplateStatusChangedToInstantiator:
+          type: boolean
+        delegationApprovedRejectedToDelegator:
+          type: boolean
+        eserviceNewVersionSubmittedToDelegator:
+          type: boolean
+        eserviceNewVersionApprovedRejectedToDelegate:
+          type: boolean
+        delegationSubmittedRevokedToDelegate:
+          type: boolean
+        certifiedVerifiedAttributeAssignedRevokedToAssignee:
+          type: boolean
+        clientKeyAddedDeletedToClientUsers:
+          type: boolean
+    TenantNotificationConfigSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - tenantId
+      properties:
+        tenantId:
+          type: string
+          format: uuid
     UserNotificationConfigSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - userId
+        - tenantId
+      properties:
+        userId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+    TenantNotificationConfigUpdateSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
+    UserNotificationConfigUpdateSeed:
       type: object
       additionalProperties: false
       required:
@@ -256,17 +552,9 @@ components:
         - emailConfig
       properties:
         inAppConfig:
-          $ref: "#/components/schemas/NotificationConfigSeed"
+          $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
-          $ref: "#/components/schemas/NotificationConfigSeed"
-    NotificationConfigSeed:
-      type: object
-      additionalProperties: false
-      required:
-        - newEServiceVersionPublished
-      properties:
-        newEServiceVersionPublished:
-          type: boolean
+          $ref: "#/components/schemas/NotificationConfig"
     Problem:
       properties:
         type:
