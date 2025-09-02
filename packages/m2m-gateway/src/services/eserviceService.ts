@@ -861,7 +861,7 @@ export function eserviceServiceBuilder(
       return await retrieveEServiceDescriptorAttributes(
         await retrieveEServiceById(headers, eserviceId),
         descriptorId,
-        "certified"
+        "verified"
       );
     },
 
