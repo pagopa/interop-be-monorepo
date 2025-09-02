@@ -1,11 +1,7 @@
-/* eslint-disable functional/no-let */
-import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import {
-  EServiceV2,
   fromEServiceV2,
   EmailNotificationMessagePayload,
   generateId,
-  CorrelationId,
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
@@ -14,25 +10,16 @@ import {
   retrieveHTMLTemplate,
   retrieveLatestPublishedDescriptor,
 } from "../../services/utils.js";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { getUserEmailsToNotify } from "../handlerCommons.js";
-import { UserServiceSQL } from "../../services/userServiceSQL.js";
+import {
+  EServiceHandlerParams,
+  getRecipientsForTenants,
+} from "../handlerCommons.js";
 
 const notificationType: NotificationType =
   "purposeSuspendedUnsuspendedToConsumer";
 
-export type EServiceNameUpdatedData = {
-  eserviceV2Msg?: EServiceV2;
-  readModelService: ReadModelServiceSQL;
-  logger: Logger;
-  templateService: HtmlTemplateService;
-  userService: UserServiceSQL;
-  correlationId: CorrelationId;
-};
-
-// Very tenative implementation. EServiceNameUpdated does not contain the old name for now
 export async function handleEserviceNameUpdated(
-  data: EServiceNameUpdatedData
+  data: EServiceHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     eserviceV2Msg,
@@ -64,30 +51,37 @@ export async function handleEserviceNameUpdated(
     return [];
   }
 
-  const userEmails = (
-    await Promise.all(
-      agreements.map((agreement) =>
-        getUserEmailsToNotify(
-          agreement.consumerId,
-          notificationType,
-          readModelService,
-          userService
-        )
-      )
-    )
-  ).flat();
+  const tenants = await readModelService.getTenantsById(
+    agreements.map((agreement) => agreement.consumerId)
+  );
 
-  return userEmails.map((email) => ({
+  const targets = await getRecipientsForTenants({
+    tenants,
+    notificationType,
+    readModelService,
+    userService,
+    logger,
+    includeTenantContactEmails: false,
+  });
+
+  if (targets.length === 0) {
+    logger.info(
+      `No targets found. Eservice ${eservice.id}, no emails to dispatch.`
+    );
+    return [];
+  }
+
+  return targets.map(({ address }) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `L'e-service <Vecchio Nome E-service> è stato rinominato`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: "Nome di un e-service modificato",
+        title: `L'e-service <Vecchio Nome E-service> è stato rinominato`,
         notificationType,
         entityId: descriptor.id,
         eserviceName: eservice.name,
       }),
     },
-    address: email,
+    address,
   }));
 }

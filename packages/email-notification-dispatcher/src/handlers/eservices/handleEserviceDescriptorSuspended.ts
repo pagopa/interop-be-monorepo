@@ -1,11 +1,7 @@
-/* eslint-disable functional/no-let */
-import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import {
-  EServiceV2,
   fromEServiceV2,
   EmailNotificationMessagePayload,
   generateId,
-  CorrelationId,
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
@@ -14,24 +10,16 @@ import {
   retrieveHTMLTemplate,
   retrieveLatestPublishedDescriptor,
 } from "../../services/utils.js";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { getUserEmailsToNotify } from "../handlerCommons.js";
-import { UserServiceSQL } from "../../services/userServiceSQL.js";
+import {
+  EServiceHandlerParams,
+  getRecipientsForTenants,
+} from "../handlerCommons.js";
 
 const notificationType: NotificationType =
   "purposeSuspendedUnsuspendedToConsumer";
 
-export type EServiceDescriptorSuspendedData = {
-  eserviceV2Msg?: EServiceV2;
-  readModelService: ReadModelServiceSQL;
-  logger: Logger;
-  templateService: HtmlTemplateService;
-  userService: UserServiceSQL;
-  correlationId: CorrelationId;
-};
-
 export async function handleEserviceDescriptorSuspended(
-  data: EServiceDescriptorSuspendedData
+  data: EServiceHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     eserviceV2Msg,
@@ -66,30 +54,37 @@ export async function handleEserviceDescriptorSuspended(
     return [];
   }
 
-  const userEmails = (
-    await Promise.all(
-      agreements.map((agreement) =>
-        getUserEmailsToNotify(
-          agreement.consumerId,
-          notificationType,
-          readModelService,
-          userService
-        )
-      )
-    )
-  ).flat();
+  const tenants = await readModelService.getTenantsById(
+    agreements.map((agreement) => agreement.consumerId)
+  );
 
-  return userEmails.map((email) => ({
+  const targets = await getRecipientsForTenants({
+    tenants,
+    notificationType,
+    readModelService,
+    userService,
+    logger,
+    includeTenantContactEmails: false,
+  });
+
+  if (targets.length === 0) {
+    logger.info(
+      `No targets found. Eservice ${eservice.id}, no emails to dispatch.`
+    );
+    return [];
+  }
+
+  return targets.map(({ address }) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Una versione di ${eservice.name} è stata sospesa`,
+      subject: `Una versione di "${eservice.name}" è stata sospesa`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: "Versione di un e-service sospesa",
+        title: `Una versione di "${eservice.name}" è stata sospesa`,
         notificationType,
         entityId: descriptor.id,
         eserviceName: eservice.name,
       }),
     },
-    address: email,
+    address,
   }));
 }

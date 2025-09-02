@@ -17,7 +17,6 @@ import {
   Tenant,
   TenantId,
   toEServiceV2,
-  UserId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { descriptorPublishedNotFound } from "../src/models/errors.js";
@@ -26,6 +25,7 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
+  addOneUser,
   getMockUser,
   readModelService,
   templateService,
@@ -34,7 +34,7 @@ import {
 
 describe("handleEserviceDescriptorPublished", async () => {
   const producerId = generateId<TenantId>();
-  const consumerId = generateId<TenantId>();
+  const consumerIds = [generateId<TenantId>(), generateId<TenantId>()];
   const eserviceId = generateId<EServiceId>();
 
   const descriptor = getMockDescriptorPublished();
@@ -42,33 +42,32 @@ describe("handleEserviceDescriptorPublished", async () => {
     ...getMockEService(),
     id: eserviceId,
     producerId,
-    consumerId,
     descriptors: [descriptor],
   };
   const producerTenant = getMockTenant(producerId);
-  const consumerTenant = getMockTenant(consumerId);
+  const consumerTenants = consumerIds.map((id) => getMockTenant(id));
   const users = [
-    getMockUser(consumerTenant.id),
-    getMockUser(consumerTenant.id),
+    getMockUser(consumerTenants[0].id),
+    getMockUser(consumerTenants[0].id),
+    getMockUser(consumerTenants[1].id),
+    getMockUser(consumerTenants[1].id),
   ];
 
-  const userService = {
-    readUser: vi.fn(),
-  };
   const { logger } = getMockContext({});
 
   beforeEach(async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
-    await addOneTenant(consumerTenant);
+    await addOneTenant(consumerTenants[0]);
+    await addOneTenant(consumerTenants[1]);
+    for (const user of users) {
+      await addOneUser(user);
+    }
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.userId, tenantId: user.tenantId }))
+        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
       );
-    userService.readUser.mockImplementation((userId) =>
-      users.find((user) => user.userId === userId)
-    );
   });
 
   it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
@@ -104,10 +103,11 @@ describe("handleEserviceDescriptorPublished", async () => {
 
     const agreement: Agreement = {
       ...getMockAgreement(),
-      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      state: agreementState.active,
+      stamps: {},
       producerId: producerTenant.id,
       eserviceId: eserviceNoDescriptor.id,
-      consumerId: consumerTenant.id,
+      consumerId: consumerTenants[0].id,
     };
     await addOneAgreement(agreement);
 
@@ -135,7 +135,19 @@ describe("handleEserviceDescriptorPublished", async () => {
     expect(messages.length).toEqual(0);
   });
 
-  it("should generate no messages when no agreements exist for the eservice", async () => {
+  it("should generate one message per user of the tenants that consumed the eservice", async () => {
+    const agreements = consumerTenants.map((consumerTenant) => ({
+      ...getMockAgreement(),
+      stamps: {},
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+      state: agreementState.active,
+    }));
+    await addOneAgreement(agreements[0]);
+    await addOneAgreement(agreements[1]);
+
     const messages = await handleEserviceDescriptorPublished({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,

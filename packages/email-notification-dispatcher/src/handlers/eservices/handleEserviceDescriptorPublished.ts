@@ -77,9 +77,9 @@ export async function handleEserviceDescriptorPublished(
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
+      subject: `Nuova versione disponibile per "${eservice.name}"`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: "Nuova versione di un e-service",
+        title: `Nuova versione disponibile per "${eservice.name}"`,
         notificationType,
         entityId: descriptor.id,
         ...(t.type === "Tenant" ? { recipientName: "aderente" } : {}),
