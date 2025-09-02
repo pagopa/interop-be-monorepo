@@ -1,4 +1,5 @@
 /* eslint-disable max-params */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { randomUUID } from "crypto";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {

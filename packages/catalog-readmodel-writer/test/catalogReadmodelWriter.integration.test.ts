@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { describe, expect, it } from "vitest";
 import {
   getMockValidRiskAnalysis,

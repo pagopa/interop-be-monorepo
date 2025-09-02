@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import { Attribute } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
