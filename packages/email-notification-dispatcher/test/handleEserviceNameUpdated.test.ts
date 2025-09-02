@@ -18,7 +18,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { descriptorPublishedNotFound } from "../src/models/errors.js";
-import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEserviceDescriptorPublished.js";
+import { handleEserviceNameUpdated } from "../src/handlers/eservices/handleEserviceNameUpdated.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -30,7 +30,7 @@ import {
   userService,
 } from "./utils.js";
 
-describe("handleEserviceDescriptorPublished", async () => {
+describe("handleEserviceNameUpdated", async () => {
   const producerId = generateId<TenantId>();
   const consumerIds = [generateId<TenantId>(), generateId<TenantId>()];
   const eserviceId = generateId<EServiceId>();
@@ -70,7 +70,7 @@ describe("handleEserviceDescriptorPublished", async () => {
 
   it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
     await expect(() =>
-      handleEserviceDescriptorPublished({
+      handleEserviceNameUpdated({
         eserviceV2Msg: undefined,
         logger,
         templateService,
@@ -79,7 +79,7 @@ describe("handleEserviceDescriptorPublished", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("eservice", "EServiceDescriptorPublished")
+      missingKafkaMessageDataError("eservice", "EServiceNameUpdated")
     );
   });
 
@@ -98,7 +98,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleEserviceDescriptorPublished({
+      handleEserviceNameUpdated({
         eserviceV2Msg: toEServiceV2(eserviceNoDescriptor),
         logger,
         templateService,
@@ -109,8 +109,8 @@ describe("handleEserviceDescriptorPublished", async () => {
     ).rejects.toThrow(descriptorPublishedNotFound(agreement.eserviceId));
   });
 
-  it("should return empty array if no consumer is present for the eservice", async () => {
-    const messages = await handleEserviceDescriptorPublished({
+  it("should skip event if no consumer is present for the eservice", async () => {
+    const messages = await handleEserviceNameUpdated({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
@@ -121,7 +121,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     expect(messages.length).toEqual(0);
   });
 
-  it("should generate one message per user of the tenants that consumed the eservice", async () => {
+  it("should generate one message per user of the consumers of the eservice", async () => {
     const agreements = consumerTenants.map((consumerTenant) => ({
       ...getMockAgreement(),
       stamps: {},
@@ -134,7 +134,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     await addOneAgreement(agreements[0]);
     await addOneAgreement(agreements[1]);
 
-    const messages = await handleEserviceDescriptorPublished({
+    const messages = await handleEserviceNameUpdated({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
@@ -178,7 +178,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     await addOneAgreement(agreements[0]);
     await addOneAgreement(agreements[1]);
 
-    const messages = await handleEserviceDescriptorPublished({
+    const messages = await handleEserviceNameUpdated({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
@@ -215,7 +215,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     await addOneAgreement(agreement);
     await addOneAgreement(agreement);
 
-    const messages = await handleEserviceDescriptorPublished({
+    const messages = await handleEserviceNameUpdated({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
@@ -228,7 +228,7 @@ describe("handleEserviceDescriptorPublished", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `Nuova versione disponibile per &quot;${eservice.name}&quot;`
+        `L'e-service <Vecchio Nome E-service> è stato rinominato`
       );
     });
   });

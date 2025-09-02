@@ -18,7 +18,7 @@ import {
 const notificationType: NotificationType =
   "purposeSuspendedUnsuspendedToConsumer";
 
-export async function handleEserviceDescriptorPublished(
+export async function handleEserviceNameUpdated(
   data: EServiceHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -31,17 +31,14 @@ export async function handleEserviceDescriptorPublished(
   } = data;
 
   if (!eserviceV2Msg) {
-    throw missingKafkaMessageDataError(
-      "eservice",
-      "EServiceDescriptorPublished"
-    );
+    throw missingKafkaMessageDataError("eservice", "EServiceNameUpdated");
   }
 
   const eservice = fromEServiceV2(eserviceV2Msg);
 
   const [htmlTemplate, agreements, descriptor] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceDescriptorPublishedMailTemplate
+      eventMailTemplateType.eserviceDescriptorSuspendedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
     retrieveLatestPublishedDescriptor(eservice),
@@ -77,9 +74,9 @@ export async function handleEserviceDescriptorPublished(
   return targets.map(({ address }) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Nuova versione disponibile per "${eservice.name}"`,
+      subject: `L'e-service <Vecchio Nome E-service> è stato rinominato`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: `Nuova versione disponibile per "${eservice.name}"`,
+        title: `L'e-service <Vecchio Nome E-service> è stato rinominato`,
         notificationType,
         entityId: descriptor.id,
         eserviceName: eservice.name,

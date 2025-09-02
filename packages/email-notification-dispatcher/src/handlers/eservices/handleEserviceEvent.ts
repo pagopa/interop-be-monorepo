@@ -5,6 +5,9 @@ import {
 import { match, P } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleEserviceDescriptorPublished } from "./handleEserviceDescriptorPublished.js";
+import { handleEserviceDescriptorActivated } from "./handleEserviceDescriptorActivated.js";
+import { handleEserviceDescriptorSuspended } from "./handleEserviceDescriptorSuspended.js";
+import { handleEserviceNameUpdated } from "./handleEserviceNameUpdated.js";
 
 export async function handleEServiceEvent(
   params: HandlerParams<typeof EServiceEventV2>
@@ -23,6 +26,27 @@ export async function handleEServiceEvent(
         eserviceV2Msg: eservice,
         logger,
         readModelService,
+        userService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
+    .with({ type: "EServiceDescriptorActivated" }, ({ data: { eservice } }) =>
+      handleEserviceDescriptorActivated({
+        eserviceV2Msg: eservice,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
+    .with({ type: "EServiceDescriptorSuspended" }, ({ data: { eservice } }) =>
+      handleEserviceDescriptorSuspended({
+        eserviceV2Msg: eservice,
+        logger,
+        readModelService,
         templateService,
         userService,
         correlationId,
@@ -31,9 +55,24 @@ export async function handleEServiceEvent(
     .with(
       {
         type: P.union(
-          "EServiceDescriptorActivated",
+          "EServiceNameUpdated",
+          "EServiceNameUpdatedByTemplateUpdate"
+        ),
+      },
+      ({ data: { eservice } }) =>
+        handleEserviceNameUpdated({
+          eserviceV2Msg: eservice,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })
+    )
+    .with(
+      {
+        type: P.union(
           "EServiceDescriptorApprovedByDelegator",
-          "EServiceDescriptorSuspended",
           "EServiceDescriptorArchived",
           "EServiceDescriptorQuotasUpdated",
           "EServiceDescriptorAgreementApprovalPolicyUpdated",
@@ -55,14 +94,12 @@ export async function handleEServiceEvent(
           "EServiceRiskAnalysisDeleted",
           "EServiceDescriptorAttributesUpdated",
           "EServiceDescriptionUpdated",
-          "EServiceNameUpdated",
           "EServiceDescriptorSubmittedByDelegate",
           "EServiceDescriptorRejectedByDelegator",
           "EServiceIsConsumerDelegableEnabled",
           "EServiceIsConsumerDelegableDisabled",
           "EServiceIsClientAccessDelegableEnabled",
           "EServiceIsClientAccessDelegableDisabled",
-          "EServiceNameUpdatedByTemplateUpdate",
           "EServiceDescriptionUpdatedByTemplateUpdate",
           "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
           "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
