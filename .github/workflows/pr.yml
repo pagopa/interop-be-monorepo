@@ -219,7 +219,9 @@ jobs:
           run_install: true
       - name: Run tests for shard
         run: |
-          for PACKAGE in ${{ toJson(matrix.shard) }}; do
+          PACKAGES_JSON='${{ toJson(matrix.shard) }}'
+          # Use jq to parse the JSON array and loop through each item
+          echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
             echo "Running tests for package: $PACKAGE"
             pnpm --filter "$PACKAGE" test
           done
