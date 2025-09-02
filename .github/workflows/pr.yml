@@ -91,7 +91,7 @@ jobs:
           NUM_SHARDS=10
           SHARDS=()
           for i in $(seq 0 $((NUM_SHARDS-1))); do
-              SHARDS[$i]=[]
+              SHARDS[$i]=""
           done
           
           INDEX=0
@@ -105,9 +105,12 @@ jobs:
           JSON_OUTPUT="["
           for SHARD in "${SHARDS[@]}"; do
               if [[ -n "$SHARD" ]]; then
-                  JSON_OUTPUT+='['${SHARD::-1}']'','
+                  JSON_OUTPUT+="["
+                  JSON_OUTPUT+="${SHARD::-1}"
+                  JSON_OUTPUT+="],"
               fi
           done
+          
           JSON_OUTPUT=${JSON_OUTPUT::-1}
           JSON_OUTPUT+="]"
           
