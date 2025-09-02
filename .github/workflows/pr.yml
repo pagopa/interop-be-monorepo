@@ -29,9 +29,119 @@ jobs:
           node-version-file: ./package.json
       - run: pnpm format:check
 
-  lint:
-    name: Lint
+  # check:
+  #   name: Check
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+  #     - name: Cache turbo setup
+  #       uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+  #       with:
+  #         path: |
+  #           .turbo
+  #           packages/*/.turbo
+  #         key: ${{ runner.os }}-turbo-check-${{ github.ref_name }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-turbo-check
+  #     - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+  #       with:
+  #         node-version-file: ./package.json
+  #     - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+  #       with:
+  #         run_install: true
+  #     - run: pnpm check
+
+  lint-openapi:
+    name: Lint Open Api specification
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: stoplightio/spectral-action@577bade2d6e0eeb50528c94182a5588bf961ae8f # v0.8.12
+        with:
+          file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
+
+  get_packages_to_test:
+    name: Get packages
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.get-packages.outputs.packages }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Find packages with test directories
+        id: get-packages
+        run: |
+          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print -printf "%f\n" | sort | jq -R -s -c 'split("\n")[:-1]')
+          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+
+  create_shards:
+    name: Create shards
+    runs-on: ubuntu-latest
+    needs: [get_packages_to_test]
+    outputs:
+      matrix: ${{ steps.shard-packages.outputs.matrix }}
+    steps:
+      - name: Create shards matrix
+        id: shard-packages
+        run: |
+          PACKAGES_JSON='${{ needs.get_packages_to_test.outputs.packages }}'
+          PACKAGES=$(echo "$PACKAGES_JSON" | jq -r '.[]')
+          
+          NUM_SHARDS=10
+          SHARDS=()
+          for i in $(seq 0 $((NUM_SHARDS-1))); do
+              SHARDS[$i]=[]
+          done
+          
+          INDEX=0
+          while read -r PACKAGE; do
+              if [[ -n "$PACKAGE" ]]; then
+                  SHARDS[$((INDEX % NUM_SHARDS))]+="\"$PACKAGE\","
+                  INDEX=$((INDEX + 1))
+              fi
+          done <<< "$PACKAGES"
+          
+          JSON_OUTPUT="["
+          for SHARD in "${SHARDS[@]}"; do
+              if [[ -n "$SHARD" ]]; then
+                  JSON_OUTPUT+='['${SHARD::-1}']'','
+              fi
+          done
+          JSON_OUTPUT=${JSON_OUTPUT::-1}
+          JSON_OUTPUT+="]"
+          
+          echo "matrix=$JSON_OUTPUT" >> $GITHUB_OUTPUT
+
+  lint_sharded:
+    name: Run lint on shard ${{ matrix.shard_index }}
+    runs-on: ubuntu-latest
+    needs: [get_packages_to_test, create_shards]
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.create_shards.outputs.matrix) }}
+        include:
+          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[0] }}
+            shard_index: 1
+          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[1] }}
+            shard_index: 2
+          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[2] }}
+            shard_index: 3
+          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[3] }}
+            shard_index: 4
+          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[4] }}
+            shard_index: 5
+          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[5] }}
+            shard_index: 6
+          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[6] }}
+            shard_index: 7
+          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[7] }}
+            shard_index: 8
+          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[8] }}
+            shard_index: 9
+          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[9] }}
+            shard_index: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Cache turbo setup
@@ -49,104 +159,17 @@ jobs:
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           run_install: true
-      - run: pnpm lint
-
-  check:
-    name: Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
-        with:
-          path: |
-            .turbo
-            packages/*/.turbo
-          key: ${{ runner.os }}-turbo-check-${{ github.ref_name }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-check
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: ./package.json
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
-        with:
-          run_install: true
-      - run: pnpm check
-
-  lint-openapi:
-    name: Lint Open Api specification
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: stoplightio/spectral-action@577bade2d6e0eeb50528c94182a5588bf961ae8f # v0.8.12
-        with:
-          file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
-  
-  get_packages_to_test:
-    name: Get packages
-    runs-on: ubuntu-latest
-    outputs:
-      packages: ${{ steps.get-packages.outputs.packages }}
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - name: Find packages with test directories
-        id: get-packages
+      - name: Run lint for shard
         run: |
-          # Find directories under packages that contain a 'test' subdirectory.
-          # The -printf "%f\n" part prints only the directory name (the package name)
-          # then sort it to ensure deterministic order and convert to a JSON array.
-          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print -printf "%f\n" | sort | jq -R -s -c 'split("\n")[:-1]')
-          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
-          
-  create_shards:
-    name: Create shards
-    runs-on: ubuntu-latest
-    needs: [get_packages_to_test]
-    outputs:
-      matrix: ${{ steps.shard-packages.outputs.matrix }}
-    steps:
-      - name: Create shards matrix
-        id: shard-packages
-        run: |
-          PACKAGES_JSON='${{ needs.get_packages_to_test.outputs.packages }}'
-          PACKAGES=$(echo "$PACKAGES_JSON" | jq -r '.[]')
-          
-          # This creates 10 shards.
-          # The logic distributes the packages evenly among the shards.
-          # You can adjust this number by changing `10`.
-          NUM_SHARDS=10
-          SHARDS=()
-          for i in $(seq 0 $((NUM_SHARDS-1))); do
-              SHARDS[$i]=[]
+          for PACKAGE in ${{ toJson(matrix.shard) }}; do
+            echo "Running lint for package: $PACKAGE"
+            pnpm --filter "$PACKAGE" lint
           done
-          
-          INDEX=0
-          while read -r PACKAGE; do
-              if [[ -n "$PACKAGE" ]]; then
-                  SHARDS[$((INDEX % NUM_SHARDS))]+="\"$PACKAGE\","
-                  INDEX=$((INDEX + 1))
-              fi
-          done <<< "$PACKAGES"
-          
-          # Format the output as a JSON string
-          JSON_OUTPUT="["
-          for SHARD in "${SHARDS[@]}"; do
-              if [[ -n "$SHARD" ]]; then
-                  # Remove the trailing comma and wrap in brackets
-                  JSON_OUTPUT+='['${SHARD::-1}']'','
-              fi
-          done
-          JSON_OUTPUT=${JSON_OUTPUT::-1}
-          JSON_OUTPUT+="]"
-          
-          echo "matrix=$JSON_OUTPUT" >> $GITHUB_OUTPUT
 
   test_sharded:
     name: Run tests on shard ${{ matrix.shard_index }}
     runs-on: ubuntu-latest
-    needs: [formatting, lint, check, lint-openapi, create_shards]
+    needs: [formatting, lint_sharded, lint-openapi, create_shards] # check
     strategy:
       fail-fast: false
       matrix:
@@ -191,8 +214,6 @@ jobs:
           run_install: true
       - name: Run tests for shard
         run: |
-          # The list of packages for the current shard is passed via the matrix.
-          # We loop through them and run the 'test' script for each one.
           for PACKAGE in ${{ toJson(matrix.shard) }}; do
             echo "Running tests for package: $PACKAGE"
             pnpm --filter "$PACKAGE" test
@@ -200,7 +221,7 @@ jobs:
 
   find_dockerfiles:
     name: Find Dockerfiles
-    needs: [formatting, lint, check, test_sharded, lint-openapi] # Aggiunto test_sharded
+    needs: [formatting, lint_sharded, test_sharded, lint-openapi] # check
     if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     outputs:
