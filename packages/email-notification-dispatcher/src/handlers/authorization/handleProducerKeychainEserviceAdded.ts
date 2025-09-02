@@ -78,9 +78,9 @@ export async function handleProducerKeychainEserviceAdded(
   return userEmails.map((email) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Nuovo livello di sicurezza per ${eservice.name}`,
+      subject: `Nuovo livello di sicurezza per "${eservice.name}"`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: "Nuovo portachiavi di un e-service",
+        title: `Nuovo livello di sicurezza per "${eservice.name}"`,
         notificationType,
         entityId: descriptor.id,
         eserviceName: eservice.name,
