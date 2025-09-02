@@ -6019,8 +6019,8 @@ paths:
     get:
       tags:
         - eservices
-      summary: List E-Service Descriptors Certified Attributes
-      description: Retrieve a list of E-Service Descriptors Certified Attributes based on filters
+      summary: List E-Service Descriptor Certified Attributes
+      description: Retrieve a list of E-Service Descriptors Certified Attributes
       operationId: getEServiceDescriptorCertifiedAttributes
       parameters:
         - in: query
@@ -6217,8 +6217,8 @@ paths:
     get:
       tags:
         - eservices
-      summary: List E-Service Descriptors Declared Attributes
-      description: Retrieve a list of E-Service Descriptors Declared Attributes based on filters
+      summary: List E-Service Descriptor Declared Attributes
+      description: Retrieve a list of E-Service Descriptor Declared Attributes
       operationId: getEServiceDescriptorDeclaredAttributes
       parameters:
         - in: query
@@ -6415,8 +6415,8 @@ paths:
     get:
       tags:
         - eservices
-      summary: List E-Service Descriptors Verified Attributes
-      description: Retrieve a list of E-Service Descriptors Verified Attributes based on filters
+      summary: List E-Service Descriptor Verified Attributes
+      description: Retrieve a list of E-Service Descriptor Verified Attributes
       operationId: getEServiceDescriptorVerifiedAttributes
       parameters:
         - in: query
