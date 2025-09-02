@@ -2,8 +2,12 @@ import { describe, it, expect } from "vitest";
 import {
   EServiceDescriptorPurposeTemplate,
   generateId,
+  PurposeTemplate,
+  TenantId,
 } from "pagopa-interop-models";
 import { getMockPurposeTemplate } from "pagopa-interop-commons-test";
+import { eq } from "drizzle-orm";
+import { purposeTemplateInReadmodelPurposeTemplate } from "pagopa-interop-readmodel-models";
 import {
   upsertPurposeTemplate,
   upsertPurposeTemplateEServiceDescriptor,
@@ -37,6 +41,61 @@ describe("Purpose template queries", () => {
         );
 
       expect(retrievedPurposeTemplate).toBeUndefined();
+    });
+  });
+
+  describe("Get a Purpose Template by a custom filter", async () => {
+    it("should get a purpose template by a custom filter", async () => {
+      const creatorId = generateId<TenantId>();
+      const purposeTemplate: PurposeTemplate = {
+        ...getMockPurposeTemplate(),
+        creatorId,
+      };
+      await upsertPurposeTemplate(readModelDB, purposeTemplate, 1);
+
+      await upsertPurposeTemplate(readModelDB, getMockPurposeTemplate(), 1);
+
+      const retrievedPurposeTemplate =
+        await purposeTemplateReadModelService.getPurposeTemplateByFilter(
+          eq(purposeTemplateInReadmodelPurposeTemplate.creatorId, creatorId)
+        );
+
+      expect(retrievedPurposeTemplate).toStrictEqual({
+        data: purposeTemplate,
+        metadata: { version: 1 },
+      });
+    });
+
+    it("should *not* get a purpose template by a custom filter if not present", async () => {
+      const retrievedPurposeTemplate =
+        await purposeTemplateReadModelService.getPurposeTemplateByFilter(
+          eq(purposeTemplateInReadmodelPurposeTemplate.creatorId, generateId())
+        );
+
+      expect(retrievedPurposeTemplate).toBeUndefined();
+    });
+
+    it("should throw error if multiple purpose templates are found by a custom filter", async () => {
+      const creatorId = generateId<TenantId>();
+      const purposeTemplate1: PurposeTemplate = {
+        ...getMockPurposeTemplate(),
+        creatorId,
+      };
+      await upsertPurposeTemplate(readModelDB, purposeTemplate1, 1);
+
+      const purposeTemplate2: PurposeTemplate = {
+        ...getMockPurposeTemplate(),
+        creatorId,
+      };
+      await upsertPurposeTemplate(readModelDB, purposeTemplate2, 1);
+
+      await upsertPurposeTemplate(readModelDB, getMockPurposeTemplate(), 1);
+
+      await expect(
+        purposeTemplateReadModelService.getPurposeTemplateByFilter(
+          eq(purposeTemplateInReadmodelPurposeTemplate.creatorId, creatorId)
+        )
+      ).rejects.toThrowError();
     });
   });
 
