@@ -41,17 +41,15 @@ describe("Notification config aggregators", () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { updatedAt: _, ...tenantNotificationConfig } =
         getMockTenantNotificationConfig();
-      const tenantNotificationConfigItemsSQL =
+      const tenantNotificationConfigSQL =
         splitTenantNotificationConfigIntoObjectsSQL(
           tenantNotificationConfig,
           1
         );
-      expect(
-        tenantNotificationConfigItemsSQL.tenantNotificationConfigSQL.updatedAt
-      ).toBeNull();
+      expect(tenantNotificationConfigSQL.updatedAt).toBeNull();
 
       const aggregatedTenantNotificationConfig =
-        aggregateTenantNotificationConfig(tenantNotificationConfigItemsSQL);
+        aggregateTenantNotificationConfig(tenantNotificationConfigSQL);
       expect(aggregatedTenantNotificationConfig).toStrictEqual({
         data: tenantNotificationConfig,
         metadata: { version: 1 },

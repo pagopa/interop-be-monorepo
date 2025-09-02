@@ -85,7 +85,7 @@ describe("API GET /catalog", () => {
     { query: { limit: 10 } },
     { query: { offset: -1, limit: 10 } },
     { query: { offset: 0, limit: -2 } },
-    { query: { offset: 0, limit: 55 } },
+    { query: { offset: 0, limit: 201 } },
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
   ])("Should return 400 if passed an invalid parameter", async ({ query }) => {

@@ -187,6 +187,7 @@ export async function mergeDeletingCascadeById<
 }
 
 export type ColumnValue = string | number | Date | undefined | null | boolean;
+const sanitizeColumnValue = (s: string): string => s.replace(/\\$/, "\\\\");
 
 /**
  * Builds a pg-promise ColumnSet for performing bulk insert/update operations on a given table.
@@ -211,7 +212,9 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
   const columns = keys.map((prop) => ({
     name: snakeCaseMapper(String(prop)),
     init: ({ source }: IColumnDescriptor<z.infer<typeof schema>>) =>
-      source[prop],
+      typeof source[prop] === "string"
+        ? sanitizeColumnValue(source[prop])
+        : source[prop],
   }));
 
   return new pgp.helpers.ColumnSet(columns, {

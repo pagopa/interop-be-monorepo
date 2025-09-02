@@ -4,6 +4,7 @@ import {
   Purpose,
   PurposeId,
   PurposeRiskAnalysisForm,
+  PurposeTemplateId,
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionId,
@@ -177,6 +178,13 @@ export const aggregatePurpose = ({
       : {}),
     ...(purposeSQL.updatedAt
       ? { updatedAt: stringToDate(purposeSQL.updatedAt) }
+      : {}),
+    ...(purposeSQL.purposeTemplateId
+      ? {
+          purposeTemplateId: unsafeBrandId<PurposeTemplateId>(
+            purposeSQL.purposeTemplateId
+          ),
+        }
       : {}),
   };
 

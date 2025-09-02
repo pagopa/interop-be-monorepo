@@ -405,7 +405,7 @@ components:
       required:
         - id
         - tenantId
-        - config
+        - enabled
         - createdAt
       properties:
         id:
@@ -414,8 +414,8 @@ components:
         tenantId:
           type: string
           format: uuid
-        config:
-          $ref: "#/components/schemas/NotificationConfig"
+        enabled:
+          type: boolean
         createdAt:
           type: string
           format: date-time
@@ -464,7 +464,6 @@ components:
         - agreementSuspendedUnsuspendedToConsumer
         - eserviceStateChangedToConsumer
         - agreementActivatedRejectedToConsumer
-        - purposeVersionOverQuotaToConsumer
         - purposeActivatedRejectedToConsumer
         - purposeSuspendedUnsuspendedToConsumer
         - newEserviceTemplateVersionToInstantiator
@@ -492,8 +491,6 @@ components:
         eserviceStateChangedToConsumer:
           type: boolean
         agreementActivatedRejectedToConsumer:
-          type: boolean
-        purposeVersionOverQuotaToConsumer:
           type: boolean
         purposeActivatedRejectedToConsumer:
           type: boolean
@@ -540,7 +537,13 @@ components:
           type: string
           format: uuid
     TenantNotificationConfigUpdateSeed:
-      $ref: "#/components/schemas/NotificationConfig"
+      type: object
+      additionalProperties: false
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
     UserNotificationConfigUpdateSeed:
       type: object
       additionalProperties: false

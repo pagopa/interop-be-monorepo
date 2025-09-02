@@ -184,6 +184,33 @@ export const UserNotificationConfigId = z
   .brand("UserNotificationConfigId");
 export type UserNotificationConfigId = z.infer<typeof UserNotificationConfigId>;
 
+export const PurposeTemplateId = z.string().uuid().brand("PurposeTemplateId");
+export type PurposeTemplateId = z.infer<typeof PurposeTemplateId>;
+
+export const RiskAnalysisFormTemplateId = z
+  .string()
+  .uuid()
+  .brand("RiskAnalysisFormTemplateId");
+export type RiskAnalysisFormTemplateId = z.infer<
+  typeof RiskAnalysisFormTemplateId
+>;
+
+export const RiskAnalysisTemplateAnswerAnnotationId = z
+  .string()
+  .uuid()
+  .brand("RiskAnalysisTemplateAnswerAnnotationId");
+export type RiskAnalysisTemplateAnswerAnnotationId = z.infer<
+  typeof RiskAnalysisTemplateAnswerAnnotationId
+>;
+
+export const RiskAnalysisTemplateAnswerAnnotationDocumentId = z
+  .string()
+  .uuid()
+  .brand("RiskAnalysisTemplateAnswerAnnotationDocumentId");
+export type RiskAnalysisTemplateAnswerAnnotationDocumentId = z.infer<
+  typeof RiskAnalysisTemplateAnswerAnnotationDocumentId
+>;
+
 export const IDS = z.union([
   CorrelationId,
   SpanId,
@@ -222,6 +249,10 @@ export const IDS = z.union([
   NotificationId,
   TenantNotificationConfigId,
   UserNotificationConfigId,
+  PurposeTemplateId,
+  RiskAnalysisFormTemplateId,
+  RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
 ]);
 export type IDS = z.infer<typeof IDS>;
 

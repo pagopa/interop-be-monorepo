@@ -1282,7 +1282,7 @@ export const getMockTenantNotificationConfig =
   (): TenantNotificationConfig => ({
     id: generateId(),
     tenantId: generateId(),
-    config: getMockNotificationConfig(),
+    enabled: generateMock(z.boolean()),
     createdAt: generateMock(z.coerce.date()),
     updatedAt: generateMock(z.coerce.date().optional()),
   });
