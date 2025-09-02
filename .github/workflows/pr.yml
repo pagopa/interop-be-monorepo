@@ -171,7 +171,7 @@ jobs:
           - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[9] }}
             shard_index: 10
     steps:
-      - uses: actions/checkout@11bd1d4f26038379435b6b1580f4f95d10d9c490 # v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Cache turbo setup
         uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
