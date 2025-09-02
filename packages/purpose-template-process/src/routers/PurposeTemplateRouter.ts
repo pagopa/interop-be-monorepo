@@ -42,10 +42,10 @@ const purposeTemplateRouter = (
   const {
     ADMIN_ROLE,
     API_ROLE,
-    SECURITY_ROLE,
-    M2M_ROLE,
-    SUPPORT_ROLE,
     M2M_ADMIN_ROLE,
+    M2M_ROLE,
+    SECURITY_ROLE,
+    SUPPORT_ROLE,
   } = authRole;
 
   purposeTemplateRouter
@@ -56,8 +56,8 @@ const purposeTemplateRouter = (
         validateAuthorization(ctx, [
           ADMIN_ROLE,
           API_ROLE,
-          M2M_ROLE,
           M2M_ADMIN_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
         ]);
@@ -119,12 +119,12 @@ const purposeTemplateRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
-          M2M_ROLE,
+          API_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
       } catch (error) {
         return res.status(501);
@@ -135,12 +135,12 @@ const purposeTemplateRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
-          M2M_ROLE,
+          API_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
       } catch (error) {
         return res.status(501);
@@ -152,12 +152,12 @@ const purposeTemplateRouter = (
 
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
-          M2M_ROLE,
+          API_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
 
         await purposeTemplateService.getPurposeTemplateById(
@@ -193,12 +193,12 @@ const purposeTemplateRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
-          M2M_ROLE,
+          API_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
       } catch (error) {
         return res.status(501);
@@ -218,12 +218,12 @@ const purposeTemplateRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
-          M2M_ROLE,
+          API_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
       } catch (error) {
         return res.status(501);
