@@ -40,13 +40,12 @@ export const toPurposeVersionDocumentV2 = (
 
 export const toPurposeVersionStampV2 = (
   input: PurposeVersionStamp
-): PurposeVersionStampV2 | undefined =>
-  input
-    ? {
-        who: input.creation.who,
-        when: dateToBigInt(input.creation.when),
-      }
-    : undefined;
+): PurposeVersionStampV2 => ({
+  creation: {
+    ...input.creation,
+    when: dateToBigInt(input.creation.when),
+  },
+});
 
 export const toPurposeVersionV2 = (
   input: PurposeVersion

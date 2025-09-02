@@ -48,11 +48,11 @@ export const fromPurposeVersionDocumentV2 = (
 export const fromPurposeVersionStampV2 = (
   input: PurposeVersionStampV2 | undefined
 ): PurposeVersionStamp | undefined =>
-  input
+  input?.creation
     ? {
         creation: {
-          who: unsafeBrandId(input.who),
-          when: bigIntToDate(input.when),
+          who: unsafeBrandId(input.creation.who),
+          when: bigIntToDate(input.creation.when),
         },
       }
     : undefined;

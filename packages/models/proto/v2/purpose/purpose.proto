@@ -52,6 +52,10 @@ message PurposeVersionDocumentV2 {
 }
 
 message PurposeVersionStampV2 {
+  optional CreationStampV2 creation = 1;
+}
+
+message CreationStampV2 {
   string who = 1;
   int64 when = 2;
 }
