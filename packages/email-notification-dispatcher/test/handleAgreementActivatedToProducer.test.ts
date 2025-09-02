@@ -50,7 +50,6 @@ describe("handleAgreementActivated", async () => {
     ...getMockEService(),
     id: eserviceId,
     producerId,
-    consumerId,
     descriptors: [descriptor],
   };
   const producerTenant = {

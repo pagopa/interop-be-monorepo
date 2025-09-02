@@ -49,7 +49,6 @@ describe("handleAgreementRejected", async () => {
     ...getMockEService(),
     id: eserviceId,
     producerId,
-    consumerId,
     descriptors: [descriptor],
   };
   const producerTenant = getMockTenant(producerId);

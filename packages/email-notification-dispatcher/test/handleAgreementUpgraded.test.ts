@@ -39,7 +39,6 @@ describe("handleAgreementUpgraded", async () => {
   const eservice = {
     ...getMockEService(),
     id: eserviceId,
-    producerId,
     consumerId,
     descriptors: [descriptor],
   };
