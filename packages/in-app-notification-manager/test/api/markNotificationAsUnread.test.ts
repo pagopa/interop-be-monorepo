@@ -67,4 +67,15 @@ describe("API POST /notifications/:notificationId/markAsUnread", () => {
       inAppNotificationService.markNotificationAsUnread
     ).toHaveBeenCalledWith(nonExistentId, expect.any(Object));
   });
+
+  it("Should return 400 if passed an invalid notification ID", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const invalidId = "invalid-uuid";
+    const res = await makeRequest(token, invalidId);
+
+    expect(res.status).toBe(400);
+    expect(
+      inAppNotificationService.markNotificationAsUnread
+    ).not.toHaveBeenCalled();
+  });
 });

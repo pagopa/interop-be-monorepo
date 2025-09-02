@@ -1,7 +1,7 @@
 import { generateId, UserId, TenantId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
-import { isNotNull } from "drizzle-orm";
+import { isNotNull, isNull } from "drizzle-orm";
 import { notification } from "pagopa-interop-in-app-notification-db-models";
 import {
   addNotifications,
@@ -14,18 +14,33 @@ describe("markNotificationsAsUnread", () => {
   const userId: UserId = generateId();
   const tenantId: TenantId = generateId();
 
-  it("should mark a list of notifications as unread", async () => {
-    const notificationsList = Array.from({ length: 10 }, (_, i) =>
+  it("should mark some notifications as unread while others remain read", async () => {
+    const readNotifications = Array.from({ length: 5 }, (_, i) =>
       getMockNotification({
         userId,
         tenantId,
-        body: `Notification ${i}`,
-        readAt: new Date(), // Start with read notifications
+        body: `Read Notification ${i}`,
+        readAt: new Date(),
       })
     );
-    await addNotifications(notificationsList);
+
+    const alreadyUnreadNotifications = Array.from({ length: 3 }, (_, i) =>
+      getMockNotification({
+        userId,
+        tenantId,
+        body: `Unread Notification ${i}`,
+        readAt: undefined,
+      })
+    );
+
+    await addNotifications([
+      ...readNotifications,
+      ...alreadyUnreadNotifications,
+    ]);
+
+    const idsToMarkUnread = readNotifications.slice(0, 3).map((n) => n.id);
     await inAppNotificationService.markNotificationsAsUnread(
-      notificationsList.map((notification) => notification.id),
+      idsToMarkUnread,
       getMockContext({
         authData: {
           ...getMockAuthData(tenantId),
@@ -34,10 +49,16 @@ describe("markNotificationsAsUnread", () => {
       })
     );
 
-    const notifications = await inAppNotificationDB
+    const unreadNotifications = await inAppNotificationDB
+      .select()
+      .from(notification)
+      .where(isNull(notification.readAt));
+    expect(unreadNotifications).toHaveLength(6);
+
+    const readNotificationsAfter = await inAppNotificationDB
       .select()
       .from(notification)
       .where(isNotNull(notification.readAt));
-    expect(notifications).toHaveLength(0);
+    expect(readNotificationsAfter).toHaveLength(2);
   });
 });

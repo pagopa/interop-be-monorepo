@@ -59,4 +59,15 @@ describe("API POST /notifications/bulk/markAsRead", () => {
     expect(res.status).toBe(204);
     expect(inAppNotificationService.markNotificationsAsRead).toHaveBeenCalled();
   });
+
+  it("Should return 400 if passed an invalid notification ID", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const invalidId = "invalid-uuid";
+    const res = await makeRequest(token, [invalidId]);
+
+    expect(res.status).toBe(400);
+    expect(
+      inAppNotificationService.markNotificationsAsRead
+    ).not.toHaveBeenCalled();
+  });
 });
