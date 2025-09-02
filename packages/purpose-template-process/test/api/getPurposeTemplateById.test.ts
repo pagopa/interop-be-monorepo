@@ -20,9 +20,7 @@ import {
 describe("API GET /purposeTemplates/{id}", () => {
   const purposeTemplate = getMockPurposeTemplate();
 
-  const serviceResponse = getMockWithMetadata({
-    purposeTemplate,
-  });
+  const serviceResponse = getMockWithMetadata(purposeTemplate);
   const apiResponse = purposeTemplateApi.PurposeTemplate.parse(
     purposeTemplateToApiPurposeTemplate(purposeTemplate)
   );

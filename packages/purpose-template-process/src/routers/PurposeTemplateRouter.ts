@@ -100,13 +100,13 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { data: purposeTemplate, metadata } =
+        const purposeTemplate =
           await purposeTemplateService.createPurposeTemplate(req.body, ctx);
 
-        setMetadataVersionHeader(res, metadata);
+        setMetadataVersionHeader(res, purposeTemplate.metadata);
         return res
           .status(200)
-          .send(purposeTemplateToApiPurposeTemplate(purposeTemplate));
+          .send(purposeTemplateToApiPurposeTemplate(purposeTemplate.data));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -129,19 +129,19 @@ const purposeTemplateRouter = (
           M2M_ADMIN_ROLE,
         ]);
 
-        const { data: purposeTemplate, metadata } =
+        const purposeTemplate =
           await purposeTemplateService.getPurposeTemplateById(
             unsafeBrandId(req.params.id),
             ctx
           );
 
-        setMetadataVersionHeader(res, metadata);
+        setMetadataVersionHeader(res, purposeTemplate.metadata);
 
         return res
           .status(200)
           .send(
             purposeTemplateApi.PurposeTemplate.parse(
-              purposeTemplateToApiPurposeTemplate(purposeTemplate)
+              purposeTemplateToApiPurposeTemplate(purposeTemplate.data)
             )
           );
       } catch (error) {

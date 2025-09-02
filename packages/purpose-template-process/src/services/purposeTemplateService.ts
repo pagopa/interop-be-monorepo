@@ -172,10 +172,7 @@ export function purposeTemplateServiceBuilder(
         authData
       );
 
-      return {
-        data: purposeTemplate.data,
-        metadata: purposeTemplate.metadata,
-      };
+      return purposeTemplate;
     },
   };
 }
