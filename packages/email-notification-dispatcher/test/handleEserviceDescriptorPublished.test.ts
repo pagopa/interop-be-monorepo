@@ -17,10 +17,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import {
-  descriptorPublishedNotFound,
-  tenantNotFound,
-} from "../src/models/errors.js";
+import { descriptorPublishedNotFound } from "../src/models/errors.js";
 import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEserviceDescriptorPublished.js";
 import {
   addOneAgreement,
