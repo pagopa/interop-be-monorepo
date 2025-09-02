@@ -6,10 +6,11 @@ import {
   generateId,
   missingKafkaMessageDataError,
   NotificationType,
-  tenantMailKind,
 } from "pagopa-interop-models";
-import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
-import { getUserEmailsToNotify, HandlePurposeData } from "../handlerCommons.js";
+import {
+  getRecipientsForTenants,
+  PurposeHandlerParams,
+} from "../handlerCommons.js";
 import {
   eventMailTemplateType,
   retrieveEService,
@@ -21,7 +22,7 @@ const notificationType: NotificationType =
   "purposeSuspendedUnsuspendedToConsumer";
 
 export async function handlePurposeVersionUnsuspendedByProducer(
-  data: HandlePurposeData
+  data: PurposeHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     purposeV2Msg,
@@ -51,74 +52,35 @@ export async function handlePurposeVersionUnsuspendedByProducer(
 
   const producer = await retrieveTenant(eservice.producerId, readModelService);
 
-  let userEmails: string[] = [];
-  try {
-    userEmails = await getUserEmailsToNotify(
-      consumer.id,
-      notificationType,
-      readModelService,
-      userService
+  const targets = await getRecipientsForTenants({
+    tenants: [consumer],
+    notificationType,
+    readModelService,
+    userService,
+    logger,
+    includeTenantContactEmails: true,
+  });
+
+  if (targets.length === 0) {
+    logger.info(
+      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
     );
-  } catch (error) {
-    logger.warn(`Error reading user email. Reason: ${error}`);
     return [];
   }
 
-  let toDispatch: EmailNotificationMessagePayload[] = [];
-  if (userEmails.length > 0) {
-    toDispatch = userEmails.map((email: string) => ({
-      correlationId: correlationId ?? generateId(),
-      email: {
-        subject: `Riattivazione della finalità "${purpose.title}"`,
-        body: templateService.compileHtml(htmlTemplate, {
-          title: `Riattivazione della finalità "${purpose.title}"`,
-          notificationType,
-          entityId: purpose.id,
-          producerName: producer.name,
-          consumerName: consumer.name,
-        }),
-      },
-      address: email,
-    }));
-  } else {
-    logger.info(
-      `No users found for tenant ${consumer.id}. No emails to dispatch for purpose ${purpose.id}.`
-    );
-  }
-
-  const consumerConfig =
-    await readModelService.getTenantNotificationConfigByTenantId(consumer.id);
-
-  if (consumerConfig === undefined) {
-    logger.warn(`No tenant configuration found for tenant ${consumer.id}.`);
-  } else if (consumerConfig.enabled) {
-    const consumerEmail = getLatestTenantMailOfKind(
-      consumer.mails,
-      tenantMailKind.ContactEmail
-    );
-
-    if (consumerEmail !== undefined) {
-      toDispatch.push({
-        correlationId: correlationId ?? generateId(),
-        email: {
-          subject: `Riattivazione della finalità "${purpose.title}"`,
-          body: templateService.compileHtml(htmlTemplate, {
-            title: `Riattivazione della finalità "${purpose.title}"`,
-            notificationType,
-            entityId: purpose.id,
-            producerName: producer.name,
-            eserviceName: eservice.name,
-            purposeTitle: purpose.title,
-          }),
-        },
-        address: consumerEmail.address,
-      });
-    } else {
-      logger.warn(
-        `No consumer email found for purpose ${purpose.id}. No email to dispatch.`
-      );
-    }
-  }
-
-  return toDispatch;
+  return targets.map(({ address }) => ({
+    correlationId: correlationId ?? generateId(),
+    email: {
+      subject: `Riattivazione della finalità "${purpose.title}"`,
+      body: templateService.compileHtml(htmlTemplate, {
+        title: `Riattivazione della finalità "${purpose.title}"`,
+        notificationType,
+        entityId: purpose.id,
+        producerName: producer.name,
+        eserviceName: eservice.name,
+        purposeTitle: purpose.title,
+      }),
+    },
+    address,
+  }));
 }
