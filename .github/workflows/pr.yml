@@ -51,6 +51,7 @@ jobs:
   #         run_install: true
   #     - run: pnpm check
 
+
   lint-openapi:
     name: Lint Open Api specification
     runs-on: ubuntu-latest
@@ -63,7 +64,7 @@ jobs:
           file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
 
   get_packages_to_test:
-    name: Get packages
+    name: Get packages to shard
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.get-packages.outputs.packages }}
@@ -72,7 +73,7 @@ jobs:
       - name: Find packages with test directories
         id: get-packages
         run: |
-          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print -printf "%f\n" | sort | jq -R -s -c 'split("\n")[:-1]')
+          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print -printf "%f\n" | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
           echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
 
   create_shards:
@@ -116,10 +117,34 @@ jobs:
           
           echo "matrix=$JSON_OUTPUT" >> $GITHUB_OUTPUT
 
+  test_commons:
+    name: Test commons-test
+    runs-on: ubuntu-latest
+    needs: [formatting, lint-openapi]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Cache turbo setup
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        with:
+          path: |
+            .turbo
+            packages/*/.turbo
+          key: ${{ runner.os }}-turbo-test-commons-${{ github.ref_name }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-test-commons
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+        with:
+          run_install: true
+      - name: Run tests for commons-test
+        run: pnpm --filter "pagopa-interop-commons-test" test
+
   lint_sharded:
     name: Run lint on shard ${{ matrix.shard_index }}
     runs-on: ubuntu-latest
-    needs: [get_packages_to_test, create_shards]
+    needs: [get_packages_to_test, create_shards, formatting, lint-openapi]
     strategy:
       fail-fast: false
       matrix:
@@ -146,7 +171,7 @@ jobs:
           - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[9] }}
             shard_index: 10
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@11bd1d4f26038379435b6b1580f4f95d10d9c490 # v4
       - name: Cache turbo setup
         uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
@@ -165,7 +190,6 @@ jobs:
       - name: Run lint for shard
         run: |
           PACKAGES_JSON='${{ toJson(matrix.shard) }}'
-          # Use jq to parse the JSON array and loop through each item
           echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
             echo "Running lint for package: $PACKAGE"
             pnpm --filter "$PACKAGE" lint
@@ -174,7 +198,7 @@ jobs:
   test_sharded:
     name: Run tests on shard ${{ matrix.shard_index }}
     runs-on: ubuntu-latest
-    needs: [formatting, lint_sharded, lint-openapi, create_shards] # check
+    needs: [formatting, lint_sharded, lint-openapi, create_shards, test_commons]  # check
     strategy:
       fail-fast: false
       matrix:
@@ -220,7 +244,6 @@ jobs:
       - name: Run tests for shard
         run: |
           PACKAGES_JSON='${{ toJson(matrix.shard) }}'
-          # Use jq to parse the JSON array and loop through each item
           echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
             echo "Running tests for package: $PACKAGE"
             pnpm --filter "$PACKAGE" test
@@ -228,7 +251,7 @@ jobs:
 
   find_dockerfiles:
     name: Find Dockerfiles
-    needs: [formatting, lint_sharded, test_sharded, lint-openapi] # check
+    needs: [formatting, lint_sharded, test_sharded, lint-openapi, test_commons]  # check
     if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     outputs:
