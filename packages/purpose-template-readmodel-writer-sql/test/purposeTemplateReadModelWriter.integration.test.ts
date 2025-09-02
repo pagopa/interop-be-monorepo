@@ -1,9 +1,12 @@
-import { getMockPurposeTemplate } from "pagopa-interop-commons-test";
+import {
+  getMockDescriptor,
+  getMockEService,
+  getMockPurposeTemplate,
+} from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import {
-  DescriptorId,
-  EServiceId,
-  generateId,
+  EService,
+  EServiceDescriptorPurposeTemplate,
   PurposeTemplate,
   PurposeTemplateAddedV2,
   PurposeTemplateArchivedV2,
@@ -16,6 +19,7 @@ import {
   purposeTemplateState,
   PurposeTemplateSuspendedV2,
   PurposeTemplateUnsuspendedV2,
+  toEServiceV2,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
@@ -301,11 +305,15 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeTemplateEServiceLinked", async () => {
-      const metadataVersion = 1;
-      const eserviceId1 = generateId<EServiceId>();
-      const eserviceId2 = generateId<EServiceId>();
-      const descriptorId1 = generateId<DescriptorId>();
-      const descriptorId2 = generateId<DescriptorId>();
+      const metadataVersion = 2;
+      const eservice1: EService = {
+        ...getMockEService(),
+        descriptors: [getMockDescriptor()],
+      };
+      const eservice2: EService = {
+        ...getMockEService(),
+        descriptors: [getMockDescriptor()],
+      };
 
       await purposeTemplateWriterService.upsertPurposeTemplate(
         purposeTemplate,
@@ -314,17 +322,17 @@ describe("Integration tests", async () => {
       await purposeTemplateWriterService.upsertPurposeTemplateEServiceDescriptor(
         {
           purposeTemplateId: purposeTemplate.id,
-          eserviceId: eserviceId1,
-          descriptorId: descriptorId1,
+          eserviceId: eservice1.id,
+          descriptorId: eservice1.descriptors[0].id,
           createdAt: new Date(),
         },
         1
       );
 
       const payload: PurposeTemplateEServiceLinkedV2 = {
-        purposeTemplateId: purposeTemplate.id,
-        eserviceId: eserviceId2,
-        descriptorId: descriptorId2,
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eservice: toEServiceV2(eservice2),
+        descriptorId: eservice2.descriptors[0].id,
       };
       const message: PurposeTemplateEventEnvelope = {
         sequence_num: 1,
@@ -345,26 +353,29 @@ describe("Integration tests", async () => {
       expect(retrievedPurposeTemplateEServiceDescriptors).toStrictEqual([
         {
           purposeTemplateId: purposeTemplate.id,
-          eserviceId: eserviceId1,
-          descriptorId: descriptorId1,
+          eserviceId: eservice1.id,
+          descriptorId: eservice1.descriptors[0].id,
           createdAt: expect.any(Date),
         },
         {
           purposeTemplateId: purposeTemplate.id,
-          eserviceId: eserviceId2,
-          descriptorId: descriptorId2,
+          eserviceId: eservice2.id,
+          descriptorId: eservice2.descriptors[0].id,
           createdAt: expect.any(Date),
         },
-      ]);
+      ] satisfies EServiceDescriptorPurposeTemplate[]);
     });
 
     it("PurposeTemplateEServiceUnlinked", async () => {
       const metadataVersion = 3;
-      const eserviceId1 = generateId<EServiceId>();
-      const eserviceId2 = generateId<EServiceId>();
-      const descriptorId1 = generateId<DescriptorId>();
-      const descriptorId2 = generateId<DescriptorId>();
-
+      const eservice1: EService = {
+        ...getMockEService(),
+        descriptors: [getMockDescriptor()],
+      };
+      const eservice2: EService = {
+        ...getMockEService(),
+        descriptors: [getMockDescriptor()],
+      };
       await purposeTemplateWriterService.upsertPurposeTemplate(
         purposeTemplate,
         0
@@ -372,8 +383,8 @@ describe("Integration tests", async () => {
       await purposeTemplateWriterService.upsertPurposeTemplateEServiceDescriptor(
         {
           purposeTemplateId: purposeTemplate.id,
-          eserviceId: eserviceId1,
-          descriptorId: descriptorId1,
+          eserviceId: eservice1.id,
+          descriptorId: eservice1.descriptors[0].id,
           createdAt: new Date(),
         },
         1
@@ -381,17 +392,17 @@ describe("Integration tests", async () => {
       await purposeTemplateWriterService.upsertPurposeTemplateEServiceDescriptor(
         {
           purposeTemplateId: purposeTemplate.id,
-          eserviceId: eserviceId2,
-          descriptorId: descriptorId2,
+          eserviceId: eservice2.id,
+          descriptorId: eservice2.descriptors[0].id,
           createdAt: new Date(),
         },
         2
       );
 
       const payload: PurposeTemplateEServiceUnlinkedV2 = {
-        purposeTemplateId: purposeTemplate.id,
-        eserviceId: eserviceId1,
-        descriptorId: descriptorId1,
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eservice: toEServiceV2(eservice1),
+        descriptorId: eservice1.descriptors[0].id,
       };
       const message: PurposeTemplateEventEnvelope = {
         sequence_num: 1,
@@ -412,10 +423,10 @@ describe("Integration tests", async () => {
       expect(retrievedPurposeTemplateEServiceDescriptors).toStrictEqual([
         {
           purposeTemplateId: purposeTemplate.id,
-          eserviceId: eserviceId2,
-          descriptorId: descriptorId2,
+          eserviceId: eservice2.id,
+          descriptorId: eservice2.descriptors[0].id,
           createdAt: expect.any(Date),
-        },
+        } satisfies EServiceDescriptorPurposeTemplate,
       ]);
     });
   });

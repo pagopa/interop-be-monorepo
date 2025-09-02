@@ -43,10 +43,17 @@ export async function handleMessageV2(
       );
     })
     .with({ type: "PurposeTemplateEServiceLinked" }, async (msg) => {
+      if (!msg.data.purposeTemplate) {
+        throw missingKafkaMessageDataError("purposeTemplate", msg.type);
+      }
+      if (!msg.data.eservice) {
+        throw missingKafkaMessageDataError("eservice", msg.type);
+      }
+
       await purposeTemplateWriterService.upsertPurposeTemplateEServiceDescriptor(
         {
-          purposeTemplateId: unsafeBrandId(msg.data.purposeTemplateId),
-          eserviceId: unsafeBrandId(msg.data.eserviceId),
+          purposeTemplateId: unsafeBrandId(msg.data.purposeTemplate.id),
+          eserviceId: unsafeBrandId(msg.data.eservice.id),
           descriptorId: unsafeBrandId(msg.data.descriptorId),
           createdAt: new Date(),
         },
@@ -54,10 +61,17 @@ export async function handleMessageV2(
       );
     })
     .with({ type: "PurposeTemplateEServiceUnlinked" }, async (msg) => {
+      if (!msg.data.purposeTemplate) {
+        throw missingKafkaMessageDataError("purposeTemplate", msg.type);
+      }
+      if (!msg.data.eservice) {
+        throw missingKafkaMessageDataError("eservice", msg.type);
+      }
+
       await purposeTemplateWriterService.deletePurposeTemplateEServiceDescriptorsByEServiceIdAndDescriptorId(
         {
-          purposeTemplateId: unsafeBrandId(msg.data.purposeTemplateId),
-          eserviceId: unsafeBrandId(msg.data.eserviceId),
+          purposeTemplateId: unsafeBrandId(msg.data.purposeTemplate.id),
+          eserviceId: unsafeBrandId(msg.data.eservice.id),
           descriptorId: unsafeBrandId(msg.data.descriptorId),
           metadataVersion: msg.version,
         }
