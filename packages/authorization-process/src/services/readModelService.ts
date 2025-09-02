@@ -93,9 +93,11 @@ export function readModelServiceBuilder(
           $or: userIds.map((userId) => ({ "data.users": { $eq: userId } })),
         });
 
-      const consumerIdFilter: ReadModelFilter<Client> = {
-        "data.consumerId": { $eq: consumerId },
-      };
+      const consumerIdFilter: ReadModelFilter<Client> = consumerId
+        ? {
+            "data.consumerId": { $eq: consumerId },
+          }
+        : {};
 
       const purposeIdFilter: ReadModelFilter<Client> = purposeId
         ? {
@@ -293,9 +295,11 @@ export function readModelServiceBuilder(
           $or: userIds.map((userId) => ({ "data.users": { $eq: userId } })),
         });
 
-      const producerIdFilter: ReadModelFilter<ProducerKeychain> = {
-        "data.producerId": { $eq: producerId },
-      };
+      const producerIdFilter: ReadModelFilter<ProducerKeychain> = producerId
+        ? {
+            "data.producerId": { $eq: producerId },
+          }
+        : {};
 
       const eserviceIdFilter: ReadModelFilter<ProducerKeychain> = eserviceId
         ? {
