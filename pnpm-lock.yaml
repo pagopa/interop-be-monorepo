@@ -5095,8 +5095,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/node':
-        specifier: 20.19.4
-        version: 20.19.4
+        specifier: 20.19.9
+        version: 20.19.9
       '@types/supertest':
         specifier: 6.0.3
         version: 6.0.3
@@ -5117,7 +5117,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.4)
+        version: 1.6.1(@types/node@20.19.9)
 
   packages/purpose-template-readmodel-writer-sql:
     dependencies:
