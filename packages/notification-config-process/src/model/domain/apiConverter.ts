@@ -11,7 +11,6 @@ export function tenantNotificationConfigToApiTenantNotificationConfig({
   createdAt,
   updatedAt,
 }: TenantNotificationConfig): notificationConfigApi.TenantNotificationConfig {
-  // No need for rest assertion as we're explicitly destructuring all fields
   return {
     id,
     tenantId,
