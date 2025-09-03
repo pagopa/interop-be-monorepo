@@ -17,6 +17,7 @@ import {
   Delegation,
   DelegationState,
   delegationState,
+  DescriptorRejectionReason,
 } from "pagopa-interop-models";
 import {
   activeProducerDelegationNotFound,
@@ -275,4 +276,69 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
     expect(userIds).toContain(users[1].userId);
     expect(userIds).toContain(users[2].userId);
   });
+
+  const latestDate = new Date();
+  const olderDate = new Date(latestDate);
+  olderDate.setDate(olderDate.getDate() - 1);
+
+  it.each<{
+    rejectionReasons: DescriptorRejectionReason[] | undefined;
+    expectedReason: string;
+  }>([
+    {
+      rejectionReasons: undefined,
+      expectedReason: "",
+    },
+    {
+      rejectionReasons: [],
+      expectedReason: "",
+    },
+    {
+      rejectionReasons: [
+        { rejectedAt: latestDate, rejectionReason: "motivo1" },
+      ],
+      expectedReason: " Motivo: motivo1.",
+    },
+    {
+      rejectionReasons: [
+        { rejectedAt: olderDate, rejectionReason: "motivo1" },
+        { rejectedAt: latestDate, rejectionReason: "motivo2" },
+      ],
+      expectedReason: " Motivo: motivo2.",
+    },
+    {
+      rejectionReasons: [
+        { rejectedAt: latestDate, rejectionReason: "motivo1" },
+        { rejectedAt: olderDate, rejectionReason: "motivo2" },
+      ],
+      expectedReason: " Motivo: motivo1.",
+    },
+  ])(
+    "should report the correct rejection reason correctly ($rejectionReasons, $expectedReason)",
+    async ({ rejectionReasons, expectedReason }) => {
+      const delegateUsers = [{ userId: generateId(), tenantId: delegator.id }];
+
+      // eslint-disable-next-line functional/immutable-data
+      readModelService.getTenantUsersWithNotificationEnabled = vi
+        .fn()
+        .mockResolvedValue(delegateUsers);
+
+      const notifications =
+        await handleEserviceNewVersionApprovedRejectedToDelegate(
+          toEServiceV2({
+            ...eservice,
+            descriptors: [{ ...eservice.descriptors[0], rejectionReasons }],
+          }),
+          descriptorId,
+          logger,
+          readModelService,
+          "EServiceDescriptorRejectedByDelegator"
+        );
+
+      const expectedBody = `${delegator.name} ha rifiutato la nuova versione dell'e-service <strong>${eservice.name}</strong>.${expectedReason}`;
+
+      expect(notifications).toHaveLength(delegateUsers.length);
+      expect(notifications[0].body).toEqual(expectedBody);
+    }
+  );
 });

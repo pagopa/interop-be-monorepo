@@ -81,6 +81,15 @@ const getLastRejectionReason = (
   const descriptor = eservice.descriptors.find(
     (descriptor) => descriptor.id === descriptorId
   );
-  return descriptor?.rejectionReasons?.[descriptor.rejectionReasons.length - 1]
-    .rejectionReason;
+  if (
+    !descriptor?.rejectionReasons ||
+    descriptor.rejectionReasons.length === 0
+  ) {
+    return undefined;
+  }
+  const mostRecentRejection = descriptor.rejectionReasons.reduce(
+    (latest, current) =>
+      current.rejectedAt > latest.rejectedAt ? current : latest
+  );
+  return mostRecentRejection.rejectionReason;
 };
