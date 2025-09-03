@@ -54,11 +54,7 @@ export function purposeTemplateServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{
-        purposeTemplate: PurposeTemplate;
-      }>
-    > {
+    ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Creating purpose template`);
 
       assertConsistentFreeOfCharge(
@@ -97,9 +93,7 @@ export function purposeTemplateServiceBuilder(
       );
 
       return {
-        data: {
-          purposeTemplate,
-        },
+        data: purposeTemplate,
         metadata: {
           version: event.newVersion,
         },
