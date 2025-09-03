@@ -68,7 +68,7 @@ export function riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
     singleAnswers: validatedForm.singleAnswers.map((a) => ({
       id: generateId(),
       key: a.key,
-      value: a.value,
+      ...(a.value ? { value: a.value } : {}),
       editable: a.editable,
       suggestedValues: a.suggestedValues,
       ...(a.annotation ? { annotation: mapAnnotation(a.annotation) } : {}),
@@ -96,7 +96,9 @@ export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
             values: singleAnswer.value ? [singleAnswer.value] : [],
             editable: singleAnswer.editable,
             suggestedValues: singleAnswer.suggestedValues,
-            annotation: singleAnswer.annotation,
+            ...(singleAnswer.annotation
+              ? { annotation: singleAnswer.annotation }
+              : {}),
           },
         }),
         {}
@@ -108,7 +110,9 @@ export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
             values: multiAnswer.values,
             editable: multiAnswer.editable,
             suggestedValues: [],
-            annotation: multiAnswer.annotation,
+            ...(multiAnswer.annotation
+              ? { annotation: multiAnswer.annotation }
+              : {}),
           },
         }),
         {}
