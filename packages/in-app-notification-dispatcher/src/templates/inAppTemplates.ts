@@ -71,7 +71,7 @@ export const inAppTemplates = {
       }))
       .with("EServiceDescriptorRejectedByDelegator", () => ({
         action: "rifiutato",
-        reason: rejectionReason ? `Motivo: ${rejectionReason}.` : "",
+        reason: rejectionReason ? ` Motivo: ${rejectionReason}.` : "",
       }))
       .exhaustive();
     return `${delegatorName} ha ${action} la nuova versione dell'e-service <strong>${eserviceName}</strong>.${reason}`;
