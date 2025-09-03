@@ -1,7 +1,7 @@
 import { delegationApi } from "pagopa-interop-api-clients";
 import { M2MAdminAuthData } from "pagopa-interop-commons";
 import {
-  notAnActiveConsumerDelegation,
+  delegationEServiceMismatch,
   requesterIsNotTheDelegateConsumer,
   unexpectedDelegationKind,
 } from "../../model/errors.js";
@@ -15,19 +15,22 @@ export function assertDelegationKindIs<K extends delegationApi.DelegationKind>(
   }
 }
 
+export function assertIsDelegationForEService(
+  eserviceId: string,
+  delegation: delegationApi.Delegation
+): void {
+  if (delegation.eserviceId !== eserviceId) {
+    throw delegationEServiceMismatch(eserviceId, delegation);
+  }
+}
+
 export function assertRequesterIsDelegateConsumerForEservice(
   authData: M2MAdminAuthData,
   eserviceId: string,
   delegation: delegationApi.Delegation
 ): void {
+  assertIsDelegationForEService(eserviceId, delegation);
   assertRequesterIsDelegateConsumer(authData, delegation);
-  if (delegation.eserviceId !== eserviceId) {
-    throw notAnActiveConsumerDelegation(
-      authData.organizationId,
-      eserviceId,
-      delegation
-    );
-  }
 }
 
 export function assertRequesterIsDelegateConsumer(
