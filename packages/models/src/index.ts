@@ -98,7 +98,6 @@ export * from "./read-models/attributeReadModel.js";
 export * from "./read-models/eserviceReadModel.js";
 export * from "./read-models/tenantReadModel.js";
 export * from "./read-models/purposeReadModel.js";
-export * from "./read-models/purposeTemplateReadModel.js";
 export * from "./read-models/readModels.js";
 export * from "./read-models/authorizationReadModel.js";
 export * from "./read-models/delegationReadModel.js";

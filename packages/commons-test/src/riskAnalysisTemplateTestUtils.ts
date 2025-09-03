@@ -217,9 +217,9 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "reasonPolicyNotProvided",
-        value: "Because",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["Because1", "Because2"],
       },
       {
         key: "doneDpia",
