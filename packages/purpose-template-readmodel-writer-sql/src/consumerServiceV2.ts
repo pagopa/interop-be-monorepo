@@ -1,4 +1,5 @@
 import {
+  bigIntToDate,
   fromPurposeTemplateV2,
   missingKafkaMessageDataError,
   PurposeTemplateEventEnvelopeV2,
@@ -55,7 +56,7 @@ export async function handleMessageV2(
           purposeTemplateId: unsafeBrandId(msg.data.purposeTemplate.id),
           eserviceId: unsafeBrandId(msg.data.eservice.id),
           descriptorId: unsafeBrandId(msg.data.descriptorId),
-          createdAt: new Date(),
+          createdAt: bigIntToDate(msg.data.createdAt),
         },
         msg.version
       );
