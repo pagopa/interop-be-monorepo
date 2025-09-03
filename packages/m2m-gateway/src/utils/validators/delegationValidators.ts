@@ -1,5 +1,4 @@
 import { delegationApi } from "pagopa-interop-api-clients";
-import { TenantId } from "pagopa-interop-models";
 import { M2MAdminAuthData } from "pagopa-interop-commons";
 import {
   notAnActiveConsumerDelegation,
@@ -17,19 +16,14 @@ export function assertDelegationKindIs<K extends delegationApi.DelegationKind>(
 }
 
 export function assertActiveConsumerDelegateForEservice(
-  requesterTenantId: TenantId,
+  authData: M2MAdminAuthData,
   eserviceId: string,
   delegation: delegationApi.Delegation
 ): void {
-  if (
-    delegation.kind !==
-      delegationApi.DelegationKind.Values.DELEGATED_CONSUMER ||
-    delegation.state !== delegationApi.DelegationState.Values.ACTIVE ||
-    delegation.delegateId !== requesterTenantId ||
-    delegation.eserviceId !== eserviceId
-  ) {
+  assertRequesterIsDelegateConsumer(authData, delegation);
+  if (delegation.eserviceId !== eserviceId) {
     throw notAnActiveConsumerDelegation(
-      requesterTenantId,
+      authData.organizationId,
       eserviceId,
       delegation
     );

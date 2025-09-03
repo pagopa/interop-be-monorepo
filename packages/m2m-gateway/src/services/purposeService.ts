@@ -1,6 +1,10 @@
 import { basename } from "path";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import { FileManager, WithLogger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  M2MAdminAuthData,
+  WithLogger,
+} from "pagopa-interop-commons";
 import {
   PurposeId,
   PurposeVersionId,
@@ -125,31 +129,28 @@ export function purposeServiceBuilder(
 
   const getConsumerIdForPurposeCreation = async (
     purposeSeed: m2mGatewayApi.PurposeSeed | m2mGatewayApi.ReversePurposeSeed,
-    requesterTenantId: TenantId,
+    authData: M2MAdminAuthData,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<TenantId> => {
-    const delegation = purposeSeed.delegationId
-      ? (
-          await clients.delegationProcessClient.delegation.getDelegation({
-            params: {
-              delegationId: purposeSeed.delegationId,
-            },
-            headers,
-          })
-        ).data
-      : undefined;
+    if (!purposeSeed.delegationId) {
+      return authData.organizationId;
+    } else {
+      const delegation = (
+        await clients.delegationProcessClient.delegation.getDelegation({
+          params: {
+            delegationId: purposeSeed.delegationId,
+          },
+          headers,
+        })
+      ).data;
 
-    if (delegation) {
       assertActiveConsumerDelegateForEservice(
-        requesterTenantId,
+        authData,
         purposeSeed.eserviceId,
         delegation
       );
+      return unsafeBrandId<TenantId>(delegation.delegatorId);
     }
-
-    return delegation
-      ? unsafeBrandId<TenantId>(delegation.delegatorId)
-      : requesterTenantId;
   };
 
   return {
@@ -201,7 +202,7 @@ export function purposeServiceBuilder(
         {
           consumerId: await getConsumerIdForPurposeCreation(
             purposeSeed,
-            authData.organizationId,
+            authData,
             headers
           ),
           eserviceId: purposeSeed.eserviceId,
@@ -483,7 +484,7 @@ export function purposeServiceBuilder(
           {
             consumerId: await getConsumerIdForPurposeCreation(
               purposeSeed,
-              authData.organizationId,
+              authData,
               headers
             ),
             eserviceId: purposeSeed.eserviceId,
