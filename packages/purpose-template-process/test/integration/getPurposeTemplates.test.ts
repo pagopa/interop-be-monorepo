@@ -102,7 +102,7 @@ describe("getPurposeTemplates", async () => {
       descriptorId: eservice2.descriptors[0].id,
       createdAt: new Date(),
     };
-  const purposeTemplateEServiceDescriptor4: EServiceDescriptorPurposeTemplate =
+  const purposeTemplateEServiceDescriptor3: EServiceDescriptorPurposeTemplate =
     {
       purposeTemplateId: suspendedPurposeTemplateByCreator2.id,
       eserviceId: eservice1.id,
@@ -128,7 +128,7 @@ describe("getPurposeTemplates", async () => {
       purposeTemplateEServiceDescriptor2
     );
     await addOnePurposeTemplateEServiceDescriptor(
-      purposeTemplateEServiceDescriptor4
+      purposeTemplateEServiceDescriptor3
     );
   });
 
