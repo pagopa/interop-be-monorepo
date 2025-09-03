@@ -1,0 +1,25 @@
+meta {
+  name: Get eservice descriptor declared attribute
+  type: http
+  seq: 34
+}
+
+get {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/declaredAttributes?offset=0&limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 50
+}
+
+params:path {
+  descriptorId: {{descriptorId}}
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
