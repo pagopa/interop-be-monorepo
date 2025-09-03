@@ -37,4 +37,6 @@ export type RiskAnalysisDocumentPDFPayload = {
   consumerDelegationId: DelegationId | undefined;
   consumerDelegateName: string | undefined;
   consumerDelegateIpaCode: string | undefined;
+  consumerId: string;
+  userId?: string | undefined;
 };
