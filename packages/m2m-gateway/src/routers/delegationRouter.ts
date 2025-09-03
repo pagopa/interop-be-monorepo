@@ -1,6 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   ZodiosContext,
   ExpressContext,
@@ -52,11 +52,11 @@ const delegationRouter = (
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-        const consumerDelegation = await delegationService.getDelegation(
-          req.params.delegationId,
-          delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-          ctx
-        );
+        const consumerDelegation =
+          await delegationService.getConsumerDelegation(
+            req.params.delegationId,
+            ctx
+          );
         return res
           .status(200)
           .send(m2mGatewayApi.ConsumerDelegation.parse(consumerDelegation));
@@ -171,11 +171,11 @@ const delegationRouter = (
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-        const producerDelegation = await delegationService.getDelegation(
-          req.params.delegationId,
-          delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
-          ctx
-        );
+        const producerDelegation =
+          await delegationService.getProducerDelegation(
+            req.params.delegationId,
+            ctx
+          );
         return res
           .status(200)
           .send(m2mGatewayApi.ProducerDelegation.parse(producerDelegation));
