@@ -59,12 +59,14 @@ export const riskAnalysisDocumentBuilder = (
   const dirname = path.dirname(filename);
 
   return {
+    // eslint-disable-next-line max-params
     createRiskAnalysisDocument: async (
       purpose: Purpose,
       dailyCalls: number,
       eserviceInfo: PurposeDocumentEServiceInfo,
       tenantKind: TenantKind,
-      language: Language
+      language: Language,
+      selfcareId?: string
     ): Promise<PurposeVersionDocument> => {
       const templateFilePath = path.resolve(
         dirname,
@@ -99,6 +101,8 @@ export const riskAnalysisDocumentBuilder = (
         isFreeOfCharge: purpose.isFreeOfCharge,
         freeOfChargeReason: purpose.freeOfChargeReason,
         language,
+        consumerId: purpose.consumerId,
+        userId: selfcareId,
       });
 
       const pdfBuffer: Buffer = await pdfGenerator.generate(
@@ -138,6 +142,8 @@ const getPdfPayload = ({
   isFreeOfCharge,
   freeOfChargeReason,
   language,
+  consumerId,
+  userId,
 }: {
   riskAnalysisFormConfig: RiskAnalysisFormRules;
   riskAnalysisForm: PurposeRiskAnalysisForm;
@@ -146,6 +152,8 @@ const getPdfPayload = ({
   isFreeOfCharge: boolean;
   freeOfChargeReason?: string;
   language: Language;
+  consumerId: string;
+  userId?: string;
 }): RiskAnalysisDocumentPDFPayload => {
   const answers = formatAnswers(
     riskAnalysisFormConfig,
@@ -181,6 +189,8 @@ const getPdfPayload = ({
     consumerDelegationId: eserviceInfo.consumerDelegationId,
     consumerDelegateName: eserviceInfo.consumerDelegateName,
     consumerDelegateIpaCode: eserviceInfo.consumerDelegateIpaCode,
+    consumerId,
+    userId,
   };
 };
 
