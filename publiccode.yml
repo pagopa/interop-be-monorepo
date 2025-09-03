@@ -3,7 +3,7 @@ name: Piattaforma Digitale Nazione Dati - Interoperabilità
 applicationSuite: PDND
 url: https://github.com/pagopa/interop-be-monorepo
 landingURL: https://www.interop.pagopa.it/
-releaseDate: 2025-08-07
+releaseDate: 2022-10-01
 developmentStatus: stable
 softwareType: standalone/web
 platforms:
