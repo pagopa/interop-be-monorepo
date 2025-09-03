@@ -146,7 +146,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-
   /purposeTemplates/{id}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
