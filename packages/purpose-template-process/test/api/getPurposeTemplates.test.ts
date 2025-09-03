@@ -22,7 +22,7 @@ describe("API GET /purposeTemplates", () => {
   };
   const mockPurposeTemplate3: PurposeTemplate = {
     ...getMockPurposeTemplate(),
-    purposeTitle: "Mock purpose 3",
+    purposeTitle: "Mock purpose template 3",
   };
 
   const defaultQuery = {
