@@ -21,10 +21,12 @@ import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   createPurposeTemplateErrorMapper,
+  getPurposeTemplateEServiceDescriptorsErrorMapper,
   getPurposeTemplatesErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   apiPurposeTemplateStateToPurposeTemplateState,
+  purposeTemplateEServiceDescriptorToApiPurposeTemplateEServiceDescriptor,
   purposeTemplateToApiPurposeTemplate,
 } from "../model/domain/apiConverter.js";
 
@@ -225,10 +227,33 @@ const purposeTemplateRouter = (
           SECURITY_ROLE,
           SUPPORT_ROLE,
         ]);
+
+        const { offset, limit } = req.query;
+        const purposeTemplateEServicesDescriptors =
+          await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
+            unsafeBrandId(req.params.id),
+            { offset, limit },
+            ctx
+          );
+        return res.status(200).send(
+          purposeTemplateApi.EServiceDescriptorsPurposeTemplate.parse({
+            results: purposeTemplateEServicesDescriptors.results.map(
+              (purposeTemplateEServiceDescriptor) =>
+                purposeTemplateEServiceDescriptorToApiPurposeTemplateEServiceDescriptor(
+                  purposeTemplateEServiceDescriptor
+                )
+            ),
+            totalCount: purposeTemplateEServicesDescriptors.totalCount,
+          })
+        );
       } catch (error) {
-        return res.status(501);
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateEServiceDescriptorsErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-      return res.status(501);
     })
     .post("/purposeTemplates/:id/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);

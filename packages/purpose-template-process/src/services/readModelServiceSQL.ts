@@ -1,5 +1,6 @@
 import {
   EService,
+  EServiceDescriptorPurposeTemplate,
   EServiceId,
   ListResult,
   PurposeTemplate,
@@ -15,6 +16,7 @@ import {
   PurposeTemplateReadModelService,
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
+  aggregatePurposeTemplateEServiceDescriptorArray,
 } from "pagopa-interop-readmodel";
 
 import {
@@ -26,7 +28,16 @@ import {
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, exists, ilike, inArray, isNotNull, SQL } from "drizzle-orm";
+import {
+  and,
+  eq,
+  exists,
+  getTableColumns,
+  ilike,
+  inArray,
+  isNotNull,
+  SQL,
+} from "drizzle-orm";
 import {
   ascLower,
   createListResult,
@@ -225,8 +236,44 @@ export function readModelServiceBuilderSQL({
       // TO DO: this is a placeholder function Replace with actual implementation to fetch the purpose template by ID
       return undefined;
     },
+    // TODO: remove if unused
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
+    },
+    async getPurposeTemplateEServiceDescriptors(
+      id: PurposeTemplateId,
+      { limit, offset }: { limit: number; offset: number }
+    ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
+      const queryResult = await readModelDB
+        .select(
+          withTotalCount(
+            getTableColumns(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+            )
+          )
+        )
+        .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+        .where(
+          eq(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+            id
+          )
+        )
+        .orderBy(
+          purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.createdAt
+        )
+        .limit(limit)
+        .offset(offset);
+
+      const purposeTemplateEServiceDescriptors =
+        aggregatePurposeTemplateEServiceDescriptorArray(queryResult);
+
+      return createListResult(
+        purposeTemplateEServiceDescriptors.map(
+          (eserviceDescriptor) => eserviceDescriptor.data
+        ),
+        queryResult[0]?.totalCount
+      );
     },
   };
 }

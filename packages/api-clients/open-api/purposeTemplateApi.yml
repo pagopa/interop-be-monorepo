@@ -482,6 +482,21 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
     get:
       tags:
         - purposeTemplate
@@ -494,9 +509,8 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
+                $ref: "#/components/schemas/EServiceDescriptorsPurposeTemplate"
+        # TODO: maybe useless
         "403":
           description: Forbidden
           content:
@@ -906,6 +920,20 @@ components:
         - PRIVATE
         - GSP
         - SCP
+    EServiceDescriptorsPurposeTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     EServiceDescriptorPurposeTemplate:
       type: object
       additionalProperties: false
