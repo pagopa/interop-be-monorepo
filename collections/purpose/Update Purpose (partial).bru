@@ -1,7 +1,7 @@
 meta {
-  name: Update Purpose
+  name: Update Purpose (partial)
   type: http
-  seq: 5
+  seq: 19
 }
 
 patch {
@@ -15,7 +15,7 @@ params:path {
 }
 
 headers {
-  Authorization: {{JWT}}
+  Authorization: {{JWT-M2M-ADMIN}}
   X-Correlation-Id: {{correlation-id}}
 }
 
@@ -25,7 +25,7 @@ body:json {
       "description": "a purpose long description updated",
       "isFreeOfCharge": false,
       "dailyCalls": 200,
-      "freeOfChargeReason": "",
+      "freeOfChargeReason": null,
       "riskAnalysisForm": {
           "version": "3.0",
           "answers": {
@@ -55,12 +55,8 @@ body:json {
   }
 }
 
-vars:post-response {
-  purposeId: res.body.id
-}
-
 script:pre-request {
   const random = Math.round(Math.random() * 100)
-
+  
   bru.setVar("randomName",`test name ${random}`)
 }

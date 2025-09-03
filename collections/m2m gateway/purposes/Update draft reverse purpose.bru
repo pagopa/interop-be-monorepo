@@ -22,14 +22,14 @@ body:json {
   {
       "title": "{{randomName}}",
       "description": "updated description for purpose",
-      "isFreeOfCharge": true,
-      "freeOfChargeReason": "a new free of charge reason",
-      "dailyCalls": 200
+      "isFreeOfCharge": false,
+      "freeOfChargeReason": null,
+      "dailyCalls": 999
   }
 }
 
 script:pre-request {
   const random = Math.round(Math.random() * 100)
-
+  
   bru.setVar("randomName",`test name ${random}`)
 }

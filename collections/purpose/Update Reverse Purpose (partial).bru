@@ -1,7 +1,7 @@
 meta {
-  name: Update Reverse Purpose
+  name: Update Reverse Purpose (partial)
   type: http
-  seq: 15
+  seq: 20
 }
 
 patch {
@@ -15,7 +15,7 @@ params:path {
 }
 
 headers {
-  Authorization: {{JWT}}
+  Authorization: {{JWT-M2M-ADMIN}}
   X-Correlation-Id: {{correlation-id}}
 }
 
@@ -25,16 +25,12 @@ body:json {
       "description": "a purpose long description updated",
       "isFreeOfCharge": false,
       "dailyCalls": 200,
-      "freeOfChargeReason": ""
+      "freeOfChargeReason": null 
   }
-}
-
-vars:post-response {
-  reversePurposeId: res.body.id
 }
 
 script:pre-request {
   const random = Math.round(Math.random() * 100)
-
+  
   bru.setVar("randomName",`test name ${random}`)
 }
