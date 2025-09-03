@@ -235,7 +235,7 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
             {
               id: unsafeBrandId(answerSQL.id),
               key: answerSQL.key,
-              value: answerSQL.value[0],
+              ...(answerSQL.value[0] ? { value: answerSQL.value[0] } : {}),
               editable: answerSQL.editable,
               ...(answerAnnotation ? { annotation: answerAnnotation } : {}),
               suggestedValues: answerSQL.suggestedValues || [],
