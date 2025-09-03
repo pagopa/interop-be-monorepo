@@ -16,6 +16,8 @@ import {
   DelegationEventEnvelopeV2,
   DelegationEvent,
   genericInternalError,
+  PurposeTemplateEventEnvelopeV2,
+  PurposeTemplateEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { DbServiceBuilder } from "../services/dbService.js";
@@ -46,7 +48,7 @@ export async function executeTopicHandler(
   topic: string,
   fileManager: FileManager,
   dbService: DbServiceBuilder,
-  safeStorageService: SafeStorageService
+  safeStorageService: SafeStorageService,
 ): Promise<void> {
   await match(topic)
     .with(config.catalogTopic, async () => {
@@ -63,7 +65,7 @@ export async function executeTopicHandler(
             eserviceV2WithTimestamp.push({
               eserviceV2: msg,
               timestamp: message.timestamp,
-            })
+            }),
           )
           .exhaustive();
       }
@@ -72,7 +74,7 @@ export async function executeTopicHandler(
           eserviceV2WithTimestamp,
           fileManager,
           dbService,
-          safeStorageService
+          safeStorageService,
         );
       }
     })
@@ -90,7 +92,7 @@ export async function executeTopicHandler(
             agreementV2WithTimestamp.push({
               agreementV2: msg,
               timestamp: message.timestamp,
-            })
+            }),
           )
           .exhaustive();
       }
@@ -99,7 +101,7 @@ export async function executeTopicHandler(
           agreementV2WithTimestamp,
           fileManager,
           dbService,
-          safeStorageService
+          safeStorageService,
         );
       }
     })
@@ -117,7 +119,7 @@ export async function executeTopicHandler(
             purposeV2WithTimestamp.push({
               purposeV2: msg,
               timestamp: message.timestamp,
-            })
+            }),
           )
           .exhaustive();
       }
@@ -126,7 +128,7 @@ export async function executeTopicHandler(
           purposeV2WithTimestamp,
           fileManager,
           dbService,
-          safeStorageService
+          safeStorageService,
         );
       }
     })
@@ -147,13 +149,13 @@ export async function executeTopicHandler(
             authV1WithTimestamp.push({
               authV1: msg,
               timestamp: message.timestamp,
-            })
+            }),
           )
           .with({ event_version: 2 }, (msg) =>
             authV2WithTimestamp.push({
               authV2: msg,
               timestamp: message.timestamp,
-            })
+            }),
           )
           .exhaustive();
       }
@@ -162,7 +164,7 @@ export async function executeTopicHandler(
           authV1WithTimestamp,
           fileManager,
           dbService,
-          safeStorageService
+          safeStorageService,
         );
       }
       if (authV2WithTimestamp.length > 0) {
@@ -170,7 +172,7 @@ export async function executeTopicHandler(
           authV2WithTimestamp,
           fileManager,
           dbService,
-          safeStorageService
+          safeStorageService,
         );
       }
     })
@@ -187,7 +189,7 @@ export async function executeTopicHandler(
             delegationV2WithTimestamp.push({
               delegationV2: msg,
               timestamp: message.timestamp,
-            })
+            }),
           )
           .exhaustive();
       }
@@ -196,7 +198,33 @@ export async function executeTopicHandler(
           delegationV2WithTimestamp,
           fileManager,
           dbService,
-          safeStorageService
+          safeStorageService,
+        );
+      }
+    })
+    .with(config.purposeTemplateTopic, async () => {
+      const purposeTemplateV2WithTimestamp: Array<{
+        purposeTemplateV2: PurposeTemplateEventEnvelopeV2;
+        timestamp: string;
+      }> = [];
+
+      for (const message of kafkaMessages) {
+        const decoded = decodeKafkaMessage(message, PurposeTemplateEvent);
+        match(decoded)
+          .with({ event_version: 2 }, (msg) =>
+            purposeTemplateV2WithTimestamp.push({
+              purposeTemplateV2: msg,
+              timestamp: message.timestamp,
+            }),
+          )
+          .exhaustive();
+      }
+      if (purposeTemplateV2WithTimestamp.length > 0) {
+        await handlePurposeTemplateMessageV2(
+          purposeTemplateV2WithTimestamp,
+          fileManager,
+          dbService,
+          safeStorageService,
         );
       }
     })

@@ -25,6 +25,7 @@ export const CatalogEventSchema = BaseEventSchema.extend({
 });
 
 export const DelegationEventSchema = BaseEventSchema;
+export const PurposeTemplateEventSchema = BaseEventSchema;
 
 export type BaseEventData = z.infer<typeof BaseEventSchema>;
 export type PurposeEventData = z.infer<typeof PurposeEventSchema>;
@@ -32,3 +33,6 @@ export type AgreementEventData = z.infer<typeof AgreementEventSchema>;
 export type AuthorizationEventData = z.infer<typeof AuthorizationEventSchema>;
 export type CatalogEventData = z.infer<typeof CatalogEventSchema>;
 export type DelegationEventData = z.infer<typeof DelegationEventSchema>;
+export type PurposeTemplateEventData = z.infer<
+  typeof PurposeTemplateEventSchema
+>;

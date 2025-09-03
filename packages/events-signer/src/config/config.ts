@@ -10,6 +10,7 @@ import {
   S3Config,
   KafkaBatchConsumerConfig,
   EventsSignerConfig,
+  PurposeTemplateTopicConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -17,6 +18,7 @@ export const EventSignerConfig = CatalogTopicConfig.and(AgreementTopicConfig)
   .and(AuthorizationTopicConfig)
   .and(PurposeTopicConfig)
   .and(DelegationTopicConfig)
+  .and(PurposeTemplateTopicConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(LoggerConfig)
@@ -29,7 +31,7 @@ export const EventSignerConfig = CatalogTopicConfig.and(AgreementTopicConfig)
       })
       .transform((c) => ({
         serviceName: c.SERVICE_NAME,
-      }))
+      })),
   );
 
 export const safeStorageApiConfigSchema = z
@@ -63,5 +65,5 @@ export const batchConsumerConfig: KafkaBatchConsumerConfig =
   KafkaBatchConsumerConfig.parse(process.env);
 
 export const safeStorageApiConfig = safeStorageApiConfigSchema.parse(
-  process.env
+  process.env,
 );
