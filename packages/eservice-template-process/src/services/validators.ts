@@ -163,7 +163,8 @@ export function assertRiskAnalysisIsValidForPublication(
         riskAnalysis.riskAnalysisForm
       ),
       false,
-      riskAnalysis.tenantKind
+      riskAnalysis.tenantKind,
+      riskAnalysis.createdAt
     );
 
     if (result.type === "invalid") {

@@ -12,13 +12,13 @@ import {
 import {
   RiskAnalysisValidationIssue,
   dependencyNotFoundError,
+  expiredRulesVersionError,
   missingExpectedFieldError,
   noRulesVersionFoundError,
   unexpectedDependencyValueError,
   unexpectedFieldError,
   unexpectedFieldFormatError,
   unexpectedFieldValueError,
-  unexpectedRulesVersionError,
 } from "./riskAnalysisValidationErrors.js";
 import {
   FormQuestionRules,
@@ -30,21 +30,23 @@ import { riskAnalysisFormRules } from "./rules/riskAnalysisFormRulesProvider.js"
 export function validateRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  dateForValidation: Date
 ): RiskAnalysisValidationResult<RiskAnalysisValidatedForm> {
-  const latestVersionFormRules = getLatestVersionFormRules(tenantKind);
+  const formRulesForValidation = getFormRulesByVersion(
+    tenantKind,
+    riskAnalysisForm.version
+  );
 
-  if (latestVersionFormRules === undefined) {
+  if (formRulesForValidation === undefined) {
     return invalidResult([noRulesVersionFoundError(tenantKind)]);
   }
 
-  if (latestVersionFormRules.version !== riskAnalysisForm.version) {
-    return invalidResult([
-      unexpectedRulesVersionError(riskAnalysisForm.version),
-    ]);
+  if (formRulesForValidation.expiration < dateForValidation) {
+    return invalidResult([expiredRulesVersionError(riskAnalysisForm.version)]);
   }
 
-  const validationRules = buildValidationRules(latestVersionFormRules);
+  const validationRules = buildValidationRules(formRulesForValidation);
 
   const sanitizedAnswers = getSanitizedAnswers(riskAnalysisForm);
 
@@ -84,7 +86,7 @@ export function validateRiskAnalysis(
     );
 
     return validResult({
-      version: latestVersionFormRules.version,
+      version: formRulesForValidation.version,
       singleAnswers,
       multiAnswers,
     });
