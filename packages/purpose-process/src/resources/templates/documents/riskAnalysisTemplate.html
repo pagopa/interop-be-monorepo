@@ -55,7 +55,17 @@
         </div>
       </div>
 
-      {{#if producerDelegationId}}
+      {{#if userId}}
+      <div class="item">
+        <div class="label">Id utente</div>
+        <div class="value">{{userId}}</div>
+      </div>
+      {{else}}
+      <div class="item">
+        <div class="label">Id ente fruitore</div>
+        <div class="value">{{consumerId}}</div>
+      </div>
+      {{/if}} {{#if producerDelegationId}}
       <div class="item">
         <div class="label">Ente delegato all’erogazione</div>
         <div class="value">
@@ -63,7 +73,6 @@
           {{producerDelegateIpaCode}}){{/if}}
         </div>
       </div>
-      {{/if}}
 
       <br />
 
@@ -84,7 +93,6 @@
         </div>
       </div>
       {{/if}}
-
       <div class="item">
         <div class="label">Numero chiamate API/giorno</div>
         <div class="value">{{dailyCalls}}</div>

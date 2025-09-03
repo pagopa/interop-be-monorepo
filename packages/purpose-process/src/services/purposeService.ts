@@ -1723,6 +1723,8 @@ async function generateRiskAnalysisDocument({
     .with(eserviceMode.receive, () => getTenantKind(producer))
     .exhaustive();
 
+  const selfcareId = consumer.selfcareId ?? undefined;
+
   return await riskAnalysisDocumentBuilder(
     pdfGenerator,
     fileManager,
@@ -1733,7 +1735,8 @@ async function generateRiskAnalysisDocument({
     dailyCalls,
     eserviceInfo,
     tenantKind,
-    "it"
+    "it",
+    selfcareId
   );
 }
 
