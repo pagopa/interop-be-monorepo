@@ -15,7 +15,7 @@ export function assertDelegationKindIs<K extends delegationApi.DelegationKind>(
   }
 }
 
-export function assertActiveConsumerDelegateForEservice(
+export function assertRequesterIsDelegateConsumerForEservice(
   authData: M2MAdminAuthData,
   eserviceId: string,
   delegation: delegationApi.Delegation

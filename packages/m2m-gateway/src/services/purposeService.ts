@@ -38,7 +38,7 @@ import {
 import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
-import { assertActiveConsumerDelegateForEservice } from "../utils/validators/delegationValidators.js";
+import { assertRequesterIsDelegateConsumerForEservice } from "../utils/validators/delegationValidators.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -144,7 +144,7 @@ export function purposeServiceBuilder(
         })
       ).data;
 
-      assertActiveConsumerDelegateForEservice(
+      assertRequesterIsDelegateConsumerForEservice(
         authData,
         purposeSeed.eserviceId,
         delegation
