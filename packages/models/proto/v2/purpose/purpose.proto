@@ -32,7 +32,7 @@ message PurposeVersionV2 {
   optional int64 firstActivationAt = 7;
   optional int64 suspendedAt = 8;
   optional string rejectionReason = 9;
-  optional PurposeVersionStampV2 purposeVersionStamp = 10;
+  optional PurposeVersionStampsV2 stamps = 10;  
 }
 
 enum PurposeStateV2 {
@@ -51,11 +51,11 @@ message PurposeVersionDocumentV2 {
  int64 createdAt = 4;
 }
 
-message PurposeVersionStampV2 {
-  optional CreationStampV2 creation = 1;
+message PurposeVersionStampsV2 {
+  PurposeVersionStampV2 creation = 1;
 }
 
-message CreationStampV2 {
+message PurposeVersionStampV2 {
   string who = 1;
   int64 when = 2;
 }
