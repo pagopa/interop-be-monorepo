@@ -299,6 +299,9 @@ export function authorizationServiceBuilder(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
       );
 
+      // Some filters apply only to clients owned by the caller
+      // (i.e., where the caller is the consumer of the client).
+      // That's because they filter fields that are only visible to the owner.
       const areOwnerFiltersSet =
         (filters.userIds && filters.userIds.length > 0) ||
         filters.purposeId ||
@@ -309,14 +312,16 @@ export function authorizationServiceBuilder(
         filters.consumerId &&
         filters.consumerId !== authData.organizationId
       ) {
+        // consumer filter (owner) differs from the caller,
+        // cannot apply owner-specific filters -> return empty list
         return emptyListResult;
       }
 
       const consumerId = areOwnerFiltersSet
         ? authData.organizationId
         : filters.consumerId;
-      // ^ in case the caller sets filters on fields visible only to the client owner (consumer),
-      // we restrict the results to clients owned by the caller.
+      // ^ If owner-specific filters are set,
+      // we restrict the results to clients with the caller as the consumer (owner).
 
       const userIds =
         isUiAuthData(authData) &&
@@ -934,6 +939,9 @@ export function authorizationServiceBuilder(
         `Retrieving producer keychains by name ${filters.name}, userIds ${filters.userIds}, producerId ${filters.producerId}, eserviceId ${filters.eserviceId}`
       );
 
+      // Some filters apply only to keychains owned by the caller
+      // (i.e., where the caller is the producer of the keychain).
+      // That's because they filter fields that are only visible to the owner.
       const areOwnerFiltersSet =
         (filters.userIds && filters.userIds.length > 0) ||
         filters.eserviceId ||
@@ -944,14 +952,16 @@ export function authorizationServiceBuilder(
         filters.producerId &&
         filters.producerId !== authData.organizationId
       ) {
+        // producer filter (owner) differs from the caller,
+        // cannot apply owner-specific filters -> return empty list
         return emptyListResult;
       }
 
       const producerId = areOwnerFiltersSet
         ? authData.organizationId
         : filters.producerId;
-      // ^ in case the caller sets filters on fields visible only to the keychain owner (producer),
-      // we restrict the results to keychain owned by the caller.
+      // ^ If owner-specific filters are set,
+      // we restrict the results to keychains with the caller as the producer (owner).
 
       const userIds =
         isUiAuthData(authData) &&
