@@ -31,7 +31,7 @@ describe("GET /consumerDelegation/{delegationId} router test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockDelegationService.getDelegation = vi
+      mockDelegationService.getConsumerDelegation = vi
         .fn()
         .mockResolvedValue(mockM2MConsumerDelegationResponse);
 
@@ -65,7 +65,9 @@ describe("GET /consumerDelegation/{delegationId} router test", () => {
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockDelegationService.getDelegation = vi.fn().mockResolvedValueOnce(resp);
+      mockDelegationService.getConsumerDelegation = vi
+        .fn()
+        .mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockApiDelegation.id);
 

@@ -12266,7 +12266,7 @@ components:
       enum:
         - REST
         - SOAP
-    EServiceDescriptorAttributesGroup:
+    EServiceDescriptorAttributesGroups:
       description: |
         A list of groups of attributes associated with an E-Service descriptor.
         An E-Service descriptor can have multiple attribute groups for each
@@ -12285,7 +12285,7 @@ components:
       additionalProperties: false
       properties:
         attributes:
-          $ref: "#/components/schemas/EServiceDescriptorAttributesGroup"
+          $ref: "#/components/schemas/EServiceDescriptorAttributesGroups"
       required:
         - attributes
     EServiceDescriptorAttribute:

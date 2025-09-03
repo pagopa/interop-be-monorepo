@@ -51,9 +51,8 @@ describe("getConsumerDelegations", () => {
     const m2mDelegationsResponse: m2mGatewayApi.ConsumerDelegation =
       m2mDelegationResponse;
 
-    const result = await delegationService.getDelegation(
+    const result = await delegationService.getConsumerDelegation(
       m2mDelegationResponse.id,
-      delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
       getMockM2MAdminAppContext()
     );
 
