@@ -3,6 +3,11 @@ import {
   ApiError,
   makeApiProblemBuilder,
   PurposeTemplateId,
+  RiskAnalysisFormTemplateId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  RiskAnalysisTemplateAnswerAnnotationId,
   TenantId,
 } from "pagopa-interop-models";
 
@@ -13,6 +18,7 @@ export const errorCodes = {
   riskAnalysisTemplateValidationFailed: "0004",
   tenantNotFound: "0005",
   tenantKindNotFound: "0006",
+  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0007",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -71,5 +77,25 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant kind for tenant ${tenantId} not found`,
     code: "tenantKindNotFound",
     title: "Tenant kind not found",
+  });
+}
+
+export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
+  purposeTemplateId,
+  riskAnalysisTemplateId,
+  answerId,
+  annotationId,
+  documentId,
+}: {
+  purposeTemplateId: PurposeTemplateId;
+  riskAnalysisTemplateId: RiskAnalysisFormTemplateId;
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+  annotationId: RiskAnalysisTemplateAnswerAnnotationId;
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+}): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId}, risk analysis form template ${riskAnalysisTemplateId}, answer ${answerId} and annotation ${annotationId}`,
+    code: "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
+    title: "`Risk analysis template answer annotation document not found",
   });
 }

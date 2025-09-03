@@ -6,6 +6,12 @@ import {
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
   ListResult,
+  RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisFormTemplateId,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -17,7 +23,10 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import { purposeTemplateNotFound } from "../model/domain/errors.js";
+import {
+  purposeTemplateNotFound,
+  riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
+} from "../model/domain/errors.js";
 import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
 import {
   GetPurposeTemplatesFilters,
@@ -130,6 +139,64 @@ export function purposeTemplateServiceBuilder(
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Retrieving purpose template ${id}`);
       return retrievePurposeTemplate(id, readModelService);
+    },
+    async getRiskAnalysisTemplateAnswerAnnotationDocument(
+      {
+        purposeTemplateId,
+        riskAnalysisTemplateId,
+        answerId,
+        annotationId,
+        documentId,
+      }: {
+        purposeTemplateId: PurposeTemplateId;
+        riskAnalysisTemplateId: RiskAnalysisFormTemplateId;
+        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+        annotationId: RiskAnalysisTemplateAnswerAnnotationId;
+        documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+      },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<RiskAnalysisTemplateAnswerAnnotationDocument> {
+      logger.info(
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}, risk analysis form template ${riskAnalysisTemplateId}, answer ${answerId} and annotation ${annotationId}`
+      );
+
+      // TODO: worth it doing all these checks to throw the specific errors?
+      // await retrievePurposeTemplate(purposeTemplateId, readModelService);
+      // await retrieveRiskAnalysisTemplate(
+      //   riskAnalysisTemplateId,
+      //   readModelService
+      // );
+      // await retrieveRiskAnalysisTemplateAnswer(
+      //   riskAnalysisTemplateId,
+      //   answerId,
+      //   readModelService
+      // );
+      // await retrieveRiskAnalysisTemplateAnswerAnnotation(
+      //   riskAnalysisTemplateId,
+      //   answerId,
+      //   annotationId,
+      //   readModelService
+      // );
+
+      const annotationDocument =
+        await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocument(
+          purposeTemplateId,
+          annotationId
+        );
+
+      if (!annotationDocument) {
+        throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
+          purposeTemplateId,
+          riskAnalysisTemplateId,
+          answerId,
+          annotationId,
+          documentId,
+        });
+      }
+
+      return annotationDocument;
     },
   };
 }

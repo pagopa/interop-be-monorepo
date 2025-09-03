@@ -5,6 +5,8 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeTemplateState,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateAnswerAnnotationId,
   Tenant,
   TenantId,
   WithMetadata,
@@ -15,6 +17,7 @@ import {
   PurposeTemplateReadModelService,
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
+  toRiskAnalysisTemplateAnswerAnnotationDocument,
 } from "pagopa-interop-readmodel";
 
 import {
@@ -227,6 +230,34 @@ export function readModelServiceBuilderSQL({
     },
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
+    },
+    async getRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      annotationId: RiskAnalysisTemplateAnswerAnnotationId
+    ): Promise<RiskAnalysisTemplateAnswerAnnotationDocument | undefined> {
+      const queryResult = await readModelDB
+        .select()
+        .from(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId,
+              annotationId
+            )
+          )
+        );
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      return toRiskAnalysisTemplateAnswerAnnotationDocument(queryResult[0]);
     },
   };
 }
