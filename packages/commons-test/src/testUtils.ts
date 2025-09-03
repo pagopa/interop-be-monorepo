@@ -345,16 +345,14 @@ export const getMockPurposeTemplate = (
   state: PurposeTemplateState = purposeTemplateState.draft
 ): PurposeTemplate => ({
   id: generateId(),
-  targetDescription: "Target description",
+  targetDescription: "Purpose template target description",
   targetTenantKind: tenantKind.PA,
   creatorId,
   state,
   createdAt: new Date(),
-  purposeTitle: "Purpose title",
-  purposeDescription: "Purpose description",
-
+  purposeTitle: "Purpose template title",
+  purposeDescription: "Purpose template description",
   purposeIsFreeOfCharge: false,
-  purposeDailyCalls: 100,
 });
 
 export const getMockPurposeVersion = (
