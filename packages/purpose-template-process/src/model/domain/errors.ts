@@ -59,24 +59,6 @@ export function riskAnalysisTemplateValidationFailed(
   });
 }
 
-// TODO: delete if not used in the future
-export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${tenantId} not found`,
-    code: "tenantNotFound",
-    title: "Tenant not found",
-  });
-}
-
-// TODO: delete if not used in the future
-export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant kind for tenant ${tenantId} not found`,
-    code: "tenantKindNotFound",
-    title: "Tenant kind not found",
-  });
-}
-
 export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} is not allowed to perform the operation because it's not the creator`,
