@@ -1,5 +1,6 @@
 import {
   dateToString,
+  EServiceDescriptorPurposeTemplate,
   PurposeTemplate,
   PurposeTemplateId,
   riskAnalysisAnswerKind,
@@ -11,6 +12,7 @@ import {
   RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
 import {
+  PurposeTemplateEServiceDescriptorSQL,
   PurposeTemplateItemsSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationSQL,
@@ -309,3 +311,14 @@ const splitRiskAnalysisTemplateAnswerAnnotationsIntoObjectsSQL = (
     riskAnalysisAnswerAnnotationDocumentsSQL,
   };
 };
+
+export const toPurposeTemplateEServiceDescriptorSQL = (
+  purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate,
+  metadataVersion: number
+): PurposeTemplateEServiceDescriptorSQL => ({
+  metadataVersion,
+  purposeTemplateId: purposeTemplateEServiceDescriptor.purposeTemplateId,
+  eserviceId: purposeTemplateEServiceDescriptor.eserviceId,
+  descriptorId: purposeTemplateEServiceDescriptor.descriptorId,
+  createdAt: dateToString(purposeTemplateEServiceDescriptor.createdAt),
+});

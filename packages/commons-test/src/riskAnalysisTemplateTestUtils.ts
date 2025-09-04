@@ -3,7 +3,10 @@ import {
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons";
 import {
+  generateId,
   RiskAnalysisFormTemplate,
+  RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantKind,
   tenantKind,
 } from "pagopa-interop-models";
@@ -214,9 +217,9 @@ export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValid
       },
       {
         key: "reasonPolicyNotProvided",
-        value: "Because",
+        value: undefined,
         editable: false,
-        suggestedValues: [],
+        suggestedValues: ["Because1", "Because2"],
       },
       {
         key: "doneDpia",
@@ -274,3 +277,20 @@ export const getMockValidRiskAnalysisFormTemplate = (
       )
     )
     .exhaustive();
+
+export const getMockRiskAnalysisTemplateAnswerAnnotationDocument =
+  (): RiskAnalysisTemplateAnswerAnnotationDocument => ({
+    id: generateId(),
+    name: "fileName",
+    prettyName: "prettyName",
+    contentType: "json",
+    path: "filePath",
+    createdAt: new Date(),
+  });
+
+export const getMockRiskAnalysisTemplateAnswerAnnotation =
+  (): RiskAnalysisTemplateAnswerAnnotation => ({
+    id: generateId(),
+    text: "Risk analysis template answer annotation text",
+    docs: [],
+  });

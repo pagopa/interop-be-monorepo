@@ -5,6 +5,7 @@ import {
   ClientJWKKey,
   Delegation,
   EService,
+  EServiceDescriptorPurposeTemplate,
   EServiceTemplate,
   ProducerJWKKey,
   ProducerKeychain,
@@ -73,6 +74,7 @@ import {
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
 import { and, eq } from "drizzle-orm";
 import {
@@ -91,7 +93,10 @@ import { splitProducerJWKKeyIntoObjectsSQL } from "./authorization/producerJWKKe
 import { splitProducerKeychainIntoObjectsSQL } from "./authorization/producerKeychainSplitters.js";
 import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
 import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
-import { splitPurposeTemplateIntoObjectsSQL } from "./purpose-template/splitters.js";
+import {
+  splitPurposeTemplateIntoObjectsSQL,
+  toPurposeTemplateEServiceDescriptorSQL,
+} from "./purpose-template/splitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -801,5 +806,53 @@ export const upsertPurposeTemplate = async (
         )
         .values(annotationDocumentSQL);
     }
+  });
+};
+
+export const upsertPurposeTemplateEServiceDescriptor = async (
+  readModelDB: DrizzleReturnType,
+  purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      purposeTemplateInReadmodelPurposeTemplate,
+      metadataVersion,
+      purposeTemplateEServiceDescriptor.purposeTemplateId
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+      .where(
+        and(
+          eq(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+            purposeTemplateEServiceDescriptor.purposeTemplateId
+          ),
+          eq(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+            purposeTemplateEServiceDescriptor.eserviceId
+          ),
+          eq(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.descriptorId,
+            purposeTemplateEServiceDescriptor.descriptorId
+          )
+        )
+      );
+
+    const purposeTemplateEServiceDescriptorSQL =
+      toPurposeTemplateEServiceDescriptorSQL(
+        purposeTemplateEServiceDescriptor,
+        metadataVersion
+      );
+
+    await tx
+      .insert(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+      .values(purposeTemplateEServiceDescriptorSQL);
   });
 };
