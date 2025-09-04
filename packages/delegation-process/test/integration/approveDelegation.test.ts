@@ -1,4 +1,5 @@
 /* eslint-disable functional/no-let */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { fileURLToPath } from "url";
 import path from "path";
 import {

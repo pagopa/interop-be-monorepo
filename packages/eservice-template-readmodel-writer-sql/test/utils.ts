@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { inject, afterEach, expect } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { eserviceTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";

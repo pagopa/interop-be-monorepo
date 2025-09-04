@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { describe, it, expect, beforeEach } from "vitest";
 import {
   AgreementAddedV1,

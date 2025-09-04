@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import crypto from "crypto";
 import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
 import {

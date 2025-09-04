@@ -1,5 +1,6 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import crypto from "crypto";
 import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
 import {

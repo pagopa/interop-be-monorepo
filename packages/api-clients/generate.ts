@@ -10,6 +10,7 @@
 /* eslint-disable sonarjs/prefer-single-boolean-return */
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 import * as fs from "fs";
+import path from "path";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import type { OpenAPIObject } from "openapi3-ts";
 import { generateZodClientFromOpenAPI } from "openapi-zod-client";
@@ -56,17 +57,23 @@ const main = async () => {
     fs.mkdirSync(dir);
   }
 
+  const openApiDir = "./open-api";
+
+  const isValidSpec = (name: string) =>
+    !name.startsWith(".") && // ignora file nascosti (es. .DS_Store)
+    /\.(json|ya?ml)$/i.test(name);
+
   const apiDocs = fs
     .readdirSync("./open-api", { withFileTypes: true })
-    .filter((item) => !item.isDirectory())
-    .map((item) => item.name);
+    .filter((item) => item.isFile() && isValidSpec(item.name))
+    .map((item) => item.name)
+    .sort((a, b) => a.localeCompare(b));
 
   for (const doc of apiDocs) {
-    const openApiDoc = (await SwaggerParser.parse(
-      `./open-api/${doc}`
-    )) as OpenAPIObject;
+    const filePath = path.join(openApiDir, doc);
+    const openApiDoc = (await SwaggerParser.parse(filePath)) as OpenAPIObject;
 
-    const fileName = doc.split(".")[0];
+    const fileName = path.parse(doc).name;
     await generateZodClientFromOpenAPI({
       openApiDoc,
       distPath: `./src/generated/${fileName}.ts`,
