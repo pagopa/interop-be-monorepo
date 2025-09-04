@@ -12,7 +12,7 @@ export default defineConfig({
     alias: {
       "pagopa-interop-commons-test": resolve(__dirname, "./packages/commons-test/src"),
       "pagopa-interop-models": resolve(__dirname, "./packages/models/src"),
-      "../gen": resolve(__dirname, "./packages/models/gen"),
+      "../gen": resolve(__dirname, "./packages/models/src/gen/*"),
     },
   },
 });
