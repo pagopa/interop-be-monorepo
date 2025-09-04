@@ -3,7 +3,6 @@ import {
   ApiError,
   makeApiProblemBuilder,
   PurposeTemplateId,
-  TenantId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
