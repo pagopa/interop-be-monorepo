@@ -6,7 +6,7 @@ import {
 import { z } from "zod";
 import { SQSConsumerConfig } from "./sqsConfig.js";
 
-export const SignedObjectFallbackConfig = SQSConsumerConfig.and(LoggerConfig)
+export const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
   .and(S3Config)
   .and(FileManagerConfig)
   .and(
@@ -24,11 +24,11 @@ export const SignedObjectFallbackConfig = SQSConsumerConfig.and(LoggerConfig)
   );
 
 export type SignedObjectFallbackConfig = z.infer<
-  typeof SignedObjectFallbackConfig
+  typeof SignedObjectsPersisterConfig
 >;
 
 export const config: SignedObjectFallbackConfig =
-  SignedObjectFallbackConfig.parse(process.env);
+  SignedObjectsPersisterConfig.parse(process.env);
 
 export const safeStorageApiConfigSchema = z
   .object({
