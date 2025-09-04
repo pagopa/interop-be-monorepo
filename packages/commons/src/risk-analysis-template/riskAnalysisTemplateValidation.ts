@@ -99,13 +99,28 @@ function validateTemplateFormAnswers(
 ): Array<
   RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>
 > {
-  const requiredFieldValidationIssues = validateTemplateRequiredFields(
-    answers,
-    validationRules
-  );
+  // Check for missing required fields that have satisfied dependencies
+  const missingRequiredFieldIssues = validationRules
+    .filter((r) => r.required)
+    .flatMap((rule) => {
+      const templateAnswer = answers[rule.fieldName];
 
-  return Object.entries(answers)
-    .map(([answerKey, answerValue]) => {
+      // If field is missing, check if dependencies are satisfied
+      if (templateAnswer === undefined) {
+        const depsSatisfied = rule.dependencies.every((dependency) =>
+          formContainsDependency(answers, dependency)
+        );
+
+        return depsSatisfied
+          ? [missingExpectedTemplateFieldError(rule.fieldName)]
+          : [];
+      }
+
+      return [];
+    });
+
+  const fieldValidationResults = Object.entries(answers).map(
+    ([answerKey, answerValue]) => {
       const validationRule = validationRules.find(
         (r) => r.fieldName === answerKey
       );
@@ -128,12 +143,13 @@ function validateTemplateFormAnswers(
           }
         })
         .exhaustive();
-    })
-    .concat(
-      requiredFieldValidationIssues.length > 0
-        ? [invalidTemplateResult(requiredFieldValidationIssues)]
-        : []
-    );
+    }
+  );
+
+  // Combine missing required field issues with field validation results
+  return missingRequiredFieldIssues.length > 0
+    ? [invalidTemplateResult(missingRequiredFieldIssues)]
+    : fieldValidationResults;
 }
 
 function validateFormAnswer(
@@ -178,17 +194,24 @@ function validateAnswerValue(
 
       return [];
     })
-    .with({ dataType: P.not("freeText") }, () =>
-      rule.allowedValues &&
-      answer.values.some((e) => !rule.allowedValues?.has(e))
-        ? [
-            unexpectedTemplateFieldValueError(
-              rule.fieldName,
-              rule.allowedValues
-            ),
-          ]
-        : []
-    )
+    .with({ dataType: P.not("freeText") }, (r) => {
+      // Check if values are in allowed values
+      if (
+        rule.allowedValues &&
+        answer.values.some((e) => !rule.allowedValues?.has(e))
+      ) {
+        return [
+          unexpectedTemplateFieldValueError(r.fieldName, rule.allowedValues),
+        ];
+      }
+
+      // Check if non-freeText field has suggestions or no values
+      if (hasSuggestions || !hasValue) {
+        return [unexpectedTemplateFieldValueOrSuggestionError(r.fieldName)];
+      }
+
+      return [];
+    })
     .exhaustive();
 }
 
@@ -258,51 +281,4 @@ function formContainsDependency(
     )
     .with(P.nullish, () => false)
     .exhaustive();
-}
-
-function validateTemplateRequiredFields(
-  answers: RiskAnalysisFormTemplateToValidate["answers"],
-  validationRules: ValidationRule[]
-): RiskAnalysisTemplateValidationIssue[] {
-  return validationRules
-    .filter((r) => r.required)
-    .flatMap((rule) => {
-      const templateAnswer = answers[rule.fieldName];
-
-      const depsSatisfied = rule.dependencies.every((dependency) =>
-        formContainsDependency(answers, dependency)
-      );
-
-      if (templateAnswer === undefined && depsSatisfied) {
-        return [missingExpectedTemplateFieldError(rule.fieldName)];
-      }
-
-      if (templateAnswer === undefined) {
-        return [];
-      }
-
-      const isFreeText = rule.dataType === "freeText";
-      const hasValues = templateAnswer.values.length > 0;
-      const hasSuggestions = templateAnswer.suggestedValues.length > 0;
-
-      // if the field is editable, required fields are not checked
-      if (templateAnswer.editable) {
-        return hasValues || hasSuggestions
-          ? [unexpectedTemplateFieldValueOrSuggestionError(rule.fieldName)]
-          : [];
-      }
-
-      if (
-        isFreeText &&
-        ((!hasValues && !hasSuggestions) || (hasValues && hasSuggestions))
-      ) {
-        return [unexpectedTemplateFieldValueOrSuggestionError(rule.fieldName)];
-      }
-
-      if (!isFreeText && (hasSuggestions || !hasValues)) {
-        return [unexpectedTemplateFieldValueOrSuggestionError(rule.fieldName)];
-      }
-
-      return [];
-    });
 }

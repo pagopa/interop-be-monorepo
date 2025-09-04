@@ -73,7 +73,7 @@ export function malformedTemplateFieldValueOrSuggestionError(
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "malformedTemplateFieldValueOrSuggestion",
-    detail: `Malformed field ${fieldName} contains both value and suggestion`,
+    detail: `Field ${fieldName} has conflicting or invalid value and suggestion configuration`,
   });
 }
 
