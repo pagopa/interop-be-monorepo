@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   Tenant,

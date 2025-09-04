@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { eq } from "drizzle-orm";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { ProducerKeychain, ProducerKeychainId } from "pagopa-interop-models";
