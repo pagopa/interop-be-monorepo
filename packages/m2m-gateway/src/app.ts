@@ -1,6 +1,7 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
+  errorsToApiProblemsMiddleware,
   fromFilesToBodyMiddleware,
   loggerMiddleware,
   multerMiddleware,
@@ -103,6 +104,8 @@ export async function createApp(
     clientRouter(zodiosCtx, clientService),
     keyRouter(zodiosCtx, keyService)
   );
+
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }
