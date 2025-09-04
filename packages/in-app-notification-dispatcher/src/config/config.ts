@@ -20,12 +20,7 @@ export const InAppNotificationDispatcherConfig = KafkaConsumerConfig.and(
   .and(AttributeTopicConfig)
   .and(AuthorizationTopicConfig)
   .and(InAppNotificationDBConfig)
-  .and(ReadModelSQLDbConfig)
-  .and(
-    z
-      .object({ INTEROP_FE_BASE_URL: z.string() })
-      .transform((c) => ({ interopFeBaseUrl: c.INTEROP_FE_BASE_URL }))
-  );
+  .and(ReadModelSQLDbConfig);
 
 export type InAppNotificationDispatcherConfig = z.infer<
   typeof InAppNotificationDispatcherConfig
