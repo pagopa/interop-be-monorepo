@@ -110,6 +110,10 @@ import {
   TenantNotificationConfig,
   UserNotificationConfig,
   DelegationStamps,
+  PurposeTemplate,
+  tenantKind,
+  purposeTemplateState,
+  PurposeTemplateState,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -334,6 +338,21 @@ export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
   createdAt: new Date(),
   isFreeOfCharge: true,
   freeOfChargeReason: "test",
+});
+
+export const getMockPurposeTemplate = (
+  creatorId: TenantId = generateId<TenantId>(),
+  state: PurposeTemplateState = purposeTemplateState.draft
+): PurposeTemplate => ({
+  id: generateId(),
+  targetDescription: "Purpose template target description",
+  targetTenantKind: tenantKind.PA,
+  creatorId,
+  state,
+  createdAt: new Date(),
+  purposeTitle: "Purpose template title",
+  purposeDescription: "Purpose template description",
+  purposeIsFreeOfCharge: false,
 });
 
 export const getMockPurposeVersion = (
