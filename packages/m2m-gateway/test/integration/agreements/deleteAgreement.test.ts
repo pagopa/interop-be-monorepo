@@ -31,6 +31,14 @@ describe("deleteAgreement", () => {
     deleteAgreement: mockDeleteAgreement,
   } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
 
+  mockInteropBeClients.delegationProcessClient = {
+    delegation: {
+      getDelegations: vi
+        .fn()
+        .mockResolvedValue(getMockWithMetadata({ results: [] })),
+    },
+  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
+
   beforeEach(() => {
     mockDeleteAgreement.mockClear();
     mockGetAgreement.mockClear();
