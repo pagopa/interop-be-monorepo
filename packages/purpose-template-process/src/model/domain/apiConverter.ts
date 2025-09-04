@@ -1,5 +1,6 @@
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
+  EServiceDescriptorPurposeTemplate,
   PurposeTemplate,
   purposeTemplateState,
   PurposeTemplateState,
@@ -124,3 +125,11 @@ export const purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation
           })),
         }
       : undefined;
+
+export const purposeTemplateEServiceDescriptorToApiPurposeTemplateEServiceDescriptor =
+  (
+    purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate
+  ): purposeTemplateApi.EServiceDescriptorPurposeTemplate => ({
+    ...purposeTemplateEServiceDescriptor,
+    createdAt: purposeTemplateEServiceDescriptor.createdAt.toJSON(),
+  });

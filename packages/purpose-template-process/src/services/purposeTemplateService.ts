@@ -6,6 +6,7 @@ import {
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
   ListResult,
+  EServiceDescriptorPurposeTemplate,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -130,6 +131,24 @@ export function purposeTemplateServiceBuilder(
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Retrieving purpose template ${id}`);
       return retrievePurposeTemplate(id, readModelService);
+    },
+    async getPurposeTemplateEServiceDescriptors(
+      id: PurposeTemplateId,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
+      logger.info(
+        `Retrieving e-service descriptors associated to purpose template ${id}`
+      );
+
+      await retrievePurposeTemplate(id, readModelService);
+
+      return await readModelService.getPurposeTemplateEServiceDescriptors(id, {
+        offset,
+        limit,
+      });
     },
   };
 }
