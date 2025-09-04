@@ -68,7 +68,7 @@ export function riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
     singleAnswers: validatedForm.singleAnswers.map((a) => ({
       id: generateId(),
       key: a.key,
-      value: a.value,
+      ...(a.value ? { value: a.value } : {}),
       editable: a.editable,
       suggestedValues: a.suggestedValues,
       ...(a.annotation ? { annotation: mapAnnotation(a.annotation) } : {}),
@@ -80,6 +80,44 @@ export function riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
       editable: a.editable,
       ...(a.annotation ? { annotation: mapAnnotation(a.annotation) } : {}),
     })),
+  };
+}
+
+export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
+  form: RiskAnalysisFormTemplate
+): RiskAnalysisFormTemplateToValidate {
+  return {
+    version: form.version,
+    answers: {
+      ...form.singleAnswers.reduce(
+        (acc, singleAnswer) => ({
+          ...acc,
+          [singleAnswer.key]: {
+            values: singleAnswer.value ? [singleAnswer.value] : [],
+            editable: singleAnswer.editable,
+            suggestedValues: singleAnswer.suggestedValues,
+            ...(singleAnswer.annotation
+              ? { annotation: singleAnswer.annotation }
+              : {}),
+          },
+        }),
+        {}
+      ),
+      ...form.multiAnswers.reduce(
+        (acc, multiAnswer) => ({
+          ...acc,
+          [multiAnswer.key]: {
+            values: multiAnswer.values,
+            editable: multiAnswer.editable,
+            suggestedValues: [],
+            ...(multiAnswer.annotation
+              ? { annotation: multiAnswer.annotation }
+              : {}),
+          },
+        }),
+        {}
+      ),
+    },
   };
 }
 

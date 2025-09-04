@@ -3,20 +3,22 @@ syntax = "proto3";
 package purpose.template.v2;
 
 import "v2/purpose-template/purpose-template.proto";
+import "v2/eservice/eservice.proto";
 
 message PurposeTemplateAddedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
 }
 
 message PurposeTemplateEServiceLinkedV2 {
-  string purposeTemplateId = 1;
-  string eserviceId = 2;
+  PurposeTemplateV2 purposeTemplate = 1;
+  eservice.v2.EServiceV2 eservice = 2;
   string descriptorId = 3;
+  int64 createdAt = 4;
 }
 
 message PurposeTemplateEServiceUnlinkedV2 {
-  string purposeTemplateId = 1;
-  string eserviceId = 2;
+  PurposeTemplateV2 purposeTemplate = 1;
+  eservice.v2.EServiceV2 eservice = 2;
   string descriptorId = 3;
 }
 
