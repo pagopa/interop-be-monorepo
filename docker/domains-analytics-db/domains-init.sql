@@ -652,7 +652,6 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template_risk_analysis_answer (
   key VARCHAR(2048) NOT NULL,
   value VARCHAR(65535) NOT NULL,
   editable BOOLEAN NOT NULL,
-  assistive_text VARCHAR(2048),
   suggested_values VARCHAR(65535),
   deleted BOOLEAN,
   PRIMARY KEY (id)
