@@ -153,7 +153,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
         with:
           path: |
             .turbo
@@ -207,7 +207,7 @@ jobs:
     steps:
       - uses: actions/checkout@638ed79f9dc94c1de1baef91bcab5edaa19451f4 # v4
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
         with:
           path: |
             .turbo
