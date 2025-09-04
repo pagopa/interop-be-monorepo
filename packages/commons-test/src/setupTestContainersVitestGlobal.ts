@@ -16,6 +16,7 @@ import {
   S3Config,
   TokenGenerationReadModelDbConfig,
   InAppNotificationDBConfig,
+  UserSQLDbConfig,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
 import type {} from "vitest";
@@ -40,6 +41,7 @@ import {
   postgreSQLAnalyticsContainer,
   inAppNotificationDBContainer,
   TEST_IN_APP_NOTIFICATION_DB_PORT,
+  postgreSQLUserContainer,
 } from "./containerTestUtils.js";
 import {
   EnhancedDPoPConfig,
@@ -60,6 +62,7 @@ declare module "vitest" {
     analyticsSQLConfig?: AnalyticsSQLDbConfig;
     dpopConfig?: EnhancedDPoPConfig;
     inAppNotificationDbConfig?: InAppNotificationDBConfig;
+    userSQLConfig?: UserSQLDbConfig;
   }
 }
 
@@ -87,6 +90,7 @@ export function setupTestContainersVitestGlobal() {
   const inAppNotificationDbConfig = InAppNotificationDBConfig.safeParse(
     process.env
   );
+  const userSQLConfig = UserSQLDbConfig.safeParse(process.env);
 
   return async function ({
     provide,
@@ -101,6 +105,7 @@ export function setupTestContainersVitestGlobal() {
     let startedDynamoDbContainer: StartedTestContainer | undefined;
     let startedAWSSesContainer: StartedTestContainer | undefined;
     let startedInAppNotificationContainer: StartedTestContainer | undefined;
+    let startedPostgreSqlUserContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -248,6 +253,17 @@ export function setupTestContainersVitestGlobal() {
       });
     }
 
+    if (userSQLConfig.success) {
+      startedPostgreSqlUserContainer = await postgreSQLUserContainer(
+        userSQLConfig.data
+      ).start();
+
+      userSQLConfig.data.userSQLDbPort =
+        startedPostgreSqlUserContainer.getMappedPort(TEST_POSTGRES_DB_PORT);
+
+      provide("userSQLConfig", userSQLConfig.data);
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedPostgreSqlReadModelContainer?.stop();
@@ -259,6 +275,7 @@ export function setupTestContainersVitestGlobal() {
       await startedRedisContainer?.stop();
       await startedAWSSesContainer?.stop();
       await startedInAppNotificationContainer?.stop();
+      await startedPostgreSqlUserContainer?.stop();
     };
   };
 }
