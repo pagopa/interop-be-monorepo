@@ -201,18 +201,18 @@ paths:
           name: name
           description: |
             Filter by Client name.
-            Client name is visible only to the Client owner (consumer).
-            If this filter is passed, the response will include only Clients owned by the caller,
-            defaulting the consumerId filter to the requester ID.
+            If not specified, return Clients with any name.
+            If specified, since Client name is visible only to the owner (consumer),
+            the response will include only Clients owned by the requester.
           schema:
             type: string
         - in: query
           name: userIds
           description: |
             Filter by Users associated with the Client.
-            Client Users are visible only to the Client owner (consumer).
-            If this filter is passed, the response will include only Clients owned by the caller,
-            defaulting the consumerId filter to the requester ID.
+            If not specified, return Clients with any User association.
+            If specified, since Client Users are visible only to the owner (consumer),
+            the response will include only Clients owned by the requester.
           schema:
             type: array
             items:
@@ -230,9 +230,9 @@ paths:
           in: query
           description: |
             Filter by Purposes associated with the Client.
-            Client Purposes are visible only to the Client owner (consumer).
-            If this filter is passed, the response will include only Clients owned by the caller,
-            defaulting the consumerId filter to the requester ID.
+            If not specified, return Clients with any Purpose association.
+            If specified, since Client Purposes are visible only to the owner (consumer),
+            the response will include only Clients owned by the requester.
           schema:
             type: string
             format: uuid
@@ -1151,18 +1151,18 @@ paths:
           name: name
           description: |
             Filter by Keychain name.
-            Keychain name is visible only to the Keychain owner (producer).
-            If this filter is passed, the response will include only Keychains owned by the caller,
-            defaulting the producerId filter to the requester ID.
+            If not specified, return Keychains with any name.
+            If specified, since Keychain name is visible only to the owner (producer),
+            the response will include only Keychains owned by the requester.
           schema:
             type: string
         - in: query
           name: userIds
           description: |
             Filter by Users associated with the Keychain.
-            Keychain users are visible only to the Keychain owner (producer).
-            If this filter is passed, the response will include only Keychains owned by the caller,
-            defaulting the producerId filter to the requester ID.
+            If not specified, return Keychains with any User association.
+            If specified, since Keychain Users are visible only to the owner (producer),
+            the response will include only Keychains owned by the requester.
           schema:
             type: array
             items:
@@ -1180,9 +1180,9 @@ paths:
           in: query
           description: |
             Filter by E-Services associated with the Keychain.
-            Keychain E-Services are visible only to the Keychain owner (producer).
-            If this filter is passed, the response will include only Keychains owned by the caller,
-            defaulting the producerId filter to the requester ID.
+            If not specified, return Keychains with any E-Service association.
+            If specified, since Keychain E-Services are visible only to the owner (producer),
+            the response will include only Keychains owned by the requester.
           schema:
             type: string
             format: uuid
