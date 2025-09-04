@@ -108,17 +108,17 @@ export const getRecipientsForTenants = async ({
 
   const tenantContactEmails = includeTenantContactEmails
     ? (
-      await Promise.all(
-        tenants.map(
-          async (tenant) =>
-            await getTenantContactEmailIfEnabled(
-              tenant,
-              readModelService,
-              logger
-            )
+        await Promise.all(
+          tenants.map(
+            async (tenant) =>
+              await getTenantContactEmailIfEnabled(
+                tenant,
+                readModelService,
+                logger
+              )
+          )
         )
-      )
-    ).filter((email): email is string => email !== undefined)
+      ).filter((email): email is string => email !== undefined)
     : [];
 
   return [
