@@ -66,6 +66,8 @@ jobs:
   get_packages_to_test:
     name: Get packages
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       packages: ${{ steps.get-packages.outputs.packages }}
     steps:
@@ -83,6 +85,8 @@ jobs:
   create_shards:
     name: Create shards
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: [get_packages_to_test]
     outputs:
       matrix: ${{ steps.shard-packages.outputs.matrix }}
@@ -124,6 +128,8 @@ jobs:
   lint_sharded:
     name: Run lint on shard ${{ matrix.shard_index }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: [get_packages_to_test, create_shards, formatting, lint-openapi]
     strategy:
       fail-fast: false
@@ -178,6 +184,8 @@ jobs:
   test_sharded:
     name: Run tests on shard ${{ matrix.shard_index }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: [formatting, lint_sharded, lint-openapi, create_shards]  # check
     strategy:
       fail-fast: false
