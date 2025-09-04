@@ -11,9 +11,7 @@ export const errorCodes = {
   purposeTemplateNameConflict: "0002",
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
-  tenantNotFound: "0005",
-  tenantKindNotFound: "0006",
-  tenantNotAllowed: "0007",
+  tenantNotAllowed: "0005",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
