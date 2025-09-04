@@ -57,7 +57,7 @@ describe("update eService name on published eservice", () => {
       updatedName,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       name: updatedName,
     };
@@ -72,8 +72,13 @@ describe("update eService name on published eservice", () => {
       messageType: EServiceNameUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(returnedEService).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
   it("should write on event-store for the update of the eService name (delegate)", async () => {
     const descriptor: Descriptor = {
@@ -97,7 +102,7 @@ describe("update eService name on published eservice", () => {
       updatedName,
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       name: updatedName,
     };
@@ -112,8 +117,13 @@ describe("update eService name on published eservice", () => {
       messageType: EServiceNameUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(returnedEService).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const eservice = getMockEService();

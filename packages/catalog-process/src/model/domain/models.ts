@@ -46,7 +46,7 @@ export type EServiceDocument = {
   readonly serverUrls: string[];
 };
 
-export const consumer = z.object({
+export const Consumer = z.object({
   descriptorVersion: z.string(),
   descriptorState: DescriptorState,
   agreementState: AgreementState,
@@ -54,4 +54,4 @@ export const consumer = z.object({
   consumerExternalId: z.string(),
 });
 
-export type Consumer = z.infer<typeof consumer>;
+export type Consumer = z.infer<typeof Consumer>;

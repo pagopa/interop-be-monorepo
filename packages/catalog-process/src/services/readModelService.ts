@@ -33,15 +33,13 @@ import {
   DelegationKind,
   EServiceTemplate,
   EServiceTemplateId,
+  Document,
+  AttributeKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
-import {
-  ApiGetEServicesFilters,
-  Consumer,
-  consumer,
-} from "../model/domain/models.js";
+import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
   hasRoleToAccessInactiveDescriptors,
   notActiveDescriptorState,
@@ -564,7 +562,7 @@ export function readModelServiceBuilder(
         )
         .toArray();
 
-      const result = z.array(consumer).safeParse(data);
+      const result = z.array(Consumer).safeParse(data);
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse consumers: result ${JSON.stringify(
@@ -645,11 +643,13 @@ export function readModelServiceBuilder(
     },
 
     async getAttributesByIds(
-      attributesIds: AttributeId[]
+      attributesIds: AttributeId[],
+      kind: AttributeKind
     ): Promise<Attribute[]> {
       const data = await attributes
         .find({
           "data.id": { $in: attributesIds },
+          "data.kind": kind,
         })
         .toArray();
 
@@ -714,6 +714,82 @@ export function readModelServiceBuilder(
       id: EServiceTemplateId
     ): Promise<EServiceTemplate | undefined> {
       return getEServiceTemplate(eserviceTemplates, { "data.id": id });
+    },
+    async getEServiceDescriptorDocuments(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<Document>> {
+      const pipeline = [
+        {
+          $match: {
+            "data.id": eserviceId,
+            "data.descriptors.id": descriptorId,
+          },
+        },
+        {
+          $project: {
+            documents: {
+              $let: {
+                vars: {
+                  matchedDescriptor: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: "$data.descriptors",
+                          as: "desc",
+                          cond: { $eq: ["$$desc.id", descriptorId] },
+                        },
+                      },
+                      0,
+                    ],
+                  },
+                },
+                in: "$$matchedDescriptor.docs",
+              },
+            },
+          },
+        },
+        {
+          $unwind: {
+            path: "$documents",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ];
+      const data = await eservices
+        .aggregate(
+          [
+            ...pipeline,
+            {
+              $sort: { "documents.uploadDate": 1 },
+            },
+            {
+              $skip: offset,
+            },
+            {
+              $limit: limit,
+            },
+          ],
+          { allowDiskUse: true }
+        )
+        .toArray();
+      const result = z.array(Document).safeParse(data.map((d) => d.documents));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse descriptor document items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          eservices,
+          pipeline
+        ),
+      };
     },
   };
 }

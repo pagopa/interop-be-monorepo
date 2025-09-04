@@ -22,7 +22,6 @@ export const errorCodes = {
   eserviceRiskNotFound: "0017",
   noDescriptorInEservice: "0018",
   missingDescriptorInClonedEservice: "0019",
-  invalidInterfaceContentTypeDetected: "0020",
   invalidInterfaceFileDetected: "0021",
   openapiVersionNotRecognized: "0022",
   interfaceExtractingInfoError: "0023",
@@ -277,18 +276,6 @@ export function missingDescriptorInClonedEservice(
     detail: `Missing descriptor in cloned eService ${eserviceId}`,
     code: "missingDescriptorInClonedEservice",
     title: "Missing descriptor in cloned eService",
-  });
-}
-
-export function invalidInterfaceContentTypeDetected(
-  eServiceId: string,
-  contentType: string,
-  technology: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
-    code: "invalidInterfaceContentTypeDetected",
-    title: "Invalid content type detected",
   });
 }
 

@@ -14,6 +14,7 @@ import {
   unexpectedDelegationKind,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiProducerDelegation } from "../../../src/api/delegationApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /producerDelegations/:delegationId/reject router test", () => {
   const mockApiDelegation = getMockedApiDelegation({
@@ -106,7 +107,10 @@ describe("POST /producerDelegations/:delegationId/reject router test", () => {
   it.each([
     missingMetadata(),
     unexpectedDelegationKind(mockApiDelegation),
-    pollingMaxRetriesExceeded(3, 10),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
   ])("Should return 500 in case of $code error", async (error) => {
     mockDelegationService.rejectProducerDelegation = vi
       .fn()

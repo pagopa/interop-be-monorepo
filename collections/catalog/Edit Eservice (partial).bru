@@ -1,0 +1,32 @@
+meta {
+  name: Edit Eservice (partial)
+  type: http
+  seq: 34
+}
+
+patch {
+  url: {{host-catalog}}/eservices/:eserviceId
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "name": "Updated name"
+      "description": "test eservice updated",
+      "technology": "SOAP",
+      "mode": "RECEIVE",
+      "isSignalHubEnabled": false,
+      "isConsumerDelegable": false,
+      "isClientAccessDelegable": true
+  }
+}

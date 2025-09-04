@@ -253,6 +253,7 @@ export const getMockCatalogApiEServiceDoc = (): catalogApi.EServiceDoc => ({
   path: generateMock(z.string()),
   checksum: generateMock(z.string()),
   contacts: generateMock(catalogApi.DescriptorInterfaceContacts.optional()),
+  uploadDate: new Date().toISOString(),
 });
 
 export const toApiEServiceDoc = (

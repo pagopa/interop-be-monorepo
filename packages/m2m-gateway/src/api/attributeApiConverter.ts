@@ -139,3 +139,23 @@ export function toGetCertifiedAttributesApiQueryParams(
     kinds: [attributeRegistryApi.AttributeKind.Values.CERTIFIED],
   };
 }
+
+export function toGetDeclaredAttributesApiQueryParams(
+  params: m2mGatewayApi.GetDeclaredAttributesQueryParams
+): attributeRegistryApi.GetAttributesQueryParams {
+  return {
+    limit: params.limit,
+    offset: params.offset,
+    kinds: [attributeRegistryApi.AttributeKind.Values.DECLARED],
+  };
+}
+
+export function toGetVerifiedAttributesApiQueryParams(
+  params: m2mGatewayApi.GetVerifiedAttributesQueryParams
+): attributeRegistryApi.GetAttributesQueryParams {
+  return {
+    limit: params.limit,
+    offset: params.offset,
+    kinds: [attributeRegistryApi.AttributeKind.Values.VERIFIED],
+  };
+}

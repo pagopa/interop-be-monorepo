@@ -51,19 +51,19 @@ describe("delete risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.deleteRiskAnalysis(
+    const deleteResponse = await catalogService.deleteRiskAnalysis(
       eservice.id,
       riskAnalysis.id,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
-    const expectedEservice = toEServiceV2({
+    const expectedEservice = {
       ...eservice,
       riskAnalysis: eservice.riskAnalysis.filter(
         (r) => r.id !== riskAnalysis.id
       ),
-    });
+    };
 
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
@@ -77,7 +77,11 @@ describe("delete risk analysis", () => {
     });
     expect(writtenPayload).toEqual({
       riskAnalysisId: riskAnalysis.id,
-      eservice: expectedEservice,
+      eservice: toEServiceV2(expectedEservice),
+    });
+    expect(deleteResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: 1 },
     });
   });
   it("should write on event-store for the deletion of a risk analysis (delegate)", async () => {
@@ -97,19 +101,19 @@ describe("delete risk analysis", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    await catalogService.deleteRiskAnalysis(
+    const deleteResponse = await catalogService.deleteRiskAnalysis(
       eservice.id,
       riskAnalysis.id,
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
-    const expectedEservice = toEServiceV2({
+    const expectedEservice = {
       ...eservice,
       riskAnalysis: eservice.riskAnalysis.filter(
         (r) => r.id !== riskAnalysis.id
       ),
-    });
+    };
 
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
@@ -123,7 +127,11 @@ describe("delete risk analysis", () => {
     });
     expect(writtenPayload).toEqual({
       riskAnalysisId: riskAnalysis.id,
-      eservice: expectedEservice,
+      eservice: toEServiceV2(expectedEservice),
+    });
+    expect(deleteResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: 1 },
     });
   });
   it("should write on event-store for the deletion of a risk analysis", async () => {
@@ -136,19 +144,19 @@ describe("delete risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.deleteRiskAnalysis(
+    const deleteResponse = await catalogService.deleteRiskAnalysis(
       eservice.id,
       riskAnalysis.id,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
-    const expectedEservice = toEServiceV2({
+    const expectedEservice = {
       ...eservice,
       riskAnalysis: eservice.riskAnalysis.filter(
         (r) => r.id !== riskAnalysis.id
       ),
-    });
+    };
 
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
@@ -162,7 +170,11 @@ describe("delete risk analysis", () => {
     });
     expect(writtenPayload).toEqual({
       riskAnalysisId: riskAnalysis.id,
-      eservice: expectedEservice,
+      eservice: toEServiceV2(expectedEservice),
+    });
+    expect(deleteResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: 1 },
     });
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {

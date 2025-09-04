@@ -59,6 +59,7 @@ describe("importEService", () => {
           contentType: "mockContentType",
           prettyName: "mockPrettyName",
           checksum: "mockChecksum",
+          uploadDate: new Date().toISOString(),
         },
         attributes: {
           certified: [],

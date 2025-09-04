@@ -2,38 +2,30 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
-  generateId,
   ProducerKeychain,
   ProducerKeychainId,
-  UserId,
+  generateId,
 } from "pagopa-interop-models";
 import {
   generateToken,
   getMockProducerKeychain,
-} from "pagopa-interop-commons-test";
+  getMockWithMetadata,
+  mockTokenOrganizationId,
+} from "pagopa-interop-commons-test/index.js";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { producerKeychainToApiProducerKeychain } from "../../src/model/domain/apiConverter.js";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import { producerKeychainNotFound } from "../../src/model/domain/errors.js";
+import {
+  testToPartialProducerKeychain,
+  testToFullProducerKeychain,
+} from "../apiUtils.js";
 
 describe("API /producerKeychains/{producerKeychainId} authorization test", () => {
-  const userId1: UserId = generateId();
-  const userId2: UserId = generateId();
-
-  const mockProducerKeychain: ProducerKeychain = {
-    ...getMockProducerKeychain(),
-    users: [userId1, userId2],
-  };
-
-  const apiProducerKeychain = producerKeychainToApiProducerKeychain(
-    mockProducerKeychain,
-    { showUsers: false }
-  );
-
-  authorizationService.getProducerKeychainById = vi.fn().mockResolvedValue({
-    producerKeychain: mockProducerKeychain,
-    showUsers: false,
-  });
+  const mockProducerKeychain: ProducerKeychain = getMockProducerKeychain();
+  const serviceResponse = getMockWithMetadata(mockProducerKeychain);
+  authorizationService.getProducerKeychainById = vi
+    .fn()
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -50,14 +42,43 @@ describe("API /producerKeychains/{producerKeychainId} authorization test", () =>
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.M2M_ADMIN_ROLE,
   ];
+
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 200 with a partial producerKeychain for user with role %s and tenant != producerKeychain producerId",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockProducerKeychain.id);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiProducerKeychain);
+      expect(res.body).toEqual(
+        testToPartialProducerKeychain(mockProducerKeychain)
+      );
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+    }
+  );
+
+  it.each(authorizedRoles)(
+    "Should return 200 with a full producerKeychain for user with role %s and tenant = producerKeychain producerId",
+    async (role) => {
+      const mockProducerKeychain = getMockProducerKeychain({
+        producerId: mockTokenOrganizationId,
+      });
+      const serviceResponse = getMockWithMetadata(mockProducerKeychain);
+      authorizationService.getProducerKeychainById = vi
+        .fn()
+        .mockResolvedValueOnce(serviceResponse);
+      const token = generateToken(role);
+      const res = await makeRequest(token, mockProducerKeychain.id);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(
+        testToFullProducerKeychain(mockProducerKeychain)
+      );
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -70,12 +91,23 @@ describe("API /producerKeychains/{producerKeychainId} authorization test", () =>
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for producerKeychainNotFound", async () => {
-    authorizationService.getProducerKeychainById = vi
-      .fn()
-      .mockRejectedValue(producerKeychainNotFound(mockProducerKeychain.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: producerKeychainNotFound(mockProducerKeychain.id),
+      expectedStatus: 404,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      authorizationService.getProducerKeychainById = vi
+        .fn()
+        .mockRejectedValue(error);
+
+      const res = await makeRequest(
+        generateToken(authRole.ADMIN_ROLE),
+        mockProducerKeychain.id
+      );
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 });

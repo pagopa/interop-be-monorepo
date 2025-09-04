@@ -1643,6 +1643,7 @@ components:
         - prettyName
         - path
         - checksum
+        - uploadDate
       properties:
         id:
           type: string
@@ -1657,6 +1658,9 @@ components:
           type: string
         checksum:
           type: string
+        uploadDate:
+          type: string
+          format: date-time
     EServiceTemplateDescriptionUpdateSeed:
       type: object
       additionalProperties: false

@@ -21,6 +21,7 @@ import { authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import {
+  attributeDuplicatedInGroup,
   attributeNotFound,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
   eServiceDescriptorNotFound,
@@ -162,6 +163,10 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
         mockEService.id,
         descriptor.id
       ),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDuplicatedInGroup(generateId()),
       expectedStatus: 400,
     },
   ])(

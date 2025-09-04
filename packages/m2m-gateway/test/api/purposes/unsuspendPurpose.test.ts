@@ -18,6 +18,7 @@ import {
   missingMetadata,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /purposes/:purposeId/unsuspend router test", () => {
   const mockApiPurpose = getMockedApiPurpose();
@@ -106,16 +107,19 @@ describe("POST /purposes/:purposeId/unsuspend router test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockPurposeService.unsuspendPurpose = vi.fn().mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, generateId());
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockPurposeService.unsuspendPurpose = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId());
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 
   it.each([
     { ...mockM2MPurposeResponse, createdAt: undefined },

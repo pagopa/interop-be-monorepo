@@ -1,20 +1,28 @@
+import { match } from "ts-pattern";
 import {
   TenantId,
   TenantNotificationConfig,
   UserId,
   UserNotificationConfig,
   WithMetadata,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
+  tenantEnabledNotificationInReadmodelNotificationConfig,
   tenantNotificationConfigInReadmodelNotificationConfig,
+  userEnabledInAppNotificationInReadmodelNotificationConfig,
+  userEnabledEmailNotificationInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import {
   aggregateTenantNotificationConfig,
   aggregateUserNotificationConfig,
+  toTenantNotificationConfigAggregator,
+  toUserNotificationConfigAggregator,
 } from "./notification-config/aggregators.js";
+import { NotificationType } from "./notification-config/utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function notificationConfigReadModelServiceBuilder(
@@ -25,25 +33,49 @@ export function notificationConfigReadModelServiceBuilder(
       tenantId: TenantId
     ): Promise<WithMetadata<TenantNotificationConfig> | undefined> {
       const queryResult = await db
-        .select()
+        .select({
+          tenantNotificationConfig:
+            tenantNotificationConfigInReadmodelNotificationConfig,
+          enabledNotification:
+            tenantEnabledNotificationInReadmodelNotificationConfig,
+        })
         .from(tenantNotificationConfigInReadmodelNotificationConfig)
         .where(
           eq(
             tenantNotificationConfigInReadmodelNotificationConfig.tenantId,
             tenantId
           )
+        )
+        .leftJoin(
+          tenantEnabledNotificationInReadmodelNotificationConfig,
+          eq(
+            tenantNotificationConfigInReadmodelNotificationConfig.id,
+            tenantEnabledNotificationInReadmodelNotificationConfig.tenantNotificationConfigId
+          )
         );
+
       if (queryResult.length === 0) {
         return undefined;
       }
-      return aggregateTenantNotificationConfig(queryResult[0]);
+
+      return aggregateTenantNotificationConfig(
+        toTenantNotificationConfigAggregator(queryResult)
+      );
     },
+
     async getUserNotificationConfigByUserIdAndTenantId(
       userId: UserId,
       tenantId: TenantId
     ): Promise<WithMetadata<UserNotificationConfig> | undefined> {
       const queryResult = await db
-        .select()
+        .select({
+          userNotificationConfig:
+            userNotificationConfigInReadmodelNotificationConfig,
+          enabledInAppNotification:
+            userEnabledInAppNotificationInReadmodelNotificationConfig,
+          enabledEmailNotification:
+            userEnabledEmailNotificationInReadmodelNotificationConfig,
+        })
         .from(userNotificationConfigInReadmodelNotificationConfig)
         .where(
           and(
@@ -56,11 +88,75 @@ export function notificationConfigReadModelServiceBuilder(
               tenantId
             )
           )
+        )
+        .leftJoin(
+          userEnabledInAppNotificationInReadmodelNotificationConfig,
+          eq(
+            userNotificationConfigInReadmodelNotificationConfig.id,
+            userEnabledInAppNotificationInReadmodelNotificationConfig.userNotificationConfigId
+          )
+        )
+        .leftJoin(
+          userEnabledEmailNotificationInReadmodelNotificationConfig,
+          eq(
+            userNotificationConfigInReadmodelNotificationConfig.id,
+            userEnabledEmailNotificationInReadmodelNotificationConfig.userNotificationConfigId
+          )
         );
+
       if (queryResult.length === 0) {
         return undefined;
       }
-      return aggregateUserNotificationConfig(queryResult[0]);
+
+      return aggregateUserNotificationConfig(
+        toUserNotificationConfigAggregator(queryResult)
+      );
+    },
+
+    async getTenantUsersWithNotificationEnabled(
+      tenantIds: TenantId[],
+      notificationType: NotificationType,
+      notificationChannel: "inApp" | "email"
+    ): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
+      const enabledNotificationTable = match(notificationChannel)
+        .with(
+          "inApp",
+          () => userEnabledInAppNotificationInReadmodelNotificationConfig
+        )
+        .with(
+          "email",
+          () => userEnabledEmailNotificationInReadmodelNotificationConfig
+        )
+        .exhaustive();
+
+      const queryResult = await db
+        .select({
+          userId: userNotificationConfigInReadmodelNotificationConfig.userId,
+          tenantId:
+            userNotificationConfigInReadmodelNotificationConfig.tenantId,
+        })
+        .from(userNotificationConfigInReadmodelNotificationConfig)
+        .innerJoin(
+          enabledNotificationTable,
+          eq(
+            userNotificationConfigInReadmodelNotificationConfig.id,
+            enabledNotificationTable.userNotificationConfigId
+          )
+        )
+        .where(
+          and(
+            inArray(
+              userNotificationConfigInReadmodelNotificationConfig.tenantId,
+              tenantIds
+            ),
+            eq(enabledNotificationTable.notificationType, notificationType)
+          )
+        );
+
+      return queryResult.map((row) => ({
+        userId: unsafeBrandId(row.userId),
+        tenantId: unsafeBrandId(row.tenantId),
+      }));
     },
   };
 }

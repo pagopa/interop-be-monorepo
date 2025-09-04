@@ -6,96 +6,14 @@ meta {
 
 post {
   url: {{host-bff}}/eservices/:eServiceId/descriptors
-  body: json
+  body: none
   auth: none
 }
 
 params:path {
-  eServiceId: <uuid>
+  eServiceId: {{eserviceId}}
 }
 
 headers {
   Authorization: {{JWT}}
-}
-
-body:json {
-  {
-    "audience": [
-      "<string>",
-      "<string>"
-    ],
-    "voucherLifespan": "<integer>",
-    "dailyCallsPerConsumer": "<integer>",
-    "dailyCallsTotal": "<integer>",
-    "agreementApprovalPolicy": "MANUAL",
-    "attributes": {
-      "certified": [
-        [
-          {
-            "id": "<uuid>",
-            "explicitAttributeVerification": "<boolean>"
-          },
-          {
-            "id": "<uuid>",
-            "explicitAttributeVerification": "<boolean>"
-          }
-        ],
-        [
-          {
-            "id": "<uuid>",
-            "explicitAttributeVerification": "<boolean>"
-          },
-          {
-            "id": "<uuid>",
-            "explicitAttributeVerification": "<boolean>"
-          }
-        ]
-      ],
-      "declared": [
-        [
-          {
-            "id": "<uuid>",
-            "explicitAttributeVerification": "<boolean>"
-          },
-          {
-            "id": "<uuid>",
-            "explicitAttributeVerification": "<boolean>"
-          }
-        ],
-        [
-          {
-            "id": "<uuid>",
-            "explicitAttributeVerification": "<boolean>"
-          },
-          {
-            "id": "<uuid>",
-            "explicitAttributeVerification": "<boolean>"
-          }
-        ]
-      ],
-      "verified": [
-        [
-          {
-            "id": "<uuid>",
-            "explicitAttributeVerification": "<boolean>"
-          },
-          {
-            "id": "<uuid>",
-            "explicitAttributeVerification": "<boolean>"
-          }
-        ],
-        [
-          {
-            "id": "<uuid>",
-            "explicitAttributeVerification": "<boolean>"
-          },
-          {
-            "id": "<uuid>",
-            "explicitAttributeVerification": "<boolean>"
-          }
-        ]
-      ]
-    },
-    "description": "<string>"
-  }
 }

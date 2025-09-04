@@ -4,7 +4,9 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
+  authRole,
   ExpressContext,
+  validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -422,6 +424,8 @@ const catalogRouter = (
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
+          validateAuthorization(ctx, [authRole.ADMIN_ROLE, authRole.API_ROLE]);
+
           const resp = await catalogService.createEServiceDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),

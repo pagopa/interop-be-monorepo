@@ -9,6 +9,7 @@ type TenantApi = typeof m2mGatewayApi.tenantsApi.api;
 type DelegationApi = typeof m2mGatewayApi.delegationsApi.api;
 type EServiceTemplateApi = typeof m2mGatewayApi.eserviceTemplatesApi.api;
 type ClientApi = typeof m2mGatewayApi.clientsApi.api;
+type ProducerKeychainApi = typeof m2mGatewayApi.producerKeychainsApi.api;
 
 export type GetAgreementsQueryParams = QueryParametersByAlias<
   AgreementApi,
@@ -29,6 +30,14 @@ export type GetCertifiedAttributesQueryParams = QueryParametersByAlias<
   AttributeApi,
   "getCertifiedAttributes"
 >;
+export type GetDeclaredAttributesQueryParams = QueryParametersByAlias<
+  AttributeApi,
+  "getDeclaredAttributes"
+>;
+export type GetVerifiedAttributesQueryParams = QueryParametersByAlias<
+  AttributeApi,
+  "getVerifiedAttributes"
+>;
 
 export type GetEServicesQueryParams = QueryParametersByAlias<
   EServiceApi,
@@ -38,6 +47,16 @@ export type GetEServicesQueryParams = QueryParametersByAlias<
 export type GetEServiceDescriptorsQueryParams = QueryParametersByAlias<
   EServiceApi,
   "getEServiceDescriptors"
+>;
+
+export type GetEServiceDescriptorDocumentsQueryParams = QueryParametersByAlias<
+  EServiceApi,
+  "getEServiceDescriptorDocuments"
+>;
+
+export type GetEServiceRiskAnalysesQueryParams = QueryParametersByAlias<
+  EServiceApi,
+  "getEServiceRiskAnalyses"
 >;
 
 export type GetPurposesQueryParams = QueryParametersByAlias<
@@ -64,6 +83,10 @@ export type GetTenantVerifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
   "getTenantVerifiedAttributes"
 >;
+export type GetTenantVerifiedAttributeVerifiersQueryParams =
+  QueryParametersByAlias<TenantApi, "getTenantVerifiedAttributeVerifiers">;
+export type GetTenantVerifiedAttributeRevokersQueryParams =
+  QueryParametersByAlias<TenantApi, "getTenantVerifiedAttributeRevokers">;
 
 export type GetTenantDeclaredAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
@@ -98,6 +121,21 @@ export type GetClientPurposesQueryParams = QueryParametersByAlias<
 export type GetClientKeysQueryParams = QueryParametersByAlias<
   ClientApi,
   "getClientKeys"
+>;
+
+export type GetProducerKeychainsQueryParams = QueryParametersByAlias<
+  ProducerKeychainApi,
+  "getProducerKeychains"
+>;
+
+export type GetProducerKeychainEServicesQueryParams = QueryParametersByAlias<
+  ProducerKeychainApi,
+  "getProducerKeychainEServices"
+>;
+
+export type GetProducerKeychainKeysQueryParams = QueryParametersByAlias<
+  ProducerKeychainApi,
+  "getProducerKeychainKeys"
 >;
 
 export * from "./generated/m2mGatewayApi.js";

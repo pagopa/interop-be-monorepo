@@ -105,7 +105,10 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
       }),
     };
     expect(pecEmailManager.send).toHaveBeenCalledTimes(1);
-    expect(pecEmailManager.send).toHaveBeenCalledWith(mailOptions);
+    expect(pecEmailManager.send).toHaveBeenCalledWith(
+      mailOptions,
+      expect.anything()
+    );
   });
 
   it("should throw tenantDigitalAddressNotFound for Producer digital address not found", async () => {
