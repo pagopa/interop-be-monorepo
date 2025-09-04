@@ -1,13 +1,13 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig, mergeConfig } from "vitest/config";
+import rootConfig from "../../vitest.config.js";
 
-export default defineConfig({
-  test: {
-    globalSetup: ["./test/vitestIntegrationGlobalSetup.ts"],
-    include: ["./test/integration/**/*.test.ts"],
-    testTimeout: 60000,
-    hookTimeout: 60000,
-    fileParallelism: false,
-    pool: "forks",
-    env: { FEATURE_FLAG_SQL: "false" },
-  },
-});
+export default mergeConfig(
+  rootConfig,
+  defineConfig({
+    test: {
+      globalSetup: ["./test/vitestIntegrationGlobalSetup.ts"],
+      include: ["./test/integration/**/*.test.ts"],
+      env: { FEATURE_FLAG_SQL: "false" },
+    },
+  })
+);
