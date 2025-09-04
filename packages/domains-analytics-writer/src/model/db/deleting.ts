@@ -13,6 +13,8 @@ import {
   clientPurposeInReadmodelClient,
   clientKeyInReadmodelClient,
   producerKeychainInReadmodelProducerKeychain,
+  purposeTemplateInReadmodelPurposeTemplate,
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
 
 import { AttributeDeletingSchema } from "../attribute/attribute.js";
@@ -28,6 +30,8 @@ import { ClientKeyDeletingSchema } from "../authorization/clientKey.js";
 import { PurposeDeletingSchema } from "../purpose/purpose.js";
 import { EserviceDescriptorDocumentOrInterfaceDeletingSchema } from "../catalog/eserviceDescriptorInterface.js";
 import { ProducerKeychainDeletingSchema } from "../authorization/producerKeychain.js";
+import { PurposeTemplateDeletingSchema } from "../purposeTemplate/purposeTemplate.js";
+import { PurposeTemplateEServiceDescriptorDeletingSchema } from "../purposeTemplate/purposeTemplateEserviceDescriptor.js";
 
 export const DeletingDbTableConfig = {
   attribute_deleting_table: AttributeDeletingSchema,
@@ -44,6 +48,9 @@ export const DeletingDbTableConfig = {
   client_key_deleting_table: ClientKeyDeletingSchema,
   producer_keychain_deleting_table: ProducerKeychainDeletingSchema,
   eservice_template_deleting_table: EserviceTemplateDeletingSchema,
+  purpose_template_deleting_table: PurposeTemplateDeletingSchema,
+  purpose_template_eservice_descriptor_deleting_table:
+    PurposeTemplateEServiceDescriptorDeletingSchema,
 } as const;
 export type DeletingDbTableConfig = typeof DeletingDbTableConfig;
 
@@ -62,6 +69,9 @@ export const DeletingDbTableReadModel = {
   client_key_deleting_table: clientKeyInReadmodelClient,
   producer_keychain_deleting_table: producerKeychainInReadmodelProducerKeychain,
   eservice_template_deleting_table: eserviceTemplateInReadmodelEserviceTemplate,
+  purpose_template_deleting_table: purposeTemplateInReadmodelPurposeTemplate,
+  purpose_template_eservice_descriptor_deleting_table:
+    purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
 } as const;
 export type DeletingDbTableReadModel = typeof DeletingDbTableReadModel;
 
