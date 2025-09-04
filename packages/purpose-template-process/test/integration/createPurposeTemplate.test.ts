@@ -6,13 +6,13 @@ import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockContext,
+  getMockPurposeTemplate,
   getMockValidRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test";
 import {
   PurposeTemplate,
   PurposeTemplateAddedV2,
   RiskAnalysisFormTemplate,
-  generateId,
   purposeTemplateState,
   tenantKind,
   toPurposeTemplateV2,
@@ -42,15 +42,7 @@ import {
 
 describe("createPurposeTemplate", () => {
   const mockPurposeTemplate: PurposeTemplate = {
-    id: generateId(),
-    targetDescription: "Test target description",
-    targetTenantKind: "PA",
-    creatorId: generateId(),
-    state: purposeTemplateState.draft,
-    createdAt: new Date(),
-    purposeTitle: "Test purpose title",
-    purposeDescription: "Test purpose description",
-    purposeRiskAnalysisForm: undefined,
+    ...getMockPurposeTemplate(),
     purposeIsFreeOfCharge: true,
     purposeFreeOfChargeReason: "Test reason",
     purposeDailyCalls: 10,

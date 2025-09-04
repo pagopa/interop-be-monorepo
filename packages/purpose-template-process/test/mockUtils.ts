@@ -14,7 +14,7 @@ export const getMockPurposeTemplateSeed = (
   riskAnalysisFormTemplate: purposeTemplateApi.RiskAnalysisFormTemplateSeed = buildRiskAnalysisFormTemplateSeed(
     getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
   ),
-  targetTenantKind: purposeTemplateApi.TenantKind = "PA"
+  targetTenantKind: purposeTemplateApi.TenantKind = tenantKind.PA
 ): purposeTemplateApi.PurposeTemplateSeed => ({
   targetDescription: "Test target description",
   targetTenantKind,
