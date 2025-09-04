@@ -230,6 +230,9 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
  *    row in the staging table but a lower `metadata_version`.
  * 2. Deletes rows in the staging table that are older than the corresponding rows
  *    already present in the target table.
+ * 3. Deletes duplicate rows in the staging table that share the same key columns,
+ *    only after removing minor meta_version, keeping only the most recent one according
+ *    to `_seq` (identity column).
  *
  * @param tableName - The base table name.
  * @param keyConditions - Array of column keys used to match records for deletion.
@@ -256,6 +259,10 @@ export function generateStagingDeleteQuery<
     })
     .join("\n  AND ");
 
+  const partitionKey = keyConditions
+    .map((key) => snakeCaseMapper(String(key)))
+    .join(", ");
+
   return `
     DELETE FROM ${stagingTableName}
     USING ${stagingTableName} b
@@ -266,7 +273,21 @@ export function generateStagingDeleteQuery<
     USING ${config.dbSchemaName}.${tableName} b
     WHERE ${whereCondition}
       AND ${stagingTableName}.metadata_version < b.metadata_version;
-`.trim();
+
+    DELETE FROM ${stagingTableName}
+    USING (
+      SELECT _seq FROM (
+        SELECT _seq,
+               ROW_NUMBER() OVER (
+                 PARTITION BY ${partitionKey}
+                 ORDER BY metadata_version DESC, _seq
+               ) AS rn
+        FROM ${stagingTableName}
+      ) sub
+      WHERE rn > 1
+    ) d
+    WHERE ${stagingTableName}._seq = d._seq;
+  `.trim();
 }
 
 /**
