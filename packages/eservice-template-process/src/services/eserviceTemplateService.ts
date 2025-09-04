@@ -14,7 +14,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   AttributeId,
-  badRequestError,
   EServiceAttribute,
   EserviceAttributes,
   EServiceTemplate,
@@ -35,6 +34,7 @@ import {
   EServiceDocumentId,
   EServiceTemplateRiskAnalysis,
   RiskAnalysisForm,
+  badRequestError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";

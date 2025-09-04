@@ -132,8 +132,6 @@ export * from "./gen/v2/eservice/events.js";
 export * from "./gen/v2/agreement/agreement.js";
 export * from "./gen/v2/agreement/events.js";
 export * from "./gen/v2/purpose/purpose.js";
-export * from "./gen/v2/purpose-template/purpose-template.js";
-export * from "./gen/v2/purpose-template/events.js";
 export * from "./gen/v2/purpose/events.js";
 export * from "./gen/v2/purpose/riskAnalysis.js";
 export * from "./gen/v2/purpose-template/events.js";
