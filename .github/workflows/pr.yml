@@ -120,30 +120,6 @@ jobs:
           JSON_OUTPUT+="]"
           
           echo "matrix=$JSON_OUTPUT" >> $GITHUB_OUTPUT
-          
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: [formatting, lint, check, lint-openapi]
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - name: Cache turbo setup
-        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
-        with:
-          path: |
-            .turbo
-            packages/*/.turbo
-          key: ${{ runner.os }}-turbo-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-build
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: ./package.json
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
-        with:
-          run_install: true
-      - name: Run build for all packages
-        run: pnpm build
 
   lint_sharded:
     name: Run lint on shard ${{ matrix.shard_index }}
@@ -309,12 +285,11 @@ jobs:
 
   check_build_result:
     name: Build Result
-    needs: [docker_build, build]
+    needs: [docker_build]
     if: ${{ always() && github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check build result
         run: |
           [[ ${{ needs.docker_build.result }} != 'success' ]] && exit 1
-          [[ ${{ needs.build.result }} != 'success' ]] && exit 1
           exit 0
