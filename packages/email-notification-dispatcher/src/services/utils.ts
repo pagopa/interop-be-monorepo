@@ -29,6 +29,20 @@ export const eventMailTemplateType = {
   agreementRejectedMailTemplate: "agreement-rejected-mail",
   agreementUpgradedMailTemplate: "agreement-upgraded-mail",
   eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
+  consumerDelegationApprovedMailTemplate: "consumer-delegation-approved-mail",
+  consumerDelegationRejectedMailTemplate: "consumer-delegation-rejected-mail",
+  consumerDelegationRevokedMailTemplate: "consumer-delegation-revoked-mail",
+  consumerDelegationSubmittedMailTemplate: "consumer-delegation-submitted-mail",
+  eserviceDescriptorApprovedByDelegatorMailTemplate:
+    "eservice-descriptor-approved-by-delegator-mail",
+  eserviceDescriptorRejectedByDelegatorMailTemplate:
+    "eservice-descriptor-rejected-by-delegator-mail",
+  eserviceDescriptorSubmittedByDelegateMailTemplate:
+    "eservice-descriptor-submitted-by-delegate-mail",
+  producerDelegationApprovedMailTemplate: "producer-delegation-approved-mail",
+  producerDelegationRejectedMailTemplate: "producer-delegation-rejected-mail",
+  producerDelegationRevokedMailTemplate: "producer-delegation-revoked-mail",
+  producerDelegationSubmittedMailTemplate: "producer-delegation-submitted-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
