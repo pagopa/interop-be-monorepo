@@ -1,8 +1,3 @@
-/*
-  addOnePurposeTemplate,
-  purposeTemplateService,
-  readLastPurposeTemplateEvent, */
-
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { purposeTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { afterEach, inject } from "vitest";
@@ -22,5 +17,3 @@ afterEach(cleanup);
 
 export const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
-
-export const purposeTemplates = readModelRepository.purposeTemplates;
