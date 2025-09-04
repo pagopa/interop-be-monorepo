@@ -5,6 +5,7 @@ import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   Agreement,
+  Delegation,
   EService,
   generateId,
   Purpose,
@@ -23,6 +24,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertDelegation,
   upsertEService,
   upsertPurpose,
   upsertTenant,
@@ -102,6 +104,12 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
 
 export const addOneUser = async (user: User): Promise<void> => {
   await insertUser(userDB, user);
+};
+
+export const addOneDelegation = async (
+  delegation: Delegation
+): Promise<void> => {
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 const insertUser = async (
