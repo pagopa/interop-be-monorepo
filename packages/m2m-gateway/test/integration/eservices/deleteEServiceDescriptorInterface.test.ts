@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { describe, it, vi, beforeEach, expect } from "vitest";
 import {
   DescriptorId,
