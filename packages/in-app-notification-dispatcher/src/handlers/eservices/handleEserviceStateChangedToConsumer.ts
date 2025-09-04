@@ -12,11 +12,7 @@ import {
   retrieveTenant,
 } from "../handlerCommons.js";
 
-<<<<<<<< HEAD:packages/in-app-notification-dispatcher/src/handlers/eservices/handleEserviceStateChangedToConsumer.ts
 export async function handleEserviceStateChangedToConsumer(
-========
-export async function handleEserviceStatusChangedToConsumer(
->>>>>>>> 7b279f863 (fix: correct spelling from "Instatiator" to "Instantiator" in notification config fields):packages/in-app-notification-dispatcher/src/handlers/eservices/handleEserviceStatusChangedToConsumer.ts
   eserviceV2Msg: EServiceV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL
@@ -28,11 +24,7 @@ export async function handleEserviceStatusChangedToConsumer(
     );
   }
   logger.info(
-<<<<<<<< HEAD:packages/in-app-notification-dispatcher/src/handlers/eservices/handleEserviceStateChangedToConsumer.ts
     `Sending in-app notification for handleEserviceStateChangedToConsumer ${eserviceV2Msg.id}`
-========
-    `Sending in-app notification for handleEserviceStatusChangedToConsumer ${eserviceV2Msg.id}`
->>>>>>>> 7b279f863 (fix: correct spelling from "Instatiator" to "Instantiator" in notification config fields):packages/in-app-notification-dispatcher/src/handlers/eservices/handleEserviceStatusChangedToConsumer.ts
   );
 
   const eservice = fromEServiceV2(eserviceV2Msg);
