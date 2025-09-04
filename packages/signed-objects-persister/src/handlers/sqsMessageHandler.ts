@@ -1,5 +1,6 @@
 import { FileManager, logger, Logger } from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
+import { format } from "date-fns";
 import {
   SqsSafeStorageBody,
   SqsSafeStorageBodySchema,
@@ -32,7 +33,7 @@ async function processMessage(
 
     const clientShortCode = message.detail.client_short_code;
     const date = new Date(message.time);
-    const datePath = getPathFromDate(date);
+    const datePath = format(date, "yyyy/MM/dd");
 
     const path = `${clientShortCode}/${datePath}`;
     const fileName = fileKey;
@@ -55,13 +56,6 @@ async function processMessage(
     logger.error(`Error processing message: ${String(error)}`);
     throw error;
   }
-}
-
-function getPathFromDate(date: Date): string {
-  return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(
-    2,
-    "0"
-  )}/${String(date.getDate()).padStart(2, "0")}`;
 }
 
 export const sqsMessageHandler = async (
