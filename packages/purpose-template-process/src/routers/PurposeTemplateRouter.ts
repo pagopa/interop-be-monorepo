@@ -22,8 +22,10 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import {
   createPurposeTemplateErrorMapper,
   getPurposeTemplatesErrorMapper,
+  getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
+  annotationDocumentToApiAnnotationDocument,
   apiPurposeTemplateStateToPurposeTemplateState,
   purposeTemplateToApiPurposeTemplate,
 } from "../model/domain/apiConverter.js";
@@ -226,7 +228,53 @@ const purposeTemplateRouter = (
         return res.status(501);
       }
       return res.status(501);
-    });
+    })
+    .get(
+      "/purposeTemplates/:purposeTemplateId/riskAnalyses/:riskAnalysisTemplateId/answers/:answerId/annotations/:annotationId/documents/:documentId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          // TODO: update with correct roles
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          const {
+            purposeTemplateId,
+            riskAnalysisTemplateId,
+            answerId,
+            annotationId,
+            documentId,
+          } = req.params;
+          const { data: annotationDocument, metadata } =
+            await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
+              {
+                purposeTemplateId: unsafeBrandId(purposeTemplateId),
+                riskAnalysisTemplateId: unsafeBrandId(riskAnalysisTemplateId),
+                answerId: unsafeBrandId(answerId),
+                annotationId: unsafeBrandId(annotationId),
+                documentId: unsafeBrandId(documentId),
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(
+              purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument.parse(
+                annotationDocumentToApiAnnotationDocument(annotationDocument)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return purposeTemplateRouter;
 };
