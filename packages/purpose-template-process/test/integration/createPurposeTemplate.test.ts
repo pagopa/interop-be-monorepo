@@ -6,8 +6,8 @@ import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockContext,
+  getMockValidRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test";
-import { getMockValidRiskAnalysisFormTemplate } from "pagopa-interop-commons-test/src/riskAnalysisTemplateTestUtils.js";
 import {
   PurposeTemplate,
   PurposeTemplateAddedV2,
