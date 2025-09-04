@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { describe, it, expect } from "vitest";
 import { generateId, ProducerKeychainId } from "pagopa-interop-models";
 import { getMockProducerJWKKey } from "pagopa-interop-commons-test";
