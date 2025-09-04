@@ -3426,9 +3426,8 @@ paths:
           description: |
             Filter Clients by name.
             If not specified, return Clients with any name.
-            If specified, the response will include only Clients owned by the requester
-            defaulting the consumerId filter to the requester ID, because the client name
-            is visible only to the Client owner (consumer).
+            If specified, since client name is visible only to the owner (consumer),
+            the response will include only Clients owned by the requester.
           schema:
             type: string
         - name: consumerId
@@ -4026,9 +4025,8 @@ paths:
           description: |
             Filter Producer Keychains by name.
             If not specified, return Producer Keychains with any name.
-            If specified, the response will include only Producer Keychains owned by the requester
-            defaulting the producerId filter to the requester ID, because the keychain name
-            is visible only to the Producer Keychain owner.
+            If specified, since keychain name is visible only to the owner (producer),
+            the response will include only Keychains owned by the requester.
           schema:
             type: string
         - name: producerId
