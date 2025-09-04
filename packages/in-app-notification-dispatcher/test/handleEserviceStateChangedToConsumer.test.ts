@@ -13,12 +13,7 @@ import {
   TenantId,
   toEServiceV2,
 } from "pagopa-interop-models";
-<<<<<<<< HEAD:packages/in-app-notification-dispatcher/test/handleEserviceStateChangedToConsumer.test.ts
 import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
-========
-import { config } from "../src/config/config.js";
-import { handleEserviceStatusChangedToConsumer } from "../src/handlers/eservices/handleEserviceStatusChangedToConsumer.js";
->>>>>>>> 7b279f863 (fix: correct spelling from "Instatiator" to "Instantiator" in notification config fields):packages/in-app-notification-dispatcher/test/handleEserviceStatusChangedToConsumer.test.ts
 import { tenantNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
@@ -39,22 +34,14 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
 
   it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
     await expect(() =>
-<<<<<<<< HEAD:packages/in-app-notification-dispatcher/test/handleEserviceStateChangedToConsumer.test.ts
       handleEserviceStateChangedToConsumer(undefined, logger, readModelService)
-========
-      handleEserviceStatusChangedToConsumer(undefined, logger, readModelService)
->>>>>>>> 7b279f863 (fix: correct spelling from "Instatiator" to "Instantiator" in notification config fields):packages/in-app-notification-dispatcher/test/handleEserviceStatusChangedToConsumer.test.ts
     ).rejects.toThrow(
       missingKafkaMessageDataError("eservice", "EServiceDescriptorPublished")
     );
   });
 
   it("should return empty array when no agreements exist for the eservice", async () => {
-<<<<<<<< HEAD:packages/in-app-notification-dispatcher/test/handleEserviceStateChangedToConsumer.test.ts
     const notifications = await handleEserviceStateChangedToConsumer(
-========
-    const notifications = await handleEserviceStatusChangedToConsumer(
->>>>>>>> 7b279f863 (fix: correct spelling from "Instatiator" to "Instantiator" in notification config fields):packages/in-app-notification-dispatcher/test/handleEserviceStatusChangedToConsumer.test.ts
       toEServiceV2(eservice),
       logger,
       readModelService
@@ -72,11 +59,7 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-<<<<<<<< HEAD:packages/in-app-notification-dispatcher/test/handleEserviceStateChangedToConsumer.test.ts
       handleEserviceStateChangedToConsumer(
-========
-      handleEserviceStatusChangedToConsumer(
->>>>>>>> 7b279f863 (fix: correct spelling from "Instatiator" to "Instantiator" in notification config fields):packages/in-app-notification-dispatcher/test/handleEserviceStatusChangedToConsumer.test.ts
         toEServiceV2(eservice),
         logger,
         readModelService
@@ -120,11 +103,7 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
         .fn()
         .mockResolvedValue(users);
 
-<<<<<<<< HEAD:packages/in-app-notification-dispatcher/test/handleEserviceStateChangedToConsumer.test.ts
       const notifications = await handleEserviceStateChangedToConsumer(
-========
-      const notifications = await handleEserviceStatusChangedToConsumer(
->>>>>>>> 7b279f863 (fix: correct spelling from "Instatiator" to "Instantiator" in notification config fields):packages/in-app-notification-dispatcher/test/handleEserviceStatusChangedToConsumer.test.ts
         toEServiceV2(eservice),
         logger,
         readModelService
@@ -166,11 +145,7 @@ describe("handleEserviceStatusChangedToConsumer", async () => {
       .fn()
       .mockResolvedValue([]);
 
-<<<<<<<< HEAD:packages/in-app-notification-dispatcher/test/handleEserviceStateChangedToConsumer.test.ts
     const notifications = await handleEserviceStateChangedToConsumer(
-========
-    const notifications = await handleEserviceStatusChangedToConsumer(
->>>>>>>> 7b279f863 (fix: correct spelling from "Instatiator" to "Instantiator" in notification config fields):packages/in-app-notification-dispatcher/test/handleEserviceStatusChangedToConsumer.test.ts
       toEServiceV2(eservice),
       logger,
       readModelService
