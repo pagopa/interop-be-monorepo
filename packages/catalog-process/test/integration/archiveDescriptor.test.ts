@@ -73,8 +73,8 @@ describe("archive descriptor", () => {
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
   });
 
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    expect(
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+    await expect(
       catalogService.archiveDescriptor(
         mockEService.id,
         mockDescriptor.id,
@@ -90,7 +90,7 @@ describe("archive descriptor", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.archiveDescriptor(
         eservice.id,
         mockDescriptor.id,

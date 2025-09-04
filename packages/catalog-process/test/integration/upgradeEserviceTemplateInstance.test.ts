@@ -459,8 +459,8 @@ describe("upgrade eservice template instance", () => {
       )
     ).rejects.toThrowError(FileManagerError);
   });
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    expect(
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+    await expect(
       catalogService.upgradeEServiceInstance(
         mockEService.id,
         getMockContext({})
@@ -477,7 +477,7 @@ describe("upgrade eservice template instance", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.upgradeEServiceInstance(eservice.id, getMockContext({}))
     ).rejects.toThrowError(operationForbidden);
   });
@@ -487,7 +487,7 @@ describe("upgrade eservice template instance", () => {
       descriptors: [mockDescriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.upgradeEServiceInstance(
         mockEService.id,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -501,7 +501,7 @@ describe("upgrade eservice template instance", () => {
       templateId: generateId<EServiceTemplateId>(),
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.upgradeEServiceInstance(
         mockEService.id,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -557,7 +557,7 @@ describe("upgrade eservice template instance", () => {
 
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.upgradeEServiceInstance(
         mockEService.id,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })

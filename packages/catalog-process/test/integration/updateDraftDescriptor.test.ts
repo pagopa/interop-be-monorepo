@@ -185,13 +185,13 @@ describe("update draft descriptor", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
   });
 
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
       state: descriptorState.published,
     };
-    expect(
+    await expect(
       catalogService.updateDraftDescriptor(
         mockEService.id,
         descriptor.id,
@@ -208,7 +208,7 @@ describe("update draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateDraftDescriptor(
         mockEService.id,
         mockDescriptor.id,
@@ -232,7 +232,7 @@ describe("update draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
@@ -256,7 +256,7 @@ describe("update draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
@@ -280,7 +280,7 @@ describe("update draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
@@ -304,7 +304,7 @@ describe("update draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
@@ -331,7 +331,7 @@ describe("update draft descriptor", () => {
       ...descriptor,
       dailyCallsTotal: 200,
     };
-    expect(
+    await expect(
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
@@ -364,7 +364,7 @@ describe("update draft descriptor", () => {
       ...descriptor,
       dailyCallsTotal: 200,
     };
-    expect(
+    await expect(
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
@@ -390,7 +390,7 @@ describe("update draft descriptor", () => {
       dailyCallsPerConsumer: 100,
       dailyCallsTotal: 50,
     };
-    expect(
+    await expect(
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
@@ -448,7 +448,7 @@ describe("update draft descriptor", () => {
       },
     };
 
-    expect(
+    await expect(
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,
@@ -511,7 +511,7 @@ describe("update draft descriptor", () => {
       },
     };
 
-    expect(
+    await expect(
       catalogService.updateDraftDescriptor(
         eservice.id,
         descriptor.id,

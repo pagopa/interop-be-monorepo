@@ -121,7 +121,7 @@ describe("update eService description", () => {
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const eservice = getMockEService();
 
-    expect(
+    await expect(
       catalogService.updateEServiceDescription(
         eservice.id,
         "eservice new description",
@@ -134,7 +134,7 @@ describe("update eService description", () => {
     const eservice = getMockEService();
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateEServiceDescription(
         eservice.id,
         "eservice new description",
@@ -153,7 +153,7 @@ describe("update eService description", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.updateEServiceDescription(
         eservice.id,
         "eservice new description",
@@ -165,7 +165,7 @@ describe("update eService description", () => {
     const eservice = getMockEService();
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateEServiceDescription(
         eservice.id,
         "eservice new description",
@@ -190,7 +190,7 @@ describe("update eService description", () => {
       };
       await addOneEService(eservice);
 
-      expect(
+      await expect(
         catalogService.updateEServiceDescription(
           eservice.id,
           "eservice new description",
@@ -212,7 +212,7 @@ describe("update eService description", () => {
     };
     await addOneEService(eService);
 
-    expect(
+    await expect(
       catalogService.updateEServiceDescription(
         eService.id,
         "eservice new description",

@@ -249,7 +249,7 @@ describe("update descriptor", () => {
       descriptors: [mockDescriptor],
     };
 
-    expect(
+    await expect(
       catalogService.updateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
@@ -277,7 +277,7 @@ describe("update descriptor", () => {
 
     await addOneEService(mockEService);
 
-    expect(
+    await expect(
       catalogService.updateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
@@ -316,7 +316,7 @@ describe("update descriptor", () => {
 
     await addOneEService(mockEService);
 
-    expect(
+    await expect(
       catalogService.updateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
@@ -354,7 +354,7 @@ describe("update descriptor", () => {
 
     await addOneEService(mockEService);
 
-    expect(
+    await expect(
       catalogService.updateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
@@ -390,7 +390,7 @@ describe("update descriptor", () => {
 
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.updateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
@@ -424,7 +424,7 @@ describe("update descriptor", () => {
 
       await addOneEService(mockEService);
 
-      expect(
+      await expect(
         catalogService.updateDescriptorAttributes(
           mockEService.id,
           mockDescriptor.id,
@@ -457,7 +457,7 @@ describe("update descriptor", () => {
 
     await addOneEService(mockEService);
 
-    expect(
+    await expect(
       catalogService.updateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
@@ -491,7 +491,7 @@ describe("update descriptor", () => {
 
     await addOneEService(mockEService);
 
-    expect(
+    await expect(
       catalogService.updateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
@@ -533,7 +533,7 @@ describe("update descriptor", () => {
 
     await addOneEService(mockEService);
 
-    expect(
+    await expect(
       catalogService.updateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
@@ -584,7 +584,7 @@ describe("update descriptor", () => {
 
     await addOneEService(mockEService);
 
-    expect(
+    await expect(
       catalogService.updateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,

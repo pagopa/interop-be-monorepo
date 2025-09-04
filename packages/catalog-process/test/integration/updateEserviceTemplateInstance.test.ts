@@ -218,7 +218,7 @@ describe("update eService Instance", () => {
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
-    expect(
+    await expect(
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {},
@@ -236,7 +236,7 @@ describe("update eService Instance", () => {
       templateId: template.id,
     });
 
-    expect(
+    await expect(
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {},
@@ -261,7 +261,7 @@ describe("update eService Instance", () => {
     });
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {},
@@ -293,7 +293,7 @@ describe("update eService Instance", () => {
       };
 
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.updateEServiceTemplateInstance(
           eservice.id,
           {},
@@ -316,7 +316,7 @@ describe("update eService Instance", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {},

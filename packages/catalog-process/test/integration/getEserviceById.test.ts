@@ -90,7 +90,7 @@ describe("get eservice by id", () => {
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     await addOneEService(mockEService);
     const notExistingId: EServiceId = generateId();
-    expect(
+    await expect(
       catalogService.getEServiceById(notExistingId, getMockContext({}))
     ).rejects.toThrowError(eServiceNotFound(notExistingId));
   });
@@ -107,7 +107,7 @@ describe("get eservice by id", () => {
         descriptors: [descriptor],
       };
       await addOneEService(mockEService);
-      expect(
+      await expect(
         catalogService.getEServiceById(eservice.id, getMockContext({}))
       ).rejects.toThrowError(eServiceNotFound(eservice.id));
     }
@@ -128,7 +128,7 @@ describe("get eservice by id", () => {
         userRoles: [userRole.SECURITY_ROLE],
       };
       await addOneEService(mockEService);
-      expect(
+      await expect(
         catalogService.getEServiceById(
           eservice.id,
           getMockContext({ authData })
@@ -143,7 +143,7 @@ describe("get eservice by id", () => {
       descriptors: [],
     };
     await addOneEService(mockEService);
-    expect(
+    await expect(
       catalogService.getEServiceById(eservice.id, getMockContext({}))
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -162,7 +162,7 @@ describe("get eservice by id", () => {
       userRoles: [userRole.SECURITY_ROLE],
     };
     await addOneEService(mockEService);
-    expect(
+    await expect(
       catalogService.getEServiceById(eservice.id, getMockContext({ authData }))
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });

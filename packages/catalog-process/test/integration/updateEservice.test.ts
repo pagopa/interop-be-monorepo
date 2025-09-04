@@ -422,7 +422,7 @@ describe("update eService", () => {
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
-    expect(
+    await expect(
       catalogService.updateEService(
         mockEService.id,
         {
@@ -439,7 +439,7 @@ describe("update eService", () => {
   it("should throw operationForbidden if the requester is not the producer", async () => {
     await addOneEService(mockEService);
 
-    expect(
+    await expect(
       catalogService.updateEService(
         mockEService.id,
         {
@@ -463,7 +463,7 @@ describe("update eService", () => {
     await addOneEService(mockEService);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.updateEService(
         mockEService.id,
         {
@@ -495,7 +495,7 @@ describe("update eService", () => {
     await addOneEService(eservice1);
     await addOneEService(eservice2);
 
-    expect(
+    await expect(
       catalogService.updateEService(
         eservice1.id,
         {
@@ -528,7 +528,7 @@ describe("update eService", () => {
     await addOneEService(eservice1);
     await addOneEService(eservice2);
 
-    expect(
+    await expect(
       catalogService.updateEService(
         eservice1.id,
         {
@@ -560,7 +560,7 @@ describe("update eService", () => {
     await addOneEService(eservice1);
     await addOneEServiceTemplate(eserviceTemplate);
 
-    expect(
+    await expect(
       catalogService.updateEService(
         eservice1.id,
         {
@@ -590,7 +590,7 @@ describe("update eService", () => {
     await addOneEService(eservice1);
     await addOneEServiceTemplate(eserviceTemplate);
 
-    expect(
+    await expect(
       catalogService.updateEService(
         eservice1.id,
         {
@@ -615,7 +615,7 @@ describe("update eService", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.updateEService(
         eservice.id,
         {
@@ -640,7 +640,7 @@ describe("update eService", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.updateEService(
         eservice.id,
         {
@@ -665,7 +665,7 @@ describe("update eService", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.updateEService(
         eservice.id,
         {
@@ -690,7 +690,7 @@ describe("update eService", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.updateEService(
         eservice.id,
         {
@@ -718,7 +718,7 @@ describe("update eService", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateEService(
         mockEService.id,
         {

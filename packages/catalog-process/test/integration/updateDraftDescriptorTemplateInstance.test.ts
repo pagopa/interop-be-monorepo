@@ -170,13 +170,13 @@ describe("update draft descriptor instance", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
   });
 
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
       state: descriptorState.published,
     };
-    expect(
+    await expect(
       catalogService.updateDraftDescriptorTemplateInstance(
         mockEService.id,
         descriptor.id,
@@ -199,7 +199,7 @@ describe("update draft descriptor instance", () => {
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateDraftDescriptorTemplateInstance(
         mockEService.id,
         mockDescriptor.id,
@@ -235,7 +235,7 @@ describe("update draft descriptor instance", () => {
       await addOneEServiceTemplate(template);
       await addOneEService(eservice);
 
-      expect(
+      await expect(
         catalogService.updateDraftDescriptorTemplateInstance(
           eservice.id,
           descriptor.id,
@@ -269,7 +269,7 @@ describe("update draft descriptor instance", () => {
       ...descriptor,
       dailyCallsTotal: 200,
     };
-    expect(
+    await expect(
       catalogService.updateDraftDescriptorTemplateInstance(
         eservice.id,
         descriptor.id,
@@ -308,7 +308,7 @@ describe("update draft descriptor instance", () => {
       ...descriptor,
       dailyCallsTotal: 200,
     };
-    expect(
+    await expect(
       catalogService.updateDraftDescriptorTemplateInstance(
         eservice.id,
         descriptor.id,
@@ -340,7 +340,7 @@ describe("update draft descriptor instance", () => {
       dailyCallsPerConsumer: 100,
       dailyCallsTotal: 50,
     };
-    expect(
+    await expect(
       catalogService.updateDraftDescriptorTemplateInstance(
         eservice.id,
         descriptor.id,
@@ -370,7 +370,7 @@ describe("update draft descriptor instance", () => {
       ...buildUpdateDescriptorSeed(mockDescriptor),
     };
 
-    expect(
+    await expect(
       catalogService.updateDraftDescriptorTemplateInstance(
         eservice.id,
         descriptor.id,

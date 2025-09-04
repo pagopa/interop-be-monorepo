@@ -165,8 +165,8 @@ describe("createTemplateInstanceDescriptorDocument", () => {
     });
   });
 
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    expect(
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+    await expect(
       catalogService.internalCreateTemplateInstanceDescriptorDocument(
         mockEService.id,
         mockDescriptor.id,
@@ -182,7 +182,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
       descriptors: [],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.internalCreateTemplateInstanceDescriptorDocument(
         eservice.id,
         mockDescriptor.id,

@@ -139,8 +139,8 @@ describe("suspend descriptor", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
   });
 
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    expect(
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+    await expect(
       catalogService.suspendDescriptor(
         mockEService.id,
         mockDescriptor.id,
@@ -160,7 +160,7 @@ describe("suspend descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.suspendDescriptor(
         eservice.id,
         descriptor.id,
@@ -187,7 +187,7 @@ describe("suspend descriptor", () => {
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);
-    expect(
+    await expect(
       catalogService.suspendDescriptor(
         eservice.id,
         descriptor.id,
@@ -203,7 +203,7 @@ describe("suspend descriptor", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.suspendDescriptor(
         eservice.id,
         mockDescriptor.id,
@@ -231,7 +231,7 @@ describe("suspend descriptor", () => {
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.suspendDescriptor(
           eservice.id,
           descriptor.id,

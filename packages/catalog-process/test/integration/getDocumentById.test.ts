@@ -130,7 +130,7 @@ describe("get document by id", () => {
       ...getMockAuthData(),
       userRoles: [userRole.ADMIN_ROLE],
     };
-    expect(
+    await expect(
       catalogService.getDocumentById(
         {
           eserviceId: mockEService.id,
@@ -153,7 +153,7 @@ describe("get document by id", () => {
       ...getMockAuthData(),
       userRoles: [userRole.ADMIN_ROLE],
     };
-    expect(
+    await expect(
       catalogService.getDocumentById(
         {
           eserviceId: eservice.id,
@@ -184,7 +184,7 @@ describe("get document by id", () => {
       userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.getDocumentById(
         {
           eserviceId: eservice.id,
@@ -212,7 +212,7 @@ describe("get document by id", () => {
       userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.getDocumentById(
         {
           eserviceId: eservice.id,
@@ -238,7 +238,7 @@ describe("get document by id", () => {
       userRoles: [userRole.SECURITY_ROLE],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.getDocumentById(
         {
           eserviceId: eservice.id,
@@ -264,7 +264,7 @@ describe("get document by id", () => {
       userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.getDocumentById(
         {
           eserviceId: eservice.id,
