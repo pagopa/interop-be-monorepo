@@ -1,6 +1,7 @@
 import {
   Agreement,
   AgreementV2,
+  DelegationV2,
   EService,
   EServiceV2,
   NotificationConfig,
@@ -21,6 +22,10 @@ export type AgreementHandlerParams = HandlerCommonParams & {
 
 export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
+};
+
+export type DelegationHandlerParams = HandlerCommonParams & {
+  delegationV2Msg?: DelegationV2;
 };
 
 type EmailNotificationRecipient = { type: "Tenant" | "User"; address: string };
