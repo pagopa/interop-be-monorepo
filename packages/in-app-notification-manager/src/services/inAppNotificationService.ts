@@ -82,7 +82,7 @@ export function inAppNotificationServiceBuilder(
         authData: { userId, organizationId },
       }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> => {
-      logger.info(`Marking ${ids.length} notifications as read`);
+      logger.info(`Marking ${ids.join(", ")} notifications as read`);
 
       if (ids.length === 0) {
         return;
@@ -106,7 +106,7 @@ export function inAppNotificationServiceBuilder(
         authData: { userId, organizationId },
       }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> => {
-      logger.info(`Marking ${ids.length} notifications as unread`);
+      logger.info(`Marking ${ids.join(", ")} notifications as unread`);
 
       if (ids.length === 0) {
         return;
@@ -155,7 +155,7 @@ export function inAppNotificationServiceBuilder(
         authData: { userId, organizationId },
       }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> => {
-      logger.info(`Deleting notifications ${notificationIds}`);
+      logger.info(`Deleting notifications ${notificationIds.join(", ")}`);
 
       if (notificationIds.length === 0) {
         return;
