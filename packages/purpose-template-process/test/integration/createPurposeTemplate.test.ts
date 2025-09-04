@@ -251,7 +251,8 @@ describe("createPurposeTemplate", () => {
 
     // Remove otherPurpose field which is required when purpose is OTHER
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _, ...answersWithoutOtherPurpose } = validTemplate.answers;
+    const { otherPurpose, ...answersWithoutOtherPurpose } =
+      validTemplate.answers;
 
     const seedWithMissingField: purposeTemplateApi.PurposeTemplateSeed = {
       ...purposeTemplateSeed,
