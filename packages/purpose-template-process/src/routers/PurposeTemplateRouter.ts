@@ -22,6 +22,7 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import {
   createPurposeTemplateErrorMapper,
   getPurposeTemplatesErrorMapper,
+  getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   annotationDocumentToApiAnnotationDocument,
@@ -243,8 +244,7 @@ const purposeTemplateRouter = (
             annotationId,
             documentId,
           } = req.params;
-
-          const annotationDocument =
+          const { data: annotationDocument, metadata } =
             await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
               {
                 purposeTemplateId: unsafeBrandId(purposeTemplateId),
@@ -256,6 +256,8 @@ const purposeTemplateRouter = (
               ctx
             );
 
+          setMetadataVersionHeader(res, metadata);
+
           return res
             .status(200)
             .send(
@@ -266,7 +268,7 @@ const purposeTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getPurposeTemplatesErrorMapper,
+            getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

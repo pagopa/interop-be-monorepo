@@ -157,7 +157,7 @@ export function purposeTemplateServiceBuilder(
       {
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<RiskAnalysisTemplateAnswerAnnotationDocument> {
+    ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
       logger.info(
         `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}, risk analysis form template ${riskAnalysisTemplateId}, answer ${answerId} and annotation ${annotationId}`
       );

@@ -234,7 +234,9 @@ export function readModelServiceBuilderSQL({
     async getRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId: PurposeTemplateId,
       annotationId: RiskAnalysisTemplateAnswerAnnotationId
-    ): Promise<RiskAnalysisTemplateAnswerAnnotationDocument | undefined> {
+    ): Promise<
+      WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument> | undefined
+    > {
       const queryResult = await readModelDB
         .select()
         .from(
@@ -257,7 +259,10 @@ export function readModelServiceBuilderSQL({
         return undefined;
       }
 
-      return toRiskAnalysisTemplateAnswerAnnotationDocument(queryResult[0]);
+      return {
+        data: toRiskAnalysisTemplateAnswerAnnotationDocument(queryResult[0]),
+        metadata: { version: queryResult[0].metadataVersion },
+      };
     },
   };
 }
