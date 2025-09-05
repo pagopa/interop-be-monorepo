@@ -51,9 +51,8 @@ describe("getProducerDelegations", () => {
     const m2mDelegationsResponse: m2mGatewayApi.ProducerDelegation =
       m2mDelegationResponse;
 
-    const result = await delegationService.getDelegation(
+    const result = await delegationService.getProducerDelegation(
       m2mDelegationResponse.id,
-      delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
       getMockM2MAdminAppContext()
     );
 
