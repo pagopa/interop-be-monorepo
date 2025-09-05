@@ -12,8 +12,8 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "clean-generated": "mkdir -p src/drizzle && mv src/gen/schema.ts src/drizzle/schema.ts && rm -rf src/gen && pnpm format:write",
-    "generate-model": "drizzle-kit pull && pnpm clean-generated",
+    "clean-generated-db-models": "mkdir -p src/drizzle && mv src/gen/schema.ts src/drizzle/schema.ts && rm -rf src/gen && pnpm format:write",
+    "generate-db-models": "drizzle-kit pull && pnpm clean-generated-db-models",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
