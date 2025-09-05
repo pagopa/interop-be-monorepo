@@ -1,6 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import {
   Agreement,
+  Delegation,
   EService,
   EServiceId,
   NotificationConfig,
@@ -8,24 +9,32 @@ import {
   TenantId,
   UserId,
   agreementState,
+  delegationKind,
+  delegationState,
 } from "pagopa-interop-models";
 import {
   AgreementReadModelService,
   CatalogReadModelService,
+  DelegationReadModelService,
   NotificationConfigReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
-import { agreementInReadmodelAgreement } from "pagopa-interop-readmodel-models";
+import {
+  agreementInReadmodelAgreement,
+  delegationInReadmodelDelegation,
+} from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
+  delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
 }: {
   agreementReadModelServiceSQL: AgreementReadModelService;
   catalogReadModelServiceSQL: CatalogReadModelService;
+  delegationReadModelServiceSQL: DelegationReadModelService;
   tenantReadModelServiceSQL: TenantReadModelService;
   notificationConfigReadModelServiceSQL: NotificationConfigReadModelService;
 }) {
@@ -61,6 +70,24 @@ export function readModelServiceBuilderSQL({
         notificationName,
         "inApp"
       );
+    },
+    async getActiveProducerDelegation(
+      eserviceId: EServiceId,
+      producerId: TenantId
+    ): Promise<Delegation | undefined> {
+      return (
+        await delegationReadModelServiceSQL.getDelegationByFilter(
+          and(
+            eq(delegationInReadmodelDelegation.eserviceId, eserviceId),
+            eq(delegationInReadmodelDelegation.delegatorId, producerId),
+            eq(
+              delegationInReadmodelDelegation.kind,
+              delegationKind.delegatedProducer
+            ),
+            eq(delegationInReadmodelDelegation.state, delegationState.active)
+          )
+        )
+      )?.data;
     },
   };
 }
