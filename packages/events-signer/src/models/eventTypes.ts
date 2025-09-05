@@ -32,3 +32,13 @@ export type AgreementEventData = z.infer<typeof AgreementEventSchema>;
 export type AuthorizationEventData = z.infer<typeof AuthorizationEventSchema>;
 export type CatalogEventData = z.infer<typeof CatalogEventSchema>;
 export type DelegationEventData = z.infer<typeof DelegationEventSchema>;
+
+export const AllEventSchemas = z.union([
+  PurposeEventSchema,
+  AgreementEventSchema,
+  AuthorizationEventSchema,
+  CatalogEventSchema,
+  DelegationEventSchema,
+]);
+
+export type AllEventData = z.infer<typeof AllEventSchemas>;
