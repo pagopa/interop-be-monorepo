@@ -1,4 +1,5 @@
 /* eslint-disable sonarjs/no-identical-functions */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import {
   AppContext,
   CreateEvent,

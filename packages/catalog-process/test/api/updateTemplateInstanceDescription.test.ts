@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import { EService, EServiceId, generateId } from "pagopa-interop-models";

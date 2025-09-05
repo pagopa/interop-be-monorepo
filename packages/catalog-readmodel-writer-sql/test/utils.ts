@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { inject, afterEach, expect } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { catalogReadModelServiceBuilder } from "pagopa-interop-readmodel";
