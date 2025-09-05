@@ -8142,8 +8142,8 @@ paths:
     patch:
       tags:
         - eserviceTemplates
-      summary: Update a specific E-Service Template
-      description: Update an E-Service Template.
+      summary: Update a specific E-Service Template in Draft State
+      description: Update an E-Service Template in Draft State.
       operationId: updateDraftEServiceTemplate
       requestBody:
         content:
