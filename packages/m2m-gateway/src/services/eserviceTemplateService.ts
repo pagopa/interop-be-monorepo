@@ -96,20 +96,23 @@ export function eserviceTemplateServiceBuilder(
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplates> {
       logger.info(
-        `Retrieving eserviceTemplates with creatorsIds ${params.creatorsIds} templatesIds ${params.eserviceTemplatesIds} offset ${params.offset} limit ${params.limit}`
+        `Retrieving eserviceTemplates with creatorsIds ${params.creatorIds} templatesIds ${params.eserviceTemplateIds} offset ${params.offset} limit ${params.limit}`
       );
 
-      const response =
-        await clients.eserviceTemplateProcessClient.getEServiceTemplates({
-          queries: toGetEServiceTemplatesQueryParams(params),
-          headers,
-        });
-
-      const results = response.data.results.map(toM2MGatewayEServiceTemplate);
+      const {
+        data: { results, totalCount },
+      } = await clients.eserviceTemplateProcessClient.getEServiceTemplates({
+        queries: toGetEServiceTemplatesQueryParams(params),
+        headers,
+      });
 
       return {
-        results,
-        totalCount: response.data.totalCount,
+        results: results.map(toM2MGatewayEServiceTemplate),
+        pagination: {
+          limit: params.limit,
+          offset: params.offset,
+          totalCount,
+        },
       };
     },
   };

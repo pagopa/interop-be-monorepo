@@ -37,9 +37,9 @@ export function toGetEServiceTemplatesQueryParams(
   params: m2mGatewayApi.GetEServiceTemplatesQueryParams
 ): eserviceTemplateApi.GetEServiceTemplatesQueryParams {
   return {
-    eserviceTemplatesIds: params.eserviceTemplatesIds,
-    creatorsIds: params.creatorsIds,
-    states: params.states,
+    eserviceTemplatesIds: params.eserviceTemplateIds,
+    creatorsIds: params.creatorIds,
+    states: [],
     offset: params.offset,
     limit: params.limit,
   };

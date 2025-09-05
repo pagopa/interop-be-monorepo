@@ -17,12 +17,11 @@ describe("getEserviceTemplates", () => {
   const mockParams: m2mGatewayApi.GetEServiceTemplatesQueryParams = {
     offset: 0,
     limit: 10,
-    eserviceTemplatesIds: [
+    eserviceTemplateIds: [
       mockApiEserviceTemplate1.id,
       mockApiEserviceTemplate2.id,
     ],
-    creatorsIds: [],
-    states: [],
+    creatorIds: [],
   };
 
   const mockApiEserviceTemplates = [
@@ -76,8 +75,12 @@ describe("getEserviceTemplates", () => {
     };
 
     const eserviceTemplatesResponse: m2mGatewayApi.EServiceTemplates = {
+      pagination: {
+        limit: mockParams.limit,
+        offset: mockParams.offset,
+        totalCount: mockEserviceTemplatesProcessResponse.data.totalCount,
+      },
       results: [eserviceResponse1, eserviceResponse2],
-      totalCount: 2,
     };
 
     const result = await eserviceTemplateService.getEServiceTemplates(
@@ -92,9 +95,9 @@ describe("getEserviceTemplates", () => {
       queries: {
         offset: mockParams.offset,
         limit: mockParams.limit,
-        eserviceTemplatesIds: mockParams.eserviceTemplatesIds,
-        creatorsIds: mockParams.creatorsIds,
-        states: mockParams.states,
+        eserviceTemplatesIds: mockParams.eserviceTemplateIds,
+        creatorsIds: mockParams.creatorIds,
+        states: [],
       },
     });
   });

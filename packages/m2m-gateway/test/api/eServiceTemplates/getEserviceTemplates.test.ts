@@ -14,19 +14,18 @@ describe("GET /eserviceTemplates router test", () => {
   const mockApiTemplate1 = getMockedApiEServiceTemplate();
   const mockApiTemplate2 = getMockedApiEServiceTemplate();
   const mockM2MEServiceTemplatesResponse: m2mGatewayApi.EServiceTemplates = {
+    pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
       toM2MGatewayEServiceTemplate(mockApiTemplate1),
       toM2MGatewayEServiceTemplate(mockApiTemplate2),
     ],
-    totalCount: 2,
   };
 
   const mockQueryParams: m2mGatewayApi.GetEServiceTemplatesQueryParams = {
     offset: 0,
     limit: 10,
-    eserviceTemplatesIds: [mockApiTemplate1.id, mockApiTemplate2.id],
-    creatorsIds: [],
-    states: [],
+    eserviceTemplateIds: [mockApiTemplate1.id, mockApiTemplate2.id],
+    creatorIds: [],
   };
 
   const makeRequest = async (
@@ -72,9 +71,8 @@ describe("GET /eserviceTemplates router test", () => {
     { ...mockQueryParams, limit: 100 },
     { ...mockQueryParams, offset: "invalidOffset" },
     { ...mockQueryParams, limit: "invalidLimit" },
-    { ...mockQueryParams, eserviceTemplatesIds: ["invalidTemplateId"] },
-    { ...mockQueryParams, creatorsIds: ["invalidCreatorsId"] },
-    { ...mockQueryParams, states: ["invalidState"] },
+    { ...mockQueryParams, eserviceTemplateIds: ["invalidTemplateId"] },
+    { ...mockQueryParams, creatorIds: ["invalidCreatorsId"] },
     { ...mockQueryParams, offset: undefined },
     { ...mockQueryParams, limit: undefined },
   ])("Should return 400 if passed invalid query params", async (query) => {

@@ -7852,21 +7852,20 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
   /eserviceTemplates:
     get:
-      security:
-        - bearerAuth: []
       tags:
         - eserviceTemplates
-      summary: Retrieve a list of E-Service templates
+      summary: List E-Service Templates
+      description: Retrieve a list of E-Service Templates based on filters
       operationId: getEServiceTemplates
-      description: Retrieves a list of E-Service templates with optional filters
       parameters:
         - in: query
           name: name
+          description: Filter E-Service Templates by name
           schema:
             type: string
         - in: query
-          name: eserviceTemplatesIds
-          description: comma separated sequence of eservice templates IDs
+          name: eserviceTemplateIds
+          description: Filter E-Services Templates by IDs. If not specified, return E-Services Templates with any ID
           schema:
             type: array
             items:
@@ -7875,26 +7874,18 @@ paths:
             default: []
           explode: false
         - in: query
-          name: creatorsIds
-          description: comma separated sequence of creator IDs
+          name: creatorIds
+          description: Filter E-Services Templates by creator IDs. If not specified, return E-Services Templates for any creator
           schema:
             type: array
             items:
               type: string
               format: uuid
-            default: []
-          explode: false
-        - in: query
-          name: states
-          description: comma separated sequence of states
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/EServiceTemplateVersionState"
             default: []
           explode: false
         - in: query
           name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -7902,6 +7893,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -7910,7 +7902,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: A list of E-Service templates
+          description:  E-Service Templates retrieved
           content:
             application/json:
               schema:
@@ -12322,12 +12314,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceTemplate"
-        totalCount:
-          type: integer
-          format: int32
+        pagination:
+          $ref: "#/components/schemas/Pagination"
       required:
         - results
-        - totalCount
+        - pagination
     EServiceTemplate:
       type: object
       additionalProperties: false

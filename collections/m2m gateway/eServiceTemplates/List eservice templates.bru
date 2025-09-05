@@ -1,5 +1,5 @@
 meta {
-  name: List eserviceTemplates
+  name: List eservice templates
   type: http
   seq: 4
 }
@@ -20,5 +20,5 @@ headers {
 }
 
 vars:post-response {
-  delegationId: res.body.results.at(-1).id
+  eserviceTemplateId: res.body.results.at(-1).id
 }
