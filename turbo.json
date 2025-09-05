@@ -76,7 +76,7 @@
       "dependsOn": ["^format:write"]
     },
     "generate-db-models": {
-      "dependsOn": ["^generate-db-models"],
+      "dependsOn": ["//#infra:start", "^generate-db-models"],
       "outputs": ["src/drizzle/schema.ts"]
     }
   }
