@@ -44,7 +44,7 @@
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-application-audit": "workspace:*",
-    "pagopa-m2m-event-db-models": "workspace:*",
+    "pagopa-interop-m2m-event-db-models": "workspace:*",
     "ts-pattern": "5.2.0",
     "zod": "3.23.8"
   }

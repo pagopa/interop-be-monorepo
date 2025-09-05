@@ -302,12 +302,12 @@ export async function setupTestContainersVitest(
   }
   if (m2mEventDbConfig) {
     const pool = new pg.Pool({
-      user: m2mEventDbConfig.m2mEventDBUsername,
-      password: m2mEventDbConfig.m2mEventDBPassword,
-      host: m2mEventDbConfig.m2mEventDBHost,
-      port: m2mEventDbConfig.m2mEventDBPort,
-      database: m2mEventDbConfig.m2mEventDBName,
-      ssl: m2mEventDbConfig.m2mEventDBUseSSL,
+      user: m2mEventDbConfig.m2mEventSQLDbUsername,
+      password: m2mEventDbConfig.m2mEventSQLDbPassword,
+      host: m2mEventDbConfig.m2mEventSQLDbHost,
+      port: m2mEventDbConfig.m2mEventSQLDbPort,
+      database: m2mEventDbConfig.m2mEventSQLDbName,
+      ssl: m2mEventDbConfig.m2mEventSQLDbUseSSL,
     });
     m2mEventDB = drizzle({ client: pool });
   }
