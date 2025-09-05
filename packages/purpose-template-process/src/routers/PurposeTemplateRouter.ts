@@ -22,9 +22,11 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import {
   createPurposeTemplateErrorMapper,
   getPurposeTemplatesErrorMapper,
+  linkEservicesToPurposeTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   apiPurposeTemplateStateToPurposeTemplateState,
+  eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate,
   purposeTemplateToApiPurposeTemplate,
 } from "../model/domain/apiConverter.js";
 
@@ -157,23 +159,38 @@ const purposeTemplateRouter = (
       }
       return res.status(501);
     })
-    .get("/purposeTemplates/:id/eservices", async (req, res) => {
+    .get("/purposeTemplates/:id/linkEservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, [
-          API_ROLE,
-          ADMIN_ROLE,
-          M2M_ROLE,
-          M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
-          SECURITY_ROLE,
-        ]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const eserviceDescriptorPurposeTemplates =
+          await purposeTemplateService.linkEservicesToPurposeTemplate(
+            unsafeBrandId(req.params.id),
+            req.body,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            eserviceDescriptorPurposeTemplates.map(
+              (eserviceDescriptorPurposeTemplate) =>
+                eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
+                  eserviceDescriptorPurposeTemplate
+                )
+            )
+          );
       } catch (error) {
-        return res.status(501);
+        const errorRes = makeApiProblem(
+          error,
+          linkEservicesToPurposeTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-      return res.status(501);
     })
-    .post("/purposeTemplates/:id/eservices", async (req, res) => {
+    .post("/purposeTemplates/:id/linkEservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
@@ -182,7 +199,7 @@ const purposeTemplateRouter = (
       }
       return res.status(501);
     })
-    .delete("/purposeTemplates/:id/eservices", async (req, res) => {
+    .delete("/purposeTemplates/:id/linkEservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
