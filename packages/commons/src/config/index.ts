@@ -25,3 +25,4 @@ export * from "./analyticsSQLDbConfig.js";
 export * from "./dpopConfig.js";
 export * from "./inAppNotificationDBConfig.js";
 export * from "./userSQLDbConfig.js";
+export * from "./m2mEventSQLDbConfig.js";
