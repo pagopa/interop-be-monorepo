@@ -2,7 +2,7 @@ import { InternalError, TenantKind } from "pagopa-interop-models";
 
 type RiskAnalysisValidationIssueCode =
   | "noRulesVersionFoundError"
-  | "unexpectedRulesVersionError"
+  | "expiredRulesVersionError"
   | "unexpectedFieldError"
   | "unexpectedFieldValueError"
   | "dependencyNotFoundError"
@@ -31,12 +31,12 @@ export function noRulesVersionFoundError(
   });
 }
 
-export function unexpectedRulesVersionError(
+export function expiredRulesVersionError(
   version: string
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
-    code: "unexpectedRulesVersionError",
-    detail: `Unexpected ruleset version ${version}`,
+    code: "expiredRulesVersionError",
+    detail: `Expired ruleset version ${version}`,
   });
 }
 
