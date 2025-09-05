@@ -15,7 +15,6 @@ COPY ./packages/events-signer/package.json /app/packages/events-signer/package.j
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
-COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -26,7 +25,6 @@ COPY ./packages/events-signer /app/packages/events-signer
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
-COPY ./packages/api-clients /app/packages/api-clients
 
 RUN pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \

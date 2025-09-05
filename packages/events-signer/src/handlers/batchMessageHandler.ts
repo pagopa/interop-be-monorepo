@@ -50,7 +50,7 @@ export async function executeTopicHandler(
 ): Promise<void> {
   await match(topic)
     .with(config.catalogTopic, async () => {
-      const eserviceV2WithTimestamp: Array<{
+      const eservicesV2WithTimestamp: Array<{
         eserviceV2: EServiceEventEnvelopeV2;
         timestamp: string;
       }> = [];
@@ -60,16 +60,16 @@ export async function executeTopicHandler(
         match(decoded)
           .with({ event_version: 1 }, () => {})
           .with({ event_version: 2 }, (msg) =>
-            eserviceV2WithTimestamp.push({
+            eservicesV2WithTimestamp.push({
               eserviceV2: msg,
               timestamp: message.timestamp,
             })
           )
           .exhaustive();
       }
-      if (eserviceV2WithTimestamp.length > 0) {
+      if (eservicesV2WithTimestamp.length > 0) {
         await handleCatalogMessageV2(
-          eserviceV2WithTimestamp,
+          eservicesV2WithTimestamp,
           fileManager,
           dbService,
           safeStorageService
@@ -77,7 +77,7 @@ export async function executeTopicHandler(
       }
     })
     .with(config.agreementTopic, async () => {
-      const agreementV2WithTimestamp: Array<{
+      const agreementsV2WithTimestamp: Array<{
         agreementV2: AgreementEventEnvelopeV2;
         timestamp: string;
       }> = [];
@@ -87,16 +87,16 @@ export async function executeTopicHandler(
         match(decoded)
           .with({ event_version: 1 }, () => {})
           .with({ event_version: 2 }, (msg) =>
-            agreementV2WithTimestamp.push({
+            agreementsV2WithTimestamp.push({
               agreementV2: msg,
               timestamp: message.timestamp,
             })
           )
           .exhaustive();
       }
-      if (agreementV2WithTimestamp.length > 0) {
+      if (agreementsV2WithTimestamp.length > 0) {
         await handleAgreementMessageV2(
-          agreementV2WithTimestamp,
+          agreementsV2WithTimestamp,
           fileManager,
           dbService,
           safeStorageService
@@ -104,7 +104,7 @@ export async function executeTopicHandler(
       }
     })
     .with(config.purposeTopic, async () => {
-      const purposeV2WithTimestamp: Array<{
+      const purposesV2WithTimestamp: Array<{
         purposeV2: PurposeEventEnvelopeV2;
         timestamp: string;
       }> = [];
@@ -114,16 +114,16 @@ export async function executeTopicHandler(
         match(decoded)
           .with({ event_version: 1 }, () => {})
           .with({ event_version: 2 }, (msg) =>
-            purposeV2WithTimestamp.push({
+            purposesV2WithTimestamp.push({
               purposeV2: msg,
               timestamp: message.timestamp,
             })
           )
           .exhaustive();
       }
-      if (purposeV2WithTimestamp.length > 0) {
+      if (purposesV2WithTimestamp.length > 0) {
         await handlePurposeMessageV2(
-          purposeV2WithTimestamp,
+          purposesV2WithTimestamp,
           fileManager,
           dbService,
           safeStorageService
@@ -131,11 +131,11 @@ export async function executeTopicHandler(
       }
     })
     .with(config.authorizationTopic, async () => {
-      const authV1WithTimestamp: Array<{
+      const authorizationsV1WithTimestamp: Array<{
         authV1: AuthorizationEventEnvelopeV1;
         timestamp: string;
       }> = [];
-      const authV2WithTimestamp: Array<{
+      const authorizationsV2WithTimestamp: Array<{
         authV2: AuthorizationEventEnvelopeV2;
         timestamp: string;
       }> = [];
@@ -144,30 +144,30 @@ export async function executeTopicHandler(
         const decoded = decodeKafkaMessage(message, AuthorizationEvent);
         match(decoded)
           .with({ event_version: 1 }, (msg) =>
-            authV1WithTimestamp.push({
+            authorizationsV1WithTimestamp.push({
               authV1: msg,
               timestamp: message.timestamp,
             })
           )
           .with({ event_version: 2 }, (msg) =>
-            authV2WithTimestamp.push({
+            authorizationsV2WithTimestamp.push({
               authV2: msg,
               timestamp: message.timestamp,
             })
           )
           .exhaustive();
       }
-      if (authV1WithTimestamp.length > 0) {
+      if (authorizationsV1WithTimestamp.length > 0) {
         await handleAuthorizationMessageV1(
-          authV1WithTimestamp,
+          authorizationsV1WithTimestamp,
           fileManager,
           dbService,
           safeStorageService
         );
       }
-      if (authV2WithTimestamp.length > 0) {
+      if (authorizationsV2WithTimestamp.length > 0) {
         await handleAuthorizationMessageV2(
-          authV2WithTimestamp,
+          authorizationsV2WithTimestamp,
           fileManager,
           dbService,
           safeStorageService
@@ -175,7 +175,7 @@ export async function executeTopicHandler(
       }
     })
     .with(config.delegationTopic, async () => {
-      const delegationV2WithTimestamp: Array<{
+      const delegationsV2WithTimestamp: Array<{
         delegationV2: DelegationEventEnvelopeV2;
         timestamp: string;
       }> = [];
@@ -184,16 +184,16 @@ export async function executeTopicHandler(
         const decoded = decodeKafkaMessage(message, DelegationEvent);
         match(decoded)
           .with({ event_version: 2 }, (msg) =>
-            delegationV2WithTimestamp.push({
+            delegationsV2WithTimestamp.push({
               delegationV2: msg,
               timestamp: message.timestamp,
             })
           )
           .exhaustive();
       }
-      if (delegationV2WithTimestamp.length > 0) {
+      if (delegationsV2WithTimestamp.length > 0) {
         await handleDelegationMessageV2(
-          delegationV2WithTimestamp,
+          delegationsV2WithTimestamp,
           fileManager,
           dbService,
           safeStorageService

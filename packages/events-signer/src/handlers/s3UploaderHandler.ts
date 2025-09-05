@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+import path from "node:path";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
 import { EventSignerConfig } from "../config/config.js";
@@ -33,8 +34,7 @@ export const uploadPreparedFileToS3 = async (
       `Successfully stored file ${preparedFile.fileName} at S3 path ${s3Key}`
     );
 
-    const s3KeyParts = s3Key.split("/");
-    const extractedFileName = s3KeyParts.pop();
+    const extractedFileName = path.basename(s3Key);
     if (!extractedFileName) {
       throw new Error(`Couldn't extract fileName from S3 path: ${s3Key}`);
     }
