@@ -1,6 +1,7 @@
 import { RiskAnalysisTemplateValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
+  EServiceId,
   makeApiProblemBuilder,
   PurposeTemplateId,
   TenantId,
@@ -13,6 +14,9 @@ export const errorCodes = {
   riskAnalysisTemplateValidationFailed: "0004",
   tenantNotFound: "0005",
   tenantKindNotFound: "0006",
+  associationEServicesForPurposeTemplateFailed: "0007",
+  tooManyEServicesForPurposeTemplate: "0008",
+  missingExpectedEService: "0009",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -71,5 +75,28 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant kind for tenant ${tenantId} not found`,
     code: "tenantKindNotFound",
     title: "Tenant kind not found",
+  });
+}
+
+export function associationEServicesForPurposeTemplateFailed(
+  reasons: RiskAnalysisTemplateValidationIssue[],
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Association of e-services to purpose template failed. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "associationEServicesForPurposeTemplateFailed",
+    title: "Association of e-services to purpose template failed",
+  });
+}
+
+export function tooManyEServicesForPurposeTemplate(
+  actualCount: number,
+  maxCount: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Too many e-services provided. Maximum allowed: ${maxCount}, provided: ${actualCount}`,
+    code: "tooManyEServicesForPurposeTemplate",
+    title: "Too Many E-Services for Purpose Template",
   });
 }

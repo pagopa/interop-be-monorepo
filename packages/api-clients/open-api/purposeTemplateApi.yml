@@ -218,70 +218,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /purposeTemplates/riskAnalysis:
-    get:
-      tags:
-        - purposeTemplate
-      summary: Retrieve Purpose Template Risk Analysis
-      operationId: getRiskAnalysis
-      description: Retrieve the Risk Analysis for all purpose templates.
-      parameters:
-        - in: query
-          name: eserviceIds
-          description: comma separated sequence of E-Service IDs
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
-          name: purposeTemplateIds
-          description: comma separated sequence of Purpose Template IDs
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
-          name: offset
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
-      responses:
-        "200":
-          description: Risk Analysis retrieved
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/RiskAnalysisFormTemplate"
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{id}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -473,7 +409,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /purposeTemplates/{id}/eservices:
+  /purposeTemplates/{id}/linkEservices:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: id
@@ -512,18 +448,26 @@ paths:
     post:
       tags:
         - purposeTemplate
-      summary: Add E-Service to Purpose Template
-      operationId: addEServiceToPurposeTemplate
-      description: Add an E-Service to a purpose template (in Draft state)
+      summary: Link E-Services to Purpose Template
+      operationId: linkEServicesToPurposeTemplate
+      description: Link an E-Service to a purpose template (in Draft or Active state)
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEServiceDescriptorPurposeTemplateSeed"
+              type: object
+              properties:
+                eserviceIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+              required:
+                - eserviceIds
         required: true
       responses:
         "200":
-          description: E-Service added to purpose template
+          description: E-Services linked to purpose template
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"

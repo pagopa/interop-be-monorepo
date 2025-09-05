@@ -6,6 +6,8 @@ import {
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
   ListResult,
+  EServiceDescriptorPurposeTemplate,
+  EServiceId,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -17,16 +19,24 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import { purposeTemplateNotFound } from "../model/domain/errors.js";
-import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
+import {
+  associationEServicesForPurposeTemplateFailed,
+  purposeTemplateNotFound,
+} from "../model/domain/errors.js";
+import {
+  toCreateEventEServiceDescriptorLinked,
+  toCreateEventPurposeTemplateAdded,
+} from "../model/domain/toEvent.js";
 import {
   GetPurposeTemplatesFilters,
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
+  assertEServiceIdsCountIsBelowThreshold,
   assertPurposeTemplateTitleIsNotDuplicated,
   validateAndTransformRiskAnalysisTemplate,
+  validateEServicesForPurposeTemplate,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -130,6 +140,71 @@ export function purposeTemplateServiceBuilder(
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Retrieving purpose template ${id}`);
       return retrievePurposeTemplate(id, readModelService);
+    },
+    async linkEservicesToPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceIds: EServiceId[],
+      {
+        logger,
+        correlationId: correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<EServiceDescriptorPurposeTemplate[]> {
+      logger.info(
+        `Linking e-services ${eserviceIds} to purpose template ${purposeTemplateId}`
+      );
+
+      assertEServiceIdsCountIsBelowThreshold(eserviceIds.length);
+
+      const validationResult = await validateEServicesForPurposeTemplate(
+        eserviceIds,
+        purposeTemplateId,
+        readModelService
+      );
+
+      if (validationResult.type === "invalid") {
+        throw associationEServicesForPurposeTemplateFailed(
+          validationResult.issues,
+          eserviceIds,
+          purposeTemplateId
+        );
+      }
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      const creationTimestamp = new Date();
+
+      const createEvents = validationResult.value.map(
+        (riskAnalysisTemplateValidationResult) => {
+          const eServiceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate =
+            {
+              purposeTemplateId,
+              eserviceId: riskAnalysisTemplateValidationResult.eservice.id,
+              descriptorId: riskAnalysisTemplateValidationResult.descriptorId,
+              createdAt: creationTimestamp,
+            };
+
+          return toCreateEventEServiceDescriptorLinked(
+            eServiceDescriptorPurposeTemplate,
+            purposeTemplate.data,
+            riskAnalysisTemplateValidationResult.eservice,
+            correlationId
+          );
+        }
+      );
+
+      await repository.createEvents(createEvents);
+
+      return validationResult.value.map(
+        (riskAnalysisTemplateValidationResult) => ({
+          purposeTemplateId,
+          eserviceId: riskAnalysisTemplateValidationResult.eservice.id,
+          descriptorId: riskAnalysisTemplateValidationResult.descriptorId,
+          createdAt: creationTimestamp,
+        })
+      );
     },
   };
 }

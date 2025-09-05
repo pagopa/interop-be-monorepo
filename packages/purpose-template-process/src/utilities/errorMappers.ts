@@ -27,3 +27,15 @@ export const createPurposeTemplateErrorMapper = (
 
 export const getPurposeTemplatesErrorMapper = (): number =>
   HTTP_STATUS_INTERNAL_SERVER_ERROR;
+
+export const linkEservicesToPurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "associationEServicesForPurposeTemplateFailed",
+      "missingExpectedEService",
+      "tooManyEServicesForPurposeTemplate",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
