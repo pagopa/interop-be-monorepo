@@ -42,7 +42,10 @@ export function validateRiskAnalysis(
     return invalidResult([noRulesVersionFoundError(tenantKind)]);
   }
 
-  if (formRulesForValidation.expiration < dateForValidation) {
+  if (
+    formRulesForValidation.expiration &&
+    formRulesForValidation.expiration < dateForValidation
+  ) {
     return invalidResult([expiredRulesVersionError(riskAnalysisForm.version)]);
   }
 
