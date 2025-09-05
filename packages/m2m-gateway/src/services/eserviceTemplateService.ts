@@ -158,5 +158,23 @@ export function eserviceTemplateServiceBuilder(
       const polledResource = await pollEServiceTemplate(response, headers);
       return toM2MGatewayEServiceTemplate(polledResource.data);
     },
+    async updateDraftEServiceTemplate(
+      templateId: EServiceTemplateId,
+      seed: m2mGatewayApi.EServiceTemplateDraftUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplate> {
+      logger.info(`Updating draft EService Template with id ${templateId}`);
+
+      const response =
+        await clients.eserviceTemplateProcessClient.patchUpdateEServiceTemplateById(
+          seed,
+          {
+            params: { templateId },
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplate(response, headers);
+      return toM2MGatewayEServiceTemplate(polledResource.data);
+    },
   };
 }
