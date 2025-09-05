@@ -16,6 +16,7 @@ import {
   S3Config,
   TokenGenerationReadModelDbConfig,
   InAppNotificationDBConfig,
+  M2MEventSQLDbConfig,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
 import type {} from "vitest";
@@ -60,6 +61,7 @@ declare module "vitest" {
     analyticsSQLConfig?: AnalyticsSQLDbConfig;
     dpopConfig?: EnhancedDPoPConfig;
     inAppNotificationDbConfig?: InAppNotificationDBConfig;
+    m2mEventSQLDbConfig?: M2MEventSQLDbConfig;
   }
 }
 
