@@ -12,7 +12,7 @@ import {
 import { z } from "zod";
 
 export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
-  AgreementTopicConfig
+  AgreementTopicConfig,
 )
   .and(AuthorizationTopicConfig)
   .and(PurposeTopicConfig)
@@ -24,16 +24,18 @@ export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
     z
       .object({
         SERVICE_NAME: z.string(),
+        DELEGATION_DOCUMENT_PATH: z.string(),
       })
       .transform((c) => ({
         serviceName: c.SERVICE_NAME,
-      }))
+        delegationDocumentPath: c.DELEGATION_DOCUMENT_PATH,
+      })),
   );
 
 export type DocumentsGeneratorConfig = z.infer<typeof DocumentsGeneratorConfig>;
 
 export const config: DocumentsGeneratorConfig = DocumentsGeneratorConfig.parse(
-  process.env
+  process.env,
 );
 
 export const baseConsumerConfig: KafkaConsumerConfig =
