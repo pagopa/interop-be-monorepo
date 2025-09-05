@@ -56,6 +56,8 @@ export const {{@key}}Endpoints = makeApi([
 						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(TenantFeatureType).optional().default([])), z.array(TenantFeatureType).optional().default([])])
 				{{else if (and (eq type "Query") (eq schema "z.array(EServiceTemplateVersionState).optional().default([])"))}}
 						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(EServiceTemplateVersionState).optional().default([])), z.array(EServiceTemplateVersionState).optional().default([])])
+				{{else if (and (eq type "Query") (eq schema "z.array(PurposeTemplateState).optional().default([])"))}}
+					schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(PurposeTemplateState).optional().default([])), z.array(PurposeTemplateState).optional().default([])])
 				{{else}}
 					schema: {{{schema}}},
 				{{/if}}
