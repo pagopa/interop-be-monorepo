@@ -1,20 +1,19 @@
-import "dotenv/config";
+import "dotenv-flow/config";
 import { defineConfig } from "drizzle-kit";
-// import { M2MEventSQLDbConfig } from "pagopa-interop-commons";
+import { M2MEventSQLDbConfig } from "pagopa-interop-commons";
 
-// const m2mEventDBConfig = M2MEventSQLDbConfig.parse(process.env);
+export const config = M2MEventSQLDbConfig.parse(process.env);
 
-// TODO use config from env vars
 export default defineConfig({
-  out: "./src/drizzle",
+  out: "./src/gen",
   dialect: "postgresql",
   dbCredentials: {
-    host: "localhost",
-    port: 6006,
-    user: "root",
-    password: "root",
-    database: "root",
-    ssl: false,
+    host: config.m2mEventSQLDbHost,
+    port: config.m2mEventSQLDbPort,
+    user: config.m2mEventSQLDbUsername,
+    password: config.m2mEventSQLDbPassword,
+    database: config.m2mEventSQLDbName,
+    ssl: config.m2mEventSQLDbUseSSL,
   },
-  schemaFilter: ["m2m_event"],
+  schemaFilter: [config.m2mEventSQLDbSchema],
 });

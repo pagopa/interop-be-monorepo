@@ -12,7 +12,8 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "generate-model": "drizzle-kit pull && mv src/drizzle/schema.ts src/schema.ts && rm -rf src/drizzle && pnpm format:write",
+    "clean-generated": "mkdir -p src/drizzle && mv src/gen/schema.ts src/drizzle/schema.ts && rm -rf src/gen && pnpm format:write",
+    "generate-model": "drizzle-kit pull && pnpm clean-generated",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
@@ -20,7 +21,7 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "dotenv": "16.4.7",
+    "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",
     "pagopa-interop-commons": "workspace:*",
     "pg": "8.13.1"
