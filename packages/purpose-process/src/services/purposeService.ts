@@ -828,7 +828,7 @@ export function purposeServiceBuilder(
             purpose.data.riskAnalysisForm,
             false,
             tenantKind,
-            purpose.data.createdAt
+            new Date()
           )
         : true;
 
@@ -981,7 +981,7 @@ export function purposeServiceBuilder(
             riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
           schemaOnlyValidation: false,
           tenantKind,
-          dateForValidation: purpose.data.createdAt,
+          dateForValidation: new Date(), // beware: if the purpose version was waiting for approval, a new RA might have been published
         });
       }
 
@@ -1637,7 +1637,7 @@ const performUpdatePurpose = async (
           updateContent.riskAnalysisForm,
           true,
           tenantKind,
-          purpose.data.createdAt
+          new Date()
         )
       : purpose.data.riskAnalysisForm;
 
@@ -1671,7 +1671,7 @@ const performUpdatePurpose = async (
       updatedPurpose.riskAnalysisForm,
       false,
       tenantKind,
-      purpose.data.createdAt
+      new Date()
     ),
   };
 };

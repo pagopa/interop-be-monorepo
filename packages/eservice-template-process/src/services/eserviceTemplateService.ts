@@ -973,7 +973,7 @@ export function eserviceTemplateServiceBuilder(
       const validatedForm = validateRiskAnalysisSchemaOrThrow(
         updateRiskAnalysisSeed.riskAnalysisForm,
         updateRiskAnalysisSeed.tenantKind,
-        riskAnalysisToUpdate.createdAt
+        new Date()
       );
 
       const updatedRiskAnalysisForm: RiskAnalysisForm = {
