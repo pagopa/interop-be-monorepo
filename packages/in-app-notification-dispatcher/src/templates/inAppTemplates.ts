@@ -118,4 +118,32 @@ export const inAppTemplates = {
     eserviceTemplateName: string
   ): string =>
     `${creatorName} ha sospeso il template "<strong>${eserviceTemplateName}</strong>" per il tuo e-service.`,
+  purposeStatusChangedToConsumer: (
+    purposeName: string,
+    consumerName: string,
+    eserviceName: string,
+    action: "sospeso" | "riattivato" | "archiviato"
+  ): string =>
+    `Ti informiamo che l'ente ${consumerName} ha ${action} la finalità <strong>${purposeName}</strong>, associata al tuo e-service <strong>${eserviceName}</strong>.`,
+  purposeSuspendedUnsuspendedToConsumer: (
+    purposeName: string,
+    producerName: string,
+    eserviceName: string,
+    action: "sospeso" | "riattivato"
+  ): string =>
+    `L'ente erogatore ${producerName} ha ${action} la finalità <strong>${purposeName}</strong>, associata all'e-service <strong>${eserviceName}</strong>.`,
+  purposeActivatedRejectedToConsumer: (
+    purposeName: string,
+    producerName: string,
+    eserviceName: string,
+    action: "attivato" | "rifiutato"
+  ): string =>
+    `L'ente erogatore ${producerName} ha ${action} la finalità <strong>${purposeName}</strong>, associata all'e-service <strong>${eserviceName}</strong>.`,
+  clientAddedRemovedToProducer: (
+    purposeName: string,
+    eserviceName: string,
+    consumerName: string,
+    action: "associato" | "disassociato"
+  ): string =>
+    `L'ente ${consumerName} ha ${action} un proprio client alla finalità ${purposeName} per il tuo e-service ${eserviceName}`,
 };
