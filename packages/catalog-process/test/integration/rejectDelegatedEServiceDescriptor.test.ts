@@ -110,7 +110,7 @@ describe("reject descriptor", () => {
       descriptors: [],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.rejectDelegatedEServiceDescriptor(
         eservice.id,
         mockDescriptor.id,
@@ -132,7 +132,7 @@ describe("reject descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.rejectDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
@@ -161,7 +161,7 @@ describe("reject descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.rejectDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
@@ -189,7 +189,7 @@ describe("reject descriptor", () => {
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.rejectDelegatedEServiceDescriptor(
           eservice.id,
           descriptor.id,

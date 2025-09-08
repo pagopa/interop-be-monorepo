@@ -65,7 +65,7 @@ describe("internalupdateTemplateInstanceDescription", () => {
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const eservice = getMockEService();
 
-    expect(
+    await expect(
       catalogService.internalUpdateTemplateInstanceDescription(
         eservice.id,
         "eservice new description",

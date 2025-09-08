@@ -162,12 +162,12 @@ describe("update descriptor agreement approval policy", () => {
     }
   );
 
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const updatedDescriptorAgreementApprovalPolicy: catalogApi.UpdateEServiceDescriptorAgreementApprovalPolicySeed =
       {
         agreementApprovalPolicy: "MANUAL",
       };
-    expect(
+    await expect(
       catalogService.updateAgreementApprovalPolicy(
         mockEService.id,
         mockDescriptor.id,
@@ -189,7 +189,7 @@ describe("update descriptor agreement approval policy", () => {
         agreementApprovalPolicy: "MANUAL",
       };
 
-    expect(
+    await expect(
       catalogService.updateAgreementApprovalPolicy(
         mockEService.id,
         mockDescriptor.id,
@@ -219,7 +219,7 @@ describe("update descriptor agreement approval policy", () => {
           agreementApprovalPolicy: "MANUAL",
         };
 
-      expect(
+      await expect(
         catalogService.updateAgreementApprovalPolicy(
           eservice.id,
           descriptor.id,
@@ -245,7 +245,7 @@ describe("update descriptor agreement approval policy", () => {
       {
         agreementApprovalPolicy: "MANUAL",
       };
-    expect(
+    await expect(
       catalogService.updateAgreementApprovalPolicy(
         eservice.id,
         descriptor.id,

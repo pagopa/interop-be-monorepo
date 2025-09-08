@@ -187,8 +187,8 @@ describe("upload Document", () => {
       });
     }
   );
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    expect(
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+    await expect(
       catalogService.uploadDocument(
         mockEService.id,
         mockDescriptor.id,
@@ -208,7 +208,7 @@ describe("upload Document", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.uploadDocument(
         eservice.id,
         descriptor.id,
@@ -228,7 +228,7 @@ describe("upload Document", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.uploadDocument(
         eservice.id,
         descriptor.id,
@@ -255,7 +255,7 @@ describe("upload Document", () => {
     await addOneEService(mockEService);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.uploadDocument(
         eservice.id,
         descriptor.id,
@@ -270,7 +270,7 @@ describe("upload Document", () => {
       descriptors: [],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.uploadDocument(
         eservice.id,
         mockDescriptor.id,
@@ -299,7 +299,7 @@ describe("upload Document", () => {
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.uploadDocument(
           eservice.id,
           descriptor.id,
@@ -320,7 +320,7 @@ describe("upload Document", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.uploadDocument(
         eservice.id,
         descriptor.id,
@@ -345,7 +345,7 @@ describe("upload Document", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.uploadDocument(
         eservice.id,
         descriptor.id,
@@ -374,7 +374,7 @@ describe("upload Document", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eService);
-    expect(
+    await expect(
       catalogService.uploadDocument(
         eService.id,
         descriptor.id,

@@ -136,8 +136,8 @@ describe("activate descriptor", () => {
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
   });
 
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    expect(
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+    await expect(
       catalogService.activateDescriptor(
         mockEService.id,
         mockDescriptor.id,
@@ -153,7 +153,7 @@ describe("activate descriptor", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.activateDescriptor(
         eservice.id,
         mockDescriptor.id,
@@ -175,7 +175,7 @@ describe("activate descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.activateDescriptor(
         eservice.id,
         descriptor.id,
@@ -203,7 +203,7 @@ describe("activate descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.activateDescriptor(
         eservice.id,
         descriptor.id,
@@ -230,7 +230,7 @@ describe("activate descriptor", () => {
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.activateDescriptor(
           mockEService.id,
           mockDescriptor.id,

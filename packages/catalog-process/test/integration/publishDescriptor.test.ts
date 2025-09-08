@@ -397,7 +397,7 @@ describe("publish descriptor", () => {
       descriptors: [],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.publishDescriptor(
         eservice.id,
         mockDescriptor.id,
@@ -418,7 +418,7 @@ describe("publish descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
@@ -445,7 +445,7 @@ describe("publish descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
@@ -465,7 +465,7 @@ describe("publish descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
@@ -487,7 +487,7 @@ describe("publish descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
@@ -509,7 +509,7 @@ describe("publish descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
@@ -531,7 +531,7 @@ describe("publish descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
@@ -553,7 +553,7 @@ describe("publish descriptor", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
@@ -577,7 +577,7 @@ describe("publish descriptor", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
@@ -608,7 +608,7 @@ describe("publish descriptor", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
@@ -643,7 +643,7 @@ describe("publish descriptor", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
@@ -691,7 +691,7 @@ describe("publish descriptor", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
@@ -715,7 +715,7 @@ describe("publish descriptor", () => {
 
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,

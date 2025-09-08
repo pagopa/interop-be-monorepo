@@ -208,7 +208,7 @@ describe("update eService flags", () => {
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const eservice = getMockEService();
 
-    expect(
+    await expect(
       catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
@@ -223,7 +223,7 @@ describe("update eService flags", () => {
     const eservice = getMockEService();
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
@@ -245,7 +245,7 @@ describe("update eService flags", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
@@ -260,7 +260,7 @@ describe("update eService flags", () => {
     const eservice = getMockEService();
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {
@@ -284,7 +284,7 @@ describe("update eService flags", () => {
       };
       await addOneEService(eservice);
 
-      expect(
+      await expect(
         catalogService.updateEServiceDelegationFlags(
           eservice.id,
           {
@@ -308,7 +308,7 @@ describe("update eService flags", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateEServiceDelegationFlags(
         eservice.id,
         {

@@ -360,7 +360,7 @@ describe("create eservice", () => {
       ...mockEService,
       name: mockEService.name,
     });
-    expect(
+    await expect(
       catalogService.createEService(
         {
           name: mockEService.name,
@@ -383,7 +383,7 @@ describe("create eservice", () => {
       ...mockEService,
       name: mockEService.name.toUpperCase(),
     });
-    expect(
+    await expect(
       catalogService.createEService(
         {
           name: mockEService.name.toLowerCase(),
@@ -406,7 +406,7 @@ describe("create eservice", () => {
       ...getMockEServiceTemplate(),
       name: mockEService.name,
     });
-    expect(
+    await expect(
       catalogService.createEService(
         {
           name: mockEService.name,
@@ -424,7 +424,7 @@ describe("create eservice", () => {
       ...getMockEServiceTemplate(),
       name: mockEService.name.toUpperCase(),
     });
-    expect(
+    await expect(
       catalogService.createEService(
         {
           name: mockEService.name.toLowerCase(),
@@ -441,7 +441,7 @@ describe("create eservice", () => {
   });
 
   it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
-    expect(
+    await expect(
       catalogService.createEService(
         {
           name: mockEService.name,
@@ -464,7 +464,7 @@ describe("create eservice", () => {
   });
 
   it("should throw inconsistentDailyCalls if the descriptor seed has dailyCallsPerConsumer > dailyCallsTotal", async () => {
-    expect(
+    await expect(
       catalogService.createEService(
         {
           name: mockEService.name,

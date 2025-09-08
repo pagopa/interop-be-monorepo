@@ -324,7 +324,7 @@ describe("delete Document", () => {
     );
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
-    expect(
+    await expect(
       catalogService.deleteDocument(
         mockEService.id,
         mockDescriptor.id,
@@ -344,7 +344,7 @@ describe("delete Document", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.deleteDocument(
         eservice.id,
         descriptor.id,
@@ -371,7 +371,7 @@ describe("delete Document", () => {
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);
-    expect(
+    await expect(
       catalogService.deleteDocument(
         eservice.id,
         descriptor.id,
@@ -387,7 +387,7 @@ describe("delete Document", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.deleteDocument(
         eservice.id,
         mockDescriptor.id,
@@ -410,7 +410,7 @@ describe("delete Document", () => {
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.deleteDocument(
           eservice.id,
           descriptor.id,
@@ -436,7 +436,7 @@ describe("delete Document", () => {
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.deleteDocument(
           eservice.id,
           descriptor.id,
@@ -458,7 +458,7 @@ describe("delete Document", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.deleteDocument(
         eservice.id,
         descriptor.id,
@@ -485,7 +485,7 @@ describe("delete Document", () => {
     };
     await addOneEService(eService);
 
-    expect(
+    await expect(
       catalogService.deleteDocument(
         eService.id,
         descriptor.id,
