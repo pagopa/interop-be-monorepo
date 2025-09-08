@@ -63,7 +63,7 @@ const eserviceTemplateRouter = (
         );
 
         return res
-          .status(200)
+          .status(201)
           .send(m2mGatewayApi.EServiceTemplate.parse(template));
       } catch (error) {
         const errorRes = makeApiProblem(
