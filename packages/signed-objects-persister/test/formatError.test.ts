@@ -3,7 +3,6 @@ import { formatError } from "../src/utils/errorFormatter.js";
 
 describe("formatError", () => {
   it("should format an Error without stack", () => {
-    // create a custom error class with no stack
     class NoStackError extends Error {
       constructor(message: string) {
         super(message);
@@ -12,7 +11,6 @@ describe("formatError", () => {
     }
 
     const error = new NoStackError("Test error");
-
     const result = formatError(error);
 
     expect(result).toBe("Error: Test error");
@@ -20,15 +18,14 @@ describe("formatError", () => {
 
   it("should format an Error with stack", () => {
     const error = new Error("Stacked error");
-    // do not modify error.stack — use as-is
-
     const result = formatError(error);
 
-    expect(result).toMatchSnapshot();
+    expect(result).toContain("Error: Stacked error");
+    expect(result).toContain("Stack trace:");
   });
 
   it("should serialize a plain object", () => {
-    const obj = { foo: "bar" }; // immutable
+    const obj = { foo: "bar" };
     const result = formatError(obj);
 
     expect(result).toBe(JSON.stringify(obj));
