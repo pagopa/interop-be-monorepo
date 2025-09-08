@@ -10,17 +10,17 @@ import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   eserviceAlreadyAssociatedError,
   invalidDescriptorStateError,
-  invalidTemplateResult,
-  missingDescriptorError,
-  missingExpectedEService,
-  unexpectedEServiceError,
   RiskAnalysisTemplateValidatedForm,
-  RiskAnalysisTemplateValidationIssue,
-  RiskAnalysisTemplateValidationResult,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   validatePurposeTemplateRiskAnalysis,
-  validTemplateResult,
   unexpectedAssociationEServiceError,
+  PurposeTemplateValidationIssue,
+  unexpectedEServiceError,
+  missingExpectedEService,
+  invalidPurposeTemplateResult,
+  PurposeTemplateValidationResult,
+  missingDescriptorError,
+  validPurposeTemplateResult,
 } from "pagopa-interop-commons";
 import {
   missingFreeOfChargeReason,
@@ -124,7 +124,7 @@ async function validateEServiceExistence(
   eserviceIds: EServiceId[],
   readModelService: ReadModelServiceSQL
 ): Promise<{
-  validationIssues: RiskAnalysisTemplateValidationIssue[];
+  validationIssues: PurposeTemplateValidationIssue[];
   validEservices: EService[];
 }> {
   const eserviceResults = await Promise.allSettled(
@@ -174,7 +174,7 @@ async function validateEServiceAssociations(
   validEservices: EService[],
   purposeTemplateId: PurposeTemplateId,
   readModelService: ReadModelServiceSQL
-): Promise<RiskAnalysisTemplateValidationIssue[]> {
+): Promise<PurposeTemplateValidationIssue[]> {
   const associationValidationResults = await Promise.allSettled(
     validEservices.map(async (eservice) => {
       await readModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
@@ -217,13 +217,13 @@ async function validateEServiceAssociations(
  * @returns the validation issues and the valid eservice descriptor pairs
  */
 function validateEServiceDescriptors(validEservices: EService[]): {
-  validationIssues: RiskAnalysisTemplateValidationIssue[];
+  validationIssues: PurposeTemplateValidationIssue[];
   validEServiceDescriptorPairs: Array<{
     eservice: EService;
     descriptorId: DescriptorId;
   }>;
 } {
-  const validationIssues: RiskAnalysisTemplateValidationIssue[] = [];
+  const validationIssues: PurposeTemplateValidationIssue[] = [];
   const validEServiceDescriptorPairs: Array<{
     eservice: EService;
     descriptorId: DescriptorId;
@@ -264,7 +264,7 @@ export async function validateEServicesForPurposeTemplate(
   purposeTemplateId: PurposeTemplateId,
   readModelService: ReadModelServiceSQL
 ): Promise<
-  RiskAnalysisTemplateValidationResult<
+  PurposeTemplateValidationResult<
     Array<{ eservice: EService; descriptorId: DescriptorId }>
   >
 > {
@@ -274,7 +274,7 @@ export async function validateEServicesForPurposeTemplate(
   );
 
   if (validationIssues.length > 0) {
-    return invalidTemplateResult(validationIssues);
+    return invalidPurposeTemplateResult(validationIssues);
   }
 
   const associationValidationIssues = await validateEServiceAssociations(
@@ -284,7 +284,7 @@ export async function validateEServicesForPurposeTemplate(
   );
 
   if (associationValidationIssues.length > 0) {
-    return invalidTemplateResult(associationValidationIssues);
+    return invalidPurposeTemplateResult(associationValidationIssues);
   }
 
   const {
@@ -293,8 +293,8 @@ export async function validateEServicesForPurposeTemplate(
   } = validateEServiceDescriptors(validEservices);
 
   if (descriptorValidationIssues.length > 0) {
-    return invalidTemplateResult(descriptorValidationIssues);
+    return invalidPurposeTemplateResult(descriptorValidationIssues);
   }
 
-  return validTemplateResult(validEServiceDescriptorPairs);
+  return validPurposeTemplateResult(validEServiceDescriptorPairs);
 }

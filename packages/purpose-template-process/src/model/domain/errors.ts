@@ -1,4 +1,7 @@
-import { RiskAnalysisTemplateValidationIssue } from "pagopa-interop-commons";
+import {
+  PurposeTemplateValidationIssue,
+  RiskAnalysisTemplateValidationIssue,
+} from "pagopa-interop-commons";
 import {
   ApiError,
   EServiceId,
@@ -79,7 +82,7 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
 }
 
 export function associationEServicesForPurposeTemplateFailed(
-  reasons: RiskAnalysisTemplateValidationIssue[],
+  reasons: PurposeTemplateValidationIssue[],
   eserviceIds: EServiceId[],
   purposeTemplateId: PurposeTemplateId
 ): ApiError<ErrorCodes> {

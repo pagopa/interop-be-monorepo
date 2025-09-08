@@ -177,19 +177,19 @@ export function purposeTemplateServiceBuilder(
       const creationTimestamp = new Date();
 
       const createEvents = validationResult.value.map(
-        (riskAnalysisTemplateValidationResult) => {
+        (purposeTemplateValidationResult) => {
           const eServiceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate =
             {
               purposeTemplateId,
-              eserviceId: riskAnalysisTemplateValidationResult.eservice.id,
-              descriptorId: riskAnalysisTemplateValidationResult.descriptorId,
+              eserviceId: purposeTemplateValidationResult.eservice.id,
+              descriptorId: purposeTemplateValidationResult.descriptorId,
               createdAt: creationTimestamp,
             };
 
           return toCreateEventEServiceDescriptorLinked(
             eServiceDescriptorPurposeTemplate,
             purposeTemplate.data,
-            riskAnalysisTemplateValidationResult.eservice,
+            purposeTemplateValidationResult.eservice,
             correlationId
           );
         }
@@ -197,14 +197,12 @@ export function purposeTemplateServiceBuilder(
 
       await repository.createEvents(createEvents);
 
-      return validationResult.value.map(
-        (riskAnalysisTemplateValidationResult) => ({
-          purposeTemplateId,
-          eserviceId: riskAnalysisTemplateValidationResult.eservice.id,
-          descriptorId: riskAnalysisTemplateValidationResult.descriptorId,
-          createdAt: creationTimestamp,
-        })
-      );
+      return validationResult.value.map((purposeTemplateValidationResult) => ({
+        purposeTemplateId,
+        eserviceId: purposeTemplateValidationResult.eservice.id,
+        descriptorId: purposeTemplateValidationResult.descriptorId,
+        createdAt: creationTimestamp,
+      }));
     },
   };
 }

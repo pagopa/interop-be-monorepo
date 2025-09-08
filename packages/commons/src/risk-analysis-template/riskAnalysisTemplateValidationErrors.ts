@@ -1,9 +1,4 @@
-import {
-  EServiceId,
-  InternalError,
-  PurposeTemplateId,
-  TenantKind,
-} from "pagopa-interop-models";
+import { InternalError, TenantKind } from "pagopa-interop-models";
 
 type RiskAnalysisTemplateValidationIssueCode =
   | "templateFieldValueNotAllowed"
@@ -15,13 +10,7 @@ type RiskAnalysisTemplateValidationIssueCode =
   | "noRulesVersionTemplateFoundError"
   | "unexpectedTemplateRulesVersionError"
   | "unexpectedTemplateDependencyValueError"
-  | "missingExpectedFieldError"
-  | "missingExpectedEService"
-  | "invalidDescriptorState"
-  | "missingDescriptor"
-  | "eserviceAlreadyAssociated"
-  | "unexpectedEServiceError"
-  | "unexpectedAssociationEServiceError";
+  | "missingExpectedFieldError";
 
 export class RiskAnalysisTemplateValidationIssue extends InternalError<RiskAnalysisTemplateValidationIssueCode> {
   constructor({
@@ -142,66 +131,6 @@ export function missingExpectedTemplateFieldError(
   return new RiskAnalysisTemplateValidationIssue({
     code: "missingExpectedFieldError",
     detail: `Expected field ${fieldName} not found in form`,
-  });
-}
-
-export function missingExpectedEService(
-  eserviceId: EServiceId
-): RiskAnalysisTemplateValidationIssue {
-  return new RiskAnalysisTemplateValidationIssue({
-    code: "missingExpectedEService",
-    detail: `EService ${eserviceId} is missing from the list of expected EServices`,
-  });
-}
-
-export function invalidDescriptorStateError(
-  eserviceId: EServiceId,
-  expectedStates: string[]
-): RiskAnalysisTemplateValidationIssue {
-  return new RiskAnalysisTemplateValidationIssue({
-    code: "invalidDescriptorState",
-    detail: `EService ${eserviceId} has no valid descriptors. Expected ${expectedStates.join(
-      ", "
-    )}.`,
-  });
-}
-
-export function missingDescriptorError(
-  eserviceId: EServiceId
-): RiskAnalysisTemplateValidationIssue {
-  return new RiskAnalysisTemplateValidationIssue({
-    code: "missingDescriptor",
-    detail: `EService ${eserviceId} has no descriptors.`,
-  });
-}
-
-export function eserviceAlreadyAssociatedError(
-  eserviceId: EServiceId,
-  purposeTemplateId: PurposeTemplateId
-): RiskAnalysisTemplateValidationIssue {
-  return new RiskAnalysisTemplateValidationIssue({
-    code: "eserviceAlreadyAssociated",
-    detail: `EService ${eserviceId} is already associated with purpose template ${purposeTemplateId}`,
-  });
-}
-
-export function unexpectedEServiceError(
-  reason: string,
-  eserviceId: EServiceId
-): RiskAnalysisTemplateValidationIssue {
-  return new RiskAnalysisTemplateValidationIssue({
-    code: "unexpectedEServiceError",
-    detail: `Unexpected error: ${reason} for eservice ${eserviceId}`,
-  });
-}
-
-export function unexpectedAssociationEServiceError(
-  reason: string,
-  eserviceId: EServiceId
-): RiskAnalysisTemplateValidationIssue {
-  return new RiskAnalysisTemplateValidationIssue({
-    code: "unexpectedAssociationEServiceError",
-    detail: `Missing expected association for eservice ${eserviceId}: ${reason}`,
   });
 }
 
