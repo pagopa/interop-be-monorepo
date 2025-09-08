@@ -14,7 +14,7 @@ import {
   dependencyNotFoundError,
   expiredRulesVersionError,
   missingExpectedFieldError,
-  noRulesVersionFoundError,
+  rulesVersionNotFoundError,
   unexpectedDependencyValueError,
   unexpectedFieldError,
   unexpectedFieldFormatError,
@@ -39,7 +39,9 @@ export function validateRiskAnalysis(
   );
 
   if (formRulesForValidation === undefined) {
-    return invalidResult([noRulesVersionFoundError(tenantKind)]);
+    return invalidResult([
+      rulesVersionNotFoundError(tenantKind, riskAnalysisForm.version),
+    ]);
   }
 
   if (

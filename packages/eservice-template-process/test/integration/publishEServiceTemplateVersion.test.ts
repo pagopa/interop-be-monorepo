@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { unexpectedRulesVersionError } from "pagopa-interop-commons";
+import { expiredRulesVersionError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAuthData,
@@ -336,7 +336,7 @@ describe("publishEServiceTemplateVersion", () => {
         })
       )
     ).rejects.toThrowError(
-      riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
+      riskAnalysisValidationFailed([expiredRulesVersionError("0")])
     );
   });
 

@@ -8,8 +8,8 @@ import {
   unexpectedDependencyValueError,
   unexpectedFieldError,
   unexpectedFieldValueError,
-  unexpectedRulesVersionError,
   validateRiskAnalysis,
+  rulesVersionNotFoundError,
 } from "pagopa-interop-commons";
 import {
   validRiskAnalysis2_0_Private,
@@ -21,12 +21,18 @@ import {
 } from "../src/riskAnalysisTestUtils.js";
 
 describe("Risk Analysis Validation", () => {
-  it("should succeed on correct form 3.0 on tenant kind PA", () => {
-    const result = validateRiskAnalysis(validRiskAnalysis3_0_Pa, false, "PA");
+  it("should succeed on correct form 3.0 (not expired) on tenant kind PA", () => {
+    const result = validateRiskAnalysis(
+      validRiskAnalysis3_0_Pa,
+      false,
+      "PA",
+      new Date()
+    );
     const resultSchemaOnly = validateRiskAnalysis(
       validRiskAnalysis3_0_Pa,
       true,
-      "PA"
+      "PA",
+      new Date()
     );
     expect(result).toEqual({
       type: "valid",
@@ -35,7 +41,7 @@ describe("Risk Analysis Validation", () => {
     expect(result).toEqual(resultSchemaOnly);
   });
 
-  it("should succeed on correct form 3.0 schema only on tenant kind PA", () => {
+  it("should succeed on correct form 3.0 (not expired) schema only on tenant kind PA", () => {
     const expected: RiskAnalysisValidatedForm = {
       version: validSchemaOnlyRiskAnalysis3_0_Pa.version,
       singleAnswers: [{ key: "purpose", value: "INSTITUTIONAL" }],
@@ -45,7 +51,8 @@ describe("Risk Analysis Validation", () => {
     const result = validateRiskAnalysis(
       validSchemaOnlyRiskAnalysis3_0_Pa,
       true,
-      "PA"
+      "PA",
+      new Date()
     );
 
     expect(result).toEqual({
@@ -54,16 +61,18 @@ describe("Risk Analysis Validation", () => {
     });
   });
 
-  it("should succeed on correct form 2.0 on tenant kind PRIVATE", () => {
+  it("should succeed on correct form 2.0 (not expired) on tenant kind PRIVATE", () => {
     const result = validateRiskAnalysis(
       validRiskAnalysis2_0_Private,
       false,
-      "PRIVATE"
+      "PRIVATE",
+      new Date()
     );
     const resultSchemaOnly = validateRiskAnalysis(
       validRiskAnalysis2_0_Private,
       true,
-      "PRIVATE"
+      "PRIVATE",
+      new Date()
     );
 
     expect(result).toEqual({
@@ -73,7 +82,7 @@ describe("Risk Analysis Validation", () => {
     expect(result).toEqual(resultSchemaOnly);
   });
 
-  it("should succeed on correct form 2.0 schema only on tenant kind PRIVATE", () => {
+  it("should succeed on correct form 2.0 (not expired) schema only on tenant kind PRIVATE", () => {
     const expected: RiskAnalysisValidatedForm = {
       version: validSchemaOnlyRiskAnalysis2_0_Private.version,
       singleAnswers: [{ key: "purpose", value: "INSTITUTIONAL" }],
@@ -83,7 +92,8 @@ describe("Risk Analysis Validation", () => {
     const result = validateRiskAnalysis(
       validSchemaOnlyRiskAnalysis2_0_Private,
       true,
-      "PRIVATE"
+      "PRIVATE",
+      new Date()
     );
 
     expect(result).toEqual({
@@ -92,16 +102,18 @@ describe("Risk Analysis Validation", () => {
     });
   });
 
-  it("should succeed on correct form 2.0 on tenant kind GSP", () => {
+  it("should succeed on correct form 2.0 (not expired) on tenant kind GSP", () => {
     const result = validateRiskAnalysis(
       validRiskAnalysis2_0_Private,
       false,
-      "GSP"
+      "GSP",
+      new Date()
     );
     const resultSchemaOnly = validateRiskAnalysis(
       validRiskAnalysis2_0_Private,
       true,
-      "GSP"
+      "GSP",
+      new Date()
     );
 
     expect(result).toEqual({
@@ -111,7 +123,7 @@ describe("Risk Analysis Validation", () => {
     expect(result).toEqual(resultSchemaOnly);
   });
 
-  it("should succeed on correct form 2.0 schema only on tenant kind GSP", () => {
+  it("should succeed on correct form 2.0 (not expired) schema only on tenant kind GSP", () => {
     const expected: RiskAnalysisValidatedForm = {
       version: validSchemaOnlyRiskAnalysis2_0_Private.version,
       singleAnswers: [{ key: "purpose", value: "INSTITUTIONAL" }],
@@ -121,7 +133,8 @@ describe("Risk Analysis Validation", () => {
     const result = validateRiskAnalysis(
       validSchemaOnlyRiskAnalysis2_0_Private,
       true,
-      "GSP"
+      "GSP",
+      new Date()
     );
 
     expect(result).toEqual({
@@ -131,26 +144,30 @@ describe("Risk Analysis Validation", () => {
   });
 
   it("should fail if version does not exists", () => {
+    const invalidVersionForPA = "9999.0";
     const invalidRiskAnalysis: RiskAnalysisFormToValidate = {
       ...validRiskAnalysis3_0_Pa,
-      version: "9999.0",
-    };
-
-    expect(validateRiskAnalysis(invalidRiskAnalysis, false, "PA")).toEqual({
-      type: "invalid",
-      issues: [unexpectedRulesVersionError(invalidRiskAnalysis.version)],
-    });
-
-    const invalidRiskAnalysis2: RiskAnalysisFormToValidate = {
-      ...validRiskAnalysis2_0_Private,
-      version: "not a valid version",
+      version: invalidVersionForPA,
     };
 
     expect(
-      validateRiskAnalysis(invalidRiskAnalysis2, false, "PRIVATE")
+      validateRiskAnalysis(invalidRiskAnalysis, false, "PA", new Date())
     ).toEqual({
       type: "invalid",
-      issues: [unexpectedRulesVersionError(invalidRiskAnalysis2.version)],
+      issues: [rulesVersionNotFoundError("PA", invalidVersionForPA)],
+    });
+
+    const invalidVersionForPrivate = "not a valid version";
+    const invalidRiskAnalysis2: RiskAnalysisFormToValidate = {
+      ...validRiskAnalysis2_0_Private,
+      version: invalidVersionForPrivate,
+    };
+
+    expect(
+      validateRiskAnalysis(invalidRiskAnalysis2, false, "PRIVATE", new Date())
+    ).toEqual({
+      type: "invalid",
+      issues: [rulesVersionNotFoundError("PRIVATE", invalidVersionForPrivate)],
     });
   });
 
@@ -166,15 +183,17 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual({
-      type: "invalid",
-      issues: [
-        dependencyNotFoundError("reasonPolicyNotProvided", "policyProvided"),
-        dependencyNotFoundError("confirmedDoneDpia", "doneDpia"),
-        missingExpectedFieldError("policyProvided"),
-        missingExpectedFieldError("doneDpia"),
-      ],
-    });
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
+      {
+        type: "invalid",
+        issues: [
+          dependencyNotFoundError("reasonPolicyNotProvided", "policyProvided"),
+          dependencyNotFoundError("confirmedDoneDpia", "doneDpia"),
+          missingExpectedFieldError("policyProvided"),
+          missingExpectedFieldError("doneDpia"),
+        ],
+      }
+    );
   });
 
   it("should succeed schema only even if a provided answer depends on a missing field", () => {
@@ -188,7 +207,7 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, true, "PA")).toEqual({
+    expect(validateRiskAnalysis(riskAnalysis, true, "PA", new Date())).toEqual({
       type: "valid",
       value: {
         version: validRiskAnalysis3_0_Pa.version,
@@ -213,27 +232,29 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual({
-      type: "invalid",
-      issues: [
-        unexpectedDependencyValueError(
-          "legalBasisPublicInterest",
-          "legalBasis",
-          "PUBLIC_INTEREST"
-        ),
-        unexpectedDependencyValueError(
-          "ruleOfLawText",
-          "legalBasisPublicInterest",
-          "RULE_OF_LAW"
-        ),
-        unexpectedDependencyValueError(
-          "ruleOfLawText",
-          "legalBasis",
-          "PUBLIC_INTEREST"
-        ),
-        unexpectedDependencyValueError("otherPurpose", "purpose", "OTHER"),
-      ],
-    });
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
+      {
+        type: "invalid",
+        issues: [
+          unexpectedDependencyValueError(
+            "legalBasisPublicInterest",
+            "legalBasis",
+            "PUBLIC_INTEREST"
+          ),
+          unexpectedDependencyValueError(
+            "ruleOfLawText",
+            "legalBasisPublicInterest",
+            "RULE_OF_LAW"
+          ),
+          unexpectedDependencyValueError(
+            "ruleOfLawText",
+            "legalBasis",
+            "PUBLIC_INTEREST"
+          ),
+          unexpectedDependencyValueError("otherPurpose", "purpose", "OTHER"),
+        ],
+      }
+    );
   });
 
   it("should succeed schema only even if a provided answer depends on an existing field with an unexpected value", () => {
@@ -247,7 +268,7 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, true, "PA")).toEqual({
+    expect(validateRiskAnalysis(riskAnalysis, true, "PA", new Date())).toEqual({
       type: "valid",
       value: {
         version: riskAnalysis.version,
@@ -276,13 +297,15 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual({
-      type: "invalid",
-      issues: [
-        missingExpectedFieldError("deliveryMethod"),
-        missingExpectedFieldError("doneDpia"),
-      ],
-    });
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
+      {
+        type: "invalid",
+        issues: [
+          missingExpectedFieldError("deliveryMethod"),
+          missingExpectedFieldError("doneDpia"),
+        ],
+      }
+    );
   });
 
   it("should succeeed schema only even on missing expected answers", () => {
@@ -297,7 +320,7 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, true, "PA")).toEqual({
+    expect(validateRiskAnalysis(riskAnalysis, true, "PA", new Date())).toEqual({
       type: "valid",
       value: {
         version: riskAnalysis.version,
@@ -323,18 +346,20 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual(
-      validateRiskAnalysis(riskAnalysis, true, "PA")
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
+      validateRiskAnalysis(riskAnalysis, true, "PA", new Date())
     );
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual({
-      type: "invalid",
-      issues: [
-        unexpectedFieldError("unexpectedFieldA"),
-        unexpectedFieldError("unexpectedFieldB"),
-        unexpectedFieldError("unexpectedFieldC"),
-      ],
-    });
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
+      {
+        type: "invalid",
+        issues: [
+          unexpectedFieldError("unexpectedFieldA"),
+          unexpectedFieldError("unexpectedFieldB"),
+          unexpectedFieldError("unexpectedFieldC"),
+        ],
+      }
+    );
   });
 
   it("should fail on unexpected field value both schema only and not", () => {
@@ -348,28 +373,30 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual(
-      validateRiskAnalysis(riskAnalysis, true, "PA")
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
+      validateRiskAnalysis(riskAnalysis, true, "PA", new Date())
     );
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual({
-      type: "invalid",
-      issues: [
-        unexpectedFieldValueError(
-          "purpose",
-          new Set(["INSTITUTIONAL", "OTHER"])
-        ),
-        unexpectedFieldValueError(
-          "legalBasis",
-          new Set([
-            "CONSENT",
-            "CONTRACT",
-            "LEGAL_OBLIGATION",
-            "SAFEGUARD",
-            "PUBLIC_INTEREST",
-          ])
-        ),
-      ],
-    });
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
+      {
+        type: "invalid",
+        issues: [
+          unexpectedFieldValueError(
+            "purpose",
+            new Set(["INSTITUTIONAL", "OTHER"])
+          ),
+          unexpectedFieldValueError(
+            "legalBasis",
+            new Set([
+              "CONSENT",
+              "CONTRACT",
+              "LEGAL_OBLIGATION",
+              "SAFEGUARD",
+              "PUBLIC_INTEREST",
+            ])
+          ),
+        ],
+      }
+    );
   });
 });

@@ -1,7 +1,7 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { unexpectedRulesVersionError } from "pagopa-interop-commons";
+import { expiredRulesVersionError } from "pagopa-interop-commons";
 import {
   randomArrayItem,
   getMockTenant,
@@ -810,7 +810,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(
-      riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
+      riskAnalysisValidationFailed([expiredRulesVersionError("0")])
     );
   });
   it("should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is updating a purpose created by the delegate in updatePurpose", async () => {

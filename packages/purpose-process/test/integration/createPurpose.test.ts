@@ -35,7 +35,7 @@ import {
   getMockDelegation,
   getMockContext,
 } from "pagopa-interop-commons-test";
-import { unexpectedRulesVersionError } from "pagopa-interop-commons";
+import { rulesVersionNotFoundError } from "pagopa-interop-commons";
 import {
   missingFreeOfChargeReason,
   tenantKindNotFound,
@@ -571,7 +571,10 @@ describe("createPurpose", () => {
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([
-        unexpectedRulesVersionError(mockInvalidRiskAnalysisForm.version),
+        rulesVersionNotFoundError(
+          tenant.kind!,
+          mockInvalidRiskAnalysisForm.version
+        ),
       ])
     );
   });
