@@ -812,14 +812,20 @@ export function eserviceTemplateServiceBuilder(
         authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<EServiceTemplate> {
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(`Retrieving EService template ${eserviceTemplateId}`);
 
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
         readModelService
       );
-      return applyVisibilityToEServiceTemplate(eserviceTemplate.data, authData);
+      return {
+        data: applyVisibilityToEServiceTemplate(
+          eserviceTemplate.data,
+          authData
+        ),
+        metadata: eserviceTemplate.metadata,
+      };
     },
     async deleteEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
