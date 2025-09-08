@@ -192,10 +192,10 @@ paths:
       tags:
         - process
       summary: Updates e-service template general information
-      operationId: updateEServiceTemplate
-      description: Updates the general information of an E-Service template
+      operationId: updateDraftEServiceTemplate
+      description: Updates the general information of an Draft E-Service template
       requestBody:
-        description: An E-Service template update seed containing the possible updatable fields
+        description: A Draft E-Service template update seed containing the possible updatable fields
         required: true
         content:
           application/json:
@@ -231,9 +231,9 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Partially updates E-Service Template general information
-      operationId: patchUpdateEServiceTemplateById
-      description: Partially updates the general information of the specified E-Service Template
+      summary: Partially updates Draft E-Service Template general information
+      operationId: patchUpdateDraftEServiceTemplate
+      description: Partially updates the general information of the specified Draft E-Service Template
       requestBody:
         required: true
         content:

@@ -1833,8 +1833,6 @@ async function updateDraftEServiceTemplate(
     logger,
   }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
 ): Promise<WithMetadata<EServiceTemplate>> {
-  logger.info(`Updating EService template ${eserviceTemplateId}`);
-
   const eserviceTemplate = await retrieveEServiceTemplate(
     eserviceTemplateId,
     readModelService
@@ -1857,6 +1855,7 @@ async function updateDraftEServiceTemplate(
     ...rest
   } = seed;
   void (rest satisfies Record<string, never>);
+  // ^ To make sure we extract all the updated fields
 
   if (name && name !== eserviceTemplate.data.name) {
     await assertEServiceTemplateNameAvailable(name, readModelService);
@@ -1901,6 +1900,7 @@ async function updateDraftEServiceTemplate(
     .exhaustive();
 
   const updatedEServiceTemplate: EServiceTemplate = {
+    ...eserviceTemplate.data,
     name: name ?? eserviceTemplate.data.name,
     intendedTarget: intendedTarget ?? eserviceTemplate.data.intendedTarget,
     description: description ?? eserviceTemplate.data.description,
@@ -1914,9 +1914,6 @@ async function updateDraftEServiceTemplate(
         }))
       : eserviceTemplate.data.versions,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
-    id: eserviceTemplate.data.id,
-    createdAt: eserviceTemplate.data.createdAt,
-    creatorId: eserviceTemplate.data.creatorId,
   };
 
   const event = await repository.createEvent(

@@ -78,7 +78,7 @@ describe("updateDraftEService", () => {
     expect(result).toEqual(expectedM2MEService);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
-        mockInteropBeClients.catalogProcessClient.patchUpdateEServiceById,
+        mockInteropBeClients.catalogProcessClient.patchUpdateDraftEServiceById,
       params: {
         eServiceId: mockEService.id,
       },

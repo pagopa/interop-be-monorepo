@@ -77,7 +77,7 @@ describe("updateDraftEServiceTemplate", () => {
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient
-          .patchUpdateEServiceTemplateById,
+          .patchUpdateDraftEServiceTemplate,
       params: {
         templateId: mockEServiceTemplate.id,
       },

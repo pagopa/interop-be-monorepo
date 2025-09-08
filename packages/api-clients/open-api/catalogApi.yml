@@ -242,7 +242,7 @@ paths:
       tags:
         - process
       summary: Updates Draft E-Service general information
-      operationId: updateEServiceById
+      operationId: updateDraftEServiceById
       description: Updates the general information of the specified Draft E-Service
       requestBody:
         description: An E-Service update seed containing the possible updatable fields
@@ -288,7 +288,7 @@ paths:
       tags:
         - process
       summary: Partially updates Draft E-Service general information
-      operationId: patchUpdateEServiceById
+      operationId: patchUpdateDraftEServiceById
       description: Partially updates the general information of the specified Draft E-Service
       requestBody:
         required: true

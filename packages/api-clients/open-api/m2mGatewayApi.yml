@@ -8142,10 +8142,10 @@ paths:
     patch:
       tags:
         - eserviceTemplates
-      summary: Update a specific E-Service Template in Draft State
+      summary: Update a Draft E-Service Template
       description: |
-        Update EService Template in Draft state.
-        The EService Template must have a single version, and that version must be in Draft state.
+        Update an E-Service Template in Draft state.
+        The E-Service Template must have a single version, and that version must be in Draft state.
       operationId: updateDraftEServiceTemplate
       requestBody:
         content:
@@ -8155,7 +8155,7 @@ paths:
         required: true
       responses:
         "200":
-          description: E-Service Template updated
+          description: Draft E-Service Template updated
           content:
             application/json:
               schema:

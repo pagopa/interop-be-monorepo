@@ -166,7 +166,7 @@ export function eserviceTemplateServiceBuilder(
       logger.info(`Updating draft EService Template with id ${templateId}`);
 
       const response =
-        await clients.eserviceTemplateProcessClient.patchUpdateEServiceTemplateById(
+        await clients.eserviceTemplateProcessClient.patchUpdateDraftEServiceTemplate(
           seed,
           {
             params: { templateId },
