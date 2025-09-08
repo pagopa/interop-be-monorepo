@@ -704,8 +704,12 @@ export function eserviceTemplateServiceBuilder(
     async updateEServiceTemplateDescription(
       eserviceTemplateId: EServiceTemplateId,
       description: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Updating e-service description of EService template ${eserviceTemplateId}`
       );
@@ -725,7 +729,7 @@ export function eserviceTemplateServiceBuilder(
         ...eserviceTemplate.data,
         description,
       };
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateDescriptionUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
@@ -733,7 +737,10 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         )
       );
-      return updatedEserviceTemplate;
+      return {
+        data: updatedEserviceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async updateEServiceTemplateVersionQuotas(
@@ -812,14 +819,20 @@ export function eserviceTemplateServiceBuilder(
         authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<EServiceTemplate> {
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(`Retrieving EService template ${eserviceTemplateId}`);
 
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
         readModelService
       );
-      return applyVisibilityToEServiceTemplate(eserviceTemplate.data, authData);
+      return {
+        data: applyVisibilityToEServiceTemplate(
+          eserviceTemplate.data,
+          authData
+        ),
+        metadata: eserviceTemplate.metadata,
+      };
     },
     async deleteEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,

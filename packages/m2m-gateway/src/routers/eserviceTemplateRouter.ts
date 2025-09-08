@@ -98,6 +98,33 @@ const eserviceTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .patch("/eserviceTemplates/:templateId/description", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const template =
+          await eserviceTemplateService.updateEServiceTemplateDescription(
+            unsafeBrandId(req.params.templateId),
+            req.body,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.EServiceTemplate.parse(template));
+      } catch (error) {
+        console.log("error", error);
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating eservice template ${req.params.templateId} description`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/eserviceTemplates/:templateId/versions", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
