@@ -4,7 +4,8 @@ type InAppNotificationDispatcherErrorCode =
   | "tenantNotFound"
   | "descriptorPublishedNotFound"
   | "eserviceNotFound"
-  | "activeProducerDelegationNotFound";
+  | "activeProducerDelegationNotFound"
+  | "purposeNotFound";
 
 export class InAppNotificationDispatcherError extends InternalError<InAppNotificationDispatcherErrorCode> {
   constructor({
@@ -51,5 +52,14 @@ export function activeProducerDelegationNotFound(
   return new InternalError({
     detail: `Active producer delegation not found for EService ${eServiceId}`,
     code: "activeProducerDelegationNotFound",
+  });
+}
+
+export function purposeNotFound(
+  purposeId: string
+): InAppNotificationDispatcherError {
+  return new InternalError({
+    detail: `Purpose ${purposeId} not found`,
+    code: "purposeNotFound",
   });
 }
