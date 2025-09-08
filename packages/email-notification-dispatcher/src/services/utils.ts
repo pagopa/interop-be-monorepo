@@ -24,7 +24,10 @@ import {
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const eventMailTemplateType = {
-  agreementActivatedMailTemplate: "agreement-activated-mail",
+  agreementActivatedToConsumerMailTemplate:
+    "agreement-activated-to-consumer-mail",
+  agreementActivatedToProducerMailTemplate:
+    "agreement-activated-to-producer-mail",
   agreementSubmittedMailTemplate: "agreement-submitted-mail",
   agreementRejectedMailTemplate: "agreement-rejected-mail",
   agreementUpgradedMailTemplate: "agreement-upgraded-mail",

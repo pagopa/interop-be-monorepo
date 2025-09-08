@@ -7,8 +7,6 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  getFormattedAgreementStampDate,
-  retrieveAgreementDescriptor,
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "../../services/utils.js";
@@ -40,7 +38,9 @@ export async function handleAgreementActivatedToConsumer(
   const agreement = fromAgreementV2(agreementV2Msg);
 
   const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
-    retrieveHTMLTemplate(eventMailTemplateType.agreementActivatedMailTemplate),
+    retrieveHTMLTemplate(
+      eventMailTemplateType.agreementActivatedToConsumerMailTemplate
+    ),
     retrieveAgreementEservice(agreement, readModelService),
     retrieveTenant(agreement.producerId, readModelService),
     retrieveTenant(agreement.consumerId, readModelService),
@@ -62,12 +62,6 @@ export async function handleAgreementActivatedToConsumer(
     return [];
   }
 
-  const activationDate = getFormattedAgreementStampDate(
-    agreement,
-    "activation"
-  );
-  const descriptor = retrieveAgreementDescriptor(eservice, agreement);
-
   return targets.map(({ address }) => ({
     correlationId: correlationId ?? generateId(),
     email: {
@@ -77,10 +71,7 @@ export async function handleAgreementActivatedToConsumer(
         notificationType,
         entityId: agreement.id,
         producerName: producer.name,
-        consumerName: consumer.name,
         eserviceName: eservice.name,
-        eserviceVersion: descriptor.version,
-        activationDate,
       }),
     },
     address,
