@@ -3423,13 +3423,18 @@ paths:
       parameters:
         - in: query
           name: name
-          description: Filter Clients by name. If not specified, return Clients with any name
+          description: |
+            Filter Clients by name.
+            If not specified, return Clients with any name.
+            If specified, since client name is visible only to the owner (consumer),
+            the response will include only Clients owned by the requester.
           schema:
             type: string
         - name: consumerId
           in: query
-          description: Filter Clients by Consumer ID. If not specified, return Clients for any Consumer
-          required: true
+          description: |
+            Filter Clients by Consumer ID (Client owner).
+            If not specified, return Clients for any Consumer.
           schema:
             type: string
             format: uuid
@@ -4017,13 +4022,18 @@ paths:
       parameters:
         - in: query
           name: name
-          description: Filter Producer Keychains by name. If not specified, return Producer Keychains with any name
+          description: |
+            Filter Producer Keychains by name.
+            If not specified, return Producer Keychains with any name.
+            If specified, since keychain name is visible only to the owner (producer),
+            the response will include only Keychains owned by the requester.
           schema:
             type: string
         - name: producerId
           in: query
-          description: Filter Producer Keychains by Producer ID. If not specified, return Producer Keychains for any Producer
-          required: true
+          description:
+            Filter Producer Keychains by Producer ID (Producer Keychain owner).
+            If not specified, return Producer Keychains for any Producer.
           schema:
             type: string
             format: uuid
