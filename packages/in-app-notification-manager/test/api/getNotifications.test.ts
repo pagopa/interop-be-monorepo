@@ -31,6 +31,8 @@ describe("API GET /notifications", () => {
           userId: generateId(),
           tenantId: generateId(),
           body: "Notification 1",
+          notificationType: "test",
+          entityId: generateId(),
           readAt: new Date(),
           createdAt: new Date(),
         },
