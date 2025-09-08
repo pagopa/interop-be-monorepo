@@ -146,7 +146,7 @@ export function eserviceTemplateServiceBuilder(
       seed: m2mGatewayApi.EServiceTemplateSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplate> {
-      logger.info(`Creating EService with name ${seed.name}`);
+      logger.info(`Creating eservice template with name ${seed.name}`);
 
       const response =
         await clients.eserviceTemplateProcessClient.createEServiceTemplate(
