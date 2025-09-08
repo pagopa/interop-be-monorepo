@@ -8,13 +8,11 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { FileManager, logger } from "pagopa-interop-commons";
-import { config, safeStorageApiConfig } from "../config/config.js";
-import { prepareNdjsonEventData } from "../utils/ndjsonStore.js";
+import { config } from "../config/config.js";
 import { CatalogEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { archiveFileToSafeStorage } from "./safeStorageArchivingHandler.js";
-import { uploadPreparedFileToS3 } from "./s3UploaderHandler.js";
+import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleCatalogMessageV2 = async (
   eventsWithTimestamp: Array<{
@@ -119,31 +117,14 @@ export const handleCatalogMessageV2 = async (
   }
 
   if (allCatalogDataToStore.length > 0) {
-    const preparedFiles = await prepareNdjsonEventData<CatalogEventData>(
+    await processAndArchiveFiles<CatalogEventData>(
       allCatalogDataToStore,
-      loggerInstance
+      loggerInstance,
+      fileManager,
+      dbService,
+      safeStorage,
+      correlationId
     );
-
-    if (preparedFiles.length === 0) {
-      throw genericInternalError(`NDJSON preparation didn't return any files.`);
-    }
-
-    for (const preparedFile of preparedFiles) {
-      const result = await uploadPreparedFileToS3(
-        preparedFile,
-        fileManager,
-        loggerInstance,
-        config
-      );
-      await archiveFileToSafeStorage(
-        result,
-        loggerInstance,
-        dbService,
-        safeStorage,
-        safeStorageApiConfig,
-        correlationId
-      );
-    }
   } else {
     loggerInstance.info("No managed catalog events to store.");
   }

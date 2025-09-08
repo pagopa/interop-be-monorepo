@@ -12,13 +12,11 @@ import {
   PurposeStateV2,
 } from "pagopa-interop-models";
 import { FileManager, logger } from "pagopa-interop-commons";
-import { config, safeStorageApiConfig } from "../config/config.js";
-import { prepareNdjsonEventData } from "../utils/ndjsonStore.js";
+import { config } from "../config/config.js";
 import { PurposeEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { archiveFileToSafeStorage } from "./safeStorageArchivingHandler.js";
-import { uploadPreparedFileToS3 } from "./s3UploaderHandler.js";
+import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 export const handlePurposeMessageV2 = async (
   eventsWithTimestamp: Array<{ purposeV2: PurposeEventV2; timestamp: string }>,
   fileManager: FileManager,
@@ -162,31 +160,14 @@ export const handlePurposeMessageV2 = async (
   }
 
   if (allPurposeDataToStore.length > 0) {
-    const preparedFiles = await prepareNdjsonEventData<PurposeEventData>(
+    await processAndArchiveFiles<PurposeEventData>(
       allPurposeDataToStore,
-      loggerInstance
+      loggerInstance,
+      fileManager,
+      dbService,
+      safeStorage,
+      correlationId
     );
-
-    if (preparedFiles.length === 0) {
-      throw genericInternalError(`NDJSON preparation didn't return any files.`);
-    }
-
-    for (const preparedFile of preparedFiles) {
-      const result = await uploadPreparedFileToS3(
-        preparedFile,
-        fileManager,
-        loggerInstance,
-        config
-      );
-      await archiveFileToSafeStorage(
-        result,
-        loggerInstance,
-        dbService,
-        safeStorage,
-        safeStorageApiConfig,
-        correlationId
-      );
-    }
   } else {
     loggerInstance.info("No managed purpose events to store.");
   }

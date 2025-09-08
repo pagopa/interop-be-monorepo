@@ -8,13 +8,11 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { FileManager, logger } from "pagopa-interop-commons";
-import { config, safeStorageApiConfig } from "../config/config.js";
+import { config } from "../config/config.js";
 import { DelegationEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { prepareNdjsonEventData } from "../utils/ndjsonStore.js";
-import { archiveFileToSafeStorage } from "./safeStorageArchivingHandler.js";
-import { uploadPreparedFileToS3 } from "./s3UploaderHandler.js";
+import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleDelegationMessageV2 = async (
   eventsWithTimestamp: Array<{
@@ -84,31 +82,14 @@ export const handleDelegationMessageV2 = async (
   }
 
   if (allDelegationDataToStore.length > 0) {
-    const preparedFiles = await prepareNdjsonEventData<DelegationEventData>(
+    await processAndArchiveFiles<DelegationEventData>(
       allDelegationDataToStore,
-      loggerInstance
+      loggerInstance,
+      fileManager,
+      dbService,
+      safeStorage,
+      correlationId
     );
-
-    if (preparedFiles.length === 0) {
-      throw genericInternalError(`NDJSON preparation didn't return any files.`);
-    }
-
-    for (const preparedFile of preparedFiles) {
-      const result = await uploadPreparedFileToS3(
-        preparedFile,
-        fileManager,
-        loggerInstance,
-        config
-      );
-      await archiveFileToSafeStorage(
-        result,
-        loggerInstance,
-        dbService,
-        safeStorage,
-        safeStorageApiConfig,
-        correlationId
-      );
-    }
   } else {
     loggerInstance.info("No managed delegation events to store.");
   }

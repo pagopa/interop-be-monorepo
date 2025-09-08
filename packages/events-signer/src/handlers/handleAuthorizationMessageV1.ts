@@ -4,16 +4,13 @@ import {
   AuthorizationEventV1,
   CorrelationId,
   generateId,
-  genericInternalError,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { DbServiceBuilder } from "../services/dbService.js";
-import { config, safeStorageApiConfig } from "../config/config.js";
+import { config } from "../config/config.js";
 import { AuthorizationEventData } from "../models/eventTypes.js";
-import { prepareNdjsonEventData } from "../utils/ndjsonStore.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { archiveFileToSafeStorage } from "./safeStorageArchivingHandler.js";
-import { uploadPreparedFileToS3 } from "./s3UploaderHandler.js";
+import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleAuthorizationMessageV1 = async (
   eventsWithTimestamp: Array<{
@@ -91,31 +88,14 @@ export const handleAuthorizationMessageV1 = async (
   }
 
   if (allAuthorizationDataToStore.length > 0) {
-    const preparedFiles = await prepareNdjsonEventData<AuthorizationEventData>(
+    await processAndArchiveFiles<AuthorizationEventData>(
       allAuthorizationDataToStore,
-      loggerInstance
+      loggerInstance,
+      fileManager,
+      dbService,
+      safeStorage,
+      correlationId
     );
-
-    if (preparedFiles.length === 0) {
-      throw genericInternalError(`NDJSON preparation didn't return any files.`);
-    }
-
-    for (const preparedFile of preparedFiles) {
-      const result = await uploadPreparedFileToS3(
-        preparedFile,
-        fileManager,
-        loggerInstance,
-        config
-      );
-      await archiveFileToSafeStorage(
-        result,
-        loggerInstance,
-        dbService,
-        safeStorage,
-        safeStorageApiConfig,
-        correlationId
-      );
-    }
   } else {
     loggerInstance.info("No authorization events to store.");
   }
