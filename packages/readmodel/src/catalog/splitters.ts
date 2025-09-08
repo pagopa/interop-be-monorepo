@@ -380,6 +380,7 @@ export const eserviceToEserviceSQL = (
   isConsumerDelegable: eservice.isConsumerDelegable ?? null,
   isClientAccessDelegable: eservice.isClientAccessDelegable ?? null,
   templateId: eservice.templateId ?? null,
+  personalData: eservice.personalData ?? null,
 });
 
 export const rejectionReasonToRejectionReasonSQL = (

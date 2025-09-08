@@ -178,8 +178,8 @@ paths:
         "200":
           description: EService created
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -222,8 +222,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/EService"
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "404":
           description: E-Service not found
           content:
@@ -740,8 +740,8 @@ paths:
         "200":
           description: E-Service Descriptor suspended
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -786,8 +786,8 @@ paths:
         "200":
           description: E-Service Descriptor suspended
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -832,8 +832,8 @@ paths:
         "200":
           description: E-Service Descriptor activated
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1816,8 +1816,8 @@ paths:
         "200":
           description: New delegated e-service version approved
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -2420,6 +2420,8 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        personalData:
+          type: boolean
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2446,6 +2448,8 @@ components:
         isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
+          type: boolean
+        personalData:
           type: boolean
     UpdateEServiceTemplateInstanceSeed:
       type: object

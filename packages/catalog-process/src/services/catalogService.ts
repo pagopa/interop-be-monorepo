@@ -529,6 +529,9 @@ async function innerCreateEService(
       .with(true, () => seed.isClientAccessDelegable)
       .exhaustive(),
     templateId: template?.id,
+    personalData: config.featureFlagEservicePersonalData
+      ? seed.personalData
+      : undefined,
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -949,6 +952,9 @@ export function catalogServiceBuilder(
           .with(false, () => false)
           .with(true, () => eserviceSeed.isClientAccessDelegable)
           .exhaustive(),
+        personalData: config.featureFlagEservicePersonalData
+          ? eserviceSeed.personalData
+          : undefined,
       };
 
       const event = toCreateEventEServiceUpdated(
