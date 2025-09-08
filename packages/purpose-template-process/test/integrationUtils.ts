@@ -16,10 +16,14 @@ import {
   PurposeTemplate,
   PurposeTemplateEvent,
   PurposeTemplateId,
+  EService,
+  Tenant,
 } from "pagopa-interop-models";
 import {
+  upsertEService,
   upsertPurposeTemplate,
   upsertPurposeTemplateEServiceDescriptor,
+  upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
@@ -95,4 +99,12 @@ export const addOnePurposeTemplateEServiceDescriptor = async (
     purposeTemplateEServiceDescriptor,
     0
   );
+};
+
+export const addOneEService = async (eservice: EService): Promise<void> => {
+  await upsertEService(readModelDB, eservice, 0);
+};
+
+export const addOneTenant = async (tenant: Tenant): Promise<void> => {
+  await upsertTenant(readModelDB, tenant, 0);
 };
