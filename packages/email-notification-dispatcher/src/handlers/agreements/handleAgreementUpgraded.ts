@@ -67,7 +67,6 @@ export async function handleAgreementUpgraded(
         title: `Richiesta di fruizione aggiornata per un tuo e-service`,
         notificationType,
         entityId: agreement.id,
-        producerName: producer.name,
         consumerName: consumer.name,
         eserviceName: eservice.name,
       }),

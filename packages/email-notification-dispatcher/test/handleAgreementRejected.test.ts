@@ -10,7 +10,6 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   CorrelationId,
-  DescriptorId,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
@@ -20,13 +19,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { dateAtRomeZone } from "pagopa-interop-commons";
-import {
-  agreementStampDateNotFound,
-  descriptorNotFound,
-  eServiceNotFound,
-  tenantNotFound,
-} from "../src/models/errors.js";
+import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
 import { handleAgreementRejected } from "../src/handlers/agreements/handleAgreementRejected.js";
 import {
   addOneAgreement,
@@ -125,54 +118,6 @@ describe("handleAgreementRejected", async () => {
     ).rejects.toThrow(tenantNotFound(unknownConsumerId));
   });
 
-  it("should throw tenantNotFound when producer is not found", async () => {
-    const unkonwnProducerId = generateId<TenantId>();
-
-    const agreement = {
-      ...getMockAgreement(),
-      stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
-      producerId: unkonwnProducerId,
-      descriptorId: descriptor.id,
-      eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
-    };
-    await addOneAgreement(agreement);
-
-    await expect(() =>
-      handleAgreementRejected({
-        agreementV2Msg: toAgreementV2(agreement),
-        logger,
-        templateService,
-        userService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      })
-    ).rejects.toThrow(tenantNotFound(unkonwnProducerId));
-  });
-
-  it("should throw agreementStampDateNotFound when rejection date is not found", async () => {
-    const agreement = {
-      ...getMockAgreement(),
-      stamps: {},
-      producerId: producerTenant.id,
-      descriptorId: descriptor.id,
-      eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
-    };
-    await addOneAgreement(agreement);
-
-    await expect(() =>
-      handleAgreementRejected({
-        agreementV2Msg: toAgreementV2(agreement),
-        logger,
-        templateService,
-        userService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      })
-    ).rejects.toThrow(agreementStampDateNotFound("rejection", agreement.id));
-  });
-
   it("should throw eServiceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
     const agreement = {
@@ -195,31 +140,6 @@ describe("handleAgreementRejected", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
-  });
-
-  it("should throw descriptorNotFound when descriptor is not found", async () => {
-    const agreement = {
-      ...getMockAgreement(),
-      stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
-      descriptorId: generateId<DescriptorId>(),
-      producerId: producerTenant.id,
-      eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
-    };
-    await addOneAgreement(agreement);
-
-    await expect(() =>
-      handleAgreementRejected({
-        agreementV2Msg: toAgreementV2(agreement),
-        logger,
-        templateService,
-        userService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      })
-    ).rejects.toThrow(
-      descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
-    );
   });
 
   it("should generate one message per user of the tenant that consumed the eservice", async () => {
@@ -386,10 +306,9 @@ describe("handleAgreementRejected", async () => {
   });
 
   it("should generate a complete and correct message", async () => {
-    const rejectionDate = new Date();
     const agreement = {
       ...getMockAgreement(),
-      stamps: { rejection: { when: rejectionDate, who: generateId<UserId>() } },
+      stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
       descriptorId: descriptor.id,
       eserviceId: eservice.id,
@@ -412,11 +331,7 @@ describe("handleAgreementRejected", async () => {
       expect(message.email.body).toContain(
         `La tua richiesta per &quot;${eservice.name}&quot; è stata rifiutata`
       );
-      expect(message.email.body).toContain(producerTenant.name);
-      expect(message.email.body).toContain(consumerTenant.name);
       expect(message.email.body).toContain(eservice.name);
-      expect(message.email.body).toContain(descriptor.version);
-      expect(message.email.body).toContain(dateAtRomeZone(rejectionDate));
     });
   });
 });

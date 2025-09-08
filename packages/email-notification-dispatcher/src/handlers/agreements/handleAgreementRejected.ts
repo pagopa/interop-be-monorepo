@@ -7,8 +7,6 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  getFormattedAgreementStampDate,
-  retrieveAgreementDescriptor,
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "../../services/utils.js";
@@ -39,10 +37,9 @@ export async function handleAgreementRejected(
 
   const agreement = fromAgreementV2(agreementV2Msg);
 
-  const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
+  const [htmlTemplate, eservice, consumer] = await Promise.all([
     retrieveHTMLTemplate(eventMailTemplateType.agreementRejectedMailTemplate),
     retrieveAgreementEservice(agreement, readModelService),
-    retrieveTenant(agreement.producerId, readModelService),
     retrieveTenant(agreement.consumerId, readModelService),
   ]);
 
@@ -62,9 +59,6 @@ export async function handleAgreementRejected(
     return [];
   }
 
-  const rejectionDate = getFormattedAgreementStampDate(agreement, "rejection");
-  const descriptor = retrieveAgreementDescriptor(eservice, agreement);
-
   return targets.map(({ address }) => ({
     correlationId: correlationId ?? generateId(),
     email: {
@@ -73,11 +67,7 @@ export async function handleAgreementRejected(
         title: `La tua richiesta per "${eservice.name}" è stata rifiutata`,
         notificationType,
         entityId: agreement.id,
-        producerName: producer.name,
-        consumerName: consumer.name,
         eserviceName: eservice.name,
-        eserviceVersion: descriptor.version,
-        rejectionDate,
       }),
     },
     address,
