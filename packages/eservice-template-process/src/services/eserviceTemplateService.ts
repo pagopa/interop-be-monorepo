@@ -1901,7 +1901,6 @@ async function updateDraftEServiceTemplate(
     .exhaustive();
 
   const updatedEServiceTemplate: EServiceTemplate = {
-    ...eserviceTemplate.data,
     name: name ?? eserviceTemplate.data.name,
     intendedTarget: intendedTarget ?? eserviceTemplate.data.intendedTarget,
     description: description ?? eserviceTemplate.data.description,
@@ -1915,6 +1914,9 @@ async function updateDraftEServiceTemplate(
         }))
       : eserviceTemplate.data.versions,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
+    id: eserviceTemplate.data.id,
+    createdAt: eserviceTemplate.data.createdAt,
+    creatorId: eserviceTemplate.data.creatorId,
   };
 
   const event = await repository.createEvent(
