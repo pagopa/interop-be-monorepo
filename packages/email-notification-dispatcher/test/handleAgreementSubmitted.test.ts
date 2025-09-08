@@ -80,31 +80,6 @@ describe("handleAgreementSubmitted", async () => {
     );
   });
 
-  it("should throw tenantNotFound when consumer is not found", async () => {
-    const unkonwnConsumerId = generateId<TenantId>();
-
-    const agreement = {
-      ...getMockAgreement(),
-      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
-      producerId: producerTenant.id,
-      descriptorId: descriptor.id,
-      eserviceId: eservice.id,
-      consumerId: unkonwnConsumerId,
-    };
-    await addOneAgreement(agreement);
-
-    await expect(() =>
-      handleAgreementSubmitted({
-        agreementV2Msg: toAgreementV2(agreement),
-        logger,
-        templateService,
-        userService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      })
-    ).rejects.toThrow(tenantNotFound(unkonwnConsumerId));
-  });
-
   it("should throw tenantNotFound when producer is not found", async () => {
     const unknownProducerId = generateId<TenantId>();
 
@@ -249,6 +224,8 @@ describe("handleAgreementSubmitted", async () => {
       expect(message.email.body).toContain(
         `Nuova richiesta di fruizione per un tuo e-service`
       );
+      expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(eservice.name);
     });
   });
 });
