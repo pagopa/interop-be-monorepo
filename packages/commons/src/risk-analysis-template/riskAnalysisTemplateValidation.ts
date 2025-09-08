@@ -110,23 +110,20 @@ export function validatePurposeTemplateRiskAnalysis(
 }
 
 function validateTemplateFormAnswers(
-  answers: Record<string, RiskAnalysisTemplateAnswerToValidate>,
+  answers: RiskAnalysisFormTemplateToValidate["answers"],
   validationRules: ValidationRule[]
 ): Array<
   RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>
 > {
-  // Check for missing required fields that have satisfied dependencies
   const missingRequiredFieldIssues = findMissingRequiredFields(
     answers,
     validationRules
   );
 
-  // early error
   if (missingRequiredFieldIssues.length > 0) {
     return [invalidTemplateResult(missingRequiredFieldIssues)];
   }
 
-  // check all answer fields
   return validateAllAnswers(answers, validationRules);
 }
 
@@ -139,7 +136,6 @@ function findMissingRequiredFields(
     .flatMap((rule) => {
       const templateAnswer = answers[rule.fieldName];
 
-      // If field is missing, check if dependencies are satisfied
       if (templateAnswer === undefined) {
         const depsSatisfied = rule.dependencies.every((dependency) =>
           formContainsDependency(answers, dependency)
@@ -151,23 +147,6 @@ function findMissingRequiredFields(
       }
       return [];
     });
-  /*
-  const requiredRules = validationRules.filter((rule) => rule.required);
-
-  return requiredRules
-    .filter((rule) => {
-      const isFieldMissing = answers[rule.fieldName] === undefined;
-
-      if (!isFieldMissing) {
-        return false;
-      }
-
-      return rule.dependencies.every((dependency) =>
-        formContainsDependency(answers, dependency)
-      );
-    })
-    .map((rule) => missingExpectedTemplateFieldError(rule.fieldName));
-    */
 }
 
 function validateAllAnswers(
@@ -181,7 +160,6 @@ function validateAllAnswers(
   );
 }
 
-// ex validateFormAnswer
 function validateAnswer(
   answerKey: string,
   answerValue: RiskAnalysisTemplateAnswerToValidate,
@@ -276,7 +254,6 @@ function validateNonFreeTextAnswer(
   hasValues: boolean,
   hasSuggestions: boolean
 ): RiskAnalysisTemplateValidationIssue[] {
-  // Check if values are in allowed values
   if (
     rule.allowedValues &&
     answer.values.some((e) => !rule.allowedValues?.has(e))
@@ -286,7 +263,6 @@ function validateNonFreeTextAnswer(
     ];
   }
 
-  // Check if non-freeText field has suggestions or no values
   if (hasSuggestions || !hasValues) {
     return [unexpectedTemplateFieldValueOrSuggestionError(rule.fieldName)];
   }
