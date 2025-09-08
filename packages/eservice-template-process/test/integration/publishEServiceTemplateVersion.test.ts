@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { expiredRulesVersionError } from "pagopa-interop-commons";
+import { rulesVersionNotFoundError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAuthData,
@@ -336,7 +336,9 @@ describe("publishEServiceTemplateVersion", () => {
         })
       )
     ).rejects.toThrowError(
-      riskAnalysisValidationFailed([expiredRulesVersionError("0")])
+      riskAnalysisValidationFailed([
+        rulesVersionNotFoundError(tenantKind.PA, "0"),
+      ])
     );
   });
 
