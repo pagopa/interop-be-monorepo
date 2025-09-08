@@ -4,6 +4,7 @@ import path from "path";
 import { z } from "zod";
 import {
   Agreement,
+  Delegation,
   Descriptor,
   descriptorState,
   EService,
@@ -14,6 +15,7 @@ import {
 import { dateAtRomeZone } from "pagopa-interop-commons";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 import {
+  activeProducerDelegationNotFound,
   agreementStampDateNotFound,
   descriptorNotFound,
   descriptorPublishedNotFound,
@@ -98,6 +100,20 @@ export const retrieveEService = async (
   }
   return eservice;
 };
+
+export async function retrieveProducerDelegation(
+  eservice: EService,
+  readModelService: ReadModelServiceSQL
+): Promise<Delegation> {
+  const delegation = await readModelService.getActiveProducerDelegation(
+    eservice.id,
+    eservice.producerId
+  );
+  if (!delegation) {
+    throw activeProducerDelegationNotFound(eservice.id);
+  }
+  return delegation;
+}
 
 export async function retrieveHTMLTemplate(
   templateKind: EventMailTemplateType
