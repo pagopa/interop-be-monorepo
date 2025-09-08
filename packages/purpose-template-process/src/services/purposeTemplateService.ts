@@ -177,7 +177,7 @@ export function purposeTemplateServiceBuilder(
       const creationTimestamp = new Date();
 
       const createEvents = validationResult.value.map(
-        (purposeTemplateValidationResult) => {
+        (purposeTemplateValidationResult, index: number) => {
           const eServiceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate =
             {
               purposeTemplateId,
@@ -186,11 +186,14 @@ export function purposeTemplateServiceBuilder(
               createdAt: creationTimestamp,
             };
 
+          const version = index === 0 ? undefined : index - 1;
+
           return toCreateEventEServiceDescriptorLinked(
             eServiceDescriptorPurposeTemplate,
             purposeTemplate.data,
             purposeTemplateValidationResult.eservice,
-            correlationId
+            correlationId,
+            version
           );
         }
       );
