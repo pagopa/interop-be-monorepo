@@ -5,7 +5,8 @@ type InAppNotificationDispatcherErrorCode =
   | "descriptorPublishedNotFound"
   | "eserviceNotFound"
   | "activeProducerDelegationNotFound"
-  | "descriptorNotFound";
+  | "descriptorNotFound"
+  | "purposeNotFound";
 
 export class InAppNotificationDispatcherError extends InternalError<InAppNotificationDispatcherErrorCode> {
   constructor({
@@ -61,5 +62,14 @@ export function descriptorNotFound(
   return new InternalError({
     detail: `Descriptor ${descriptorId} not found`,
     code: "descriptorNotFound",
+  });
+}
+
+export function purposeNotFound(
+  purposeId: string
+): InAppNotificationDispatcherError {
+  return new InternalError({
+    detail: `Purpose ${purposeId} not found`,
+    code: "purposeNotFound",
   });
 }
