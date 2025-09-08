@@ -163,11 +163,20 @@ const purposeTemplateRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+      } catch (error) {
+        return res.status(501);
+      }
+      return res.status(501);
+    })
+    .post("/purposeTemplates/:id/linkEservices", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const eserviceDescriptorPurposeTemplates =
           await purposeTemplateService.linkEservicesToPurposeTemplate(
             unsafeBrandId(req.params.id),
-            req.body,
+            req.body.eserviceIds.map(unsafeBrandId<EServiceId>),
             ctx
           );
 
@@ -189,15 +198,6 @@ const purposeTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    })
-    .post("/purposeTemplates/:id/linkEservices", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-      try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
-      } catch (error) {
-        return res.status(501);
-      }
-      return res.status(501);
     })
     .delete("/purposeTemplates/:id/linkEservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
