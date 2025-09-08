@@ -182,31 +182,31 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    needs: [formatting, lint_sharded, lint-openapi, create_shards]  # check
+    needs: [formatting, lint_sharded, lint-openapi, packages_sharding]  # check
     strategy:
       fail-fast: false
       matrix:
-        shard: ${{ fromJson(needs.create_shards.outputs.matrix) }}
+        shard: ${{ fromJson(needs.packages_sharding.outputs.matrix) }}
         include:
-          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[0] }}
+          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[0] }}
             shard_index: 1
-          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[1] }}
+          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[1] }}
             shard_index: 2
-          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[2] }}
+          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[2] }}
             shard_index: 3
-          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[3] }}
+          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[3] }}
             shard_index: 4
-          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[4] }}
+          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[4] }}
             shard_index: 5
-          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[5] }}
+          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[5] }}
             shard_index: 6
-          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[6] }}
+          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[6] }}
             shard_index: 7
-          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[7] }}
+          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[7] }}
             shard_index: 8
-          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[8] }}
+          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[8] }}
             shard_index: 9
-          - shard: ${{ fromJson(needs.create_shards.outputs.matrix)[9] }}
+          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[9] }}
             shard_index: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
