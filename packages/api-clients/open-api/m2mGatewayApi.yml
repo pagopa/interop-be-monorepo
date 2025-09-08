@@ -7865,7 +7865,7 @@ paths:
             type: string
         - in: query
           name: eserviceTemplateIds
-          description: Filter E-Services Templates by IDs. If not specified, return E-Services Templates with any ID
+          description: Filter E-Service Templates by IDs. If not specified, return E-Service Templates with any ID
           schema:
             type: array
             items:
@@ -7875,7 +7875,7 @@ paths:
           explode: false
         - in: query
           name: creatorIds
-          description: Filter E-Services Templates by creator IDs. If not specified, return E-Services Templates for any creator
+          description: Filter E-Service Templates by creator IDs. If not specified, return E-Service Templates for any creator
           schema:
             type: array
             items:
