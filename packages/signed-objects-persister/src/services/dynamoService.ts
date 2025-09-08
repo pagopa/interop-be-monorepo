@@ -1,6 +1,7 @@
 import { DynamoDBClient, DeleteItemCommand } from "@aws-sdk/client-dynamodb";
 import { genericInternalError } from "pagopa-interop-models";
 import { config } from "../config/config.js";
+import { formatError } from "../utils/errorFormatter.js";
 
 export function dbServiceBuilder(dynamoDBClient: DynamoDBClient): {
   deleteFromDynamo: (id: string) => Promise<void>;
@@ -16,8 +17,10 @@ export function dbServiceBuilder(dynamoDBClient: DynamoDBClient): {
 
       try {
         await dynamoDBClient.send(command);
-      } catch (error) {
-        throw genericInternalError(`Error deleting '${id}': ${error}`);
+      } catch (error: unknown) {
+        const errMsg = formatError(error);
+        const message = `Error deleting record with id='${id}' from table '${config.dbTableName}': ${errMsg}`;
+        throw genericInternalError(message);
       }
     },
   };
