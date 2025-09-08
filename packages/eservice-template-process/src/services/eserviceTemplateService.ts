@@ -622,8 +622,12 @@ export function eserviceTemplateServiceBuilder(
     async updateEServiceTemplateName(
       eserviceTemplateId: EServiceTemplateId,
       name: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(`Updating name of EService template ${eserviceTemplateId}`);
 
       const eserviceTemplate = await retrieveEServiceTemplate(
@@ -656,7 +660,7 @@ export function eserviceTemplateServiceBuilder(
         name,
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateNameUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
@@ -664,13 +668,20 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         )
       );
-      return updatedEserviceTemplate;
+      return {
+        data: updatedEserviceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateEServiceTemplateIntendedTarget(
       eserviceTemplateId: EServiceTemplateId,
       intendedTarget: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Updating intended target description of EService template ${eserviceTemplateId}`
       );
@@ -690,7 +701,7 @@ export function eserviceTemplateServiceBuilder(
         ...eserviceTemplate.data,
         intendedTarget,
       };
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateIntendedTargetUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
@@ -698,7 +709,10 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         )
       );
-      return updatedEserviceTemplate;
+      return {
+        data: updatedEserviceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async updateEServiceTemplateDescription(

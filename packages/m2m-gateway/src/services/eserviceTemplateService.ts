@@ -170,5 +170,45 @@ export function eserviceTemplateServiceBuilder(
       const polledResource = await pollEServiceTemplate(response, headers);
       return toM2MGatewayEServiceTemplate(polledResource.data);
     },
+    async updateEServiceTemplateIntendedTarget(
+      templateId: EServiceTemplateId,
+      seed: m2mGatewayApi.EServiceTemplateIntendedTargetUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplate> {
+      logger.info(
+        `Updating intended target for published E-Service Template with id ${templateId}`
+      );
+
+      const response =
+        await clients.eserviceTemplateProcessClient.updateEServiceTemplateIntendedTarget(
+          seed,
+          {
+            params: { templateId },
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplate(response, headers);
+      return toM2MGatewayEServiceTemplate(polledResource.data);
+    },
+    async updateEServiceTemplateName(
+      templateId: EServiceTemplateId,
+      seed: m2mGatewayApi.EServiceTemplateNameUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplate> {
+      logger.info(
+        `Updating name for published E-Service Template with id ${templateId}`
+      );
+
+      const response =
+        await clients.eserviceTemplateProcessClient.updateEServiceTemplateName(
+          seed,
+          {
+            params: { templateId },
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplate(response, headers);
+      return toM2MGatewayEServiceTemplate(polledResource.data);
+    },
   };
 }
