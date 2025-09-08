@@ -160,11 +160,12 @@ const eserviceTemplatesRouter = (
           M2M_ADMIN_ROLE,
         ]);
 
-        const eserviceTemplate =
+        const { data: eserviceTemplate, metadata } =
           await eserviceTemplateService.getEServiceTemplateById(
             unsafeBrandId(req.params.templateId),
             ctx
           );
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
