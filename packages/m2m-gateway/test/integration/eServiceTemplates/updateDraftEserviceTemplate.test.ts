@@ -45,7 +45,7 @@ describe("updateDraftEServiceTemplate", () => {
 
   mockInteropBeClients.eserviceTemplateProcessClient = {
     getEServiceTemplateById: mockGetEServiceTemplate,
-    patchUpdateEServiceTemplateById: mockPatchUpdateEServiceTemplate,
+    patchUpdateDraftEServiceTemplate: mockPatchUpdateEServiceTemplate,
   } as unknown as PagoPAInteropBeClients["eserviceTemplateProcessClient"];
 
   beforeEach(() => {
