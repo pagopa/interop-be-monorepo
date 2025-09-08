@@ -314,19 +314,19 @@ paths:
                   items:
                     type: string
                     format: uuid
+                  minItems: 1
               required:
                 - eserviceIds
         required: true
       responses:
         "200":
           description: E-Services linked to purpose template
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
+                type: array
+                items:
+                  $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
         "400":
           description: Bad Request
           content:
