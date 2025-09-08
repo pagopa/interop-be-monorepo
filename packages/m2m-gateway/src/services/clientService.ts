@@ -10,7 +10,7 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
-import { assertClientVisibilityIsFull } from "../utils/validators/validators.js";
+import { assertClientVisibilityIsFull } from "../utils/validators/clientValidators.js";
 import {
   toGetClientsApiQueryParams,
   toM2MGatewayApiConsumerClient,

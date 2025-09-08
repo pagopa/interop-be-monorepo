@@ -15,14 +15,7 @@ import {
   DelegationCollection,
   EServiceTemplateCollection,
 } from "pagopa-interop-commons";
-import {
-  agreementReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
-  purposeReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
-  eserviceTemplateReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
+import { eserviceTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   Agreement,
   EService,
@@ -31,6 +24,14 @@ import {
   Delegation,
   EServiceTemplate,
 } from "pagopa-interop-models";
+import {
+  upsertAgreement,
+  upsertDelegation,
+  upsertEService,
+  upsertEServiceTemplate,
+  upsertPurpose,
+  upsertTenant,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
@@ -61,15 +62,7 @@ export const eserviceTemplates: EServiceTemplateCollection =
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
 
-const agreementReadModelServiceSQL =
-  agreementReadModelServiceBuilder(readModelDB);
-const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
-const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
-const delegationReadModelServiceSQL =
-  delegationReadModelServiceBuilder(readModelDB);
-const eserviceTemplateReadModelServiceSQL =
-  eserviceTemplateReadModelServiceBuilder(readModelDB);
+eserviceTemplateReadModelServiceBuilder(readModelDB);
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
 export const readModelService =
@@ -89,7 +82,7 @@ export async function seedCollection<T>(
 }
 export const seedTenants = async (tenants: Tenant[]): Promise<void> => {
   for (const t of tenants) {
-    await tenantReadModelServiceSQL.upsertTenant(t, 0);
+    await upsertTenant(readModelDB, t, 0);
   }
 };
 
@@ -97,19 +90,19 @@ export const seedAgreements = async (
   agreements: Agreement[]
 ): Promise<void> => {
   for (const a of agreements) {
-    await agreementReadModelServiceSQL.upsertAgreement(a, 0);
+    await upsertAgreement(readModelDB, a, 0);
   }
 };
 
 export const seedPurposes = async (purposes: Purpose[]): Promise<void> => {
   for (const p of purposes) {
-    await purposeReadModelServiceSQL.upsertPurpose(p, 0);
+    await upsertPurpose(readModelDB, p, 0);
   }
 };
 
 export const seedEServices = async (eservices: EService[]): Promise<void> => {
   for (const e of eservices) {
-    await catalogReadModelServiceSQL.upsertEService(e, 0);
+    await upsertEService(readModelDB, e, 0);
   }
 };
 
@@ -117,7 +110,7 @@ export const seedDelegations = async (
   delegations: Delegation[]
 ): Promise<void> => {
   for (const d of delegations) {
-    await delegationReadModelServiceSQL.upsertDelegation(d, 0);
+    await upsertDelegation(readModelDB, d, 0);
   }
 };
 
@@ -125,6 +118,6 @@ export const seedEServiceTemplates = async (
   eserviceTemplates: EServiceTemplate[]
 ): Promise<void> => {
   for (const e of eserviceTemplates) {
-    await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(e, 0);
+    await upsertEServiceTemplate(readModelDB, e, 0);
   }
 };

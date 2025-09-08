@@ -11,7 +11,7 @@ import {
   EServiceId,
   genericError,
   interfaceExtractingInfoError,
-  invalidInterfaceContentTypeDetected,
+  invalidContentTypeDetected,
   invalidInterfaceData,
   invalidInterfaceFileDetected,
   invalidServerUrl,
@@ -236,9 +236,9 @@ export const interpolateTemplateSoapApiSpec = async (
       throw interfaceExtractingInfoError();
     });
 
-  /* ======================================================  
+  /* ======================================================
     NOTE : SOAP protocol does not have specific fields for
-    - termsOfService 
+    - termsOfService
     - name
     - email
     - contactUrl
@@ -375,7 +375,7 @@ export async function verifyAndCreateDocument<T>(
 ): Promise<T> {
   const contentType = doc.type;
   if (!contentType) {
-    throw invalidInterfaceContentTypeDetected(resource, "invalid", technology);
+    throw invalidContentTypeDetected(resource, "invalid", technology);
   }
 
   const serverUrls = await retrieveServerUrlsAPI(

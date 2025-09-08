@@ -24,7 +24,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.19.4",
+    "@types/node": "20.19.9",
     "@types/nodemailer": "6.4.17",
     "cpx2": "7.0.2",
     "axios": "1.8.2",

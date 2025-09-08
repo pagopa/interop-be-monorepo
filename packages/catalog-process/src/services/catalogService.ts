@@ -21,6 +21,7 @@ import {
   M2MAdminAuthData,
   interpolateTemplateApiSpec,
   authRole,
+  retrieveOriginFromAuthData,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -55,8 +56,10 @@ import {
   Tenant,
   TenantId,
   unsafeBrandId,
-  WithMetadata,
   tenantKind,
+  WithMetadata,
+  AttributeKind,
+  attributeKind,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -95,6 +98,8 @@ import {
   tenantNotFound,
   unchangedAttributes,
   templateMissingRequiredRiskAnalysis,
+  checksumDuplicate,
+  attributeDuplicatedInGroup,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -216,7 +221,7 @@ const retrieveDocument = (
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: Pick<ReadModelService, "getTenantById">
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
@@ -243,7 +248,7 @@ const retrieveRiskAnalysis = (
 const assertRequesterCanPublish = (
   producerDelegation: Delegation | undefined,
   eservice: EService,
-  authData: UIAuthData
+  authData: UIAuthData | M2MAdminAuthData
 ): void => {
   if (producerDelegation) {
     if (
@@ -404,56 +409,73 @@ const replaceRiskAnalysis = (
   };
 };
 
-async function parseAndCheckAttributes(
+async function parseAndCheckAttributesOfKind(
+  attributesSeedForKind: catalogApi.AttributeSeed[][],
+  kind: AttributeKind,
+  readModelService: ReadModelService
+): Promise<EServiceAttribute[][]> {
+  const parsedAttributesSeed = attributesSeedForKind.map((group) => {
+    const groupAttributesIdsFound: Set<AttributeId> = new Set();
+    return group.map((att) => {
+      const id = unsafeBrandId<AttributeId>(att.id);
+      if (groupAttributesIdsFound.has(id)) {
+        throw attributeDuplicatedInGroup(id);
+      }
+
+      groupAttributesIdsFound.add(id);
+      return {
+        ...att,
+        id,
+      };
+    });
+  });
+
+  const attributesSeedIds: AttributeId[] = parsedAttributesSeed
+    .flat()
+    .map(({ id }) => id);
+
+  const attributes = await readModelService.getAttributesByIds(
+    attributesSeedIds,
+    kind
+  );
+
+  const attributesIds = attributes.map((attr) => attr.id);
+  attributesSeedIds.forEach((attributeId) => {
+    if (!attributesIds.includes(attributeId)) {
+      throw attributeNotFound(attributeId);
+    }
+  });
+
+  return parsedAttributesSeed;
+}
+
+export async function parseAndCheckAttributes(
   attributesSeed: catalogApi.AttributesSeed,
   readModelService: ReadModelService
 ): Promise<EserviceAttributes> {
-  const certifiedAttributes = attributesSeed.certified;
-  const declaredAttributes = attributesSeed.declared;
-  const verifiedAttributes = attributesSeed.verified;
-
-  const attributesSeeds = [
-    ...certifiedAttributes.flat(),
-    ...declaredAttributes.flat(),
-    ...verifiedAttributes.flat(),
-  ];
-
-  if (attributesSeeds.length > 0) {
-    const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
-      unsafeBrandId(attr.id)
-    );
-    const attributes = await readModelService.getAttributesByIds(
-      attributesSeedsIds
-    );
-    const attributesIds = attributes.map((attr) => attr.id);
-    for (const attributeSeedId of attributesSeedsIds) {
-      if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
-        throw attributeNotFound(attributeSeedId);
-      }
-    }
-  }
+  const [certifiedAttributes, declaredAttributes, verifiedAttributes] =
+    await Promise.all([
+      parseAndCheckAttributesOfKind(
+        attributesSeed.certified,
+        attributeKind.certified,
+        readModelService
+      ),
+      parseAndCheckAttributesOfKind(
+        attributesSeed.declared,
+        attributeKind.declared,
+        readModelService
+      ),
+      parseAndCheckAttributesOfKind(
+        attributesSeed.verified,
+        attributeKind.verified,
+        readModelService
+      ),
+    ]);
 
   return {
-    certified: certifiedAttributes.map((a) =>
-      a.map((a) => ({
-        ...a,
-        id: unsafeBrandId(a.id),
-      }))
-    ),
-    // eslint-disable-next-line sonarjs/no-identical-functions
-    declared: declaredAttributes.map((a) =>
-      a.map((a) => ({
-        ...a,
-        id: unsafeBrandId(a.id),
-      }))
-    ),
-    // eslint-disable-next-line sonarjs/no-identical-functions
-    verified: verifiedAttributes.map((a) =>
-      a.map((a) => ({
-        ...a,
-        id: unsafeBrandId(a.id),
-      }))
-    ),
+    certified: certifiedAttributes,
+    declared: declaredAttributes,
+    verified: verifiedAttributes,
   };
 }
 
@@ -466,7 +488,7 @@ function isTenantInSignalHubWhitelist(
     : false;
 }
 
-function innerCreateEService(
+async function innerCreateEService(
   {
     seed,
     template,
@@ -481,10 +503,23 @@ function innerCreateEService(
         }
       | undefined;
   },
-  { authData, correlationId }: WithLogger<AppContext<UIAuthData>>
-): { eService: EService; events: Array<CreateEvent<EServiceEvent>> } {
-  if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
-    throw originNotCompliant(authData.externalId.origin);
+  readModelService: ReadModelService,
+  {
+    authData,
+    correlationId,
+  }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+): Promise<{
+  eService: EService;
+  events: Array<CreateEvent<EServiceEvent>>;
+}> {
+  const origin = await retrieveOriginFromAuthData(
+    authData,
+    readModelService,
+    retrieveTenant
+  );
+
+  if (!config.producerAllowedOrigins.includes(origin)) {
+    throw originNotCompliant(origin);
   }
 
   const creationDate = new Date();
@@ -581,10 +616,11 @@ async function innerAddDocumentToEserviceEvent(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed,
-  ctx: WithLogger<AppContext<UIAuthData>>
+  ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
 ): Promise<{
   eService: EService;
   descriptor: Descriptor;
+  createdDocument: Document;
   event: CreateEvent<EServiceEvent>;
 }> {
   const descriptor = retrieveDescriptor(descriptorId, eService);
@@ -607,8 +643,15 @@ async function innerAddDocumentToEserviceEvent(
     throw documentPrettyNameDuplicate(documentSeed.prettyName, descriptor.id);
   }
 
+  if (
+    documentSeed.kind === "DOCUMENT" &&
+    descriptor.docs.some((d) => d.checksum === documentSeed.checksum)
+  ) {
+    throw checksumDuplicate(eService.data.id, descriptor.id);
+  }
+
   const isInterface = documentSeed.kind === "INTERFACE";
-  const newDocument: Document = {
+  const createdDocument: Document = {
     id: unsafeBrandId(documentSeed.documentId),
     name: documentSeed.fileName,
     contentType: documentSeed.contentType,
@@ -620,8 +663,8 @@ async function innerAddDocumentToEserviceEvent(
 
   const updatedDescriptor: Descriptor = {
     ...descriptor,
-    interface: isInterface ? newDocument : descriptor.interface,
-    docs: isInterface ? descriptor.docs : [...descriptor.docs, newDocument],
+    interface: isInterface ? createdDocument : descriptor.interface,
+    docs: isInterface ? descriptor.docs : [...descriptor.docs, createdDocument],
     serverUrls: isInterface ? documentSeed.serverUrls : descriptor.serverUrls,
     templateVersionRef: evaluateTemplateVersionRef(descriptor, documentSeed),
   };
@@ -653,7 +696,12 @@ async function innerAddDocumentToEserviceEvent(
           ctx.correlationId
         );
 
-  return { eService: updatedEService, descriptor: updatedDescriptor, event };
+  return {
+    eService: updatedEService,
+    descriptor: updatedDescriptor,
+    createdDocument,
+    event,
+  };
 }
 
 function createNextDescriptor(
@@ -716,15 +764,21 @@ export function catalogServiceBuilder(
           UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
         >
       >
-    ): Promise<EService> {
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      return await applyVisibilityToEService(
+      const data = await applyVisibilityToEService(
         eservice.data,
         authData,
         readModelService
       );
+      return {
+        data,
+        metadata: {
+          version: eservice.metadata.version,
+        },
+      };
     },
 
     async getEServices(
@@ -782,7 +836,10 @@ export function catalogServiceBuilder(
         descriptorId: DescriptorId;
         documentId: EServiceDocumentId;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<Document> {
       logger.info(
         `Retrieving EService document ${documentId} for EService ${eserviceId} and descriptor ${descriptorId}`
@@ -801,10 +858,41 @@ export function catalogServiceBuilder(
       return document;
     },
 
+    async getDocuments(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { offset, limit }: catalogApi.GetEServiceDocumentsQueryParams,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData | M2MAuthData>>
+    ): Promise<ListResult<Document>> {
+      logger.info(
+        `Retrieving EService documents for EService ${eserviceId} and descriptor ${descriptorId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const checkedEService = await applyVisibilityToEService(
+        eservice.data,
+        authData,
+        readModelService
+      );
+
+      retrieveDescriptorFromEService(descriptorId, checkedEService);
+      // ^ to check that descriptor exists
+
+      return readModelService.getEServiceDescriptorDocuments(
+        eserviceId,
+        descriptorId,
+        offset,
+        limit
+      );
+    },
+
     async createEService(
       seed: catalogApi.EServiceSeed,
-      ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       ctx.logger.info(`Creating EService with name ${seed.name}`);
 
       await assertEServiceNameAvailableForProducer(
@@ -817,114 +905,55 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const { eService, events } = innerCreateEService(
+      const { eService, events } = await innerCreateEService(
         { seed, template: undefined },
+        readModelService,
         ctx
       );
 
-      await repository.createEvents(events);
+      const createdEvents = await repository.createEvents(events);
 
-      return eService;
+      const newVersion = Math.max(
+        0,
+        ...createdEvents.map((event) => event.newVersion)
+      );
+
+      return {
+        data: eService,
+        metadata: { version: newVersion },
+      };
     },
 
     async updateEService(
       eserviceId: EServiceId,
       eserviceSeed: catalogApi.UpdateEServiceSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
-      logger.info(`Updating EService ${eserviceId}`);
-
-      const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateProducerOrProducer(
-        eservice.data.producerId,
-        eservice.data.id,
-        authData,
-        readModelService
-      );
-      assertEServiceNotTemplateInstance(
-        eservice.data.id,
-        eservice.data.templateId
-      );
-
-      assertIsDraftEservice(eservice.data);
-
-      if (eserviceSeed.name !== eservice.data.name) {
-        await assertEServiceNameAvailableForProducer(
-          eserviceSeed.name,
-          eservice.data.producerId,
-          readModelService
-        );
-        await assertEServiceNameNotConflictingWithTemplate(
-          eserviceSeed.name,
-          readModelService
-        );
-      }
-
-      const updatedTechnology = apiTechnologyToTechnology(
-        eserviceSeed.technology
-      );
-      const interfaceHasToBeDeleted =
-        updatedTechnology !== eservice.data.technology;
-
-      if (interfaceHasToBeDeleted) {
-        await Promise.all(
-          eservice.data.descriptors.map(async (d) => {
-            if (d.interface !== undefined) {
-              return await fileManager.delete(
-                config.s3Bucket,
-                d.interface.path,
-                logger
-              );
-            }
-          })
-        );
-      }
-
-      const updatedMode = apiEServiceModeToEServiceMode(eserviceSeed.mode);
-
-      const checkedRiskAnalysis =
-        updatedMode === eserviceMode.receive ? eservice.data.riskAnalysis : [];
-
-      const updatedEService: EService = {
-        ...eservice.data,
-        description: eserviceSeed.description,
-        name: eserviceSeed.name,
-        technology: updatedTechnology,
-        mode: updatedMode,
-        riskAnalysis: checkedRiskAnalysis,
-        descriptors: interfaceHasToBeDeleted
-          ? eservice.data.descriptors.map((d) => ({
-              ...d,
-              interface: undefined,
-              serverUrls: [],
-            }))
-          : eservice.data.descriptors,
-        isSignalHubEnabled: isFeatureFlagEnabled(
-          config,
-          "featureFlagSignalhubWhitelist"
-        )
-          ? isTenantInSignalHubWhitelist(
-              authData.organizationId,
-              eserviceSeed.isSignalHubEnabled
-            )
-          : eserviceSeed.isSignalHubEnabled,
-        isConsumerDelegable: eserviceSeed.isConsumerDelegable,
-        isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
-          .with(P.nullish, () => undefined)
-          .with(false, () => false)
-          .with(true, () => eserviceSeed.isClientAccessDelegable)
-          .exhaustive(),
-      };
-
-      const event = toCreateEventEServiceUpdated(
+      ctx: WithLogger<AppContext<UIAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      ctx.logger.info(`Updating EService ${eserviceId}`);
+      return updateDraftEService(
         eserviceId,
-        eservice.metadata.version,
-        updatedEService,
-        correlationId
+        { type: "put", seed: eserviceSeed },
+        readModelService,
+        fileManager,
+        repository,
+        ctx
       );
-      await repository.createEvent(event);
+    },
 
-      return updatedEService;
+    async patchUpdateEService(
+      eserviceId: EServiceId,
+      eserviceSeed: catalogApi.PatchUpdateEServiceSeed,
+      ctx: WithLogger<AppContext<M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      ctx.logger.info(`Partially updating EService ${eserviceId}`);
+      return updateDraftEService(
+        eserviceId,
+        { type: "patch", seed: eserviceSeed },
+        readModelService,
+        fileManager,
+        repository,
+        ctx
+      );
     },
 
     async updateEServiceTemplateInstance(
@@ -974,7 +1003,11 @@ export function catalogServiceBuilder(
 
     async deleteEService(
       eserviceId: EServiceId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(`Deleting EService ${eserviceId}`);
 
@@ -1028,8 +1061,8 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       document: catalogApi.CreateEServiceDescriptorDocumentSeed,
-      ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Document>> {
       ctx.logger.info(
         `Creating EService Document ${document.documentId.toString()} of kind ${
           document.kind
@@ -1052,25 +1085,33 @@ export function catalogServiceBuilder(
         eservice.data.templateId
       );
 
-      const { eService: updatedEService, event } =
-        await innerAddDocumentToEserviceEvent(
-          eservice,
-          descriptorId,
-          document,
-          ctx
-        );
+      const { createdDocument, event } = await innerAddDocumentToEserviceEvent(
+        eservice,
+        descriptorId,
+        document,
+        ctx
+      );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return updatedEService;
+      return {
+        data: createdDocument,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
 
     async deleteDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Deleting Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1137,7 +1178,14 @@ export function catalogServiceBuilder(
             correlationId
           );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: newEservice,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
 
     // eslint-disable-next-line max-params
@@ -1238,8 +1286,17 @@ export function catalogServiceBuilder(
     async createDescriptor(
       eserviceId: EServiceId,
       eserviceDescriptorSeed: catalogApi.EServiceDescriptorSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Descriptor> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{
+        eservice: EService;
+        createdDescriptorId: DescriptorId;
+      }>
+    > {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -1280,68 +1337,90 @@ export function catalogServiceBuilder(
         templateVersionId: undefined,
       });
 
-      const newEservice: EService = {
+      const updatedEService: EService = {
         ...eservice.data,
         descriptors: [...eservice.data.descriptors, newDescriptor],
       };
 
       const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
-        newEservice,
+        updatedEService,
         eserviceVersion,
         newDescriptor.id,
         correlationId
       );
 
-      const { events, descriptorWithDocs } = eserviceDescriptorSeed.docs.reduce(
-        (acc, document, index) => {
-          const newDocument: Document = {
-            id: unsafeBrandId(document.documentId),
-            name: document.fileName,
-            contentType: document.contentType,
-            prettyName: document.prettyName,
-            path: document.filePath,
-            checksum: document.checksum,
-            uploadDate: new Date(),
-          };
+      const { events, updatedEServiceWithDocs } =
+        eserviceDescriptorSeed.docs.reduce(
+          (acc, document, index) => {
+            const newDocument: Document = {
+              id: unsafeBrandId(document.documentId),
+              name: document.fileName,
+              contentType: document.contentType,
+              prettyName: document.prettyName,
+              path: document.filePath,
+              checksum: document.checksum,
+              uploadDate: new Date(),
+            };
 
-          const descriptorWithDocs: Descriptor = {
-            ...acc.descriptorWithDocs,
-            docs: [...acc.descriptorWithDocs.docs, newDocument],
-          };
-          const updatedEService = replaceDescriptor(
-            newEservice,
-            descriptorWithDocs
-          );
-          const version = eserviceVersion + index + 1;
-          const documentEvent = toCreateEventEServiceDocumentAdded(
-            version,
-            {
-              descriptorId: newDescriptor.id,
-              documentId: unsafeBrandId(document.documentId),
-              eservice: updatedEService,
-            },
-            correlationId
-          );
-          return {
-            events: [...acc.events, documentEvent],
-            descriptorWithDocs,
-          };
-        },
-        {
-          events: [descriptorCreationEvent],
-          descriptorWithDocs: newDescriptor,
-        }
+            const currentDescriptor =
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              acc.updatedEServiceWithDocs.descriptors.find(
+                (d) => d.id === newDescriptor.id
+              )!;
+
+            const updatedEServiceWithDocs = replaceDescriptor(
+              acc.updatedEServiceWithDocs,
+              {
+                ...currentDescriptor,
+                docs: [...currentDescriptor.docs, newDocument],
+              }
+            );
+            const version = eserviceVersion + index + 1;
+            const documentEvent = toCreateEventEServiceDocumentAdded(
+              version,
+              {
+                descriptorId: newDescriptor.id,
+                documentId: unsafeBrandId(document.documentId),
+                eservice: updatedEServiceWithDocs,
+              },
+              correlationId
+            );
+            return {
+              events: [...acc.events, documentEvent],
+              updatedEServiceWithDocs,
+            };
+          },
+          {
+            events: [descriptorCreationEvent],
+            updatedEServiceWithDocs: updatedEService,
+          }
+        );
+
+      const createdEvents = await repository.createEvents(events);
+
+      const newVersion = Math.max(
+        0,
+        ...createdEvents.map((event) => event.newVersion)
       );
 
-      await repository.createEvents(events);
-      return descriptorWithDocs;
+      return {
+        data: {
+          eservice: updatedEServiceWithDocs,
+          createdDescriptorId: newDescriptor.id,
+        },
+        metadata: { version: newVersion },
+      };
     },
 
     async deleteDraftDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService> | undefined> {
       logger.info(
         `Deleting draft Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1387,8 +1466,15 @@ export function catalogServiceBuilder(
           descriptorDeletionEvent,
           eserviceDeletionEvent,
         ]);
+
+        return undefined;
       } else {
-        await repository.createEvent(descriptorDeletionEvent);
+        const event = await repository.createEvent(descriptorDeletionEvent);
+
+        return {
+          data: eserviceAfterDescriptorDeletion,
+          metadata: { version: event.newVersion },
+        };
       }
     },
 
@@ -1396,70 +1482,40 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.UpdateEServiceDescriptorSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
-      logger.info(
+      ctx: WithLogger<AppContext<UIAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      ctx.logger.info(
         `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateProducerOrProducer(
-        eservice.data.producerId,
-        eservice.data.id,
-        authData,
-        readModelService
-      );
-      assertEServiceNotTemplateInstance(
-        eservice.data.id,
-        eservice.data.templateId
-      );
-
-      const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-      if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptorState(
-          descriptorId,
-          descriptor.state.toString()
-        );
-      }
-
-      assertConsistentDailyCalls(seed);
-
-      const parsedAttributes = await parseAndCheckAttributes(
-        seed.attributes,
-        readModelService
-      );
-
-      const updatedDescriptor: Descriptor = {
-        ...descriptor,
-        description: seed.description,
-        audience: seed.audience,
-        voucherLifespan: seed.voucherLifespan,
-        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-        state: descriptorState.draft,
-        dailyCallsTotal: seed.dailyCallsTotal,
-        agreementApprovalPolicy:
-          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.agreementApprovalPolicy
-          ),
-        attributes: parsedAttributes,
-      };
-
-      const updatedEService = replaceDescriptor(
-        eservice.data,
-        updatedDescriptor
-      );
-
-      const event = toCreateEventEServiceDraftDescriptorUpdated(
+      return updateDraftDescriptor(
         eserviceId,
-        eservice.metadata.version,
         descriptorId,
-        updatedEService,
-        correlationId
+        seed,
+        readModelService,
+        repository,
+        ctx
       );
-      await repository.createEvent(event);
+    },
 
-      return updatedEService;
+    async patchUpdateDraftDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.PatchUpdateEServiceDescriptorSeed,
+      ctx: WithLogger<AppContext<M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      ctx.logger.info(
+        `Partially updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      return updateDraftDescriptor(
+        eserviceId,
+        descriptorId,
+        seed,
+        readModelService,
+        repository,
+        ctx
+      );
     },
 
     async updateDraftDescriptorTemplateInstance(
@@ -1525,8 +1581,12 @@ export function catalogServiceBuilder(
     async publishDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Publishing Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1570,7 +1630,7 @@ export function catalogServiceBuilder(
           eservice.data,
           updateDescriptorState(descriptor, descriptorState.waitingForApproval)
         );
-        await repository.createEvent(
+        const event = await repository.createEvent(
           toCreateEventEServiceDescriptorSubmittedByDelegate(
             eservice.metadata.version,
             descriptor.id,
@@ -1578,6 +1638,12 @@ export function catalogServiceBuilder(
             correlationId
           )
         );
+        return {
+          data: eserviceWithWaitingForApprovalDescriptor,
+          metadata: {
+            version: event.newVersion,
+          },
+        };
       } else {
         const updatedEService = await processDescriptorPublication(
           eservice.data,
@@ -1586,7 +1652,7 @@ export function catalogServiceBuilder(
           logger
         );
 
-        await repository.createEvent(
+        const event = await repository.createEvent(
           toCreateEventEServiceDescriptorPublished(
             eserviceId,
             eservice.metadata.version,
@@ -1595,14 +1661,24 @@ export function catalogServiceBuilder(
             correlationId
           )
         );
+        return {
+          data: updatedEService,
+          metadata: {
+            version: event.newVersion,
+          },
+        };
       }
     },
 
     async suspendDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Suspending Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1633,21 +1709,33 @@ export function catalogServiceBuilder(
 
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
-      const event = toCreateEventEServiceDescriptorSuspended(
-        eserviceId,
-        eservice.metadata.version,
-        descriptorId,
-        newEservice,
-        correlationId
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorSuspended(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          newEservice,
+          correlationId
+        )
       );
-      await repository.createEvent(event);
+
+      return {
+        data: newEservice,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
 
     async activateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Activating descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -1683,7 +1771,7 @@ export function catalogServiceBuilder(
       const recentDescriptorVersion = Math.max(...descriptorVersions);
 
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      const event = () => {
+      const createActivationEvent = async () => {
         if (
           recentDescriptorVersion !== null &&
           parseInt(descriptor.version, 10) === recentDescriptorVersion
@@ -1693,30 +1781,54 @@ export function catalogServiceBuilder(
             updatedDescriptor
           );
 
-          return toCreateEventEServiceDescriptorActivated(
-            eserviceId,
-            eservice.metadata.version,
-            descriptorId,
-            newEservice,
-            correlationId
+          const event = await repository.createEvent(
+            toCreateEventEServiceDescriptorActivated(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            )
           );
+
+          return {
+            data: newEservice,
+            metadata: {
+              version: event.newVersion,
+            },
+          };
         } else {
           const newEservice = replaceDescriptor(
             eservice.data,
             deprecateDescriptor(eserviceId, descriptor, logger)
           );
 
-          return toCreateEventEServiceDescriptorActivated(
-            eserviceId,
-            eservice.metadata.version,
-            descriptorId,
-            newEservice,
-            correlationId
+          const event = await repository.createEvent(
+            toCreateEventEServiceDescriptorActivated(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            )
           );
+          return {
+            data: newEservice,
+            metadata: {
+              version: event.newVersion,
+            },
+          };
         }
       };
 
-      await repository.createEvent(event());
+      const response = await createActivationEvent();
+
+      return {
+        data: response.data,
+        metadata: {
+          version: response.metadata.version,
+        },
+      };
     },
 
     async cloneDescriptor(
@@ -2023,8 +2135,17 @@ export function catalogServiceBuilder(
     async createRiskAnalysis(
       eserviceId: EServiceId,
       eserviceRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{
+        eservice: EService;
+        createdRiskAnalysisId: RiskAnalysisId;
+      }>
+    > {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -2085,7 +2206,15 @@ export function catalogServiceBuilder(
         correlationId
       );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: {
+          eservice: newEservice,
+          createdRiskAnalysisId: newRiskAnalysis.id,
+        },
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async updateRiskAnalysis(
       eserviceId: EServiceId,
@@ -2168,8 +2297,12 @@ export function catalogServiceBuilder(
     async deleteRiskAnalysis(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysisId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Deleting Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
       );
@@ -2198,21 +2331,31 @@ export function catalogServiceBuilder(
           (r) => r.id !== riskAnalysisId
         ),
       };
-      const event = toCreateEventEServiceRiskAnalysisDeleted(
-        eservice.data.id,
-        eservice.metadata.version,
-        riskAnalysisId,
-        eserviceWithRiskAnalysisDeleted,
-        correlationId
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceRiskAnalysisDeleted(
+          eservice.data.id,
+          eservice.metadata.version,
+          riskAnalysisId,
+          eserviceWithRiskAnalysisDeleted,
+          correlationId
+        )
       );
 
-      await repository.createEvent(event);
+      return {
+        data: eserviceWithRiskAnalysisDeleted,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateEServiceDescription(
       eserviceId: EServiceId,
       description: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Updating EService ${eserviceId} description`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -2235,14 +2378,17 @@ export function catalogServiceBuilder(
         description,
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceDescriptionUpdated(
           eservice.metadata.version,
           updatedEservice,
           correlationId
         )
       );
-      return updatedEservice;
+      return {
+        data: updatedEservice,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateEServiceDelegationFlags(
       eserviceId: EServiceId,
@@ -2253,8 +2399,12 @@ export function catalogServiceBuilder(
         isConsumerDelegable: boolean;
         isClientAccessDelegable: boolean;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Updating EService ${eserviceId} delegation flags`);
       const eservice = await retrieveEService(eserviceId, readModelService);
       await assertRequesterIsDelegateProducerOrProducer(
@@ -2385,16 +2535,29 @@ export function catalogServiceBuilder(
         .exhaustive();
 
       if (events) {
-        await repository.createEvents(events);
-      }
+        const createdEvents = await repository.createEvents(events);
 
-      return updatedEservice;
+        const newVersion = Math.max(
+          0,
+          ...createdEvents.map((event) => event.newVersion)
+        );
+
+        return {
+          data: updatedEservice,
+          metadata: { version: newVersion },
+        };
+      }
+      return eservice;
     },
     async updateEServiceName(
       eserviceId: EServiceId,
       name: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Updating name of EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -2430,14 +2593,19 @@ export function catalogServiceBuilder(
         name,
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceNameUpdated(
           eservice.metadata.version,
           updatedEservice,
           correlationId
         )
       );
-      return updatedEservice;
+      return {
+        data: updatedEservice,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
 
     async updateEServiceSignalHubFlag(
@@ -2514,8 +2682,12 @@ export function catalogServiceBuilder(
     async approveDelegatedEServiceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Approving EService ${eserviceId} version ${descriptorId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -2537,7 +2709,7 @@ export function catalogServiceBuilder(
         logger
       );
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceDescriptorApprovedByDelegator(
           eservice.metadata.version,
           descriptor.id,
@@ -2545,13 +2717,23 @@ export function catalogServiceBuilder(
           correlationId
         )
       );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async rejectDelegatedEServiceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       body: catalogApi.RejectDelegatedEServiceDescriptorSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Rejecting EService ${eserviceId} version ${descriptorId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -2587,7 +2769,7 @@ export function catalogServiceBuilder(
         updatedDescriptor
       );
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceDescriptorRejectedByDelegator(
           eservice.metadata.version,
           descriptor.id,
@@ -2595,6 +2777,12 @@ export function catalogServiceBuilder(
           correlationId
         )
       );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async updateDescriptorAttributes(
       eserviceId: EServiceId,
@@ -3066,7 +3254,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const { eService: createdEService, events } = innerCreateEService(
+      const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
             name: template.name,
@@ -3097,6 +3285,7 @@ export function catalogServiceBuilder(
             riskAnalysis,
           },
         },
+        readModelService,
         ctx
       );
 
@@ -3663,6 +3852,246 @@ async function extractEServiceRiskAnalysisFromTemplate(
   }
 
   return riskAnalysis;
+}
+
+async function updateDraftEService(
+  eserviceId: EServiceId,
+  {
+    seed,
+    type,
+  }:
+    | {
+        type: "put";
+        seed: catalogApi.UpdateEServiceSeed;
+      }
+    | {
+        type: "patch";
+        seed: catalogApi.PatchUpdateEServiceSeed;
+      },
+  readModelService: ReadModelService,
+  fileManager: FileManager,
+  repository: ReturnType<typeof eventRepository<EServiceEvent>>,
+  {
+    authData,
+    logger,
+    correlationId,
+  }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+): Promise<WithMetadata<EService>> {
+  const eservice = await retrieveEService(eserviceId, readModelService);
+  await assertRequesterIsDelegateProducerOrProducer(
+    eservice.data.producerId,
+    eservice.data.id,
+    authData,
+    readModelService
+  );
+  assertEServiceNotTemplateInstance(eservice.data.id, eservice.data.templateId);
+
+  assertIsDraftEservice(eservice.data);
+
+  const {
+    name,
+    description,
+    technology,
+    mode,
+    isSignalHubEnabled,
+    isConsumerDelegable,
+    isClientAccessDelegable,
+    ...rest
+  } = seed;
+  void (rest satisfies Record<string, never>);
+  // ^ To make sure we extract all the updated fields
+
+  if (name && name !== eservice.data.name) {
+    await assertEServiceNameAvailableForProducer(
+      name,
+      eservice.data.producerId,
+      readModelService
+    );
+    await assertEServiceNameNotConflictingWithTemplate(name, readModelService);
+  }
+
+  const updatedTechnology = technology
+    ? apiTechnologyToTechnology(technology)
+    : eservice.data.technology;
+
+  const interfaceHasToBeDeleted =
+    updatedTechnology !== eservice.data.technology;
+
+  if (interfaceHasToBeDeleted) {
+    await Promise.all(
+      eservice.data.descriptors.map(async (d) => {
+        if (d.interface !== undefined) {
+          return await fileManager.delete(
+            config.s3Bucket,
+            d.interface.path,
+            logger
+          );
+        }
+      })
+    );
+  }
+
+  const updatedMode = mode
+    ? apiEServiceModeToEServiceMode(mode)
+    : eservice.data.mode;
+
+  const checkedRiskAnalysis =
+    updatedMode === eserviceMode.receive ? eservice.data.riskAnalysis : [];
+
+  const updatedIsSignalHubEnabled = match(type)
+    .with("put", () => isSignalHubEnabled)
+    .with("patch", () => isSignalHubEnabled ?? eservice.data.isSignalHubEnabled)
+    .exhaustive();
+
+  const updatedIsConsumerDelegable = match(type)
+    .with("put", () => isConsumerDelegable)
+    .with(
+      "patch",
+      () => isConsumerDelegable ?? eservice.data.isConsumerDelegable
+    )
+    .exhaustive();
+
+  const updatedIsClientAccessDelegable = match(type)
+    .with("put", () => isClientAccessDelegable)
+    .with(
+      "patch",
+      () => isClientAccessDelegable ?? eservice.data.isClientAccessDelegable
+    )
+    .exhaustive();
+
+  const updatedEService: EService = {
+    ...eservice.data,
+    description: description ?? eservice.data.description,
+    name: name ?? eservice.data.name,
+    technology: updatedTechnology,
+    mode: updatedMode,
+    riskAnalysis: checkedRiskAnalysis,
+    descriptors: interfaceHasToBeDeleted
+      ? eservice.data.descriptors.map((d) => ({
+          ...d,
+          interface: undefined,
+          serverUrls: [],
+        }))
+      : eservice.data.descriptors,
+    isSignalHubEnabled: isFeatureFlagEnabled(
+      config,
+      "featureFlagSignalhubWhitelist"
+    )
+      ? isTenantInSignalHubWhitelist(
+          authData.organizationId,
+          updatedIsSignalHubEnabled
+        )
+      : updatedIsSignalHubEnabled,
+    isConsumerDelegable: updatedIsConsumerDelegable,
+    isClientAccessDelegable: match(updatedIsConsumerDelegable)
+      .with(P.nullish, () => undefined)
+      .with(false, () => false)
+      .with(true, () => updatedIsClientAccessDelegable)
+      .exhaustive(),
+  };
+
+  const event = await repository.createEvent(
+    toCreateEventEServiceUpdated(
+      eserviceId,
+      eservice.metadata.version,
+      updatedEService,
+      correlationId
+    )
+  );
+
+  return { data: updatedEService, metadata: { version: event.newVersion } };
+}
+
+async function updateDraftDescriptor(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  seed:
+    | catalogApi.UpdateEServiceDescriptorSeed
+    | catalogApi.PatchUpdateEServiceDescriptorSeed,
+  readModelService: ReadModelService,
+  repository: ReturnType<typeof eventRepository<EServiceEvent>>,
+  {
+    authData,
+    correlationId,
+  }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+): Promise<WithMetadata<EService>> {
+  const eservice = await retrieveEService(eserviceId, readModelService);
+  await assertRequesterIsDelegateProducerOrProducer(
+    eservice.data.producerId,
+    eservice.data.id,
+    authData,
+    readModelService
+  );
+  assertEServiceNotTemplateInstance(eservice.data.id, eservice.data.templateId);
+  const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+  assertIsDraftDescriptor(descriptor);
+
+  const {
+    description,
+    audience,
+    voucherLifespan,
+    dailyCallsPerConsumer,
+    dailyCallsTotal,
+    agreementApprovalPolicy,
+    attributes,
+    ...rest
+  } = seed;
+  void (rest satisfies Record<string, never>);
+  // ^ To make sure we extract all the updated fields
+
+  const updatedDailyCallsPerConsuemer =
+    dailyCallsPerConsumer ?? descriptor.dailyCallsPerConsumer;
+  const updatedDailyCallsTotal = dailyCallsTotal ?? descriptor.dailyCallsTotal;
+
+  assertConsistentDailyCalls({
+    dailyCallsPerConsumer: updatedDailyCallsPerConsuemer,
+    dailyCallsTotal: updatedDailyCallsTotal,
+  });
+
+  const updatedAttributes = attributes
+    ? await parseAndCheckAttributes(
+        {
+          certified: attributes.certified ?? descriptor.attributes.certified,
+          declared: attributes.declared ?? descriptor.attributes.declared,
+          verified: attributes.verified ?? descriptor.attributes.verified,
+        },
+        readModelService
+      )
+    : descriptor.attributes;
+
+  const updatedAgreementApprovalPolicy = agreementApprovalPolicy
+    ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+        agreementApprovalPolicy
+      )
+    : descriptor.agreementApprovalPolicy;
+
+  const updatedDescriptor: Descriptor = {
+    ...descriptor,
+    description: description ?? descriptor.description,
+    audience: audience ?? descriptor.audience,
+    voucherLifespan: voucherLifespan ?? descriptor.voucherLifespan,
+    dailyCallsPerConsumer: updatedDailyCallsPerConsuemer,
+    dailyCallsTotal: updatedDailyCallsTotal,
+    agreementApprovalPolicy: updatedAgreementApprovalPolicy,
+    attributes: updatedAttributes,
+  };
+
+  const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
+
+  const event = await repository.createEvent(
+    toCreateEventEServiceDraftDescriptorUpdated(
+      eserviceId,
+      eservice.metadata.version,
+      descriptorId,
+      updatedEService,
+      correlationId
+    )
+  );
+  return {
+    data: updatedEService,
+    metadata: { version: event.newVersion },
+  };
 }
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

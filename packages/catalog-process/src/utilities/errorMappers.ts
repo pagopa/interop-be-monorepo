@@ -107,12 +107,13 @@ export const documentCreateErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
     .with(
-      "notValidDescriptor",
+      "documentPrettyNameDuplicate",
       "interfaceAlreadyExists",
-      () => HTTP_STATUS_BAD_REQUEST
+      "checksumDuplicate",
+      () => HTTP_STATUS_CONFLICT
     )
-    .with("documentPrettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with(
       "templateInstanceNotAllowed",
       "operationForbidden",
@@ -126,6 +127,15 @@ export const documentGetErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "eServiceNotFound",
       "eServiceDescriptorNotFound",
       "eServiceDocumentNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const documentListErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -176,6 +186,7 @@ export const createDescriptorErrorMapper = (
       "draftDescriptorAlreadyExists",
       "attributeNotFound",
       "inconsistentDailyCalls",
+      "attributeDuplicatedInGroup",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -213,6 +224,7 @@ export const updateDraftDescriptorErrorMapper = (
       "inconsistentDailyCalls",
       "attributeNotFound",
       "templateInstanceNotAllowed",
+      "attributeDuplicatedInGroup",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -475,6 +487,7 @@ export const updateDescriptorAttributesErrorMapper = (
     .with(
       "inconsistentAttributesSeedGroupsCount",
       "descriptorAttributeGroupSupersetMissingInAttributesSeed",
+      "attributeDuplicatedInGroup",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -565,6 +578,7 @@ export const updateTemplateInstanceDescriptorAttributesErrorMapper = (
     .with(
       "inconsistentAttributesSeedGroupsCount",
       "descriptorAttributeGroupSupersetMissingInAttributesSeed",
+      "attributeDuplicatedInGroup",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -611,7 +625,7 @@ export const addEServiceTemplateInstanceInterfaceErrorMapper = (
   match(error.code)
     .with(
       "eserviceTemplateInterfaceDataNotValid",
-      "invalidInterfaceContentTypeDetected",
+      "invalidContentTypeDetected",
       "documentPrettyNameDuplicate",
       "notValidDescriptor",
       () => HTTP_STATUS_BAD_REQUEST
