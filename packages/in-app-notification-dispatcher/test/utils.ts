@@ -1,14 +1,23 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { Agreement, EService, Purpose, Tenant } from "pagopa-interop-models";
+import {
+  Agreement,
+  Delegation,
+  EService,
+  Purpose,
+  Tenant,
+} from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertDelegation,
   upsertEService,
   upsertPurpose,
   upsertTenant,
@@ -28,15 +37,20 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
+  delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
+  purposeReadModelServiceSQL,
 });
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
@@ -53,6 +67,12 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await upsertPurpose(readModelDB, purpose, 0);
+};
+
+export const addOneDelegation = async (
+  delegation: Delegation
+): Promise<void> => {
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 afterEach(cleanup);
