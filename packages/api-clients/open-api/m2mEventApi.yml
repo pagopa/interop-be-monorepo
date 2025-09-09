@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: M2M Events Manager
-  description: This service is the M2M events manager
+  description: HTTP service to manage M2M Events
   version: "{{version}}"
   contact:
     name: API Support
@@ -12,50 +12,38 @@ info:
   x-summary: an x-summary
 servers:
   - url: "/"
-    description: This service is the M2M events manager
+    description: HTTP service to manage M2M Events
 security:
   - bearerAuth: []
 tags:
-  - name: m2mEvent
-    description: Implements M2M events manager
-    externalDocs:
-      description: Find out more
-      url: http://swagger.io
+  - name: m2mEvents
+    description: M2M Events routes
   - name: health
     description: Verify service status
-    externalDocs:
-      description: Find out more
-      url: http://swagger.io
 paths:
-  /eservice:
+  /eservices:
     get:
       tags:
-        - m2mEvent
+        - m2mEvents
       summary: Get paginated eservice m2m events
       description: Returns a paginated list of eservice m2m events
       operationId: getEServiceM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
         - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/DelegationId'
       responses:
         "200":
-          description: Paginated eservice m2m events list
+          description: E-Service M2M events retrieved
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: false
-                properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/EServiceM2MEvent"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
-                required:
-                  - results
-                  - pagination
+                $ref: "#/components/schemas/EServiceM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -68,31 +56,29 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /agreement:
+  /agreements:
     get:
       tags:
-        - m2mEvent
+        - m2mEvents
       summary: Get paginated agreement m2m events
       description: Returns a paginated list of agreement m2m events
       operationId: getAgreementM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
         - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/DelegationId'
       responses:
         "200":
-          description: Paginated agreement m2m events list
+          description: Agreement M2M events retrieved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/AgreementM2MEvent"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
+                $ref: "#/components/schemas/AgreementM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -105,31 +91,29 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /purpose:
+  /purposes:
     get:
       tags:
-        - m2mEvent
+        - m2mEvents
       summary: Get paginated purpose m2m events
       description: Returns a paginated list of purpose m2m events
       operationId: getPurposeM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
         - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/DelegationId'
       responses:
         "200":
-          description: Paginated purpose m2m events list
+          description: Purpose M2M events retrieved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/PurposeM2MEvent"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
+                $ref: "#/components/schemas/PurposeM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -142,31 +126,29 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /tenant:
+  /tenants:
     get:
       tags:
-        - m2mEvent
+        - m2mEvents
       summary: Get paginated tenant m2m events
       description: Returns a paginated list of tenant m2m events
       operationId: getTenantM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
         - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/DelegationId'
       responses:
         "200":
-          description: Paginated tenant m2m events list
+          description: Tenant M2M events retrieved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/TenantM2MEvent"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
+                $ref: "#/components/schemas/TenantM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -179,31 +161,29 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /attribute:
+  /attributes:
     get:
       tags:
-        - m2mEvent
+        - m2mEvents
       summary: Get paginated attribute m2m events
       description: Returns a paginated list of attribute m2m events
       operationId: getAttributeM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
         - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/DelegationId'
       responses:
         "200":
-          description: Paginated attribute m2m events list
+          description: Attribute M2M events retrieved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/AttributeM2MEvent"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
+                $ref: "#/components/schemas/AttributeM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -216,31 +196,29 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /consumer-delegation:
+  /consumerDelegations:
     get:
       tags:
-        - m2mEvent
+        - m2mEvents
       summary: Get paginated consumer delegation m2m events
       description: Returns a paginated list of consumer delegation m2m events
       operationId: getConsumerDelegationM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
         - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/DelegationId'
       responses:
         "200":
-          description: Paginated consumer delegation m2m events list
+          description: Consumer Delegation M2M events retrieved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/ConsumerDelegationM2MEvent"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
+                $ref: "#/components/schemas/ConsumerDelegationM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -253,31 +231,29 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /producer-delegation:
+  /producerDelegations:
     get:
       tags:
-        - m2mEvent
+        - m2mEvents
       summary: Get paginated producer delegation m2m events
       description: Returns a paginated list of producer delegation m2m events
       operationId: getProducerDelegationM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
         - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/DelegationId'
       responses:
         "200":
-          description: Paginated producer delegation m2m events list
+          description: Producer Delegation M2M events retrieved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/ProducerDelegationM2MEvent"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
+                $ref: "#/components/schemas/ProducerDelegationM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -290,31 +266,29 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /client:
+  /clients:
     get:
       tags:
-        - m2mEvent
+        - m2mEvents
       summary: Get paginated client m2m events
       description: Returns a paginated list of client m2m events
       operationId: getClientM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
         - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/DelegationId'
       responses:
         "200":
-          description: Paginated client m2m events list
+          description: Client M2M events retrieved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/ClientM2MEvent"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
+                $ref: "#/components/schemas/ClientM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -327,31 +301,29 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /producer-keychain:
+  /producerKeychains:
     get:
       tags:
-        - m2mEvent
+        - m2mEvents
       summary: Get paginated producer keychain m2m events
       description: Returns a paginated list of producer keychain m2m events
       operationId: getProducerKeychainM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
         - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/DelegationId'
       responses:
         "200":
-          description: Paginated producer keychain m2m events list
+          description: Producer Keychain M2M events retrieved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/ProducerKeychainM2MEvent"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
+                $ref: "#/components/schemas/ProducerKeychainM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -364,31 +336,29 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /key:
+  /keys:
     get:
       tags:
-        - m2mEvent
+        - m2mEvents
       summary: Get paginated key m2m events
       description: Returns a paginated list of key m2m events
       operationId: getKeyM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
         - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/DelegationId'
       responses:
         "200":
-          description: Paginated key m2m events list
+          description: Key M2M events retrieved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/KeyM2MEvent"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
+                $ref: "#/components/schemas/KeyM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -401,31 +371,29 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /producer-key:
+  /producerKeys:
     get:
       tags:
-        - m2mEvent
+        - m2mEvents
       summary: Get paginated producer key m2m events
       description: Returns a paginated list of producer key m2m events
       operationId: getProducerKeyM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
         - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/DelegationId'
       responses:
         "200":
-          description: Paginated producer key m2m events list
+          description: Producer Key M2M events retrieved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/ProducerKeyM2MEvent"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
+                $ref: "#/components/schemas/ProducerKeyM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -438,31 +406,29 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservice-template:
+  /eserviceTemplates:
     get:
       tags:
-        - m2mEvent
+        - m2mEvents
       summary: Get paginated eservice template m2m events
       description: Returns a paginated list of eservice template m2m events
       operationId: getEServiceTemplateM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
         - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/DelegationId'
       responses:
         "200":
-          description: Paginated eservice template m2m events list
+          description: E-Service Template M2M events retrieved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  results:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/EServiceTemplateM2MEvent"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
+                $ref: "#/components/schemas/EServiceTemplateM2MEvents"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -508,12 +474,6 @@ components:
         format: int32
         minimum: 1
         maximum: 50
-    DelegationId:
-      in: query
-      name: delegationId
-      schema:
-        type: string
-        format: uuid
     CorrelationIdHeader:
       in: header
       name: X-Correlation-Id
@@ -544,19 +504,13 @@ components:
         - type
         - eserviceId
         - createdAt                
-    EServiceM2MEvents:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/EServiceM2MEvent"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination  
+    EServiceM2MEvents:  
+      type: object  
+      properties:  
+        events:  
+          type: array  
+          items:  
+            $ref: "#/components/schemas/EServiceM2MEvent"  
     AgreementM2MEvent:
       type: object
       additionalProperties: false
@@ -578,18 +532,12 @@ components:
         - agreementId
         - createdAt
     AgreementM2MEvents:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/AgreementM2MEvent"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
+      type: object  
+      properties:  
+        events:  
+          type: array  
+          items:  
+            $ref: "#/components/schemas/AgreementM2MEvent"  
     PurposeM2MEvent:
       type: object
       additionalProperties: false
@@ -615,18 +563,12 @@ components:
         - versionId
         - createdAt
     PurposeM2MEvents:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/PurposeM2MEvent"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
+      type: object  
+      properties:  
+        events:  
+          type: array  
+          items:  
+            $ref: "#/components/schemas/PurposeM2MEvent"  
     TenantM2MEvent:
       type: object
       additionalProperties: false
@@ -648,18 +590,12 @@ components:
         - tenantId
         - createdAt
     TenantM2MEvents:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/TenantM2MEvent"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
+      type: object  
+      properties:  
+        events:  
+          type: array  
+          items:  
+            $ref: "#/components/schemas/TenantM2MEvent"  
     AttributeM2MEvent:
       type: object
       additionalProperties: false
@@ -681,18 +617,12 @@ components:
         - attributeId
         - createdAt
     AttributeM2MEvents:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/AttributeM2MEvent"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
+      type: object  
+      properties:  
+        events:  
+          type: array  
+          items:  
+            $ref: "#/components/schemas/AttributeM2MEvent"  
     ConsumerDelegationM2MEvent:
       type: object
       additionalProperties: false
@@ -714,18 +644,12 @@ components:
         - delegationId
         - createdAt
     ConsumerDelegationM2MEvents:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/ConsumerDelegationM2MEvent"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
+      type: object  
+      properties:  
+        events:  
+          type: array  
+          items:  
+            $ref: "#/components/schemas/ConsumerDelegationM2MEvent"  
     ProducerDelegationM2MEvent:
       type: object
       additionalProperties: false
@@ -747,18 +671,12 @@ components:
         - delegationId
         - createdAt
     ProducerDelegationM2MEvents:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/ProducerDelegationM2MEvent"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
+      type: object  
+      properties:  
+        events:  
+          type: array  
+          items:  
+            $ref: "#/components/schemas/ProducerDelegationM2MEvent"  
     ClientM2MEvent:
       type: object
       additionalProperties: false
@@ -780,18 +698,12 @@ components:
         - clientId
         - createdAt
     ClientM2MEvents:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/ClientM2MEvent"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
+      type: object  
+      properties:  
+        events:  
+          type: array  
+          items:  
+            $ref: "#/components/schemas/ClientM2MEvent"  
     ProducerKeychainM2MEvent:
       type: object
       additionalProperties: false
@@ -813,18 +725,12 @@ components:
         - keychainId
         - createdAt
     ProducerKeychainM2MEvents:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/ProducerKeychainM2MEvent"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
+      type: object  
+      properties:  
+        events:  
+          type: array  
+          items:  
+            $ref: "#/components/schemas/ProducerKeychainM2MEvent"  
     KeyM2MEvent:
       type: object
       additionalProperties: false
@@ -846,18 +752,12 @@ components:
         - kid
         - createdAt
     KeyM2MEvents:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/KeyM2MEvent"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
+      type: object  
+      properties:  
+        events:  
+          type: array  
+          items:  
+            $ref: "#/components/schemas/KeyM2MEvent"  
     ProducerKeyM2MEvent:
       type: object
       additionalProperties: false
@@ -879,18 +779,12 @@ components:
         - kid
         - createdAt
     ProducerKeyM2MEvents:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/ProducerKeyM2MEvent"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
+      type: object  
+      properties:  
+        events:  
+          type: array  
+          items:  
+            $ref: "#/components/schemas/ProducerKeyM2MEvent"  
     EServiceTemplateM2MEvent:
       type: object
       additionalProperties: false
@@ -915,33 +809,12 @@ components:
         - templateId
         - createdAt
     EServiceTemplateM2MEvents:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/EServiceTemplateM2MEvent"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
-    Pagination:
-      type: object
-      additionalProperties: false
-      properties:
-        lastEventId:
-          type: string
-          format: uuid
-        limit:
-          type: integer
-          format: int32
-          minimum: 1
-          maximum: 50
-      required:
-        - lastEventId
-        - limit
+      type: object  
+      properties:  
+        events:  
+          type: array  
+          items:  
+            $ref: "#/components/schemas/EServiceTemplateM2MEvent"  
     Problem:
       properties:
         type:

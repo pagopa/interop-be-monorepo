@@ -13,85 +13,85 @@ export function m2mEventServiceBuilder(_db: ReturnType<typeof drizzle>) {
       _lastEventId: string,
       _limit: number,
       _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown> {
-      return { results: [], pagination: {} };
+    ): Promise<unknown[]> {
+      return [];
     },
     async getAgreementM2MEvents(
       _lastEventId: string,
       _limit: number,
       _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown> {
-      return { results: [], pagination: {} };
+    ): Promise<unknown[]> {
+      return [];
     },
     async getPurposeM2MEvents(
       _lastEventId: string,
       _limit: number,
       _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown> {
-      return { results: [], pagination: {} };
+    ): Promise<unknown[]> {
+      return [];
     },
     async getTenantM2MEvents(
       _lastEventId: string,
       _limit: number,
       _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown> {
-      return { results: [], pagination: {} };
+    ): Promise<unknown[]> {
+      return [];
     },
     async getAttributeM2MEvents(
       _lastEventId: string,
       _limit: number,
       _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown> {
-      return { results: [], pagination: {} };
+    ): Promise<unknown[]> {
+      return [];
     },
     async getConsumerDelegationM2MEvents(
       _lastEventId: string,
       _limit: number,
       _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown> {
-      return { results: [], pagination: {} };
+    ): Promise<unknown[]> {
+      return [];
     },
     async getProducerDelegationM2MEvents(
       _lastEventId: string,
       _limit: number,
       _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown> {
-      return { results: [], pagination: {} };
+    ): Promise<unknown[]> {
+      return [];
     },
     async getClientM2MEvents(
       _lastEventId: string,
       _limit: number,
       _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown> {
-      return { results: [], pagination: {} };
+    ): Promise<unknown[]> {
+      return [];
     },
     async getProducerKeychainM2MEvents(
       _lastEventId: string,
       _limit: number,
       _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown> {
-      return { results: [], pagination: {} };
+    ): Promise<unknown[]> {
+      return [];
     },
     async getKeyM2MEvents(
       _lastEventId: string,
       _limit: number,
       _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown> {
-      return { results: [], pagination: {} };
+    ): Promise<unknown[]> {
+      return [];
     },
     async getProducerKeyM2MEvents(
       _lastEventId: string,
       _limit: number,
       _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown> {
-      return { results: [], pagination: {} };
+    ): Promise<unknown[]> {
+      return [];
     },
     async getEServiceTemplateM2MEvents(
       _lastEventId: string,
       _limit: number,
       _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown> {
-      return { results: [], pagination: {} };
+    ): Promise<unknown[]> {
+      return [];
     },
   };
 }

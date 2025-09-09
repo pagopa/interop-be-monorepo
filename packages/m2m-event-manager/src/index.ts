@@ -11,7 +11,7 @@ const pool = new pg.Pool({
   user: config.m2mEventSQLDbUsername,
   password: config.m2mEventSQLDbPassword,
   port: config.m2mEventSQLDbPort,
-  ssl: config.m2mEventSQLDbUseSSL,
+  ssl: config.m2mEventSQLDbUseSSL ? { rejectUnauthorized: false } : undefined,
 });
 const db = drizzle({ client: pool });
 
