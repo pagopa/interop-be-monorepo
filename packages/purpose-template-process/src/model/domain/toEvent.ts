@@ -49,3 +49,27 @@ export function toCreateEventPurposeTemplateEServiceLinked(
     },
   };
 }
+
+export function toCreateEventEServiceDescriptorUnlinked(
+  eServiceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate,
+  purposeTemplate: PurposeTemplate,
+  eservice: EService,
+  correlationId: CorrelationId,
+  version: number | undefined
+): CreateEvent<PurposeTemplateEventV2> {
+  return {
+    streamId: eServiceDescriptorPurposeTemplate.purposeTemplateId,
+    version,
+    correlationId,
+    event: {
+      type: "PurposeTemplateEServiceUnlinked",
+      event_version: 2,
+      data: {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eservice: toEServiceV2(eservice),
+        descriptorId: eServiceDescriptorPurposeTemplate.descriptorId,
+        createdAt: dateToBigInt(eServiceDescriptorPurposeTemplate.createdAt),
+      },
+    },
+  };
+}

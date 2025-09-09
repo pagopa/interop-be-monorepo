@@ -9,6 +9,7 @@ type PurposeTemplateValidationIssueCode =
   | "eserviceNotFound"
   | "unexpectedAssociationEServiceError"
   | "eserviceAlreadyAssociated"
+  | "eserviceNotAssociated"
   | "missingDescriptor"
   | "invalidDescriptorState";
 
@@ -74,6 +75,16 @@ export function eserviceAlreadyAssociatedError(
   return new PurposeTemplateValidationIssue({
     code: "eserviceAlreadyAssociated",
     detail: `EService ${eserviceId} is already associated with purpose template ${purposeTemplateId}`,
+  });
+}
+
+export function eserviceNotAssociatedError(
+  eserviceId: EServiceId,
+  purposeTemplateId: PurposeTemplateId
+): PurposeTemplateValidationIssue {
+  return new PurposeTemplateValidationIssue({
+    code: "eserviceNotAssociated",
+    detail: `EService ${eserviceId} is not associated with purpose template ${purposeTemplateId}`,
   });
 }
 
