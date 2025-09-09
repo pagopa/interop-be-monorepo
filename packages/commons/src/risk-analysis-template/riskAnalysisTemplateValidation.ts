@@ -110,7 +110,7 @@ export function validatePurposeTemplateRiskAnalysis(
 }
 
 function validateTemplateFormAnswers(
-  answers: RiskAnalysisFormTemplateToValidate["answers"],
+  answers: Record<string, RiskAnalysisTemplateAnswerToValidate>,
   validationRules: ValidationRule[]
 ): Array<
   RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>
