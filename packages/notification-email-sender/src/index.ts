@@ -371,7 +371,14 @@ function processMessage(topicHandlers: TopicHandlers) {
     const notificationEmailSenderService =
       buildNotificationEmailSenderService();
 
-    await handleMessage(notificationEmailSenderService, loggerInstance);
+    try {
+      await handleMessage(notificationEmailSenderService, loggerInstance);
+    } catch (error) {
+      loggerInstance.error(
+        `Error processing message: ${error}. Message will be committed to prevent reprocessing.`
+      );
+      // Intentionally not re-throwing to ensure message gets committed
+    }
   };
 }
 
