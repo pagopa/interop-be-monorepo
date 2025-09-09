@@ -176,12 +176,13 @@ async function validateEServiceAssociations(
   readModelService: ReadModelServiceSQL
 ): Promise<PurposeTemplateValidationIssue[]> {
   const associationValidationResults = await Promise.allSettled(
-    validEservices.map(async (eservice) => {
-      await readModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
-        purposeTemplateId,
-        eservice.id
-      );
-    })
+    validEservices.map(
+      async (eservice) =>
+        await readModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
+          purposeTemplateId,
+          eservice.id
+        )
+    )
   );
 
   return associationValidationResults.flatMap((result, index) => {
