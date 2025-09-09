@@ -52,7 +52,7 @@ describe("API POST /purposeTemplates", () => {
       const res = await makeRequest(token, validPurposeTemplateSeed);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(
-        purposeTemplateToApiPurposeTemplate(mockPurposeTemplate, true)
+        purposeTemplateToApiPurposeTemplate(mockPurposeTemplate)
       );
       expect(res.headers["x-metadata-version"]).toBe(
         purposeTemplateResponse.metadata.version.toString()
