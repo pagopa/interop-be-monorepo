@@ -25,7 +25,7 @@
     >
       <!-- H4 Desktop (from MUI Italia)-->
       <h1 style="font-size: 32px; line-height: 40px; margin: 0">
-        È disponibile una nuova versione di e-service
+        Richiesta di fruizione accettata
       </h1>
     </div>
   </td>
@@ -54,7 +54,10 @@
         color: #17324d;
       "
     >
-      <p style="margin-bottom: 0px">Gentile aderente,</p>
+      <p style="margin-bottom: 0px">
+        Gentile
+        <strong>{{ consumerName }}</strong>,
+      </p>
     </div>
   </td>
 </tr>
@@ -76,12 +79,21 @@
     >
       <!-- Body 1 Desktop (from MUI Italia)-->
       <p>
-        È disponibile una nuova versione ({{ eserviceVersion }}) per l'e-service
-        "{{ eserviceName }}", pubblicato da {{ producerName }}. Per continuare a
-        fruire del servizio senza interruzioni e beneficiare degli
-        aggiornamenti, ti invitiamo ad adeguare la tua richiesta.
+        L'ente erogatore {{ producerName }} ha sospeso la versione {{
+        eserviceVersion }} dell'e-service "{{ eserviceName }}", a cui sei
+        iscritto. Le chiamate a questa versione sono temporaneamente bloccate
+        fino alla riattivazione dell'e-service.
+      </p>
+      <p>
+        ti informiamo che per l’e-service
+        <strong>{{ eserviceName }}</strong>,
+      </p>
+      <p>
+        è stata accettata la richiesta di fruizione da parte di
+        <strong>{{ producerName }}</strong>, del giorno
+        <strong>{{ submissionDate }}</strong>.
       </p>
     </div>
   </td>
 </tr>
-{{> common-footer}}
+{{> common-footer }}
