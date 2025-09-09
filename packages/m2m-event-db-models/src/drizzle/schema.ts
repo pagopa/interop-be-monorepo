@@ -10,10 +10,9 @@ export const eserviceInM2MEvent = m2mEvent.table("eservice", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-    mode: "string",
-  }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
   visibility: varchar().notNull(),
   producerId: uuid("producer_id"),
   producerDelegateId: uuid("producer_delegate_id"),
@@ -28,10 +27,9 @@ export const eserviceTemplateInM2MEvent = m2mEvent.table("eservice_template", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-    mode: "string",
-  }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
   visibility: varchar().notNull(),
   creatorId: uuid("creator_id"),
 });
@@ -44,10 +42,9 @@ export const agreementInM2MEvent = m2mEvent.table("agreement", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-    mode: "string",
-  }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
   visibility: varchar().notNull(),
   consumerId: uuid("consumer_id"),
   producerId: uuid("producer_id"),
@@ -64,10 +61,9 @@ export const purposeInM2MEvent = m2mEvent.table("purpose", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-    mode: "string",
-  }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
   visibility: varchar().notNull(),
   consumerId: uuid("consumer_id"),
   producerId: uuid("producer_id"),
@@ -83,10 +79,9 @@ export const tenantInM2MEvent = m2mEvent.table("tenant", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-    mode: "string",
-  }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
 });
 
 export const attributeInM2MEvent = m2mEvent.table("attribute", {
@@ -97,10 +92,9 @@ export const attributeInM2MEvent = m2mEvent.table("attribute", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-    mode: "string",
-  }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
 });
 
 export const consumerDelegationInM2MEvent = m2mEvent.table(
@@ -113,10 +107,9 @@ export const consumerDelegationInM2MEvent = m2mEvent.table(
       withTimezone: true,
       mode: "string",
     }).notNull(),
-    createdAt: timestamp("created_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
   }
 );
 
@@ -130,10 +123,9 @@ export const producerDelegationInM2MEvent = m2mEvent.table(
       withTimezone: true,
       mode: "string",
     }).notNull(),
-    createdAt: timestamp("created_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
   }
 );
 
@@ -145,10 +137,9 @@ export const clientInM2MEvent = m2mEvent.table("client", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-    mode: "string",
-  }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
   visibility: varchar().notNull(),
   consumerId: uuid("consumer_id"),
 });
@@ -161,10 +152,9 @@ export const producerKeychainInM2MEvent = m2mEvent.table("producer_keychain", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-    mode: "string",
-  }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
   visibility: varchar().notNull(),
   producerId: uuid("producer_id"),
 });
@@ -177,10 +167,9 @@ export const keyInM2MEvent = m2mEvent.table("key", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-    mode: "string",
-  }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
   visibility: varchar().notNull(),
   consumerId: uuid("consumer_id"),
 });
@@ -193,10 +182,9 @@ export const producerKeyInM2MEvent = m2mEvent.table("producer_key", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-    mode: "string",
-  }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
   visibility: varchar().notNull(),
   producerId: uuid("producer_id"),
 });
