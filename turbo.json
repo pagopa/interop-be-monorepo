@@ -77,7 +77,7 @@
     },
     "generate-db-models": {
       "dependsOn": ["//#infra:start", "^generate-db-models"],
-      "outputs": ["src/drizzle/schema.ts"]
+      "outputs": ["src/generated/**"]
     }
   }
 }
