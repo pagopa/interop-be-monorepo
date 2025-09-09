@@ -12,6 +12,7 @@ import {
   RiskAnalysisTemplateValidatedForm,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   validatePurposeTemplateRiskAnalysis,
+  eserviceNotAssociatedError,
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
@@ -176,18 +177,21 @@ async function validateEServiceExistence(
 /**
  * Validate the associations between the eservices and the purpose template
  * For each eservice:
- * - Promise.fulfilled: return error if the eservice is already associated with the purpose template
+ * - For "link" operation: return error if the eservice is already associated with the purpose template
+ * - For "unlink" operation: return error if the eservice is not associated with the purpose template
  * - Promise.rejected: return a validation issue with the eservice id and the error message
  * Finally, return the validation issues
  *
  * @param validEservices the list of valid eservices
  * @param purposeTemplateId the purpose template id
+ * @param operationType the type of operation being performed ("link" or "unlink")
  * @param readModelService the read model service to use
  * @returns the validation issues
  */
 async function validateEServiceAssociations(
   validEservices: EService[],
   purposeTemplateId: PurposeTemplateId,
+  operationType: "link" | "unlink",
   readModelService: ReadModelServiceSQL
 ): Promise<PurposeTemplateValidationIssue[]> {
   const associationValidationResults = await Promise.allSettled(
@@ -208,7 +212,10 @@ async function validateEServiceAssociations(
       );
     }
 
-    if (result.status === "fulfilled" && result.value !== undefined) {
+    const isAssociated =
+      result.status === "fulfilled" && result.value !== undefined;
+
+    if (operationType === "link" && isAssociated) {
       return [
         eserviceAlreadyAssociatedError(
           validEservices[index].id,
@@ -216,6 +223,13 @@ async function validateEServiceAssociations(
         ),
       ];
     }
+
+    if (operationType === "unlink" && !isAssociated) {
+      return [
+        eserviceNotAssociatedError(validEservices[index].id, purposeTemplateId),
+      ];
+    }
+
     return [];
   });
 }
@@ -280,6 +294,7 @@ function validateEServiceDescriptors(validEservices: EService[]): {
 export async function validateEServicesForPurposeTemplate(
   eserviceIds: EServiceId[],
   purposeTemplateId: PurposeTemplateId,
+  operationType: "link" | "unlink",
   readModelService: ReadModelServiceSQL
 ): Promise<
   PurposeTemplateValidationResult<
@@ -302,6 +317,7 @@ export async function validateEServicesForPurposeTemplate(
   const associationValidationIssues = await validateEServiceAssociations(
     validEservices,
     purposeTemplateId,
+    operationType,
     readModelService
   );
 

@@ -7,6 +7,7 @@ import {
   generateId,
   descriptorState,
 } from "pagopa-interop-models";
+import { eserviceNotAssociatedError } from "pagopa-interop-commons",
 import {
   getMockEService,
   getMockDescriptor,
@@ -71,6 +72,7 @@ describe("Purpose Template Validation", () => {
       const result = await validateEServicesForPurposeTemplate(
         eserviceIds,
         purposeTemplateId,
+        "link",
         mockReadModelService
       );
 
@@ -94,6 +96,7 @@ describe("Purpose Template Validation", () => {
         validateEServicesForPurposeTemplate(
           eserviceIds,
           purposeTemplateId,
+          "link",
           mockReadModelService
         )
       ).rejects.toThrow(
@@ -117,6 +120,7 @@ describe("Purpose Template Validation", () => {
         validateEServicesForPurposeTemplate(
           eserviceIds,
           purposeTemplateId,
+          "link",
           mockReadModelService
         )
       ).rejects.toThrow(
@@ -149,6 +153,7 @@ describe("Purpose Template Validation", () => {
         validateEServicesForPurposeTemplate(
           eserviceIds,
           purposeTemplateId,
+          "link",
           mockReadModelService
         )
       ).rejects.toThrow(
@@ -174,6 +179,7 @@ describe("Purpose Template Validation", () => {
         validateEServicesForPurposeTemplate(
           eserviceIds,
           purposeTemplateId,
+          "link",
           mockReadModelService
         )
       ).rejects.toThrow(
@@ -198,6 +204,7 @@ describe("Purpose Template Validation", () => {
       const result = await validateEServicesForPurposeTemplate(
         eserviceIds,
         purposeTemplateId,
+        "link",
         mockReadModelService
       );
 
@@ -226,6 +233,7 @@ describe("Purpose Template Validation", () => {
       const result = await validateEServicesForPurposeTemplate(
         eserviceIds,
         purposeTemplateId,
+        "link",
         mockReadModelService
       );
 
@@ -236,6 +244,75 @@ describe("Purpose Template Validation", () => {
             descriptorState.published,
             descriptorState.draft,
           ]),
+        ],
+      });
+    });
+
+    it("should return error when trying to unlink eservice that is not associated", async () => {
+      const eserviceIds = [eserviceId1];
+      const mockEService1 = getMockEService(
+        eserviceId1,
+        generateId<TenantId>(),
+        [getMockDescriptor(descriptorState.published)]
+      );
+
+      mockReadModelService.getEServiceById = vi
+        .fn()
+        .mockResolvedValue(mockEService1);
+
+      mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
+        vi.fn().mockResolvedValue(undefined); // No existing association
+
+      const result = await validateEServicesForPurposeTemplate(
+        eserviceIds,
+        purposeTemplateId,
+        "unlink",
+        mockReadModelService
+      );
+
+      expect(result).toEqual({
+        type: "invalid",
+        issues: [eserviceNotAssociatedError(eserviceId1, purposeTemplateId)],
+      });
+    });
+
+    it("should return valid when trying to unlink eservice that is associated", async () => {
+      const eserviceIds = [eserviceId1];
+      const mockDescriptor = getMockDescriptor(descriptorState.published);
+      mockDescriptor.id = descriptorId1;
+      const mockEService1 = getMockEService(
+        eserviceId1,
+        generateId<TenantId>(),
+        [mockDescriptor]
+      );
+
+      const existingAssociation = {
+        eserviceId: eserviceId1,
+        descriptorId: descriptorId1,
+        purposeTemplateId,
+      };
+
+      mockReadModelService.getEServiceById = vi
+        .fn()
+        .mockResolvedValue(mockEService1);
+
+      mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
+        vi.fn().mockResolvedValue(existingAssociation);
+
+      const result = await validateEServicesForPurposeTemplate(
+        eserviceIds,
+        purposeTemplateId,
+        "unlink",
+        mockReadModelService
+      );
+
+      expect(result).toEqual({
+        type: "valid",
+        value: [
+          {
+            eservice: mockEService1,
+            descriptorId: descriptorId1,
+          },
         ],
       });
     });
