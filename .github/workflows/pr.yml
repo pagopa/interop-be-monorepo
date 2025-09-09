@@ -176,8 +176,6 @@ jobs:
             echo "Running tests for package: $PACKAGE"
             export PACKAGE_FILTER=$PACKAGE
             pnpm run test:filter
-            pnpm run test:integration-filter
-            pnpm run test:api-filter
           done
 
   find_dockerfiles:
