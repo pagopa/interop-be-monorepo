@@ -7,7 +7,7 @@ import {
   fromPurposeV2,
   fromPurposeVersionStateV2,
   generateId,
-  genericInternalError,
+  missingKafkaMessageDataError,
   PurposeEventV2,
   PurposeStateV2,
 } from "pagopa-interop-models";
@@ -35,7 +35,7 @@ export const handlePurposeMessageV2 = async (
     match(purposeV2)
       .with({ type: P.union("PurposeAdded", "PurposeCloned") }, (event) => {
         if (!event.data.purpose?.id) {
-          throw new Error(`Purpose id can't be missing on event message`);
+          throw missingKafkaMessageDataError("purposeId", event.type);
         }
 
         const eventName = event.type;
@@ -53,9 +53,7 @@ export const handlePurposeMessageV2 = async (
       })
       .with({ type: "PurposeActivated" }, (event) => {
         if (!event.data.purpose?.id) {
-          throw new Error(
-            `Skipping PurposeActivated event due to missing purpose ID.`
-          );
+          throw missingKafkaMessageDataError("purposeId", event.type);
         }
 
         const eventName = event.type;
@@ -74,9 +72,7 @@ export const handlePurposeMessageV2 = async (
       })
       .with({ type: "PurposeArchived" }, (event) => {
         if (!event.data.purpose?.id) {
-          throw new Error(
-            `Skipping PurposeArchived event due to missing purpose ID.`
-          );
+          throw missingKafkaMessageDataError("purposeId", event.type);
         }
 
         const id = event.data.purpose.id;
@@ -114,9 +110,7 @@ export const handlePurposeMessageV2 = async (
         },
         (event) => {
           if (!event.data.purpose?.id || !event.data.versionId) {
-            throw genericInternalError(
-              `Skipping managed Purpose Version event ${event.type} due to missing purpose ID or version ID.`
-            );
+            throw missingKafkaMessageDataError("purposeId", event.type);
           }
 
           const purpose = fromPurposeV2(event.data.purpose);

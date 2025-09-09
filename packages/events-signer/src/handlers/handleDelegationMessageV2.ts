@@ -5,7 +5,7 @@ import {
   DelegationEventV2,
   fromDelegationV2,
   generateId,
-  genericInternalError,
+  missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { FileManager, logger } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
@@ -45,9 +45,7 @@ export const handleDelegationMessageV2 = async (
         },
         (event) => {
           if (!event.data.delegation?.id) {
-            throw genericInternalError(
-              `Skipping managed Delegation event ${event.type} due to missing delegation ID.`
-            );
+            throw missingKafkaMessageDataError("delegationId", event.type);
           }
           const delegation = fromDelegationV2(event.data.delegation);
           const eventName = event.type;

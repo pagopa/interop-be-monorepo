@@ -5,7 +5,7 @@ import {
   EServiceEventV2,
   fromEServiceV2,
   generateId,
-  genericInternalError,
+  missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { FileManager, logger } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
@@ -47,9 +47,7 @@ export const handleCatalogMessageV2 = async (
         },
         (event) => {
           if (!event.data.eservice?.id || !event.data.descriptorId) {
-            throw genericInternalError(
-              `Skipping managed Catalog event ${event.type} due to missing e-service ID or descriptor ID.`
-            );
+            throw missingKafkaMessageDataError("eserviceId", event.type);
           }
           const eservice = fromEServiceV2(event.data.eservice);
           const eventName = event.type;

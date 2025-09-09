@@ -6,7 +6,7 @@ import {
   CorrelationId,
   fromAgreementV2,
   generateId,
-  genericInternalError,
+  missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { FileManager, logger } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
@@ -52,9 +52,7 @@ export const handleAgreementMessageV2 = async (
         },
         (event) => {
           if (!event.data.agreement?.id) {
-            throw genericInternalError(
-              `Skipping managed Agreement event ${event.type} due to missing agreement ID.`
-            );
+            throw missingKafkaMessageDataError("agreementId", event.type);
           }
           const agreement = fromAgreementV2(event.data.agreement);
           const eventName = event.type;

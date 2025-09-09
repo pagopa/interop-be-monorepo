@@ -4,7 +4,7 @@ import {
   AuthorizationEventV2,
   CorrelationId,
   generateId,
-  genericInternalError,
+  missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { FileManager, logger } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
@@ -35,9 +35,7 @@ export const handleAuthorizationMessageV2 = async (
     match(authV2)
       .with({ type: "ClientKeyAdded" }, (event) => {
         if (!event.data.client?.id) {
-          throw genericInternalError(
-            `Skipping ClientKeyAdded event due to missing client ID.`
-          );
+          throw missingKafkaMessageDataError("clientId", event.type);
         }
 
         const clientId = event.data.client.id;
@@ -55,9 +53,7 @@ export const handleAuthorizationMessageV2 = async (
       })
       .with({ type: "ClientKeyDeleted" }, (event) => {
         if (!event.data.client?.id) {
-          throw genericInternalError(
-            `Client id cannot be missing on event ${event.type}`
-          );
+          throw missingKafkaMessageDataError("clientId", event.type);
         }
 
         const clientId = event.data.client.id;
@@ -73,7 +69,7 @@ export const handleAuthorizationMessageV2 = async (
       })
       .with({ type: "ClientDeleted" }, (event) => {
         if (!event.data.client?.id) {
-          throw new Error(`Client id cannot be missing on event ${event.type}`);
+          throw missingKafkaMessageDataError("clientId", event.type);
         }
 
         const clientId = event.data.client.id;
