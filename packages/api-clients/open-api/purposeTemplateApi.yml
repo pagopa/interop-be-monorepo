@@ -107,19 +107,12 @@ paths:
           name: sort
           schema:
             type: string
-            enum:
-              - purposeTitle
-              - targetTenantKind
-              - state
         - in: query
           description: Comma separated sequence of sort directions
           required: false
           name: direction
           schema:
             type: string
-            enum:
-              - asc
-              - desc
       responses:
         "200":
           description: Purpose Templates retrieved
