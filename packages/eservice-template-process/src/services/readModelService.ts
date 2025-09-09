@@ -9,6 +9,7 @@ import {
 import {
   Attribute,
   AttributeId,
+  AttributeKind,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersionState,
@@ -91,11 +92,13 @@ export function readModelServiceBuilder({
     },
 
     async getAttributesByIds(
-      attributesIds: AttributeId[]
+      attributesIds: AttributeId[],
+      kind: AttributeKind
     ): Promise<Attribute[]> {
       const data = await attributes
         .find({
           "data.id": { $in: attributesIds },
+          "data.kind": kind,
         })
         .toArray();
 

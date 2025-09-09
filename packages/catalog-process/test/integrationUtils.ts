@@ -80,7 +80,7 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   eserviceTemplateReadModelServiceSQL
 );
 
-const readModelService =
+export const readModelService =
   config.featureFlagSQL &&
   config.readModelSQLDbHost &&
   config.readModelSQLDbPort

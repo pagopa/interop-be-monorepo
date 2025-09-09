@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   generateId,
-  invalidInterfaceContentTypeDetected,
+  invalidContentTypeDetected,
   invalidInterfaceFileDetected,
 } from "pagopa-interop-models";
 import request from "supertest";
@@ -53,7 +53,7 @@ describe("API POST /import/eservices", () => {
       expectedStatus: 404,
     },
     {
-      error: invalidInterfaceContentTypeDetected(
+      error: invalidContentTypeDetected(
         { id: generateId(), isEserviceTemplate: false },
         "contentType",
         "REST"
