@@ -7,6 +7,7 @@ import {
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
+  toGetEServiceTemplatesQueryParams,
   toM2MGatewayEServiceTemplate,
   toM2MGatewayEServiceTemplateVersion,
 } from "../api/eserviceTemplateApiConverter.js";
@@ -89,6 +90,30 @@ export function eserviceTemplateServiceBuilder(
       }
 
       return toM2MGatewayEServiceTemplateVersion(version);
+    },
+    async getEServiceTemplates(
+      params: m2mGatewayApi.GetEServiceTemplatesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplates> {
+      logger.info(
+        `Retrieving eservice templates with creatorsIds ${params.creatorIds} templatesIds ${params.eserviceTemplateIds} offset ${params.offset} limit ${params.limit}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } = await clients.eserviceTemplateProcessClient.getEServiceTemplates({
+        queries: toGetEServiceTemplatesQueryParams(params),
+        headers,
+      });
+
+      return {
+        results: results.map(toM2MGatewayEServiceTemplate),
+        pagination: {
+          limit: params.limit,
+          offset: params.offset,
+          totalCount,
+        },
+      };
     },
   };
 }
