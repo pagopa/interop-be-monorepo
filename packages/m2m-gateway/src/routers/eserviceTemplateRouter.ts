@@ -103,7 +103,32 @@ const eserviceTemplateRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/eserviceTemplates/:templateId/riskAnalyses", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const riskAnalysis =
+          await eserviceTemplateService.createEServiceTemplateRiskAnalysis(
+            unsafeBrandId(req.params.templateId),
+            req.body,
+            ctx
+          );
+        return res
+          .status(201)
+          .send(m2mGatewayApi.EServiceTemplateRiskAnalysis.parse(riskAnalysis));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating risk analysis for eservice template with id ${req.params.templateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return eserviceTemplateRouter;
 };

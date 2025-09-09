@@ -1,16 +1,27 @@
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
+  RiskAnalysisId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
+  toM2MGatewayApiEServiceTemplateRiskAnalysis,
   toM2MGatewayEServiceTemplate,
   toM2MGatewayEServiceTemplateVersion,
 } from "../api/eserviceTemplateApiConverter.js";
-import { eserviceTemplateVersionNotFound } from "../model/errors.js";
+import {
+  eserviceTemplateRiskAnalysisNotFound,
+  eserviceTemplateVersionNotFound,
+} from "../model/errors.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import {
+  pollResourceWithMetadata,
+  isPolledVersionAtLeastResponseVersion,
+} from "../utils/polling.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
@@ -20,6 +31,45 @@ export type EserviceTemplateService = ReturnType<
 export function eserviceTemplateServiceBuilder(
   clients: PagoPAInteropBeClients
 ) {
+  const retrieveEServiceTemplateRiskAnalysisById = (
+    eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
+    riskAnalysisId: RiskAnalysisId
+  ): eserviceTemplateApi.EServiceTemplateRiskAnalysis => {
+    const riskAnalysis = eserviceTemplate.data.riskAnalysis.find(
+      (r) => r.id === riskAnalysisId
+    );
+
+    if (!riskAnalysis) {
+      throw eserviceTemplateRiskAnalysisNotFound(
+        eserviceTemplate.data.id,
+        riskAnalysisId
+      );
+    }
+
+    return riskAnalysis;
+  };
+
+  const retrieveEServiceTemplateById = async (
+    headers: M2MGatewayAppContext["headers"],
+    templateId: EServiceTemplateId
+  ): Promise<WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>> =>
+    await clients.eserviceTemplateProcessClient.getEServiceTemplateById({
+      params: {
+        templateId,
+      },
+      headers,
+    });
+
+  const pollEServiceTemplate = (
+    response: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrieveEServiceTemplateById(headers, unsafeBrandId(response.data.id))
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
+    });
+
   return {
     async getEServiceTemplateById(
       templateId: EServiceTemplateId,
@@ -89,6 +139,50 @@ export function eserviceTemplateServiceBuilder(
       }
 
       return toM2MGatewayEServiceTemplateVersion(version);
+    },
+
+    async createEServiceTemplateRiskAnalysis(
+      templateId: EServiceTemplateId,
+      body: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateRiskAnalysis> {
+      logger.info(
+        `Creating Risk Analysis for E-Service Template ${templateId}`
+      );
+
+      const {
+        data: { eserviceTemplate, createdRiskAnalysisId },
+        metadata,
+      } =
+        await clients.eserviceTemplateProcessClient.createEServiceTemplateRiskAnalysis(
+          body,
+          {
+            params: { templateId },
+            headers,
+          }
+        );
+
+      await pollEServiceTemplate(
+        {
+          data: eserviceTemplate,
+          metadata,
+        },
+        headers
+      );
+
+      const createdRiskAnalysis = retrieveEServiceTemplateRiskAnalysisById(
+        { data: eserviceTemplate, metadata },
+        unsafeBrandId(createdRiskAnalysisId)
+      );
+
+      if (!createdRiskAnalysis) {
+        throw eserviceTemplateRiskAnalysisNotFound(
+          eserviceTemplate.id,
+          createdRiskAnalysisId
+        );
+      }
+
+      return toM2MGatewayApiEServiceTemplateRiskAnalysis(createdRiskAnalysis);
     },
   };
 }

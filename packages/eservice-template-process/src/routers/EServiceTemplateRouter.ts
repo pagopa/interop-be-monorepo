@@ -7,6 +7,7 @@ import {
   fromAppContext,
   authRole,
   validateAuthorization,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -516,12 +517,22 @@ const eserviceTemplatesRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-        await eserviceTemplateService.createRiskAnalysis(
+        const {
+          data: { eserviceTemplate, createdRiskAnalysisId },
+          metadata,
+        } = await eserviceTemplateService.createRiskAnalysis(
           unsafeBrandId(req.params.templateId),
           req.body,
           ctx
         );
-        return res.status(204).send();
+        setMetadataVersionHeader(res, metadata);
+        return res.status(200).send(
+          eserviceTemplateApi.CreatedEServiceTemplateRiskAnalysis.parse({
+            eserviceTemplate:
+              eserviceTemplateToApiEServiceTemplate(eserviceTemplate),
+            createdRiskAnalysisId,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

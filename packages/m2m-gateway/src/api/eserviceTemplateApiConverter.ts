@@ -32,3 +32,64 @@ export function toM2MGatewayEServiceTemplateVersion(
     suspendedAt: version.suspendedAt,
   };
 }
+
+export function toM2MGatewayApiEServiceTemplateRiskAnalysis(
+  riskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis
+): m2mGatewayApi.EServiceTemplateRiskAnalysis {
+  return {
+    id: riskAnalysis.id,
+    name: riskAnalysis.name,
+    createdAt: riskAnalysis.createdAt,
+    riskAnalysisForm: toM2MGatewayApiRiskAnalysisForm(
+      riskAnalysis.riskAnalysisForm
+    ),
+    tenantKind: riskAnalysis.tenantKind,
+  };
+}
+
+export function toM2MGatewayApiRiskAnalysisForm(
+  riskAnalysisForm: eserviceTemplateApi.EServiceRiskAnalysisForm
+): m2mGatewayApi.RiskAnalysisForm {
+  return {
+    id: riskAnalysisForm.id,
+    version: riskAnalysisForm.version,
+    answers: toM2MGatewayApiRiskAnalysisAnswers(
+      riskAnalysisForm.singleAnswers,
+      riskAnalysisForm.multiAnswers
+    ),
+  };
+}
+
+export function toM2MGatewayApiRiskAnalysisAnswers(
+  singleAnswers: eserviceTemplateApi.EServiceRiskAnalysisSingleAnswer[],
+  multiAnswers: eserviceTemplateApi.EServiceRiskAnalysisMultiAnswer[]
+): Record<string, string[]> {
+  const singleAnswersMap = singleAnswers.reduce<Record<string, string[]>>(
+    (map, { key, value }) => {
+      if (!value) {
+        return map;
+      }
+      // eslint-disable-next-line functional/immutable-data
+      map[key] = [value];
+      return map;
+    },
+    {}
+  );
+
+  const multiAnswersMap = multiAnswers.reduce<Record<string, string[]>>(
+    (map, { key, values }) => {
+      if (values.length === 0) {
+        return map;
+      }
+      // eslint-disable-next-line functional/immutable-data
+      map[key] = values;
+      return map;
+    },
+    {}
+  );
+
+  return {
+    ...singleAnswersMap,
+    ...multiAnswersMap,
+  };
+}
