@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.purpose (
   id UUID NOT NULL,
   type VARCHAR NOT NULL,
   purpose_id UUID NOT NULL,
-  version_id UUID NOT NULL,
+  version_id UUID,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   visibility VARCHAR NOT NULL,
   consumer_id UUID,
