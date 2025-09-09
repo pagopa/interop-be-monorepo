@@ -671,3 +671,20 @@ export const updateTemplateInstanceDescriptorErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateEServicePersonalDataErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "operationForbidden",
+      "templateInstanceNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "eserviceWithoutValidDescriptors",
+      "eservicePersonalDataCanOnlyBeSetOnce",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

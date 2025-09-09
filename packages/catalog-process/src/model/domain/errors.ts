@@ -52,6 +52,7 @@ export const errorCodes = {
   descriptorTemplateVersionNotFound: "0037",
   templateMissingRequiredRiskAnalysis: "0038",
   eserviceTemplateNameConflict: "0039",
+  eservicePersonalDataCanOnlyBeSetOnce: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -449,5 +450,15 @@ export function templateMissingRequiredRiskAnalysis(
     detail: `Template ${templateId} cannot be instantiated: no risk analysis found for tenant ${tenantId} with kind ${tenantKind}`,
     code: "templateMissingRequiredRiskAnalysis",
     title: "Missing required risk analysis",
+  });
+}
+
+export function eservicePersonalDataCanOnlyBeSetOnce(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `PersonalData flag has already been set for eService ${eserviceId}`,
+    code: "eservicePersonalDataCanOnlyBeSetOnce",
+    title: "EService personalData can only be set once",
   });
 }
