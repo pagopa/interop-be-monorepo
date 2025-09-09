@@ -16,6 +16,7 @@ import request from "supertest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
+  attributeDuplicatedInGroup,
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
   inconsistentAttributesSeedGroupsCount,
@@ -142,6 +143,10 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/attributes
     {
       error: operationForbidden,
       expectedStatus: 403,
+    },
+    {
+      error: attributeDuplicatedInGroup(generateId()),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

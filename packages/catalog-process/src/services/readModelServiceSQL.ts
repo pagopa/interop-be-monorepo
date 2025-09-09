@@ -28,6 +28,11 @@ import {
   DescriptorState,
   delegationState,
   delegationKind,
+  Document,
+  unsafeBrandId,
+  EServiceDocumentId,
+  stringToDate,
+  AttributeKind,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -67,6 +72,7 @@ import {
 } from "pagopa-interop-readmodel-models";
 import {
   and,
+  asc,
   count,
   countDistinct,
   desc,
@@ -688,12 +694,18 @@ export function readModelServiceBuilderSQL(
     },
 
     async getAttributesByIds(
-      attributesIds: AttributeId[]
+      attributesIds: AttributeId[],
+      kind: AttributeKind
     ): Promise<Attribute[]> {
       const res = await readmodelDB
         .select()
         .from(attributeInReadmodelAttribute)
-        .where(inArray(attributeInReadmodelAttribute.id, attributesIds))
+        .where(
+          and(
+            inArray(attributeInReadmodelAttribute.id, attributesIds),
+            eq(attributeInReadmodelAttribute.kind, kind)
+          )
+        )
         .orderBy(attributeInReadmodelAttribute.name);
 
       const attributes = aggregateAttributeArray(res);
@@ -764,6 +776,59 @@ export function readModelServiceBuilderSQL(
       const templateWithMetadata =
         await eserviceTemplateReadModelService.getEServiceTemplateById(id);
       return templateWithMetadata?.data;
+    },
+    async getEServiceDescriptorDocuments(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<Document>> {
+      const resultsSet = await readmodelDB
+        .select(
+          withTotalCount({
+            id: eserviceDescriptorDocumentInReadmodelCatalog.id,
+            path: eserviceDescriptorDocumentInReadmodelCatalog.path,
+            name: eserviceDescriptorDocumentInReadmodelCatalog.name,
+            prettyName: eserviceDescriptorDocumentInReadmodelCatalog.prettyName,
+            contentType:
+              eserviceDescriptorDocumentInReadmodelCatalog.contentType,
+            checksum: eserviceDescriptorDocumentInReadmodelCatalog.checksum,
+            uploadDate: eserviceDescriptorDocumentInReadmodelCatalog.uploadDate,
+          })
+        )
+        .from(eserviceDescriptorDocumentInReadmodelCatalog)
+        .where(
+          and(
+            eq(
+              eserviceDescriptorDocumentInReadmodelCatalog.eserviceId,
+              eserviceId
+            ),
+            eq(
+              eserviceDescriptorDocumentInReadmodelCatalog.descriptorId,
+              descriptorId
+            )
+          )
+        )
+        .orderBy(asc(eserviceDescriptorDocumentInReadmodelCatalog.uploadDate))
+        .limit(limit)
+        .offset(offset)
+        .$dynamic();
+
+      return createListResult(
+        resultsSet.map(
+          (doc) =>
+            ({
+              id: unsafeBrandId<EServiceDocumentId>(doc.id),
+              path: doc.path,
+              name: doc.name,
+              prettyName: doc.prettyName,
+              contentType: doc.contentType,
+              checksum: doc.checksum,
+              uploadDate: stringToDate(doc.uploadDate),
+            } satisfies Document)
+        ),
+        resultsSet[0]?.totalCount
+      );
     },
   };
 }

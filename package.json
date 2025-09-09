@@ -8,6 +8,7 @@
   "scripts": {
     "start:catalog": "turbo start --filter pagopa-interop-catalog-process",
     "start:catalog-readmodel-writer": "turbo start --filter pagopa-interop-catalog-readmodel-writer",
+    "start:catalog-readmodel-writer-sql": "turbo start --filter pagopa-interop-catalog-readmodel-writer-sql",
     "start:catalog-platformstate-writer": "turbo start --filter pagopa-interop-catalog-platformstate-writer",
     "start:agreement": "turbo start --filter pagopa-interop-agreement-process",
     "start:agreement-readmodel-writer": "turbo start --filter pagopa-interop-agreement-readmodel-writer",
@@ -29,6 +30,7 @@
     "start:key-readmodel-writer": "turbo start --filter pagopa-interop-key-readmodel-writer",
     "start:producer-key-readmodel-writer": "turbo start --filter pagopa-interop-producer-key-readmodel-writer",
     "start:producer-keychain-readmodel-writer": "turbo start --filter pagopa-interop-producer-keychain-readmodel-writer",
+    "start:producer-keychain-readmodel-writer-sql": "turbo start --filter pagopa-interop-producer-keychain-readmodel-writer-sql",
     "start:bff": "turbo start --filter pagopa-interop-backend-for-frontend",
     "start:api-gateway": "turbo start --filter pagopa-interop-api-gateway",
     "start:anac-certified-attributes-importer": "turbo start --filter pagopa-interop-anac-certified-attributes-importer",
