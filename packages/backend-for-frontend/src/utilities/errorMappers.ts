@@ -157,7 +157,7 @@ export const createEServiceDocumentErrorMapper = (
   match(error.code)
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "invalidInterfaceContentTypeDetected",
+      "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
       () => HTTP_STATUS_BAD_REQUEST
@@ -170,7 +170,7 @@ export const createEServiceTemplateDocumentErrorMapper = (
   match(error.code)
     .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "invalidInterfaceContentTypeDetected",
+      "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
       () => HTTP_STATUS_BAD_REQUEST
@@ -242,7 +242,7 @@ export const addEServiceInterfaceByTemplateErrorMapper = (
       "eserviceTemplateNotFound",
       "eserviceTemplateInterfaceNotFound",
       "eserviceTemplateInterfaceDataNotValid",
-      "invalidInterfaceContentTypeDetected",
+      "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "interfaceExtractingInfoError",
       "templateDataNotFound",
