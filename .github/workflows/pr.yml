@@ -90,37 +90,23 @@ jobs:
         run: |
           PACKAGES_JSON="${{ steps.get_packages.outputs.packages }}"
           PACKAGES=$(echo "$PACKAGES_JSON" | jq -r '.[]')
-          
+          PACK_NUM=$(echo "$PACKAGES" | jq -r 'length')
           NUM_SHARDS=10
-          SHARDS=()
-          for i in $(seq 0 $((NUM_SHARDS-1))); do
-              SHARDS[$i]=""
-          done
-          
-          INDEX=0
-          while read -r PACKAGE; do
-              if [[ -n "$PACKAGE" ]]; then
-                  SHARDS[$((INDEX % NUM_SHARDS))]+="\"$PACKAGE\","
-                  INDEX=$((INDEX + 1))
-              fi
-          done <<< "$PACKAGES"
-          
-          JSON_OUTPUT="["
-          for SHARD in "${SHARDS[@]}"; do
-              if [[ -n "$SHARD" ]]; then
-                  JSON_OUTPUT+="["
-                  JSON_OUTPUT+="${SHARD::-1}"
-                  JSON_OUTPUT+="],"
-              fi
-          done
-          
-          JSON_OUTPUT=${JSON_OUTPUT::-1}
-          JSON_OUTPUT+="]"
-          
-          echo "matrix=$JSON_OUTPUT" >> $GITHUB_OUTPUT
 
-  lint_sharded:
-    name: Run lint on shard ${{ matrix.shard_index }}
+          matrix=$(echo "$PACKAGES" | jq --argjson shardNum "$NUM_SHARDS" --argjson packs "$PACKAGES" --argjson len "$PACK_NUM" -n '
+            [range(0; $shardNum) as $i |
+            {
+              shardIndex: ($i + 1),
+              packages: ($packs[
+              ($i * $len / $shardNum | floor):
+              (($i + 1) * $len / $shardNum | floor)
+              ])
+            }
+            ]')
+
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+  lint:
+    name: Lint sharded
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -129,27 +115,6 @@ jobs:
       fail-fast: false
       matrix:
         shard: ${{ fromJson(needs.packages_sharding.outputs.matrix) }}
-        include:
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[0] }}
-            shard_index: 1
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[1] }}
-            shard_index: 2
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[2] }}
-            shard_index: 3
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[3] }}
-            shard_index: 4
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[4] }}
-            shard_index: 5
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[5] }}
-            shard_index: 6
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[6] }}
-            shard_index: 7
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[7] }}
-            shard_index: 8
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[8] }}
-            shard_index: 9
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[9] }}
-            shard_index: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
@@ -160,9 +125,9 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-lint-${{ github.sha }}
+          key: ${{ runner.os }}-shard-${{ fromJson(matrix.shard).shardIndex }}-turbo-lint-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-turbo-lint-
+            ${{ runner.os }}-shard-${{ fromJson(matrix.shard).shardIndex }}-turbo-lint-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
@@ -171,43 +136,22 @@ jobs:
           run_install: true
       - name: Run lint for shard
         run: |
-          PACKAGES_JSON='${{ toJson(matrix.shard) }}'
+          PACKAGES_JSON='${{ fromJson(matrix.shard).packages }}'
           echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
             echo "Running lint for package: $PACKAGE"
             pnpm --filter "$PACKAGE" lint
           done
 
-  test_sharded:
-    name: Run tests on shard ${{ matrix.shard_index }}
+  test:
+    name: Tests sharded
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    needs: [formatting, lint_sharded, lint-openapi, packages_sharding]  # check
+    needs: [formatting, lint-openapi, packages_sharding]  # check
     strategy:
       fail-fast: false
       matrix:
         shard: ${{ fromJson(needs.packages_sharding.outputs.matrix) }}
-        include:
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[0] }}
-            shard_index: 1
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[1] }}
-            shard_index: 2
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[2] }}
-            shard_index: 3
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[3] }}
-            shard_index: 4
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[4] }}
-            shard_index: 5
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[5] }}
-            shard_index: 6
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[6] }}
-            shard_index: 7
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[7] }}
-            shard_index: 8
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[8] }}
-            shard_index: 9
-          - shard: ${{ fromJson(needs.packages_sharding.outputs.matrix)[9] }}
-            shard_index: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
@@ -218,9 +162,9 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-test-${{ github.sha }}
+          key: ${{ runner.os }}-shard-${{ fromJson(matrix.shard).shardIndex }}-turbo-test-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-turbo-test
+            ${{ runner.os }}-shard-${{ fromJson(matrix.shard).shardIndex }}-turbo-test
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
@@ -229,7 +173,7 @@ jobs:
           run_install: true
       - name: Run tests for shard
         run: |
-          PACKAGES_JSON='${{ toJson(matrix.shard) }}'
+          PACKAGES_JSON='${{ fromJson(matrix.shard).packages }}'
           echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
             echo "Running tests for package: $PACKAGE"
             pnpm --filter "$PACKAGE" test
@@ -237,7 +181,7 @@ jobs:
 
   find_dockerfiles:
     name: Find Dockerfiles
-    needs: [formatting, lint_sharded, test_sharded, lint-openapi]  # check
+    needs: [formatting, lint, test, lint-openapi]  # check
     if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     outputs:
