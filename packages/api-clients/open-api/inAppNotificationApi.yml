@@ -78,8 +78,8 @@ paths:
     delete:
       tags:
         - notification
-      summary: Delete bulk notification
-      description: Delete bulk notification
+      summary: Delete bulk notifications
+      description: Delete bulk notifications
       operationId: deleteNotifications
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"

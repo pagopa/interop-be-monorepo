@@ -28,7 +28,11 @@ describe("API POST /notifications/:notificationId/markAsUnread", () => {
     vi.restoreAllMocks();
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.SECURITY_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 204 when marking notification as unread with role %s",
     async (role) => {
