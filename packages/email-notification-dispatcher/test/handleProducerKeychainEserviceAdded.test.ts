@@ -18,6 +18,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   descriptorPublishedNotFound,
   eServiceNotFound,
+  tenantNotFound,
 } from "../src/models/errors.js";
 import { handleProducerKeychainEserviceAdded } from "../src/handlers/authorization/handleProducerKeychainEserviceAdded.js";
 import {
@@ -81,6 +82,38 @@ describe("handleProducerKeychainEserviceAdded", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(eServiceNotFound(eserviceId));
+  });
+
+  it("should throw tenantNotFound when producer is not found", async () => {
+    const unknownProducerId = generateId<TenantId>();
+
+    const eserviceWithUnknownProducer = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptorPublished()],
+      producerId: unknownProducerId,
+    };
+    await addOneEService(eserviceWithUnknownProducer);
+
+    const agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      stamps: {},
+      producerId: producerTenant.id,
+      eserviceId: eserviceWithUnknownProducer.id,
+      consumerId: consumerTenants[0].id,
+    };
+    await addOneAgreement(agreement);
+
+    await expect(() =>
+      handleProducerKeychainEserviceAdded({
+        eserviceId: eserviceWithUnknownProducer.id,
+        logger,
+        templateService,
+        userService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      })
+    ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
   it("should throw descriptorPublishedNotFound when descriptor is not found", async () => {

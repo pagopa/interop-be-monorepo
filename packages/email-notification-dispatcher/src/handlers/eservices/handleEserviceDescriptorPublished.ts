@@ -9,6 +9,7 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveLatestPublishedDescriptor,
+  retrieveTenant,
 } from "../../services/utils.js";
 import {
   EServiceHandlerParams,
@@ -39,12 +40,13 @@ export async function handleEserviceDescriptorPublished(
 
   const eservice = fromEServiceV2(eserviceV2Msg);
 
-  const [htmlTemplate, agreements, descriptor] = await Promise.all([
+  const [htmlTemplate, agreements, descriptor, producer] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.eserviceDescriptorPublishedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
     retrieveLatestPublishedDescriptor(eservice),
+    retrieveTenant(eservice.producerId, readModelService),
   ]);
 
   if (!agreements || agreements.length === 0) {
@@ -84,6 +86,9 @@ export async function handleEserviceDescriptorPublished(
         entityId: descriptor.id,
         ...(t.type === "Tenant" ? { recipientName: "aderente" } : {}),
         eserviceName: eservice.name,
+        eserviceVersion: descriptor.version,
+        producerName: producer.name,
+        ctaLabel: `Visualizza e-service`,
       }),
     },
     tenantId: t.tenantId,

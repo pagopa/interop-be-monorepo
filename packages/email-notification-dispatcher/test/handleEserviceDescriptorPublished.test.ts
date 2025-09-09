@@ -18,8 +18,11 @@ import {
   TenantId,
   toEServiceV2,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
-import { descriptorPublishedNotFound } from "../src/models/errors.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  descriptorPublishedNotFound,
+  tenantNotFound,
+} from "../src/models/errors.js";
 import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEserviceDescriptorPublished.js";
 import {
   addOneAgreement,
@@ -83,6 +86,27 @@ describe("handleEserviceDescriptorPublished", async () => {
     ).rejects.toThrow(
       missingKafkaMessageDataError("eservice", "EServiceDescriptorPublished")
     );
+  });
+
+  it("should throw tenantNotFound when producer is not found", async () => {
+    const unknownProducerId = generateId<TenantId>();
+
+    const eserviceWithUnknownProducer = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+      producerId: unknownProducerId,
+    };
+
+    await expect(() =>
+      handleEserviceDescriptorPublished({
+        eserviceV2Msg: toEServiceV2(eserviceWithUnknownProducer),
+        logger,
+        templateService,
+        userService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      })
+    ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
   it("should throw descriptorPublishedNotFound when descriptor is not found", async () => {
@@ -156,6 +180,97 @@ describe("handleEserviceDescriptorPublished", async () => {
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages).toEqual([]);
+
+    expect(messages.length).toEqual(4);
+    expect(messages.some((message) => message.address === users[0].email)).toBe(
+      true
+    );
+    expect(messages.some((message) => message.address === users[1].email)).toBe(
+      true
+    );
+    expect(messages.some((message) => message.address === users[2].email)).toBe(
+      true
+    );
+    expect(messages.some((message) => message.address === users[3].email)).toBe(
+      true
+    );
+  });
+
+  it("should not generate a message if the user disabled this email notification", async () => {
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockResolvedValue([
+        { userId: users[0].id, tenantId: users[0].tenantId },
+        { userId: users[2].id, tenantId: users[2].tenantId },
+      ]);
+
+    const agreements = consumerTenants.map((consumerTenant) => ({
+      ...getMockAgreement(),
+      state: agreementState.active,
+      stamps: {},
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    }));
+    await addOneAgreement(agreements[0]);
+    await addOneAgreement(agreements[1]);
+
+    const messages = await handleEserviceDescriptorPublished({
+      eserviceV2Msg: toEServiceV2(eservice),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(2);
+    expect(messages.some((message) => message.address === users[0].email)).toBe(
+      true
+    );
+    expect(messages.some((message) => message.address === users[1].email)).toBe(
+      false
+    );
+    expect(messages.some((message) => message.address === users[2].email)).toBe(
+      true
+    );
+    expect(messages.some((message) => message.address === users[3].email)).toBe(
+      false
+    );
+  });
+
+  it("should generate a complete and correct message", async () => {
+    const agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      stamps: {},
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenants[0].id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleEserviceDescriptorPublished({
+      eserviceV2Msg: toEServiceV2(eservice),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+    expect(messages.length).toBe(4);
+    messages.forEach((message) => {
+      expect(message.email.body).toContain("<!-- Footer -->");
+      expect(message.email.body).toContain("<!-- Title & Main Message -->");
+      expect(message.email.body).toContain(
+        `Nuova versione disponibile per &quot;${eservice.name}&quot;`
+      );
+      expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(eservice.name);
+      expect(message.email.body).toContain(descriptor.version);
+      expect(message.email.body).toContain(`Visualizza e-service`);
+    });
   });
 });

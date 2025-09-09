@@ -37,9 +37,7 @@ export async function handleEserviceNameUpdated(
   const eservice = fromEServiceV2(eserviceV2Msg);
 
   const [htmlTemplate, agreements, descriptor] = await Promise.all([
-    retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceDescriptorSuspendedMailTemplate
-    ),
+    retrieveHTMLTemplate(eventMailTemplateType.eserviceNameUpdatedMailTemplate),
     readModelService.getAgreementsByEserviceId(eservice.id),
     retrieveLatestPublishedDescriptor(eservice),
   ]);
@@ -78,8 +76,9 @@ export async function handleEserviceNameUpdated(
       body: templateService.compileHtml(htmlTemplate, {
         title: `L'e-service <Vecchio Nome E-service> è stato rinominato`,
         notificationType,
-        entityId: descriptor.id,
-        eserviceName: eservice.name,
+        entityId: eservice.id,
+        oldEserviceName: "<Vecchio Nome EService>",
+        newEserviceName: eservice.name,
       }),
     },
     address,

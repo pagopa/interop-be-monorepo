@@ -11,9 +11,10 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveLatestPublishedDescriptor,
+  retrieveTenant,
 } from "../../services/utils.js";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { getUserEmailsToNotify } from "../handlerCommons.js";
+import { getRecipientsForTenants } from "../handlerCommons.js";
 import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { eServiceNotFound } from "../../models/errors.js";
 
@@ -47,12 +48,13 @@ export async function handleProducerKeychainEserviceAdded(
     throw eServiceNotFound(eserviceId);
   }
 
-  const [htmlTemplate, agreements, descriptor] = await Promise.all([
+  const [htmlTemplate, agreements, descriptor, producer] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.producerKeychainEserviceAddedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
     retrieveLatestPublishedDescriptor(eservice),
+    retrieveTenant(eservice.producerId, readModelService),
   ]);
 
   if (!agreements || agreements.length === 0) {
@@ -62,20 +64,27 @@ export async function handleProducerKeychainEserviceAdded(
     return [];
   }
 
-  const userEmails = (
-    await Promise.all(
-      agreements.map((agreement) =>
-        getUserEmailsToNotify(
-          agreement.consumerId,
-          notificationType,
-          readModelService,
-          userService
-        )
-      )
-    )
-  ).flat();
+  const tenants = await readModelService.getTenantsById(
+    agreements.map((agreement) => agreement.consumerId)
+  );
 
-  return userEmails.map((email) => ({
+  const targets = await getRecipientsForTenants({
+    tenants,
+    notificationType,
+    readModelService,
+    userService,
+    logger,
+    includeTenantContactEmails: false,
+  });
+
+  if (targets.length === 0) {
+    logger.info(
+      `No targets found. Eservice ${eservice.id}, no emails to dispatch.`
+    );
+    return [];
+  }
+
+  return targets.map(({ address }) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Nuovo livello di sicurezza per "${eservice.name}"`,
@@ -83,9 +92,11 @@ export async function handleProducerKeychainEserviceAdded(
         title: `Nuovo livello di sicurezza per "${eservice.name}"`,
         notificationType,
         entityId: descriptor.id,
+        producerName: producer.name,
         eserviceName: eservice.name,
+        ctaLabel: `Visualizza chiavi`,
       }),
     },
-    address: email,
+    address,
   }));
 }
