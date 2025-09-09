@@ -348,6 +348,7 @@ describe("handleAgreementActivated", async () => {
       );
       expect(message.email.body).toContain(producerTenant.name);
       expect(message.email.body).toContain(eservice.name);
+      expect(message.email.body).toContain(`Visualizza richiesta`);
     });
   });
 });

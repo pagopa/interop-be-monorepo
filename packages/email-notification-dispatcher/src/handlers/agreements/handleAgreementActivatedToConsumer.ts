@@ -72,6 +72,7 @@ export async function handleAgreementActivatedToConsumer(
         entityId: agreement.id,
         producerName: producer.name,
         eserviceName: eservice.name,
+        ctaLabel: `Visualizza richiesta`,
       }),
     },
     address,
