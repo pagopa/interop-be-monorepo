@@ -332,6 +332,7 @@ describe("handleAgreementRejected", async () => {
         `La tua richiesta per &quot;${eservice.name}&quot; è stata rifiutata`
       );
       expect(message.email.body).toContain(eservice.name);
+      expect(message.email.body).toContain(`Visualizza richiesta`);
     });
   });
 });

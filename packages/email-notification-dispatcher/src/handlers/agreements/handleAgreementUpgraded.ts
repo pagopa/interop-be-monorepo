@@ -69,6 +69,7 @@ export async function handleAgreementUpgraded(
         entityId: agreement.id,
         consumerName: consumer.name,
         eserviceName: eservice.name,
+        ctaLabel: `Visualizza richiesta`,
       }),
     },
     address,

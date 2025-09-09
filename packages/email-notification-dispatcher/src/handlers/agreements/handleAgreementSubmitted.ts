@@ -68,6 +68,7 @@ export async function handleAgreementSubmitted(
         entityId: agreement.id,
         producerName: producer.name,
         eserviceName: eservice.name,
+        ctaLabel: `Visualizza richiesta`,
       }),
     },
     address,
