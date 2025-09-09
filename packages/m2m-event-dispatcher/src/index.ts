@@ -68,17 +68,18 @@ const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
 });
 
-const notificationDB = drizzle(
+const m2mEventDB = drizzle(
   new pg.Pool({
-    host: config.inAppNotificationDBHost,
-    database: config.inAppNotificationDBName,
-    user: config.inAppNotificationDBUsername,
-    password: config.inAppNotificationDBPassword,
-    port: config.inAppNotificationDBPort,
+    host: config.m2mEventSQLDbHost,
+    database: config.m2mEventSQLDbName,
+    user: config.m2mEventSQLDbUsername,
+    password: config.m2mEventSQLDbPassword,
+    port: config.m2mEventSQLDbPort,
+    ssl: config.m2mEventSQLDbUseSSL ? { rejectUnauthorized: false } : undefined,
   })
 );
 
-const m2mEventService = m2mEventServiceBuilderSQL(notificationDB);
+const m2mEventService = m2mEventServiceBuilderSQL(m2mEventDB);
 
 function processMessage(topicNames: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
@@ -107,7 +108,7 @@ function processMessage(topicNames: TopicNames) {
         eventType
       );
       const loggerInstance = logger({
-        serviceName: "m2m-events-dispatcher",
+        serviceName: "m2m-event-dispatcher",
         eventType: decodedMessage.type,
         eventVersion: decodedMessage.event_version,
         streamId: decodedMessage.stream_id,
@@ -179,5 +180,5 @@ await runConsumer(
     tenantTopic: config.tenantTopic,
     eserviceTemplateTopic: config.eserviceTemplateTopic,
   }),
-  "m2m-events-dispatcher"
+  "m2m-event-dispatcher"
 );

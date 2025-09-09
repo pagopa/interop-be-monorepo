@@ -7,7 +7,7 @@ import {
   DelegationTopicConfig,
   ReadModelSQLDbConfig,
   TenantTopicConfig,
-  M2MEventsDBConfig,
+  M2MEventSQLDbConfig,
   AttributeTopicConfig,
   AuthorizationTopicConfig,
 } from "pagopa-interop-commons";
@@ -23,7 +23,7 @@ export const M2MEventsDispatcherConfig = KafkaConsumerConfig.and(
   .and(AuthorizationTopicConfig)
   .and(EServiceTemplateTopicConfig)
   .and(TenantTopicConfig)
-  .and(M2MEventsDBConfig)
+  .and(M2MEventSQLDbConfig)
   .and(ReadModelSQLDbConfig);
 
 export type M2MEventsDispatcherConfig = z.infer<
