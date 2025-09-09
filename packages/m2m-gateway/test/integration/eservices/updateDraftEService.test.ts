@@ -44,7 +44,7 @@ describe("updateDraftEService", () => {
 
   mockInteropBeClients.catalogProcessClient = {
     getEServiceById: mockGetEService,
-    patchUpdateEServiceById: mockPatchUpdateEService,
+    patchUpdateDraftEServiceById: mockPatchUpdateEService,
   } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
   beforeEach(() => {
