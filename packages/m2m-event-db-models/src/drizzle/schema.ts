@@ -47,7 +47,7 @@ export const purposeInM2MEvent = m2mEvent.table("purpose", {
   id: uuid().primaryKey().notNull(),
   type: varchar().notNull(),
   purposeId: uuid("purpose_id").notNull(),
-  versionId: uuid("version_id").notNull(),
+  versionId: uuid("version_id"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
     mode: "string",
