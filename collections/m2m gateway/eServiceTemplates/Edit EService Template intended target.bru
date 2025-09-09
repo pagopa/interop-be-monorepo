@@ -1,0 +1,31 @@
+meta {
+  name: Edit EService Template intended target
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/intendedTarget
+  body: json
+  auth: none
+}
+
+params:path {
+  templateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "intendedTarget": "Updated intendedTarget eserviceTemplate"
+  }
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
+}
