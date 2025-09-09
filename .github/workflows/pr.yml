@@ -160,9 +160,9 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-shard-${{ fromJson(matrix.shard).shardIndex }}-turbo-test-${{ github.sha }}
+          key: ${{ runner.os }}-shard-${{ matrix.shard.shardIndex }}-turbo-test-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-shard-${{ fromJson(matrix.shard).shardIndex }}-turbo-test
+            ${{ runner.os }}-shard-${{ matrix.shard.shardIndex }}-turbo-test
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
