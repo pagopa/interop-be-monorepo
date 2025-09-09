@@ -85,7 +85,8 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
           "EServiceSignalHubEnabled",
-          "EServiceSignalHubDisabled"
+          "EServiceSignalHubDisabled",
+          "EServicePersonalDataUpdatedAfterPublish"
         ),
       },
       () => {

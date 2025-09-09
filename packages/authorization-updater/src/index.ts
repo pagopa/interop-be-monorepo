@@ -159,7 +159,8 @@ export async function sendCatalogAuthUpdate(
           "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServiceSignalHubEnabled",
-          "EServiceSignalHubDisabled"
+          "EServiceSignalHubDisabled",
+          "EServicePersonalDataUpdatedAfterPublish"
         ),
       },
       () => {
