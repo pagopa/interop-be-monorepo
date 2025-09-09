@@ -26,7 +26,6 @@ export async function handleEServiceEvent(
         eserviceV2Msg: eservice,
         logger,
         readModelService,
-        userService,
         templateService,
         userService,
         correlationId,
