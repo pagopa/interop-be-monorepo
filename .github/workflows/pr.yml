@@ -108,7 +108,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    needs: [packages_sharding, formatting, lint-openapi]
+    needs: [packages_sharding, formatting]
     strategy:
       fail-fast: false
       matrix:
@@ -145,7 +145,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    needs: [formatting, lint-openapi, packages_sharding] # check
+    needs: [formatting, packages_sharding] # check
     strategy:
       fail-fast: false
       matrix:
@@ -174,7 +174,7 @@ jobs:
           PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
           echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
             echo "Running tests for package: $PACKAGE"
-            echo "PACKAGE_FILTER=$PACKAGE" >> $GITHUB_ENV
+            export PACKAGE_FILTER=$PACKAGE
             pnpm run test:filter
             pnpm run test:integration-filter
             pnpm run test:api-filter
