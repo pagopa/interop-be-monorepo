@@ -7,9 +7,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.eservice (
   descriptor_id UUID,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   visibility VARCHAR NOT NULL,
-  consumer_id UUID,
   producer_id UUID,
-  consumer_delegate_id UUID,
   producer_delegate_id UUID,
   PRIMARY KEY (id)
 );
@@ -21,10 +19,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.eservice_template (
   version_id UUID,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   visibility VARCHAR NOT NULL,
-  consumer_id UUID,
-  producer_id UUID,
-  consumer_delegate_id UUID,
-  producer_delegate_id UUID,
+  creator_id UUID,
   PRIMARY KEY (id)
 );
 
@@ -60,11 +55,6 @@ CREATE TABLE IF NOT EXISTS m2m_event.tenant (
   type VARCHAR NOT NULL,
   tenant_id UUID NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  visibility VARCHAR NOT NULL,
-  consumer_id UUID,
-  producer_id UUID,
-  consumer_delegate_id UUID,
-  producer_delegate_id UUID,
   PRIMARY KEY (id)
 );
 
@@ -73,11 +63,6 @@ CREATE TABLE IF NOT EXISTS m2m_event.attribute (
   type VARCHAR NOT NULL,
   attribute_id UUID NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  visibility VARCHAR NOT NULL,
-  consumer_id UUID,
-  producer_id UUID,
-  consumer_delegate_id UUID,
-  producer_delegate_id UUID,
   PRIMARY KEY (id)
 );
 
@@ -86,11 +71,6 @@ CREATE TABLE IF NOT EXISTS m2m_event.consumer_delegation (
   type VARCHAR NOT NULL,
   delegation_id UUID NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  visibility VARCHAR NOT NULL,
-  consumer_id UUID,
-  producer_id UUID,
-  consumer_delegate_id UUID,
-  producer_delegate_id UUID,
   PRIMARY KEY (id)
 );
 
@@ -99,11 +79,6 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_delegation (
   type VARCHAR NOT NULL,
   delegation_id UUID NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  visibility VARCHAR NOT NULL,
-  consumer_id UUID,
-  producer_id UUID,
-  consumer_delegate_id UUID,
-  producer_delegate_id UUID,
   PRIMARY KEY (id)
 );
 
@@ -114,9 +89,6 @@ CREATE TABLE IF NOT EXISTS m2m_event.client (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   visibility VARCHAR NOT NULL,
   consumer_id UUID,
-  producer_id UUID,
-  consumer_delegate_id UUID,
-  producer_delegate_id UUID,
   PRIMARY KEY (id)
 );
 
@@ -126,10 +98,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_keychain (
   keychain_id UUID NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   visibility VARCHAR NOT NULL,
-  consumer_id UUID,
   producer_id UUID,
-  consumer_delegate_id UUID,
-  producer_delegate_id UUID,
   PRIMARY KEY (id)
 );
 
@@ -140,9 +109,6 @@ CREATE TABLE IF NOT EXISTS m2m_event.key (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   visibility VARCHAR NOT NULL,
   consumer_id UUID,
-  producer_id UUID,
-  consumer_delegate_id UUID,
-  producer_delegate_id UUID,
   PRIMARY KEY (id)
 );
 
@@ -152,9 +118,6 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_key (
   kid UUID NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   visibility VARCHAR NOT NULL,
-  consumer_id UUID,
   producer_id UUID,
-  consumer_delegate_id UUID,
-  producer_delegate_id UUID,
   PRIMARY KEY (id)
 );
