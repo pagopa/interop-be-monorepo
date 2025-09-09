@@ -75,6 +75,9 @@ const notificationDB = drizzle(
     user: config.inAppNotificationDBUsername,
     password: config.inAppNotificationDBPassword,
     port: config.inAppNotificationDBPort,
+    ssl: config.inAppNotificationDBUseSSL
+      ? { rejectUnauthorized: false }
+      : undefined,
   })
 );
 
