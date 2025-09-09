@@ -25,8 +25,8 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated eservice m2m events
-      description: Returns a paginated list of eservice m2m events
+      summary: Get paginated E-Service M2M Events
+      description: Returns a list of E-Service M2M Events
       operationId: getEServiceM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
@@ -60,8 +60,8 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated agreement m2m events
-      description: Returns a paginated list of agreement m2m events
+      summary: Get paginated Agreement M2M Events
+      description: Returns a list of Agreement M2M Events
       operationId: getAgreementM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
@@ -95,8 +95,8 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated purpose m2m events
-      description: Returns a paginated list of purpose m2m events
+      summary: Get paginated Purpose M2M Events
+      description: Returns a list of Purpose M2M Events
       operationId: getPurposeM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
@@ -130,8 +130,8 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated tenant m2m events
-      description: Returns a paginated list of tenant m2m events
+      summary: Get paginated Tenant M2M Events
+      description: Returns a list of Tenant M2M Events
       operationId: getTenantM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
@@ -165,8 +165,8 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated attribute m2m events
-      description: Returns a paginated list of attribute m2m events
+      summary: Get paginated Attribute M2M Events
+      description: Returns a list of Attribute M2M Events
       operationId: getAttributeM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
@@ -200,8 +200,8 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated consumer delegation m2m events
-      description: Returns a paginated list of consumer delegation m2m events
+      summary: Get paginated Consumer Delegation M2M Events
+      description: Returns a list of Consumer Delegation M2M Events
       operationId: getConsumerDelegationM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
@@ -235,8 +235,8 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated producer delegation m2m events
-      description: Returns a paginated list of producer delegation m2m events
+      summary: Get paginated Producer Delegation M2M Events
+      description: Returns a list of Producer Delegation M2M Events
       operationId: getProducerDelegationM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
@@ -270,8 +270,8 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated client m2m events
-      description: Returns a paginated list of client m2m events
+      summary: Get paginated Client M2M Events
+      description: Returns a list of Client M2M Events
       operationId: getClientM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
@@ -305,8 +305,8 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated producer keychain m2m events
-      description: Returns a paginated list of producer keychain m2m events
+      summary: Get paginated Producer Keychain M2M Events
+      description: Returns a list of Producer Keychain M2M Events
       operationId: getProducerKeychainM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
@@ -340,8 +340,8 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated key m2m events
-      description: Returns a paginated list of key m2m events
+      summary: Get paginated Key M2M Events
+      description: Returns a list of Key M2M Events
       operationId: getKeyM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
@@ -375,8 +375,8 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated producer key m2m events
-      description: Returns a paginated list of producer key m2m events
+      summary: Get paginated Producer Key M2M Events
+      description: Returns a list of Producer Key M2M Events
       operationId: getProducerKeyM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
@@ -410,8 +410,8 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated eservice template m2m events
-      description: Returns a paginated list of eservice template m2m events
+      summary: Get paginated E-Service Template M2M Events
+      description: Returns a list of E-Service Template M2M Events
       operationId: getEServiceTemplateM2MEvents
       parameters:
         - $ref: '#/components/parameters/LastEventId'
@@ -434,7 +434,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schxemas/Problem"
         "403":
           description: Forbidden
           content:
@@ -560,7 +560,6 @@ components:
         - id
         - type
         - purposeId
-        - versionId
         - createdAt
     PurposeM2MEvents:
       type: object  
