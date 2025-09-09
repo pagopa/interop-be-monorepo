@@ -67,6 +67,8 @@ export * from "./notification-config/notificationConfig.js";
 export * from "./notification-config/notificationConfigEvents.js";
 export * from "./notification-config/protobufConverterFromV2.js";
 export * from "./notification-config/protobufConverterToV2.js";
+export type { NotificationsByType } from "./notification-config/notificationConfig.js";
+export { NotificationListResult } from "./notification-config/notificationConfig.js";
 
 export * from "./application-audit/application-audit.js";
 

@@ -1,4 +1,13 @@
-import { and, desc, eq, getTableColumns, ilike, inArray } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  getTableColumns,
+  ilike,
+  inArray,
+  isNull,
+} from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
   AppContext,
@@ -14,6 +23,9 @@ import {
   ListResult,
   Notification,
   NotificationId,
+  NotificationsByType,
+  NotificationType,
+  NotificationListResult,
 } from "pagopa-interop-models";
 import { notificationNotFound } from "../model/errors.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -122,6 +134,64 @@ export function inAppNotificationServiceBuilder(
       if (!deleted.length) {
         throw notificationNotFound(notificationId);
       }
+    },
+    getNotificationsByType: async ({
+      logger,
+      authData: { userId, organizationId },
+    }: WithLogger<AppContext<UIAuthData>>): Promise<NotificationsByType> => {
+      logger.info("Getting notifications by type");
+
+      const unreadWhereClause = and(
+        eq(notification.userId, userId),
+        eq(notification.tenantId, organizationId),
+        isNull(notification.readAt)
+      );
+
+      // Get general total count (without distinct)
+      const totalCountResult = await db
+        .select({
+          totalCount: count(),
+        })
+        .from(notification)
+        .where(unreadWhereClause);
+
+      // Get entity IDs and count by notification type (with distinct IDs for each type)
+      const notificationsByType = await db
+        .select({
+          notificationType: notification.notificationType,
+          entityId: notification.entityId,
+        })
+        .from(notification)
+        .where(unreadWhereClause);
+
+      // Group by notification type and collect unique entity IDs using reduce
+      const results = notificationsByType.reduce((acc, item) => {
+        const notificationType = item.notificationType as NotificationType;
+        if (!NotificationType.safeParse(notificationType).success) {
+          return acc;
+        }
+        const existing = acc[notificationType] ?? {
+          results: [],
+          totalCount: 0,
+        };
+
+        const uniqueEntityIds = existing.results.includes(item.entityId)
+          ? existing.results
+          : [...existing.results, item.entityId];
+
+        return {
+          ...acc,
+          [notificationType]: {
+            results: uniqueEntityIds,
+            totalCount: uniqueEntityIds.length,
+          },
+        };
+      }, {} as Record<NotificationType, NotificationListResult>);
+
+      return {
+        results,
+        totalCount: totalCountResult[0]?.totalCount ?? 0,
+      };
     },
   };
 }

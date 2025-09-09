@@ -125,6 +125,27 @@ export const notificationRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .get("/notifications/byType", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const notificationsByType = await service.getNotificationsByType(ctx);
+        return res
+          .status(200)
+          .send(
+            inAppNotificationApi.NotificationsByType.parse(notificationsByType)
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error getting notifications by type"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return notificationRouter;

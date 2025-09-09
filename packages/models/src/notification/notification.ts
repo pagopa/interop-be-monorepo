@@ -1,8 +1,27 @@
 import { z } from "zod";
 import { UserId, TenantId, NotificationId, IDS } from "../brandedIds.js";
-import { NotificationConfig } from "../notification-config/notificationConfig.js";
 
-export const NotificationType = NotificationConfig.keyof();
+export const NotificationType = z.enum([
+  "agreementSuspendedUnsuspendedToProducer", // 04: Variazione dello stato di una richiesta di fruizione
+  "agreementManagementToProducer", // 03: Gestione richieste di fruizione
+  "clientAddedRemovedToProducer", // 05: Associazione di un client da parte del fruitore
+  "purposeStatusChangedToProducer", // 07: Variazione stato di una finalità
+  "templateStatusChangedToProducer", // 09: Variazione stato template
+  "agreementSuspendedUnsuspendedToConsumer", // 13: Sospensione o riattivazione richiesta di fruizione
+  "eserviceStateChangedToConsumer", // 11: Variazione di stato e-service
+  "agreementActivatedRejectedToConsumer", // 12: Attivazione o rifiuto richiesta di fruizione
+  "purposeActivatedRejectedToConsumer", // 15: Attivazione o rifiuto finalità
+  "purposeSuspendedUnsuspendedToConsumer", // 16: Sospensione o riattivazione finalità
+  "newEserviceTemplateVersionToInstantiator", // 17: Nuova versione di template
+  "eserviceTemplateNameChangedToInstantiator", // 18: Variazione proprietà template
+  "eserviceTemplateStatusChangedToInstantiator", // 19: Variazione stato template
+  "delegationApprovedRejectedToDelegator", // 20: Stato di accettazione di una delega
+  "eserviceNewVersionSubmittedToDelegator", // 21: Richiesta approvazione pubblicazione nuova versione e-service
+  "eserviceNewVersionApprovedRejectedToDelegate", // 22: Accettazione o rifiuto pubblicazione nuova versione e-service
+  "delegationSubmittedRevokedToDelegate", // 23: Stato delle deleghe ricevute
+  "certifiedVerifiedAttributeAssignedRevokedToAssignee", // 24: Conferimento o revoca di attributi certificati o verificati
+  "clientKeyAddedDeletedToClientUsers", // 25: Variazioni sullo stato delle chiavi collegate ad un client
+]);
 export type NotificationType = z.infer<typeof NotificationType>;
 
 export const Notification = z.object({
