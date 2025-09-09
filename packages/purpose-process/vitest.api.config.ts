@@ -1,12 +1,13 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig, mergeConfig } from "vitest/config";
+import rootConfig from "../../vitest.config.js";
 import "dotenv-flow/config";
-export default defineConfig({
-  test: {
-    setupFiles: "./test/vitest.api.setup.ts",
-    include: ["./test/api/**/*.test.ts"],
-    testTimeout: 60000,
-    hookTimeout: 60000,
-    fileParallelism: false,
-    pool: "forks",
-  },
-});
+
+export default mergeConfig(
+  rootConfig,
+  defineConfig({
+    test: {
+      setupFiles: "./test/vitest.api.setup.ts",
+      include: ["./test/api/**/*.test.ts"],
+    },
+  })
+);
