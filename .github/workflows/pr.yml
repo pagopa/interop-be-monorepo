@@ -90,10 +90,9 @@ jobs:
         run: |
           SHARD_NUM=10  
           PACKAGES_JSON='${{ steps.get_packages.outputs.packages }}'
-          PACKAGES=$(echo "$PACKAGES_JSON" | jq -r '.[]')
           PACK_NUM=$(echo "$PACKAGES_JSON" | jq -r length)
 
-          matrix=$(echo "$PACKAGES" | jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES" --argjson len "$PACK_NUM" -n '
+          matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n '
             [range(0; $shardNum) as $i |
             {
               shardIndex: ($i + 1),
