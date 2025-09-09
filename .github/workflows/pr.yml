@@ -92,7 +92,7 @@ jobs:
           PACKAGES_JSON='${{ steps.get_packages.outputs.packages }}'
           PACK_NUM=$(echo "$PACKAGES_JSON" | jq -r length)
 
-          matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n '
+          matrix="$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n '
             [range(0; $shardNum) as $i |
             {
               shardIndex: ($i + 1),
@@ -101,7 +101,7 @@ jobs:
               (($i + 1) * $len / $shardNum | floor)
               ])
             }
-            ]')
+            ]')"
 
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
   lint:
