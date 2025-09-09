@@ -17,7 +17,10 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { descriptorPublishedNotFound } from "../src/models/errors.js";
+import {
+  descriptorPublishedNotFound,
+  tenantNotFound,
+} from "../src/models/errors.js";
 import { handleEserviceDescriptorActivated } from "../src/handlers/eservices/handleEserviceDescriptorActivated.js";
 import {
   addOneAgreement,
@@ -81,6 +84,27 @@ describe("handleEserviceDescriptorActivated", async () => {
     ).rejects.toThrow(
       missingKafkaMessageDataError("eservice", "EServiceDescriptorActivated")
     );
+  });
+
+  it("should throw tenantNotFound when producer is not found", async () => {
+    const unknownProducerId = generateId<TenantId>();
+
+    const eserviceWithUnknownProducer = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+      producerId: unknownProducerId,
+    };
+
+    await expect(() =>
+      handleEserviceDescriptorActivated({
+        eserviceV2Msg: toEServiceV2(eserviceWithUnknownProducer),
+        logger,
+        templateService,
+        userService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      })
+    ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
   it("should throw descriptorPublishedNotFound when descriptor is not found", async () => {
@@ -213,7 +237,6 @@ describe("handleEserviceDescriptorActivated", async () => {
       consumerId: consumerTenants[0].id,
     };
     await addOneAgreement(agreement);
-    await addOneAgreement(agreement);
 
     const messages = await handleEserviceDescriptorActivated({
       eserviceV2Msg: toEServiceV2(eservice),
@@ -230,6 +253,10 @@ describe("handleEserviceDescriptorActivated", async () => {
       expect(message.email.body).toContain(
         `Una versione di &quot;${eservice.name}&quot; è stata riattivata`
       );
+      expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(eservice.name);
+      expect(message.email.body).toContain(descriptor.version);
+      expect(message.email.body).toContain(`Visualizza e-service`);
     });
   });
 });

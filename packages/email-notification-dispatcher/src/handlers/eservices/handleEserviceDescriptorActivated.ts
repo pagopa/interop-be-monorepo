@@ -9,6 +9,7 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveLatestPublishedDescriptor,
+  retrieveTenant,
 } from "../../services/utils.js";
 import {
   EServiceHandlerParams,
@@ -39,12 +40,13 @@ export async function handleEserviceDescriptorActivated(
 
   const eservice = fromEServiceV2(eserviceV2Msg);
 
-  const [htmlTemplate, agreements, descriptor] = await Promise.all([
+  const [htmlTemplate, agreements, descriptor, producer] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.eserviceDescriptorActivatedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
     retrieveLatestPublishedDescriptor(eservice),
+    retrieveTenant(eservice.producerId, readModelService),
   ]);
 
   if (!agreements || agreements.length === 0) {
@@ -81,9 +83,11 @@ export async function handleEserviceDescriptorActivated(
       body: templateService.compileHtml(htmlTemplate, {
         title: `Una versione di "${eservice.name}" è stata riattivata`,
         notificationType,
-        entityId: eservice.id,
+        entityId: descriptor.id,
+        producerName: producer.name,
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,
+        ctaLabel: `Visualizza e-service`,
       }),
     },
     address,

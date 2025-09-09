@@ -213,7 +213,6 @@ describe("handleEserviceNameUpdated", async () => {
       consumerId: consumerTenants[0].id,
     };
     await addOneAgreement(agreement);
-    await addOneAgreement(agreement);
 
     const messages = await handleEserviceNameUpdated({
       eserviceV2Msg: toEServiceV2(eservice),
@@ -228,8 +227,11 @@ describe("handleEserviceNameUpdated", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `L'e-service <Vecchio Nome E-service> è stato rinominato`
+        `L&#x27;e-service &lt;Vecchio Nome E-service&gt; è stato rinominato`
       );
+      expect(message.email.body).toContain(eservice.name);
+      expect(message.email.body).toContain("&lt;Vecchio Nome EService&gt;");
+      expect(message.email.body).toContain(`Accedi per visualizzare`);
     });
   });
 });
