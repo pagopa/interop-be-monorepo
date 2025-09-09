@@ -1,12 +1,13 @@
 import {
   and,
-  count,
+  countDistinct,
   desc,
   eq,
   getTableColumns,
   ilike,
   inArray,
   isNull,
+  sql,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -25,7 +26,6 @@ import {
   NotificationId,
   NotificationsByType,
   NotificationType,
-  NotificationListResult,
 } from "pagopa-interop-models";
 import { notificationNotFound } from "../model/errors.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -141,56 +141,41 @@ export function inAppNotificationServiceBuilder(
     }: WithLogger<AppContext<UIAuthData>>): Promise<NotificationsByType> => {
       logger.info("Getting notifications by type");
 
-      const unreadWhereClause = and(
-        eq(notification.userId, userId),
-        eq(notification.tenantId, organizationId),
-        isNull(notification.readAt)
-      );
-
-      // Get general total count (without distinct)
-      const totalCountResult = await db
-        .select({
-          totalCount: count(),
-        })
-        .from(notification)
-        .where(unreadWhereClause);
-
-      // Get entity IDs and count by notification type (with distinct IDs for each type)
-      const notificationsByType = await db
+      const queryResult = await db
         .select({
           notificationType: notification.notificationType,
-          entityId: notification.entityId,
+          typeCount: countDistinct(notification.entityId),
+          totalCount: sql<number>`count(*) over()`,
         })
         .from(notification)
-        .where(unreadWhereClause);
+        .where(
+          and(
+            eq(notification.userId, userId),
+            eq(notification.tenantId, organizationId),
+            isNull(notification.readAt)
+          )
+        )
+        .groupBy(notification.notificationType);
 
-      // Group by notification type and collect unique entity IDs using reduce
-      const results = notificationsByType.reduce((acc, item) => {
-        const notificationType = item.notificationType as NotificationType;
-        if (!NotificationType.safeParse(notificationType).success) {
+      const results = queryResult.reduce<Record<NotificationType, number>>(
+        (acc, row) => {
+          const notificationType = row.notificationType;
+          if (NotificationType.safeParse(notificationType).success) {
+            return {
+              ...acc,
+              [notificationType]: row.typeCount,
+            };
+          }
           return acc;
-        }
-        const existing = acc[notificationType] ?? {
-          results: [],
-          totalCount: 0,
-        };
+        },
+        {} as Record<NotificationType, number>
+      );
 
-        const uniqueEntityIds = existing.results.includes(item.entityId)
-          ? existing.results
-          : [...existing.results, item.entityId];
-
-        return {
-          ...acc,
-          [notificationType]: {
-            results: uniqueEntityIds,
-            totalCount: uniqueEntityIds.length,
-          },
-        };
-      }, {} as Record<NotificationType, NotificationListResult>);
+      const totalCount = queryResult[0]?.totalCount ?? 0;
 
       return {
         results,
-        totalCount: totalCountResult[0]?.totalCount ?? 0,
+        totalCount,
       };
     },
   };

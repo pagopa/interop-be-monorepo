@@ -37,17 +37,10 @@ export const UserNotificationConfig = z.object({
 });
 export type UserNotificationConfig = z.infer<typeof UserNotificationConfig>;
 
-export const NotificationListResult = z.object({
-  results: z.array(z.string().uuid()),
-  totalCount: z.number(),
-});
-export type NotificationListResult = z.infer<typeof NotificationListResult>;
-
-// Dynamically create an object with the same keys as NotificationConfig but with ListResult values
 const notificationsByTypeResults = Object.fromEntries(
-  NotificationType.options.map((key) => [key, NotificationListResult])
+  NotificationType.options.map((key) => [key, z.number()])
 ) as {
-  [K in (typeof NotificationType.options)[number]]: typeof NotificationListResult;
+  [K in (typeof NotificationType.options)[number]]: z.ZodNumber;
 };
 
 export const NotificationsByType = z.object({

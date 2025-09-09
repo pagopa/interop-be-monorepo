@@ -192,13 +192,13 @@ paths:
       tags:
         - notification
       summary: Get all notifications by type
-      description: Returns a list of all notification entity ids grouped by notificationType and count
+      description: Returns a list of all notifications count grouped by notificationType
       operationId: getNotificationsByType
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
       responses:
         "200":
-          description: A list of notification entity ids grouped by notificationType and count
+          description: A list of notifications count grouped by notificationType
           content:
             application/json:
               schema:
@@ -318,43 +318,62 @@ components:
           type: object
           properties:
             agreementSuspendedUnsuspendedToProducer:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             agreementManagementToProducer:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             clientAddedRemovedToProducer:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             purposeStatusChangedToProducer:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             templateStatusChangedToProducer:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             agreementSuspendedUnsuspendedToConsumer:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             eserviceStateChangedToConsumer:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             agreementActivatedRejectedToConsumer:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             purposeActivatedRejectedToConsumer:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             purposeSuspendedUnsuspendedToConsumer:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             newEserviceTemplateVersionToInstantiator:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             eserviceTemplateNameChangedToInstantiator:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             eserviceTemplateStatusChangedToInstantiator:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             delegationApprovedRejectedToDelegator:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             eserviceNewVersionSubmittedToDelegator:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             eserviceNewVersionApprovedRejectedToDelegate:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             delegationSubmittedRevokedToDelegate:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             certifiedVerifiedAttributeAssignedRevokedToAssignee:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
             clientKeyAddedDeletedToClientUsers:
-              $ref: "#/components/schemas/ListResult"
+              type: integer
+              format: int32
         totalCount:
           type: integer
           format: int32
