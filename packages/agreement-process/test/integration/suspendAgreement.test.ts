@@ -602,6 +602,7 @@ describe("suspend agreement", () => {
       state: randomArrayItem(agreementSuspendableStates),
     };
     await addOneAgreement(agreement);
+    await addOneTenant(getMockTenant(agreement.consumerId));
     const authData = getMockAuthData(agreement.producerId);
     await expect(
       agreementService.suspendAgreement(
