@@ -88,12 +88,12 @@ jobs:
       - name: Create shards matrix
         id: sharded_packages
         run: |
+          SHARD_NUM=10  
           PACKAGES_JSON='${{ steps.get_packages.outputs.packages }}'
           PACKAGES=$(echo "$PACKAGES_JSON" | jq -r '.[]')
-          PACK_NUM=$(echo "$PACKAGES" | jq -r 'length')
-          NUM_SHARDS=10
+          PACK_NUM=$(echo "$PACKAGES_JSON" | jq -r length)
 
-          matrix=$(echo "$PACKAGES" | jq --argjson shardNum "$NUM_SHARDS" --argjson packs "$PACKAGES" --argjson len "$PACK_NUM" -n '
+          matrix=$(echo "$PACKAGES" | jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES" --argjson len "$PACK_NUM" -n '
             [range(0; $shardNum) as $i |
             {
               shardIndex: ($i + 1),
