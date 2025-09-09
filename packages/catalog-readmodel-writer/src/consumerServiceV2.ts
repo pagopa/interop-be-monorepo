@@ -60,6 +60,7 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
       { type: "EServiceSignalHubEnabled" },
       { type: "EServiceSignalHubDisabled" },
+      { type: "EServicePersonalDataUpdatedAfterPublish" },
       async (message) =>
         await eservices.updateOne(
           {

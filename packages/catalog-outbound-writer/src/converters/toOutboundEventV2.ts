@@ -212,6 +212,7 @@ export function toOutboundEventV2(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceRiskAnalysisUpdated" },
+      { type: "EServicePersonalDataUpdatedAfterPublish" }, // TODO move to the first handler after outbound gets updated
       () => undefined
     )
     .exhaustive();
