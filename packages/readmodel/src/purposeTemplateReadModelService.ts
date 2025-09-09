@@ -1,4 +1,4 @@
-import { and, eq, SQL } from "drizzle-orm";
+import { eq, SQL } from "drizzle-orm";
 import {
   EServiceDescriptorPurposeTemplate,
   genericInternalError,
@@ -69,31 +69,25 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
         .leftJoin(
           // 2
           purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
-            )
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
           )
         )
         .leftJoin(
           // 3
           purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
-            )
+          eq(
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
           )
         )
         .leftJoin(
           // 4
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
-            )
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
           )
         );
 
@@ -133,29 +127,23 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
         )
         .leftJoin(
           purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
-            )
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
           )
         )
         .leftJoin(
           purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
-            )
+          eq(
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
           )
         )
         .leftJoin(
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
-            )
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
           )
         );
 
