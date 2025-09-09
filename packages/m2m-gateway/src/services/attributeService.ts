@@ -13,6 +13,8 @@ import { M2MGatewayAppContext } from "../utils/context.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import {
   toGetCertifiedAttributesApiQueryParams,
+  toGetDeclaredAttributesApiQueryParams,
+  toGetVerifiedAttributesApiQueryParams,
   toM2MGatewayApiCertifiedAttribute,
   toM2MGatewayApiDeclaredAttribute,
   toM2MGatewayApiVerifiedAttribute,
@@ -147,6 +149,52 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
       return {
         results: response.data.results.map((attribute) =>
           toM2MGatewayApiCertifiedAttribute({ attribute, logger })
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount: response.data.totalCount,
+        },
+      };
+    },
+    async getDeclaredAttributes(
+      { limit, offset }: m2mGatewayApi.GetDeclaredAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.DeclaredAttributes> {
+      logger.info(
+        `Retrieving declared attributes with limit ${limit} and offset ${offset}`
+      );
+      const response = await clients.attributeProcessClient.getAttributes({
+        queries: toGetDeclaredAttributesApiQueryParams({ limit, offset }),
+        headers,
+      });
+      return {
+        results: response.data.results.map((attribute) =>
+          toM2MGatewayApiDeclaredAttribute({ attribute, logger })
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount: response.data.totalCount,
+        },
+      };
+    },
+    async getVerifiedAttributes(
+      { limit, offset }: m2mGatewayApi.GetVerifiedAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.VerifiedAttributes> {
+      logger.info(
+        `Retrieving verified attributes with limit ${limit} and offset ${offset}`
+      );
+
+      const response = await clients.attributeProcessClient.getAttributes({
+        queries: toGetVerifiedAttributesApiQueryParams({ limit, offset }),
+        headers,
+      });
+
+      return {
+        results: response.data.results.map((attribute) =>
+          toM2MGatewayApiVerifiedAttribute({ attribute, logger })
         ),
         pagination: {
           limit,
