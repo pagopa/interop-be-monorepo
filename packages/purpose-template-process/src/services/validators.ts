@@ -38,9 +38,11 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
   const purposeTemplateWithSameName = await readModelService.getPurposeTemplate(
     title
   );
-  const purposeTemplateId = purposeTemplateWithSameName?.data.id;
-  if (purposeTemplateWithSameName && purposeTemplateId) {
-    throw purposeTemplateNameConflict(purposeTemplateId, title);
+  if (purposeTemplateWithSameName) {
+    throw purposeTemplateNameConflict(
+      purposeTemplateWithSameName.data.id,
+      purposeTemplateWithSameName.data.purposeTitle
+    );
   }
 };
 
@@ -64,7 +66,7 @@ export function validateAndTransformRiskAnalysisTemplate(
   );
 }
 
-export function validateRiskAnalysisTemplateOrThrow({
+function validateRiskAnalysisTemplateOrThrow({
   riskAnalysisForm,
   tenantKind,
 }: {
