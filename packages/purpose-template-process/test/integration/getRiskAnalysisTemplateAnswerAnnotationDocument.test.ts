@@ -50,9 +50,7 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
         {
           purposeTemplateId: purposeTemplate.id,
-          riskAnalysisTemplateId: riskAnalysisFormTemplate.id,
           answerId: singleAnswer.id,
-          annotationId: singleAnswer.annotation!.id,
           documentId: singleAnswer.annotation!.docs[0].id,
         },
         getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
@@ -89,9 +87,7 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
         {
           purposeTemplateId: purposeTemplate.id,
-          riskAnalysisTemplateId: riskAnalysisFormTemplate.id,
           answerId: singleAnswer.id,
-          annotationId: singleAnswer.annotation!.id,
           documentId: notExistingId,
         },
         getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
@@ -99,9 +95,7 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     ).rejects.toThrowError(
       riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
         purposeTemplateId: purposeTemplate.id,
-        riskAnalysisTemplateId: riskAnalysisFormTemplate.id,
         answerId: singleAnswer.id,
-        annotationId: singleAnswer.annotation!.id,
         documentId: notExistingId,
       })
     );

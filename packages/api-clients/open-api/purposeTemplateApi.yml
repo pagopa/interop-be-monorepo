@@ -578,7 +578,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /purposeTemplates/{purposeTemplateId}/riskAnalyses/{riskAnalysisTemplateId}/answers/{answerId}/annotations/{annotationId}/documents/{documentId}:
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeTemplateId
@@ -587,19 +587,7 @@ paths:
         schema:
           type: string
           format: uuid
-      - name: riskAnalysisTemplateId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
       - name: answerId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: annotationId
         in: path
         required: true
         schema:

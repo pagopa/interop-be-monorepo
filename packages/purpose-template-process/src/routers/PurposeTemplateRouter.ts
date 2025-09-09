@@ -238,27 +238,25 @@ const purposeTemplateRouter = (
       return res.status(501);
     })
     .get(
-      "/purposeTemplates/:purposeTemplateId/riskAnalyses/:riskAnalysisTemplateId/answers/:answerId/annotations/:annotationId/documents/:documentId",
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          // TODO: update with correct roles
-          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            M2M_ROLE,
+            M2M_ADMIN_ROLE,
+            SECURITY_ROLE,
+            SUPPORT_ROLE,
+          ]);
 
-          const {
-            purposeTemplateId,
-            riskAnalysisTemplateId,
-            answerId,
-            annotationId,
-            documentId,
-          } = req.params;
+          const { purposeTemplateId, answerId, documentId } = req.params;
           const { data: annotationDocument, metadata } =
             await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
               {
                 purposeTemplateId: unsafeBrandId(purposeTemplateId),
-                riskAnalysisTemplateId: unsafeBrandId(riskAnalysisTemplateId),
                 answerId: unsafeBrandId(answerId),
-                annotationId: unsafeBrandId(annotationId),
                 documentId: unsafeBrandId(documentId),
               },
               ctx

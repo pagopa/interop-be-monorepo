@@ -6,7 +6,7 @@ import {
   PurposeTemplateId,
   PurposeTemplateState,
   RiskAnalysisTemplateAnswerAnnotationDocument,
-  RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   Tenant,
   TenantId,
   WithMetadata,
@@ -258,7 +258,7 @@ export function readModelServiceBuilderSQL({
     },
     async getRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId: PurposeTemplateId,
-      annotationId: RiskAnalysisTemplateAnswerAnnotationId
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
     ): Promise<
       WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument> | undefined
     > {
@@ -274,8 +274,8 @@ export function readModelServiceBuilderSQL({
               purposeTemplateId
             ),
             eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId,
-              annotationId
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.id,
+              documentId
             )
           )
         );

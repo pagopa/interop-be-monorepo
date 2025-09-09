@@ -3,11 +3,9 @@ import {
   ApiError,
   makeApiProblemBuilder,
   PurposeTemplateId,
-  RiskAnalysisFormTemplateId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  RiskAnalysisTemplateAnswerAnnotationId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -63,19 +61,15 @@ export function riskAnalysisTemplateValidationFailed(
 
 export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
   purposeTemplateId,
-  riskAnalysisTemplateId,
   answerId,
-  annotationId,
   documentId,
 }: {
   purposeTemplateId: PurposeTemplateId;
-  riskAnalysisTemplateId: RiskAnalysisFormTemplateId;
   answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
-  annotationId: RiskAnalysisTemplateAnswerAnnotationId;
   documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
 }): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId}, risk analysis form template ${riskAnalysisTemplateId}, answer ${answerId} and annotation ${annotationId}`,
+    detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId} and answer ${answerId}`,
     code: "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
     title: "`Risk analysis template answer annotation document not found",
   });

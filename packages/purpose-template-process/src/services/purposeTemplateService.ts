@@ -6,12 +6,10 @@ import {
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
   ListResult,
-  RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisMultiAnswerId,
-  RiskAnalysisFormTemplateId,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -155,15 +153,11 @@ export function purposeTemplateServiceBuilder(
     async getRiskAnalysisTemplateAnswerAnnotationDocument(
       {
         purposeTemplateId,
-        riskAnalysisTemplateId,
         answerId,
-        annotationId,
         documentId,
       }: {
         purposeTemplateId: PurposeTemplateId;
-        riskAnalysisTemplateId: RiskAnalysisFormTemplateId;
         answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
-        annotationId: RiskAnalysisTemplateAnswerAnnotationId;
         documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
       },
       {
@@ -171,7 +165,7 @@ export function purposeTemplateServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
       logger.info(
-        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}, risk analysis form template ${riskAnalysisTemplateId}, answer ${answerId} and annotation ${annotationId}`
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
       );
 
       // TODO: worth it doing all these checks to throw the specific errors?
@@ -195,15 +189,13 @@ export function purposeTemplateServiceBuilder(
       const annotationDocument =
         await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocument(
           purposeTemplateId,
-          annotationId
+          documentId
         );
 
       if (!annotationDocument) {
         throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
           purposeTemplateId,
-          riskAnalysisTemplateId,
           answerId,
-          annotationId,
           documentId,
         });
       }

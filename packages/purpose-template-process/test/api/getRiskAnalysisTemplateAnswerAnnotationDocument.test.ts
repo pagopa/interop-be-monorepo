@@ -7,10 +7,8 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   PurposeTemplateId,
-  RiskAnalysisFormTemplateId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  RiskAnalysisTemplateAnswerAnnotationId,
   generateId,
 } from "pagopa-interop-models";
 import request from "supertest";
@@ -20,11 +18,9 @@ import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import { annotationDocumentToApiAnnotationDocument } from "../../src/model/domain/apiConverter.js";
 import { riskAnalysisTemplateAnswerAnnotationDocumentNotFound } from "../../src/model/domain/errors.js";
 
-describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalyses/{riskAnalysisTemplateId}/answers/{answerId}/annotations/{annotationId}/documents/{documentId}", () => {
+describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}", () => {
   const purposeTemplateId = generateId<PurposeTemplateId>();
-  const riskAnalysisTemplateId = generateId<RiskAnalysisFormTemplateId>();
   const answerId = generateId<RiskAnalysisSingleAnswerId>();
-  const annotationId = generateId<RiskAnalysisTemplateAnswerAnnotationId>();
   const riskAnalysisTemplateAnswerAnnotationDocument =
     getMockRiskAnalysisTemplateAnswerAnnotationDocument();
 
@@ -46,33 +42,32 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalyses/{riskAnalys
 
   type MakeRequestParams = {
     pId?: PurposeTemplateId;
-    ratId?: RiskAnalysisFormTemplateId;
     aId?: RiskAnalysisSingleAnswerId;
-    anId?: RiskAnalysisTemplateAnswerAnnotationId;
     dId?: RiskAnalysisTemplateAnswerAnnotationDocumentId;
   };
 
   const makeRequest = async (
     token: string,
-    { pId, ratId, aId, anId, dId }: MakeRequestParams = {
+    { pId, aId, dId }: MakeRequestParams = {
       pId: purposeTemplateId,
-      ratId: riskAnalysisTemplateId,
       aId: answerId,
-      anId: annotationId,
       dId: riskAnalysisTemplateAnswerAnnotationDocument.id,
     }
   ) =>
     request(api)
       .get(
-        `/purposeTemplates/${pId}/riskAnalyses/${ratId}/answers/${aId}/annotations/${anId}/documents/${dId}`
+        `/purposeTemplates/${pId}/riskAnalysis/answers/${aId}/annotation/documents/${dId}`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  // TODO: add correct roles
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
+    authRole.SECURITY_ROLE,
+    authRole.SUPPORT_ROLE,
   ];
 
   it.each(authorizedRoles)(
@@ -101,9 +96,7 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalyses/{riskAnalys
     {
       error: riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
         purposeTemplateId,
-        riskAnalysisTemplateId,
         answerId,
-        annotationId,
         documentId: riskAnalysisTemplateAnswerAnnotationDocument.id,
       }),
       expectedStatus: 404,
