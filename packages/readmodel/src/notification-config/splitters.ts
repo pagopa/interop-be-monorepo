@@ -6,7 +6,7 @@ import {
   dateToString,
 } from "pagopa-interop-models";
 import {
-  TenantNotificationConfigItemsSQL,
+  TenantNotificationConfigSQL,
   UserNotificationConfigItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { NotificationType } from "./utils.js";
@@ -15,32 +15,21 @@ export const splitTenantNotificationConfigIntoObjectsSQL = (
   {
     id,
     tenantId,
-    config,
+    enabled,
     createdAt,
     updatedAt,
     ...rest
   }: TenantNotificationConfig,
   metadataVersion: number
-): TenantNotificationConfigItemsSQL & {
-  enabledNotificationsSQL: Array<{ notificationType: NotificationType }>;
-} => {
+): TenantNotificationConfigSQL => {
   void (rest satisfies Record<string, never>);
-
   return {
-    tenantNotificationConfigSQL: {
-      id,
-      metadataVersion,
-      tenantId,
-      createdAt: dateToString(createdAt),
-      updatedAt: dateToString(updatedAt),
-    },
-    enabledNotificationsSQL: NotificationType.options
-      .filter((notificationType) => config[notificationType])
-      .map((notificationType) => ({
-        notificationType,
-        tenantNotificationConfigId: id,
-        metadataVersion,
-      })),
+    id,
+    metadataVersion,
+    tenantId,
+    enabled,
+    createdAt: dateToString(createdAt),
+    updatedAt: dateToString(updatedAt),
   };
 };
 

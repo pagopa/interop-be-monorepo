@@ -32,3 +32,15 @@ export function toM2MGatewayEServiceTemplateVersion(
     suspendedAt: version.suspendedAt,
   };
 }
+
+export function toGetEServiceTemplatesQueryParams(
+  params: m2mGatewayApi.GetEServiceTemplatesQueryParams
+): eserviceTemplateApi.GetEServiceTemplatesQueryParams {
+  return {
+    eserviceTemplatesIds: params.eserviceTemplateIds,
+    creatorsIds: params.creatorIds,
+    states: [],
+    offset: params.offset,
+    limit: params.limit,
+  };
+}

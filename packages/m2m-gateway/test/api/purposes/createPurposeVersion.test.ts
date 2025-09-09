@@ -42,7 +42,7 @@ describe("POST /purposes/:purposeId/versions router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
+    "Should return 201 and perform service calls for user with role %s",
     async (role) => {
       mockPurposeService.createPurposeVersion = vi
         .fn()

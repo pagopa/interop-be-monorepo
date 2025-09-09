@@ -4,7 +4,6 @@ import {
   WithMetadata,
   genericInternalError,
   ClientId,
-  UserId,
   PurposeId,
   TenantId,
   ListResult,
@@ -14,7 +13,6 @@ import {
   Agreement,
   agreementState,
   Key,
-  ClientKind,
   ProducerKeychain,
   ProducerKeychainId,
   DelegationId,
@@ -25,21 +23,10 @@ import {
   ProducerJWKKey,
 } from "pagopa-interop-models";
 import { z } from "zod";
-
-export type GetClientsFilters = {
-  name?: string;
-  userIds: UserId[];
-  consumerId: TenantId;
-  purposeId: PurposeId | undefined;
-  kind?: ClientKind;
-};
-
-export type GetProducerKeychainsFilters = {
-  name?: string;
-  userIds: UserId[];
-  producerId: TenantId;
-  eserviceId: EServiceId | undefined;
-};
+import {
+  GetClientsFilters,
+  GetProducerKeychainsFilters,
+} from "./readModelServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
@@ -106,9 +93,11 @@ export function readModelServiceBuilder(
           $or: userIds.map((userId) => ({ "data.users": { $eq: userId } })),
         });
 
-      const consumerIdFilter: ReadModelFilter<Client> = {
-        "data.consumerId": { $eq: consumerId },
-      };
+      const consumerIdFilter: ReadModelFilter<Client> = consumerId
+        ? {
+            "data.consumerId": { $eq: consumerId },
+          }
+        : {};
 
       const purposeIdFilter: ReadModelFilter<Client> = purposeId
         ? {
@@ -306,9 +295,11 @@ export function readModelServiceBuilder(
           $or: userIds.map((userId) => ({ "data.users": { $eq: userId } })),
         });
 
-      const producerIdFilter: ReadModelFilter<ProducerKeychain> = {
-        "data.producerId": { $eq: producerId },
-      };
+      const producerIdFilter: ReadModelFilter<ProducerKeychain> = producerId
+        ? {
+            "data.producerId": { $eq: producerId },
+          }
+        : {};
 
       const eserviceIdFilter: ReadModelFilter<ProducerKeychain> = eserviceId
         ? {

@@ -27,6 +27,7 @@ export function setupDbServiceBuilder(
           tableNames.map((tableName) => {
             const query = `
               CREATE TEMPORARY TABLE IF NOT EXISTS ${tableName}_${config.mergeTableSuffix} (
+                _seq BIGINT GENERATED ALWAYS AS IDENTITY,
                 LIKE ${config.dbSchemaName}.${tableName}
               );
             `;
@@ -90,8 +91,9 @@ export function setupDbServiceBuilder(
               .join(",\n  ");
 
             const query = `
-          CREATE TEMPORARY TABLE IF NOT EXISTS ${name}_${config.mergeTableSuffix} (
-            ${columnDefs}
+              CREATE TEMPORARY TABLE IF NOT EXISTS ${name}_${config.mergeTableSuffix} (
+               _seq BIGINT GENERATED ALWAYS AS IDENTITY,
+              ${columnDefs}
           );
         `;
 

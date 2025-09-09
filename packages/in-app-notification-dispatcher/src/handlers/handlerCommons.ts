@@ -4,11 +4,16 @@ import {
   descriptorState,
   Tenant,
   TenantId,
+  EServiceId,
+  PurposeId,
+  Purpose,
 } from "pagopa-interop-models";
 
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import {
   descriptorPublishedNotFound,
+  eserviceNotFound,
+  purposeNotFound,
   tenantNotFound,
 } from "../models/errors.js";
 
@@ -34,4 +39,26 @@ export function retrieveLatestPublishedDescriptor(
     throw descriptorPublishedNotFound(eservice.id);
   }
   return latestDescriptor;
+}
+
+export async function retrieveEservice(
+  eserviceId: EServiceId,
+  readModelService: ReadModelServiceSQL
+): Promise<EService> {
+  const eservice = await readModelService.getEServiceById(eserviceId);
+  if (!eservice) {
+    throw eserviceNotFound(eserviceId);
+  }
+  return eservice;
+}
+
+export async function retrievePurpose(
+  purposeId: PurposeId,
+  readModelService: ReadModelServiceSQL
+): Promise<Purpose> {
+  const purpose = await readModelService.getPurposeById(purposeId);
+  if (!purpose) {
+    throw purposeNotFound(purposeId);
+  }
+  return purpose;
 }

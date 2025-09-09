@@ -13,8 +13,7 @@ import {
   TenantId,
   toEServiceV2,
 } from "pagopa-interop-models";
-import { config } from "../src/config/config.js";
-import { handleNewEServiceVersionPublished } from "../src/handlers/eservices/handleNewEServiceVersionPublished.js";
+import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
 import { tenantNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
@@ -24,7 +23,7 @@ import {
   readModelService,
 } from "./utils.js";
 
-describe("handleNewEServiceVersionPublished", async () => {
+describe("handleEserviceStatusChangedToConsumer", async () => {
   const eservice = {
     ...getMockEService(),
     producerId: generateId<TenantId>(),
@@ -35,14 +34,14 @@ describe("handleNewEServiceVersionPublished", async () => {
 
   it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
     await expect(() =>
-      handleNewEServiceVersionPublished(undefined, logger, readModelService)
+      handleEserviceStateChangedToConsumer(undefined, logger, readModelService)
     ).rejects.toThrow(
       missingKafkaMessageDataError("eservice", "EServiceDescriptorPublished")
     );
   });
 
   it("should return empty array when no agreements exist for the eservice", async () => {
-    const notifications = await handleNewEServiceVersionPublished(
+    const notifications = await handleEserviceStateChangedToConsumer(
       toEServiceV2(eservice),
       logger,
       readModelService
@@ -60,7 +59,7 @@ describe("handleNewEServiceVersionPublished", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleNewEServiceVersionPublished(
+      handleEserviceStateChangedToConsumer(
         toEServiceV2(eservice),
         logger,
         readModelService
@@ -104,7 +103,7 @@ describe("handleNewEServiceVersionPublished", async () => {
         .fn()
         .mockResolvedValue(users);
 
-      const notifications = await handleNewEServiceVersionPublished(
+      const notifications = await handleEserviceStateChangedToConsumer(
         toEServiceV2(eservice),
         logger,
         readModelService
@@ -113,15 +112,15 @@ describe("handleNewEServiceVersionPublished", async () => {
       const expectedNotifications = isNotified ? users.length : 0;
       expect(notifications).toHaveLength(expectedNotifications);
       if (isNotified) {
-        const body = inAppTemplates.newEServiceVersionPublished(eservice.name);
+        const body = inAppTemplates.eserviceStateChangedToConsumer(
+          eservice.name
+        );
         const expectedNotifications = users.map((user) => ({
-          id: expect.any(String),
-          createdAt: expect.any(Date),
           userId: user.userId,
           tenantId: consumerId,
           body,
-          deepLink: `https://${config.interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${eservice.descriptors[0].id}`,
-          readAt: undefined,
+          notificationType: "eserviceStateChangedToConsumer",
+          entityId: eservice.descriptors[0].id,
         }));
         expect(notifications).toEqual(
           expect.arrayContaining(expectedNotifications)
@@ -146,7 +145,7 @@ describe("handleNewEServiceVersionPublished", async () => {
       .fn()
       .mockResolvedValue([]);
 
-    const notifications = await handleNewEServiceVersionPublished(
+    const notifications = await handleEserviceStateChangedToConsumer(
       toEServiceV2(eservice),
       logger,
       readModelService

@@ -547,6 +547,25 @@ export function eserviceServiceBuilder(
       return toM2MGatewayApiEService(polledResource.data);
     },
 
+    async updatePublishedEServiceSignalHub(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceSignalHubUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating Signal Hub flag for published E-Service with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateEServiceSignalHubFlag(seed, {
+          params: { eServiceId: eserviceId },
+          headers,
+        });
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
     async suspendDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -776,6 +795,44 @@ export function eserviceServiceBuilder(
       }
 
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
+    },
+
+    async updatePublishedEServiceDescriptorQuotas(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApi.EServiceDescriptorQuotasUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
+      logger.info(
+        `Updating Descriptor Quotas for published E-Service with id ${eserviceId}`
+      );
+
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId
+      );
+
+      const response = await clients.catalogProcessClient.updateDescriptor(
+        {
+          voucherLifespan: seed.voucherLifespan ?? descriptor.voucherLifespan,
+          dailyCallsPerConsumer:
+            seed.dailyCallsPerConsumer ?? descriptor.dailyCallsPerConsumer,
+          dailyCallsTotal: seed.dailyCallsTotal ?? descriptor.dailyCallsTotal,
+        },
+        {
+          params: { eServiceId: eserviceId, descriptorId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollEService(response, headers);
+
+      return toM2MGatewayApiEServiceDescriptor(
+        retrieveEServiceDescriptorById(
+          polledResource,
+          unsafeBrandId(descriptorId)
+        )
+      );
     },
 
     async getEServiceRiskAnalyses(

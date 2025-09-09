@@ -59,17 +59,17 @@ import {
 } from "pagopa-interop-readmodel-models";
 
 export type GetClientsFilters = {
-  name?: string;
+  name: string | undefined;
   userIds: UserId[];
-  consumerId: TenantId;
+  consumerId: TenantId | undefined;
   purposeId: PurposeId | undefined;
-  kind?: ClientKind;
+  kind: ClientKind | undefined;
 };
 
 export type GetProducerKeychainsFilters = {
-  name?: string;
+  name: string | undefined;
   userIds: UserId[];
-  producerId: TenantId;
+  producerId: TenantId | undefined;
   eserviceId: EServiceId | undefined;
 };
 
@@ -136,7 +136,9 @@ export function readModelServiceBuilderSQL({
               ? inArray(clientUserInReadmodelClient.userId, userIds)
               : undefined,
             // CONSUMER FILTER
-            eq(clientInReadmodelClient.consumerId, consumerId),
+            consumerId
+              ? eq(clientInReadmodelClient.consumerId, consumerId)
+              : undefined,
             // PURPOSE FILTER
             purposeId
               ? eq(clientPurposeInReadmodelClient.purposeId, purposeId)
@@ -330,10 +332,12 @@ export function readModelServiceBuilderSQL({
                 )
               : undefined,
             // PRODUCER FILTER
-            eq(
-              producerKeychainInReadmodelProducerKeychain.producerId,
-              producerId
-            ),
+            producerId
+              ? eq(
+                  producerKeychainInReadmodelProducerKeychain.producerId,
+                  producerId
+                )
+              : undefined,
             // E-SERVICE FILTER
             eserviceId
               ? eq(
