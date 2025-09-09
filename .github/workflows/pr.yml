@@ -134,7 +134,7 @@ jobs:
           run_install: true
       - name: Run lint for shard
         run: |
-          PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
+          PACKAGES_JSON='${{ matrix.shard.packages }}'
           echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
             echo "Running lint for package: $PACKAGE"
             pnpm --filter "$PACKAGE" lint
@@ -171,7 +171,7 @@ jobs:
           run_install: true
       - name: Run tests for shard
         run: |
-          PACKAGES_JSON='${{ fromJson(matrix.shard).packages }}'
+          PACKAGES_JSON='${{ matrix.shard.packages }}'
           echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
             echo "Running tests for package: $PACKAGE"
             pnpm --filter "$PACKAGE" test
