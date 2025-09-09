@@ -5,7 +5,7 @@ import { M2MEventSQLDbConfig } from "pagopa-interop-commons";
 export const config = M2MEventSQLDbConfig.parse(process.env);
 
 export default defineConfig({
-  out: "./src/gen",
+  out: "./src/generated",
   dialect: "postgresql",
   dbCredentials: {
     host: config.m2mEventSQLDbHost,
