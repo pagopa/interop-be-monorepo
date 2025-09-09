@@ -68,6 +68,7 @@ export async function handleAgreementRejected(
         notificationType,
         entityId: agreement.id,
         eserviceName: eservice.name,
+        ctaLabel: `Visualizza richiesta`,
       }),
     },
     address,
