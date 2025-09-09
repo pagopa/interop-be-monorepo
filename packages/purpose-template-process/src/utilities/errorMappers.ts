@@ -25,12 +25,8 @@ export const createPurposeTemplateErrorMapper = (
     .with("purposeTemplateNameConflict", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getPurposeTemplatesErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+export const getPurposeTemplatesErrorMapper = (): number =>
+  HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 export const linkEservicesToPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>

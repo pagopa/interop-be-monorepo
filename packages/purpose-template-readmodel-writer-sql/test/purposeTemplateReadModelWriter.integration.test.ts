@@ -408,7 +408,6 @@ describe("Integration tests", async () => {
         purposeTemplate: toPurposeTemplateV2(purposeTemplate),
         eservice: toEServiceV2(eservice1),
         descriptorId: eservice1.descriptors[0].id,
-        createdAt: dateToBigInt(createdAt),
       };
       const message: PurposeTemplateEventEnvelope = {
         sequence_num: 1,
