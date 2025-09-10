@@ -5,6 +5,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { genericInternalError } from "pagopa-interop-models";
 import { config } from "../config/config.js";
+import { formatError } from "../utils/errorFormatter.js";
 
 interface SignatureReference {
   safeStorageId: string;
@@ -23,7 +24,6 @@ export function dbServiceBuilder(dynamoDBClient: DynamoDBClient) {
       const input: PutItemInput = {
         TableName: config.signatureReferencesTableName,
         Item: {
-          PK: { S: item.safeStorageId },
           safeStorageId: { S: item.safeStorageId },
           correlationId: { S: item.correlationId },
           fileKind: { S: item.fileKind },
@@ -38,7 +38,9 @@ export function dbServiceBuilder(dynamoDBClient: DynamoDBClient) {
         await dynamoDBClient.send(command);
       } catch (error) {
         throw genericInternalError(
-          `Error saving '${item.safeStorageId}': ${error}`
+          `Error saving record on table: '${
+            config.signatureReferencesTableName
+          }' id: '${item.safeStorageId}': ${formatError(error)}`
         );
       }
     },
