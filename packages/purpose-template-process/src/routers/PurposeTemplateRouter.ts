@@ -26,7 +26,7 @@ import {
 } from "../utilities/errorMappers.js";
 import {
   apiPurposeTemplateStateToPurposeTemplateState,
-  purposeTemplateEServiceDescriptorToApiPurposeTemplateEServiceDescriptor,
+  eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate,
   purposeTemplateToApiPurposeTemplate,
 } from "../model/domain/apiConverter.js";
 
@@ -189,7 +189,7 @@ const purposeTemplateRouter = (
           purposeTemplateApi.EServiceDescriptorsPurposeTemplate.parse({
             results: purposeTemplateEServicesDescriptors.results.map(
               (purposeTemplateEServiceDescriptor) =>
-                purposeTemplateEServiceDescriptorToApiPurposeTemplateEServiceDescriptor(
+                eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
                   purposeTemplateEServiceDescriptor
                 )
             ),
