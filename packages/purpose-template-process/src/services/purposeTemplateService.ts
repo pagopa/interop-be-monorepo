@@ -24,7 +24,7 @@ import {
   purposeTemplateNotFound,
 } from "../model/domain/errors.js";
 import {
-  toCreateEventEServiceDescriptorLinked,
+  toCreateEventPurposeTemplateEServiceLinked,
   toCreateEventPurposeTemplateAdded,
 } from "../model/domain/toEvent.js";
 import {
@@ -200,7 +200,7 @@ export function purposeTemplateServiceBuilder(
 
           const version = purposeTemplate.metadata.version + index;
 
-          return toCreateEventEServiceDescriptorLinked(
+          return toCreateEventPurposeTemplateEServiceLinked(
             eServiceDescriptorPurposeTemplate,
             purposeTemplate.data,
             purposeTemplateValidationResult.eservice,

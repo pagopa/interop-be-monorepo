@@ -26,7 +26,7 @@ export function toCreateEventPurposeTemplateAdded(
   };
 }
 
-export function toCreateEventEServiceDescriptorLinked(
+export function toCreateEventPurposeTemplateEServiceLinked(
   eServiceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate,
   purposeTemplate: PurposeTemplate,
   eservice: EService,
