@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose (
   updated_at TIMESTAMP WITH TIME ZONE,
   is_free_of_charge BOOLEAN NOT NULL,
   free_of_charge_reason VARCHAR,
+  purpose_template_id UUID,
   PRIMARY KEY (id),
   CONSTRAINT purpose_id_metadata_version_unique UNIQUE (id, metadata_version)
 );

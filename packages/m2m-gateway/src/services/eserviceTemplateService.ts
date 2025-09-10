@@ -12,6 +12,7 @@ import {
   toM2MGatewayApiEServiceTemplateRiskAnalysis,
   toM2MGatewayEServiceTemplate,
   toM2MGatewayEServiceTemplateVersion,
+  toGetEServiceTemplatesQueryParams,
 } from "../api/eserviceTemplateApiConverter.js";
 import {
   eserviceTemplateRiskAnalysisNotFound,
@@ -183,6 +184,47 @@ export function eserviceTemplateServiceBuilder(
       }
 
       return toM2MGatewayApiEServiceTemplateRiskAnalysis(createdRiskAnalysis);
+    },
+
+    async getEServiceTemplates(
+      params: m2mGatewayApi.GetEServiceTemplatesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplates> {
+      logger.info(
+        `Retrieving eservice templates with creatorsIds ${params.creatorIds} templatesIds ${params.eserviceTemplateIds} offset ${params.offset} limit ${params.limit}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } = await clients.eserviceTemplateProcessClient.getEServiceTemplates({
+        queries: toGetEServiceTemplatesQueryParams(params),
+        headers,
+      });
+
+      return {
+        results: results.map(toM2MGatewayEServiceTemplate),
+        pagination: {
+          limit: params.limit,
+          offset: params.offset,
+          totalCount,
+        },
+      };
+    },
+    async createEServiceTemplate(
+      seed: m2mGatewayApi.EServiceTemplateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplate> {
+      logger.info(`Creating eservice template with name ${seed.name}`);
+
+      const response =
+        await clients.eserviceTemplateProcessClient.createEServiceTemplate(
+          seed,
+          {
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplate(response, headers);
+      return toM2MGatewayEServiceTemplate(polledResource.data);
     },
   };
 }
