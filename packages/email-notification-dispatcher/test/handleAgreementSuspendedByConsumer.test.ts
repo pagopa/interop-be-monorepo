@@ -81,33 +81,6 @@ describe("handleAgreementSuspendedByConsumer", async () => {
     );
   });
 
-  it("should throw tenantNotFound when consumer is not found", async () => {
-    const unknownConsumerId = generateId<TenantId>();
-
-    const agreement = {
-      ...getMockAgreement(),
-      stamps: {
-        suspensionByConsumer: { when: new Date(), who: generateId<UserId>() },
-      },
-      producerId: producerTenant.id,
-      descriptorId: descriptor.id,
-      eserviceId: eservice.id,
-      consumerId: unknownConsumerId,
-    };
-    await addOneAgreement(agreement);
-
-    await expect(() =>
-      handleAgreementSuspendedByConsumer({
-        agreementV2Msg: toAgreementV2(agreement),
-        logger,
-        templateService,
-        userService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      })
-    ).rejects.toThrow(tenantNotFound(unknownConsumerId));
-  });
-
   it("should throw tenantNotFound when producer is not found", async () => {
     const unknownProducerId = generateId<TenantId>();
 
@@ -254,6 +227,9 @@ describe("handleAgreementSuspendedByConsumer", async () => {
       expect(message.email.body).toContain(
         `Sospensione richiesta di fruizione da parte del fruitore`
       );
+      expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(eservice.name);
+      expect(message.email.body).toContain("Visualizza richiesta");
     });
   });
 });

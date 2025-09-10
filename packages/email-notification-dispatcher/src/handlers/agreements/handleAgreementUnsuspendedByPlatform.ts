@@ -40,13 +40,12 @@ export async function handleAgreementUnsuspendedByPlatform(
 
   const agreement = fromAgreementV2(agreementV2Msg);
 
-  const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
+  const [htmlTemplate, eservice, producer] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.agreementUnsuspendedByPlatformMailTemplate
     ),
     retrieveAgreementEservice(agreement, readModelService),
     retrieveTenant(agreement.producerId, readModelService),
-    retrieveTenant(agreement.consumerId, readModelService),
   ]);
 
   const targets = await getRecipientsForTenants({
@@ -74,8 +73,8 @@ export async function handleAgreementUnsuspendedByPlatform(
         notificationType,
         entityId: agreement.id,
         producerName: producer.name,
-        consumerName: consumer.name,
         eserviceName: eservice.name,
+        ctaLabel: `Visualizza richiesta`,
       }),
     },
     address,
