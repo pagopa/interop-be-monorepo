@@ -124,11 +124,9 @@ export function readModelServiceBuilderSQL({
       title: string
     ): Promise<WithMetadata<PurposeTemplate> | undefined> {
       return await purposeTemplateReadModelServiceSQL.getPurposeTemplateByFilter(
-        and(
-          ilike(
-            purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
-            escapeRegExp(title)
-          )
+        ilike(
+          purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
+          escapeRegExp(title)
         )
       );
     },
@@ -207,29 +205,23 @@ export function readModelServiceBuilderSQL({
         )
         .leftJoin(
           purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
-            )
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
           )
         )
         .leftJoin(
           purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
-            )
+          eq(
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
           )
         )
         .leftJoin(
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
-            )
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
           )
         )
         .orderBy(...orderByClauses);
