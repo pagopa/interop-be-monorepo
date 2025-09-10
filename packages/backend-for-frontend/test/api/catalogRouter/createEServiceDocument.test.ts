@@ -4,7 +4,7 @@ import {
   DescriptorId,
   EServiceId,
   generateId,
-  invalidInterfaceContentTypeDetected,
+  invalidContentTypeDetected,
   invalidInterfaceFileDetected,
 } from "pagopa-interop-models";
 import request from "supertest";
@@ -74,7 +74,7 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents", 
       expectedStatus: 404,
     },
     {
-      error: invalidInterfaceContentTypeDetected(
+      error: invalidContentTypeDetected(
         { id: generateId(), isEserviceTemplate: false },
         "contentType",
         "REST"
