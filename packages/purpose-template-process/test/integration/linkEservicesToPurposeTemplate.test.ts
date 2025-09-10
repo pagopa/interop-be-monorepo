@@ -192,6 +192,7 @@ describe("linkEservicesToPurposeTemplate", () => {
   it("should throw missingExpectedEService if the eservice doesn't exist", async () => {
     const nonExistentEServiceId = generateId<EServiceId>();
 
+    await addOnePurposeTemplate(purposeTemplate);
     await addOneTenant(tenant);
 
     await expect(

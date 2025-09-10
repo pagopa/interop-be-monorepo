@@ -167,6 +167,11 @@ export function purposeTemplateServiceBuilder(
 
       assertEServiceIdsCountIsBelowThreshold(eserviceIds.length);
 
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
       const validationResult = await validateEServicesForPurposeTemplate(
         eserviceIds,
         purposeTemplateId,
@@ -180,11 +185,6 @@ export function purposeTemplateServiceBuilder(
           purposeTemplateId
         );
       }
-
-      const purposeTemplate = await retrievePurposeTemplate(
-        purposeTemplateId,
-        readModelService
-      );
 
       const creationTimestamp = new Date();
 
