@@ -48,7 +48,9 @@ export function validateRiskAnalysis(
     formRulesForValidation.expiration &&
     formRulesForValidation.expiration < dateForValidation
   ) {
-    return invalidResult([expiredRulesVersionError(riskAnalysisForm.version)]);
+    return invalidResult([
+      expiredRulesVersionError(riskAnalysisForm.version, tenantKind),
+    ]);
   }
 
   const validationRules = buildValidationRules(formRulesForValidation);
