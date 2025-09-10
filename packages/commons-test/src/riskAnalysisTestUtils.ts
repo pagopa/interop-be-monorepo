@@ -15,6 +15,31 @@ import {
 import { match } from "ts-pattern";
 import { z } from "zod";
 
+export const expiredRiskAnalysis2_0_Pa: RiskAnalysisFormToValidate = {
+  version: "2.0",
+  answers: {
+    purpose: ["INSTITUTIONAL"],
+    institutionalPurpose: ["MyPurpose"],
+    personalDataTypes: ["WITH_NON_IDENTIFYING_DATA"],
+    legalBasis: ["LEGAL_OBLIGATION"],
+    legalObligationReference: ["somethingLegal"],
+    legalBasisPublicInterest: ["RULE_OF_LAW"],
+    ruleOfLawText: ["TheLaw"],
+    knowsDataQuantity: ["NO"],
+    deliveryMethod: ["ANONYMOUS"],
+    policyProvided: ["NO"],
+    reasonPolicyNotProvided: ["Test"],
+    confirmPricipleIntegrityAndDiscretion: ["true"],
+    doneDpia: ["NO"],
+    dataDownload: ["YES"],
+    dataRetentionPeriod: ["true"],
+    purposePursuit: ["MERE_CORRECTNESS"],
+    checkedExistenceMereCorrectnessInteropCatalogue: ["true"],
+    usesThirdPartyData: ["NO"],
+    declarationConfirmGDPR: ["true"],
+  },
+};
+
 export const validRiskAnalysis3_0_Pa: RiskAnalysisFormToValidate = {
   version: "3.0",
   answers: {
@@ -40,6 +65,35 @@ export const validRiskAnalysis3_0_Pa: RiskAnalysisFormToValidate = {
     usesThirdPartyData: ["NO"],
     declarationConfirmGDPR: ["true"],
   },
+};
+
+export const validatedExpiredRiskAnalysis2_0_Pa: RiskAnalysisValidatedForm = {
+  version: "2.0",
+  singleAnswers: [
+    { key: "purpose", value: "INSTITUTIONAL" },
+    { key: "institutionalPurpose", value: "MyPurpose" },
+    { key: "personalDataTypes", value: "WITH_NON_IDENTIFYING_DATA" },
+    { key: "legalBasis", value: "LEGAL_OBLIGATION" },
+    { key: "legalObligationReference", value: "somethingLegal" },
+    { key: "legalBasisPublicInterest", value: "RULE_OF_LAW" },
+    { key: "ruleOfLawText", value: "TheLaw" },
+    { key: "knowsDataQuantity", value: "NO" },
+    { key: "deliveryMethod", value: "ANONYMOUS" },
+    { key: "policyProvided", value: "NO" },
+    { key: "reasonPolicyNotProvided", value: "Test" },
+    { key: "confirmPricipleIntegrityAndDiscretion", value: "true" },
+    { key: "doneDpia", value: "NO" },
+    { key: "dataDownload", value: "YES" },
+    { key: "dataRetentionPeriod", value: "true" },
+    { key: "purposePursuit", value: "MERE_CORRECTNESS" },
+    {
+      key: "checkedExistenceMereCorrectnessInteropCatalogue",
+      value: "true",
+    },
+    { key: "usesThirdPartyData", value: "NO" },
+    { key: "declarationConfirmGDPR", value: "true" },
+  ],
+  multiAnswers: [],
 };
 
 export const validatedRiskAnalysis3_0_Pa: RiskAnalysisValidatedForm = {
@@ -166,6 +220,12 @@ export const getMockValidRiskAnalysis = (
       )
     )
     .exhaustive();
+
+export const getMockExpiredRiskAnalysisPA = (): RiskAnalysis =>
+  riskAnalysisValidatedFormToNewRiskAnalysis(
+    validatedExpiredRiskAnalysis2_0_Pa,
+    generateMock(z.string())
+  );
 
 export const getMockValidEServiceTemplateRiskAnalysis = (
   producerTenantKind: TenantKind

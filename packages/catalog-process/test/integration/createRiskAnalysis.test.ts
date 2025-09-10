@@ -3,6 +3,7 @@
 import {
   unexpectedFieldValueError,
   unexpectedFieldError,
+  expiredRulesVersionError,
 } from "pagopa-interop-commons";
 import {
   randomArrayItem,
@@ -14,6 +15,7 @@ import {
   getMockAuthData,
   getMockDescriptor,
   getMockEService,
+  getMockExpiredRiskAnalysisPA,
 } from "pagopa-interop-commons-test";
 import {
   TenantKind,
@@ -491,6 +493,48 @@ describe("create risk analysis", () => {
           new Set(["INSTITUTIONAL", "OTHER"])
         ),
         unexpectedFieldError("unexpectedField"),
+      ])
+    );
+  });
+  it("should throw riskAnalysisValidationFailed if the risk analysis rules version has expired", async () => {
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: tenantKind.PA,
+    };
+
+    const mockValidRiskAnalysis = getMockExpiredRiskAnalysisPA();
+
+    const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed = {
+      ...buildRiskAnalysisSeed(mockValidRiskAnalysis),
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      mode: eserviceMode.receive,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        },
+      ],
+    };
+
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.createRiskAnalysis(
+        eservice.id,
+        riskAnalysisSeed,
+        getMockContext({ authData: getMockAuthData(producer.id) })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisValidationFailed([
+        expiredRulesVersionError(
+          riskAnalysisSeed.riskAnalysisForm.version,
+          tenantKind.PA
+        ),
       ])
     );
   });
