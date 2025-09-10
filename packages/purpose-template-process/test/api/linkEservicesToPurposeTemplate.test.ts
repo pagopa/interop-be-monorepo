@@ -1,9 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import {
-  AuthRole,
-  authRole,
-  missingExpectedEService,
-} from "pagopa-interop-commons";
+import { AuthRole, authRole, eserviceNotFound } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import {
   DescriptorId,
@@ -160,7 +156,7 @@ describe("API POST /purposeTemplates/:id/linkEservices", () => {
     },
     {
       error: associationEServicesForPurposeTemplateFailed(
-        [missingExpectedEService(eserviceIds[0])],
+        [eserviceNotFound(eserviceIds[0])],
         eserviceIds,
         purposeTemplateId
       ),

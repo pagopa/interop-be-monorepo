@@ -1,13 +1,11 @@
-import {
-  PurposeTemplateValidationIssue,
-  RiskAnalysisTemplateValidationIssue,
-} from "pagopa-interop-commons";
+import { RiskAnalysisTemplateValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
   EServiceId,
   makeApiProblemBuilder,
   PurposeTemplateId,
 } from "pagopa-interop-models";
+import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
 
 export const errorCodes = {
   missingFreeOfChargeReason: "0001",
@@ -17,7 +15,6 @@ export const errorCodes = {
   associationEServicesForPurposeTemplateFailed: "0005",
   associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0006",
   tooManyEServicesForPurposeTemplate: "0007",
-  missingExpectedEService: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;

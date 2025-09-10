@@ -8,14 +8,6 @@ import {
   descriptorState,
 } from "pagopa-interop-models";
 import {
-  unexpectedEServiceError,
-  missingExpectedEService,
-  unexpectedAssociationEServiceError,
-  eserviceAlreadyAssociatedError,
-  missingDescriptorError,
-  invalidDescriptorStateError,
-} from "pagopa-interop-commons";
-import {
   getMockEService,
   getMockDescriptor,
 } from "pagopa-interop-commons-test";
@@ -25,6 +17,14 @@ import {
 } from "../../src/model/domain/errors.js";
 import { validateEServicesForPurposeTemplate } from "../../src/services/validators.js";
 import { ReadModelServiceSQL } from "../../src/services/readModelServiceSQL.js";
+import {
+  eserviceAlreadyAssociatedError,
+  eserviceNotFound,
+  invalidDescriptorStateError,
+  missingDescriptorError,
+  unexpectedAssociationEServiceError,
+  unexpectedEServiceError,
+} from "../../src/errors/purposeTemplateValidationErrors.js";
 
 describe("Purpose Template Validation", () => {
   const mockReadModelService: ReadModelServiceSQL = {
@@ -83,7 +83,7 @@ describe("Purpose Template Validation", () => {
       });
     });
 
-    it("should throw associationEServicesForPurposeTemplateFailed when eservice is not found (missingExpectedEService)", async () => {
+    it("should throw associationEServicesForPurposeTemplateFailed when eservice is not found (eserviceNotFound)", async () => {
       const eserviceIds = [eserviceId1];
 
       mockReadModelService.getEServiceById = vi
@@ -98,7 +98,7 @@ describe("Purpose Template Validation", () => {
         )
       ).rejects.toThrow(
         associationEServicesForPurposeTemplateFailed(
-          [missingExpectedEService(eserviceId1)],
+          [eserviceNotFound(eserviceId1)],
           eserviceIds,
           purposeTemplateId
         )

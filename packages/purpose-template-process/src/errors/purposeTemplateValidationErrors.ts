@@ -6,7 +6,7 @@ import {
 
 type PurposeTemplateValidationIssueCode =
   | "unexpectedEServiceError"
-  | "missingExpectedEService"
+  | "eserviceNotFound"
   | "unexpectedAssociationEServiceError"
   | "eserviceAlreadyAssociated"
   | "missingDescriptor"
@@ -48,12 +48,12 @@ export function unexpectedEServiceError(
   });
 }
 
-export function missingExpectedEService(
+export function eserviceNotFound(
   eserviceId: EServiceId
 ): PurposeTemplateValidationIssue {
   return new PurposeTemplateValidationIssue({
-    code: "missingExpectedEService",
-    detail: `EService ${eserviceId} is missing from the list of expected EServices`,
+    code: "eserviceNotFound",
+    detail: `EService ${eserviceId} not found`,
   });
 }
 

@@ -27,11 +27,6 @@ import {
   getMockContext,
 } from "pagopa-interop-commons-test";
 import {
-  invalidDescriptorStateError,
-  missingDescriptorError,
-  missingExpectedEService,
-} from "pagopa-interop-commons";
-import {
   associationEServicesForPurposeTemplateFailed,
   purposeTemplateNotFound,
   tooManyEServicesForPurposeTemplate,
@@ -44,6 +39,11 @@ import {
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
 import { config } from "../../src/config/config.js";
+import {
+  eserviceNotFound,
+  invalidDescriptorStateError,
+  missingDescriptorError,
+} from "../../src/errors/purposeTemplateValidationErrors.js";
 
 describe("linkEservicesToPurposeTemplate", () => {
   const tenant: Tenant = {
@@ -189,7 +189,7 @@ describe("linkEservicesToPurposeTemplate", () => {
     );
   });
 
-  it("should throw missingExpectedEService if the eservice doesn't exist", async () => {
+  it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
     const nonExistentEServiceId = generateId<EServiceId>();
 
     await addOnePurposeTemplate(purposeTemplate);
@@ -205,7 +205,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       )
     ).rejects.toThrowError(
       associationEServicesForPurposeTemplateFailed(
-        [missingExpectedEService(nonExistentEServiceId)],
+        [eserviceNotFound(nonExistentEServiceId)],
         [nonExistentEServiceId],
         purposeTemplate.id
       )
@@ -345,7 +345,7 @@ describe("linkEservicesToPurposeTemplate", () => {
       )
     ).rejects.toThrowError(
       associationEServicesForPurposeTemplateFailed(
-        [missingExpectedEService(nonExistentEServiceId)],
+        [eserviceNotFound(nonExistentEServiceId)],
         [eService1.id, nonExistentEServiceId],
         purposeTemplate.id
       )

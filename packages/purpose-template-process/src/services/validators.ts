@@ -8,19 +8,9 @@ import {
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
-  eserviceAlreadyAssociatedError,
-  invalidDescriptorStateError,
   RiskAnalysisTemplateValidatedForm,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   validatePurposeTemplateRiskAnalysis,
-  unexpectedAssociationEServiceError,
-  PurposeTemplateValidationIssue,
-  unexpectedEServiceError,
-  missingExpectedEService,
-  invalidPurposeTemplateResult,
-  PurposeTemplateValidationResult,
-  missingDescriptorError,
-  validPurposeTemplateResult,
 } from "pagopa-interop-commons";
 import {
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
@@ -31,6 +21,18 @@ import {
   tooManyEServicesForPurposeTemplate,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
+import {
+  eserviceAlreadyAssociatedError,
+  eserviceNotFound,
+  invalidDescriptorStateError,
+  invalidPurposeTemplateResult,
+  missingDescriptorError,
+  PurposeTemplateValidationIssue,
+  PurposeTemplateValidationResult,
+  unexpectedAssociationEServiceError,
+  unexpectedEServiceError,
+  validPurposeTemplateResult,
+} from "../errors/purposeTemplateValidationErrors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const assertConsistentFreeOfCharge = (
@@ -144,7 +146,7 @@ async function validateEServiceExistence(
 
     // eservice not found
     if (result.status === "fulfilled" && !result.value) {
-      return [missingExpectedEService(eserviceIds[index])];
+      return [eserviceNotFound(eserviceIds[index])];
     }
 
     return [];

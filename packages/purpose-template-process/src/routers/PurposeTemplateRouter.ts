@@ -167,7 +167,7 @@ const purposeTemplateRouter = (
       }
       return res.status(501);
     })
-    .get("/purposeTemplates/:id/linkEservices", async (req, res) => {
+    .get("/purposeTemplates/:id/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);

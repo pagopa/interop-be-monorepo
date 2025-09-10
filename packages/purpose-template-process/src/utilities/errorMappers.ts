@@ -34,7 +34,6 @@ export const linkEservicesToPurposeTemplateErrorMapper = (
   match(error.code)
     .with(
       "associationEServicesForPurposeTemplateFailed",
-      "missingExpectedEService",
       "tooManyEServicesForPurposeTemplate",
       () => HTTP_STATUS_BAD_REQUEST
     )
