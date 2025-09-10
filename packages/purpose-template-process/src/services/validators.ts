@@ -23,6 +23,8 @@ import {
   validPurposeTemplateResult,
 } from "pagopa-interop-commons";
 import {
+  associationBetweenEServiceAndPurposeTemplateAlreadyExists,
+  associationEServicesForPurposeTemplateFailed,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   riskAnalysisTemplateValidationFailed,
@@ -275,7 +277,11 @@ export async function validateEServicesForPurposeTemplate(
   );
 
   if (validationIssues.length > 0) {
-    return invalidPurposeTemplateResult(validationIssues);
+    throw associationEServicesForPurposeTemplateFailed(
+      validationIssues,
+      eserviceIds,
+      purposeTemplateId
+    );
   }
 
   const associationValidationIssues = await validateEServiceAssociations(
@@ -285,7 +291,11 @@ export async function validateEServicesForPurposeTemplate(
   );
 
   if (associationValidationIssues.length > 0) {
-    return invalidPurposeTemplateResult(associationValidationIssues);
+    throw associationBetweenEServiceAndPurposeTemplateAlreadyExists(
+      associationValidationIssues,
+      eserviceIds,
+      purposeTemplateId
+    );
   }
 
   const {

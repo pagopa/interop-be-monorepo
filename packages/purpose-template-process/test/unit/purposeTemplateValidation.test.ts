@@ -19,6 +19,10 @@ import {
   getMockEService,
   getMockDescriptor,
 } from "pagopa-interop-commons-test";
+import {
+  associationEServicesForPurposeTemplateFailed,
+  associationBetweenEServiceAndPurposeTemplateAlreadyExists,
+} from "../../src/model/domain/errors.js";
 import { validateEServicesForPurposeTemplate } from "../../src/services/validators.js";
 import { ReadModelServiceSQL } from "../../src/services/readModelServiceSQL.js";
 
@@ -79,26 +83,29 @@ describe("Purpose Template Validation", () => {
       });
     });
 
-    it("should return invalid result when eservice is not found (validateEServiceExistence)", async () => {
+    it("should throw associationEServicesForPurposeTemplateFailed when eservice is not found (missingExpectedEService)", async () => {
       const eserviceIds = [eserviceId1];
 
       mockReadModelService.getEServiceById = vi
         .fn()
         .mockResolvedValue(undefined);
 
-      const result = await validateEServicesForPurposeTemplate(
-        eserviceIds,
-        purposeTemplateId,
-        mockReadModelService
+      await expect(
+        validateEServicesForPurposeTemplate(
+          eserviceIds,
+          purposeTemplateId,
+          mockReadModelService
+        )
+      ).rejects.toThrow(
+        associationEServicesForPurposeTemplateFailed(
+          [missingExpectedEService(eserviceId1)],
+          eserviceIds,
+          purposeTemplateId
+        )
       );
-
-      expect(result).toEqual({
-        type: "invalid",
-        issues: [missingExpectedEService(eserviceId1)],
-      });
     });
 
-    it("should return invalid result when eservice retrieval fails (validateEServiceExistence)", async () => {
+    it("should throw associationEServicesForPurposeTemplateFailed when eservice retrieval fails (unexpectedEServiceError)", async () => {
       const eserviceIds = [eserviceId1];
       const errorMessage = "Database connection failed";
 
@@ -106,19 +113,22 @@ describe("Purpose Template Validation", () => {
         .fn()
         .mockRejectedValue(new Error(errorMessage));
 
-      const result = await validateEServicesForPurposeTemplate(
-        eserviceIds,
-        purposeTemplateId,
-        mockReadModelService
+      await expect(
+        validateEServicesForPurposeTemplate(
+          eserviceIds,
+          purposeTemplateId,
+          mockReadModelService
+        )
+      ).rejects.toThrow(
+        associationEServicesForPurposeTemplateFailed(
+          [unexpectedEServiceError(errorMessage, eserviceId1)],
+          eserviceIds,
+          purposeTemplateId
+        )
       );
-
-      expect(result).toEqual({
-        type: "invalid",
-        issues: [unexpectedEServiceError(errorMessage, eserviceId1)],
-      });
     });
 
-    it("should return invalid result when eservice is already associated (validateEServiceAssociations)", async () => {
+    it("should throw associationBetweenEServiceAndPurposeTemplateAlreadyExists when eservice is already associated (eserviceAlreadyAssociatedError)", async () => {
       const eserviceIds = [eserviceId1];
       const existingAssociation = {
         id: generateId(),
@@ -135,21 +145,22 @@ describe("Purpose Template Validation", () => {
       mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
         vi.fn().mockResolvedValue(existingAssociation);
 
-      const result = await validateEServicesForPurposeTemplate(
-        eserviceIds,
-        purposeTemplateId,
-        mockReadModelService
+      await expect(
+        validateEServicesForPurposeTemplate(
+          eserviceIds,
+          purposeTemplateId,
+          mockReadModelService
+        )
+      ).rejects.toThrow(
+        associationBetweenEServiceAndPurposeTemplateAlreadyExists(
+          [eserviceAlreadyAssociatedError(eserviceId1, purposeTemplateId)],
+          eserviceIds,
+          purposeTemplateId
+        )
       );
-
-      expect(result).toEqual({
-        type: "invalid",
-        issues: [
-          eserviceAlreadyAssociatedError(eserviceId1, purposeTemplateId),
-        ],
-      });
     });
 
-    it("should return invalid result when association check fails (validateEServiceAssociations)", async () => {
+    it("should throw associationBetweenEServiceAndPurposeTemplateAlreadyExists when association check fails (unexpectedAssociationEServiceError)", async () => {
       const eserviceIds = [eserviceId1];
       const errorMessage = "Association check failed";
 
@@ -159,16 +170,19 @@ describe("Purpose Template Validation", () => {
       mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
         vi.fn().mockRejectedValue(new Error(errorMessage));
 
-      const result = await validateEServicesForPurposeTemplate(
-        eserviceIds,
-        purposeTemplateId,
-        mockReadModelService
+      await expect(
+        validateEServicesForPurposeTemplate(
+          eserviceIds,
+          purposeTemplateId,
+          mockReadModelService
+        )
+      ).rejects.toThrow(
+        associationBetweenEServiceAndPurposeTemplateAlreadyExists(
+          [unexpectedAssociationEServiceError(errorMessage, eserviceId1)],
+          eserviceIds,
+          purposeTemplateId
+        )
       );
-
-      expect(result).toEqual({
-        type: "invalid",
-        issues: [unexpectedAssociationEServiceError(errorMessage, eserviceId1)],
-      });
     });
 
     it("should return invalid result when eservice has no descriptors (validateEServiceDescriptors)", async () => {
