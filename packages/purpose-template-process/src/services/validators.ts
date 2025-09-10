@@ -189,12 +189,10 @@ async function validateEServiceAssociations(
 
   return associationValidationResults.flatMap((result, index) => {
     if (result.status === "rejected") {
-      return [
-        unexpectedAssociationEServiceError(
-          result.reason.message,
-          validEservices[index].id
-        ),
-      ];
+      throw unexpectedAssociationEServiceError(
+        result.reason.message,
+        validEservices[index].id
+      );
     }
 
     if (result.status === "fulfilled" && result.value !== undefined) {

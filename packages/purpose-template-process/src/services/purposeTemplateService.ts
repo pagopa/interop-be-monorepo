@@ -198,7 +198,7 @@ export function purposeTemplateServiceBuilder(
               createdAt: creationTimestamp,
             };
 
-          const version = index === 0 ? undefined : index - 1;
+          const version = purposeTemplate.metadata.version + index;
 
           return toCreateEventEServiceDescriptorLinked(
             eServiceDescriptorPurposeTemplate,

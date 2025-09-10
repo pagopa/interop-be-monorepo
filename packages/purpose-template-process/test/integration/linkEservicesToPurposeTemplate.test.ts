@@ -114,31 +114,31 @@ describe("linkEservicesToPurposeTemplate", () => {
       createdAt: new Date(),
     });
 
-    const writtenEvent1 = await readLastPurposeTemplateEvent(
+    const lastWrittenEvent = await readLastPurposeTemplateEvent(
       purposeTemplate.id
     );
 
-    if (!writtenEvent1) {
+    if (!lastWrittenEvent) {
       fail("Event not found in event-store for eservice1");
     }
 
-    expect(writtenEvent1).toMatchObject({
+    expect(lastWrittenEvent).toMatchObject({
       stream_id: purposeTemplate.id,
-      version: "1",
+      version: "2",
       type: "PurposeTemplateEServiceLinked",
       event_version: 2,
     });
 
-    const writtenPayload1 = decodeProtobufPayload({
+    const lastWrittenPayload = decodeProtobufPayload({
       messageType: PurposeTemplateEServiceLinkedV2,
-      payload: writtenEvent1.data,
+      payload: lastWrittenEvent.data,
     });
 
-    expect(writtenPayload1.purposeTemplate).toEqual(
+    expect(lastWrittenPayload.purposeTemplate).toEqual(
       toPurposeTemplateV2(purposeTemplate)
     );
-    expect(writtenPayload1.eservice).toEqual(toEServiceV2(eService2));
-    expect(writtenPayload1.descriptorId).toBe(descriptor2.id);
+    expect(lastWrittenPayload.eservice).toEqual(toEServiceV2(eService2));
+    expect(lastWrittenPayload.descriptorId).toBe(descriptor2.id);
 
     vi.useRealTimers();
   });
