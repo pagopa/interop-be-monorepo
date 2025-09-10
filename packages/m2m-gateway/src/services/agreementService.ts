@@ -1,5 +1,9 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
-import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  delegationApi,
+  m2mGatewayApi,
+} from "pagopa-interop-api-clients";
 import {
   AgreementDocumentId,
   AgreementId,
@@ -48,6 +52,33 @@ export function agreementServiceBuilder(
       headers,
     });
 
+  const retrieveAgreementDelegationId = async (
+    agreement: agreementApi.Agreement,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<delegationApi.Delegation["id"] | undefined> =>
+    (
+      await clients.delegationProcessClient.delegation.getDelegations({
+        headers,
+        queries: {
+          eserviceIds: [agreement.eserviceId],
+          delegatorIds: [agreement.consumerId],
+          kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+          delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
+          limit: 1,
+          offset: 0,
+        },
+      })
+    ).data.results.at(0)?.id;
+
+  const toM2MGatewayApiAgreementWithDelegationId = async (
+    agreement: agreementApi.Agreement,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<m2mGatewayApi.Agreement> =>
+    toM2MGatewayApiAgreement(
+      agreement,
+      await retrieveAgreementDelegationId(agreement, headers)
+    );
+
   const pollAgreement = (
     response: WithMaybeMetadata<agreementApi.Agreement>,
     headers: M2MGatewayAppContext["headers"]
@@ -80,7 +111,7 @@ export function agreementServiceBuilder(
   return {
     async getAgreements(
       queryParams: m2mGatewayApi.GetAgreementsQueryParams,
-      ctx: WithLogger<M2MGatewayAppContext>
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreements> {
       const {
         producerIds,
@@ -92,7 +123,7 @@ export function agreementServiceBuilder(
         offset,
       } = queryParams;
 
-      ctx.logger.info(
+      logger.info(
         `Retrieving agreements for producerIds ${producerIds}, consumerIds ${consumerIds}, eServiceIds ${eserviceIds}, descriptorIds ${descriptorIds}, states ${states}, limit ${limit}, offset ${offset}`
       );
 
@@ -100,11 +131,15 @@ export function agreementServiceBuilder(
         data: { results, totalCount },
       } = await clients.agreementProcessClient.getAgreements({
         queries: toGetAgreementsApiQueryParams(queryParams),
-        headers: ctx.headers,
+        headers,
       });
 
       return {
-        results: results.map(toM2MGatewayApiAgreement),
+        results: await Promise.all(
+          results.map((a) =>
+            toM2MGatewayApiAgreementWithDelegationId(a, headers)
+          )
+        ),
         pagination: {
           limit,
           offset,
@@ -114,16 +149,16 @@ export function agreementServiceBuilder(
     },
     async getAgreement(
       agreementId: AgreementId,
-      ctx: WithLogger<M2MGatewayAppContext>
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreement> {
-      ctx.logger.info(`Retrieving agreement with id ${agreementId}`);
+      logger.info(`Retrieving agreement with id ${agreementId}`);
 
       const { data: agreement } = await retrieveAgreementById(
-        ctx.headers,
+        headers,
         agreementId
       );
 
-      return toM2MGatewayApiAgreement(agreement);
+      return toM2MGatewayApiAgreementWithDelegationId(agreement, headers);
     },
     async getAgreementPurposes(
       agreementId: AgreementId,
@@ -174,7 +209,10 @@ export function agreementServiceBuilder(
 
       const polledResource = await pollAgreement(response, headers);
 
-      return toM2MGatewayApiAgreement(polledResource.data);
+      return toM2MGatewayApiAgreementWithDelegationId(
+        polledResource.data,
+        headers
+      );
     },
     async approveAgreement(
       agreementId: AgreementId,
@@ -197,7 +235,10 @@ export function agreementServiceBuilder(
 
       const polledResource = await pollAgreement(response, headers);
 
-      return toM2MGatewayApiAgreement(polledResource.data);
+      return toM2MGatewayApiAgreementWithDelegationId(
+        polledResource.data,
+        headers
+      );
     },
     async rejectAgreement(
       agreementId: AgreementId,
@@ -216,7 +257,10 @@ export function agreementServiceBuilder(
 
       const polledResource = await pollAgreement(response, headers);
 
-      return toM2MGatewayApiAgreement(polledResource.data);
+      return toM2MGatewayApiAgreementWithDelegationId(
+        polledResource.data,
+        headers
+      );
     },
     async submitAgreement(
       agreementId: AgreementId,
@@ -235,7 +279,10 @@ export function agreementServiceBuilder(
 
       const polledResource = await pollAgreement(response, headers);
 
-      return toM2MGatewayApiAgreement(polledResource.data);
+      return toM2MGatewayApiAgreementWithDelegationId(
+        polledResource.data,
+        headers
+      );
     },
     async suspendAgreement(
       agreementId: AgreementId,
@@ -254,7 +301,10 @@ export function agreementServiceBuilder(
 
       const polledResource = await pollAgreement(response, headers);
 
-      return toM2MGatewayApiAgreement(polledResource.data);
+      return toM2MGatewayApiAgreementWithDelegationId(
+        polledResource.data,
+        headers
+      );
     },
     async unsuspendAgreement(
       agreementId: AgreementId,
@@ -276,7 +326,10 @@ export function agreementServiceBuilder(
       );
       const polledResource = await pollAgreement(response, headers);
 
-      return toM2MGatewayApiAgreement(polledResource.data);
+      return toM2MGatewayApiAgreementWithDelegationId(
+        polledResource.data,
+        headers
+      );
     },
     async upgradeAgreement(
       agreementId: AgreementId,
@@ -294,7 +347,10 @@ export function agreementServiceBuilder(
 
       const polledResource = await pollAgreement(response, headers);
 
-      return toM2MGatewayApiAgreement(polledResource.data);
+      return toM2MGatewayApiAgreementWithDelegationId(
+        polledResource.data,
+        headers
+      );
     },
     async getAgreementConsumerDocuments(
       agreementId: AgreementId,
@@ -454,7 +510,10 @@ export function agreementServiceBuilder(
 
       const polledResource = await pollAgreement(response, headers);
 
-      return toM2MGatewayApiAgreement(polledResource.data);
+      return toM2MGatewayApiAgreementWithDelegationId(
+        polledResource.data,
+        headers
+      );
     },
   };
 }

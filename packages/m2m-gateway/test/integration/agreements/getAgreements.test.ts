@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, agreementApi } from "pagopa-interop-api-clients";
-import { getMockedApiAgreement } from "pagopa-interop-commons-test";
+import {
+  getMockWithMetadata,
+  getMockedApiAgreement,
+} from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import {
   expectApiClientGetToHaveBeenCalledWith,
@@ -42,6 +45,14 @@ describe("getAgreements", () => {
   const mockGetAgreements = vi
     .fn()
     .mockResolvedValue(mockAgreementProcessResponse);
+
+  mockInteropBeClients.delegationProcessClient = {
+    delegation: {
+      getDelegations: vi
+        .fn()
+        .mockResolvedValue(getMockWithMetadata({ results: [] })),
+    },
+  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
 
   mockInteropBeClients.agreementProcessClient = {
     getAgreements: mockGetAgreements,
