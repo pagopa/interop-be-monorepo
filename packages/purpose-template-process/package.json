@@ -7,7 +7,6 @@
   "scripts": {
     "test:api": "vitest --config vitest.api.config.ts",
     "test:integration": "vitest --config vitest.integrationsql.config.ts",
-    "test:unit": "vitest --config vitest.unit.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
