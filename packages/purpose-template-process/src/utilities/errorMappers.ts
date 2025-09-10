@@ -28,7 +28,6 @@ export const createPurposeTemplateErrorMapper = (
 export const getPurposeTemplatesErrorMapper = (): number =>
   HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
-// TODO: add specific error codes
 export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
