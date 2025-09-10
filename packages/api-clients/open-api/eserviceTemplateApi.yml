@@ -118,6 +118,9 @@ paths:
       responses:
         "200":
           description: EService template created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:

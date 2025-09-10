@@ -20,22 +20,14 @@ export const fromNotificationConfigV2 = (
 
 export const fromTenantNotificationConfigV2 = (
   input: TenantNotificationConfigV2
-): TenantNotificationConfig => {
-  if (!input.config) {
-    throw genericError(
-      `Error while deserializing TenantNotificationConfigV2 (${input.id}): missing config`
-    );
-  }
-
-  return {
-    ...input,
-    id: unsafeBrandId(input.id),
-    tenantId: unsafeBrandId(input.tenantId),
-    config: fromNotificationConfigV2(input.config),
-    createdAt: bigIntToDate(input.createdAt),
-    updatedAt: bigIntToDate(input.updatedAt),
-  };
-};
+): TenantNotificationConfig => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  tenantId: unsafeBrandId(input.tenantId),
+  enabled: input.enabled,
+  createdAt: bigIntToDate(input.createdAt),
+  updatedAt: bigIntToDate(input.updatedAt),
+});
 
 export const fromUserNotificationConfigV2 = (
   input: UserNotificationConfigV2
