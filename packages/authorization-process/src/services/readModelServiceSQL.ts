@@ -329,7 +329,7 @@ export function readModelServiceBuilderSQL({
                   userIds
                 )
               : undefined,
-            // CONSUMER FILTER
+            // PRODUCER FILTER
             eq(
               producerKeychainInReadmodelProducerKeychain.producerId,
               producerId
