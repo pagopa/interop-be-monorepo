@@ -127,7 +127,6 @@ export function purposeTemplateServiceBuilder(
         )}, limit = ${limit}, offset = ${offset}, sortColumns = ${sortColumns}, directions = ${directions}`
       );
 
-      // Permissions are checked in the readModelService
       return await readModelService.getPurposeTemplates(filters, {
         offset,
         limit,

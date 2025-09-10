@@ -68,7 +68,6 @@ const getPurposeTemplatesFilters = (
       ? inArray(purposeTemplateInReadmodelPurposeTemplate.creatorId, creatorIds)
       : undefined;
 
-  // TODO: better solution?
   const eserviceIdsFilter =
     eserviceIds.length > 0
       ? and(
@@ -154,7 +153,7 @@ export function readModelServiceBuilderSQL({
         table: purposeTemplateInReadmodelPurposeTemplate,
         sortColumns,
         directions,
-        defaultSortColumn: tableColumns.purposeTitle, // here i want the purposeTitle key as a string
+        defaultSortColumn: tableColumns.purposeTitle,
       });
 
       const subquery = readModelDB
