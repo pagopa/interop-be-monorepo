@@ -56,8 +56,8 @@ const purposeTemplateRouter = (
         validateAuthorization(ctx, [
           ADMIN_ROLE,
           API_ROLE,
-          M2M_ROLE,
           M2M_ADMIN_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
         ]);
@@ -107,13 +107,13 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const purposeTemplate =
+        const { data: purposeTemplate, metadata } =
           await purposeTemplateService.createPurposeTemplate(req.body, ctx);
 
-        setMetadataVersionHeader(res, purposeTemplate.metadata);
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
-          .send(purposeTemplateToApiPurposeTemplate(purposeTemplate.data));
+          .send(purposeTemplateToApiPurposeTemplate(purposeTemplate));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -130,25 +130,25 @@ const purposeTemplateRouter = (
         validateAuthorization(ctx, [
           ADMIN_ROLE,
           API_ROLE,
-          SECURITY_ROLE,
-          M2M_ROLE,
-          SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
+          M2M_ROLE,
+          SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
 
-        const purposeTemplate =
+        const { data: purposeTemplate, metadata } =
           await purposeTemplateService.getPurposeTemplateById(
             unsafeBrandId(req.params.id),
             ctx
           );
 
-        setMetadataVersionHeader(res, purposeTemplate.metadata);
+        setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
           .send(
             purposeTemplateApi.PurposeTemplate.parse(
-              purposeTemplateToApiPurposeTemplate(purposeTemplate.data)
+              purposeTemplateToApiPurposeTemplate(purposeTemplate)
             )
           );
       } catch (error) {
@@ -165,12 +165,12 @@ const purposeTemplateRouter = (
 
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
-          M2M_ROLE,
+          API_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
 
         await purposeTemplateService.getPurposeTemplateById(
@@ -206,12 +206,12 @@ const purposeTemplateRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
-          M2M_ROLE,
+          API_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
       } catch (error) {
         return res.status(501);
