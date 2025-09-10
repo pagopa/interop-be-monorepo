@@ -8,6 +8,12 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  TestMultipartFileUpload,
+  addMultipartFileToSupertestRequest,
+  fileFromTestMultipartFileUpload,
+} from "../../multipartTestUtils.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router test", () => {
   const mockFileUpload = {
@@ -29,12 +35,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
     token: string,
     eserviceId: string,
     descriptorId: string,
-    file: {
-      fileContent?: Buffer;
-      filename?: string;
-      contentType?: string;
-      prettyName?: string;
-    }
+    file: TestMultipartFileUpload
   ) => {
     const req = request(api)
       .post(
@@ -42,18 +43,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
       )
       .set("Authorization", `Bearer ${token}`);
 
-    if (file.fileContent) {
-      void req.attach("file", file.fileContent, {
-        filename: file.filename,
-        contentType: file.contentType,
-      });
-    }
-
-    if (file.prettyName) {
-      void req.field("prettyName", file.prettyName);
-    }
-
-    return req;
+    return addMultipartFileToSupertestRequest(req, file);
   };
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
@@ -82,13 +72,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
         eserviceId,
         descriptorId,
         {
-          file: new File(
-            [mockFileUpload.fileContent],
-            mockFileUpload.filename,
-            {
-              type: mockFileUpload.contentType,
-            }
-          ),
+          file: fileFromTestMultipartFileUpload(mockFileUpload),
           prettyName: mockFileUpload.prettyName,
         },
         expect.any(Object) // Context object
@@ -151,30 +135,33 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
         token,
         generateId(),
         generateId(),
-        multipartFields
+        multipartFields as TestMultipartFileUpload
       );
 
       expect(res.status).toBe(400);
     }
   );
 
-  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockEserviceService.uploadEServiceDescriptorInterface = vi
-        .fn()
-        .mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        generateId(),
-        generateId(),
-        mockFileUpload
-      );
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockEserviceService.uploadEServiceDescriptorInterface = vi
+      .fn()
+      .mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      generateId(),
+      generateId(),
+      mockFileUpload
+    );
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 
   it.each([
     { ...mockM2MEServiceDocumentResponse, id: "invalidId" },

@@ -10,8 +10,12 @@ import {
   unexpectedFieldValueError,
   validateRiskAnalysis,
   rulesVersionNotFoundError,
+  expiredRulesVersionError,
 } from "pagopa-interop-commons";
+import { tenantKind } from "pagopa-interop-models";
 import {
+  expiredRiskAnalysis2_0_Pa,
+  validRiskAnalysis1_0_Private,
   validRiskAnalysis2_0_Private,
   validRiskAnalysis3_0_Pa,
   validSchemaOnlyRiskAnalysis2_0_Private,
@@ -171,7 +175,35 @@ describe("Risk Analysis Validation", () => {
     });
   });
 
-  it("fail if a provided answer depends on missing fields", () => {
+  it("should fail if version has expired", () => {
+    const expiredVersionForPA = "2.0";
+    const expiredRiskAnalysis: RiskAnalysisFormToValidate = {
+      ...expiredRiskAnalysis2_0_Pa,
+      version: expiredVersionForPA,
+    };
+
+    expect(
+      validateRiskAnalysis(expiredRiskAnalysis, false, "PA", new Date())
+    ).toEqual({
+      type: "invalid",
+      issues: [expiredRulesVersionError(expiredVersionForPA, tenantKind.PA)],
+    });
+
+    const expiredVersionForPrivate = "1.0";
+    const expiredRiskAnalysis2: RiskAnalysisFormToValidate = {
+      ...validRiskAnalysis1_0_Private,
+      version: expiredVersionForPrivate,
+    };
+
+    expect(
+      validateRiskAnalysis(expiredRiskAnalysis2, false, "PRIVATE", new Date())
+    ).toEqual({
+      type: "invalid",
+      issues: [expiredRulesVersionError(expiredVersionForPrivate, "PRIVATE")],
+    });
+  });
+
+  it("should fail if a provided answer depends on missing fields", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_0_Pa.version,
       answers: {

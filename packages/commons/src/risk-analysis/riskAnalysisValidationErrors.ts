@@ -33,11 +33,12 @@ export function rulesVersionNotFoundError(
 }
 
 export function expiredRulesVersionError(
-  version: string
+  version: string,
+  tenantKind: TenantKind
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "expiredRulesVersionError",
-    detail: `Expired ruleset version ${version}`,
+    detail: `Ruleset version ${version} for tenant kind ${tenantKind} has expired`,
   });
 }
 
