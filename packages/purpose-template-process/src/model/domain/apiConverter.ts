@@ -126,10 +126,10 @@ export const purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation
         }
       : undefined;
 
-export const purposeTemplateEServiceDescriptorToApiPurposeTemplateEServiceDescriptor =
+export const eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate =
   (
-    purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate
+    eserviceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate
   ): purposeTemplateApi.EServiceDescriptorPurposeTemplate => ({
-    ...purposeTemplateEServiceDescriptor,
-    createdAt: purposeTemplateEServiceDescriptor.createdAt.toJSON(),
+    ...eserviceDescriptorPurposeTemplate,
+    createdAt: eserviceDescriptorPurposeTemplate.createdAt.toJSON(),
   });
