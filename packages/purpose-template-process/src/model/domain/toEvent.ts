@@ -31,7 +31,7 @@ export function toCreateEventEServiceDescriptorLinked(
   purposeTemplate: PurposeTemplate,
   eservice: EService,
   correlationId: CorrelationId,
-  version: number | undefined
+  version: number
 ): CreateEvent<PurposeTemplateEventV2> {
   return {
     streamId: eServiceDescriptorPurposeTemplate.purposeTemplateId,
