@@ -10,8 +10,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { authRole, AuthRole } from "pagopa-interop-commons";
-import { purposeTemplateEServiceDescriptorToApiPurposeTemplateEServiceDescriptor } from "../../src/model/domain/apiConverter.js";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
+import { eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate } from "../../src/model/domain/apiConverter.js";
 
 describe("API GET /purposeTemplates/:id/eservices", () => {
   const purposeTemplateId = generateId<PurposeTemplateId>();
@@ -56,7 +56,7 @@ describe("API GET /purposeTemplates/:id/eservices", () => {
     purposeTemplateApi.EServiceDescriptorsPurposeTemplate.parse({
       results: purposeTemplateEServiceDescriptors.results.map(
         (purposeTemplateEServiceDescriptor) =>
-          purposeTemplateEServiceDescriptorToApiPurposeTemplateEServiceDescriptor(
+          eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
             purposeTemplateEServiceDescriptor
           )
       ),
