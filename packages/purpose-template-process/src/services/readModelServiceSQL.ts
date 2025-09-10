@@ -18,7 +18,6 @@ import {
   toPurposeTemplateAggregatorArray,
   aggregatePurposeTemplateEServiceDescriptorArray,
 } from "pagopa-interop-readmodel";
-
 import {
   DrizzleReturnType,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
