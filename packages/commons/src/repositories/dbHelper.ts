@@ -96,7 +96,6 @@ export const createOrderByClauses = ({
     }
 
     const column = tableColumns[sortColumn];
-    // eslint-disable-next-line functional/immutable-data
     orderClauses.push(
       match(SortDirection.parse(direction))
         .with(sortDirection.asc, () => ascLower(column))
