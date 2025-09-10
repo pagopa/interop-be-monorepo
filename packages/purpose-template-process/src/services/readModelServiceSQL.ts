@@ -39,8 +39,8 @@ import {
   SQL,
 } from "drizzle-orm";
 import {
-  ascLower,
   createListResult,
+  createOrderByClauses,
   escapeRegExp,
   withTotalCount,
 } from "pagopa-interop-commons";
@@ -70,7 +70,6 @@ const getPurposeTemplatesFilters = (
       ? inArray(purposeTemplateInReadmodelPurposeTemplate.creatorId, creatorIds)
       : undefined;
 
-  // TODO: better solution?
   const eserviceIdsFilter =
     eserviceIds.length > 0
       ? and(
@@ -127,18 +126,36 @@ export function readModelServiceBuilderSQL({
       title: string
     ): Promise<WithMetadata<PurposeTemplate> | undefined> {
       return await purposeTemplateReadModelServiceSQL.getPurposeTemplateByFilter(
-        and(
-          ilike(
-            purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
-            escapeRegExp(title)
-          )
+        ilike(
+          purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
+          escapeRegExp(title)
         )
       );
     },
     async getPurposeTemplates(
       filters: GetPurposeTemplatesFilters,
-      { limit, offset }: { limit: number; offset: number }
+      {
+        offset,
+        limit,
+        sortColumns,
+        directions: directions,
+      }: {
+        offset: number;
+        limit: number;
+        sortColumns: string | undefined;
+        directions: string | undefined;
+      }
     ): Promise<ListResult<PurposeTemplate>> {
+      const tableColumns = getTableColumns(
+        purposeTemplateInReadmodelPurposeTemplate
+      );
+      const orderByClauses = createOrderByClauses({
+        table: purposeTemplateInReadmodelPurposeTemplate,
+        sortColumns,
+        directions,
+        defaultSortColumn: tableColumns.purposeTitle,
+      });
+
       const subquery = readModelDB
         .select(
           withTotalCount({
@@ -155,9 +172,7 @@ export function readModelServiceBuilderSQL({
         )
         .where(getPurposeTemplatesFilters(readModelDB, filters))
         .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
-        .orderBy(
-          ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
-        )
+        .orderBy(...orderByClauses)
         .limit(limit)
         .offset(offset)
         .as("subquery");
@@ -192,34 +207,26 @@ export function readModelServiceBuilderSQL({
         )
         .leftJoin(
           purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
-            )
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
           )
         )
         .leftJoin(
           purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
-            )
+          eq(
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
           )
         )
         .leftJoin(
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
-            )
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
           )
         )
-        .orderBy(
-          ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
-        );
+        .orderBy(...orderByClauses);
 
       const purposeTemplates = aggregatePurposeTemplateArray(
         toPurposeTemplateAggregatorArray(queryResult)

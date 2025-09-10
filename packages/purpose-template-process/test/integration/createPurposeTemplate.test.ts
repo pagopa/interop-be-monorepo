@@ -6,13 +6,13 @@ import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockContext,
+  getMockPurposeTemplate,
+  getMockValidRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test";
-import { getMockValidRiskAnalysisFormTemplate } from "pagopa-interop-commons-test/src/riskAnalysisTemplateTestUtils.js";
 import {
   PurposeTemplate,
   PurposeTemplateAddedV2,
   RiskAnalysisFormTemplate,
-  generateId,
   purposeTemplateState,
   tenantKind,
   toPurposeTemplateV2,
@@ -22,6 +22,8 @@ import { describe, expect, it, vi } from "vitest";
 import {
   invalidTemplateResult,
   unexpectedTemplateRulesVersionError,
+  unexpectedTemplateFieldError,
+  missingExpectedTemplateFieldError,
 } from "pagopa-interop-commons";
 import {
   missingFreeOfChargeReason,
@@ -40,15 +42,7 @@ import {
 
 describe("createPurposeTemplate", () => {
   const mockPurposeTemplate: PurposeTemplate = {
-    id: generateId(),
-    targetDescription: "Test target description",
-    targetTenantKind: "PA",
-    creatorId: generateId(),
-    state: purposeTemplateState.draft,
-    createdAt: new Date(),
-    purposeTitle: "Test purpose title",
-    purposeDescription: "Test purpose description",
-    purposeRiskAnalysisForm: undefined,
+    ...getMockPurposeTemplate(),
     purposeIsFreeOfCharge: true,
     purposeFreeOfChargeReason: "Test reason",
     purposeDailyCalls: 10,
@@ -202,6 +196,82 @@ describe("createPurposeTemplate", () => {
           unexpectedTemplateRulesVersionError(
             seedWithInvalidRiskAnalysis.purposeRiskAnalysisForm!.version
           ),
+        ]).issues
+      )
+    );
+  });
+
+  it("should throw riskAnalysisTemplateValidationFailed if the purpose template has unexpected field", async () => {
+    const validTemplate = buildRiskAnalysisFormTemplateSeed(
+      getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
+    );
+
+    const seedWithUnexpectedField: purposeTemplateApi.PurposeTemplateSeed = {
+      ...purposeTemplateSeed,
+      purposeRiskAnalysisForm: {
+        ...validTemplate,
+        answers: {
+          ...validTemplate.answers,
+          unexpectedField: {
+            values: ["someValue"], // unexpected field
+            editable: false,
+            suggestedValues: [],
+          },
+        },
+      },
+    };
+
+    expect(
+      purposeTemplateService.createPurposeTemplate(
+        seedWithUnexpectedField,
+        getMockContext({
+          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisTemplateValidationFailed(
+        invalidTemplateResult([unexpectedTemplateFieldError("unexpectedField")])
+          .issues
+      )
+    );
+  });
+
+  it("should throw riskAnalysisTemplateValidationFailed if the purpose template has missing expected field", async () => {
+    const validTemplate = buildRiskAnalysisFormTemplateSeed(
+      getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
+    );
+
+    // Remove otherPurpose field which is required when purpose is OTHER
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { otherPurpose, ...answersWithoutOtherPurpose } =
+      validTemplate.answers;
+
+    const seedWithMissingField: purposeTemplateApi.PurposeTemplateSeed = {
+      ...purposeTemplateSeed,
+      purposeRiskAnalysisForm: {
+        ...validTemplate,
+        answers: {
+          ...answersWithoutOtherPurpose,
+          purpose: {
+            values: ["OTHER"],
+            editable: false,
+            suggestedValues: [],
+          },
+        },
+      },
+    };
+
+    expect(
+      purposeTemplateService.createPurposeTemplate(
+        seedWithMissingField,
+        getMockContext({
+          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisTemplateValidationFailed(
+        invalidTemplateResult([
+          missingExpectedTemplateFieldError("otherPurpose"),
         ]).issues
       )
     );
