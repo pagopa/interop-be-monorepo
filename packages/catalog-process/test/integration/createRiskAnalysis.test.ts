@@ -15,7 +15,7 @@ import {
   getMockAuthData,
   getMockDescriptor,
   getMockEService,
-  getMockExpiredRiskAnalysisPA,
+  getMockExpiredRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   TenantKind,
@@ -497,12 +497,16 @@ describe("create risk analysis", () => {
     );
   });
   it("should throw riskAnalysisValidationFailed if the risk analysis rules version has expired", async () => {
+    const producerTenantKind: TenantKind = randomArrayItem(
+      Object.values(tenantKind)
+    );
     const producer: Tenant = {
       ...getMockTenant(),
-      kind: tenantKind.PA,
+      kind: producerTenantKind,
     };
 
-    const mockValidRiskAnalysis = getMockExpiredRiskAnalysisPA();
+    const mockValidRiskAnalysis =
+      getMockExpiredRiskAnalysis(producerTenantKind);
 
     const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed = {
       ...buildRiskAnalysisSeed(mockValidRiskAnalysis),

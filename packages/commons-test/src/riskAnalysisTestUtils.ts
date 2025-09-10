@@ -127,6 +127,32 @@ export const validatedRiskAnalysis3_0_Pa: RiskAnalysisValidatedForm = {
   ],
 };
 
+export const validRiskAnalysis1_0_Private: RiskAnalysisFormToValidate = {
+  version: "1.0",
+  answers: {
+    purpose: ["INSTITUTIONAL"],
+    institutionalPurpose: ["MyPurpose"],
+    usesPersonalData: ["YES"],
+    personalDataTypes: ["OTHER"],
+    otherPersonalDataTypes: ["MyDataTypes"],
+    legalBasis: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
+    legalObligationReference: ["YES"],
+    legalBasisPublicInterest: ["RULE_OF_LAW"],
+    ruleOfLawText: ["TheLaw"],
+    knowsDataQuantity: ["NO"],
+    dataDownload: ["YES"],
+    deliveryMethod: ["CLEARTEXT"],
+    policyProvided: ["NO"],
+    confirmPricipleIntegrityAndDiscretion: ["true"],
+    reasonPolicyNotProvided: ["Test"],
+    doneDpia: ["NO"],
+    dataRetentionPeriod: ["10"],
+    purposePursuit: ["MERE_CORRECTNESS"],
+    checkedExistenceMereCorrectnessInteropCatalogue: ["true"],
+    declarationConfirmGDPR: ["true"],
+  },
+};
+
 export const validRiskAnalysis2_0_Private: RiskAnalysisFormToValidate = {
   version: "2.0",
   answers: {
@@ -152,6 +178,37 @@ export const validRiskAnalysis2_0_Private: RiskAnalysisFormToValidate = {
     checkedExistenceMereCorrectnessInteropCatalogue: ["true"],
     declarationConfirmGDPR: ["true"],
   },
+};
+
+export const validatedRiskAnalysis1_0_Private: RiskAnalysisValidatedForm = {
+  version: validRiskAnalysis1_0_Private.version,
+  singleAnswers: [
+    { key: "purpose", value: "INSTITUTIONAL" },
+    { key: "institutionalPurpose", value: "MyPurpose" },
+    { key: "usesPersonalData", value: "YES" },
+    { key: "otherPersonalDataTypes", value: "MyDataTypes" },
+    { key: "legalObligationReference", value: "YES" },
+    { key: "legalBasisPublicInterest", value: "RULE_OF_LAW" },
+    { key: "ruleOfLawText", value: "TheLaw" },
+    { key: "knowsDataQuantity", value: "NO" },
+    { key: "dataDownload", value: "YES" },
+    { key: "deliveryMethod", value: "CLEARTEXT" },
+    { key: "policyProvided", value: "NO" },
+    { key: "confirmPricipleIntegrityAndDiscretion", value: "true" },
+    { key: "reasonPolicyNotProvided", value: "Test" },
+    { key: "doneDpia", value: "NO" },
+    { key: "dataRetentionPeriod", value: "10" },
+    { key: "purposePursuit", value: "MERE_CORRECTNESS" },
+    {
+      key: "checkedExistenceMereCorrectnessInteropCatalogue",
+      value: "true",
+    },
+    { key: "declarationConfirmGDPR", value: "true" },
+  ],
+  multiAnswers: [
+    { key: "personalDataTypes", values: ["OTHER"] },
+    { key: "legalBasis", values: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"] },
+  ],
 };
 
 export const validatedRiskAnalysis2_0_Private: RiskAnalysisValidatedForm = {
@@ -221,11 +278,23 @@ export const getMockValidRiskAnalysis = (
     )
     .exhaustive();
 
-export const getMockExpiredRiskAnalysisPA = (): RiskAnalysis =>
-  riskAnalysisValidatedFormToNewRiskAnalysis(
-    validatedExpiredRiskAnalysis2_0_Pa,
-    generateMock(z.string())
-  );
+export const getMockExpiredRiskAnalysis = (
+  producerTenantKind: TenantKind
+): RiskAnalysis =>
+  match(producerTenantKind)
+    .with(tenantKind.PA, () =>
+      riskAnalysisValidatedFormToNewRiskAnalysis(
+        validatedExpiredRiskAnalysis2_0_Pa,
+        generateMock(z.string())
+      )
+    )
+    .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
+      riskAnalysisValidatedFormToNewRiskAnalysis(
+        validatedRiskAnalysis1_0_Private,
+        generateMock(z.string())
+      )
+    )
+    .exhaustive();
 
 export const getMockValidEServiceTemplateRiskAnalysis = (
   producerTenantKind: TenantKind

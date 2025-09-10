@@ -15,6 +15,7 @@ import {
 import { tenantKind } from "pagopa-interop-models";
 import {
   expiredRiskAnalysis2_0_Pa,
+  validRiskAnalysis1_0_Private,
   validRiskAnalysis2_0_Private,
   validRiskAnalysis3_0_Pa,
   validSchemaOnlyRiskAnalysis2_0_Private,
@@ -188,17 +189,17 @@ describe("Risk Analysis Validation", () => {
       issues: [expiredRulesVersionError(expiredVersionForPA, tenantKind.PA)],
     });
 
-    const invalidVersionForPrivate = "not a valid version";
-    const invalidRiskAnalysis2: RiskAnalysisFormToValidate = {
-      ...validRiskAnalysis2_0_Private,
-      version: invalidVersionForPrivate,
+    const expiredVersionForPrivate = "1.0";
+    const expiredRiskAnalysis2: RiskAnalysisFormToValidate = {
+      ...validRiskAnalysis1_0_Private,
+      version: expiredVersionForPrivate,
     };
 
     expect(
-      validateRiskAnalysis(invalidRiskAnalysis2, false, "PRIVATE", new Date())
+      validateRiskAnalysis(expiredRiskAnalysis2, false, "PRIVATE", new Date())
     ).toEqual({
       type: "invalid",
-      issues: [rulesVersionNotFoundError("PRIVATE", invalidVersionForPrivate)],
+      issues: [expiredRulesVersionError(expiredVersionForPrivate, "PRIVATE")],
     });
   });
 
