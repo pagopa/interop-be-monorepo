@@ -60,6 +60,7 @@ export const fromPurposeVersionStampV2 = (
 export const fromPurposeVersionStampsV2 = (
   input: PurposeVersionStampsV2
 ): PurposeVersionStamps => ({
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   creation: fromPurposeVersionStampV2(input?.creation)!,
 });
 

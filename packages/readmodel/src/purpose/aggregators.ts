@@ -101,7 +101,8 @@ export const aggregatePurpose = ({
   versionsSQL,
   versionDocumentsSQL,
   versionStampsSQL,
-}: PurposeItemsSQL): WithMetadata<Purpose> => {
+}: // eslint-disable-next-line sonarjs/cognitive-complexity
+PurposeItemsSQL): WithMetadata<Purpose> => {
   const riskAnalysisForm = purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm(
     riskAnalysisFormSQL,
     riskAnalysisAnswersSQL
@@ -367,7 +368,7 @@ export const toPurposeAggregatorArray = (
 
   const purposeVersionStampIdSet = new Set<string>();
   const purposeVersionStampsSQL: PurposeVersionStampSQL[] = [];
-
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   queryRes.forEach((row) => {
     const purposeSQL = row.purpose;
     if (!purposeIdSet.has(purposeSQL.id)) {
