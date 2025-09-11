@@ -12,7 +12,10 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { EserviceTemplateService } from "../services/eserviceTemplateService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
-import { getEServiceTemplateVersionErrorMapper } from "../utils/errorMappers.js";
+import {
+  getEServiceTemplateRiskAnalysisErrorMapper,
+  getEServiceTemplateVersionErrorMapper,
+} from "../utils/errorMappers.js";
 
 const eserviceTemplateRouter = (
   ctx: ZodiosContext,
@@ -200,7 +203,37 @@ const eserviceTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .get(
+      "/eserviceTemplates/:templateId/riskAnalyses/:riskAnalysisId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const riskAnalysis =
+            await eserviceTemplateService.getEServiceTemplateRiskAnalysis(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.riskAnalysisId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApi.EServiceTemplateRiskAnalysis.parse(riskAnalysis)
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceTemplateRiskAnalysisErrorMapper,
+            ctx,
+            `Error retrieving risk analysis ${req.params.riskAnalysisId} for eservice with id ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return eserviceTemplateRouter;
 };

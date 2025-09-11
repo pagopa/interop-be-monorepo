@@ -258,5 +258,22 @@ export function eserviceTemplateServiceBuilder(
       const polledResource = await pollEServiceTemplate(response, headers);
       return toM2MGatewayEServiceTemplate(polledResource.data);
     },
+
+    async getEServiceTemplateRiskAnalysis(
+      templateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateRiskAnalysis> {
+      logger.info(
+        `Retrieving Risk Analysis ${riskAnalysisId} for E-Service Template ${templateId}`
+      );
+
+      const riskAnalysis = retrieveEServiceTemplateRiskAnalysisById(
+        await retrieveEServiceTemplateById(headers, templateId),
+        unsafeBrandId(riskAnalysisId)
+      );
+
+      return toM2MGatewayApiEServiceTemplateRiskAnalysis(riskAnalysis);
+    },
   };
 }
