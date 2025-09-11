@@ -69,9 +69,7 @@ export function toM2MGatewayApiRiskAnalysisAnswers(
       if (!value) {
         return map;
       }
-      // eslint-disable-next-line functional/immutable-data
-      map[key] = [value];
-      return map;
+      return { ...map, [key]: [value] };
     },
     {}
   );
@@ -81,9 +79,7 @@ export function toM2MGatewayApiRiskAnalysisAnswers(
       if (values.length === 0) {
         return map;
       }
-      // eslint-disable-next-line functional/immutable-data
-      map[key] = values;
-      return map;
+      return { ...map, [key]: values };
     },
     {}
   );
