@@ -67,6 +67,7 @@ import {
   CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
+  NotificationConfigProcessClient,
   PurposeProcessClient,
   SelfcareV2InstitutionClient,
   SelfcareV2UserClient,
@@ -109,6 +110,7 @@ export const clients = {
     delegation: {},
   } as DelegationProcessClient,
   eserviceTemplateProcessClient: {} as EServiceTemplateProcessClient,
+  notificationConfigProcessClient: {} as NotificationConfigProcessClient,
 };
 
 const fileManager = initFileManager(config);
