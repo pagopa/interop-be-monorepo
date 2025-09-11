@@ -14567,13 +14567,6 @@ paths:
               format: uuid
             default: []
           explode: false
-        - name: producerId
-          in: query
-          description: ID of producer that MUST be related to the keychain
-          required: true
-          schema:
-            type: string
-            format: uuid
         - name: eserviceId
           in: query
           description: ID of e-service that MUST be related to the Producer Keychain
@@ -15469,6 +15462,21 @@ paths:
               format: uuid
             default: []
           explode: false
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: returns the corresponding array of keys
@@ -24246,6 +24254,7 @@ components:
           $ref: "#/components/schemas/Pagination"
       required:
         - keys
+        - pagination
     CertifiedTenantAttributeSeed:
       type: object
       additionalProperties: false
