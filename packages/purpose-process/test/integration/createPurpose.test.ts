@@ -34,8 +34,12 @@ import {
   getMockAuthData,
   getMockDelegation,
   getMockContext,
+  getMockExpiredRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
-import { rulesVersionNotFoundError } from "pagopa-interop-commons";
+import {
+  expiredRulesVersionError,
+  rulesVersionNotFoundError,
+} from "pagopa-interop-commons";
 import {
   missingFreeOfChargeReason,
   tenantKindNotFound,
@@ -81,6 +85,9 @@ describe("createPurpose", () => {
   );
 
   const mockValidRiskAnalysisForm = getMockValidRiskAnalysisForm(tenantKind.PA);
+  const mockExpiredRiskAnalysisForm = getMockExpiredRiskAnalysisForm(
+    tenantKind.PA
+  );
 
   const purposeSeed = getMockPurposeSeed(
     eService1.id,
@@ -574,6 +581,32 @@ describe("createPurpose", () => {
         rulesVersionNotFoundError(
           tenant.kind!,
           mockInvalidRiskAnalysisForm.version
+        ),
+      ])
+    );
+  });
+  it("should throw riskAnalysisValidationFailed if the purpose has an expired risk analysis ", async () => {
+    await addOneTenant(tenant);
+    await addOneAgreement(agreementEservice1);
+    await addOneEService(eService1);
+
+    const seed: purposeApi.PurposeSeed = {
+      ...purposeSeed,
+      riskAnalysisForm: buildRiskAnalysisFormSeed(mockExpiredRiskAnalysisForm),
+    };
+
+    expect(
+      purposeService.createPurpose(
+        seed,
+        getMockContext({
+          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+        })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisValidationFailed([
+        expiredRulesVersionError(
+          mockExpiredRiskAnalysisForm.version,
+          tenant.kind!
         ),
       ])
     );

@@ -303,6 +303,22 @@ export const getMockValidEServiceTemplateRiskAnalysis = (
   tenantKind: producerTenantKind,
 });
 
+export const getMockExpiredRiskAnalysisForm = (
+  producerTenantKind: TenantKind
+): RiskAnalysisForm =>
+  match(producerTenantKind)
+    .with(tenantKind.PA, () =>
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(
+        validatedExpiredRiskAnalysis2_0_Pa
+      )
+    )
+    .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(
+        validatedRiskAnalysis1_0_Private
+      )
+    )
+    .exhaustive();
+
 export const getMockValidRiskAnalysisForm = (
   producerTenantKind: TenantKind
 ): RiskAnalysisForm =>
