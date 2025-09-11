@@ -18,7 +18,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handleAgreementUnsuspendedByPlatform } from "../src/handlers/agreements/handleAgreementUnsuspendedByPlatform.js";
+import { handleAgreementUnsuspendedByPlatformToProducer } from "../src/handlers/agreements/handleAgreementUnsuspendedByPlatformToProducer.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -30,7 +30,7 @@ import {
   userService,
 } from "./utils.js";
 
-describe("handleAgreementUnsuspendedByPlatform", async () => {
+describe("handleAgreementUnsuspendedByPlatformToProducerToProducer", async () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -68,7 +68,7 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
 
   it("should throw missingKafkaMessageDataError when agreement is undefined", async () => {
     await expect(() =>
-      handleAgreementUnsuspendedByPlatform({
+      handleAgreementUnsuspendedByPlatformToProducer({
         agreementV2Msg: undefined,
         logger,
         templateService,
@@ -97,7 +97,7 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleAgreementUnsuspendedByPlatform({
+      handleAgreementUnsuspendedByPlatformToProducer({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
@@ -123,7 +123,7 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleAgreementUnsuspendedByPlatform({
+      handleAgreementUnsuspendedByPlatformToProducer({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
@@ -145,7 +145,7 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementUnsuspendedByPlatform({
+    const messages = await handleAgreementUnsuspendedByPlatformToProducer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
@@ -175,7 +175,7 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementUnsuspendedByPlatform({
+    const messages = await handleAgreementUnsuspendedByPlatformToProducer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
@@ -204,7 +204,7 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementUnsuspendedByPlatform({
+    const messages = await handleAgreementUnsuspendedByPlatformToProducer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,

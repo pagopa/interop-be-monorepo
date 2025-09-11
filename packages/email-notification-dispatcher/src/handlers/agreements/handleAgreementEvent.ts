@@ -9,14 +9,14 @@ import { handleAgreementRejected } from "./handleAgreementRejected.js";
 import { handleAgreementSubmitted } from "./handleAgreementSubmitted.js";
 import { handleAgreementUpgraded } from "./handleAgreementUpgraded.js";
 import { handleAgreementSuspendedByConsumer } from "./handleAgreementSuspendedByConsumer.js";
-import { handleAgreementSuspendedByPlatform } from "./handleAgreementSuspendedByPlatform.js";
+import { handleAgreementSuspendedByPlatformToProducer } from "./handleAgreementSuspendedByPlatformToProducer.js";
 import { handleAgreementUnsuspendedByConsumer } from "./handleAgreementUnsuspendedByConsumer.js";
-import { handleAgreementUnsuspendedByPlatform } from "./handleAgreementUnsuspendedByPlatform.js";
-import { handleAgreementSuspendedByProducer } from "./handleAgreementSuspendedByProducer.js";
+import { handleAgreementUnsuspendedByPlatformToProducer } from "./handleAgreementUnsuspendedByPlatformToProducer.js";
 import { handleAgreementActivatedToProducer } from "./handleAgreementActivatedToProducer.js";
 import { handleAgreementUnsuspendedByProducer } from "./handleAgreementUnsuspendedByProducer.js";
 import { handleAgreementSuspendedByPlatformToConsumer } from "./handleAgreementSuspendedByPlatformToConsumer.js";
 import { handleAgreementUnsuspendedByPlatformToConsumer } from "./handleAgreementUnsuspendedByPlatformToConsumer.js";
+import { handleAgreementSuspendedByProducer } from "./handleAgreementSuspendedByProducer.js";
 
 export async function handleAgreementEvent(
   params: HandlerParams<typeof AgreementEventV2>
@@ -109,7 +109,7 @@ export async function handleAgreementEvent(
           userService,
           correlationId,
         })),
-        ...(await handleAgreementSuspendedByPlatform({
+        ...(await handleAgreementSuspendedByPlatformToProducer({
           agreementV2Msg: agreement,
           logger,
           readModelService,
@@ -146,7 +146,7 @@ export async function handleAgreementEvent(
     .with(
       { type: "AgreementUnsuspendedByPlatform" },
       async ({ data: { agreement } }) => [
-        ...(await handleAgreementUnsuspendedByPlatform({
+        ...(await handleAgreementUnsuspendedByPlatformToProducer({
           agreementV2Msg: agreement,
           logger,
           readModelService,
