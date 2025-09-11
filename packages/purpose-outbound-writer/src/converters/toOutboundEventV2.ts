@@ -2,14 +2,42 @@ import {
   PurposeEventEnvelopeV2,
   PurposeVersionV2,
   PurposeV2,
+  PurposeVersionStampsV2,
+  PurposeVersionStampV2,
+  // TODO: replace correct outbound import
+  PurposeVersionStampsV2 as OutboundPurposeVersionStampsV2,
+  PurposeVersionStampV2 as OutboundPurposeVersionStampV2,
+  PurposeVersionV2 as OutboundPurposeVersionV2,
+  PurposeV2 as OutboundPurposeV2,
+  // TODO: replace correct outbound import
 } from "pagopa-interop-models";
 import {
   PurposeEvent as OutboundPurposeEvent,
-  PurposeVersionV2 as OutboundPurposeVersionV2,
-  PurposeV2 as OutboundPurposeV2,
+  // PurposeVersionV2 as OutboundPurposeVersionV2,
+  // PurposeV2 as OutboundPurposeV2,
+  // PurposeVersionStampsV2 as OutboundPurposeVersionStampsV2,
+  // PurposeVersionStampV2 as OutboundPurposeVersionStampV2,
 } from "@pagopa/interop-outbound-models";
+
 import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
+
+function toOutboundPurposeVersionStampV2(
+  stamp: PurposeVersionStampV2
+): Exact<OutboundPurposeVersionStampV2, PurposeVersionStampV2> {
+  return {
+    ...stamp,
+  };
+}
+
+function toOutboundPurposeVersionStampsV2(
+  stamps: PurposeVersionStampsV2
+): Exact<OutboundPurposeVersionStampsV2, PurposeVersionStampsV2> {
+  return {
+    creation:
+      stamps.creation && toOutboundPurposeVersionStampV2(stamps.creation),
+  };
+}
 
 function toOutboundPurposeVersionV2(
   purposeVersion: PurposeVersionV2
@@ -17,6 +45,10 @@ function toOutboundPurposeVersionV2(
   return {
     ...purposeVersion,
     riskAnalysis: undefined,
+    // TODO: update OutboundPurposeVersionV2 @pagopa/interop-outbound-models
+    stamps:
+      purposeVersion.stamps &&
+      toOutboundPurposeVersionStampsV2(purposeVersion.stamps),
   };
 }
 

@@ -173,6 +173,7 @@ describe("Purpose queries", () => {
         riskAnalysisAnswersSQL,
         versionsSQL,
         versionDocumentsSQL,
+        versionStampsSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({

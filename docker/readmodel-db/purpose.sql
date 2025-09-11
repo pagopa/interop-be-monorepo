@@ -77,6 +77,5 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version_stamp (
   "when" TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (purpose_version_id, kind),
-  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version) DEFERRABLE INITIALLY DEFERRED,
-  FOREIGN KEY (purpose_version_id, metadata_version) REFERENCES readmodel_purpose.purpose_version (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

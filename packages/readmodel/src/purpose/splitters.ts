@@ -272,8 +272,8 @@ export const splitPurposeVersionIntoObjectsSQL = (
 
   return {
     versionSQL,
-    versionStampsSQL,
     versionDocumentSQL,
+    versionStampsSQL,
   };
 };
 
