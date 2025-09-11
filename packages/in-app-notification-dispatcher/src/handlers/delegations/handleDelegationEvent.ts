@@ -5,13 +5,15 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { handleDelegationApprovedRejectedToDelegator } from "./handleDelegationApprovedRejectedToDelegator.js";
 import { handleDelegationSubmittedRevokedToDelegate } from "./handleDelegationSubmittedRevokedToDelegate.js";
 
 export async function handleDelegationEvent(
   decodedMessage: DelegationEventEnvelopeV2,
   logger: Logger,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  userServiceSQL: UserServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
@@ -28,6 +30,7 @@ export async function handleDelegationEvent(
           delegation,
           logger,
           readModelService,
+          userServiceSQL,
           type
         )
     )

@@ -6,8 +6,12 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  retrieveTenant,
+} from "../handlerCommons.js";
 
 export type DelegationSubmittedRevokedToDelegateEventType =
   | "ProducerDelegationSubmitted"
@@ -19,6 +23,7 @@ export async function handleDelegationSubmittedRevokedToDelegate(
   delegationV2Msg: DelegationV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
+  userServiceSQL: UserServiceSQL,
   eventType: DelegationSubmittedRevokedToDelegateEventType
 ): Promise<NewNotification[]> {
   if (!delegationV2Msg) {
@@ -30,11 +35,12 @@ export async function handleDelegationSubmittedRevokedToDelegate(
 
   const delegation = fromDelegationV2(delegationV2Msg);
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [delegation.delegateId],
-      "delegationSubmittedRevokedToDelegate"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [delegation.delegateId],
+    "delegationSubmittedRevokedToDelegate",
+    readModelService,
+    userServiceSQL
+  );
 
   if (usersWithNotifications.length === 0) {
     logger.info(
