@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: M2M Events Manager
-  description: HTTP service to manage M2M Events
+  description: HTTP service to retrieve M2M Events
   version: "{{version}}"
   contact:
     name: API Support
@@ -12,7 +12,7 @@ info:
   x-summary: an x-summary
 servers:
   - url: "/"
-    description: HTTP service to manage M2M Events
+    description: HTTP service to retrieve M2M Events
 security:
   - bearerAuth: []
 tags:
@@ -490,20 +490,20 @@ components:
           format: uuid
         eventType:
           type: string
+        eventTimestamp:
+          type: string
+          format: date-time
         eserviceId:
           type: string
           format: uuid
         descriptorId:
           type: string
           format: uuid
-        eventTimestamp:
-          type: string
-          format: date-time
       required:
         - id
         - eventType
-        - eserviceId
         - eventTimestamp
+        - eserviceId
     EServiceM2MEvents:
       type: object
       properties:
@@ -520,17 +520,17 @@ components:
           format: uuid
         eventType:
           type: string
-        agreementId:
-          type: string
-          format: uuid
         eventTimestamp:
           type: string
           format: date-time
+        agreementId:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
-        - agreementId
         - eventTimestamp
+        - agreementId
     AgreementM2MEvents:
       type: object
       properties:
@@ -547,20 +547,20 @@ components:
           format: uuid
         eventType:
           type: string
+        eventTimestamp:
+          type: string
+          format: date-time
         purposeId:
           type: string
           format: uuid
         purposeVersionId:
           type: string
           format: uuid
-        eventTimestamp:
-          type: string
-          format: date-time
       required:
         - id
         - eventType
-        - purposeId
         - eventTimestamp
+        - purposeId
     PurposeM2MEvents:
       type: object
       properties:
@@ -577,17 +577,17 @@ components:
           format: uuid
         eventType:
           type: string
-        tenantId:
-          type: string
-          format: uuid
         eventTimestamp:
           type: string
           format: date-time
+        tenantId:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
-        - tenantId
         - eventTimestamp
+        - tenantId
     TenantM2MEvents:
       type: object
       properties:
@@ -604,17 +604,17 @@ components:
           format: uuid
         eventType:
           type: string
-        attributeId:
-          type: string
-          format: uuid
         eventTimestamp:
           type: string
           format: date-time
+        attributeId:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
-        - attributeId
         - eventTimestamp
+        - attributeId
     AttributeM2MEvents:
       type: object
       properties:
@@ -631,17 +631,17 @@ components:
           format: uuid
         eventType:
           type: string
-        delegationId:
-          type: string
-          format: uuid
         eventTimestamp:
           type: string
           format: date-time
+        delegationId:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
-        - delegationId
         - eventTimestamp
+        - delegationId
     ConsumerDelegationM2MEvents:
       type: object
       properties:
@@ -658,17 +658,17 @@ components:
           format: uuid
         eventType:
           type: string
-        delegationId:
-          type: string
-          format: uuid
         eventTimestamp:
           type: string
           format: date-time
+        delegationId:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
-        - delegationId
         - eventTimestamp
+        - delegationId
     ProducerDelegationM2MEvents:
       type: object
       properties:
@@ -685,17 +685,17 @@ components:
           format: uuid
         eventType:
           type: string
-        clientId:
-          type: string
-          format: uuid
         eventTimestamp:
           type: string
           format: date-time
+        clientId:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
-        - clientId
         - eventTimestamp
+        - clientId
     ClientM2MEvents:
       type: object
       properties:
@@ -712,17 +712,17 @@ components:
           format: uuid
         eventType:
           type: string
-        producerKeychainId:
-          type: string
-          format: uuid
         eventTimestamp:
           type: string
           format: date-time
+        producerKeychainId:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
-        - producerKeychainId
         - eventTimestamp
+        - producerKeychainId
     ProducerKeychainM2MEvents:
       type: object
       properties:
@@ -739,17 +739,17 @@ components:
           format: uuid
         eventType:
           type: string
-        kid:
-          type: string
-          format: uuid
         eventTimestamp:
           type: string
           format: date-time
+        kid:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
-        - kid
         - eventTimestamp
+        - kid
     KeyM2MEvents:
       type: object
       properties:
@@ -766,17 +766,17 @@ components:
           format: uuid
         eventType:
           type: string
-        kid:
-          type: string
-          format: uuid
         eventTimestamp:
           type: string
           format: date-time
+        kid:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
-        - kid
         - eventTimestamp
+        - kid
     ProducerKeyM2MEvents:
       type: object
       properties:
@@ -793,20 +793,20 @@ components:
           format: uuid
         eventType:
           type: string
-        templateId:
+        eventTimestamp:
+          type: string
+          format: date-time
+        eserviceTemplateId:
           type: string
           format: uuid
         eserviceTemplateVersionId:
           type: string
           format: uuid
-        eventTimestamp:
-          type: string
-          format: date-time
       required:
         - id
         - eventType
-        - templateId
         - eventTimestamp
+        - eserviceTemplateId
     EServiceTemplateM2MEvents:
       type: object
       properties:
