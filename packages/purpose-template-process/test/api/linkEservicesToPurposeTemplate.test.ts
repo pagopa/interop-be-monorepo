@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { AuthRole, authRole, eserviceNotFound } from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import {
   DescriptorId,
@@ -17,6 +17,7 @@ import {
   associationEServicesForPurposeTemplateFailed,
   tooManyEServicesForPurposeTemplate,
 } from "../../src/model/domain/errors.js";
+import { eserviceNotFound } from "../../src/errors/purposeTemplateValidationErrors.js";
 
 describe("API POST /purposeTemplates/:id/linkEservices", () => {
   const authorizedRoles: AuthRole[] = [

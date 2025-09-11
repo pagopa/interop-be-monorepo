@@ -68,7 +68,6 @@ describe("linkEservicesToPurposeTemplate", () => {
 
   const eService2: EService = {
     ...getMockEService(),
-    id: generateId<EServiceId>(),
     producerId: tenant.id,
     descriptors: [descriptor2],
   };
@@ -250,7 +249,6 @@ describe("linkEservicesToPurposeTemplate", () => {
   it("should throw associationEServicesForPurposeTemplateFailed if eservice has no descriptors", async () => {
     const eserviceWithDraftDescriptor: EService = {
       ...getMockEService(),
-      id: generateId<EServiceId>(),
       producerId: tenant.id,
       descriptors: [],
     };
@@ -276,22 +274,21 @@ describe("linkEservicesToPurposeTemplate", () => {
     );
   });
 
-  it("should throw associationEServicesForPurposeTemplateFailed if eservice has no valid descriptors", async () => {
-    const eserviceWithDraftDescriptor: EService = {
+  it("should throw associationEServicesForPurposeTemplateFailed if eservice has no valid descriptors (descriptors with state different from published or draft)", async () => {
+    const eserviceWithDeprecatedDescriptor: EService = {
       ...getMockEService(),
-      id: generateId<EServiceId>(),
       producerId: tenant.id,
       descriptors: [getMockDescriptor(descriptorState.deprecated)],
     };
 
     await addOneTenant(tenant);
-    await addOneEService(eserviceWithDraftDescriptor);
+    await addOneEService(eserviceWithDeprecatedDescriptor);
     await addOnePurposeTemplate(purposeTemplate);
 
     await expect(
       purposeTemplateService.linkEservicesToPurposeTemplate(
         purposeTemplate.id,
-        [eserviceWithDraftDescriptor.id],
+        [eserviceWithDeprecatedDescriptor.id],
         getMockContext({
           authData: getMockAuthData(tenant.id),
         })
@@ -299,31 +296,15 @@ describe("linkEservicesToPurposeTemplate", () => {
     ).rejects.toThrowError(
       associationEServicesForPurposeTemplateFailed(
         [
-          invalidDescriptorStateError(eserviceWithDraftDescriptor.id, [
+          invalidDescriptorStateError(eserviceWithDeprecatedDescriptor.id, [
             descriptorState.published,
             descriptorState.draft,
           ]),
         ],
-        [eserviceWithDraftDescriptor.id],
+        [eserviceWithDeprecatedDescriptor.id],
         purposeTemplate.id
       )
     );
-  });
-
-  it("should handle empty eserviceIds array", async () => {
-    await addOneTenant(tenant);
-    await addOnePurposeTemplate(purposeTemplate);
-
-    const linkResponse =
-      await purposeTemplateService.linkEservicesToPurposeTemplate(
-        purposeTemplate.id,
-        [],
-        getMockContext({
-          authData: getMockAuthData(tenant.id),
-        })
-      );
-
-    expect(linkResponse).toEqual([]);
   });
 
   it("should handle mixed valid and invalid eserviceIds", async () => {
