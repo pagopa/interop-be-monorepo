@@ -43,3 +43,19 @@ export const linkEservicesToPurposeTemplateErrorMapper = (
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const unassociationEServicesForPurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "unassociationEServicesForPurposeTemplateFailed",
+      "tooManyEServicesForPurposeTemplate",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "associationBetweenEServiceAndPurposeTemplateDoesNotExist",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
