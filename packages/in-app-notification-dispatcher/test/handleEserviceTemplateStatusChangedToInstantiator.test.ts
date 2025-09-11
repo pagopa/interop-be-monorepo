@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 import { describe, it, expect, vi } from "vitest";
 import {
   getMockContext,
@@ -27,7 +28,6 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
   await addOneEServiceTemplate(eserviceTemplate);
 
   // Mock the getEServicesByTemplateId method to return an empty array by default
-  // eslint-disable-next-line functional/immutable-data
   readModelService.getEServicesByTemplateId = vi.fn().mockResolvedValue([]);
 
   it("should throw missingKafkaMessageDataError when eserviceTemplate is undefined", async () => {
@@ -61,7 +61,6 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
     await addOneEServiceTemplate(updatedEServiceTemplate);
 
     // Mock the getTenantById method to return the creator tenant
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantById = vi.fn().mockImplementation((tenantId) => {
       if (tenantId === creatorId) {
         return Promise.resolve(creatorTenant);
@@ -69,7 +68,6 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
       return Promise.resolve(null);
     });
 
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([]);
@@ -114,17 +112,13 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
       { userId: generateId(), tenantId: producerId },
     ];
 
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getEServicesByTemplateId = vi
       .fn()
       .mockResolvedValue([eservice]);
-
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue(users);
 
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantById = vi.fn().mockImplementation((tenantId) => {
       if (tenantId === creatorId) {
         return Promise.resolve(creatorTenant);

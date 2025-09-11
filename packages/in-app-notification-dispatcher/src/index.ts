@@ -42,7 +42,7 @@ import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
 import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
 import { handleAuthorizationEvent } from "./handlers/authorizations/handleAuthorizationEvent.js";
 import { handleAttributeEvent } from "./handlers/attributes/handleAttributeEvent.js";
-import { handleEServiceTemplateEvent } from "./handlers/eserviceTemplates/handleEserviceTemplates.js";
+import { handleEServiceTemplateEvent } from "./handlers/eserviceTemplates/handleEserviceTemplatesEvent.js";
 
 interface TopicNames {
   catalogTopic: string;

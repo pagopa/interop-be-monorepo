@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 import { describe, it, expect, vi } from "vitest";
 import {
   getMockContext,
@@ -35,7 +36,6 @@ describe("handleTemplateStatusChangedToProducer", async () => {
   });
 
   it("should return empty array when no user notification configs exist for the template", async () => {
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([]);
@@ -58,7 +58,6 @@ describe("handleTemplateStatusChangedToProducer", async () => {
       { userId: generateId(), tenantId: creatorId },
       { userId: generateId(), tenantId: creatorId },
     ];
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue(users);

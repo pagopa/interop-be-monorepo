@@ -233,7 +233,7 @@ export const getMockEService = (
   descriptors,
   riskAnalysis: [],
   mode: "Deliver",
-  templateId,
+  ...(templateId && { templateId }),
 });
 
 export const getMockVerifiedTenantAttribute = (

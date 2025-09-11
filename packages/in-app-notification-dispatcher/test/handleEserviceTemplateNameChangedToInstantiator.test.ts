@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 import { describe, it, expect, vi } from "vitest";
 import {
   getMockContext,
@@ -46,11 +47,9 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
   });
 
   it("should return empty array when no user notification configs exist for the template", async () => {
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([]);
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantById = vi.fn().mockResolvedValue(creatorTenant);
 
     const notifications = await handleEserviceTemplateNameChangedToInstantiator(
@@ -67,14 +66,11 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
       { userId: generateId(), tenantId: creatorId },
       { userId: generateId(), tenantId: creatorId },
     ];
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue(users);
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantById = vi.fn().mockResolvedValue(creatorTenant);
 
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getEServicesByTemplateId = vi.fn().mockResolvedValue([]);
 
     const notifications = await handleEserviceTemplateNameChangedToInstantiator(
@@ -110,14 +106,11 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
       { userId: generateId(), tenantId: producerId },
       { userId: generateId(), tenantId: producerId },
     ];
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue(users);
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getTenantById = vi.fn().mockResolvedValue(creatorTenant);
 
-    // eslint-disable-next-line functional/immutable-data
     readModelService.getEServicesByTemplateId = vi
       .fn()
       .mockResolvedValue([eservice1, eservice2]);
