@@ -5,6 +5,7 @@ import {
 import {
   authenticationMiddleware,
   contextMiddleware,
+  errorsToApiProblemsMiddleware,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -34,6 +35,7 @@ export async function createApp(service: InAppNotificationService) {
   app.use(authenticationMiddleware(config));
   app.use(loggerMiddleware(serviceName));
   app.use(router);
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }
