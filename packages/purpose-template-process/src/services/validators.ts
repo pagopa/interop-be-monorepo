@@ -1,5 +1,6 @@
 import {
   DescriptorId,
+  descriptorState,
   EService,
   EServiceId,
   PurposeTemplateId,
@@ -12,6 +13,7 @@ import {
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   validatePurposeTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import {
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
   associationEServicesForPurposeTemplateFailed,
@@ -137,29 +139,38 @@ async function validateEServiceExistence(
     )
   );
 
-  const validationIssues = eserviceResults.flatMap((result, index) => {
-    if (result.status === "rejected") {
-      return [
-        unexpectedEServiceError(result.reason.message, eserviceIds[index]),
-      ];
+  return eserviceResults.reduce(
+    (acc, result, index) =>
+      match(result)
+        .with({ status: "fulfilled" }, (res) => {
+          if (!res.value) {
+            return {
+              ...acc,
+              validationIssues: [
+                ...acc.validationIssues,
+                eserviceNotFound(eserviceIds[index]),
+              ],
+            };
+          }
+
+          return {
+            ...acc,
+            validEservices: [...acc.validEservices, res.value],
+          };
+        })
+        .with({ status: "rejected" }, (res) => ({
+          ...acc,
+          validationIssues: [
+            ...acc.validationIssues,
+            unexpectedEServiceError(res.reason.message, eserviceIds[index]),
+          ],
+        }))
+        .exhaustive(),
+    {
+      validationIssues: new Array<PurposeTemplateValidationIssue>(),
+      validEservices: new Array<EService>(),
     }
-
-    // eservice not found
-    if (result.status === "fulfilled" && !result.value) {
-      return [eserviceNotFound(eserviceIds[index])];
-    }
-
-    return [];
-  });
-
-  const validEservices = eserviceResults
-    .filter(
-      (result): result is PromiseFulfilledResult<EService> =>
-        result.status === "fulfilled" && result.value !== undefined
-    )
-    .map((result) => result.value);
-
-  return { validationIssues, validEservices };
+  );
 }
 
 /**
@@ -241,13 +252,17 @@ function validateEServiceDescriptors(validEservices: EService[]): {
 
     const validDescriptor = eservice.descriptors.find(
       (descriptor) =>
-        descriptor.state === "Published" || descriptor.state === "Draft"
+        descriptor.state === descriptorState.published ||
+        descriptor.state === descriptorState.draft
     );
 
     if (!validDescriptor) {
       // eslint-disable-next-line functional/immutable-data
       validationIssues.push(
-        invalidDescriptorStateError(eservice.id, ["Published", "Draft"])
+        invalidDescriptorStateError(eservice.id, [
+          descriptorState.published,
+          descriptorState.draft,
+        ])
       );
       return;
     }
