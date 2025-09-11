@@ -1,5 +1,6 @@
 import {
   and,
+  count,
   countDistinct,
   desc,
   eq,
@@ -7,7 +8,6 @@ import {
   ilike,
   inArray,
   isNull,
-  sql,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -141,23 +141,37 @@ export function inAppNotificationServiceBuilder(
     }: WithLogger<AppContext<UIAuthData>>): Promise<NotificationsByType> => {
       logger.info("Getting notifications by type");
 
-      const queryResult = await db
-        .select({
-          notificationType: notification.notificationType,
-          typeCount: countDistinct(notification.entityId),
-          totalCount: sql<number>`count(*) over()`,
-        })
-        .from(notification)
-        .where(
-          and(
-            eq(notification.userId, userId),
-            eq(notification.tenantId, organizationId),
-            isNull(notification.readAt)
+      const [groupedResult, totalCountResult] = await Promise.all([
+        db
+          .select({
+            notificationType: notification.notificationType,
+            typeCount: countDistinct(notification.entityId),
+          })
+          .from(notification)
+          .where(
+            and(
+              eq(notification.userId, userId),
+              eq(notification.tenantId, organizationId),
+              isNull(notification.readAt)
+            )
           )
-        )
-        .groupBy(notification.notificationType);
+          .groupBy(notification.notificationType),
 
-      const results = queryResult.reduce<Record<NotificationType, number>>(
+        db
+          .select({
+            totalCount: count(notification.id),
+          })
+          .from(notification)
+          .where(
+            and(
+              eq(notification.userId, userId),
+              eq(notification.tenantId, organizationId),
+              isNull(notification.readAt)
+            )
+          ),
+      ]);
+
+      const results = groupedResult.reduce<Record<NotificationType, number>>(
         (acc, row) => {
           const notificationType = row.notificationType;
           if (NotificationType.safeParse(notificationType).success) {
@@ -171,7 +185,7 @@ export function inAppNotificationServiceBuilder(
         {} as Record<NotificationType, number>
       );
 
-      const totalCount = queryResult[0]?.totalCount ?? 0;
+      const totalCount = totalCountResult[0]?.totalCount || 0;
 
       return {
         results,
