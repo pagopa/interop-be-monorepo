@@ -19,7 +19,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handleAgreementUnsuspendedByPlatform } from "../src/handlers/agreements/handleAgreementUnsuspendedByPlatform.js";
+import { handleAgreementUnsuspendedByPlatformToConsumer } from "../src/handlers/agreements/handleAgreementUnsuspendedByPlatformToConsumer.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -31,7 +31,7 @@ import {
   userService,
 } from "./utils.js";
 
-describe("handleAgreementUnsuspendedByPlatform", async () => {
+describe("handleAgreementUnsuspendedByPlatformToConsumer", async () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -72,7 +72,7 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
 
   it("should throw missingKafkaMessageDataError when agreement is undefined", async () => {
     await expect(() =>
-      handleAgreementUnsuspendedByPlatform({
+      handleAgreementUnsuspendedByPlatformToConsumer({
         agreementV2Msg: undefined,
         logger,
         templateService,
@@ -99,7 +99,7 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleAgreementUnsuspendedByPlatform({
+      handleAgreementUnsuspendedByPlatformToConsumer({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
@@ -108,31 +108,6 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(tenantNotFound(unknownConsumerId));
-  });
-
-  it("should throw tenantNotFound when producer is not found", async () => {
-    const unknownProducerId = generateId<TenantId>();
-
-    const agreement = {
-      ...getMockAgreement(),
-      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
-      producerId: unknownProducerId,
-      descriptorId: descriptor.id,
-      eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
-    };
-    await addOneAgreement(agreement);
-
-    await expect(() =>
-      handleAgreementUnsuspendedByPlatform({
-        agreementV2Msg: toAgreementV2(agreement),
-        logger,
-        templateService,
-        userService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      })
-    ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
   it("should throw eServiceNotFound when eservice is not found", async () => {
@@ -148,7 +123,7 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleAgreementUnsuspendedByPlatform({
+      handleAgreementUnsuspendedByPlatformToConsumer({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
@@ -170,7 +145,7 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementUnsuspendedByPlatform({
+    const messages = await handleAgreementUnsuspendedByPlatformToConsumer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
@@ -200,7 +175,7 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementUnsuspendedByPlatform({
+    const messages = await handleAgreementUnsuspendedByPlatformToConsumer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
@@ -229,7 +204,7 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementUnsuspendedByPlatform({
+    const messages = await handleAgreementUnsuspendedByPlatformToConsumer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
@@ -244,6 +219,7 @@ describe("handleAgreementUnsuspendedByPlatform", async () => {
       expect(message.email.body).toContain(
         `Riattivazione richiesta da parte della Piattaforma`
       );
+      expect(message.email.body).toContain(eservice.name);
     });
   });
 });

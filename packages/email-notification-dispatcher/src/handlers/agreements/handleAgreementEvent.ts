@@ -9,7 +9,7 @@ import { handleAgreementRejected } from "./handleAgreementRejected.js";
 import { handleAgreementSubmitted } from "./handleAgreementSubmitted.js";
 import { handleAgreementUpgraded } from "./handleAgreementUpgraded.js";
 import { handleAgreementSuspendedByProducer } from "./handleAgreementSuspendedByProducer.js";
-import { handleAgreementUnsuspendedByProducer } from "./handleAgreementUnsuspendedByProducer.js";
+import { handleAgreementUnsuspendedByProducer } from./ handleAgreementSuspendedByPlatformToConsumer.jsr.js";
 import { handleAgreementSuspendedByPlatform } from "./handleAgreementSuspendedByPlatform.js";
 import { handleAgreementActivatedToProducer } from "./handleAgreementActivatedToProducer.js";
 

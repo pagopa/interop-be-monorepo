@@ -258,6 +258,9 @@ describe("handleAgreementUnsuspendedByProducer", async () => {
       expect(message.email.body).toContain(
         `La tua richiesta per &quot;${eservice.name}&quot; è stata riattivata`
       );
+      expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(eservice.name);
+      expect(message.email.body).toContain(`Visualizza la richiesta`);
     });
   });
 });
