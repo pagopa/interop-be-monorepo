@@ -158,7 +158,7 @@ export function purposeTemplateServiceBuilder(
       eserviceIds: EServiceId[],
       {
         logger,
-        correlationId: correlationId,
+        correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<EServiceDescriptorPurposeTemplate[]> {
       logger.info(
