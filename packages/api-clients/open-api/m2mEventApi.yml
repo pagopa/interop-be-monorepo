@@ -25,7 +25,7 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated E-Service M2M Events
+      summary: Get E-Service M2M Events
       description: Returns a list of E-Service M2M Events
       operationId: getEServiceM2MEvents
       parameters:
@@ -95,7 +95,7 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated Purpose M2M Events
+      summary: Get Purpose M2M Events
       description: Returns a list of Purpose M2M Events
       operationId: getPurposeM2MEvents
       parameters:
@@ -130,7 +130,7 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated Tenant M2M Events
+      summary: Get Tenant M2M Events
       description: Returns a list of Tenant M2M Events
       operationId: getTenantM2MEvents
       parameters:
@@ -165,7 +165,7 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated Attribute M2M Events
+      summary: Get Attribute M2M Events
       description: Returns a list of Attribute M2M Events
       operationId: getAttributeM2MEvents
       parameters:
@@ -200,7 +200,7 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated Consumer Delegation M2M Events
+      summary: Get Consumer Delegation M2M Events
       description: Returns a list of Consumer Delegation M2M Events
       operationId: getConsumerDelegationM2MEvents
       parameters:
@@ -235,7 +235,7 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated Producer Delegation M2M Events
+      summary: Get Producer Delegation M2M Events
       description: Returns a list of Producer Delegation M2M Events
       operationId: getProducerDelegationM2MEvents
       parameters:
@@ -270,7 +270,7 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated Client M2M Events
+      summary: Get Client M2M Events
       description: Returns a list of Client M2M Events
       operationId: getClientM2MEvents
       parameters:
@@ -305,7 +305,7 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated Producer Keychain M2M Events
+      summary: Get Producer Keychain M2M Events
       description: Returns a list of Producer Keychain M2M Events
       operationId: getProducerKeychainM2MEvents
       parameters:
@@ -340,7 +340,7 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated Key M2M Events
+      summary: Get Key M2M Events
       description: Returns a list of Key M2M Events
       operationId: getKeyM2MEvents
       parameters:
@@ -375,7 +375,7 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated Producer Key M2M Events
+      summary: Get Producer Key M2M Events
       description: Returns a list of Producer Key M2M Events
       operationId: getProducerKeyM2MEvents
       parameters:
@@ -410,7 +410,7 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get paginated E-Service Template M2M Events
+      summary: Get E-Service Template M2M Events
       description: Returns a list of E-Service Template M2M Events
       operationId: getEServiceTemplateM2MEvents
       parameters:
