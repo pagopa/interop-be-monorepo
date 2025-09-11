@@ -188,12 +188,42 @@ const eserviceTemplatesRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-        const updatedEServiceTemplate =
+        const { data: updatedEServiceTemplate } =
           await eserviceTemplateService.updateEServiceTemplate(
             unsafeBrandId(req.params.templateId),
             req.body,
             ctx
           );
+        return res
+          .status(200)
+          .send(
+            eserviceTemplateApi.EServiceTemplate.parse(
+              eserviceTemplateToApiEServiceTemplate(updatedEServiceTemplate)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateEServiceTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/templates/:templateId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const { data: updatedEServiceTemplate, metadata } =
+          await eserviceTemplateService.patchUpdateEServiceTemplate(
+            unsafeBrandId(req.params.templateId),
+            req.body,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
