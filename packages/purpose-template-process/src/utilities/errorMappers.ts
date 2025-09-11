@@ -51,8 +51,12 @@ export const unassociationEServicesForPurposeTemplateErrorMapper = (
   match(error.code)
     .with(
       "unassociationEServicesForPurposeTemplateFailed",
-      "missingExpectedEService",
       "tooManyEServicesForPurposeTemplate",
       () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "unassociationBetweenEServiceAndPurposeTemplateDoesNotExist",
+      () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

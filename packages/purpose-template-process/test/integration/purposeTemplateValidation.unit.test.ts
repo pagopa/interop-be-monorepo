@@ -7,7 +7,6 @@ import {
   generateId,
   descriptorState,
 } from "pagopa-interop-models";
-import { eserviceNotAssociatedError } from "pagopa-interop-commons",
 import {
   getMockEService,
   getMockDescriptor,
@@ -15,11 +14,13 @@ import {
 import {
   associationEServicesForPurposeTemplateFailed,
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
+  unassociationBetweenEServiceAndPurposeTemplateDoesNotExist,
 } from "../../src/model/domain/errors.js";
 import { validateEServicesForPurposeTemplate } from "../../src/services/validators.js";
 import { ReadModelServiceSQL } from "../../src/services/readModelServiceSQL.js";
 import {
   eserviceAlreadyAssociatedError,
+  eserviceNotAssociatedError,
   eserviceNotFound,
   invalidDescriptorStateError,
   missingDescriptorError,
@@ -263,17 +264,20 @@ describe("Purpose Template Validation", () => {
       mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
         vi.fn().mockResolvedValue(undefined); // No existing association
 
-      const result = await validateEServicesForPurposeTemplate(
-        eserviceIds,
-        purposeTemplateId,
-        "unlink",
-        mockReadModelService
+      await expect(
+        validateEServicesForPurposeTemplate(
+          eserviceIds,
+          purposeTemplateId,
+          "unlink",
+          mockReadModelService
+        )
+      ).rejects.toThrow(
+        unassociationBetweenEServiceAndPurposeTemplateDoesNotExist(
+          [eserviceNotAssociatedError(eserviceId1, purposeTemplateId)],
+          eserviceIds,
+          purposeTemplateId
+        )
       );
-
-      expect(result).toEqual({
-        type: "invalid",
-        issues: [eserviceNotAssociatedError(eserviceId1, purposeTemplateId)],
-      });
     });
 
     it("should return valid when trying to unlink eservice that is associated", async () => {

@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import {
   DescriptorId,
   descriptorState,
@@ -17,7 +18,6 @@ import {
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   UIAuthData,
   validatePurposeTemplateRiskAnalysis,
-  eserviceNotAssociatedError,
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
@@ -28,10 +28,13 @@ import {
   purposeTemplateNameConflict,
   riskAnalysisTemplateValidationFailed,
   tooManyEServicesForPurposeTemplate,
+  unassociationBetweenEServiceAndPurposeTemplateDoesNotExist,
+  unassociationEServicesForPurposeTemplateFailed,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import {
   eserviceAlreadyAssociatedError,
+  eserviceNotAssociatedError,
   eserviceNotFound,
   invalidDescriptorStateError,
   invalidPurposeTemplateResult,
@@ -40,6 +43,7 @@ import {
   PurposeTemplateValidationResult,
   unexpectedAssociationEServiceError,
   unexpectedEServiceError,
+  unexpectedUnassociationEServiceError,
   validPurposeTemplateResult,
 } from "../errors/purposeTemplateValidationErrors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -202,21 +206,18 @@ async function validateEServiceExistence(
 /**
  * Validate the associations between the eservices and the purpose template
  * For each eservice:
- * - For "link" operation: return error if the eservice is already associated with the purpose template
- * - For "unlink" operation: return error if the eservice is not associated with the purpose template
+ * - Promise.fulfilled: return error if the eservice is already associated with the purpose template
  * - Promise.rejected: return a validation issue with the eservice id and the error message
  * Finally, return the validation issues
  *
  * @param validEservices the list of valid eservices
  * @param purposeTemplateId the purpose template id
- * @param operationType the type of operation being performed ("link" or "unlink")
  * @param readModelService the read model service to use
  * @returns the validation issues
  */
 async function validateEServiceAssociations(
   validEservices: EService[],
   purposeTemplateId: PurposeTemplateId,
-  operationType: "link" | "unlink",
   readModelService: ReadModelServiceSQL
 ): Promise<PurposeTemplateValidationIssue[]> {
   const associationValidationResults = await Promise.allSettled(
@@ -237,10 +238,7 @@ async function validateEServiceAssociations(
       );
     }
 
-    const isAssociated =
-      result.status === "fulfilled" && result.value !== undefined;
-
-    if (operationType === "link" && isAssociated) {
+    if (result.status === "fulfilled" && result.value !== undefined) {
       return [
         eserviceAlreadyAssociatedError(
           validEservices[index].id,
@@ -248,13 +246,38 @@ async function validateEServiceAssociations(
         ),
       ];
     }
+    return [];
+  });
+}
 
-    if (operationType === "unlink" && !isAssociated) {
+async function validateEServiceUnassociations(
+  validEservices: EService[],
+  purposeTemplateId: PurposeTemplateId,
+  readModelService: ReadModelServiceSQL
+): Promise<PurposeTemplateValidationIssue[]> {
+  const associationValidationResults = await Promise.allSettled(
+    validEservices.map(
+      async (eservice) =>
+        await readModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
+          purposeTemplateId,
+          eservice.id
+        )
+    )
+  );
+
+  return associationValidationResults.flatMap((result, index) => {
+    if (result.status === "rejected") {
+      throw unexpectedUnassociationEServiceError(
+        result.reason.message,
+        validEservices[index].id
+      );
+    }
+
+    if (result.status === "fulfilled" && result.value === undefined) {
       return [
         eserviceNotAssociatedError(validEservices[index].id, purposeTemplateId),
       ];
     }
-
     return [];
   });
 }
@@ -316,10 +339,9 @@ function validateEServiceDescriptors(validEservices: EService[]): {
   return { validationIssues, validEServiceDescriptorPairs };
 }
 
-export async function validateEServicesForPurposeTemplate(
+async function validateEservicesAssociations(
   eserviceIds: EServiceId[],
   purposeTemplateId: PurposeTemplateId,
-  operationType: "link" | "unlink",
   readModelService: ReadModelServiceSQL
 ): Promise<
   PurposeTemplateValidationResult<
@@ -342,7 +364,6 @@ export async function validateEServicesForPurposeTemplate(
   const associationValidationIssues = await validateEServiceAssociations(
     validEservices,
     purposeTemplateId,
-    operationType,
     readModelService
   );
 
@@ -364,4 +385,80 @@ export async function validateEServicesForPurposeTemplate(
   }
 
   return validPurposeTemplateResult(validEServiceDescriptorPairs);
+}
+
+async function validateEservicesUnassociations(
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId,
+  readModelService: ReadModelServiceSQL
+): Promise<
+  PurposeTemplateValidationResult<
+    Array<{ eservice: EService; descriptorId: DescriptorId }>
+  >
+> {
+  const { validationIssues, validEservices } = await validateEServiceExistence(
+    eserviceIds,
+    readModelService
+  );
+
+  if (validationIssues.length > 0) {
+    throw unassociationEServicesForPurposeTemplateFailed(
+      validationIssues,
+      eserviceIds,
+      purposeTemplateId
+    );
+  }
+
+  const unassociationValidationIssues = await validateEServiceUnassociations(
+    validEservices,
+    purposeTemplateId,
+    readModelService
+  );
+
+  if (unassociationValidationIssues.length > 0) {
+    throw unassociationBetweenEServiceAndPurposeTemplateDoesNotExist(
+      unassociationValidationIssues,
+      eserviceIds,
+      purposeTemplateId
+    );
+  }
+
+  const {
+    validationIssues: descriptorValidationIssues,
+    validEServiceDescriptorPairs,
+  } = validateEServiceDescriptors(validEservices);
+
+  if (descriptorValidationIssues.length > 0) {
+    return invalidPurposeTemplateResult(descriptorValidationIssues);
+  }
+
+  return validPurposeTemplateResult(validEServiceDescriptorPairs);
+}
+
+export async function validateEServicesForPurposeTemplate(
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId,
+  operationType: "link" | "unlink",
+  readModelService: ReadModelServiceSQL
+): Promise<
+  PurposeTemplateValidationResult<
+    Array<{ eservice: EService; descriptorId: DescriptorId }>
+  >
+> {
+  return match(operationType)
+    .with("link", () =>
+      validateEservicesAssociations(
+        eserviceIds,
+        purposeTemplateId,
+        readModelService
+      )
+    )
+    .with("unlink", () =>
+      validateEservicesUnassociations(
+        eserviceIds,
+        purposeTemplateId,
+        readModelService
+      )
+    )
+    .exhaustive();
 }

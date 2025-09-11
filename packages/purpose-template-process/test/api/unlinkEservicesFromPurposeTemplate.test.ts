@@ -1,10 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import {
-  AuthRole,
-  authRole,
-  missingExpectedEService,
-} from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import {
   EServiceId,
@@ -19,6 +15,7 @@ import {
   tooManyEServicesForPurposeTemplate,
   unassociationEServicesForPurposeTemplateFailed,
 } from "../../src/model/domain/errors.js";
+import { eserviceNotAssociatedError } from "../../src/errors/purposeTemplateValidationErrors.js";
 
 describe("API POST /purposeTemplates/:id/unlinkEservices", () => {
   const authorizedRoles: AuthRole[] = [
@@ -141,7 +138,7 @@ describe("API POST /purposeTemplates/:id/unlinkEservices", () => {
     },
     {
       error: unassociationEServicesForPurposeTemplateFailed(
-        [missingExpectedEService(eserviceIds[0])],
+        [eserviceNotAssociatedError(eserviceIds[0], purposeTemplateId)],
         eserviceIds,
         purposeTemplateId
       ),
