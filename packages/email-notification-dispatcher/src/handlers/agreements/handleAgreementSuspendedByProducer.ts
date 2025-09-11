@@ -65,7 +65,6 @@ export async function handleAgreementSuspendedByProducer(
         notificationType,
         entityId: agreement.id,
         producerName: producer.name,
-        consumerName: consumer.name,
         eserviceName: eservice.name,
       }),
     },

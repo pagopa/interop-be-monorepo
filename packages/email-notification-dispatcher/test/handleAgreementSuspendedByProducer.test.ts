@@ -265,6 +265,8 @@ describe("handleAgreementSuspendedByProducer", async () => {
       expect(message.email.body).toContain(
         `Sospensione richiesta di fruizione per &quot;${eservice.name}&quot;`
       );
+      expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(eservice.name);
     });
   });
 });
