@@ -67,6 +67,7 @@ export async function handleAgreementRejected(
         title: `La tua richiesta per "${eservice.name}" è stata rifiutata`,
         notificationType,
         entityId: agreement.id,
+        consumerName: consumer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
       }),
