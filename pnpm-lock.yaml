@@ -3878,6 +3878,46 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
 
+  packages/m2m-event-db-models:
+    dependencies:
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pg:
+        specifier: 8.13.1
+        version: 8.13.1
+    devDependencies:
+      '@types/node':
+        specifier: 20.19.9
+        version: 20.19.9
+      '@types/pg':
+        specifier: 8.11.11
+        version: 8.11.11
+      drizzle-kit:
+        specifier: 0.30.4
+        version: 0.30.4
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      prettier-plugin-organize-imports:
+        specifier: 4.2.0
+        version: 4.2.0(prettier@2.8.8)(typescript@5.4.5)
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@20.19.9)(typescript@5.4.5)
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+
   packages/m2m-gateway:
     dependencies:
       '@zodios/core':
@@ -10822,6 +10862,16 @@ packages:
   prettier-linter-helpers@1.0.0:
     resolution: {integrity: sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==}
     engines: {node: '>=6.0.0'}
+
+  prettier-plugin-organize-imports@4.2.0:
+    resolution: {integrity: sha512-Zdy27UhlmyvATZi67BTnLcKTo8fm6Oik59Sz6H64PgZJVs6NJpPD1mT240mmJn62c98/QaL+r3kx9Q3gRpDajg==}
+    peerDependencies:
+      prettier: '>=2.0'
+      typescript: '>=2.9'
+      vue-tsc: ^2.1.0 || 3
+    peerDependenciesMeta:
+      vue-tsc:
+        optional: true
 
   prettier@2.8.8:
     resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
@@ -18586,6 +18636,11 @@ snapshots:
   prettier-linter-helpers@1.0.0:
     dependencies:
       fast-diff: 1.3.0
+
+  prettier-plugin-organize-imports@4.2.0(prettier@2.8.8)(typescript@5.4.5):
+    dependencies:
+      prettier: 2.8.8
+      typescript: 5.4.5
 
   prettier@2.8.8: {}
 
