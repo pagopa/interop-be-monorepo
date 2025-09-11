@@ -100,6 +100,24 @@ export const inAppTemplates = {
       .exhaustive();
     return `${delegatorName} ha ${action} una delega in ${delegationKind}.`;
   },
+  templateStatusChangedToProducer: (templateName: string): string =>
+    `Hai sospeso il tuo template "<strong>${templateName}</strong>".`,
+  newEserviceTemplateVersionToInstantiator: (
+    creatorName: string,
+    eserviceTemplateVersion: string,
+    eserviceTemplateName: string
+  ): string =>
+    `${creatorName} ha pubblicato una nuova versione ${eserviceTemplateVersion} del template "<strong>${eserviceTemplateName}</strong>" per il tuo e-service.`,
+  eserviceTemplateNameChangedToInstantiator: (
+    creatorName: string,
+    eserviceTemplateName: string
+  ): string =>
+    `${creatorName} ha aggiornato il nome del template "<strong>${eserviceTemplateName}</strong>" per il tuo e-service.`,
+  eserviceTemplateStatusChangedToInstantiator: (
+    creatorName: string,
+    eserviceTemplateName: string
+  ): string =>
+    `${creatorName} ha sospeso il template "<strong>${eserviceTemplateName}</strong>" per il tuo e-service.`,
   purposeStatusChangedToConsumer: (
     purposeName: string,
     consumerName: string,
