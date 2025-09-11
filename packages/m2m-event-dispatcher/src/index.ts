@@ -9,21 +9,19 @@ import {
   CorrelationId,
   DelegationEventV2,
   EServiceEventV2,
+  EServiceTemplateEventV2,
   EventEnvelope,
   generateId,
   genericInternalError,
-  NewNotification,
   PurposeEventV2,
+  TenantEventV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
   makeDrizzleConnection,
-  notificationConfigReadModelServiceBuilder,
-  purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -34,13 +32,18 @@ import {
   readModelServiceBuilderSQL,
   ReadModelServiceSQL,
 } from "./services/readModelServiceSQL.js";
-import { inAppNotificationServiceBuilderSQL } from "./services/inAppNotificationServiceSQL.js";
-import { handleEServiceEvent } from "./handlers/eservices/handleEserviceEvent.js";
-import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent.js";
-import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
-import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
-import { handleAuthorizationEvent } from "./handlers/authorizations/handleAuthorizationEvent.js";
-import { handleAttributeEvent } from "./handlers/attributes/handleAttributeEvent.js";
+import {
+  m2mEventServiceBuilderSQL,
+  M2MEventServiceSQL,
+} from "./services/m2mEventServiceSQL.js";
+import { handleAgreementEvent } from "./handlers/handleAgreementEvent.js";
+import { handlePurposeEvent } from "./handlers/handlePurposeEvent.js";
+import { handleDelegationEvent } from "./handlers/handleDelegationEvent.js";
+import { handleAuthorizationEvent } from "./handlers/handleAuthorizationEvent.js";
+import { handleAttributeEvent } from "./handlers/handleAttributeEvent.js";
+import { handleEServiceEvent } from "./handlers/handleEServiceEvent.js";
+import { handleTenantEvent } from "./handlers/handleTenantEvent.js";
+import { handleEServiceTemplateEvent } from "./handlers/handleEServiceTemplateEvent.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -49,43 +52,34 @@ interface TopicNames {
   delegationTopic: string;
   authorizationTopic: string;
   attributeTopic: string;
+  tenantTopic: string;
+  eserviceTemplateTopic: string;
 }
 
 const readModelDB = makeDrizzleConnection(config);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
-const delegationReadModelServiceSQL =
-  delegationReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
-const notificationConfigReadModelServiceSQL =
-  notificationConfigReadModelServiceBuilder(readModelDB);
-const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
-  delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
-  notificationConfigReadModelServiceSQL,
-  purposeReadModelServiceSQL,
 });
 
-const notificationDB = drizzle(
+const m2mEventDB = drizzle(
   new pg.Pool({
-    host: config.inAppNotificationDBHost,
-    database: config.inAppNotificationDBName,
-    user: config.inAppNotificationDBUsername,
-    password: config.inAppNotificationDBPassword,
-    port: config.inAppNotificationDBPort,
-    ssl: config.inAppNotificationDBUseSSL
-      ? { rejectUnauthorized: false }
-      : undefined,
+    host: config.m2mEventSQLDbHost,
+    database: config.m2mEventSQLDbName,
+    user: config.m2mEventSQLDbUsername,
+    password: config.m2mEventSQLDbPassword,
+    port: config.m2mEventSQLDbPort,
+    ssl: config.m2mEventSQLDbUseSSL ? { rejectUnauthorized: false } : undefined,
   })
 );
 
-const inAppNotificationService =
-  inAppNotificationServiceBuilderSQL(notificationDB);
+const m2mEventService = m2mEventServiceBuilderSQL(m2mEventDB);
 
 function processMessage(topicNames: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
@@ -96,6 +90,8 @@ function processMessage(topicNames: TopicNames) {
       delegationTopic,
       authorizationTopic,
       attributeTopic,
+      tenantTopic,
+      eserviceTemplateTopic,
     } = topicNames;
 
     const handleWith = <T extends z.ZodType>(
@@ -103,15 +99,16 @@ function processMessage(topicNames: TopicNames) {
       handler: (
         decodedMessage: EventEnvelope<z.infer<T>>,
         logger: Logger,
+        m2mEventService: M2MEventServiceSQL,
         readModelService: ReadModelServiceSQL
-      ) => Promise<NewNotification[]>
-    ): Promise<NewNotification[]> => {
+      ) => Promise<void>
+    ): Promise<void> => {
       const decodedMessage = decodeKafkaMessage(
         messagePayload.message,
         eventType
       );
       const loggerInstance = logger({
-        serviceName: "in-app-notification-dispatcher",
+        serviceName: "m2m-event-dispatcher",
         eventType: decodedMessage.type,
         eventVersion: decodedMessage.event_version,
         streamId: decodedMessage.stream_id,
@@ -124,10 +121,15 @@ function processMessage(topicNames: TopicNames) {
       loggerInstance.info(
         `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
       );
-      return handler(decodedMessage, loggerInstance, readModelService);
+      return handler(
+        decodedMessage,
+        loggerInstance,
+        m2mEventService,
+        readModelService
+      );
     };
 
-    const notifications = await match(messagePayload.topic)
+    await match(messagePayload.topic)
       .with(catalogTopic, async () =>
         handleWith(EServiceEventV2, handleEServiceEvent)
       )
@@ -146,11 +148,15 @@ function processMessage(topicNames: TopicNames) {
       .with(attributeTopic, async () =>
         handleWith(AttributeEvent, handleAttributeEvent)
       )
+      .with(tenantTopic, async () =>
+        handleWith(TenantEventV2, handleTenantEvent)
+      )
+      .with(eserviceTemplateTopic, async () =>
+        handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
+      )
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
-
-    await inAppNotificationService.insertNotifications(notifications);
   };
 }
 
@@ -171,6 +177,8 @@ await runConsumer(
     delegationTopic: config.delegationTopic,
     authorizationTopic: config.authorizationTopic,
     attributeTopic: config.attributeTopic,
+    tenantTopic: config.tenantTopic,
+    eserviceTemplateTopic: config.eserviceTemplateTopic,
   }),
-  "in-app-notification-dispatcher"
+  "m2m-event-dispatcher"
 );
