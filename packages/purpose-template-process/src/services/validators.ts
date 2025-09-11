@@ -28,7 +28,7 @@ import {
   purposeTemplateNameConflict,
   riskAnalysisTemplateValidationFailed,
   tooManyEServicesForPurposeTemplate,
-  unassociationBetweenEServiceAndPurposeTemplateDoesNotExist,
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist,
   unassociationEServicesForPurposeTemplateFailed,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
@@ -250,6 +250,18 @@ async function validateEServiceAssociations(
   });
 }
 
+/**
+ * Validate the unassociations between the eservices and the purpose template
+ * For each eservice:
+ * - Promise.fulfilled: return error if the eservice is not associated with the purpose template
+ * - Promise.rejected: return a validation issue with the eservice id and the error message
+ * Finally, return the validation issues
+ *
+ * @param validEservices the list of valid eservices
+ * @param purposeTemplateId the purpose template id
+ * @param readModelService the read model service to use
+ * @returns the validation issues
+ */
 async function validateEServiceUnassociations(
   validEservices: EService[],
   purposeTemplateId: PurposeTemplateId,
@@ -416,7 +428,7 @@ async function validateEservicesUnassociations(
   );
 
   if (unassociationValidationIssues.length > 0) {
-    throw unassociationBetweenEServiceAndPurposeTemplateDoesNotExist(
+    throw associationBetweenEServiceAndPurposeTemplateDoesNotExist(
       unassociationValidationIssues,
       eserviceIds,
       purposeTemplateId
