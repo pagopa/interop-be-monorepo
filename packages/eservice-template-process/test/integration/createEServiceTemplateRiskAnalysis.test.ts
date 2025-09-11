@@ -421,7 +421,6 @@ describe("createEServiceTemplateRiskAnalysis", () => {
           riskAnalysisSeed.riskAnalysisForm.version,
           creatorTenantKind
         ),
-        unexpectedFieldError("unexpectedField"),
       ])
     );
   });
