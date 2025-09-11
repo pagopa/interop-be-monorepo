@@ -1,7 +1,10 @@
 openapi: 3.0.3
 info:
   title: M2M Events Manager
-  description: HTTP service to retrieve M2M Events
+  description: |
+    RESTful API service that provides machine-to-machine access to platform events,
+    enabling clients to retrieve near-real-time info about changes to platform
+    resources (E-Services, Agreements, etc.)
   version: "{{version}}"
   contact:
     name: API Support
@@ -12,7 +15,6 @@ info:
   x-summary: an x-summary
 servers:
   - url: "/"
-    description: HTTP service to retrieve M2M Events
 security:
   - bearerAuth: []
 tags:
@@ -25,15 +27,16 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get E-Service M2M Events
-      description: Returns a list of E-Service M2M Events
+      summary: Get E-Service events
+      description: |
+        Retrieve list of E-Service events that occurred after the specified event ID.
       operationId: getEServiceM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: E-Service M2M events retrieved
+          description: E-Service events retrieved
           content:
             application/json:
               schema:
@@ -60,15 +63,16 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get Agreement M2M Events
-      description: Returns a list of Agreement M2M Events
+      summary: Get Agreement events
+      description: |
+        Retrieve list of Agreement events that occurred after the specified event ID.
       operationId: getAgreementM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: Agreement M2M events retrieved
+          description: Agreement events retrieved
           content:
             application/json:
               schema:
@@ -95,15 +99,16 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get Purpose M2M Events
-      description: Returns a list of Purpose M2M Events
+      summary: Get Purpose events
+      description: |
+        Retrieve list of Purpose events that occurred after the specified event ID.
       operationId: getPurposeM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: Purpose M2M events retrieved
+          description: Purpose events retrieved
           content:
             application/json:
               schema:
@@ -130,15 +135,16 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get Tenant M2M Events
-      description: Returns a list of Tenant M2M Events
+      summary: Get Tenant events
+      description: |
+        Retrieve list of Tenant events that occurred after the specified event ID.
       operationId: getTenantM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: Tenant M2M events retrieved
+          description: Tenant events retrieved
           content:
             application/json:
               schema:
@@ -165,15 +171,16 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get Attribute M2M Events
-      description: Returns a list of Attribute M2M Events
+      summary: Get Attribute events
+      description: |
+        Retrieve list of Attribute events that occurred after the specified event ID.
       operationId: getAttributeM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: Attribute M2M events retrieved
+          description: Attribute events retrieved
           content:
             application/json:
               schema:
@@ -200,15 +207,16 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get Consumer Delegation M2M Events
-      description: Returns a list of Consumer Delegation M2M Events
+      summary: Get Consumer Delegation events
+      description: |
+        Retrieve list of Consumer Delegation events that occurred after the specified event ID.
       operationId: getConsumerDelegationM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: Consumer Delegation M2M events retrieved
+          description: Consumer Delegation events retrieved
           content:
             application/json:
               schema:
@@ -235,15 +243,16 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get Producer Delegation M2M Events
-      description: Returns a list of Producer Delegation M2M Events
+      summary: Get Producer Delegation events
+      description: |
+        Retrieve list of Producer Delegation events that occurred after the specified event ID.
       operationId: getProducerDelegationM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: Producer Delegation M2M events retrieved
+          description: Producer Delegation events retrieved
           content:
             application/json:
               schema:
@@ -270,15 +279,16 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get Client M2M Events
-      description: Returns a list of Client M2M Events
+      summary: Get Client events
+      description: |
+        Retrieve list of Client events that occurred after the specified event ID.
       operationId: getClientM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: Client M2M events retrieved
+          description: Client events retrieved
           content:
             application/json:
               schema:
@@ -305,15 +315,16 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get Producer Keychain M2M Events
-      description: Returns a list of Producer Keychain M2M Events
+      summary: Get Producer Keychain events
+      description: |
+        Retrieve list of Producer Keychain events that occurred after the specified event ID.
       operationId: getProducerKeychainM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: Producer Keychain M2M events retrieved
+          description: Producer Keychain events retrieved
           content:
             application/json:
               schema:
@@ -340,15 +351,16 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get Key M2M Events
-      description: Returns a list of Key M2M Events
+      summary: Get Key events
+      description: |
+        Retrieve list of Key events that occurred after the specified event ID.
       operationId: getKeyM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: Key M2M events retrieved
+          description: Key events retrieved
           content:
             application/json:
               schema:
@@ -375,15 +387,16 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get Producer Key M2M Events
-      description: Returns a list of Producer Key M2M Events
+      summary: Get Producer Key events
+      description: |
+        Retrieve list of Producer Key events that occurred after the specified event ID.
       operationId: getProducerKeyM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: Producer Key M2M events retrieved
+          description: Producer Key events retrieved
           content:
             application/json:
               schema:
@@ -410,15 +423,16 @@ paths:
     get:
       tags:
         - m2mEvents
-      summary: Get E-Service Template M2M Events
-      description: Returns a list of E-Service Template M2M Events
+      summary: Get E-Service Template events
+      description: |
+        Retrieve list of E-Service Template events that occurred after the specified event ID.
       operationId: getEServiceTemplateM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: E-Service Template M2M events retrieved
+          description: E-Service Template events retrieved
           content:
             application/json:
               schema:
