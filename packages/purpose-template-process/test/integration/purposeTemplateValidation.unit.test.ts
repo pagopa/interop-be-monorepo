@@ -177,11 +177,7 @@ describe("Purpose Template Validation", () => {
           mockReadModelService
         )
       ).rejects.toThrow(
-        associationBetweenEServiceAndPurposeTemplateAlreadyExists(
-          [unexpectedAssociationEServiceError(errorMessage, eserviceId1)],
-          eserviceIds,
-          purposeTemplateId
-        )
+        unexpectedAssociationEServiceError(errorMessage, eserviceId1)
       );
     });
 
@@ -236,7 +232,10 @@ describe("Purpose Template Validation", () => {
       expect(result).toEqual({
         type: "invalid",
         issues: [
-          invalidDescriptorStateError(eserviceId1, ["Published", "Draft"]),
+          invalidDescriptorStateError(eserviceId1, [
+            descriptorState.published,
+            descriptorState.draft,
+          ]),
         ],
       });
     });

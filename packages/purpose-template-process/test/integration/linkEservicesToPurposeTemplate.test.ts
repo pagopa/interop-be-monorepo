@@ -2,7 +2,6 @@
 import { fail } from "assert";
 import {
   Descriptor,
-  DescriptorId,
   EService,
   PurposeTemplate,
   PurposeTemplateEServiceLinkedV2,
@@ -58,7 +57,6 @@ describe("linkEservicesToPurposeTemplate", () => {
 
   const descriptor2: Descriptor = {
     ...getMockDescriptor(descriptorState.published),
-    id: generateId<DescriptorId>(),
     version: "2",
   };
 
