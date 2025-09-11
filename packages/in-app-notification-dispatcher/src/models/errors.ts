@@ -5,7 +5,8 @@ type InAppNotificationDispatcherErrorCode =
   | "descriptorPublishedNotFound"
   | "eserviceNotFound"
   | "activeProducerDelegationNotFound"
-  | "purposeNotFound";
+  | "purposeNotFound"
+  | "attributeNotFound";
 
 export class InAppNotificationDispatcherError extends InternalError<InAppNotificationDispatcherErrorCode> {
   constructor({
@@ -61,5 +62,14 @@ export function purposeNotFound(
   return new InternalError({
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
+  });
+}
+
+export function attributeNotFound(
+  attributeId: string
+): InAppNotificationDispatcherError {
+  return new InternalError({
+    detail: `Attribute ${attributeId} not found`,
+    code: "attributeNotFound",
   });
 }
