@@ -1,16 +1,23 @@
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
+  toGetEServiceTemplatesQueryParams,
   toM2MGatewayEServiceTemplate,
   toM2MGatewayEServiceTemplateVersion,
 } from "../api/eserviceTemplateApiConverter.js";
 import { eserviceTemplateVersionNotFound } from "../model/errors.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import {
+  pollResourceWithMetadata,
+  isPolledVersionAtLeastResponseVersion,
+} from "../utils/polling.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
@@ -20,6 +27,27 @@ export type EserviceTemplateService = ReturnType<
 export function eserviceTemplateServiceBuilder(
   clients: PagoPAInteropBeClients
 ) {
+  const retrieveEServiceTemplateById = async (
+    headers: M2MGatewayAppContext["headers"],
+    templateId: EServiceTemplateId
+  ): Promise<WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>> =>
+    await clients.eserviceTemplateProcessClient.getEServiceTemplateById({
+      params: {
+        templateId,
+      },
+      headers,
+    });
+
+  const pollEServiceTemplate = (
+    response: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrieveEServiceTemplateById(headers, unsafeBrandId(response.data.id))
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
+    });
+
   return {
     async getEServiceTemplateById(
       templateId: EServiceTemplateId,
@@ -89,6 +117,46 @@ export function eserviceTemplateServiceBuilder(
       }
 
       return toM2MGatewayEServiceTemplateVersion(version);
+    },
+    async getEServiceTemplates(
+      params: m2mGatewayApi.GetEServiceTemplatesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplates> {
+      logger.info(
+        `Retrieving eservice templates with creatorsIds ${params.creatorIds} templatesIds ${params.eserviceTemplateIds} offset ${params.offset} limit ${params.limit}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } = await clients.eserviceTemplateProcessClient.getEServiceTemplates({
+        queries: toGetEServiceTemplatesQueryParams(params),
+        headers,
+      });
+
+      return {
+        results: results.map(toM2MGatewayEServiceTemplate),
+        pagination: {
+          limit: params.limit,
+          offset: params.offset,
+          totalCount,
+        },
+      };
+    },
+    async createEServiceTemplate(
+      seed: m2mGatewayApi.EServiceTemplateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplate> {
+      logger.info(`Creating eservice template with name ${seed.name}`);
+
+      const response =
+        await clients.eserviceTemplateProcessClient.createEServiceTemplate(
+          seed,
+          {
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplate(response, headers);
+      return toM2MGatewayEServiceTemplate(polledResource.data);
     },
   };
 }
