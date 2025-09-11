@@ -22,6 +22,7 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   pollResourceWithMetadata,
   isPolledVersionAtLeastResponseVersion,
+  isPolledVersionAtLeastMetadataTargetVersion,
 } from "../utils/polling.js";
 
 export type EserviceTemplateService = ReturnType<
@@ -69,6 +70,17 @@ export function eserviceTemplateServiceBuilder(
       retrieveEServiceTemplateById(headers, unsafeBrandId(response.data.id))
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
+    });
+
+  const pollEServiceTemplateById = (
+    templateId: EServiceTemplateId,
+    metadata: { version: number } | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrieveEServiceTemplateById(headers, templateId)
+    )({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
     });
 
   return {
@@ -274,6 +286,27 @@ export function eserviceTemplateServiceBuilder(
       );
 
       return toM2MGatewayApiEServiceTemplateRiskAnalysis(riskAnalysis);
+    },
+
+    async deleteEServiceTemplateRiskAnalysis(
+      templateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting Risk Analysis ${riskAnalysisId} for E-Service Template ${templateId}`
+      );
+
+      const { metadata } =
+        await clients.eserviceTemplateProcessClient.deleteEServiceTemplateRiskAnalysis(
+          undefined,
+          {
+            params: { templateId, riskAnalysisId },
+            headers,
+          }
+        );
+
+      await pollEServiceTemplateById(templateId, metadata, headers);
     },
   };
 }

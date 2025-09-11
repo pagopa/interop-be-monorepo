@@ -1,0 +1,20 @@
+meta {
+  name: Delete eservice template risk analysis
+  type: http
+  seq: 9
+}
+
+delete {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/riskAnalyses/:riskAnalysisId
+  body: none
+  auth: none
+}
+
+params:path {
+  templateId: {{templateId}}
+  riskAnalysisId: {{riskAnalysisId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
