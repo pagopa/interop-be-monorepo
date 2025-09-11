@@ -5,6 +5,7 @@ import {
   purposeTemplateState,
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
+  ListResult,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -18,7 +19,10 @@ import {
 } from "pagopa-interop-commons";
 import { purposeTemplateNotFound } from "../model/domain/errors.js";
 import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import {
+  GetPurposeTemplatesFilters,
+  ReadModelServiceSQL,
+} from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
   assertPurposeTemplateTitleIsNotDuplicated,
@@ -98,6 +102,36 @@ export function purposeTemplateServiceBuilder(
           version: event.newVersion,
         },
       };
+    },
+    async getPurposeTemplates(
+      filters: GetPurposeTemplatesFilters,
+      {
+        offset,
+        limit,
+        sortColumns,
+        directions,
+      }: {
+        offset: number;
+        limit: number;
+        sortColumns: string | undefined;
+        directions: string | undefined;
+      },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<PurposeTemplate>> {
+      logger.info(
+        `Getting purpose templates with filters: ${JSON.stringify(
+          filters
+        )}, limit = ${limit}, offset = ${offset}, sortColumns = ${sortColumns}, directions = ${directions}`
+      );
+
+      return await readModelService.getPurposeTemplates(filters, {
+        offset,
+        limit,
+        sortColumns,
+        directions,
+      });
     },
     async getPurposeTemplateById(
       id: PurposeTemplateId,
