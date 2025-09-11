@@ -30,7 +30,7 @@ import {
   unassociationEServicesForPurposeTemplateFailed,
   purposeTemplateNotFound,
   tooManyEServicesForPurposeTemplate,
-  unassociationBetweenEServiceAndPurposeTemplateDoesNotExist,
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -216,7 +216,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
     );
   });
 
-  it("should throw unassociationEServicesForPurposeTemplateFailed if eservice is not associated", async () => {
+  it("should throw associationBetweenEServiceAndPurposeTemplateDoesNotExist if eservice is not associated", async () => {
     await addOneTenant(tenant);
     await addOneEService(eService1);
     await addOnePurposeTemplate(purposeTemplate);
@@ -230,7 +230,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         })
       )
     ).rejects.toThrowError(
-      unassociationBetweenEServiceAndPurposeTemplateDoesNotExist(
+      associationBetweenEServiceAndPurposeTemplateDoesNotExist(
         [eserviceNotAssociatedError(eService1.id, purposeTemplate.id)],
         [eService1.id],
         purposeTemplate.id
@@ -298,7 +298,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         })
       )
     ).rejects.toThrowError(
-      unassociationBetweenEServiceAndPurposeTemplateDoesNotExist(
+      associationBetweenEServiceAndPurposeTemplateDoesNotExist(
         [
           eserviceNotAssociatedError(
             nonAssociatedEServiceId,

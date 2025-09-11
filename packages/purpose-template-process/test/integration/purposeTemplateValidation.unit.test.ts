@@ -14,7 +14,7 @@ import {
 import {
   associationEServicesForPurposeTemplateFailed,
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
-  unassociationBetweenEServiceAndPurposeTemplateDoesNotExist,
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist,
 } from "../../src/model/domain/errors.js";
 import { validateEServicesForPurposeTemplate } from "../../src/services/validators.js";
 import { ReadModelServiceSQL } from "../../src/services/readModelServiceSQL.js";
@@ -272,7 +272,7 @@ describe("Purpose Template Validation", () => {
           mockReadModelService
         )
       ).rejects.toThrow(
-        unassociationBetweenEServiceAndPurposeTemplateDoesNotExist(
+        associationBetweenEServiceAndPurposeTemplateDoesNotExist(
           [eserviceNotAssociatedError(eserviceId1, purposeTemplateId)],
           eserviceIds,
           purposeTemplateId
