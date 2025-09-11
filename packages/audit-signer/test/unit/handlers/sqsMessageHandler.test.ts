@@ -1,4 +1,4 @@
-import "../setup";
+import "../setup.js";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 import { Message } from "@aws-sdk/client-sqs";
 import { CorrelationId, generateId } from "pagopa-interop-models";
