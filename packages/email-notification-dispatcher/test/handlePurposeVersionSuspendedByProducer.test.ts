@@ -339,6 +339,9 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
       expect(message.email.body).toContain(
         `Sospensione della finalità &quot;${purpose.title}&quot;`
       );
+      expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(eservice.name);
+      expect(message.email.body).toContain(purpose.title);
     });
   });
 });
