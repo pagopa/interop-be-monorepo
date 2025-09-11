@@ -27,13 +27,10 @@ import {
   getMockContext,
 } from "pagopa-interop-commons-test";
 import {
-  eserviceNotAssociatedError,
-  missingExpectedEService,
-} from "pagopa-interop-commons";
-import {
   unassociationEServicesForPurposeTemplateFailed,
   purposeTemplateNotFound,
   tooManyEServicesForPurposeTemplate,
+  unassociationBetweenEServiceAndPurposeTemplateDoesNotExist,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -44,6 +41,10 @@ import {
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
 import { config } from "../../src/config/config.js";
+import {
+  eserviceNotAssociatedError,
+  eserviceNotFound,
+} from "../../src/errors/purposeTemplateValidationErrors.js";
 
 describe("unlinkEservicesFromPurposeTemplate", () => {
   const tenant: Tenant = {
@@ -121,7 +122,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
 
     expect(writtenEvent1).toMatchObject({
       stream_id: purposeTemplate.id,
-      version: "1", // first version is undefined
+      version: "2",
       type: "PurposeTemplateEServiceUnlinked",
       event_version: 2,
     });
@@ -157,7 +158,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
     );
   });
 
-  it("should throw missingExpectedEService if the eservice doesn't exist", async () => {
+  it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
     const nonExistentEServiceId = generateId<EServiceId>();
 
     await addOneTenant(tenant);
@@ -173,7 +174,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
       )
     ).rejects.toThrowError(
       unassociationEServicesForPurposeTemplateFailed(
-        [missingExpectedEService(nonExistentEServiceId)],
+        [eserviceNotFound(nonExistentEServiceId)],
         [nonExistentEServiceId],
         purposeTemplate.id
       )
@@ -229,7 +230,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         })
       )
     ).rejects.toThrowError(
-      unassociationEServicesForPurposeTemplateFailed(
+      unassociationBetweenEServiceAndPurposeTemplateDoesNotExist(
         [eserviceNotAssociatedError(eService1.id, purposeTemplate.id)],
         [eService1.id],
         purposeTemplate.id
@@ -261,7 +262,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
       )
     ).rejects.toThrowError(
       unassociationEServicesForPurposeTemplateFailed(
-        [missingExpectedEService(nonExistentEServiceId)],
+        [eserviceNotFound(nonExistentEServiceId)],
         [eService1.id, nonExistentEServiceId],
         purposeTemplate.id
       )
@@ -297,7 +298,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         })
       )
     ).rejects.toThrowError(
-      unassociationEServicesForPurposeTemplateFailed(
+      unassociationBetweenEServiceAndPurposeTemplateDoesNotExist(
         [
           eserviceNotAssociatedError(
             nonAssociatedEServiceId,

@@ -11,7 +11,8 @@ type PurposeTemplateValidationIssueCode =
   | "eserviceAlreadyAssociated"
   | "eserviceNotAssociated"
   | "missingDescriptor"
-  | "invalidDescriptorState";
+  | "invalidDescriptorState"
+  | "unexpectedUnassociationEServiceError";
 
 export class PurposeTemplateValidationIssue extends InternalError<PurposeTemplateValidationIssueCode> {
   constructor({
@@ -65,6 +66,16 @@ export function unexpectedAssociationEServiceError(
   return new PurposeTemplateValidationIssue({
     code: "unexpectedAssociationEServiceError",
     detail: `Missing expected association for eservice ${eserviceId}: ${reason}`,
+  });
+}
+
+export function unexpectedUnassociationEServiceError(
+  reason: string,
+  eserviceId: EServiceId
+): PurposeTemplateValidationIssue {
+  return new PurposeTemplateValidationIssue({
+    code: "unexpectedUnassociationEServiceError",
+    detail: `Unexpected error: ${reason} for eservice ${eserviceId}`,
   });
 }
 

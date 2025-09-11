@@ -68,7 +68,6 @@ export function toCreateEventEServiceDescriptorUnlinked(
         purposeTemplate: toPurposeTemplateV2(purposeTemplate),
         eservice: toEServiceV2(eservice),
         descriptorId: eServiceDescriptorPurposeTemplate.descriptorId,
-        createdAt: dateToBigInt(eServiceDescriptorPurposeTemplate.createdAt),
       },
     },
   };
