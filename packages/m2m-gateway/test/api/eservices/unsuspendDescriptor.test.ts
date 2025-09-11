@@ -6,12 +6,13 @@ import {
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /eservices/:eServiceId/descriptors/:descriptorId/unsuspend router test", () => {
   const mockApiDescriptor: catalogApi.EServiceDescriptor = {
@@ -36,7 +37,6 @@ describe("POST /eservices/:eServiceId/descriptors/:descriptorId/unsuspend router
         `${appBasePath}/eservices/${eServiceId}/descriptors/${descriptorId}/unsuspend`
       )
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
       .send(mockApiEservice);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
@@ -83,20 +83,21 @@ describe("POST /eservices/:eServiceId/descriptors/:descriptorId/unsuspend router
     expect(res.status).toBe(403);
   });
 
-  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockEserviceService.unsuspendDescriptor = vi
-        .fn()
-        .mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        mockApiEservice.id,
-        mockApiDescriptor.id
-      );
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockEserviceService.unsuspendDescriptor = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      mockApiEservice.id,
+      mockApiDescriptor.id
+    );
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 });

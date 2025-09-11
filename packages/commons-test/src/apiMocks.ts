@@ -9,10 +9,15 @@ import {
   eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
-import { ClientId, algorithm, generateId } from "pagopa-interop-models";
+import {
+  ClientId,
+  ProducerKeychainId,
+  algorithm,
+  generateId,
+} from "pagopa-interop-models";
 import { z } from "zod";
 import { match } from "ts-pattern";
-import { getMockClientJWKKey } from "./testUtils.js";
+import { getMockClientJWKKey, getMockProducerJWKKey } from "./testUtils.js";
 
 export function getMockedApiPurposeVersion({
   state,
@@ -53,11 +58,13 @@ export function getMockedApiDelegation({
   kind,
   eserviceId,
   delegateId,
+  delegatorId,
   state,
 }: {
   kind?: delegationApi.DelegationKind;
   eserviceId?: string;
   delegateId?: string;
+  delegatorId?: string;
   state?: delegationApi.DelegationState;
 } = {}): delegationApi.Delegation {
   return {
@@ -65,7 +72,7 @@ export function getMockedApiDelegation({
     id: generateId(),
     eserviceId: eserviceId ?? generateId(),
     delegateId: delegateId ?? generateId(),
-    delegatorId: generateId(),
+    delegatorId: delegatorId ?? generateId(),
     createdAt: new Date().toISOString(),
     state: state ?? delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL,
     stamps: {
@@ -245,6 +252,32 @@ export function getMockedApiConsumerPartialClient({
   } satisfies authorizationApi.PartialClient;
 }
 
+export function getMockedApiFullProducerKeychain({
+  eservices = [],
+}: {
+  eservices?: string[];
+} = {}): authorizationApi.FullProducerKeychain {
+  return {
+    visibility: authorizationApi.Visibility.Enum.FULL,
+    id: generateId(),
+    name: generateMock(z.string()),
+    description: generateMock(z.string()),
+    createdAt: new Date().toISOString(),
+    producerId: generateId(),
+    eservices: eservices ?? [generateId(), generateId()],
+    users: [generateId(), generateId()],
+    keys: generateMock(z.array(authorizationApi.Key)),
+  };
+}
+
+export function getMockedApiPartialProducerKeychain(): authorizationApi.PartialProducerKeychain {
+  return {
+    visibility: authorizationApi.Visibility.Enum.PARTIAL,
+    id: generateId(),
+    producerId: generateId(),
+  };
+}
+
 export function getMockedApiEservice({
   descriptors,
   technology,
@@ -260,7 +293,7 @@ export function getMockedApiEservice({
     technology: technology ?? generateMock(catalogApi.EServiceTechnology),
     descriptors:
       descriptors ?? generateMock(z.array(catalogApi.EServiceDescriptor)),
-    riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
+    riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis).min(1)),
     mode: generateMock(catalogApi.EServiceMode),
     isSignalHubEnabled: generateMock(z.boolean()),
     isConsumerDelegable: generateMock(z.boolean()),
@@ -465,6 +498,18 @@ export function getMockedApiClientJWK({
   return {
     jwk,
     clientId,
+  };
+}
+
+export function getMockedApiProducerJWK({
+  producerKeychainId = generateId<ProducerKeychainId>(),
+}: {
+  producerKeychainId?: ProducerKeychainId;
+} = {}): authorizationApi.ProducerJWK {
+  const jwk = getMockProducerJWKKey(producerKeychainId);
+  return {
+    jwk,
+    producerKeychainId,
   };
 }
 
