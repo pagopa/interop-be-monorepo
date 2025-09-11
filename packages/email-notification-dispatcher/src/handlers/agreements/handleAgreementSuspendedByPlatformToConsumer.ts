@@ -72,6 +72,7 @@ export async function handleAgreementSuspendedByPlatformToConsumer(
         title: `Sospensione richiesta di fruizione da parte della Piattaforma`,
         notificationType,
         entityId: agreement.id,
+        consumerName: consumer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
       }),
