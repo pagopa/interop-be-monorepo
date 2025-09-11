@@ -11,7 +11,6 @@ import {
   Purpose,
   NotificationType,
   UserId,
-  userRole,
 } from "pagopa-interop-models";
 import { notificationAdmittedRoles } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
@@ -42,9 +41,7 @@ export async function getNotificationRecipients(
   return usersWithNotifications.filter(({ userId }) =>
     userRoles.some(
       ({ userId: id, role }) =>
-        id === userId &&
-        role !== userRole.SUPPORT_ROLE &&
-        notificationAdmittedRoles[notificationType][role]
+        id === userId && notificationAdmittedRoles[notificationType][role]
     )
   );
 }
