@@ -6,10 +6,8 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeTemplateState,
-  stringToDate,
   Tenant,
   TenantId,
-  unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -18,6 +16,7 @@ import {
   PurposeTemplateReadModelService,
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
+  aggregatePurposeTemplateEServiceDescriptor,
 } from "pagopa-interop-readmodel";
 
 import {
@@ -286,13 +285,10 @@ export function readModelServiceBuilderSQL({
         return undefined;
       }
 
-      const rawData = queryResult[0];
-      return {
-        createdAt: stringToDate(rawData.createdAt),
-        eserviceId: unsafeBrandId(rawData.eserviceId),
-        descriptorId: unsafeBrandId(rawData.descriptorId),
-        purposeTemplateId: unsafeBrandId(rawData.purposeTemplateId),
-      };
+      const purposeTemplateEServiceDescriptor =
+        aggregatePurposeTemplateEServiceDescriptor(queryResult[0]);
+
+      return purposeTemplateEServiceDescriptor.data;
     },
   };
 }
