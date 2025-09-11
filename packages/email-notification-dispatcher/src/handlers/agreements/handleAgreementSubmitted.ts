@@ -36,10 +36,11 @@ export async function handleAgreementSubmitted(
 
   const agreement = fromAgreementV2(agreementV2Msg);
 
-  const [htmlTemplate, eservice, producer] = await Promise.all([
+  const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
     retrieveHTMLTemplate(eventMailTemplateType.agreementSubmittedMailTemplate),
     retrieveAgreementEservice(agreement, readModelService),
     retrieveTenant(agreement.producerId, readModelService),
+    retrieveTenant(agreement.consumerId, readModelService),
   ]);
 
   const targets = await getRecipientsForTenants({
@@ -66,6 +67,7 @@ export async function handleAgreementSubmitted(
         title: `Nuova richiesta di fruizione per un tuo e-service`,
         notificationType,
         entityId: agreement.id,
+        consumerName: consumer.name,
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,

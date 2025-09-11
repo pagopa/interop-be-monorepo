@@ -80,6 +80,31 @@ describe("handleAgreementSubmitted", async () => {
     );
   });
 
+  it("should throw tenantNotFound when consumer is not found", async () => {
+    const unknownConsumerId = generateId<TenantId>();
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: unknownConsumerId,
+    };
+    await addOneAgreement(agreement);
+
+    await expect(() =>
+      handleAgreementSubmitted({
+        agreementV2Msg: toAgreementV2(agreement),
+        logger,
+        templateService,
+        userService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      })
+    ).rejects.toThrow(tenantNotFound(unknownConsumerId));
+  });
+
   it("should throw tenantNotFound when producer is not found", async () => {
     const unknownProducerId = generateId<TenantId>();
 
