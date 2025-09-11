@@ -5,6 +5,7 @@ import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   Agreement,
+  Delegation,
   EService,
   generateId,
   Purpose,
@@ -18,11 +19,13 @@ import { afterEach, inject } from "vitest";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertDelegation,
   upsertEService,
   upsertPurpose,
   upsertTenant,
@@ -53,6 +56,8 @@ export const { cleanup, readModelDB, userDB } = await setupTestContainersVitest(
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
@@ -61,6 +66,7 @@ export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
+  delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
 });
@@ -102,6 +108,12 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
 
 export const addOneUser = async (user: User): Promise<void> => {
   await insertUser(userDB, user);
+};
+
+export const addOneDelegation = async (
+  delegation: Delegation
+): Promise<void> => {
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 const insertUser = async (
