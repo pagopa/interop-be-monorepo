@@ -537,7 +537,7 @@ describe("create risk analysis", () => {
       riskAnalysisValidationFailed([
         expiredRulesVersionError(
           riskAnalysisSeed.riskAnalysisForm.version,
-          tenantKind.PA
+          producerTenantKind
         ),
       ])
     );
