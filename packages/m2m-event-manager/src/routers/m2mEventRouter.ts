@@ -23,7 +23,7 @@ export const m2mEventRouter = (
   const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
   m2mEventRouter
-    .get("/eservices", async (req, res) => {
+    .get("/events/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
@@ -46,7 +46,7 @@ export const m2mEventRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/agreements", async (req, res) => {
+    .get("/events/agreements", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
@@ -69,7 +69,7 @@ export const m2mEventRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/purposes", async (req, res) => {
+    .get("/events/purposes", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
@@ -90,7 +90,7 @@ export const m2mEventRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/tenants", async (req, res) => {
+    .get("/events/tenants", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
@@ -111,7 +111,7 @@ export const m2mEventRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/attributes", async (req, res) => {
+    .get("/events/attributes", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
@@ -134,7 +134,7 @@ export const m2mEventRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/consumerDelegations", async (req, res) => {
+    .get("/events/consumerDelegations", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
@@ -157,7 +157,7 @@ export const m2mEventRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/producerDelegations", async (req, res) => {
+    .get("/events/producerDelegations", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
@@ -180,7 +180,7 @@ export const m2mEventRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/clients", async (req, res) => {
+    .get("/events/clients", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
@@ -201,7 +201,7 @@ export const m2mEventRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/producerKeychains", async (req, res) => {
+    .get("/events/producerKeychains", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
@@ -224,7 +224,7 @@ export const m2mEventRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/keys", async (req, res) => {
+    .get("/events/keys", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
@@ -241,7 +241,7 @@ export const m2mEventRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/producerKeys", async (req, res) => {
+    .get("/events/producerKeys", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
@@ -264,7 +264,7 @@ export const m2mEventRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/eserviceTemplates", async (req, res) => {
+    .get("/events/eserviceTemplates", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);

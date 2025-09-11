@@ -23,7 +23,7 @@ tags:
   - name: health
     description: Verify service status
 paths:
-  /eservices:
+  /events/eservices:
     get:
       tags:
         - m2mEvents
@@ -59,7 +59,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /agreements:
+  /events/agreements:
     get:
       tags:
         - m2mEvents
@@ -95,7 +95,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /purposes:
+  /events/purposes:
     get:
       tags:
         - m2mEvents
@@ -131,7 +131,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /tenants:
+  /events/tenants:
     get:
       tags:
         - m2mEvents
@@ -167,7 +167,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /attributes:
+  /events/attributes:
     get:
       tags:
         - m2mEvents
@@ -203,7 +203,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /consumerDelegations:
+  /events/consumerDelegations:
     get:
       tags:
         - m2mEvents
@@ -239,7 +239,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /producerDelegations:
+  /events/producerDelegations:
     get:
       tags:
         - m2mEvents
@@ -275,7 +275,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /clients:
+  /events/clients:
     get:
       tags:
         - m2mEvents
@@ -311,7 +311,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /producerKeychains:
+  /events/producerKeychains:
     get:
       tags:
         - m2mEvents
@@ -347,7 +347,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /keys:
+  /events/keys:
     get:
       tags:
         - m2mEvents
@@ -383,7 +383,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /producerKeys:
+  /events/producerKeys:
     get:
       tags:
         - m2mEvents
@@ -419,7 +419,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eserviceTemplates:
+  /events/eserviceTemplates:
     get:
       tags:
         - m2mEvents
