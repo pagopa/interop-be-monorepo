@@ -19,7 +19,7 @@ import {
 const notificationType: NotificationType =
   "agreementSuspendedUnsuspendedToConsumer";
 
-export async function handleAgreementSuspendedByPlatform(
+export async function handleAgreementUnsuspendedByPlatformToConsumer(
   data: AgreementHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -34,14 +34,16 @@ export async function handleAgreementSuspendedByPlatform(
   if (!agreementV2Msg) {
     throw missingKafkaMessageDataError(
       "eservice",
-      "AgreementSuspendedByPlatform"
+      "AgreementUnsuspendedByPlatform"
     );
   }
 
   const agreement = fromAgreementV2(agreementV2Msg);
 
-  const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
-    retrieveHTMLTemplate(eventMailTemplateType.agreementSuspendedByProducer),
+  const [htmlTemplate, eservice, consumer] = await Promise.all([
+    retrieveHTMLTemplate(
+      eventMailTemplateType.agreementUnsuspendedByPlatformToConsumerMailTemplate
+    ),
     retrieveAgreementEservice(agreement, readModelService),
     retrieveTenant(agreement.producerId, readModelService),
     retrieveTenant(agreement.consumerId, readModelService),
@@ -66,13 +68,11 @@ export async function handleAgreementSuspendedByPlatform(
   return targets.map(({ address }) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Sospensione richiesta di fruizione da parte della Piattaforma`,
+      subject: `Riattivazione richiesta da parte della Piattaforma`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: `Sospensione richiesta di fruizione da parte della Piattaforma`,
+        title: `Riattivazione richiesta da parte della Piattaforma`,
         notificationType,
         entityId: agreement.id,
-        producerName: producer.name,
-        consumerName: consumer.name,
         eserviceName: eservice.name,
       }),
     },
