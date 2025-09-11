@@ -16,6 +16,7 @@ import { eserviceTemplateServiceBuilder } from "./services/eserviceTemplateServi
 import { purposeServiceBuilder } from "./services/purposeService.js";
 import { tenantServiceBuilder } from "./services/tenantService.js";
 import { keyServiceBuilder } from "./services/keyService.js";
+import { producerKeychainServiceBuilder } from "./services/producerKeychainService.js";
 
 const clients = getInteropBeClients();
 const fileManager = initFileManager(config);
@@ -30,6 +31,7 @@ const services: M2MGatewayServices = {
   purposeService: purposeServiceBuilder(clients, fileManager),
   tenantService: tenantServiceBuilder(clients),
   keyService: keyServiceBuilder(clients),
+  producerKeychainService: producerKeychainServiceBuilder(clients),
 };
 
 const redisRateLimiter = await initRedisRateLimiter({
