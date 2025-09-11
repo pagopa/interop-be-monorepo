@@ -3967,6 +3967,11 @@ async function updateDraftEService(
     )
     .exhaustive();
 
+  const updatedPersonalData = match(type)
+    .with("put", () => personalData)
+    .with("patch", () => personalData ?? eservice.data.personalData)
+    .exhaustive();
+
   const updatedEService: EService = {
     ...eservice.data,
     description: description ?? eservice.data.description,
@@ -3996,6 +4001,7 @@ async function updateDraftEService(
       .with(false, () => false)
       .with(true, () => updatedIsClientAccessDelegable)
       .exhaustive(),
+    personalData: updatedPersonalData,
   };
 
   const event = await repository.createEvent(
