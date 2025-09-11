@@ -9,9 +9,9 @@ import { handleAgreementRejected } from "./handleAgreementRejected.js";
 import { handleAgreementSubmitted } from "./handleAgreementSubmitted.js";
 import { handleAgreementUpgraded } from "./handleAgreementUpgraded.js";
 import { handleAgreementSuspendedByConsumer } from "./handleAgreementSuspendedByConsumer.js";
-import { handleAgreementSuspendedByPlatform } from "./handleAgreementSuspendedByPlatform.js";
+import { handleAgreementSuspendedByPlatformToProducer } from "./handleAgreementSuspendedByPlatformToProducer.js";
 import { handleAgreementUnsuspendedByConsumer } from "./handleAgreementUnsuspendedByConsumer.js";
-import { handleAgreementUnsuspendedByPlatform } from "./handleAgreementUnsuspendedByPlatform.js";
+import { handleAgreementUnsuspendedByPlatformToProducer } from "./handleAgreementUnsuspendedByPlatformToProducer.js";
 import { handleAgreementActivatedToProducer } from "./handleAgreementActivatedToProducer.js";
 
 export async function handleAgreementEvent(
@@ -85,7 +85,7 @@ export async function handleAgreementEvent(
       })
     )
     .with({ type: "AgreementSuspendedByPlatform" }, ({ data: { agreement } }) =>
-      handleAgreementSuspendedByPlatform({
+      handleAgreementSuspendedByPlatformToProducer({
         agreementV2Msg: agreement,
         logger,
         readModelService,
@@ -109,7 +109,7 @@ export async function handleAgreementEvent(
     .with(
       { type: "AgreementUnsuspendedByPlatform" },
       ({ data: { agreement } }) =>
-        handleAgreementUnsuspendedByPlatform({
+        handleAgreementUnsuspendedByPlatformToProducer({
           agreementV2Msg: agreement,
           logger,
           readModelService,
