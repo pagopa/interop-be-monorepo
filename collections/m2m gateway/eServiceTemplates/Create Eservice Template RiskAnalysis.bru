@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/riskAnalysis
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/riskAnalyses
   body: json
   auth: none
 }
@@ -21,6 +21,7 @@ headers {
 body:json {
   {
       "name": "{{randomName}}",
+      "tenantKind": "PA",
       "riskAnalysisForm": {
           "version": "3.0",
           "answers": {
