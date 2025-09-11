@@ -67,7 +67,7 @@ export const validRiskAnalysis3_0_Pa: RiskAnalysisFormToValidate = {
   },
 };
 
-export const validatedExpiredRiskAnalysis2_0_Pa: RiskAnalysisValidatedForm = {
+export const validatedRiskAnalysis2_0_Pa: RiskAnalysisValidatedForm = {
   version: "2.0",
   singleAnswers: [
     { key: "purpose", value: "INSTITUTIONAL" },
@@ -284,7 +284,7 @@ export const getMockExpiredRiskAnalysis = (
   match(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
-        validatedExpiredRiskAnalysis2_0_Pa,
+        validatedRiskAnalysis2_0_Pa,
         generateMock(z.string())
       )
     )
@@ -303,13 +303,20 @@ export const getMockValidEServiceTemplateRiskAnalysis = (
   tenantKind: producerTenantKind,
 });
 
+export const getMockExpiredEServiceTemplateRiskAnalysis = (
+  producerTenantKind: TenantKind
+): EServiceTemplateRiskAnalysis => ({
+  ...getMockExpiredRiskAnalysis(producerTenantKind),
+  tenantKind: producerTenantKind,
+});
+
 export const getMockExpiredRiskAnalysisForm = (
   producerTenantKind: TenantKind
 ): RiskAnalysisForm =>
   match(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
-        validatedExpiredRiskAnalysis2_0_Pa
+        validatedRiskAnalysis2_0_Pa
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
