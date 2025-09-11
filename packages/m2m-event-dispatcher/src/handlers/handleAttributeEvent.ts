@@ -1,21 +1,28 @@
 import { AttributeEventEnvelope } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
-import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { M2MEventServiceSQL } from "../services/m2mEventServiceSQL.js";
+import { M2MEventWriterService } from "../services/m2mEventWriterService.js";
+import { toNewAttributeM2MEventSQL } from "../models/attributeM2MEventAdapterSQL.js";
 
 export async function handleAttributeEvent(
   decodedMessage: AttributeEventEnvelope,
-  _logger: Logger,
-  _m2mEventService: M2MEventServiceSQL,
-  _readModelService: ReadModelServiceSQL
+  eventTimestamp: Date,
+  logger: Logger,
+  m2mEventWriterService: M2MEventWriterService
 ): Promise<void> {
   return match(decodedMessage)
     .with(
       {
         type: P.union("AttributeAdded", "MaintenanceAttributeDeleted"),
       },
-      () => Promise.resolve(void 0)
+      async (event) => {
+        const m2mEvent = toNewAttributeM2MEventSQL(event, eventTimestamp);
+        logger.info(
+          `Writing AttributeM2MEvent with ID ${m2mEvent.id}, type ${m2mEvent.eventType}, attributeId ${m2mEvent.attributeId}`
+        );
+
+        await m2mEventWriterService.insertAttributeM2MEvent(m2mEvent);
+      }
     )
     .exhaustive();
 }

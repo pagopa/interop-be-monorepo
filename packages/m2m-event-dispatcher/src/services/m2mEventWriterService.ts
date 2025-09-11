@@ -11,6 +11,7 @@ import {
   producerKeyM2MEventInM2MEvent,
   eserviceTemplateM2MEventInM2MEvent,
   producerKeychainM2MEventInM2MEvent,
+  AttributeM2MEventSQL,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 
@@ -21,7 +22,7 @@ function TODO_Converter(input: TODO_Type): TODO_Type {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function m2mEventServiceBuilderSQL(
+export function m2mEventWriterServiceBuilder(
   m2mEventDB: ReturnType<typeof drizzle>
 ) {
   return {
@@ -80,12 +81,12 @@ export function m2mEventServiceBuilderSQL(
         .insert(tenantM2MEventInM2MEvent)
         .values(TODO_Converter(event));
     },
-    async insertAttributeM2MEvent(event: TODO_Type): Promise<void> {
-      await m2mEventDB
-        .insert(attributeM2MEventInM2MEvent)
-        .values(TODO_Converter(event));
+    async insertAttributeM2MEvent(event: AttributeM2MEventSQL): Promise<void> {
+      await m2mEventDB.insert(attributeM2MEventInM2MEvent).values(event);
     },
   };
 }
 
-export type M2MEventServiceSQL = ReturnType<typeof m2mEventServiceBuilderSQL>;
+export type M2MEventWriterService = ReturnType<
+  typeof m2mEventWriterServiceBuilder
+>;

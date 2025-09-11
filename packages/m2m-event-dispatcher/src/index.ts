@@ -33,9 +33,9 @@ import {
   ReadModelServiceSQL,
 } from "./services/readModelServiceSQL.js";
 import {
-  m2mEventServiceBuilderSQL,
-  M2MEventServiceSQL,
-} from "./services/m2mEventServiceSQL.js";
+  M2MEventWriterService,
+  m2mEventWriterServiceBuilder,
+} from "./services/m2mEventWriterService.js";
 import { handleAgreementEvent } from "./handlers/handleAgreementEvent.js";
 import { handlePurposeEvent } from "./handlers/handlePurposeEvent.js";
 import { handleDelegationEvent } from "./handlers/handleDelegationEvent.js";
@@ -44,6 +44,7 @@ import { handleAttributeEvent } from "./handlers/handleAttributeEvent.js";
 import { handleEServiceEvent } from "./handlers/handleEServiceEvent.js";
 import { handleTenantEvent } from "./handlers/handleTenantEvent.js";
 import { handleEServiceTemplateEvent } from "./handlers/handleEServiceTemplateEvent.js";
+import { getEventTimestamp } from "./utils/eventTimestamp.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -79,7 +80,7 @@ const m2mEventDB = drizzle(
   })
 );
 
-const m2mEventService = m2mEventServiceBuilderSQL(m2mEventDB);
+const m2mEventService = m2mEventWriterServiceBuilder(m2mEventDB);
 
 function processMessage(topicNames: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
@@ -98,8 +99,9 @@ function processMessage(topicNames: TopicNames) {
       eventType: T,
       handler: (
         decodedMessage: EventEnvelope<z.infer<T>>,
+        eventTimestamp: Date,
         logger: Logger,
-        m2mEventService: M2MEventServiceSQL,
+        m2mEventWriterService: M2MEventWriterService,
         readModelService: ReadModelServiceSQL
       ) => Promise<void>
     ): Promise<void> => {
@@ -123,6 +125,7 @@ function processMessage(topicNames: TopicNames) {
       );
       return handler(
         decodedMessage,
+        getEventTimestamp(messagePayload),
         loggerInstance,
         m2mEventService,
         readModelService
