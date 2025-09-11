@@ -29,8 +29,8 @@ paths:
       description: Returns a list of E-Service M2M Events
       operationId: getEServiceM2MEvents
       parameters:
-        - $ref: '#/components/parameters/LastEventId'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: E-Service M2M events retrieved
@@ -64,8 +64,8 @@ paths:
       description: Returns a list of Agreement M2M Events
       operationId: getAgreementM2MEvents
       parameters:
-        - $ref: '#/components/parameters/LastEventId'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: Agreement M2M events retrieved
@@ -99,8 +99,8 @@ paths:
       description: Returns a list of Purpose M2M Events
       operationId: getPurposeM2MEvents
       parameters:
-        - $ref: '#/components/parameters/LastEventId'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: Purpose M2M events retrieved
@@ -134,8 +134,8 @@ paths:
       description: Returns a list of Tenant M2M Events
       operationId: getTenantM2MEvents
       parameters:
-        - $ref: '#/components/parameters/LastEventId'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: Tenant M2M events retrieved
@@ -169,8 +169,8 @@ paths:
       description: Returns a list of Attribute M2M Events
       operationId: getAttributeM2MEvents
       parameters:
-        - $ref: '#/components/parameters/LastEventId'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: Attribute M2M events retrieved
@@ -204,8 +204,8 @@ paths:
       description: Returns a list of Consumer Delegation M2M Events
       operationId: getConsumerDelegationM2MEvents
       parameters:
-        - $ref: '#/components/parameters/LastEventId'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: Consumer Delegation M2M events retrieved
@@ -239,8 +239,8 @@ paths:
       description: Returns a list of Producer Delegation M2M Events
       operationId: getProducerDelegationM2MEvents
       parameters:
-        - $ref: '#/components/parameters/LastEventId'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: Producer Delegation M2M events retrieved
@@ -274,8 +274,8 @@ paths:
       description: Returns a list of Client M2M Events
       operationId: getClientM2MEvents
       parameters:
-        - $ref: '#/components/parameters/LastEventId'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: Client M2M events retrieved
@@ -309,8 +309,8 @@ paths:
       description: Returns a list of Producer Keychain M2M Events
       operationId: getProducerKeychainM2MEvents
       parameters:
-        - $ref: '#/components/parameters/LastEventId'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: Producer Keychain M2M events retrieved
@@ -344,8 +344,8 @@ paths:
       description: Returns a list of Key M2M Events
       operationId: getKeyM2MEvents
       parameters:
-        - $ref: '#/components/parameters/LastEventId'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: Key M2M events retrieved
@@ -379,8 +379,8 @@ paths:
       description: Returns a list of Producer Key M2M Events
       operationId: getProducerKeyM2MEvents
       parameters:
-        - $ref: '#/components/parameters/LastEventId'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: Producer Key M2M events retrieved
@@ -414,8 +414,8 @@ paths:
       description: Returns a list of E-Service Template M2M Events
       operationId: getEServiceTemplateM2MEvents
       parameters:
-        - $ref: '#/components/parameters/LastEventId'
-        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: E-Service Template M2M events retrieved
@@ -504,13 +504,13 @@ components:
         - eventType
         - eserviceId
         - eventTimestamp
-    EServiceM2MEvents:  
-      type: object  
-      properties:  
-        events:  
-          type: array  
-          items:  
-            $ref: "#/components/schemas/EServiceM2MEvent"  
+    EServiceM2MEvents:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceM2MEvent"
     AgreementM2MEvent:
       type: object
       additionalProperties: false
@@ -533,7 +533,7 @@ components:
         - eventTimestamp
     AgreementM2MEvents:
       type: object
-      properties: 
+      properties:
         events:
           type: array
           items:
@@ -562,12 +562,12 @@ components:
         - purposeId
         - eventTimestamp
     PurposeM2MEvents:
-      type: object  
-      properties:  
-        events:  
-          type: array  
-          items:  
-            $ref: "#/components/schemas/PurposeM2MEvent"  
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeM2MEvent"
     TenantM2MEvent:
       type: object
       additionalProperties: false
@@ -589,12 +589,12 @@ components:
         - tenantId
         - eventTimestamp
     TenantM2MEvents:
-      type: object  
-      properties:  
-        events:  
-          type: array  
-          items:  
-            $ref: "#/components/schemas/TenantM2MEvent"  
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantM2MEvent"
     AttributeM2MEvent:
       type: object
       additionalProperties: false
@@ -616,12 +616,12 @@ components:
         - attributeId
         - eventTimestamp
     AttributeM2MEvents:
-      type: object  
-      properties:  
-        events:  
-          type: array  
-          items:  
-            $ref: "#/components/schemas/AttributeM2MEvent"  
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttributeM2MEvent"
     ConsumerDelegationM2MEvent:
       type: object
       additionalProperties: false
@@ -643,12 +643,12 @@ components:
         - delegationId
         - eventTimestamp
     ConsumerDelegationM2MEvents:
-      type: object  
-      properties:  
-        events:  
-          type: array  
-          items:  
-            $ref: "#/components/schemas/ConsumerDelegationM2MEvent"  
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConsumerDelegationM2MEvent"
     ProducerDelegationM2MEvent:
       type: object
       additionalProperties: false
@@ -670,12 +670,12 @@ components:
         - delegationId
         - eventTimestamp
     ProducerDelegationM2MEvents:
-      type: object  
-      properties:  
-        events:  
-          type: array  
-          items:  
-            $ref: "#/components/schemas/ProducerDelegationM2MEvent"  
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerDelegationM2MEvent"
     ClientM2MEvent:
       type: object
       additionalProperties: false
@@ -697,12 +697,12 @@ components:
         - clientId
         - eventTimestamp
     ClientM2MEvents:
-      type: object  
-      properties:  
-        events:  
-          type: array  
-          items:  
-            $ref: "#/components/schemas/ClientM2MEvent"  
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClientM2MEvent"
     ProducerKeychainM2MEvent:
       type: object
       additionalProperties: false
@@ -724,12 +724,12 @@ components:
         - producerKeychainId
         - eventTimestamp
     ProducerKeychainM2MEvents:
-      type: object  
-      properties:  
-        events:  
-          type: array  
-          items:  
-            $ref: "#/components/schemas/ProducerKeychainM2MEvent"  
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerKeychainM2MEvent"
     KeyM2MEvent:
       type: object
       additionalProperties: false
@@ -751,12 +751,12 @@ components:
         - kid
         - eventTimestamp
     KeyM2MEvents:
-      type: object  
-      properties:  
-        events:  
-          type: array  
-          items:  
-            $ref: "#/components/schemas/KeyM2MEvent"  
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/KeyM2MEvent"
     ProducerKeyM2MEvent:
       type: object
       additionalProperties: false
@@ -778,12 +778,12 @@ components:
         - kid
         - eventTimestamp
     ProducerKeyM2MEvents:
-      type: object  
-      properties:  
-        events:  
-          type: array  
-          items:  
-            $ref: "#/components/schemas/ProducerKeyM2MEvent"  
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerKeyM2MEvent"
     EServiceTemplateM2MEvent:
       type: object
       additionalProperties: false
@@ -808,12 +808,12 @@ components:
         - templateId
         - eventTimestamp
     EServiceTemplateM2MEvents:
-      type: object  
-      properties:  
-        events:  
-          type: array  
-          items:  
-            $ref: "#/components/schemas/EServiceTemplateM2MEvent"  
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateM2MEvent"
     Problem:
       properties:
         type:
