@@ -294,7 +294,6 @@ components:
         - body
         - notificationType
         - entityId
-        - readAt
         - createdAt
 
     ListResult:

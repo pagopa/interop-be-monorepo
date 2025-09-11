@@ -24,7 +24,8 @@ const inAppNotificationRouter = (
     )
     .delete("/inAppNotifications/:notificationId", (_, res) =>
       res.status(501).send()
-    );
+    )
+    .get("/inAppNotifications/count", (_, res) => res.status(501).send());
 
   return inAppNotificationRouter;
 };
