@@ -35,6 +35,10 @@ import {
   ReadModelServiceSQL,
 } from "./services/readModelServiceSQL.js";
 import { inAppNotificationServiceBuilderSQL } from "./services/inAppNotificationServiceSQL.js";
+import {
+  userServiceBuilderSQL,
+  UserServiceSQL,
+} from "./services/userServiceSQL.js";
 import { handleEServiceEvent } from "./handlers/eservices/handleEserviceEvent.js";
 import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent.js";
 import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
@@ -71,6 +75,18 @@ const readModelService = readModelServiceBuilderSQL({
   purposeReadModelServiceSQL,
 });
 
+const userDB = drizzle(
+  new pg.Pool({
+    host: config.userSQLDbHost,
+    database: config.userSQLDbName,
+    user: config.userSQLDbUsername,
+    password: config.userSQLDbPassword,
+    port: config.userSQLDbPort,
+    ssl: config.userSQLDbUseSSL,
+  })
+);
+const userServiceSQL = userServiceBuilderSQL(userDB);
+
 const notificationDB = drizzle(
   new pg.Pool({
     host: config.inAppNotificationDBHost,
@@ -103,7 +119,8 @@ function processMessage(topicNames: TopicNames) {
       handler: (
         decodedMessage: EventEnvelope<z.infer<T>>,
         logger: Logger,
-        readModelService: ReadModelServiceSQL
+        readModelService: ReadModelServiceSQL,
+        userServiceSQL: UserServiceSQL
       ) => Promise<NewNotification[]>
     ): Promise<NewNotification[]> => {
       const decodedMessage = decodeKafkaMessage(
@@ -124,7 +141,12 @@ function processMessage(topicNames: TopicNames) {
       loggerInstance.info(
         `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
       );
-      return handler(decodedMessage, loggerInstance, readModelService);
+      return handler(
+        decodedMessage,
+        loggerInstance,
+        readModelService,
+        userServiceSQL
+      );
     };
 
     const notifications = await match(messagePayload.topic)
