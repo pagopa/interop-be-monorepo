@@ -40,12 +40,13 @@ export async function handleAgreementUnsuspendedByPlatformToProducer(
 
   const agreement = fromAgreementV2(agreementV2Msg);
 
-  const [htmlTemplate, eservice, producer] = await Promise.all([
+  const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.agreementUnsuspendedByPlatformToProducerMailTemplate
     ),
     retrieveAgreementEservice(agreement, readModelService),
     retrieveTenant(agreement.producerId, readModelService),
+    retrieveTenant(agreement.consumerId, readModelService),
   ]);
 
   const targets = await getRecipientsForTenants({
@@ -72,6 +73,7 @@ export async function handleAgreementUnsuspendedByPlatformToProducer(
         title: `Riattivazione richiesta di fruizione da parte della Piattaforma`,
         notificationType,
         entityId: agreement.id,
+        consumerName: consumer.name,
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
