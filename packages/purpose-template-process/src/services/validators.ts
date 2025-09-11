@@ -6,6 +6,8 @@ import {
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
+  M2MAdminAuthData,
+  M2MAuthData,
   RiskAnalysisTemplateValidatedForm,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   UIAuthData,
@@ -87,7 +89,7 @@ function validateRiskAnalysisTemplateOrThrow({
 
 export const assertRequesterCanRetrievePurposeTemplate = async (
   purposeTemplate: PurposeTemplate,
-  authData: Pick<UIAuthData, "organizationId">
+  authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
 ): Promise<void> => {
   if (
     purposeTemplate.state !== purposeTemplateState.active &&
