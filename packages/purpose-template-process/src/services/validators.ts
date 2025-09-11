@@ -1,14 +1,23 @@
-import { RiskAnalysisFormTemplate, TenantKind } from "pagopa-interop-models";
+import {
+  PurposeTemplate,
+  purposeTemplateState,
+  RiskAnalysisFormTemplate,
+  TenantKind,
+} from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
+  M2MAdminAuthData,
+  M2MAuthData,
   RiskAnalysisTemplateValidatedForm,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
+  UIAuthData,
   validatePurposeTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   riskAnalysisTemplateValidationFailed,
+  tenantNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -77,3 +86,15 @@ function validateRiskAnalysisTemplateOrThrow({
     return result.value;
   }
 }
+
+export const assertRequesterCanRetrievePurposeTemplate = async (
+  purposeTemplate: PurposeTemplate,
+  authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
+): Promise<void> => {
+  if (
+    purposeTemplate.state !== purposeTemplateState.active &&
+    purposeTemplate.creatorId !== authData.organizationId
+  ) {
+    throw tenantNotAllowed(authData.organizationId);
+  }
+};

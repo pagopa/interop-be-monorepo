@@ -3,6 +3,7 @@ import {
   ApiError,
   makeApiProblemBuilder,
   PurposeTemplateId,
+  TenantId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -10,6 +11,7 @@ export const errorCodes = {
   purposeTemplateNameConflict: "0002",
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
+  tenantNotAllowed: "0005",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -52,5 +54,13 @@ export function riskAnalysisTemplateValidationFailed(
     detail: `Risk analysis template validation failed. Reasons: ${reasons}`,
     code: "riskAnalysisTemplateValidationFailed",
     title: "Risk analysis template validation failed",
+  });
+}
+
+export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because it's not the creator`,
+    code: "tenantNotAllowed",
+    title: "Tenant not allowed",
   });
 }

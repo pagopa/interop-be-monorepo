@@ -31,6 +31,7 @@ import {
   validTemplateResult,
 } from "./riskAnalysisTemplateValidationErrors.js";
 
+// TODO: does this need schemaOnlyValidation like the other one?
 /*
 validatePurposeTemplateRiskAnalysis
 ├── getLatestVersionFormRules
