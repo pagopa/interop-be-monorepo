@@ -27,3 +27,19 @@ export const createPurposeTemplateErrorMapper = (
 
 export const getPurposeTemplatesErrorMapper = (): number =>
   HTTP_STATUS_INTERNAL_SERVER_ERROR;
+
+export const linkEservicesToPurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "associationEServicesForPurposeTemplateFailed",
+      "tooManyEServicesForPurposeTemplate",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "associationBetweenEServiceAndPurposeTemplateAlreadyExists",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

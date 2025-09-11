@@ -1,15 +1,20 @@
 import { RiskAnalysisTemplateValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
+  EServiceId,
   makeApiProblemBuilder,
   PurposeTemplateId,
 } from "pagopa-interop-models";
+import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
 
 export const errorCodes = {
   missingFreeOfChargeReason: "0001",
   purposeTemplateNameConflict: "0002",
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
+  associationEServicesForPurposeTemplateFailed: "0005",
+  associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0006",
+  tooManyEServicesForPurposeTemplate: "0007",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -52,5 +57,40 @@ export function riskAnalysisTemplateValidationFailed(
     detail: `Risk analysis template validation failed. Reasons: ${reasons}`,
     code: "riskAnalysisTemplateValidationFailed",
     title: "Risk analysis template validation failed",
+  });
+}
+
+export function associationEServicesForPurposeTemplateFailed(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Association of e-services to purpose template failed. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "associationEServicesForPurposeTemplateFailed",
+    title: "Association of e-services to purpose template failed",
+  });
+}
+
+export function associationBetweenEServiceAndPurposeTemplateAlreadyExists(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Association between e-services and purpose template failed. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "associationBetweenEServiceAndPurposeTemplateAlreadyExists",
+    title: "Association between e-service and purpose template already exists",
+  });
+}
+
+export function tooManyEServicesForPurposeTemplate(
+  actualCount: number,
+  maxCount: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Too many e-services provided. Maximum allowed: ${maxCount}, provided: ${actualCount}`,
+    code: "tooManyEServicesForPurposeTemplate",
+    title: "Too Many E-Services for Purpose Template",
   });
 }
