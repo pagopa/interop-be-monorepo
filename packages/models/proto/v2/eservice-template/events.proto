@@ -84,6 +84,7 @@ message EServiceTemplateVersionPublishedV2 {
 
 message EServiceTemplateNameUpdatedV2 {
   EServiceTemplateV2 eserviceTemplate = 1;
+  optional string oldName = 2;
 }
 
 message EServiceTemplateIntendedTargetUpdatedV2 {

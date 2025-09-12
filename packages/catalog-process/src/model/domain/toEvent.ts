@@ -650,6 +650,7 @@ export const toCreateEventEServiceIsClientAccessDelegableDisabled = (
 export const toCreateEventEServiceNameUpdated = (
   version: number,
   eservice: EService,
+  oldName: string,
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: eservice.id,
@@ -659,6 +660,7 @@ export const toCreateEventEServiceNameUpdated = (
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),
+      oldName,
     },
   },
   correlationId,
@@ -667,6 +669,7 @@ export const toCreateEventEServiceNameUpdated = (
 export const toCreateEventEServiceNameUpdatedByTemplateUpdate = (
   version: number,
   eservice: EService,
+  oldName: string,
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: eservice.id,
@@ -676,6 +679,7 @@ export const toCreateEventEServiceNameUpdatedByTemplateUpdate = (
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),
+      oldName,
     },
   },
   correlationId,

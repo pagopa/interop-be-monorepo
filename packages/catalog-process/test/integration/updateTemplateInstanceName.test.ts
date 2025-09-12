@@ -67,7 +67,10 @@ describe("updateTemplateInstanceName", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(updatedEService),
+      oldName: eservice.name,
+    });
   });
 
   it("should not write on event-store if the e-service already has the new name", async () => {
