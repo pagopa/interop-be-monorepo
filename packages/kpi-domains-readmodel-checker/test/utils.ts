@@ -337,7 +337,7 @@ export const addOneProducerKeychain = async (
   );
 };
 
-function getColumnNameMapper<T extends keyof typeof DomainDbTableReadModels>(
+function getColumnNameMapper<T extends DomainDbTable>(
   tableName: T
 ): (columnKey: string) => string {
   const table = DomainDbTableReadModels[tableName] as unknown as Record<
@@ -347,7 +347,7 @@ function getColumnNameMapper<T extends keyof typeof DomainDbTableReadModels>(
   return (columnKey: string) => table[columnKey]?.name ?? columnKey;
 }
 
-function buildColumnSet<T extends keyof typeof DomainDbTableReadModels>(
+function buildColumnSet<T extends DomainDbTable>(
   pgp: IMain,
   tableName: T,
   schema: DomainDbTableSchemas[T]
@@ -366,7 +366,7 @@ function buildColumnSet<T extends keyof typeof DomainDbTableReadModels>(
   });
 }
 
-async function writeInKpi<T extends keyof typeof DomainDbTableReadModels>(
+async function writeInKpi<T extends DomainDbTable>(
   tableName: T,
   data: Array<z.infer<DomainDbTableSchemas[T]>>
 ): Promise<void> {
