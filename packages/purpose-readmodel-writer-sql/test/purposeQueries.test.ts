@@ -128,6 +128,7 @@ describe("Purpose queries", () => {
       expect(retrievedRiskAnalysisFormSQL).toBeUndefined();
       expect(retrievedRiskAnalysisAnswersSQL).toHaveLength(0);
       expect(retrievedPurposeVersionsSQL).toHaveLength(0);
+      expect(retrievedPurposeVersionDocumentSQL).toHaveLength(0);
       expect(retrievedPurposeVersionStampSQL).toHaveLength(0);
 
       const retrievedPurpose = aggregatePurpose({
