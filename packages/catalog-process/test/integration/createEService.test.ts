@@ -54,6 +54,7 @@ describe("create eservice", () => {
       .with(true, () => randomArrayItem([false, true, undefined]))
       .with(false, () => false)
       .exhaustive();
+    const personalData = randomArrayItem([false, true]);
 
     const eservice = await catalogService.createEService(
       {
@@ -65,6 +66,7 @@ describe("create eservice", () => {
         isSignalHubEnabled,
         isConsumerDelegable,
         isClientAccessDelegable,
+        personalData,
       },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
@@ -111,6 +113,7 @@ describe("create eservice", () => {
       isSignalHubEnabled,
       isConsumerDelegable,
       isClientAccessDelegable,
+      personalData,
     };
     const expectedEserviceWithDescriptor: EService = {
       ...mockEService,
@@ -119,6 +122,7 @@ describe("create eservice", () => {
       isSignalHubEnabled,
       isConsumerDelegable,
       isClientAccessDelegable,
+      personalData,
       descriptors: [
         {
           ...mockDescriptor,

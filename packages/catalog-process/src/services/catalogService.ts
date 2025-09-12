@@ -550,6 +550,9 @@ async function innerCreateEService(
       .with(true, () => seed.isClientAccessDelegable)
       .exhaustive(),
     templateId: template?.id,
+    personalData: config.featureFlagEservicePersonalData
+      ? seed.personalData
+      : undefined,
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -3900,6 +3903,7 @@ async function updateDraftEService(
     isSignalHubEnabled,
     isConsumerDelegable,
     isClientAccessDelegable,
+    personalData,
     ...rest
   } = seed;
   void (rest satisfies Record<string, never>);
@@ -3963,6 +3967,11 @@ async function updateDraftEService(
     )
     .exhaustive();
 
+  const updatedPersonalData = match(type)
+    .with("put", () => personalData)
+    .with("patch", () => personalData ?? eservice.data.personalData)
+    .exhaustive();
+
   const updatedEService: EService = {
     ...eservice.data,
     description: description ?? eservice.data.description,
@@ -3992,6 +4001,7 @@ async function updateDraftEService(
       .with(false, () => false)
       .with(true, () => updatedIsClientAccessDelegable)
       .exhaustive(),
+    personalData: updatedPersonalData,
   };
 
   const event = await repository.createEvent(
