@@ -27,7 +27,11 @@ describe("API POST /notifications/bulk/markAsRead", () => {
     vi.restoreAllMocks();
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.SECURITY_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 204 when marking notifications as read with role %s",
     async (role) => {
@@ -58,5 +62,16 @@ describe("API POST /notifications/bulk/markAsRead", () => {
 
     expect(res.status).toBe(204);
     expect(inAppNotificationService.markNotificationsAsRead).toHaveBeenCalled();
+  });
+
+  it("Should return 400 if passed an invalid notification ID", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const invalidId = "invalid-uuid";
+    const res = await makeRequest(token, [invalidId]);
+
+    expect(res.status).toBe(400);
+    expect(
+      inAppNotificationService.markNotificationsAsRead
+    ).not.toHaveBeenCalled();
   });
 });
