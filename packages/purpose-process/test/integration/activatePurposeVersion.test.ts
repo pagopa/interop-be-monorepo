@@ -1506,7 +1506,8 @@ describe("activatePurposeVersion", () => {
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
       false,
-      mockConsumer.kind as TenantKind
+      mockConsumer.kind as TenantKind,
+      new Date()
     );
 
     expect(async () => {
