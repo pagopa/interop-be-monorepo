@@ -14,7 +14,7 @@ describe("gzipBuffer", () => {
 
   it("should gzip a buffer and return a Buffer", async () => {
     const input = Buffer.from("hello world");
-    const expectedCompressed = Buffer.from([0x1f, 0x8b, 0x08]); // fake gzip header
+    const expectedCompressed = Buffer.from([0x1f, 0x8b, 0x08]);
 
     (gzip as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       (_data, cb) => cb(null, expectedCompressed)

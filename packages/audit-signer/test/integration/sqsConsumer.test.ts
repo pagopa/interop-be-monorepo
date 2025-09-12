@@ -34,7 +34,6 @@ describe("Integration test (mocked AWS)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Mock FileManager
     mockFileManager.get = vi.fn();
     mockFileManager.delete = vi.fn();
     mockFileManager.copy = vi.fn();
@@ -44,14 +43,11 @@ describe("Integration test (mocked AWS)", () => {
     mockFileManager.generateGetPresignedUrl = vi.fn();
     mockFileManager.generatePutPresignedUrl = vi.fn();
 
-    // Mock DB Service
     mockDbService.saveSignatureReference = vi.fn();
 
-    // Mock SafeStorage Service
     mockSafeStorageService.createFile = vi.fn();
     mockSafeStorageService.uploadFileContent = vi.fn();
 
-    // Spy su funzioni esterne
     vi.spyOn(decodeModule, "decodeSQSEventMessage").mockReturnValue(mockS3Key);
     vi.spyOn(gzipModule, "gzipBuffer").mockResolvedValue(
       Buffer.from("gzipped content")
@@ -60,7 +56,6 @@ describe("Integration test (mocked AWS)", () => {
       "mock-checksum"
     );
 
-    // Logger
     mockLoggerInstance.info = vi.fn();
     mockLoggerInstance.error = vi.fn();
     mockLoggerInstance.warn = vi.fn();
@@ -83,9 +78,9 @@ describe("Integration test (mocked AWS)", () => {
     );
 
     expect(mockFileManager.get).toHaveBeenCalledWith(
-      "bucket-name", // bucket
-      "mock-key.json", // key
-      expect.any(Object) // logger
+      "bucket-name",
+      "mock-key.json",
+      expect.any(Object)
     );
 
     expect(mockSafeStorageService.createFile).toHaveBeenCalled();
