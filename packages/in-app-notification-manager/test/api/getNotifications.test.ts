@@ -45,7 +45,11 @@ describe("API GET /notifications", () => {
     vi.restoreAllMocks();
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.SECURITY_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 with notifications for user with role %s",
     async (role) => {
