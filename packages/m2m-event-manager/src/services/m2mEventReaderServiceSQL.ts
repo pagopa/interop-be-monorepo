@@ -1,7 +1,8 @@
 import { attributeM2MEventInM2MEvent } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { AttributeM2MEvent, AttributeM2MEventId } from "pagopa-interop-models";
-import { desc, gt } from "drizzle-orm";
+import { desc } from "drizzle-orm";
+import { afterEventIdFilter } from "../utilities/m2mEventSQLUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function m2mEventReaderServiceSQLBuilder(
@@ -20,12 +21,7 @@ export function m2mEventReaderServiceSQLBuilder(
           attributeId: attributeM2MEventInM2MEvent.attributeId,
         })
         .from(attributeM2MEventInM2MEvent)
-        .where(
-          lastEventId
-            ? gt(attributeM2MEventInM2MEvent.id, lastEventId)
-            : undefined
-          // ^ event ID is a UUIDv7, lexicographical order is the same as chronological order
-        )
+        .where(afterEventIdFilter(attributeM2MEventInM2MEvent.id, lastEventId))
         .orderBy(desc(attributeM2MEventInM2MEvent.id))
         .limit(limit);
 
