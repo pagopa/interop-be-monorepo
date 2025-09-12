@@ -34,6 +34,7 @@ import {
   purposeTables,
   resetTargetTables,
 } from "./utils.js";
+import { getMockPurposeVersionStamps } from "./utilsPurpose.js";
 
 describe("Purpose messages consumers - handlePurposeMessageV1", () => {
   beforeEach(async () => {
@@ -55,6 +56,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       freeOfChargeReason: "Free of charge reason",
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [getMockPurposeVersion()],
+      stamps: getMockPurposeVersionStamps(),
     };
     const payload: PurposeCreatedV1 = { purpose: toPurposeV1(mockPurpose) };
     const msg: PurposeEventEnvelopeV1 = {
