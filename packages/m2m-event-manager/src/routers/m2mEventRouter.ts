@@ -12,6 +12,7 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { m2mEventApi } from "pagopa-interop-api-clients";
 import { M2MEventService } from "../services/m2mEventService.js";
 import { makeApiProblem } from "../model/errors.js";
+import { toApiAttributeM2MEvents } from "../model/attributeM2MEventApiConverter.js";
 
 export const m2mEventRouter = (
   zodiosCtx: ZodiosContext,
@@ -123,7 +124,11 @@ export const m2mEventRouter = (
         );
         return res
           .status(200)
-          .send(m2mEventApi.AttributeM2MEvents.parse(events));
+          .send(
+            m2mEventApi.AttributeM2MEvents.parse(
+              toApiAttributeM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

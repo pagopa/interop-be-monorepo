@@ -1,13 +1,16 @@
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
   AppContext,
   M2MAdminAuthData,
   M2MAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
+import { AttributeM2MEvent } from "pagopa-interop-models";
+import { M2MEventReaderServiceSQL } from "./m2mEventReaderServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function m2mEventServiceBuilder(_db: ReturnType<typeof drizzle>) {
+export function m2mEventServiceBuilder(
+  m2mEventReaderServiceBuilder: M2MEventReaderServiceSQL
+) {
   return {
     async getEServiceM2MEvents(
       _lastEventId: string,
@@ -38,11 +41,15 @@ export function m2mEventServiceBuilder(_db: ReturnType<typeof drizzle>) {
       return [];
     },
     async getAttributeM2MEvents(
-      _lastEventId: string,
-      _limit: number,
-      _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown[]> {
-      return [];
+      lastEventId: string,
+      limit: number,
+      { logger }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<AttributeM2MEvent[]> {
+      logger.info(
+        `Getting attribute M2M events with lastEventId=${lastEventId}, limit=${limit}`
+      );
+      return m2mEventReaderServiceBuilder.getAttributeM2MEvents();
+      // TODO ^ lastEventId & limit filtering
     },
     async getConsumerDelegationM2MEvents(
       _lastEventId: string,

@@ -1,0 +1,21 @@
+meta {
+  name: Attribute M2M events
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-m2m-event-manager}}/events/attributes?lastEventId=01993921-fcf4-751c-822f-b74556a47cf7&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  lastEventId: 01993921-fcf4-751c-822f-b74556a47cf7
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  X-Correlation-Id: {{correlation-id}}
+}
