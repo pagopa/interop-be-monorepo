@@ -365,10 +365,8 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   createdAt: new Date(),
 });
 
-export const getMockPurposeVersionStamps = (): PurposeVersionStamps => {
-  const stamps = generateMock(PurposeVersionStamps);
-  return stamps;
-};
+export const getMockPurposeVersionStamps = (): PurposeVersionStamps =>
+  generateMock(PurposeVersionStamps);
 
 export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
