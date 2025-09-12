@@ -1,14 +1,14 @@
 import { AttributeEventEnvelope } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
-import { M2MEventWriterService } from "../services/m2mEventWriterService.js";
+import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
 import { toNewAttributeM2MEventSQL } from "../models/attributeM2MEventAdapterSQL.js";
 
 export async function handleAttributeEvent(
   decodedMessage: AttributeEventEnvelope,
   eventTimestamp: Date,
   logger: Logger,
-  m2mEventWriterService: M2MEventWriterService
+  m2mEventWriterService: M2MEventWriterServiceSQL
 ): Promise<void> {
   return match(decodedMessage)
     .with(

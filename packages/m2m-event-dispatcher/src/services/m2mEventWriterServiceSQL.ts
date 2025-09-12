@@ -22,7 +22,7 @@ function TODO_Converter(input: TODO_Type): TODO_Type {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function m2mEventWriterServiceBuilder(
+export function m2mEventWriterServiceSQLBuilder(
   m2mEventDB: ReturnType<typeof drizzle>
 ) {
   return {
@@ -87,6 +87,6 @@ export function m2mEventWriterServiceBuilder(
   };
 }
 
-export type M2MEventWriterService = ReturnType<
-  typeof m2mEventWriterServiceBuilder
+export type M2MEventWriterServiceSQL = ReturnType<
+  typeof m2mEventWriterServiceSQLBuilder
 >;

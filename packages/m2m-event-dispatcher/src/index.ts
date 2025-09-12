@@ -33,9 +33,9 @@ import {
   ReadModelServiceSQL,
 } from "./services/readModelServiceSQL.js";
 import {
-  M2MEventWriterService,
-  m2mEventWriterServiceBuilder,
-} from "./services/m2mEventWriterService.js";
+  M2MEventWriterServiceSQL,
+  m2mEventWriterServiceSQLBuilder,
+} from "./services/m2mEventWriterServiceSQL.js";
 import { handleAgreementEvent } from "./handlers/handleAgreementEvent.js";
 import { handlePurposeEvent } from "./handlers/handlePurposeEvent.js";
 import { handleDelegationEvent } from "./handlers/handleDelegationEvent.js";
@@ -80,7 +80,7 @@ const m2mEventDB = drizzle(
   })
 );
 
-const m2mEventService = m2mEventWriterServiceBuilder(m2mEventDB);
+const m2mEventService = m2mEventWriterServiceSQLBuilder(m2mEventDB);
 
 function processMessage(topicNames: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
@@ -101,7 +101,7 @@ function processMessage(topicNames: TopicNames) {
         decodedMessage: EventEnvelope<z.infer<T>>,
         eventTimestamp: Date,
         logger: Logger,
-        m2mEventWriterService: M2MEventWriterService,
+        m2mEventWriterService: M2MEventWriterServiceSQL,
         readModelService: ReadModelServiceSQL
       ) => Promise<void>
     ): Promise<void> => {
