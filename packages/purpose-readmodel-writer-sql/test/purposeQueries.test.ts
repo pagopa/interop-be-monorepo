@@ -4,6 +4,7 @@ import {
   getMockPurposeVersionDocument,
   getMockPurpose,
   getMockValidRiskAnalysisForm,
+  getMockPurposeVersionStamps,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -47,10 +48,21 @@ describe("Purpose queries", () => {
         firstActivationAt: new Date(),
         suspendedAt: new Date(),
       };
+      const purposeVersion3: PurposeVersion = {
+        ...getMockPurposeVersion(
+          purposeVersionState.draft,
+          getMockPurposeVersionStamps()
+        ),
+        riskAnalysis: getMockPurposeVersionDocument(),
+        rejectionReason: "Test rejection reason",
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+        suspendedAt: new Date(),
+      };
 
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [purposeVersion1, purposeVersion2],
+        versions: [purposeVersion1, purposeVersion2, purposeVersion3],
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
         suspendedByProducer: false,
@@ -116,7 +128,7 @@ describe("Purpose queries", () => {
       expect(retrievedRiskAnalysisFormSQL).toBeUndefined();
       expect(retrievedRiskAnalysisAnswersSQL).toHaveLength(0);
       expect(retrievedPurposeVersionsSQL).toHaveLength(0);
-      // TODO: expect(retrievedPurposeVersionStampSQL).toHaveLength(0);
+      expect(retrievedPurposeVersionStampSQL).toHaveLength(0);
 
       const retrievedPurpose = aggregatePurpose({
         purposeSQL: retrievedPurposeSQL!,
@@ -150,10 +162,21 @@ describe("Purpose queries", () => {
         firstActivationAt: new Date(),
         suspendedAt: new Date(),
       };
+      const purposeVersion3: PurposeVersion = {
+        ...getMockPurposeVersion(
+          purposeVersionState.draft,
+          getMockPurposeVersionStamps()
+        ),
+        riskAnalysis: getMockPurposeVersionDocument(),
+        rejectionReason: "Test rejection reason",
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+        suspendedAt: new Date(),
+      };
 
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [purposeVersion1, purposeVersion2],
+        versions: [purposeVersion1, purposeVersion2, purposeVersion3],
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
         suspendedByProducer: false,
@@ -212,6 +235,17 @@ describe("Purpose queries", () => {
             firstActivationAt: new Date(),
             suspendedAt: new Date(),
           },
+          {
+            ...getMockPurposeVersion(
+              purposeVersionState.draft,
+              getMockPurposeVersionStamps()
+            ),
+            riskAnalysis: getMockPurposeVersionDocument(),
+            rejectionReason: "Test rejection reason",
+            updatedAt: new Date(),
+            firstActivationAt: new Date(),
+            suspendedAt: new Date(),
+          },
         ],
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
@@ -237,6 +271,17 @@ describe("Purpose queries", () => {
           },
           {
             ...getMockPurposeVersion(),
+            riskAnalysis: getMockPurposeVersionDocument(),
+            rejectionReason: "Test rejection reason",
+            updatedAt: new Date(),
+            firstActivationAt: new Date(),
+            suspendedAt: new Date(),
+          },
+          {
+            ...getMockPurposeVersion(
+              purposeVersionState.draft,
+              getMockPurposeVersionStamps()
+            ),
             riskAnalysis: getMockPurposeVersionDocument(),
             rejectionReason: "Test rejection reason",
             updatedAt: new Date(),
@@ -274,6 +319,9 @@ describe("Purpose queries", () => {
       ).toHaveLength(0);
       expect(
         await retrievePurposeVersionDocumentsSQLById(purpose1.id, readModelDB)
+      ).toHaveLength(0);
+      expect(
+        await retrievePurposeVersionStampsSQLById(purpose1.id, readModelDB)
       ).toHaveLength(0);
 
       await checkCompletePurpose(purpose2);

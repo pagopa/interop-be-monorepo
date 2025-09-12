@@ -68,7 +68,7 @@ export const checkCompletePurpose = async (
   expect(retrievedPurposeVersionDocumentsSQL).toHaveLength(
     purpose.versions.length
   );
-  // TODO: expect(retrievedPurposeVersionStampsSQL).toHaveLength(purpose.versions.length);
+  expect(retrievedPurposeVersionStampsSQL).toHaveLength(1);
 
   return {
     purposeSQL: retrievedPurposeSQL!,
