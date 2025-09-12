@@ -634,6 +634,9 @@ components:
           format: uuid
         eventType:
           type: string
+          enum:
+            - ATTRIBUTE_ADDED
+            - MAINTENANCE_ATTRIBUTE_DELETED
         eventTimestamp:
           type: string
           format: date-time

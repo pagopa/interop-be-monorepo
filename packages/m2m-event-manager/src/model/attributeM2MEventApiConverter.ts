@@ -1,12 +1,28 @@
 import { m2mEventApi } from "pagopa-interop-api-clients";
-import { AttributeM2MEvent } from "pagopa-interop-models";
+import {
+  AttributeM2MEvent,
+  AttributeM2MEventType,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
+function toApiAttributeM2MEventType(
+  eventType: AttributeM2MEventType
+): m2mEventApi.AttributeM2MEvent["eventType"] {
+  return match<
+    AttributeM2MEventType,
+    m2mEventApi.AttributeM2MEvent["eventType"]
+  >(eventType)
+    .with("AttributeAdded", () => "ATTRIBUTE_ADDED")
+    .with("MaintenanceAttributeDeleted", () => "MAINTENANCE_ATTRIBUTE_DELETED")
+    .exhaustive();
+}
 
 function toApiAttributeM2MEvent(
   event: AttributeM2MEvent
 ): m2mEventApi.AttributeM2MEvent {
   return {
     id: event.id,
-    eventType: event.eventType, // TODO event type enum in API spec?
+    eventType: toApiAttributeM2MEventType(event.eventType),
     eventTimestamp: event.eventTimestamp.toJSON(),
     attributeId: event.attributeId,
   };
