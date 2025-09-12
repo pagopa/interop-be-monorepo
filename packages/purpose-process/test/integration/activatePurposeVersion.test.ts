@@ -204,6 +204,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
+      userId: undefined, // TODO: check value to set
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -305,6 +306,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
+      userId: undefined, // TODO: check value to set
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -719,6 +721,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
+      userId: undefined, // TODO: check value to set
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -833,6 +836,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: delegation.id,
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
+      userId: undefined, // TODO: check value to set
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -991,6 +995,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: consumerDelegation.id,
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
+      userId: undefined, // TODO: check value to set
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -1129,6 +1134,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: consumerDelegation.id,
       consumerDelegateName: producer.name,
       consumerDelegateIpaCode: producer.externalId.value,
+      userId: undefined, // TODO: check value to set
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
