@@ -7,7 +7,6 @@
   "scripts": {
     "test:api": "vitest --config vitest.api.config.ts",
     "test:integration": "echo \"SQL readmodel\" && vitest --config vitest.integrationsql.config.ts",
-    "test:integration:old": "echo \"Old readmodel\" && vitest --config vitest.integration.config.ts ",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
