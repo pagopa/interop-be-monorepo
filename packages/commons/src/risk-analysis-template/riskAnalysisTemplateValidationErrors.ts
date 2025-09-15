@@ -3,14 +3,14 @@ import { InternalError, TenantKind } from "pagopa-interop-models";
 type RiskAnalysisTemplateValidationIssueCode =
   | "unexpectedTemplateFieldValueOrSuggestionError"
   | "malformedTemplateFieldValueOrSuggestionError"
-  | "templateDependencyNotFound"
-  | "templateDependencyNotBeingEditable"
+  | "templateDependencyNotFoundError"
+  | "unexpectedTemplateDependencyEditableError"
   | "unexpectedTemplateFieldValueError"
   | "unexpectedTemplateFieldError"
   | "noRulesVersionTemplateFoundError"
   | "unexpectedTemplateRulesVersionError"
   | "unexpectedTemplateDependencyValueError"
-  | "missingExpectedTemplateField";
+  | "missingExpectedTemplateFieldError";
 
 export class RiskAnalysisTemplateValidationIssue extends InternalError<RiskAnalysisTemplateValidationIssueCode> {
   constructor({
@@ -77,22 +77,22 @@ export function malformedTemplateFieldValueOrSuggestionError(
   });
 }
 
-export function templateDependencyNotFound(
+export function templateDependencyNotFoundError(
   dependentField: string,
   dependencyField: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "templateDependencyNotFound",
+    code: "templateDependencyNotFoundError",
     detail: `Field ${dependentField} depends on ${dependencyField} which is missing`,
   });
 }
 
-export function unexpectedTemplateDependencyEditable(
+export function unexpectedTemplateDependencyEditableError(
   dependentField: string,
   dependencyField: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "templateDependencyNotBeingEditable",
+    code: "unexpectedTemplateDependencyEditableError",
     detail: `Field ${dependentField} depends on ${dependencyField} which is editable`,
   });
 }
@@ -125,11 +125,11 @@ export function unexpectedTemplateDependencyValueError(
   });
 }
 
-export function missingExpectedTemplateField(
+export function missingExpectedTemplateFieldError(
   fieldName: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "missingExpectedTemplateField",
+    code: "missingExpectedTemplateFieldError",
     detail: `Expected field ${fieldName} not found in form`,
   });
 }
