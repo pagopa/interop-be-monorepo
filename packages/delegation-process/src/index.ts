@@ -29,9 +29,6 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   delegationReadModelServiceSQL,
