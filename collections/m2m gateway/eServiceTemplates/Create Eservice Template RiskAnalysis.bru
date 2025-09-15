@@ -1,16 +1,17 @@
 meta {
-  name: Create eservice risk analysis
+  name: Create EService Template Risk Analysis
   type: http
+  seq: 4
 }
 
 post {
-  url: {{host-m2m-gw}}/eservices/:eserviceId/riskAnalysis
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/riskAnalyses
   body: json
   auth: none
 }
 
 params:path {
-  eserviceId: {{eserviceId}}
+  templateId: {{templateId}}
 }
 
 headers {
@@ -20,6 +21,7 @@ headers {
 body:json {
   {
       "name": "{{randomName}}",
+      "tenantKind": "PA",
       "riskAnalysisForm": {
           "version": "3.0",
           "answers": {
@@ -55,6 +57,6 @@ vars:post-response {
 
 script:pre-request {
   const random = Math.round(Math.random() * 100)
-
+  
   bru.setVar("randomName",`test name ${random}`)
 }

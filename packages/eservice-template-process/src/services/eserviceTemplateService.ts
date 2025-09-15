@@ -909,8 +909,17 @@ export function eserviceTemplateServiceBuilder(
     async createRiskAnalysis(
       id: EServiceTemplateId,
       createRiskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{
+        eserviceTemplate: EServiceTemplate;
+        createdRiskAnalysisId: RiskAnalysisId;
+      }>
+    > {
       logger.info(`Creating risk analysis for eServiceTemplateId: ${id}`);
 
       const template = await retrieveEServiceTemplate(id, readModelService);
@@ -944,15 +953,23 @@ export function eserviceTemplateServiceBuilder(
         riskAnalysis: [...template.data.riskAnalysis, newRiskAnalysis],
       };
 
-      const event = toCreateEventEServiceTemplateRiskAnalysisAdded(
-        template.data.id,
-        template.metadata.version,
-        generateId<RiskAnalysisId>(),
-        newTemplate,
-        correlationId
+      const event = await repository.createEvent(
+        toCreateEventEServiceTemplateRiskAnalysisAdded(
+          template.data.id,
+          template.metadata.version,
+          newRiskAnalysis.id,
+          newTemplate,
+          correlationId
+        )
       );
 
-      await repository.createEvent(event);
+      return {
+        data: {
+          eserviceTemplate: newTemplate,
+          createdRiskAnalysisId: newRiskAnalysis.id,
+        },
+        metadata: { version: event.newVersion },
+      };
     },
     async deleteRiskAnalysis(
       templateId: EServiceTemplateId,

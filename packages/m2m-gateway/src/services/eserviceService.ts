@@ -790,10 +790,6 @@ export function eserviceServiceBuilder(
         unsafeBrandId(createdRiskAnalysisId)
       );
 
-      if (!createdRiskAnalysis) {
-        throw eserviceRiskAnalysisNotFound(eservice.id, createdRiskAnalysisId);
-      }
-
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
     },
 

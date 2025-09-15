@@ -3,16 +3,21 @@ import { WithLogger } from "pagopa-interop-commons";
 import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
+  RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
-  toGetEServiceTemplatesQueryParams,
+  toM2MGatewayApiEServiceTemplateRiskAnalysis,
   toM2MGatewayEServiceTemplate,
   toM2MGatewayEServiceTemplateVersion,
+  toGetEServiceTemplatesQueryParams,
 } from "../api/eserviceTemplateApiConverter.js";
-import { eserviceTemplateVersionNotFound } from "../model/errors.js";
+import {
+  eserviceTemplateRiskAnalysisNotFound,
+  eserviceTemplateVersionNotFound,
+} from "../model/errors.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   pollResourceWithMetadata,
@@ -27,6 +32,24 @@ export type EserviceTemplateService = ReturnType<
 export function eserviceTemplateServiceBuilder(
   clients: PagoPAInteropBeClients
 ) {
+  const retrieveEServiceTemplateRiskAnalysisById = (
+    eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
+    riskAnalysisId: RiskAnalysisId
+  ): eserviceTemplateApi.EServiceTemplateRiskAnalysis => {
+    const riskAnalysis = eserviceTemplate.data.riskAnalysis.find(
+      (r) => r.id === riskAnalysisId
+    );
+
+    if (!riskAnalysis) {
+      throw eserviceTemplateRiskAnalysisNotFound(
+        eserviceTemplate.data.id,
+        riskAnalysisId
+      );
+    }
+
+    return riskAnalysis;
+  };
+
   const retrieveEServiceTemplateById = async (
     headers: M2MGatewayAppContext["headers"],
     templateId: EServiceTemplateId
@@ -133,6 +156,44 @@ export function eserviceTemplateServiceBuilder(
 
       return toM2MGatewayEServiceTemplateVersion(version);
     },
+
+    async createEServiceTemplateRiskAnalysis(
+      templateId: EServiceTemplateId,
+      body: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateRiskAnalysis> {
+      logger.info(
+        `Creating Risk Analysis for E-Service Template ${templateId}`
+      );
+
+      const {
+        data: { eserviceTemplate, createdRiskAnalysisId },
+        metadata,
+      } =
+        await clients.eserviceTemplateProcessClient.createEServiceTemplateRiskAnalysis(
+          body,
+          {
+            params: { templateId },
+            headers,
+          }
+        );
+
+      await pollEServiceTemplate(
+        {
+          data: eserviceTemplate,
+          metadata,
+        },
+        headers
+      );
+
+      const createdRiskAnalysis = retrieveEServiceTemplateRiskAnalysisById(
+        { data: eserviceTemplate, metadata },
+        unsafeBrandId(createdRiskAnalysisId)
+      );
+
+      return toM2MGatewayApiEServiceTemplateRiskAnalysis(createdRiskAnalysis);
+    },
+
     async getEServiceTemplates(
       params: m2mGatewayApi.GetEServiceTemplatesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
