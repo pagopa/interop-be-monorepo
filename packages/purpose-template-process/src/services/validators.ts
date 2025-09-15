@@ -1,15 +1,24 @@
-import { RiskAnalysisFormTemplate, TenantKind } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
+  M2MAdminAuthData,
   RiskAnalysisTemplateValidatedForm,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
+  UIAuthData,
   validatePurposeTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
+  PurposeTemplate,
+  purposeTemplateState,
+  RiskAnalysisFormTemplate,
+  TenantKind,
+} from "pagopa-interop-models";
+import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
+  purposeTemplateNotInDraftState,
   riskAnalysisTemplateValidationFailed,
+  tenantNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -19,6 +28,14 @@ export const assertConsistentFreeOfCharge = (
 ): void => {
   if (isFreeOfCharge && !freeOfChargeReason) {
     throw missingFreeOfChargeReason();
+  }
+};
+
+export const assertPurposeTemplateIsDraft = (
+  purposeTemplate: PurposeTemplate
+): void => {
+  if (purposeTemplate.state !== purposeTemplateState.draft) {
+    throw purposeTemplateNotInDraftState(purposeTemplate.id);
   }
 };
 
@@ -79,3 +96,12 @@ function validateRiskAnalysisTemplateOrThrow({
     .with({ type: "valid" }, ({ value }) => value)
     .exhaustive();
 }
+
+export const assertRequesterIsCreator = (
+  purposeTemplate: PurposeTemplate,
+  authData: UIAuthData | M2MAdminAuthData
+): void => {
+  if (purposeTemplate.creatorId !== authData.organizationId) {
+    throw tenantNotAllowed(authData.organizationId);
+  }
+};
