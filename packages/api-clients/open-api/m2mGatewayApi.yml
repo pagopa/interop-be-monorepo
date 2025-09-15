@@ -8548,7 +8548,7 @@ paths:
       summary: Delete an E-Service Template Risk Analysis
       description: |
         Delete a Risk Analysis for an E-Service Template.
-        The E-Service Template must be in Draft state.
+        The E-Service Template must be in Draft state and in Receive mode.
       operationId: deleteEServiceTemplateRiskAnalysis
       responses:
         "204":

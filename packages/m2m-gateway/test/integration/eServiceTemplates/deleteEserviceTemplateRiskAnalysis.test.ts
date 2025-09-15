@@ -20,7 +20,7 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
-describe("deleteEserviceRiskAnalysis", () => {
+describe("deleteEserviceTemplateRiskAnalysis", () => {
   const mockEServiceTemplate: eserviceTemplateApi.EServiceTemplate =
     getMockedApiEServiceTemplate();
   const mockRiskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis =
