@@ -45,6 +45,7 @@ import {
   tenantKind,
   TenantId,
   DelegationId,
+  UserId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -81,6 +82,8 @@ import {
 } from "../integrationUtils.js";
 
 describe("activatePurposeVersion", () => {
+  const userId: UserId = generateId();
+
   let mockConsumer: Tenant;
   let mockProducer: Tenant;
   let mockEService: EService;
@@ -155,7 +158,7 @@ describe("activatePurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         delegationId: undefined,
       },
-      getMockContext({ authData: getMockAuthData(mockProducer.id) })
+      getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
     );
 
     const updatedVersion = activateResponse.data;
@@ -204,7 +207,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
-      userId: undefined, // TODO: check value to set
+      userId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -257,7 +260,7 @@ describe("activatePurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         delegationId: producerDelegation.id,
       },
-      getMockContext({ authData: getMockAuthData(delegate.id) })
+      getMockContext({ authData: getMockAuthData(delegate.id, userId) })
     );
 
     const updatedVersion = activateResponse.data;
@@ -306,7 +309,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
-      userId: undefined, // TODO: check value to set
+      userId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -698,7 +701,7 @@ describe("activatePurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         delegationId: undefined,
       },
-      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      getMockContext({ authData: getMockAuthData(mockConsumer.id, userId) })
     );
 
     const updatedVersion = activateResponse.data;
@@ -721,7 +724,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
-      userId: undefined, // TODO: check value to set
+      userId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -813,7 +816,9 @@ describe("activatePurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         delegationId: delegation.id,
       },
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({
+        authData: getMockAuthData(delegation.delegateId, userId),
+      })
     );
 
     const updatedVersion = activateResponse.data;
@@ -836,7 +841,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: delegation.id,
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
-      userId: undefined, // TODO: check value to set
+      userId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -972,7 +977,7 @@ describe("activatePurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         delegationId: consumerDelegation.id,
       },
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+      getMockContext({ authData: getMockAuthData(consumerDelegate.id, userId) })
     );
 
     const updatedVersion = activateResponse.data;
@@ -995,7 +1000,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: consumerDelegation.id,
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
-      userId: undefined, // TODO: check value to set
+      userId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -1111,7 +1116,7 @@ describe("activatePurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         delegationId: consumerDelegation.id,
       },
-      getMockContext({ authData: getMockAuthData(producer.id) })
+      getMockContext({ authData: getMockAuthData(producer.id, userId) })
     );
 
     const updatedVersion = activateResponse.data;
@@ -1134,7 +1139,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: consumerDelegation.id,
       consumerDelegateName: producer.name,
       consumerDelegateIpaCode: producer.externalId.value,
-      userId: undefined, // TODO: check value to set
+      userId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
