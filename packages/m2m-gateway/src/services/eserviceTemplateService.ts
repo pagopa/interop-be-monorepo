@@ -176,13 +176,6 @@ export function eserviceTemplateServiceBuilder(
         unsafeBrandId(createdRiskAnalysisId)
       );
 
-      if (!createdRiskAnalysis) {
-        throw eserviceTemplateRiskAnalysisNotFound(
-          eserviceTemplate.id,
-          createdRiskAnalysisId
-        );
-      }
-
       return toM2MGatewayApiEServiceTemplateRiskAnalysis(createdRiskAnalysis);
     },
 
