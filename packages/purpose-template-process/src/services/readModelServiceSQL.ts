@@ -28,9 +28,6 @@ export function readModelServiceBuilderSQL({
   purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
 }) {
   return {
-    async checkPurposeTemplateName(): Promise<boolean> {
-      return false;
-    },
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },

@@ -162,7 +162,9 @@ describe("createPurpose", () => {
       riskAnalysisForm: expectedRiskAnalysisForm,
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+    });
     expect(createPurposeResponse).toEqual({
       data: {
         purpose: expectedPurpose,
@@ -257,9 +259,9 @@ describe("createPurpose", () => {
       riskAnalysisForm: expectedRiskAnalysisForm,
     };
 
-    expect(writtenPayload.purpose).toEqual(
-      toPurposeV2(createPurposeResponse.data.purpose)
-    );
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+    });
     expect(createPurposeResponse).toEqual({
       data: {
         purpose: expectedPurpose,
@@ -405,9 +407,9 @@ describe("createPurpose", () => {
       riskAnalysisForm: expectedRiskAnalysisForm,
     };
 
-    expect(writtenPayload.purpose).toEqual(
-      toPurposeV2(createPurposeResponse.data.purpose)
-    );
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+    });
     expect(createPurposeResponse).toEqual({
       data: {
         purpose: expectedPurpose,

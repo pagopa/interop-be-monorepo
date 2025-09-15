@@ -123,9 +123,9 @@ describe("createPurposeTemplate", () => {
       purposeDailyCalls: purposeTemplateSeed.purposeDailyCalls,
     };
 
-    expect(writtenPayload.purposeTemplate).toEqual(
-      toPurposeTemplateV2(expectedPurposeTemplate)
-    );
+    expect(writtenPayload).toEqual({
+      purposeTemplate: toPurposeTemplateV2(expectedPurposeTemplate),
+    });
     expect(createPurposeTemplateResponse).toEqual({
       data: expectedPurposeTemplate,
       metadata: { version: 0 },
@@ -134,7 +134,7 @@ describe("createPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  it("should throw missingFreeOfChargeReason if the freeOfChargeReason is empty", async () => {
+  it("should throw missingFreeOfChargeReason if isFreeOfCharge is true and freeOfChargeReason is empty", async () => {
     const seed: purposeTemplateApi.PurposeTemplateSeed = {
       ...purposeTemplateSeed,
       purposeFreeOfChargeReason: undefined,
@@ -201,7 +201,7 @@ describe("createPurposeTemplate", () => {
     );
   });
 
-  it("should throw riskAnalysisTemplateValidationFailed if the purpose template has unexpected field", async () => {
+  it("should throw riskAnalysisTemplateValidationFailed if the purpose template risk analysis has unexpected field", async () => {
     const validTemplate = buildRiskAnalysisFormTemplateSeed(
       getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
     );
@@ -236,7 +236,7 @@ describe("createPurposeTemplate", () => {
     );
   });
 
-  it("should throw riskAnalysisTemplateValidationFailed if the purpose template has missing expected field", async () => {
+  it("should throw riskAnalysisTemplateValidationFailed if the purpose template risk analysis has missing expected field", async () => {
     const validTemplate = buildRiskAnalysisFormTemplateSeed(
       getMockValidRiskAnalysisFormTemplate(tenantKind.PA)
     );
