@@ -46,7 +46,7 @@ describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
+    "Should return 201 and perform service calls for user with role %s",
     async (role) => {
       mockEserviceService.createEServiceRiskAnalysis = vi
         .fn()
@@ -59,7 +59,7 @@ describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
         mockRiskAnalysisSeed
       );
 
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body).toEqual(mockM2MEserviceResponse);
     }
   );
