@@ -8,7 +8,6 @@ import {
   ReadModelRepository,
   decodeKafkaMessage,
   genericLogger,
-  initDB,
   initFileManager,
   initPDFGenerator,
   logger,
@@ -34,13 +33,13 @@ import { baseConsumerConfig, config } from "./config/config.js";
 import { handlePurposeMessageV2 } from "./handler/handlePurposeMessageV2.js";
 import { handleDelegationMessageV2 } from "./handler/handleDelegationMessageV2.js";
 import { handleAgreementMessageV2 } from "./handler/handleAgreementMessageV2.js";
-import { readModelServiceBuilderSQL } from "./service/delegation/readModelSql.js";
+import { readModelServiceBuilder } from "./service/readModelService.js";
+import { readModelServiceBuilderSQL } from "./service/readModelSql.js";
 
 const fileManager = initFileManager(config);
 const pdfGenerator = await initPDFGenerator();
 
 const readModelDB = makeDrizzleConnection(config);
-
 const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
@@ -75,7 +74,13 @@ function processMessage(
           AgreementEventV2
         );
 
-        const updater = handleAgreementMessageV2.bind(null, decodedMessage);
+        const updater = handleAgreementMessageV2.bind(
+          null,
+          decodedMessage,
+          pdfGenerator,
+          fileManager,
+          readModelService
+        );
 
         return { decodedMessage, updater };
       })
@@ -85,7 +90,13 @@ function processMessage(
           PurposeEventV2
         );
 
-        const updater = handlePurposeMessageV2.bind(null, decodedMessage);
+        const updater = handlePurposeMessageV2.bind(
+          null,
+          decodedMessage,
+          pdfGenerator,
+          fileManager,
+          readModelService
+        );
 
         return { decodedMessage, updater };
       })
@@ -98,6 +109,8 @@ function processMessage(
         const updater = handleDelegationMessageV2.bind(
           null,
           decodedMessage,
+          pdfGenerator,
+          fileManager,
           readModelService
         );
 
@@ -112,7 +125,7 @@ function processMessage(
       : generateId();
 
     const loggerInstance = logger({
-      serviceName: "authorization-updater",
+      serviceName: "documents-generator",
       eventType: decodedMessage.type,
       eventVersion: decodedMessage.event_version,
       streamId: decodedMessage.stream_id,

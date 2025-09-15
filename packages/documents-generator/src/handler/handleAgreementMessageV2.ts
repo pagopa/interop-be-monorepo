@@ -1,10 +1,14 @@
 /* eslint-disable functional/immutable-data */
 import { AgreementEventEnvelopeV2 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
+import { FileManager, Logger, PDFGenerator } from "pagopa-interop-commons";
+import { ReadModelService } from "../service/readModelService.js";
 
 export async function handleAgreementMessageV2(
   decodedMessage: AgreementEventEnvelopeV2,
+  pdfGenerator: PDFGenerator,
+  fileManager: FileManager,
+  readModelService: ReadModelService,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)

@@ -11,7 +11,6 @@ import {
   CatalogReadModelService,
   TenantReadModelService,
   AgreementReadModelService,
-  DelegationReadModelService,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
