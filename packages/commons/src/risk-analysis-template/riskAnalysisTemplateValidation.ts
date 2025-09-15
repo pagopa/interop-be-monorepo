@@ -16,18 +16,18 @@ import {
 } from "./riskAnalysisFormTemplate.js";
 import {
   invalidTemplateResult,
-  malformedTemplateFieldValueOrSuggestionError,
-  missingExpectedTemplateFieldError,
-  noRulesVersionTemplateFoundError,
+  malformedRiskAnalysisTemplateFieldValueOrSuggestionError,
+  missingExpectedRiskAnalysisTemplateFieldError,
+  noRiskAnalysisTemplateRulesVersionFoundError,
   RiskAnalysisTemplateValidationIssue,
   RiskAnalysisTemplateValidationResult,
-  templateDependencyNotFoundError,
-  unexpectedTemplateDependencyEditableError,
-  unexpectedTemplateDependencyValueError,
-  unexpectedTemplateFieldError,
-  unexpectedTemplateFieldValueError,
+  riskAnalysisTemplateDependencyNotFoundError,
+  unexpectedRiskAnalysisTemplateDependencyEditableError,
+  unexpectedRiskAnalysisTemplateDependencyValueError,
+  unexpectedRiskAnalysisTemplateFieldError,
+  unexpectedRiskAnalysisTemplateFieldValueError,
   unexpectedTemplateFieldValueOrSuggestionError,
-  unexpectedTemplateRulesVersionError,
+  unexpectedRiskAnalysisTemplateRulesVersionError,
   validTemplateResult,
 } from "./riskAnalysisTemplateValidationErrors.js";
 
@@ -54,13 +54,15 @@ export function validatePurposeTemplateRiskAnalysis(
 
   if (latestVersionFormRules === undefined) {
     return invalidTemplateResult([
-      noRulesVersionTemplateFoundError(tenantKind),
+      noRiskAnalysisTemplateRulesVersionFoundError(tenantKind),
     ]);
   }
 
   if (latestVersionFormRules.version !== riskAnalysisFormTemplate.version) {
     return invalidTemplateResult([
-      unexpectedTemplateRulesVersionError(riskAnalysisFormTemplate.version),
+      unexpectedRiskAnalysisTemplateRulesVersionError(
+        riskAnalysisFormTemplate.version
+      ),
     ]);
   }
 
@@ -142,7 +144,7 @@ function findMissingRequiredFields(
         );
 
         return depsSatisfied
-          ? [missingExpectedTemplateFieldError(rule.fieldName)]
+          ? [missingExpectedRiskAnalysisTemplateFieldError(rule.fieldName)]
           : [];
       }
       return [];
@@ -170,7 +172,9 @@ function validateAnswer(
     (rule) => rule.fieldName === answerKey
   );
   if (!validationRule) {
-    return invalidTemplateResult([unexpectedTemplateFieldError(answerKey)]);
+    return invalidTemplateResult([
+      unexpectedRiskAnalysisTemplateFieldError(answerKey),
+    ]);
   }
 
   const valueValidationErrors = validateAnswerValue(
@@ -209,7 +213,11 @@ function validateAnswerValue(
   if (answer.editable) {
     const hasAnyContent = hasValues || hasSuggestions;
     return hasAnyContent
-      ? [malformedTemplateFieldValueOrSuggestionError(rule.fieldName)]
+      ? [
+          malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
+            rule.fieldName
+          ),
+        ]
       : [];
   }
 
@@ -238,11 +246,15 @@ function validateFreeTextAnswer(
   hasSuggestions: boolean
 ): RiskAnalysisTemplateValidationIssue[] {
   if (!hasValues && !hasSuggestions) {
-    return [malformedTemplateFieldValueOrSuggestionError(rule.fieldName)];
+    return [
+      malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
+    ];
   }
 
   if (hasValues && hasSuggestions) {
-    return [malformedTemplateFieldValueOrSuggestionError(rule.fieldName)];
+    return [
+      malformedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
+    ];
   }
 
   return [];
@@ -259,7 +271,10 @@ function validateNonFreeTextAnswer(
     answer.values.some((e) => !rule.allowedValues?.has(e))
   ) {
     return [
-      unexpectedTemplateFieldValueError(rule.fieldName, rule.allowedValues),
+      unexpectedRiskAnalysisTemplateFieldValueError(
+        rule.fieldName,
+        rule.allowedValues
+      ),
     ];
   }
 
@@ -277,16 +292,19 @@ function validateAnswerDependency(
 ): RiskAnalysisTemplateValidationIssue[] {
   return match(answers[dependency.fieldName])
     .with(P.nullish, () => [
-      templateDependencyNotFoundError(dependentField, dependency.fieldName),
+      riskAnalysisTemplateDependencyNotFoundError(
+        dependentField,
+        dependency.fieldName
+      ),
     ])
     .with({ editable: true }, () => [
-      unexpectedTemplateDependencyEditableError(
+      unexpectedRiskAnalysisTemplateDependencyEditableError(
         dependentField,
         dependency.fieldName
       ),
     ])
     .with({ values: P.when((v) => !v.includes(dependency.fieldValue)) }, () => [
-      unexpectedTemplateDependencyValueError(
+      unexpectedRiskAnalysisTemplateDependencyValueError(
         dependentField,
         dependency.fieldName,
         dependency.fieldValue
