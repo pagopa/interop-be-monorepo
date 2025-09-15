@@ -10,6 +10,7 @@ const {
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_CONFLICT,
   HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_FORBIDDEN,
 } = constants;
 
 export const createPurposeTemplateErrorMapper = (
@@ -22,6 +23,20 @@ export const createPurposeTemplateErrorMapper = (
       "ruleSetNotFoundError",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("purposeTemplateNameConflict", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updatePurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "purposeTemplateNotInDraftState",
+      "riskAnalysisTemplateValidationFailed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("purposeTemplateNameConflict", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
