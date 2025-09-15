@@ -7,18 +7,18 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, inAppNotificationService } from "../vitest.api.setup.js";
 
-describe("API POST /notifications/bulk/markAsRead", () => {
+describe("API POST /notifications/bulk/markAsUnread", () => {
   const notificationIds = [generateId(), generateId()];
   const makeRequest = async (token: string, ids: string[] = notificationIds) =>
     request(api)
-      .post("/notifications/bulk/markAsRead")
+      .post("/notifications/bulk/markAsUnread")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send({ ids });
 
   beforeEach(() => {
     vi.clearAllMocks();
-    inAppNotificationService.markNotificationsAsRead = vi
+    inAppNotificationService.markNotificationsAsUnread = vi
       .fn()
       .mockResolvedValue(undefined);
   });
@@ -33,14 +33,14 @@ describe("API POST /notifications/bulk/markAsRead", () => {
     authRole.SECURITY_ROLE,
   ];
   it.each(authorizedRoles)(
-    "Should return 204 when marking notifications as read with role %s",
+    "Should return 204 when marking notifications as unread with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
 
       expect(res.status).toBe(204);
       expect(
-        inAppNotificationService.markNotificationsAsRead
+        inAppNotificationService.markNotificationsAsUnread
       ).toHaveBeenCalledWith(notificationIds, expect.any(Object));
     }
   );
@@ -52,16 +52,18 @@ describe("API POST /notifications/bulk/markAsRead", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
     expect(
-      inAppNotificationService.markNotificationsAsRead
+      inAppNotificationService.markNotificationsAsUnread
     ).not.toHaveBeenCalled();
   });
 
-  it("Should return 204 when marking empty array of notifications as read", async () => {
+  it("Should return 204 when marking empty array of notifications as unread", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, []);
 
     expect(res.status).toBe(204);
-    expect(inAppNotificationService.markNotificationsAsRead).toHaveBeenCalled();
+    expect(
+      inAppNotificationService.markNotificationsAsUnread
+    ).toHaveBeenCalled();
   });
 
   it("Should return 400 if passed an invalid notification ID", async () => {
@@ -71,7 +73,7 @@ describe("API POST /notifications/bulk/markAsRead", () => {
 
     expect(res.status).toBe(400);
     expect(
-      inAppNotificationService.markNotificationsAsRead
+      inAppNotificationService.markNotificationsAsUnread
     ).not.toHaveBeenCalled();
   });
 });
