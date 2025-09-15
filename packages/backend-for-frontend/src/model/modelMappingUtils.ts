@@ -22,6 +22,50 @@ const invalidDescriptorState: catalogApi.EServiceDescriptorState[] = [
   catalogApiDescriptorState.WAITING_FOR_APPROVAL,
 ];
 
+// FIXME: Check every section and sub-section to be sure that every notification type is mapped correctly
+export const uiSectionToNotificationTypes = {
+  erogazione: {
+    richieste: [
+      "agreementManagementToProducer",
+      "agreementSuspendedUnsuspendedToProducer",
+    ],
+    finalita: [
+      "clientAddedRemovedToProducer",
+      "purposeStatusChangedToProducer",
+    ],
+    "template-eservice": ["templateStatusChangedToProducer"],
+    "e-service": [
+      "newEserviceTemplateVersionToInstantiator",
+      "eserviceTemplateNameChangedToInstantiator",
+      "eserviceTemplateStatusChangedToInstantiator",
+    ],
+    portachiavi: ["clientKeyAddedDeletedToClientUsers"],
+  },
+  fruizione: {
+    richieste: [
+      "agreementActivatedRejectedToConsumer",
+      "agreementSuspendedUnsuspendedToConsumer",
+    ],
+    finalita: [
+      "purposeActivatedRejectedToConsumer",
+      "purposeSuspendedUnsuspendedToConsumer",
+    ],
+  },
+  "catalogo-e-service": ["eserviceStateChangedToConsumer"],
+  aderente: {
+    deleghe: [
+      "delegationApprovedRejectedToDelegator",
+      "eserviceNewVersionSubmittedToDelegator",
+      "eserviceNewVersionApprovedRejectedToDelegate",
+      "delegationSubmittedRevokedToDelegate",
+    ],
+    anagrafica: ["certifiedVerifiedAttributeAssignedRevokedToAssignee"],
+  },
+  "gestione-client": {
+    "api-e-service": ["clientKeyAddedDeletedToClientUsers"],
+  },
+} as const;
+
 export function getLatestActiveDescriptor(
   eservice: catalogApi.EService
 ): catalogApi.EServiceDescriptor | undefined {
