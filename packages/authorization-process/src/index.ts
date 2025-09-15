@@ -36,10 +36,6 @@ const clientJWKKeyReadModelServiceSQL =
 const producerJWKKeyReadModelServiceSQL =
   producerJWKKeyReadModelServiceBuilder(readModelDB);
 
-const oldreadModelServiceSQL = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   clientReadModelServiceSQL,
@@ -52,13 +48,6 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   producerJWKKeyReadModelServiceSQL,
 });
 
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldreadModelServiceSQL;
-
 const authorizationService = authorizationServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
@@ -69,7 +58,7 @@ const authorizationService = authorizationServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService,
+  readModelServiceSQL,
   selfcareV2InstitutionClientBuilder(config)
 );
 

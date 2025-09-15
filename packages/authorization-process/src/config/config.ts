@@ -4,7 +4,6 @@ import {
   EventStoreConfig,
   SelfCareClientConfig,
   ApplicationAuditProducerConfig,
-  FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -24,7 +23,6 @@ const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
       }))
   )
   .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig);
 
 export type AuthorizationConfig = z.infer<typeof AuthorizationConfig>;

@@ -16,20 +16,11 @@ const log = logger({
 });
 
 const fileManager = initFileManager(config);
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
 const readModelDB = makeDrizzleConnection(config);
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 export const dataLakeService = datalakeServiceBuilder(
-  readModelService,
+  readModelServiceSQL,
   fileManager,
   log
 );

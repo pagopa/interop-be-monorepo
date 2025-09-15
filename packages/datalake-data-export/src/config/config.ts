@@ -1,5 +1,4 @@
 import {
-  FeatureFlagSQLConfig,
   FileManagerConfig,
   LoggerConfig,
   ReadModelDbConfig,
@@ -19,7 +18,6 @@ export type DatalakeStorageConfig = z.infer<typeof DatalakeExporterConfig>;
 export const DatalakeExporterConfig = DatalakeStorageConfig.and(LoggerConfig)
   .and(FileManagerConfig)
   .and(ReadModelDbConfig)
-  .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig.optional());
 
 export type DatalakeExporterConfig = z.infer<typeof DatalakeExporterConfig>;

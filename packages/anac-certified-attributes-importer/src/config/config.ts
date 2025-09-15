@@ -1,6 +1,5 @@
 import {
   APIEndpoint,
-  FeatureFlagSQLConfig,
   LoggerConfig,
   ReadModelDbConfig,
   ReadModelSQLDbConfig,
@@ -27,7 +26,6 @@ const AnacCertifiedAttributesImporterConfig = LoggerConfig.and(
         anacTenantId: c.ANAC_TENANT_ID,
       }))
   )
-  .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig);
 
 export type AnacCertifiedAttributesImporterConfig = z.infer<

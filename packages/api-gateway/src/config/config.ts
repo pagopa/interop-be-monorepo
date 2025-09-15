@@ -5,7 +5,6 @@ import {
   RedisRateLimiterConfig,
   ReadModelDbConfig,
   ApplicationAuditProducerConfig,
-  FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 
@@ -116,7 +115,6 @@ const ApiGatewayConfig = CommonHTTPServiceConfig.and(RedisRateLimiterConfig)
   .and(NotifierServerConfig)
   .and(ReadModelDbConfig)
   .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig);
 export type ApiGatewayConfig = z.infer<typeof ApiGatewayConfig>;
 
