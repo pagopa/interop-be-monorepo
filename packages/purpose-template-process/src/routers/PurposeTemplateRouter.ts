@@ -23,7 +23,6 @@ import {
   activatePurposeTemplateErrorMapper,
   createPurposeTemplateErrorMapper,
   getPurposeTemplatesErrorMapper,
-  publishPurposeTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   apiPurposeTemplateStateToPurposeTemplateState,
@@ -272,7 +271,7 @@ const purposeTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          publishPurposeTemplateErrorMapper,
+          activatePurposeTemplateErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
