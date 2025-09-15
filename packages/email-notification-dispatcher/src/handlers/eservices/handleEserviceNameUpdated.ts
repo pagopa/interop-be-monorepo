@@ -8,7 +8,6 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
 } from "../../services/utils.js";
 import {
   EServiceHandlerParams,
@@ -36,10 +35,9 @@ export async function handleEserviceNameUpdated(
 
   const eservice = fromEServiceV2(eserviceV2Msg);
 
-  const [htmlTemplate, agreements, descriptor] = await Promise.all([
+  const [htmlTemplate, agreements] = await Promise.all([
     retrieveHTMLTemplate(eventMailTemplateType.eserviceNameUpdatedMailTemplate),
     readModelService.getAgreementsByEserviceId(eservice.id),
-    retrieveLatestPublishedDescriptor(eservice),
   ]);
 
   if (!agreements || agreements.length === 0) {
@@ -69,7 +67,7 @@ export async function handleEserviceNameUpdated(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map(({ tenantName, address }) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `L'e-service <Vecchio Nome E-service> è stato rinominato`,
@@ -77,6 +75,7 @@ export async function handleEserviceNameUpdated(
         title: `L'e-service <Vecchio Nome E-service> è stato rinominato`,
         notificationType,
         entityId: eservice.id,
+        consumerName: tenantName,
         oldEserviceName: "<Vecchio Nome EService>",
         newEserviceName: eservice.name,
       }),

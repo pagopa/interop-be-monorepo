@@ -76,7 +76,7 @@ export async function handleEserviceDescriptorActivated(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map(({ tenantName, address }) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Una versione di "${eservice.name}" è stata riattivata`,
@@ -84,6 +84,7 @@ export async function handleEserviceDescriptorActivated(
         title: `Una versione di "${eservice.name}" è stata riattivata`,
         notificationType,
         entityId: descriptor.id,
+        consumerName: tenantName,
         producerName: producer.name,
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,

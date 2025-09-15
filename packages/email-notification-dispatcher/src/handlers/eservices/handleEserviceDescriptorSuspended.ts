@@ -76,7 +76,7 @@ export async function handleEserviceDescriptorSuspended(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map(({ tenantName, address }) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Una versione di "${eservice.name}" è stata sospesa`,
@@ -84,6 +84,7 @@ export async function handleEserviceDescriptorSuspended(
         title: `Una versione di "${eservice.name}" è stata sospesa`,
         notificationType,
         entityId: descriptor.id,
+        consumerName: tenantName,
         eserviceName: eservice.name,
         producerName: producer.name,
         eserviceVersion: descriptor.version,

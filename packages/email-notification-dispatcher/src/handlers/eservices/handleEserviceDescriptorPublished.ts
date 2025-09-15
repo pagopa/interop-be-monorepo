@@ -75,7 +75,7 @@ export async function handleEserviceDescriptorPublished(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map(({ tenantName, address }) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Nuova versione disponibile per "${eservice.name}"`,
@@ -83,6 +83,7 @@ export async function handleEserviceDescriptorPublished(
         title: `Nuova versione disponibile per "${eservice.name}"`,
         notificationType,
         entityId: descriptor.id,
+        consumerName: tenantName,
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,
         producerName: producer.name,
