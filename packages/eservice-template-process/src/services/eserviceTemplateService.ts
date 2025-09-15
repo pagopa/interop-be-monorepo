@@ -40,6 +40,7 @@ import {
   attributeKind,
   TenantId,
   Tenant,
+  EServiceTemplateEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -1259,86 +1260,35 @@ export function eserviceTemplateServiceBuilder(
       };
     },
     async updateEServiceTemplate(
-      eserviceTemplateId: EServiceTemplateId,
+      templateId: EServiceTemplateId,
       eserviceTemplateSeed: eserviceTemplateApi.UpdateEServiceTemplateSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
-      logger.info(`Updating EService template ${eserviceTemplateId}`);
-
-      const eserviceTemplate = await retrieveEServiceTemplate(
-        eserviceTemplateId,
-        readModelService
+      ctx: WithLogger<AppContext<UIAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
+      ctx.logger.info(`Updating EService Template ${templateId}`);
+      return updateDraftEServiceTemplate(
+        templateId,
+        { type: "post", seed: eserviceTemplateSeed },
+        readModelService,
+        fileManager,
+        repository,
+        ctx
       );
+    },
 
-      assertRequesterEServiceTemplateCreator(
-        eserviceTemplate.data.creatorId,
-        authData
+    async patchUpdateEServiceTemplate(
+      templateId: EServiceTemplateId,
+      eserviceTemplateSeed: eserviceTemplateApi.PatchUpdateEServiceTemplateSeed,
+      ctx: WithLogger<AppContext<M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
+      ctx.logger.info(`Partially updating EService Template ${templateId}`);
+      return updateDraftEServiceTemplate(
+        templateId,
+        { type: "patch", seed: eserviceTemplateSeed },
+        readModelService,
+        fileManager,
+        repository,
+        ctx
       );
-
-      assertIsDraftEServiceTemplate(eserviceTemplate.data);
-
-      if (eserviceTemplateSeed.name !== eserviceTemplate.data.name) {
-        await assertEServiceTemplateNameAvailable(
-          eserviceTemplateSeed.name,
-          readModelService
-        );
-      }
-
-      const updatedTechnology = apiTechnologyToTechnology(
-        eserviceTemplateSeed.technology
-      );
-      const interfaceHasToBeDeleted =
-        updatedTechnology !== eserviceTemplate.data.technology;
-
-      if (interfaceHasToBeDeleted) {
-        await Promise.all(
-          eserviceTemplate.data.versions.map(async (d) => {
-            if (d.interface !== undefined) {
-              return await fileManager.delete(
-                config.s3Bucket,
-                d.interface.path,
-                logger
-              );
-            }
-          })
-        );
-      }
-
-      const updatedMode = apiEServiceModeToEServiceMode(
-        eserviceTemplateSeed.mode
-      );
-
-      const checkedRiskAnalysis =
-        updatedMode === eserviceMode.receive
-          ? eserviceTemplate.data.riskAnalysis
-          : [];
-
-      const updatedEServiceTemplate: EServiceTemplate = {
-        ...eserviceTemplate.data,
-        name: eserviceTemplateSeed.name,
-        intendedTarget: eserviceTemplateSeed.intendedTarget,
-        description: eserviceTemplateSeed.description,
-        technology: updatedTechnology,
-        mode: updatedMode,
-        riskAnalysis: checkedRiskAnalysis,
-        versions: interfaceHasToBeDeleted
-          ? eserviceTemplate.data.versions.map((d) => ({
-              ...d,
-              interface: undefined,
-            }))
-          : eserviceTemplate.data.versions,
-        isSignalHubEnabled: eserviceTemplateSeed.isSignalHubEnabled,
-      };
-
-      const event = toCreateEventEServiceTemplateDraftUpdated(
-        eserviceTemplateId,
-        eserviceTemplate.metadata.version,
-        updatedEServiceTemplate,
-        correlationId
-      );
-      await repository.createEvent(event);
-
-      return updatedEServiceTemplate;
     },
     async createEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
@@ -1862,5 +1812,126 @@ export async function cloneEServiceTemplateDocument({
     path: clonedPath,
     checksum: doc.checksum,
     uploadDate: new Date(),
+  };
+}
+
+// eslint-disable-next-line max-params
+async function updateDraftEServiceTemplate(
+  eserviceTemplateId: EServiceTemplateId,
+  {
+    seed,
+    type,
+  }:
+    | {
+        type: "post";
+        seed: eserviceTemplateApi.UpdateEServiceTemplateSeed;
+      }
+    | {
+        type: "patch";
+        seed: eserviceTemplateApi.PatchUpdateEServiceTemplateSeed;
+      },
+  readModelService: ReadModelService,
+  fileManager: FileManager,
+  repository: ReturnType<typeof eventRepository<EServiceTemplateEvent>>,
+  {
+    authData,
+    correlationId,
+    logger,
+  }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+): Promise<WithMetadata<EServiceTemplate>> {
+  const eserviceTemplate = await retrieveEServiceTemplate(
+    eserviceTemplateId,
+    readModelService
+  );
+
+  assertRequesterEServiceTemplateCreator(
+    eserviceTemplate.data.creatorId,
+    authData
+  );
+
+  assertIsDraftEServiceTemplate(eserviceTemplate.data);
+
+  const {
+    name,
+    description,
+    technology,
+    mode,
+    isSignalHubEnabled,
+    intendedTarget,
+    ...rest
+  } = seed;
+  void (rest satisfies Record<string, never>);
+  // ^ To make sure we extract all the updated fields
+
+  if (name && name !== eserviceTemplate.data.name) {
+    await assertEServiceTemplateNameAvailable(name, readModelService);
+  }
+
+  const updatedTechnology = technology
+    ? apiTechnologyToTechnology(technology)
+    : eserviceTemplate.data.technology;
+
+  const interfaceHasToBeDeleted =
+    updatedTechnology !== eserviceTemplate.data.technology;
+
+  if (interfaceHasToBeDeleted) {
+    await Promise.all(
+      eserviceTemplate.data.versions.map(async (d) => {
+        if (d.interface !== undefined) {
+          return await fileManager.delete(
+            config.s3Bucket,
+            d.interface.path,
+            logger
+          );
+        }
+      })
+    );
+  }
+
+  const updatedMode = mode
+    ? apiEServiceModeToEServiceMode(mode)
+    : eserviceTemplate.data.mode;
+
+  const checkedRiskAnalysis =
+    updatedMode === eserviceMode.receive
+      ? eserviceTemplate.data.riskAnalysis
+      : [];
+
+  const updatedIsSignalHubEnabled = match(type)
+    .with("post", () => isSignalHubEnabled)
+    .with(
+      "patch",
+      () => isSignalHubEnabled ?? eserviceTemplate.data.isSignalHubEnabled
+    )
+    .exhaustive();
+
+  const updatedEServiceTemplate: EServiceTemplate = {
+    ...eserviceTemplate.data,
+    name: name ?? eserviceTemplate.data.name,
+    intendedTarget: intendedTarget ?? eserviceTemplate.data.intendedTarget,
+    description: description ?? eserviceTemplate.data.description,
+    technology: updatedTechnology,
+    mode: updatedMode,
+    riskAnalysis: checkedRiskAnalysis,
+    versions: interfaceHasToBeDeleted
+      ? eserviceTemplate.data.versions.map((d) => ({
+          ...d,
+          interface: undefined,
+        }))
+      : eserviceTemplate.data.versions,
+    isSignalHubEnabled: updatedIsSignalHubEnabled,
+  };
+
+  const event = await repository.createEvent(
+    toCreateEventEServiceTemplateDraftUpdated(
+      eserviceTemplateId,
+      eserviceTemplate.metadata.version,
+      updatedEServiceTemplate,
+      correlationId
+    )
+  );
+  return {
+    data: updatedEServiceTemplate,
+    metadata: { version: event.newVersion },
   };
 }
