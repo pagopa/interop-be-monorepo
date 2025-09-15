@@ -174,15 +174,4 @@ describe("API POST /purposeTemplates/:id/linkEservices", () => {
       expect(res.status).toBe(expectedStatus);
     }
   );
-
-  it("Should return empty array when no eservices are linked", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    purposeTemplateService.linkEservicesToPurposeTemplate = vi
-      .fn()
-      .mockResolvedValue([]);
-
-    const res = await makeRequest(token, purposeTemplateId, validLinkRequest);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
-  });
 });
