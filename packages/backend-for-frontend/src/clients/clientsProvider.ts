@@ -10,6 +10,7 @@ import {
   selfcareV2UsersClientBuilder,
   delegationApi,
   eserviceTemplateApi,
+  notificationConfigApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
@@ -64,6 +65,10 @@ export type SelfcareV2UserClient = {
   user: ReturnType<typeof selfcareV2ClientApi.createUserApiClient>;
 };
 
+export type NotificationConfigProcessClient = ReturnType<
+  typeof notificationConfigApi.createProcessApiClient
+>;
+
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
   attributeProcessClient: AttributeProcessClient;
@@ -75,6 +80,7 @@ export type PagoPAInteropBeClients = {
   selfcareV2UserClient: SelfcareV2UserClient;
   delegationProcessClient: DelegationProcessClient;
   eserviceTemplateProcessClient: EServiceTemplateProcessClient;
+  notificationConfigProcessClient: NotificationConfigProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -126,5 +132,9 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     eserviceTemplateProcessClient: eserviceTemplateApi.createProcessApiClient(
       config.eserviceTemplateProcessUrl
     ),
+    notificationConfigProcessClient:
+      notificationConfigApi.createProcessApiClient(
+        config.notificationConfigProcessUrl
+      ),
   };
 }
