@@ -65,8 +65,10 @@ describe("handleProducerKeychainEserviceAdded", async () => {
     }
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
-      .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+      .mockImplementation((tenantIds, _notificationType) =>
+        users
+          .filter((user) => tenantIds.includes(user.tenantId))
+          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
       );
   });
 
@@ -256,13 +258,16 @@ describe("handleProducerKeychainEserviceAdded", async () => {
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages.length).toBe(4);
+    expect(messages.length).toBe(2);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
         `Nuovo livello di sicurezza per &quot;${eservice.name}&quot;`
       );
+      expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(consumerTenants[0].name);
+      expect(message.email.body).toContain(eservice.name);
     });
   });
 });

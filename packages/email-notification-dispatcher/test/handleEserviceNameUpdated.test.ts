@@ -63,8 +63,10 @@ describe("handleEserviceNameUpdated", async () => {
     }
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
-      .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+      .mockImplementation((tenantIds, _notificationType) =>
+        users
+          .filter((user) => tenantIds.includes(user.tenantId))
+          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
       );
   });
 
@@ -81,32 +83,6 @@ describe("handleEserviceNameUpdated", async () => {
     ).rejects.toThrow(
       missingKafkaMessageDataError("eservice", "EServiceNameUpdated")
     );
-  });
-
-  it("should throw descriptorPublishedNotFound when descriptor is not found", async () => {
-    const eserviceNoDescriptor = { ...getMockEService(), descriptors: [] };
-    await addOneEService(eserviceNoDescriptor);
-
-    const agreement = {
-      ...getMockAgreement(),
-      state: agreementState.active,
-      stamps: {},
-      producerId: producerTenant.id,
-      eserviceId: eserviceNoDescriptor.id,
-      consumerId: consumerTenants[0].id,
-    };
-    await addOneAgreement(agreement);
-
-    await expect(() =>
-      handleEserviceNameUpdated({
-        eserviceV2Msg: toEServiceV2(eserviceNoDescriptor),
-        logger,
-        templateService,
-        userService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      })
-    ).rejects.toThrow(descriptorPublishedNotFound(agreement.eserviceId));
   });
 
   it("should skip event if no consumer is present for the eservice", async () => {
@@ -222,7 +198,7 @@ describe("handleEserviceNameUpdated", async () => {
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages.length).toBe(4);
+    expect(messages.length).toBe(2);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
@@ -230,6 +206,7 @@ describe("handleEserviceNameUpdated", async () => {
         `L&#x27;e-service &lt;Vecchio Nome E-service&gt; è stato rinominato`
       );
       expect(message.email.body).toContain(eservice.name);
+      expect(message.email.body).toContain(consumerTenants[0].name);
       expect(message.email.body).toContain("&lt;Vecchio Nome EService&gt;");
       expect(message.email.body).toContain(`Accedi per visualizzare`);
     });

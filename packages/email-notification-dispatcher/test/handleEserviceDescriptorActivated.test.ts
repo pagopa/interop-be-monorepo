@@ -66,8 +66,10 @@ describe("handleEserviceDescriptorActivated", async () => {
     }
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
-      .mockReturnValueOnce(
-        users.map((user) => ({ userId: user.id, tenantId: user.tenantId }))
+      .mockImplementation((tenantIds, _notificationType) =>
+        users
+          .filter((user) => tenantIds.includes(user.tenantId))
+          .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
       );
   });
 
@@ -246,7 +248,7 @@ describe("handleEserviceDescriptorActivated", async () => {
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages.length).toBe(4);
+    expect(messages.length).toBe(2);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
@@ -254,6 +256,7 @@ describe("handleEserviceDescriptorActivated", async () => {
         `Una versione di &quot;${eservice.name}&quot; è stata riattivata`
       );
       expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(consumerTenants[0].name);
       expect(message.email.body).toContain(eservice.name);
       expect(message.email.body).toContain(descriptor.version);
       expect(message.email.body).toContain(`Visualizza e-service`);
