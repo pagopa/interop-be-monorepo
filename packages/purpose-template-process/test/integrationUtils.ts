@@ -2,22 +2,28 @@ import {
   ReadEvent,
   readLastEventByStreamId,
   setupTestContainersVitest,
+  sortPurposeTemplate,
   StoredEvent,
   writeInEventstore,
 } from "pagopa-interop-commons-test";
-import { afterEach, inject } from "vitest";
+import { afterEach, expect, inject } from "vitest";
 import {
   catalogReadModelServiceBuilder,
   purposeTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
+  EServiceDescriptorPurposeTemplate,
+  ListResult,
   PurposeTemplate,
   PurposeTemplateEvent,
   PurposeTemplateId,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
-import { upsertPurposeTemplate } from "pagopa-interop-readmodel/testUtils";
+import {
+  upsertPurposeTemplate,
+  upsertPurposeTemplateEServiceDescriptor,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
 
@@ -44,6 +50,7 @@ export const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
+  readModelDB,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
@@ -63,12 +70,19 @@ export const readLastPurposeTemplateEvent = async (
     postgresDB
   );
 
-export const addOnePurposeTemplate = async (
-  purposeTemplate: PurposeTemplate
-): Promise<void> => {
-  await writePurposeTemplateInEventstore(purposeTemplate);
-  await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
-};
+export function expectSinglePageListResult(
+  actual: ListResult<PurposeTemplate>,
+  expected: PurposeTemplate[]
+): void {
+  expect({
+    totalCount: actual.totalCount,
+    results: actual.results.map(sortPurposeTemplate),
+  }).toEqual({
+    totalCount: expected.length,
+    results: expected.map(sortPurposeTemplate),
+  });
+  expect(actual.results).toHaveLength(expected.length);
+}
 
 export const writePurposeTemplateInEventstore = async (
   purposeTemplate: PurposeTemplate
@@ -85,4 +99,21 @@ export const writePurposeTemplateInEventstore = async (
     event: purposeTemplateEvent,
   };
   await writeInEventstore(eventToWrite, "purpose_template", postgresDB);
+};
+
+export const addOnePurposeTemplate = async (
+  purposeTemplate: PurposeTemplate
+): Promise<void> => {
+  await writePurposeTemplateInEventstore(purposeTemplate);
+  await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
+};
+
+export const addOnePurposeTemplateEServiceDescriptor = async (
+  purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate
+): Promise<void> => {
+  await upsertPurposeTemplateEServiceDescriptor(
+    readModelDB,
+    purposeTemplateEServiceDescriptor,
+    0
+  );
 };

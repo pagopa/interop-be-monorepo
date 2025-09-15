@@ -68,8 +68,18 @@ paths:
             default: []
           explode: false
         - in: query
+          name: eserviceIds
+          description: comma separated sequence of e-service IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: states
-          description: filter by template state
+          description: comma separated sequence of states
           schema:
             type: array
             items:
@@ -91,15 +101,25 @@ paths:
             format: int32
             minimum: 1
             maximum: 50
+        - in: query
+          description: Comma separated sequence of sort fields
+          required: false
+          name: sort
+          schema:
+            type: string
+        - in: query
+          description: Comma separated sequence of sort directions
+          required: false
+          name: direction
+          schema:
+            type: string
       responses:
         "200":
           description: Purpose Templates retrieved
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PurposeTemplate"
+                $ref: "#/components/schemas/PurposeTemplates"
         "400":
           description: Bad Request
           content:
@@ -573,6 +593,20 @@ components:
       schema:
         type: string
   schemas:
+    PurposeTemplates:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeTemplate"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     PurposeTemplate:
       type: object
       description: Business representation of a purpose template

@@ -11,14 +11,23 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import {
+  emptyErrorMapper,
+  EServiceId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   createPurposeTemplateErrorMapper,
+  getPurposeTemplatesErrorMapper,
   publishPurposeTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
-import { purposeTemplateToApiPurposeTemplate } from "../model/domain/apiConverter.js";
+import {
+  apiPurposeTemplateStateToPurposeTemplateState,
+  purposeTemplateToApiPurposeTemplate,
+} from "../model/domain/apiConverter.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -45,17 +54,53 @@ const purposeTemplateRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
+          API_ROLE,
           M2M_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
+
+        const {
+          purposeTitle,
+          creatorIds,
+          eserviceIds,
+          states,
+          offset,
+          limit,
+          sort,
+          direction,
+        } = req.query;
+        const purposeTemplates =
+          await purposeTemplateService.getPurposeTemplates(
+            {
+              purposeTitle,
+              creatorIds: creatorIds?.map(unsafeBrandId<TenantId>),
+              eserviceIds: eserviceIds?.map(unsafeBrandId<EServiceId>),
+              states: states?.map(
+                apiPurposeTemplateStateToPurposeTemplateState
+              ),
+            },
+            { offset, limit, sortColumns: sort, directions: direction },
+            ctx
+          );
+        return res.status(200).send(
+          purposeTemplateApi.PurposeTemplates.parse({
+            results: purposeTemplates.results.map((purposeTemplate) =>
+              purposeTemplateToApiPurposeTemplate(purposeTemplate)
+            ),
+            totalCount: purposeTemplates.totalCount,
+          })
+        );
       } catch (error) {
-        return res.status(501);
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplatesErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-      return res.status(501);
     })
     .post("/purposeTemplates", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
