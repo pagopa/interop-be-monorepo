@@ -58,12 +58,41 @@ export async function handleDelegationMessageV2(
     )
     .with(
       {
+        type: P.union("ConsumerDelegationRevoked", "ProducerDelegationRevoked"),
+      },
+      async (msg): Promise<void> => {
+        if (!msg.data.delegation) {
+          return;
+        }
+        const delegation = fromDelegationV2(msg.data.delegation);
+        const [delegator, delegate, eservice] = await Promise.all([
+          retrieveTenantById(readModelService, delegation.delegatorId),
+          retrieveTenantById(readModelService, delegation.delegateId),
+          retrieveEserviceById(readModelService, delegation.eserviceId),
+        ]);
+
+        if (!delegator || !delegate || !eservice) {
+          throw new Error("Missing data to create revocation contract.");
+        }
+        await contractBuilder.createRevocationContract({
+          delegation,
+          delegator,
+          delegate,
+          eservice,
+          pdfGenerator,
+          fileManager,
+          config,
+          logger,
+        });
+        logger.info(`Delegation event ${msg.type} handled successfully`);
+      }
+    )
+    .with(
+      {
         type: P.union(
           "ConsumerDelegationRejected",
-          "ConsumerDelegationRevoked",
           "ConsumerDelegationSubmitted",
           "ProducerDelegationRejected",
-          "ProducerDelegationRevoked",
           "ProducerDelegationSubmitted"
         ),
       },
