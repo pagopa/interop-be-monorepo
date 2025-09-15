@@ -11,7 +11,7 @@ import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiEServiceTemplateRiskAnalysis } from "../../../src/api/eserviceTemplateApiConverter.js";
 
-describe("GET /eservices/:templateId/riskAnalyses/:riskAnalysisId router test", () => {
+describe("GET /eservices/:templateId/riskAnalyses router test", () => {
   const mockEServiceTemplate: eserviceTemplateApi.EServiceTemplate =
     getMockedApiEServiceTemplate();
   const mockApiEserviceTemplateRiskAnalysis1 =

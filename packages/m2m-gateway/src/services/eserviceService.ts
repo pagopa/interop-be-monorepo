@@ -454,7 +454,7 @@ export function eserviceServiceBuilder(
       logger.info(`Updating draft EService with id ${eserviceId}`);
 
       const response =
-        await clients.catalogProcessClient.patchUpdateEServiceById(seed, {
+        await clients.catalogProcessClient.patchUpdateDraftEServiceById(seed, {
           params: { eServiceId: eserviceId },
           headers,
         });
@@ -789,10 +789,6 @@ export function eserviceServiceBuilder(
         { data: eservice, metadata },
         unsafeBrandId(createdRiskAnalysisId)
       );
-
-      if (!createdRiskAnalysis) {
-        throw eserviceRiskAnalysisNotFound(eservice.id, createdRiskAnalysisId);
-      }
 
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
     },

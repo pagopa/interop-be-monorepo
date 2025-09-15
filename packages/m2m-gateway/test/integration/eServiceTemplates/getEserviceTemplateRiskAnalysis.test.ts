@@ -21,7 +21,7 @@ import {
 } from "../../mockUtils.js";
 import { eserviceTemplateRiskAnalysisNotFound } from "../../../src/model/errors.js";
 
-describe("getEserviceRiskAnalysis", () => {
+describe("getEserviceTemplateRiskAnalysis", () => {
   const mockEServiceTemplate: eserviceTemplateApi.EServiceTemplate =
     getMockedApiEServiceTemplate();
   const mockRiskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis =
