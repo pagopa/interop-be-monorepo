@@ -150,6 +150,23 @@ describe("createPurposeTemplate", () => {
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
 
+  it("should throw missingFreeOfChargeReason if isFreeOfCharge is false and freeOfChargeReason is provided", async () => {
+    const seed: purposeTemplateApi.PurposeTemplateSeed = {
+      ...purposeTemplateSeed,
+      purposeIsFreeOfCharge: false,
+      purposeFreeOfChargeReason: "Test reason",
+    };
+
+    expect(
+      purposeTemplateService.createPurposeTemplate(
+        seed,
+        getMockContext({
+          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(missingFreeOfChargeReason());
+  });
+
   it("should throw purposeTemplateNameConflict if a purpose template with same name already exists", async () => {
     const existingPurposeTemplate: PurposeTemplate = {
       ...mockPurposeTemplate,

@@ -20,6 +20,9 @@ export const assertConsistentFreeOfCharge = (
   if (isFreeOfCharge && !freeOfChargeReason) {
     throw missingFreeOfChargeReason();
   }
+  if (!isFreeOfCharge && freeOfChargeReason) {
+    throw missingFreeOfChargeReason();
+  }
 };
 
 export const assertPurposeTemplateTitleIsNotDuplicated = async ({
