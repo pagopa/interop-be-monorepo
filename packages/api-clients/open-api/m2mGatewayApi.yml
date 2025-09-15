@@ -8282,7 +8282,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update the quotas of an E-Service Template Version after its publication
-      description: Update the quotas of an E-Service Template Version in Published, Suspended, or Deprecated state
+      description: Update the quotas of an E-Service Template Version in Published or Suspended state      
       operationId: updatePublishedEServiceTemplateVersionQuotas
       requestBody:
         required: true

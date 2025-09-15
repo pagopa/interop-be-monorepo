@@ -31,11 +31,6 @@ export function eserviceTemplateServiceBuilder(
     headers: M2MGatewayAppContext["headers"],
     templateId: EServiceTemplateId
   ): Promise<WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>> =>
-    // console.log(
-    //   "Sto per chiamare retrieveEServiceTemplateById con templateId",
-    //   templateId
-    // );
-    // console.log("Ho chiamato retrieveEServiceTemplateById e ho ottenuto", x);
     await clients.eserviceTemplateProcessClient.getEServiceTemplateById({
       params: {
         templateId,
@@ -126,17 +121,15 @@ export function eserviceTemplateServiceBuilder(
         `Retrieving version ${versionId} of eservice template with id ${templateId}`
       );
 
-      const { data } =
-        await clients.eserviceTemplateProcessClient.getEServiceTemplateById({
-          headers,
-          params: { templateId },
-        });
+      const eserviceTemplate = await retrieveEServiceTemplateById(
+        headers,
+        templateId
+      );
 
-      const version = data.versions.find((v) => v.id === versionId);
-
-      if (!version) {
-        throw eserviceTemplateVersionNotFound(templateId, versionId);
-      }
+      const version = retrieveEServiceTemplateVersionById(
+        eserviceTemplate,
+        versionId
+      );
 
       return toM2MGatewayEServiceTemplateVersion(version);
     },
