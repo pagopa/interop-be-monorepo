@@ -144,12 +144,21 @@ describe("updatePublishedEServiceTemplateVersionQuotas", () => {
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    mockGetEServiceTemplate.mockImplementation(
-      mockPollingResponse(
-        mockEServiceTemplateProcessResponse,
-        config.defaultPollingMaxRetries + 1
-      )
-    );
+    mockGetEServiceTemplate
+      .mockResolvedValueOnce({
+        ...mockEServiceTemplateProcessResponse,
+        metadata: { version: 0 },
+      })
+      .mockResolvedValueOnce({
+        ...mockEServiceTemplateProcessResponse,
+        metadata: { version: 0 },
+      })
+      .mockImplementation(
+        mockPollingResponse(
+          mockEServiceTemplateProcessResponse,
+          config.defaultPollingMaxRetries + 1
+        )
+      );
     await expect(
       eserviceTemplateService.updatePublishedEServiceTemplateVersionQuotas(
         unsafeBrandId(mockEServiceTemplate.id),
@@ -164,7 +173,7 @@ describe("updatePublishedEServiceTemplateVersionQuotas", () => {
       )
     );
     expect(mockGetEServiceTemplate).toHaveBeenCalledTimes(
-      config.defaultPollingMaxRetries
+      config.defaultPollingMaxRetries + 1
     );
   });
 });

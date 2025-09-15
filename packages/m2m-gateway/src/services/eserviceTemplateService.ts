@@ -202,11 +202,11 @@ export function eserviceTemplateServiceBuilder(
             headers,
           }
         );
-      await pollEServiceTemplate(response, headers);
+      const polledResource = await pollEServiceTemplate(response, headers);
 
       return toM2MGatewayEServiceTemplateVersion(
         retrieveEServiceTemplateVersionById(
-          response,
+          polledResource,
           unsafeBrandId(templateVersionId)
         )
       );
