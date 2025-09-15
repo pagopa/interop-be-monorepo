@@ -27,7 +27,7 @@ import {
   getMockContext,
 } from "pagopa-interop-commons-test";
 import {
-  unassociationEServicesForPurposeTemplateFailed,
+  disassociationEServicesFromPurposeTemplateFailed,
   purposeTemplateNotFound,
   tooManyEServicesForPurposeTemplate,
   associationBetweenEServiceAndPurposeTemplateDoesNotExist,
@@ -173,7 +173,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         })
       )
     ).rejects.toThrowError(
-      unassociationEServicesForPurposeTemplateFailed(
+      disassociationEServicesFromPurposeTemplateFailed(
         [eserviceNotFound(nonExistentEServiceId)],
         [nonExistentEServiceId],
         purposeTemplate.id
@@ -261,7 +261,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         })
       )
     ).rejects.toThrowError(
-      unassociationEServicesForPurposeTemplateFailed(
+      disassociationEServicesFromPurposeTemplateFailed(
         [eserviceNotFound(nonExistentEServiceId)],
         [eService1.id, nonExistentEServiceId],
         purposeTemplate.id

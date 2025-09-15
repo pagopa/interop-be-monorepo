@@ -17,7 +17,7 @@ export const errorCodes = {
   associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0006",
   tooManyEServicesForPurposeTemplate: "0007",
   purposeTemplateNotInValidState: "0008",
-  unassociationEServicesForPurposeTemplateFailed: "0009",
+  disassociationEServicesFromPurposeTemplateFailed: "0009",
   associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0010",
 };
 
@@ -88,15 +88,15 @@ export function associationBetweenEServiceAndPurposeTemplateAlreadyExists(
   });
 }
 
-export function unassociationEServicesForPurposeTemplateFailed(
+export function disassociationEServicesFromPurposeTemplateFailed(
   reasons: PurposeTemplateValidationIssue[],
   eserviceIds: EServiceId[],
   purposeTemplateId: PurposeTemplateId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Unassociation of e-services from purpose template failed. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
-    code: "unassociationEServicesForPurposeTemplateFailed",
-    title: "Unassociation of e-services from purpose template failed",
+    detail: `Disassociation of e-services from purpose template failed. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "disassociationEServicesFromPurposeTemplateFailed",
+    title: "Disassociation of e-services from purpose template failed",
   });
 }
 

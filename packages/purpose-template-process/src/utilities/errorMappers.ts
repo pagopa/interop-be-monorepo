@@ -45,12 +45,12 @@ export const linkEservicesToPurposeTemplateErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const unassociationEServicesForPurposeTemplateErrorMapper = (
+export const disassociationEServicesForPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with(
-      "unassociationEServicesForPurposeTemplateFailed",
+      "disassociationEServicesFromPurposeTemplateFailed",
       "tooManyEServicesForPurposeTemplate",
       () => HTTP_STATUS_BAD_REQUEST
     )

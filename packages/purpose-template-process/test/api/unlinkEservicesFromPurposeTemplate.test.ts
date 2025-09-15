@@ -13,7 +13,8 @@ import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   tooManyEServicesForPurposeTemplate,
-  unassociationEServicesForPurposeTemplateFailed,
+  disassociationEServicesFromPurposeTemplateFailed,
+  purposeTemplateNotFound,
 } from "../../src/model/domain/errors.js";
 import { eserviceNotAssociatedError } from "../../src/errors/purposeTemplateValidationErrors.js";
 
@@ -137,12 +138,16 @@ describe("API POST /purposeTemplates/:id/unlinkEservices", () => {
       expectedStatus: 400,
     },
     {
-      error: unassociationEServicesForPurposeTemplateFailed(
+      error: disassociationEServicesFromPurposeTemplateFailed(
         [eserviceNotAssociatedError(eserviceIds[0], purposeTemplateId)],
         eserviceIds,
         purposeTemplateId
       ),
       expectedStatus: 400,
+    },
+    {
+      error: purposeTemplateNotFound(purposeTemplateId),
+      expectedStatus: 404,
     },
   ])(
     "Should return $expectedStatus for $error.code",

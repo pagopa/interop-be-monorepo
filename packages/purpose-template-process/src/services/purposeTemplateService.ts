@@ -22,11 +22,11 @@ import {
 import {
   associationEServicesForPurposeTemplateFailed,
   purposeTemplateNotFound,
-  unassociationEServicesForPurposeTemplateFailed,
+  disassociationEServicesFromPurposeTemplateFailed,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateEServiceLinked,
-  toCreateEventEServiceDescriptorUnlinked,
+  toCreateEventPurposeTemplateEServiceUnlinked,
   toCreateEventPurposeTemplateAdded,
 } from "../model/domain/toEvent.js";
 import {
@@ -241,10 +241,6 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      if (purposeTemplate === undefined) {
-        throw purposeTemplateNotFound(purposeTemplateId);
-      }
-
       const validationResult = await validateEServicesForPurposeTemplate(
         eserviceIds,
         purposeTemplateId,
@@ -253,7 +249,7 @@ export function purposeTemplateServiceBuilder(
       );
 
       if (validationResult.type === "invalid") {
-        throw unassociationEServicesForPurposeTemplateFailed(
+        throw disassociationEServicesFromPurposeTemplateFailed(
           validationResult.issues,
           eserviceIds,
           purposeTemplateId
@@ -274,7 +270,7 @@ export function purposeTemplateServiceBuilder(
 
           const version = purposeTemplate.metadata.version + index;
 
-          return toCreateEventEServiceDescriptorUnlinked(
+          return toCreateEventPurposeTemplateEServiceUnlinked(
             eServiceDescriptorPurposeTemplate,
             purposeTemplate.data,
             purposeTemplateValidationResult.eservice,

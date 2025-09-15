@@ -50,12 +50,12 @@ export function toCreateEventPurposeTemplateEServiceLinked(
   };
 }
 
-export function toCreateEventEServiceDescriptorUnlinked(
+export function toCreateEventPurposeTemplateEServiceUnlinked(
   eServiceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate,
   purposeTemplate: PurposeTemplate,
   eservice: EService,
   correlationId: CorrelationId,
-  version: number | undefined
+  version: number
 ): CreateEvent<PurposeTemplateEventV2> {
   return {
     streamId: eServiceDescriptorPurposeTemplate.purposeTemplateId,
