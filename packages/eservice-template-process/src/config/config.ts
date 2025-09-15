@@ -5,7 +5,6 @@ import {
   EventStoreConfig,
   S3Config,
   ApplicationAuditProducerConfig,
-  FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -30,7 +29,6 @@ const EServiceTemplateProcessConfig = CommonHTTPServiceConfig.and(
       }))
   )
   .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig.optional());
 
 export type EServiceTemplateProcessConfig = z.infer<

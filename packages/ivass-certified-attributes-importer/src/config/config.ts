@@ -1,6 +1,5 @@
 import {
   APIEndpoint,
-  FeatureFlagSQLConfig,
   FileManagerConfig,
   LoggerConfig,
   ReadModelDbConfig,
@@ -31,7 +30,6 @@ const IvassCertifiedAttributesImporterConfig = LoggerConfig.and(
         ivassTenantId: c.IVASS_TENANT_ID,
       }))
   )
-  .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig);
 
 export type IvassCertifiedAttributesImporterConfig = z.infer<

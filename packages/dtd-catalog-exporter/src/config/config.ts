@@ -1,5 +1,4 @@
 import {
-  FeatureFlagSQLConfig,
   FileManagerConfig,
   LoggerConfig,
   ReadModelDbConfig,
@@ -34,7 +33,6 @@ const DtdCatalogExporterConfig = ReadModelDbConfig.and(FileManagerConfig)
         githubRepoOwner: c.GITHUB_REPO_OWNER,
       }))
   )
-  .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig);
 
 export type DtdCatalogExporterConfig = z.infer<typeof DtdCatalogExporterConfig>;

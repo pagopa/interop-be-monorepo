@@ -5,7 +5,6 @@ import {
   S3Config,
   FileManagerConfig,
   ApplicationAuditProducerConfig,
-  FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
@@ -37,7 +36,6 @@ const DelegationProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
       }))
   )
   .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig);
 
 export type DelegationProcessConfig = z.infer<typeof DelegationProcessConfig>;

@@ -37,10 +37,6 @@ const csvDownloader = (): Promise<string> =>
     loggerInstance
   );
 
-const readModelClient = ReadModelRepository.init(config);
-const oldReadModelQueries: ReadModelQueries =
-  readModelQueriesBuilder(readModelClient);
-
 const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
 const tenantProcess = new TenantProcessService(config.tenantProcessUrl);
@@ -54,16 +50,9 @@ const readModelQueriesSQL = readModelQueriesBuilderSQL(
   attributeReadModelService
 );
 
-const readModelQueries =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelQueriesSQL
-    : oldReadModelQueries;
-
 await importAttributes(
   csvDownloader,
-  readModelQueries,
+  readModelQueriesSQL,
   tenantProcess,
   refreshableToken,
   config.recordsProcessBatchSize,

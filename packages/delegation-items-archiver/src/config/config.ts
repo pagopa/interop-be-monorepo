@@ -1,7 +1,6 @@
 import {
   APIEndpoint,
   DelegationTopicConfig,
-  FeatureFlagSQLConfig,
   KafkaConsumerConfig,
   ReadModelDbConfig,
   ReadModelSQLDbConfig,
@@ -25,7 +24,6 @@ const DelegationItemsArchiverConfig = APIProcessServerConfig.and(
   .and(TokenGenerationConfig)
   .and(KafkaConsumerConfig)
   .and(ReadModelDbConfig)
-  .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig.optional());
 
 export type DelegationItemsArchiverConfig = z.infer<

@@ -39,12 +39,6 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
 });
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 const service = delegationServiceBuilder(
   initDB({
@@ -56,7 +50,7 @@ const service = delegationServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService,
+  readModelServiceSQL,
   pdfGenerator,
   fileManager
 );

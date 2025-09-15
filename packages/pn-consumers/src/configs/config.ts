@@ -1,6 +1,5 @@
 import {
   AWSSesConfig,
-  FeatureFlagSQLConfig,
   LoggerConfig,
   ReadModelDbConfig,
   ReadModelSQLDbConfig,
@@ -9,7 +8,6 @@ import { z } from "zod";
 
 const PnConsumersConfig = LoggerConfig.and(ReadModelDbConfig)
   .and(AWSSesConfig)
-  .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig.optional())
   .and(
     z

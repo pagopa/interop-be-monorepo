@@ -26,15 +26,8 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   tenantReadModelService
 );
 
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
 await dtdCatalogExporterServiceBuilder({
-  readModelService,
+  readModelService: readModelServiceSQL,
   fileManager: initFileManager(config),
   loggerInstance: logger({
     serviceName: "dtd-catalog-exporter",

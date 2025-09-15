@@ -28,9 +28,6 @@ const agreementReadModelServiceSQL =
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   purposeReadModelServiceSQL,
@@ -39,12 +36,6 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
 });
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 const fileManager = initFileManager(config);
 const pdfGenerator = await initPDFGenerator();
@@ -59,7 +50,7 @@ const service = purposeServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService,
+  readModelServiceSQL,
   fileManager,
   pdfGenerator
 );
