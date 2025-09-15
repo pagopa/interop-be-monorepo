@@ -47,6 +47,7 @@ export const { cleanup, readModelDB, userDB } = await setupTestContainersVitest(
   inject("readModelSQLConfig"),
   undefined,
   undefined,
+  undefined,
   inject("userSQLConfig")
 );
 

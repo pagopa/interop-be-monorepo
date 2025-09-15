@@ -154,30 +154,6 @@ export async function setupTestContainersVitest(
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
   inAppNotificationDbConfig?: InAppNotificationDBConfig,
-  userDbConfig?: UserSQLDbConfig
-): Promise<{
-  readModelRepository: ReadModelRepository;
-  postgresDB: DB;
-  fileManager: FileManager;
-  pecEmailManager: EmailManagerPEC;
-  sesEmailManager: EmailManagerSES;
-  redisRateLimiter: RateLimiter;
-  readModelDB: DrizzleReturnType;
-  analyticsPostgresDB: DB;
-  inAppNotificationDB: DrizzleReturnType;
-  userDB: DrizzleReturnType;
-  cleanup: () => Promise<void>;
-}>;
-export async function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
-  eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config,
-  emailManagerConfig?: PecEmailManagerConfigTest,
-  redisRateLimiterConfig?: RedisRateLimiterConfig,
-  awsSESConfig?: AWSSesConfig,
-  readModelSQLDbConfig?: ReadModelSQLDbConfig,
-  analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
-  inAppNotificationDbConfig?: InAppNotificationDBConfig,
   m2mEventDbConfig?: M2MEventSQLDbConfig
 ): Promise<{
   readModelRepository: ReadModelRepository;
@@ -203,8 +179,8 @@ export async function setupTestContainersVitest(
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
   inAppNotificationDbConfig?: InAppNotificationDBConfig,
+  m2mEventDbConfig?: M2MEventSQLDbConfig,
   userDbConfig?: UserSQLDbConfig
-  m2mEventDbConfig?: M2MEventSQLDbConfig
 ): Promise<{
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
@@ -229,8 +205,8 @@ export async function setupTestContainersVitest(
   let readModelDB: DrizzleReturnType | undefined;
   let analyticsPostgresDB: DB | undefined;
   let inAppNotificationDB: DrizzleReturnType | undefined;
-  let userDB: DrizzleReturnType | undefined;
   let m2mEventDB: DrizzleReturnType | undefined;
+  let userDB: DrizzleReturnType | undefined;
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
   }
@@ -307,16 +283,6 @@ export async function setupTestContainersVitest(
     inAppNotificationDB = drizzle({ client: pool });
   }
 
-  if (userDbConfig) {
-    const pool = new pg.Pool({
-      user: userDbConfig.userSQLDbUsername,
-      password: userDbConfig.userSQLDbPassword,
-      host: userDbConfig.userSQLDbHost,
-      port: userDbConfig.userSQLDbPort,
-      database: userDbConfig.userSQLDbName,
-      ssl: userDbConfig.userSQLDbUseSSL,
-    });
-    userDB = drizzle({ client: pool });
   if (m2mEventDbConfig) {
     const pool = new pg.Pool({
       user: m2mEventDbConfig.m2mEventSQLDbUsername,
@@ -327,6 +293,18 @@ export async function setupTestContainersVitest(
       ssl: m2mEventDbConfig.m2mEventSQLDbUseSSL,
     });
     m2mEventDB = drizzle({ client: pool });
+  }
+
+  if (userDbConfig) {
+    const pool = new pg.Pool({
+      user: userDbConfig.userSQLDbUsername,
+      password: userDbConfig.userSQLDbPassword,
+      host: userDbConfig.userSQLDbHost,
+      port: userDbConfig.userSQLDbPort,
+      database: userDbConfig.userSQLDbName,
+      ssl: userDbConfig.userSQLDbUseSSL,
+    });
+    userDB = drizzle({ client: pool });
   }
 
   return {
