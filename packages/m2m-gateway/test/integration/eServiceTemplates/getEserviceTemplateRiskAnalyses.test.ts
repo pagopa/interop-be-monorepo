@@ -16,7 +16,7 @@ import {
   testToM2MEServiceRiskAnalysisAnswers,
 } from "../../mockUtils.js";
 
-describe("getEserviceRiskAnalyses", () => {
+describe("getEserviceTemplateRiskAnalyses", () => {
   const mockRiskAnalysis1: eserviceTemplateApi.EServiceTemplateRiskAnalysis =
     getMockedApiEServiceTemplate().riskAnalysis[0]!;
   const mockRiskAnalysis2: eserviceTemplateApi.EServiceTemplateRiskAnalysis =

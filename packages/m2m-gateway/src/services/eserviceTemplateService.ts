@@ -198,7 +198,6 @@ export function eserviceTemplateServiceBuilder(
 
       const paginated = eserviceTemplate.riskAnalysis.slice(
         offset,
-        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         offset + limit
       );
 

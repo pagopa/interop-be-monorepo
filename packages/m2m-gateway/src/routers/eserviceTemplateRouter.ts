@@ -222,7 +222,7 @@ const eserviceTemplateRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error retrieving risk analyses for eservice with id ${req.params.templateId}`
+          `Error retrieving risk analyses for eservice template with id ${req.params.templateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
