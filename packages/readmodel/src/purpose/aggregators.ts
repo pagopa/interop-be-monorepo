@@ -172,7 +172,8 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
       ...(creationStampSQL
         ? {
             stamps: {
-              creation: purposeVersionStampSQLtoStamp(creationStampSQL),
+              creation:
+                purposeVersionStampSQLtoPurposeVersionStamp(creationStampSQL),
             },
           }
         : {}),
@@ -296,7 +297,7 @@ const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
   };
 };
 
-const purposeVersionStampSQLtoStamp = (
+const purposeVersionStampSQLtoPurposeVersionStamp = (
   stampSQL: PurposeVersionStampSQL
 ): PurposeVersionStamp => ({
   who: unsafeBrandId(stampSQL.who),
