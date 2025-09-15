@@ -26,9 +26,9 @@ import {
   unexpectedRiskAnalysisTemplateDependencyValueError,
   unexpectedRiskAnalysisTemplateFieldError,
   unexpectedRiskAnalysisTemplateFieldValueError,
-  unexpectedTemplateFieldValueOrSuggestionError,
   unexpectedRiskAnalysisTemplateRulesVersionError,
   validTemplateResult,
+  unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError,
 } from "./riskAnalysisTemplateValidationErrors.js";
 
 /*
@@ -279,7 +279,9 @@ function validateNonFreeTextAnswer(
   }
 
   if (hasSuggestions || !hasValues) {
-    return [unexpectedTemplateFieldValueOrSuggestionError(rule.fieldName)];
+    return [
+      unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(rule.fieldName),
+    ];
   }
 
   return [];
