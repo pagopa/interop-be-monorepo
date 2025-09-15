@@ -176,13 +176,6 @@ export function eserviceTemplateServiceBuilder(
         unsafeBrandId(createdRiskAnalysisId)
       );
 
-      if (!createdRiskAnalysis) {
-        throw eserviceTemplateRiskAnalysisNotFound(
-          eserviceTemplate.id,
-          createdRiskAnalysisId
-        );
-      }
-
       return toM2MGatewayApiEServiceTemplateRiskAnalysis(createdRiskAnalysis);
     },
 
@@ -205,7 +198,6 @@ export function eserviceTemplateServiceBuilder(
 
       const paginated = eserviceTemplate.riskAnalysis.slice(
         offset,
-        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         offset + limit
       );
 
@@ -274,6 +266,25 @@ export function eserviceTemplateServiceBuilder(
       );
 
       return toM2MGatewayApiEServiceTemplateRiskAnalysis(riskAnalysis);
+    },
+
+    async updateDraftEServiceTemplate(
+      templateId: EServiceTemplateId,
+      seed: m2mGatewayApi.EServiceTemplateDraftUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplate> {
+      logger.info(`Updating draft EService Template with id ${templateId}`);
+
+      const response =
+        await clients.eserviceTemplateProcessClient.patchUpdateDraftEServiceTemplate(
+          seed,
+          {
+            params: { templateId },
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplate(response, headers);
+      return toM2MGatewayEServiceTemplate(polledResource.data);
     },
   };
 }
