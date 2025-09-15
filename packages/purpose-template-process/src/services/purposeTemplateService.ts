@@ -6,6 +6,7 @@ import {
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
   ListResult,
+  PurposeTemplateState,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -25,6 +26,7 @@ import {
 import {
   toCreateEventPurposeTemplateAdded,
   toCreateEventPurposeTemplatePublished,
+  toCreateEventPurposeTemplateUnsuspended,
 } from "../model/domain/toEvent.js";
 import {
   GetPurposeTemplatesFilters,
@@ -32,7 +34,7 @@ import {
 } from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
-  assertPublishableState,
+  assertActivatableState,
   assertPurposeTemplateTitleIsNotDuplicated,
   assertRequesterIsCreator,
   validateAndTransformRiskAnalysisTemplate,
@@ -162,51 +164,93 @@ export function purposeTemplateServiceBuilder(
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Publishing purpose template ${id}`);
 
-      const purposeTemplate = await retrievePurposeTemplate(
+      const updatedPurposeTemplate = await activatePurposeTemplate(
         id,
+        purposeTemplateState.draft,
+        authData,
         readModelService
       );
 
-      const purposeRiskAnalysisForm =
-        purposeTemplate.data.purposeRiskAnalysisForm;
-
-      if (!purposeRiskAnalysisForm) {
-        throw missingRiskAnalysisFormTemplate(purposeTemplate.data.id);
-      }
-
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
-      assertPublishableState(purposeTemplate.data);
-
-      validateRiskAnalysisTemplateOrThrow({
-        riskAnalysisFormTemplate:
-          riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
-            purposeRiskAnalysisForm
-          ),
-        tenantKind: purposeTemplate.data.targetTenantKind,
-      });
-
-      const updatedPurposeTemplate: PurposeTemplate = {
-        ...purposeTemplate.data,
-        state: purposeTemplateState.active,
-        updatedAt: new Date(),
-      };
-
       const createdEvent = await repository.createEvent(
         toCreateEventPurposeTemplatePublished({
-          purposeTemplate: updatedPurposeTemplate,
-          version: purposeTemplate.metadata.version,
+          purposeTemplate: updatedPurposeTemplate.data,
+          version: updatedPurposeTemplate.metadata.version,
           correlationId,
         })
       );
 
       return {
-        data: updatedPurposeTemplate,
+        data: updatedPurposeTemplate.data,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
+    async unsuspendPurposeTemplate(
+      id: PurposeTemplateId,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeTemplate>> {
+      logger.info(`Unsuspending purpose template ${id}`);
+
+      const updatedPurposeTemplate = await activatePurposeTemplate(
+        id,
+        purposeTemplateState.suspended,
+        authData,
+        readModelService
+      );
+
+      const createdEvent = await repository.createEvent(
+        toCreateEventPurposeTemplateUnsuspended({
+          purposeTemplate: updatedPurposeTemplate.data,
+          version: updatedPurposeTemplate.metadata.version,
+          correlationId,
+        })
+      );
+
+      return {
+        data: updatedPurposeTemplate.data,
         metadata: { version: createdEvent.newVersion },
       };
     },
   };
 }
-
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;
+
+async function activatePurposeTemplate(
+  id: PurposeTemplateId,
+  allowedState: PurposeTemplateState,
+  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">,
+  readModelService: ReadModelServiceSQL
+): Promise<WithMetadata<PurposeTemplate>> {
+  const purposeTemplate = await retrievePurposeTemplate(id, readModelService);
+
+  const purposeRiskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
+
+  if (!purposeRiskAnalysisForm) {
+    throw missingRiskAnalysisFormTemplate(purposeTemplate.data.id);
+  }
+
+  assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+  assertActivatableState(purposeTemplate.data, allowedState);
+
+  validateRiskAnalysisTemplateOrThrow({
+    riskAnalysisFormTemplate:
+      riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
+        purposeRiskAnalysisForm
+      ),
+    tenantKind: purposeTemplate.data.targetTenantKind,
+  });
+
+  return {
+    data: {
+      ...purposeTemplate.data,
+      state: purposeTemplateState.active,
+      updatedAt: new Date(),
+    },
+    metadata: purposeTemplate.metadata,
+  };
+}
