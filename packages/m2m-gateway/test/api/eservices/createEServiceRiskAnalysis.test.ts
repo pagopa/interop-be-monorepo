@@ -59,7 +59,7 @@ describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
         mockRiskAnalysisSeed
       );
 
-      expect(res.status).toBe(201);
+      expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MEserviceResponse);
     }
   );

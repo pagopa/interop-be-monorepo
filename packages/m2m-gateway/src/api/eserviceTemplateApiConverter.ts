@@ -1,4 +1,5 @@
 import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { toM2MGatewayApiRiskAnalysisForm } from "./riskAnalysisFormApiConverter.js";
 
 export function toM2MGatewayEServiceTemplate(
   template: eserviceTemplateApi.EServiceTemplate
@@ -47,48 +48,6 @@ export function toM2MGatewayApiEServiceTemplateRiskAnalysis(
   };
 }
 
-export function toM2MGatewayApiRiskAnalysisForm(
-  riskAnalysisForm: eserviceTemplateApi.EServiceRiskAnalysisForm
-): m2mGatewayApi.RiskAnalysisForm {
-  return {
-    id: riskAnalysisForm.id,
-    version: riskAnalysisForm.version,
-    answers: toM2MGatewayApiRiskAnalysisAnswers(
-      riskAnalysisForm.singleAnswers,
-      riskAnalysisForm.multiAnswers
-    ),
-  };
-}
-
-export function toM2MGatewayApiRiskAnalysisAnswers(
-  singleAnswers: eserviceTemplateApi.EServiceRiskAnalysisSingleAnswer[],
-  multiAnswers: eserviceTemplateApi.EServiceRiskAnalysisMultiAnswer[]
-): Record<string, string[]> {
-  const singleAnswersMap = singleAnswers.reduce<Record<string, string[]>>(
-    (map, { key, value }) => {
-      if (!value) {
-        return map;
-      }
-      return { ...map, [key]: [value] };
-    },
-    {}
-  );
-
-  const multiAnswersMap = multiAnswers.reduce<Record<string, string[]>>(
-    (map, { key, values }) => {
-      if (values.length === 0) {
-        return map;
-      }
-      return { ...map, [key]: values };
-    },
-    {}
-  );
-
-  return {
-    ...singleAnswersMap,
-    ...multiAnswersMap,
-  };
-}
 export function toGetEServiceTemplatesQueryParams(
   params: m2mGatewayApi.GetEServiceTemplatesQueryParams
 ): eserviceTemplateApi.GetEServiceTemplatesQueryParams {
