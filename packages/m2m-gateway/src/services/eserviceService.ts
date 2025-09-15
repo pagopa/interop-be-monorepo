@@ -11,7 +11,6 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   toGetEServicesQueryParams,
-  toM2MGatewayApiDocument,
   toM2MGatewayApiEService,
   toM2MGatewayApiEServiceDescriptor,
   toCatalogApiEServiceDescriptorSeed,
@@ -34,6 +33,7 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
+import { toM2MGatewayApiDocument } from "../api/documentApiConverter.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 

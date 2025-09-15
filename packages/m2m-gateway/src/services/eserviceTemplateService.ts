@@ -23,6 +23,7 @@ import {
   pollResourceWithMetadata,
   isPolledVersionAtLeastResponseVersion,
 } from "../utils/polling.js";
+import { toM2MGatewayApiDocument } from "../api/documentApiConverter.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
@@ -60,6 +61,24 @@ export function eserviceTemplateServiceBuilder(
       },
       headers,
     });
+
+  const retrieveEServiceTemplateVersionById = (
+    eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
+    versionId: EServiceTemplateVersionId
+  ): eserviceTemplateApi.EServiceTemplateVersion => {
+    const version = eserviceTemplate.data.versions.find(
+      (v) => v.id === versionId
+    );
+
+    if (!version) {
+      throw eserviceTemplateVersionNotFound(
+        unsafeBrandId(eserviceTemplate.data.id),
+        versionId
+      );
+    }
+
+    return version;
+  };
 
   const pollEServiceTemplate = (
     response: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
@@ -236,6 +255,41 @@ export function eserviceTemplateServiceBuilder(
         );
       const polledResource = await pollEServiceTemplate(response, headers);
       return toM2MGatewayEServiceTemplate(polledResource.data);
+    },
+
+    async getEServiceTemplateVersionDocuments(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      {
+        offset,
+        limit,
+      }: m2mGatewayApi.GetEServiceTemplateVersionDocumentsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Documents> {
+      logger.info(
+        `Retrieving documents for eservice template version with id ${versionId} for eservice with id ${templateId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplateById(
+        headers,
+        templateId
+      );
+
+      const documents = retrieveEServiceTemplateVersionById(
+        eserviceTemplate,
+        versionId
+      ).docs;
+
+      const paginatedDocs = documents.slice(offset, offset + limit);
+
+      return {
+        results: paginatedDocs.map(toM2MGatewayApiDocument),
+        pagination: {
+          limit,
+          offset,
+          totalCount: documents.length,
+        },
+      };
     },
   };
 }

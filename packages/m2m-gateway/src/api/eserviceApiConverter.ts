@@ -62,18 +62,6 @@ export function toM2MGatewayApiEServiceDescriptor(
   };
 }
 
-export function toM2MGatewayApiDocument(
-  document: catalogApi.EServiceDoc
-): m2mGatewayApi.Document {
-  return {
-    id: document.id,
-    name: document.name,
-    prettyName: document.prettyName,
-    createdAt: document.uploadDate,
-    contentType: document.contentType,
-  };
-}
-
 export function toCatalogApiEServiceDescriptorSeed(
   descriptor: m2mGatewayApi.EServiceDescriptorSeed
 ): catalogApi.EServiceDescriptorSeed {

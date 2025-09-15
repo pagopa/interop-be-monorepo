@@ -7,12 +7,16 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { DescriptorId, EServiceId, generateId } from "pagopa-interop-models";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
+import {
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
+  generateId,
+} from "pagopa-interop-models";
+import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiDocument } from "../../../src/api/documentApiConverter.js";
 
-describe("GET /eservices/:eserviceId/descriptor/:descriptorId/documents route test", () => {
+describe("GET /eserviceTemplates/:templateId/descriptor/:versionId/documents route test", () => {
   const mockResponse: m2mGatewayApi.Documents = {
     results: [getMockedApiEserviceDoc(), getMockedApiEserviceDoc()].map(
       toM2MGatewayApiDocument
@@ -26,13 +30,13 @@ describe("GET /eservices/:eserviceId/descriptor/:descriptorId/documents route te
 
   const makeRequest = async (
     token: string,
-    eserviceId: EServiceId,
-    descriptorId: DescriptorId,
-    query: m2mGatewayApi.GetEServiceDescriptorDocumentsQueryParams
+    templateId: EServiceTemplateId,
+    versionId: EServiceTemplateVersionId,
+    query: m2mGatewayApi.GetEServiceTemplateVersionDocumentsQueryParams
   ) =>
     request(api)
       .get(
-        `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/documents`
+        `${appBasePath}/eserviceTemplates/${templateId}/versions/${versionId}/documents`
       )
       .query(query)
       .set("Authorization", `Bearer ${token}`);
@@ -42,7 +46,7 @@ describe("GET /eservices/:eserviceId/descriptor/:descriptorId/documents route te
     authRole.M2M_ADMIN_ROLE,
   ];
 
-  const mockQueryParams: m2mGatewayApi.GetEServiceDescriptorDocumentsQueryParams =
+  const mockQueryParams: m2mGatewayApi.GetEServiceTemplateVersionDocumentsQueryParams =
     {
       offset: 0,
       limit: 10,
@@ -51,7 +55,7 @@ describe("GET /eservices/:eserviceId/descriptor/:descriptorId/documents route te
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockEserviceService.getEServiceDescriptorDocuments = vi
+      mockEServiceTemplateService.getEServiceTemplateVersionDocuments = vi
         .fn()
         .mockResolvedValue(mockResponse);
 
@@ -81,11 +85,11 @@ describe("GET /eservices/:eserviceId/descriptor/:descriptorId/documents route te
     expect(res.status).toBe(403);
   });
 
-  it("should return 400 if passed an invalid eservice id", async () => {
+  it("should return 400 if passed an invalid eservice template id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      "invalidEServiceId" as EServiceId,
+      "invalidEServiceId" as EServiceTemplateId,
       generateId(),
       mockQueryParams
     );
@@ -105,7 +109,7 @@ describe("GET /eservices/:eserviceId/descriptor/:descriptorId/documents route te
       token,
       generateId(),
       generateId(),
-      query as unknown as m2mGatewayApi.GetEServiceDescriptorDocumentsQueryParams
+      query as unknown as m2mGatewayApi.GetEServiceTemplateVersionDocumentsQueryParams
     );
 
     expect(res.status).toBe(400);
@@ -135,7 +139,7 @@ describe("GET /eservices/:eserviceId/descriptor/:descriptorId/documents route te
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockEserviceService.getEServiceDescriptorDocuments = vi
+      mockEServiceTemplateService.getEServiceTemplateVersionDocuments = vi
         .fn()
         .mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
