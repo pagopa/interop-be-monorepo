@@ -366,7 +366,7 @@ function validateEServiceDescriptors(validEservices: EService[]): {
   return { validationIssues, validEServiceDescriptorPairs };
 }
 
-async function validateEservicesAssociations(
+export async function validateEservicesAssociations(
   eserviceIds: EServiceId[],
   purposeTemplateId: PurposeTemplateId,
   readModelService: ReadModelServiceSQL
@@ -414,7 +414,7 @@ async function validateEservicesAssociations(
   return validPurposeTemplateResult(validEServiceDescriptorPairs);
 }
 
-async function validateEservicesDisassociations(
+export async function validateEservicesDisassociations(
   eserviceIds: EServiceId[],
   purposeTemplateId: PurposeTemplateId,
   readModelService: ReadModelServiceSQL
@@ -460,32 +460,4 @@ async function validateEservicesDisassociations(
   }
 
   return validPurposeTemplateResult(validEServiceDescriptorPairs);
-}
-
-export async function validateEServicesForPurposeTemplate(
-  eserviceIds: EServiceId[],
-  purposeTemplateId: PurposeTemplateId,
-  operationType: "link" | "unlink",
-  readModelService: ReadModelServiceSQL
-): Promise<
-  PurposeTemplateValidationResult<
-    Array<{ eservice: EService; descriptorId: DescriptorId }>
-  >
-> {
-  return match(operationType)
-    .with("link", () =>
-      validateEservicesAssociations(
-        eserviceIds,
-        purposeTemplateId,
-        readModelService
-      )
-    )
-    .with("unlink", () =>
-      validateEservicesDisassociations(
-        eserviceIds,
-        purposeTemplateId,
-        readModelService
-      )
-    )
-    .exhaustive();
 }

@@ -40,7 +40,8 @@ import {
   assertPurposeTemplateTitleIsNotDuplicated,
   assertRequesterPurposeTemplateCreator,
   validateAndTransformRiskAnalysisTemplate,
-  validateEServicesForPurposeTemplate,
+  validateEservicesAssociations,
+  validateEservicesDisassociations,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -174,10 +175,9 @@ export function purposeTemplateServiceBuilder(
         authData
       );
 
-      const validationResult = await validateEServicesForPurposeTemplate(
+      const validationResult = await validateEservicesAssociations(
         eserviceIds,
         purposeTemplateId,
-        "link",
         readModelService
       );
 
@@ -241,10 +241,9 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      const validationResult = await validateEServicesForPurposeTemplate(
+      const validationResult = await validateEservicesDisassociations(
         eserviceIds,
         purposeTemplateId,
-        "unlink",
         readModelService
       );
 
