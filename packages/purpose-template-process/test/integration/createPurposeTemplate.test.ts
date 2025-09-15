@@ -134,27 +134,98 @@ describe("createPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
+  it("should write on event-store for the creation of a purpose template with free of charge false", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const seedWithFreeOfChargeFalse: purposeTemplateApi.PurposeTemplateSeed = {
+      ...purposeTemplateSeed,
+      purposeIsFreeOfCharge: false,
+      purposeFreeOfChargeReason: undefined,
+    };
+
+    const createPurposeTemplateResponse =
+      await purposeTemplateService.createPurposeTemplate(
+        seedWithFreeOfChargeFalse,
+        getMockContext({
+          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+        })
+      );
+
+    const writtenEvent = await readLastPurposeTemplateEvent(
+      createPurposeTemplateResponse.data.id
+    );
+
+    if (!writtenEvent) {
+      fail("Creation failed: purpose template not found in event-store");
+    }
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: createPurposeTemplateResponse.data.id,
+      version: "0",
+      type: "PurposeTemplateAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeTemplateAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedRiskAnalysisForm: RiskAnalysisFormTemplate = {
+      ...mockValidRiskAnalysisTemplateForm,
+      id: unsafeBrandId(
+        createPurposeTemplateResponse.data.purposeRiskAnalysisForm!.id
+      ),
+      singleAnswers: mockValidRiskAnalysisTemplateForm.singleAnswers.map(
+        // eslint-disable-next-line sonarjs/no-identical-functions
+        (answer, i) => ({
+          ...answer,
+          id: createPurposeTemplateResponse.data.purposeRiskAnalysisForm!
+            .singleAnswers[i].id,
+        })
+      ),
+      multiAnswers: mockValidRiskAnalysisTemplateForm.multiAnswers.map(
+        // eslint-disable-next-line sonarjs/no-identical-functions
+        (answer, i) => ({
+          ...answer,
+          id: createPurposeTemplateResponse.data.purposeRiskAnalysisForm!
+            .multiAnswers[i].id,
+        })
+      ),
+    };
+
+    const expectedPurposeTemplate: PurposeTemplate = {
+      id: unsafeBrandId(createPurposeTemplateResponse.data.id),
+      createdAt: new Date(),
+      targetDescription: seedWithFreeOfChargeFalse.targetDescription,
+      targetTenantKind: seedWithFreeOfChargeFalse.targetTenantKind,
+      creatorId: unsafeBrandId(mockPurposeTemplate.creatorId),
+      state: purposeTemplateState.draft,
+      purposeTitle: seedWithFreeOfChargeFalse.purposeTitle,
+      purposeDescription: seedWithFreeOfChargeFalse.purposeDescription,
+      purposeRiskAnalysisForm: expectedRiskAnalysisForm,
+      purposeIsFreeOfCharge: seedWithFreeOfChargeFalse.purposeIsFreeOfCharge,
+      purposeFreeOfChargeReason:
+        seedWithFreeOfChargeFalse.purposeFreeOfChargeReason,
+      purposeDailyCalls: seedWithFreeOfChargeFalse.purposeDailyCalls,
+    };
+
+    expect(writtenPayload).toEqual({
+      purposeTemplate: toPurposeTemplateV2(expectedPurposeTemplate),
+    });
+    expect(createPurposeTemplateResponse).toEqual({
+      data: expectedPurposeTemplate,
+      metadata: { version: 0 },
+    });
+
+    vi.useRealTimers();
+  });
+
   it("should throw missingFreeOfChargeReason if isFreeOfCharge is true and freeOfChargeReason is empty", async () => {
     const seed: purposeTemplateApi.PurposeTemplateSeed = {
       ...purposeTemplateSeed,
       purposeFreeOfChargeReason: undefined,
-    };
-
-    expect(
-      purposeTemplateService.createPurposeTemplate(
-        seed,
-        getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
-        })
-      )
-    ).rejects.toThrowError(missingFreeOfChargeReason());
-  });
-
-  it("should throw missingFreeOfChargeReason if isFreeOfCharge is false and freeOfChargeReason is provided", async () => {
-    const seed: purposeTemplateApi.PurposeTemplateSeed = {
-      ...purposeTemplateSeed,
-      purposeIsFreeOfCharge: false,
-      purposeFreeOfChargeReason: "Test reason",
     };
 
     expect(
