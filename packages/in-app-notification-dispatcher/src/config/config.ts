@@ -6,8 +6,8 @@ import {
   DelegationTopicConfig,
   ReadModelSQLDbConfig,
   InAppNotificationDBConfig,
-  AttributeTopicConfig,
   AuthorizationTopicConfig,
+  TenantTopicConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -17,7 +17,7 @@ export const InAppNotificationDispatcherConfig = KafkaConsumerConfig.and(
   .and(PurposeTopicConfig)
   .and(CatalogTopicConfig)
   .and(DelegationTopicConfig)
-  .and(AttributeTopicConfig)
+  .and(TenantTopicConfig)
   .and(AuthorizationTopicConfig)
   .and(InAppNotificationDBConfig)
   .and(ReadModelSQLDbConfig);

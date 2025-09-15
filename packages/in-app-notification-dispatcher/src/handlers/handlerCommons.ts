@@ -2,6 +2,8 @@ import {
   EService,
   Descriptor,
   descriptorState,
+  Attribute,
+  AttributeId,
   Tenant,
   TenantId,
   EServiceId,
@@ -11,6 +13,7 @@ import {
 
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import {
+  attributeNotFound,
   descriptorPublishedNotFound,
   eserviceNotFound,
   purposeNotFound,
@@ -61,4 +64,15 @@ export async function retrievePurpose(
     throw purposeNotFound(purposeId);
   }
   return purpose;
+}
+
+export async function retrieveAttribute(
+  attributeId: AttributeId,
+  readModelService: ReadModelServiceSQL
+): Promise<Attribute> {
+  const attribute = await readModelService.getAttributeById(attributeId);
+  if (!attribute) {
+    throw attributeNotFound(attributeId);
+  }
+  return attribute;
 }
