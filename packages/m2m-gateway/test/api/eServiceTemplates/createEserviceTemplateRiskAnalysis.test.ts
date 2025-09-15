@@ -1,46 +1,49 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
-  getMockValidRiskAnalysis,
-  getMockedApiEservice,
+  getMockValidEServiceTemplateRiskAnalysis,
+  getMockedApiEServiceTemplate,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   generateId,
   pollingMaxRetriesExceeded,
   tenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
+import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   eserviceRiskAnalysisNotFound,
   missingMetadata,
 } from "../../../src/model/errors.js";
-import { buildRiskAnalysisSeed } from "../../mockUtils.js";
-import { toM2MGatewayApiEServiceRiskAnalysis } from "../../../src/api/eserviceApiConverter.js";
 import { config } from "../../../src/config/config.js";
+import { toM2MGatewayApiEServiceTemplateRiskAnalysis } from "../../../src/api/eserviceTemplateApiConverter.js";
+import { buildEserviceTemplateRiskAnalysisSeed } from "../../mockUtils.js";
 
-describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
-  const mockRiskAnalysisSeed: m2mGatewayApi.EServiceRiskAnalysisSeed =
-    buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA));
+describe("POST /eserviceTemplates/:templateId/riskAnalyses router test", () => {
+  const mockRiskAnalysisSeed: m2mGatewayApi.EServiceTemplateRiskAnalysisSeed =
+    buildEserviceTemplateRiskAnalysisSeed(
+      getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
+    );
 
-  const mockEService: catalogApi.EService = getMockedApiEservice();
-  const mockRiskAnalysis: catalogApi.EServiceRiskAnalysis =
-    mockEService.riskAnalysis[0]!;
+  const mockEServiceTemplate: eserviceTemplateApi.EServiceTemplate =
+    getMockedApiEServiceTemplate();
+  const mockRiskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis =
+    mockEServiceTemplate.riskAnalysis[0]!;
 
-  const mockM2MEserviceResponse: m2mGatewayApi.EServiceRiskAnalysis =
-    toM2MGatewayApiEServiceRiskAnalysis(mockRiskAnalysis);
+  const mockM2MEserviceResponse: m2mGatewayApi.EServiceTemplateRiskAnalysis =
+    toM2MGatewayApiEServiceTemplateRiskAnalysis(mockRiskAnalysis);
 
   const makeRequest = async (
     token: string,
-    eserviceId: string,
-    body: m2mGatewayApi.EServiceRiskAnalysisSeed
+    templateId: string,
+    body: m2mGatewayApi.EServiceTemplateRiskAnalysisSeed
   ) =>
     request(api)
-      .post(`${appBasePath}/eservices/${eserviceId}/riskAnalyses`)
+      .post(`${appBasePath}/eserviceTemplates/${templateId}/riskAnalyses`)
       .set("Authorization", `Bearer ${token}`)
       .send(body);
 
@@ -48,14 +51,14 @@ describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
   it.each(authorizedRoles)(
     "Should return 201 and perform service calls for user with role %s",
     async (role) => {
-      mockEserviceService.createEServiceRiskAnalysis = vi
+      mockEServiceTemplateService.createEServiceTemplateRiskAnalysis = vi
         .fn()
         .mockResolvedValue(mockM2MEserviceResponse);
 
       const token = generateToken(role);
       const res = await makeRequest(
         token,
-        mockEService.id,
+        mockEServiceTemplate.id,
         mockRiskAnalysisSeed
       );
 
@@ -68,7 +71,11 @@ describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockEService.id, mockRiskAnalysisSeed);
+    const res = await makeRequest(
+      token,
+      mockEServiceTemplate.id,
+      mockRiskAnalysisSeed
+    );
     expect(res.status).toBe(403);
   });
 
@@ -80,8 +87,8 @@ describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      mockEService.id,
-      body as unknown as m2mGatewayApi.EServiceRiskAnalysisSeed
+      mockEServiceTemplate.id,
+      body as unknown as m2mGatewayApi.EServiceTemplateRiskAnalysisSeed
     );
 
     expect(res.status).toBe(400);
@@ -93,13 +100,20 @@ describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
       config.defaultPollingMaxRetries,
       config.defaultPollingRetryDelay
     ),
-    eserviceRiskAnalysisNotFound(unsafeBrandId(mockEService.id), generateId()),
+    eserviceRiskAnalysisNotFound(
+      unsafeBrandId(mockEServiceTemplate.id),
+      generateId()
+    ),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockEserviceService.createEServiceRiskAnalysis = vi
+    mockEServiceTemplateService.createEServiceTemplateRiskAnalysis = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockEService.id, mockRiskAnalysisSeed);
+    const res = await makeRequest(
+      token,
+      mockEServiceTemplate.id,
+      mockRiskAnalysisSeed
+    );
 
     expect(res.status).toBe(500);
   });
@@ -112,13 +126,13 @@ describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockEserviceService.createEServiceRiskAnalysis = vi
+      mockEServiceTemplateService.createEServiceTemplateRiskAnalysis = vi
         .fn()
         .mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        mockEService.id,
+        mockEServiceTemplate.id,
         mockRiskAnalysisSeed
       );
 

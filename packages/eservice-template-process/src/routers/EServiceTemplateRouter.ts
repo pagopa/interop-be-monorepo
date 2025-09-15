@@ -549,14 +549,24 @@ const eserviceTemplatesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        await eserviceTemplateService.createRiskAnalysis(
+        const {
+          data: { eserviceTemplate, createdRiskAnalysisId },
+          metadata,
+        } = await eserviceTemplateService.createRiskAnalysis(
           unsafeBrandId(req.params.templateId),
           req.body,
           ctx
         );
-        return res.status(204).send();
+        setMetadataVersionHeader(res, metadata);
+        return res.status(200).send(
+          eserviceTemplateApi.CreatedEServiceTemplateRiskAnalysis.parse({
+            eserviceTemplate:
+              eserviceTemplateToApiEServiceTemplate(eserviceTemplate),
+            createdRiskAnalysisId,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
