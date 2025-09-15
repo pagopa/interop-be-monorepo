@@ -17,12 +17,12 @@ import {
 import {
   invalidTemplateResult,
   malformedTemplateFieldValueOrSuggestionError,
-  missingExpectedTemplateField,
+  missingExpectedTemplateFieldError,
   noRulesVersionTemplateFoundError,
   RiskAnalysisTemplateValidationIssue,
   RiskAnalysisTemplateValidationResult,
-  templateDependencyNotFound,
-  unexpectedTemplateDependencyEditable,
+  templateDependencyNotFoundError,
+  unexpectedTemplateDependencyEditableError,
   unexpectedTemplateDependencyValueError,
   unexpectedTemplateFieldError,
   unexpectedTemplateFieldValueError,
@@ -142,7 +142,7 @@ function findMissingRequiredFields(
         );
 
         return depsSatisfied
-          ? [missingExpectedTemplateField(rule.fieldName)]
+          ? [missingExpectedTemplateFieldError(rule.fieldName)]
           : [];
       }
       return [];
@@ -277,10 +277,10 @@ function validateAnswerDependency(
 ): RiskAnalysisTemplateValidationIssue[] {
   return match(answers[dependency.fieldName])
     .with(P.nullish, () => [
-      templateDependencyNotFound(dependentField, dependency.fieldName),
+      templateDependencyNotFoundError(dependentField, dependency.fieldName),
     ])
     .with({ editable: true }, () => [
-      unexpectedTemplateDependencyEditable(
+      unexpectedTemplateDependencyEditableError(
         dependentField,
         dependency.fieldName
       ),
