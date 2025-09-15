@@ -566,12 +566,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
 components:
   headers:
     MetadataVersionHeader:

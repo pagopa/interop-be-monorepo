@@ -22,6 +22,7 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import {
   createPurposeTemplateErrorMapper,
   getPurposeTemplatesErrorMapper,
+  publishPurposeTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   apiPurposeTemplateStateToPurposeTemplateState,
@@ -227,12 +228,33 @@ const purposeTemplateRouter = (
     })
     .post("/purposeTemplates/:id/publish", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
+
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data: purposeTemplate, metadata } =
+          await purposeTemplateService.publishPurposeTemplate(
+            unsafeBrandId(req.params.id),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            purposeTemplateApi.PurposeTemplate.parse(
+              purposeTemplateToApiPurposeTemplate(purposeTemplate)
+            )
+          );
       } catch (error) {
-        return res.status(501);
+        const errorRes = makeApiProblem(
+          error,
+          publishPurposeTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-      return res.status(501);
     });
 
   return purposeTemplateRouter;

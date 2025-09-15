@@ -3,6 +3,8 @@ import {
   readLastEventByStreamId,
   setupTestContainersVitest,
   sortPurposeTemplate,
+  StoredEvent,
+  writeInEventstore,
 } from "pagopa-interop-commons-test";
 import { afterEach, expect, inject } from "vitest";
 import {
@@ -16,6 +18,7 @@ import {
   PurposeTemplate,
   PurposeTemplateEvent,
   PurposeTemplateId,
+  toPurposeTemplateV2,
 } from "pagopa-interop-models";
 import {
   upsertPurposeTemplate,
@@ -81,9 +84,27 @@ export function expectSinglePageListResult(
   expect(actual.results).toHaveLength(expected.length);
 }
 
+export const writePurposeTemplateInEventstore = async (
+  purposeTemplate: PurposeTemplate
+): Promise<void> => {
+  const purposeTemplateEvent: PurposeTemplateEvent = {
+    type: "PurposeTemplateAdded",
+    event_version: 2,
+    data: { purposeTemplate: toPurposeTemplateV2(purposeTemplate) },
+  };
+  const eventToWrite: StoredEvent<PurposeTemplateEvent> = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    stream_id: purposeTemplateEvent.data.purposeTemplate!.id,
+    version: 0,
+    event: purposeTemplateEvent,
+  };
+  await writeInEventstore(eventToWrite, "purpose_template", postgresDB);
+};
+
 export const addOnePurposeTemplate = async (
   purposeTemplate: PurposeTemplate
 ): Promise<void> => {
+  await writePurposeTemplateInEventstore(purposeTemplate);
   await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
 };
 

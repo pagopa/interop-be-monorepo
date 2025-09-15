@@ -1,15 +1,24 @@
-import { RiskAnalysisFormTemplate, TenantKind } from "pagopa-interop-models";
+import {
+  PurposeTemplate,
+  purposeTemplateState,
+  RiskAnalysisFormTemplate,
+  TenantKind,
+} from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
+  M2MAdminAuthData,
   RiskAnalysisTemplateValidatedForm,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
+  UIAuthData,
   validatePurposeTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
+  purposeTemplateNotInExpectedState,
   riskAnalysisTemplateValidationFailed,
+  tenantNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -41,17 +50,17 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
 };
 
 export function validateAndTransformRiskAnalysisTemplate(
-  purposeRiskAnalysisForm:
+  riskAnalysisFormTemplate:
     | purposeTemplateApi.RiskAnalysisFormTemplateSeed
     | undefined,
   tenantKind: TenantKind
 ): RiskAnalysisFormTemplate | undefined {
-  if (!purposeRiskAnalysisForm) {
+  if (!riskAnalysisFormTemplate) {
     return undefined;
   }
 
   const validatedForm = validateRiskAnalysisTemplateOrThrow({
-    riskAnalysisForm: purposeRiskAnalysisForm,
+    riskAnalysisFormTemplate,
     tenantKind,
   });
 
@@ -60,15 +69,15 @@ export function validateAndTransformRiskAnalysisTemplate(
   );
 }
 
-function validateRiskAnalysisTemplateOrThrow({
-  riskAnalysisForm,
+export function validateRiskAnalysisTemplateOrThrow({
+  riskAnalysisFormTemplate,
   tenantKind,
 }: {
-  riskAnalysisForm: purposeTemplateApi.RiskAnalysisFormTemplateSeed;
+  riskAnalysisFormTemplate: purposeTemplateApi.RiskAnalysisFormTemplateSeed;
   tenantKind: TenantKind;
 }): RiskAnalysisTemplateValidatedForm {
   const result = validatePurposeTemplateRiskAnalysis(
-    riskAnalysisForm,
+    riskAnalysisFormTemplate,
     tenantKind
   );
 
@@ -79,3 +88,23 @@ function validateRiskAnalysisTemplateOrThrow({
     .with({ type: "valid" }, ({ value }) => value)
     .exhaustive();
 }
+
+export const assertRequesterIsCreator = (
+  creatorId: string,
+  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">
+): void => {
+  if (authData.organizationId !== creatorId) {
+    throw tenantNotAllowed(authData.organizationId);
+  }
+};
+
+export const assertPublishableState = (
+  purposeTemplate: PurposeTemplate
+): void => {
+  if (purposeTemplate.state !== purposeTemplateState.draft) {
+    throw purposeTemplateNotInExpectedState(
+      purposeTemplate.id,
+      purposeTemplate.state
+    );
+  }
+};
