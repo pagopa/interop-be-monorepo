@@ -1,7 +1,7 @@
 import { InternalError, TenantKind } from "pagopa-interop-models";
 
 type RiskAnalysisTemplateValidationIssueCode =
-  | "templateFieldValueNotAllowed"
+  | "unexpectedTemplateFieldValueOrSuggestionError"
   | "malformedTemplateFieldValueOrSuggestion"
   | "templateDependencyNotFound"
   | "templateDependencyNotBeingEditable"
@@ -42,7 +42,7 @@ export function unexpectedTemplateFieldValueOrSuggestionError(
   fieldName: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "templateFieldValueNotAllowed",
+    code: "unexpectedTemplateFieldValueOrSuggestionError",
     detail: `Field ${fieldName} value or suggestion not allowed`,
   });
 }
