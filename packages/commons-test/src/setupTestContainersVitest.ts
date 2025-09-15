@@ -168,6 +168,32 @@ export async function setupTestContainersVitest(
   m2mEventDB: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }>;
+export async function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
+  emailManagerConfig?: PecEmailManagerConfigTest,
+  redisRateLimiterConfig?: RedisRateLimiterConfig,
+  awsSESConfig?: AWSSesConfig,
+  readModelSQLDbConfig?: ReadModelSQLDbConfig,
+  analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
+  inAppNotificationDbConfig?: InAppNotificationDBConfig,
+  m2mEventDbConfig?: M2MEventSQLDbConfig,
+  userDbConfig?: UserSQLDbConfig
+): Promise<{
+  readModelRepository: ReadModelRepository;
+  postgresDB: DB;
+  fileManager: FileManager;
+  pecEmailManager: EmailManagerPEC;
+  sesEmailManager: EmailManagerSES;
+  redisRateLimiter: RateLimiter;
+  readModelDB: DrizzleReturnType;
+  analyticsPostgresDB: DB;
+  inAppNotificationDB: DrizzleReturnType;
+  m2mEventDB: DrizzleReturnType;
+  userDB: DrizzleReturnType;
+  cleanup: () => Promise<void>;
+}>;
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export async function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
@@ -191,8 +217,8 @@ export async function setupTestContainersVitest(
   readModelDB?: DrizzleReturnType;
   analyticsPostgresDB?: DB;
   inAppNotificationDB?: DrizzleReturnType;
-  userDB?: DrizzleReturnType;
   m2mEventDB?: DrizzleReturnType;
+  userDB?: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }> {
   let readModelRepository: ReadModelRepository | undefined;
