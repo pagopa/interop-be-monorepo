@@ -113,7 +113,7 @@ export const assertRequesterIsDelegateConsumer = (
 };
 
 export const assertOrganizationIsProducerKeychainProducer = (
-  authData: UIAuthData | M2MAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   producerKeychain: ProducerKeychain
 ): void => {
   if (producerKeychain.producerId !== authData.organizationId) {
@@ -143,7 +143,7 @@ export const assertProducerKeychainKeysCountIsBelowThreshold = (
 };
 
 export const assertOrganizationIsEServiceProducer = (
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   eservice: EService
 ): void => {
   if (authData.organizationId !== eservice.producerId) {

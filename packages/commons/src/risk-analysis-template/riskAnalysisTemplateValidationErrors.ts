@@ -1,8 +1,8 @@
 import { InternalError, TenantKind } from "pagopa-interop-models";
 
 type RiskAnalysisTemplateValidationIssueCode =
-  | "templateFieldValueNotAllowed"
-  | "malformedTemplateFieldValueOrSuggestion"
+  | "unexpectedTemplateFieldValueOrSuggestionError"
+  | "malformedTemplateFieldValueOrSuggestionError"
   | "templateDependencyNotFound"
   | "templateDependencyNotBeingEditable"
   | "unexpectedTemplateFieldValueError"
@@ -10,7 +10,7 @@ type RiskAnalysisTemplateValidationIssueCode =
   | "noRulesVersionTemplateFoundError"
   | "unexpectedTemplateRulesVersionError"
   | "unexpectedTemplateDependencyValueError"
-  | "missingExpectedFieldError";
+  | "missingExpectedTemplateField";
 
 export class RiskAnalysisTemplateValidationIssue extends InternalError<RiskAnalysisTemplateValidationIssueCode> {
   constructor({
@@ -42,7 +42,7 @@ export function unexpectedTemplateFieldValueOrSuggestionError(
   fieldName: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "templateFieldValueNotAllowed",
+    code: "unexpectedTemplateFieldValueOrSuggestionError",
     detail: `Field ${fieldName} value or suggestion not allowed`,
   });
 }
@@ -72,12 +72,12 @@ export function malformedTemplateFieldValueOrSuggestionError(
   fieldName: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "malformedTemplateFieldValueOrSuggestion",
+    code: "malformedTemplateFieldValueOrSuggestionError",
     detail: `Field ${fieldName} has conflicting or invalid value and suggestion configuration`,
   });
 }
 
-export function templateDependencyNotFoundError(
+export function templateDependencyNotFound(
   dependentField: string,
   dependencyField: string
 ): RiskAnalysisTemplateValidationIssue {
@@ -87,7 +87,7 @@ export function templateDependencyNotFoundError(
   });
 }
 
-export function unexpectedTemplateDependencyEditableError(
+export function unexpectedTemplateDependencyEditable(
   dependentField: string,
   dependencyField: string
 ): RiskAnalysisTemplateValidationIssue {
@@ -125,11 +125,11 @@ export function unexpectedTemplateDependencyValueError(
   });
 }
 
-export function missingExpectedTemplateFieldError(
+export function missingExpectedTemplateField(
   fieldName: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "missingExpectedFieldError",
+    code: "missingExpectedTemplateField",
     detail: `Expected field ${fieldName} not found in form`,
   });
 }

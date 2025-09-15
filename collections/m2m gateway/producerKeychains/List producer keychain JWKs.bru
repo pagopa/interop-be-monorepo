@@ -1,0 +1,23 @@
+meta {
+  name: List producer keychain JWKs
+  type: http
+}
+
+get {
+  url: {{host-m2m-gw}}/producerKeychains/:keychainId/keys?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+params:path {
+  keychainId: {{keychainId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

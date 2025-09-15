@@ -759,14 +759,18 @@ const tenantsRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const tenant = await tenantService.addDeclaredAttribute(
-          {
-            tenantAttributeSeed: req.body,
-          },
-          ctx
-        );
+        const { data: tenant, metadata } =
+          await tenantService.addDeclaredAttribute(
+            {
+              tenantAttributeSeed: req.body,
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
@@ -786,17 +790,21 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          const tenant = await tenantService.verifyVerifiedAttribute(
-            {
-              tenantId: unsafeBrandId(req.params.tenantId),
-              attributeId: unsafeBrandId(req.body.id),
-              agreementId: unsafeBrandId(req.body.agreementId),
-              expirationDate: req.body.expirationDate,
-            },
-            ctx
-          );
+          const { data: tenant, metadata } =
+            await tenantService.verifyVerifiedAttribute(
+              {
+                tenantId: unsafeBrandId(req.params.tenantId),
+                attributeId: unsafeBrandId(req.body.id),
+                agreementId: unsafeBrandId(req.body.agreementId),
+                expirationDate: req.body.expirationDate,
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
           return res
             .status(200)
             .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
@@ -816,16 +824,20 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          const tenant = await tenantService.revokeVerifiedAttribute(
-            {
-              tenantId: unsafeBrandId(req.params.tenantId),
-              attributeId: unsafeBrandId(req.params.attributeId),
-              agreementId: unsafeBrandId(req.body.agreementId),
-            },
-            ctx
-          );
+          const { data: tenant, metadata } =
+            await tenantService.revokeVerifiedAttribute(
+              {
+                tenantId: unsafeBrandId(req.params.tenantId),
+                attributeId: unsafeBrandId(req.params.attributeId),
+                agreementId: unsafeBrandId(req.body.agreementId),
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
           return res
             .status(200)
             .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
@@ -876,12 +888,16 @@ const tenantsRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const tenant = await tenantService.revokeDeclaredAttribute(
-          { attributeId: unsafeBrandId(req.params.attributeId) },
-          ctx
-        );
+        const { data: tenant, metadata } =
+          await tenantService.revokeDeclaredAttribute(
+            { attributeId: unsafeBrandId(req.params.attributeId) },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(tenantApi.Tenant.parse(toApiTenant(tenant)));

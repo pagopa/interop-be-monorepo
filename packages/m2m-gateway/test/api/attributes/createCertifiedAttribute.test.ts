@@ -19,6 +19,7 @@ import {
   unexpectedUndefinedAttributeOriginOrCode,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /certifiedAttributes router test", () => {
   const mockCertifiedAttributeSeed: m2mGatewayApi.CertifiedAttributeSeed =
@@ -109,7 +110,10 @@ describe("POST /certifiedAttributes router test", () => {
     missingMetadata(),
     unexpectedAttributeKind(mockApiCertifiedAttribute),
     unexpectedUndefinedAttributeOriginOrCode(mockApiCertifiedAttribute),
-    pollingMaxRetriesExceeded(3, 10),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
   ])("Should return 500 in case of $code error", async (error) => {
     mockAttributeService.createCertifiedAttribute = vi
       .fn()

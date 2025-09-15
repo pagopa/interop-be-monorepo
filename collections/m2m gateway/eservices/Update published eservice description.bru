@@ -1,0 +1,24 @@
+meta {
+  name: Update published eservice description
+  type: http
+}
+
+patch {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/description
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "description": "updated description"
+  }
+}
