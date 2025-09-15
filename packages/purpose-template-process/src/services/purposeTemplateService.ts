@@ -1,27 +1,34 @@
-import {
-  generateId,
-  PurposeTemplate,
-  PurposeTemplateId,
-  purposeTemplateState,
-  WithMetadata,
-  purposeTemplateEventToBinaryDataV2,
-} from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
   eventRepository,
+  FileManager,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
+import {
+  generateId,
+  PurposeTemplate,
+  purposeTemplateEventToBinaryDataV2,
+  PurposeTemplateId,
+  purposeTemplateState,
+  WithMetadata,
+} from "pagopa-interop-models";
 import { purposeTemplateNotFound } from "../model/domain/errors.js";
-import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
+import {
+  toCreateEventPurposeTemplateAdded,
+  toCreateEventPurposeTemplateUpdated,
+} from "../model/domain/toEvent.js";
+import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisAnnotationUtils.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
+  assertPurposeTemplateIsDraft,
   assertPurposeTemplateTitleIsNotDuplicated,
+  assertRequesterIsCreator,
   validateAndTransformRiskAnalysisTemplate,
 } from "./validators.js";
 
@@ -39,7 +46,8 @@ async function retrievePurposeTemplate(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  fileManager: FileManager
 ) {
   const repository = eventRepository(
     dbInstance,
@@ -107,6 +115,75 @@ export function purposeTemplateServiceBuilder(
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Retrieving purpose template ${id}`);
       return retrievePurposeTemplate(id, readModelService);
+    },
+    async updatePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      purposetemplateSeed: purposeTemplateApi.PurposeTemplateSeed,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeTemplate>> {
+      logger.info(`Updating purpose template ${purposeTemplateId}`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertPurposeTemplateIsDraft(purposeTemplate.data);
+      assertRequesterIsCreator(purposeTemplate.data, authData);
+
+      if (purposetemplateSeed.purposeTitle) {
+        await assertPurposeTemplateTitleIsNotDuplicated({
+          readModelService,
+          title: purposetemplateSeed.purposeTitle,
+        });
+      }
+
+      if (purposetemplateSeed.purposeIsFreeOfCharge) {
+        assertConsistentFreeOfCharge(
+          purposetemplateSeed.purposeIsFreeOfCharge,
+          purposetemplateSeed.purposeFreeOfChargeReason
+        );
+      }
+
+      const purposeRiskAnalysisForm =
+        purposetemplateSeed.purposeRiskAnalysisForm
+          ? validateAndTransformRiskAnalysisTemplate(
+              purposetemplateSeed.purposeRiskAnalysisForm,
+              purposeTemplate.data.targetTenantKind
+            )
+          : purposeTemplate.data.purposeRiskAnalysisForm;
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        ...purposetemplateSeed,
+        purposeRiskAnalysisForm,
+      };
+
+      await cleanupAnnotationDocsForRemovedAnswers(
+        purposetemplateSeed,
+        purposeTemplate.data,
+        fileManager,
+        logger
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateUpdated({
+          purposeTemplate: updatedPurposeTemplate,
+          correlationId,
+          version: purposeTemplate.metadata.version,
+        })
+      );
+
+      return {
+        data: updatedPurposeTemplate,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
   };
 }
