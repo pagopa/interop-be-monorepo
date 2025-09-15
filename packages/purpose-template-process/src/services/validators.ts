@@ -1,5 +1,4 @@
 import {
-  operationForbidden,
   PurposeTemplate,
   purposeTemplateState,
   RiskAnalysisFormTemplate,
@@ -18,6 +17,7 @@ import {
   purposeTemplateNameConflict,
   purposeTemplateNotInExpectedState,
   riskAnalysisTemplateValidationFailed,
+  tenantNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -92,7 +92,7 @@ export const assertRequesterIsCreator = (
   authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">
 ): void => {
   if (authData.organizationId !== creatorId) {
-    throw operationForbidden;
+    throw tenantNotAllowed(authData.organizationId);
   }
 };
 
