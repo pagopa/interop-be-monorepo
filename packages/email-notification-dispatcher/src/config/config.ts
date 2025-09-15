@@ -23,7 +23,6 @@ export const EmailNotificationDispatcherConfig = KafkaConsumerConfig.and(
   .and(DelegationTopicConfig)
   .and(AttributeTopicConfig)
   .and(AuthorizationTopicConfig)
-  .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig)
   .and(UserSQLDbConfig)
   .and(EmailSenderTopicConfig);
