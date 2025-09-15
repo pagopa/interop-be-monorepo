@@ -21,7 +21,7 @@ import {
   EventsSignerConfig,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
-import type {} from "vitest";
+import type { } from "vitest";
 import type { GlobalSetupContext } from "vitest/node";
 import {
   TEST_AWS_SES_PORT,
@@ -272,6 +272,8 @@ export function setupTestContainersVitestGlobal() {
         startedPostgreSqlUserContainer.getMappedPort(TEST_POSTGRES_DB_PORT);
 
       provide("userSQLConfig", userSQLConfig.data);
+    }
+
     if (eventsSignerConfig.success) {
       startedDynamoDbContainer = await dynamoDBContainer().start();
 

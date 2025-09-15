@@ -3,7 +3,6 @@ import {
   KafkaConsumerConfig,
   PurposeTopicConfig,
   CatalogTopicConfig,
-  FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
   KafkaProducerConfig,
   EmailSenderTopicConfig,
