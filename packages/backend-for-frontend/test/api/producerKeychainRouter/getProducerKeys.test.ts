@@ -28,7 +28,8 @@ describe("API GET /producerKeychains/{producerKeychainId}/keys test", () => {
     request(api)
       .get(`${appBasePath}/producerKeychains/${producerKeychainId}/keys`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+      .set("X-Correlation-Id", generateId())
+      .query({ offset: 0, limit: 10 });
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

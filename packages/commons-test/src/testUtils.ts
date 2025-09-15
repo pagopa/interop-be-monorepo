@@ -110,6 +110,7 @@ import {
   TenantNotificationConfig,
   UserNotificationConfig,
   DelegationStamps,
+  PurposeVersionStamps,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -337,7 +338,8 @@ export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
 });
 
 export const getMockPurposeVersion = (
-  state?: PurposeVersionState
+  state?: PurposeVersionState,
+  stamps?: PurposeVersionStamps
 ): PurposeVersion => ({
   id: generateId(),
   state: state || purposeVersionState.draft,
@@ -353,6 +355,7 @@ export const getMockPurposeVersion = (
   ...(state === purposeVersionState.rejected
     ? { rejectionReason: "test" }
     : {}),
+  ...(stamps ? { stamps } : {}),
 });
 
 export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
@@ -361,6 +364,9 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   contentType: "json",
   createdAt: new Date(),
 });
+
+export const getMockPurposeVersionStamps = (): PurposeVersionStamps =>
+  generateMock(PurposeVersionStamps);
 
 export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
@@ -438,9 +444,13 @@ export const getMockClient = ({
   ...(adminId ? { adminId } : {}),
 });
 
-export const getMockProducerKeychain = (): ProducerKeychain => ({
+export const getMockProducerKeychain = ({
+  producerId = generateId<TenantId>(),
+}: {
+  producerId?: TenantId;
+} = {}): ProducerKeychain => ({
   id: generateId(),
-  producerId: generateId(),
+  producerId,
   name: "Test producer keychain",
   eservices: [],
   description: "producer keychain description",

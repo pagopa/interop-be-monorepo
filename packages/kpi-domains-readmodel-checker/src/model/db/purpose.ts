@@ -4,6 +4,7 @@ import {
   purposeRiskAnalysisFormInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import { PurposeSchema } from "../purpose/purpose.js";
 import { PurposeRiskAnalysisFormSchema } from "../purpose/purposeRiskAnalysis.js";
@@ -29,6 +30,7 @@ export const PurposeDbTableReadModel = {
   purpose_risk_analysis_answer: purposeRiskAnalysisAnswerInReadmodelPurpose,
   purpose_version: purposeVersionInReadmodelPurpose,
   purpose_version_document: purposeVersionDocumentInReadmodelPurpose,
+  purpose_version_stamp: purposeVersionStampInReadmodelPurpose,
 } as const;
 
 export type PurposeDbTableReadModel = typeof PurposeDbTableReadModel;
