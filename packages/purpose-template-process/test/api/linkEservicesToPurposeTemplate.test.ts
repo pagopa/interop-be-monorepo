@@ -16,6 +16,7 @@ import { eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate
 import {
   associationEServicesForPurposeTemplateFailed,
   tooManyEServicesForPurposeTemplate,
+  purposeTemplateNotFound,
 } from "../../src/model/domain/errors.js";
 import { eserviceNotFound } from "../../src/errors/purposeTemplateValidationErrors.js";
 
@@ -162,6 +163,10 @@ describe("API POST /purposeTemplates/:id/linkEservices", () => {
         purposeTemplateId
       ),
       expectedStatus: 400,
+    },
+    {
+      error: purposeTemplateNotFound(purposeTemplateId),
+      expectedStatus: 404,
     },
   ])(
     "Should return $expectedStatus for $error.code",
