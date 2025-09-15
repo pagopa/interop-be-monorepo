@@ -21,17 +21,17 @@ import {
   Tenant,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { DocumentsGeneratorConfig } from "../../config/config.js";
 import {
   DelegationActivationPDFPayload,
   DelegationRevocationPDFPayload,
-} from "../model/delegationModels.js";
-import { DocumentsGeneratorConfig } from "../config/config.js";
+} from "../../model/delegationModels.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 
 const createDelegationContractPrettyName = (
   eServiceName: string,
-  documentType: "activation" | "revocation",
+  documentType: "activation" | "revocation"
 ): string => {
   const prettyName = `${
     documentType === "activation" ? "Delega" : "Revoca_Delega"
@@ -46,10 +46,10 @@ const getIpaCode = (tenant: Tenant): string | undefined =>
 
 const createDelegationDocumentName = (
   documentCreatedAt: Date,
-  documentType: "activation" | "revocation",
+  documentType: "activation" | "revocation"
 ): string =>
   `${formatDateyyyyMMddHHmmss(
-    documentCreatedAt,
+    documentCreatedAt
   )}_delegation_${documentType}_contract.pdf`;
 
 const filename = fileURLToPath(import.meta.url);
@@ -67,7 +67,7 @@ function getDelegationActionText(delegation: Delegation): string {
     .with(delegationKind.delegatedProducer, () => "ad erogare l’")
     .with(
       delegationKind.delegatedConsumer,
-      () => "a gestire la fruizione dell’",
+      () => "a gestire la fruizione dell’"
     )
     .exhaustive();
 }
@@ -97,7 +97,7 @@ export const contractBuilder = {
       dirname,
       "..",
       "resources/templates",
-      "delegationApprovedTemplate.html",
+      "delegationApprovedTemplate.html"
     );
 
     const documentCreatedAt = new Date();
@@ -107,7 +107,7 @@ export const contractBuilder = {
     const documentId = generateId<DelegationContractId>();
     const documentName = createDelegationDocumentName(
       documentCreatedAt,
-      "activation",
+      "activation"
     );
 
     assertStampExists(delegation.stamps, "activation");
@@ -137,7 +137,7 @@ export const contractBuilder = {
     };
     const pdfBuffer = await pdfGenerator.generate(
       templateFilePath,
-      activationContractPayload,
+      activationContractPayload
     );
 
     const documentPath = await fileManager.storeBytes(
@@ -148,7 +148,7 @@ export const contractBuilder = {
         name: documentName,
         content: pdfBuffer,
       },
-      logger,
+      logger
     );
 
     return {
@@ -156,7 +156,7 @@ export const contractBuilder = {
       name: documentName,
       prettyName: createDelegationContractPrettyName(
         eservice.name,
-        "activation",
+        "activation"
       ),
       contentType: CONTENT_TYPE_PDF,
       path: documentPath,
@@ -186,7 +186,7 @@ export const contractBuilder = {
       dirname,
       "..",
       "resources/templates",
-      "delegationRevokedTemplate.html",
+      "delegationRevokedTemplate.html"
     );
     const documentCreatedAt = new Date();
     const todayDate = dateAtRomeZone(documentCreatedAt);
@@ -195,7 +195,7 @@ export const contractBuilder = {
     const documentId = generateId<DelegationContractId>();
     const documentName = createDelegationDocumentName(
       documentCreatedAt,
-      "revocation",
+      "revocation"
     );
 
     assertStampExists(delegation.stamps, "revocation");
@@ -221,7 +221,7 @@ export const contractBuilder = {
     };
     const pdfBuffer = await pdfGenerator.generate(
       templateFilePath,
-      revocationContractPayload,
+      revocationContractPayload
     );
 
     const documentPath = await fileManager.storeBytes(
@@ -232,7 +232,7 @@ export const contractBuilder = {
         name: documentName,
         content: pdfBuffer,
       },
-      logger,
+      logger
     );
 
     return {
@@ -240,7 +240,7 @@ export const contractBuilder = {
       name: documentName,
       prettyName: createDelegationContractPrettyName(
         eservice.name,
-        "revocation",
+        "revocation"
       ),
       contentType: CONTENT_TYPE_PDF,
       path: documentPath,
@@ -251,7 +251,7 @@ export const contractBuilder = {
 
 export function assertStampExists<S extends keyof Delegation["stamps"]>(
   stamps: Delegation["stamps"],
-  stamp: S,
+  stamp: S
 ): asserts stamps is Delegation["stamps"] & {
   [key in S]: DelegationStamp;
 } {

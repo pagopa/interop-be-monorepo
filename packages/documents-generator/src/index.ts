@@ -5,8 +5,12 @@ import {
   AgreementTopicConfig,
   DelegationTopicConfig,
   PurposeTopicConfig,
+  ReadModelRepository,
   decodeKafkaMessage,
   genericLogger,
+  initDB,
+  initFileManager,
+  initPDFGenerator,
   logger,
 } from "pagopa-interop-commons";
 
@@ -20,10 +24,43 @@ import {
   DelegationEventV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { baseConsumerConfig, config } from "./config/config.js";
 import { handlePurposeMessageV2 } from "./handler/handlePurposeMessageV2.js";
 import { handleDelegationMessageV2 } from "./handler/handleDelegationMessageV2.js";
 import { handleAgreementMessageV2 } from "./handler/handleAgreementMessageV2.js";
+import { readModelServiceBuilderSQL } from "./service/delegation/readModelSql.js";
+
+const fileManager = initFileManager(config);
+const pdfGenerator = await initPDFGenerator();
+
+const readModelDB = makeDrizzleConnection(config);
+
+const oldReadModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+  agreementReadModelServiceSQL,
+});
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 function processMessage(
   agreementTopicConfig: AgreementTopicConfig,
@@ -58,7 +95,11 @@ function processMessage(
           DelegationEventV2
         );
 
-        const updater = handleDelegationMessageV2.bind(null, decodedMessage);
+        const updater = handleDelegationMessageV2.bind(
+          null,
+          decodedMessage,
+          readModelService
+        );
 
         return { decodedMessage, updater };
       })

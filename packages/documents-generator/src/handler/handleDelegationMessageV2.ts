@@ -5,18 +5,19 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
-import { contractBuilder } from "../service/delegationContractBuilder.js";
+import { contractBuilder } from "../service/delegation/delegationContractBuilder.js";
 
 export async function handleDelegationMessageV2(
   decodedMessage: DelegationEventEnvelopeV2,
-  logger: Logger,
+  readModelService: any,
+  logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
     .with(
       {
         type: P.union(
           "ProducerDelegationApproved",
-          "ConsumerDelegationApproved",
+          "ConsumerDelegationApproved"
         ),
       },
       async (msg): Promise<void> => {
@@ -24,19 +25,32 @@ export async function handleDelegationMessageV2(
           return;
         }
         const delegation = fromDelegationV2(msg.data.delegation);
+        const delegator = await readModelDelegationServiceSQL.getTenantById(
+          delegation.delegatorId
+        );
+        const delegate = await readModelDelegationServiceSQL.getTenantById(
+          delegation.delegateId
+        );
+        const eservice = await readModelDelegationServiceSQL.getEServiceById(
+          delegation.eserviceId
+        );
+
+        if (!delegator || !delegate || !eservice) {
+          throw new Error("Missing data to create activation contract.");
+        }
         const activationContract =
           await contractBuilder.createActivationContract({
             delegation: delegation,
             delegator: delegation.delegatorId, // to do get from read model
-            delegate: delegation.delegateId,
-            eservice: delegation.eserviceId,
+            delegate: delegation.delegateId, //todo get from readmodel
+            eservice: delegation.eserviceId, //todo get from readmodel
             pdfGenerator,
             fileManager,
             config,
             logger,
           });
         logger.info(`Delegation event ${msg.type} handled successfully`);
-      },
+      }
     )
     .with(
       {
@@ -46,14 +60,14 @@ export async function handleDelegationMessageV2(
           "ConsumerDelegationSubmitted",
           "ProducerDelegationRejected",
           "ProducerDelegationRevoked",
-          "ProducerDelegationSubmitted",
+          "ProducerDelegationSubmitted"
         ),
       },
       () => {
         logger.info(
-          `No document generation needed for ${decodedMessage.type} message`,
+          `No document generation needed for ${decodedMessage.type} message`
         );
-      },
+      }
     )
     .exhaustive();
 }
