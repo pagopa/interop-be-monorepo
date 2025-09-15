@@ -1,0 +1,36 @@
+meta {
+  name: Edit EService Template version
+  type: http
+  seq: 13
+}
+
+patch {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/versions/:versionId
+  body: json
+  auth: none
+}
+
+params:path {
+  versionId: {{eserviceTemplateVersionId}}
+  templateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+      "description": "Version description1 324",
+      "voucherLifespan": 100,
+      "dailyCallsPerConsumer": 100,
+      "dailyCallsTotal": 1000,
+      "agreementApprovalPolicy": "AUTOMATIC"
+    }
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
+}

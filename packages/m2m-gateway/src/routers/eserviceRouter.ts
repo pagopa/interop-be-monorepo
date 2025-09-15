@@ -60,8 +60,7 @@ const eserviceRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
         const eservice = await eserviceService.createEService(req.body, ctx);
-
-        return res.status(200).send(m2mGatewayApi.EService.parse(eservice));
+        return res.status(201).send(m2mGatewayApi.EService.parse(eservice));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
