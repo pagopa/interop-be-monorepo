@@ -12,6 +12,8 @@ export const errorCodes = {
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
   ruleSetNotFoundError: "0005",
+  purposeTemplateNotInDraftState: "0006",
+  tenantNotAllowed: "0007",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -64,5 +66,23 @@ export function ruleSetNotFoundError(
     detail: `No risk analysis rule set found for target tenant kind ${tenantKind}`,
     code: "ruleSetNotFoundError",
     title: "No risk analysis rule set found for target tenant kind",
+  });
+}
+
+export function purposeTemplateNotInDraftState(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose template ${purposeTemplateId} is not in draft state`,
+    code: "purposeTemplateNotInDraftState",
+    title: "Purpose template not in draft state",
+  });
+}
+
+export function tenantNotAllowed(tenantId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation`,
+    code: "tenantNotAllowed",
+    title: "Operation not allowed",
   });
 }
