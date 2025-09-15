@@ -146,6 +146,13 @@ paths:
   /templates/{templateId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: templateId
+        in: path
+        description: The E-Service template id
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       security:
         - bearerAuth: []
@@ -154,14 +161,6 @@ paths:
       summary: Get an e-service template
       operationId: getEServiceTemplateById
       description: Retrieves an E-Service template by its ID
-      parameters:
-        - name: templateId
-          in: path
-          description: The E-Service template id
-          required: true
-          schema:
-            type: string
-            format: uuid
       responses:
         "200":
           description: E-Service template retrieved
@@ -193,17 +192,10 @@ paths:
       tags:
         - process
       summary: Updates e-service template general information
-      operationId: updateEServiceTemplate
-      description: Updates the general information of an E-Service template
-      parameters:
-        - name: templateId
-          in: path
-          description: The E-Service id to update
-          required: true
-          schema:
-            type: string
+      operationId: updateDraftEServiceTemplate
+      description: Updates the general information of an Draft E-Service template
       requestBody:
-        description: An E-Service template update seed containing the possible updatable fields
+        description: A Draft E-Service template update seed containing the possible updatable fields
         required: true
         content:
           application/json:
@@ -230,6 +222,54 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Partially updates Draft E-Service Template general information
+      operationId: patchUpdateDraftEServiceTemplate
+      description: Partially updates the general information of the specified Draft E-Service Template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUpdateEServiceTemplateSeed"
+      responses:
+        "200":
+          description: E-Service Template updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplate"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: E-Service Template not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name Conflict
           content:
             application/problem+json:
               schema:
@@ -1293,6 +1333,28 @@ components:
         - description
         - technology
         - mode
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 60
+        intendedTarget:
+          type: string
+          minLength: 10
+          maxLength: 250
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        technology:
+          $ref: "#/components/schemas/EServiceTechnology"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
+    PatchUpdateEServiceTemplateSeed:
+      type: object
+      additionalProperties: false
       properties:
         name:
           type: string
