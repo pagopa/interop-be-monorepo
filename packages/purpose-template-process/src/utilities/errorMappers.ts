@@ -34,6 +34,7 @@ export const updatePurposeTemplateErrorMapper = (
     .with(
       "purposeTemplateNotInDraftState",
       "riskAnalysisTemplateValidationFailed",
+      "missingFreeOfChargeReason",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
