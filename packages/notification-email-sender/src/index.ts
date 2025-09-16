@@ -9,6 +9,7 @@ import {
   initSesMailManager,
   logger,
   Logger,
+  genericLogger,
 } from "pagopa-interop-commons";
 import {
   AgreementEventEnvelopeV2,
@@ -30,6 +31,7 @@ import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import { createClient } from "redis";
 import { config } from "./config/config.js";
 import {
   NotificationEmailSenderService,
@@ -72,6 +74,15 @@ const sesEmailsenderData = {
   label: config.senderLabel,
   mail: config.senderMail,
 };
+
+const redisClient = await createClient({
+  socket: {
+    host: config.redisNotificationEmailSenderHost,
+    port: config.redisNotificationEmailSenderPort,
+  },
+})
+  .on("error", (err) => genericLogger.warn(`Redis Client Error: ${err}`))
+  .connect();
 
 const buildNotificationEmailSenderService =
   (): NotificationEmailSenderService => {
@@ -317,6 +328,13 @@ export async function handleAgreementMessage(
 
 function processMessage(topicHandlers: TopicHandlers) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
+    const redisKey = `notification-email-sender-${messagePayload.topic}-${messagePayload.message.offset}`;
+    const isAlreadyProcessed = await redisClient.get(redisKey);
+    if (isAlreadyProcessed) {
+      return;
+    }
+    await redisClient.set(redisKey, "true");
+
     const { catalogTopic, agreementTopic, purposeTopic } = topicHandlers;
 
     const { decodedMessage, handleMessage } = match(messagePayload.topic)

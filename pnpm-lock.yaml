@@ -4216,6 +4216,9 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
+      redis:
+        specifier: 4.6.15
+        version: 4.6.15
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0

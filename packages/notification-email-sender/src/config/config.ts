@@ -23,6 +23,16 @@ export const SESEmailSenderConfig = z
   }));
 export type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
 
+export const NotificationEmailSenderRedisConfig = z
+  .object({
+    REDIS_NOTIFICATION_EMAIL_SENDER_HOST: z.string(),
+    REDIS_NOTIFICATION_EMAIL_SENDER_PORT: z.number(),
+  })
+  .transform((c) => ({
+    redisNotificationEmailSenderHost: c.REDIS_NOTIFICATION_EMAIL_SENDER_HOST,
+    redisNotificationEmailSenderPort: c.REDIS_NOTIFICATION_EMAIL_SENDER_PORT,
+  }));
+
 export const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
   ReadModelDbConfig
 )
@@ -32,7 +42,8 @@ export const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
   .and(PurposeTopicConfig)
   .and(CatalogTopicConfig)
   .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig.optional());
+  .and(ReadModelSQLDbConfig.optional())
+  .and(NotificationEmailSenderRedisConfig);
 
 export type NotificationEmailSenderConfig = z.infer<
   typeof NotificationEmailSenderConfig
