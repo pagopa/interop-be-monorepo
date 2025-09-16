@@ -41,7 +41,9 @@ export async function handleAgreementSuspendedByProducer(
   const agreement = fromAgreementV2(agreementV2Msg);
 
   const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
-    retrieveHTMLTemplate(eventMailTemplateType.agreementSuspendedByProducerMailTemplate),
+    retrieveHTMLTemplate(
+      eventMailTemplateType.agreementSuspendedByProducerMailTemplate
+    ),
     retrieveAgreementEservice(agreement, readModelService),
     retrieveTenant(agreement.producerId, readModelService),
     retrieveTenant(agreement.consumerId, readModelService),
