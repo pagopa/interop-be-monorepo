@@ -261,7 +261,7 @@ describe("handleAgreementArchivedByConsumer", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `RRichiesta di fruizione archiviata dal fruitore`
+        `Richiesta di fruizione archiviata dal fruitore`
       );
       expect(message.email.body).toContain(producerTenant.name);
       expect(message.email.body).toContain(eservice.name);
