@@ -6,7 +6,7 @@ function sumNotificationTypesCount(
   results: Record<string, number>,
   notificationTypes: ReadonlyArray<string>
 ): number {
-  return notificationTypes.reduce((sum, type) => sum + results[type] || 0, 0);
+  return notificationTypes.reduce((sum, type) => sum + (results[type] || 0), 0);
 }
 
 export function toBffApiNotificationsCountBySection(
