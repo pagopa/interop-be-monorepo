@@ -458,9 +458,13 @@ export const getMockClient = ({
   ...(adminId ? { adminId } : {}),
 });
 
-export const getMockProducerKeychain = (): ProducerKeychain => ({
+export const getMockProducerKeychain = ({
+  producerId = generateId<TenantId>(),
+}: {
+  producerId?: TenantId;
+} = {}): ProducerKeychain => ({
   id: generateId(),
-  producerId: generateId(),
+  producerId,
   name: "Test producer keychain",
   eservices: [],
   description: "producer keychain description",

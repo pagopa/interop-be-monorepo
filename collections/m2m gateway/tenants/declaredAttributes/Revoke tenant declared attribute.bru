@@ -1,0 +1,20 @@
+meta {
+  name: Revoke tenant declared attribute
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{host-m2m-gw}}/tenants/:tenantId/declaredAttributes/:attributeId
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+params:path {
+  tenantId: {{tenantId}}
+  attributeId: {{attributeId}}
+}

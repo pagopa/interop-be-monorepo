@@ -16,7 +16,6 @@ import {
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
-
 import {
   DrizzleReturnType,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
@@ -26,19 +25,10 @@ import {
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
+import { and, eq, exists, ilike, inArray, isNotNull, SQL } from "drizzle-orm";
 import {
-  and,
-  eq,
-  exists,
-  getTableColumns,
-  ilike,
-  inArray,
-  isNotNull,
-  SQL,
-} from "drizzle-orm";
-import {
+  ascLower,
   createListResult,
-  createOrderByClauses,
   escapeRegExp,
   withTotalCount,
 } from "pagopa-interop-commons";
@@ -114,9 +104,6 @@ export function readModelServiceBuilderSQL({
   purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
 }) {
   return {
-    async checkPurposeTemplateName(): Promise<boolean> {
-      return false;
-    },
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
@@ -132,28 +119,8 @@ export function readModelServiceBuilderSQL({
     },
     async getPurposeTemplates(
       filters: GetPurposeTemplatesFilters,
-      {
-        offset,
-        limit,
-        sortColumns,
-        directions: directions,
-      }: {
-        offset: number;
-        limit: number;
-        sortColumns: string | undefined;
-        directions: string | undefined;
-      }
+      { limit, offset }: { limit: number; offset: number }
     ): Promise<ListResult<PurposeTemplate>> {
-      const tableColumns = getTableColumns(
-        purposeTemplateInReadmodelPurposeTemplate
-      );
-      const orderByClauses = createOrderByClauses({
-        table: purposeTemplateInReadmodelPurposeTemplate,
-        sortColumns,
-        directions,
-        defaultSortColumn: tableColumns.purposeTitle,
-      });
-
       const subquery = readModelDB
         .select(
           withTotalCount({
@@ -170,7 +137,9 @@ export function readModelServiceBuilderSQL({
         )
         .where(getPurposeTemplatesFilters(readModelDB, filters))
         .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
-        .orderBy(...orderByClauses)
+        .orderBy(
+          ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
+        )
         .limit(limit)
         .offset(offset)
         .as("subquery");
@@ -224,7 +193,9 @@ export function readModelServiceBuilderSQL({
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
           )
         )
-        .orderBy(...orderByClauses);
+        .orderBy(
+          ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
+        );
 
       const purposeTemplates = aggregatePurposeTemplateArray(
         toPurposeTemplateAggregatorArray(queryResult)

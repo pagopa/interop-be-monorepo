@@ -115,17 +115,7 @@ export function purposeTemplateServiceBuilder(
     },
     async getPurposeTemplates(
       filters: GetPurposeTemplatesFilters,
-      {
-        offset,
-        limit,
-        sortColumns,
-        directions,
-      }: {
-        offset: number;
-        limit: number;
-        sortColumns: string | undefined;
-        directions: string | undefined;
-      },
+      { offset, limit }: { offset: number; limit: number },
       {
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
@@ -133,14 +123,12 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Getting purpose templates with filters: ${JSON.stringify(
           filters
-        )}, limit = ${limit}, offset = ${offset}, sortColumns = ${sortColumns}, directions = ${directions}`
+        )}, limit = ${limit}, offset = ${offset}`
       );
 
       return await readModelService.getPurposeTemplates(filters, {
         offset,
         limit,
-        sortColumns,
-        directions,
       });
     },
     async getPurposeTemplateById(

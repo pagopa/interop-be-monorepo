@@ -44,7 +44,10 @@ import {
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
-import { purposeServiceBuilder } from "../src/services/purposeService.js";
+import {
+  UpdatePurposeReturn,
+  purposeServiceBuilder,
+} from "../src/services/purposeService.js";
 import { config } from "../src/config/config.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
@@ -189,3 +192,13 @@ export function expectSinglePageListResult(
   });
   expect(actual.results).toHaveLength(expected.length);
 }
+
+export const sortUpdatePurposeReturn = (
+  updatePurposeReturn: UpdatePurposeReturn
+): UpdatePurposeReturn => ({
+  ...updatePurposeReturn,
+  data: {
+    ...updatePurposeReturn.data,
+    purpose: sortPurpose(updatePurposeReturn.data.purpose),
+  },
+});
