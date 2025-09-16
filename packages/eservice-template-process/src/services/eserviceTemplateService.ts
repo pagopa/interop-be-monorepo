@@ -93,10 +93,7 @@ import {
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
-import {
-  GetEServiceTemplatesFilters,
-  ReadModelService,
-} from "./readModelService.js";
+import { GetEServiceTemplatesFilters } from "./readModelService.js";
 import {
   assertIsReceiveTemplate,
   assertIsDraftEServiceTemplate,
@@ -109,10 +106,11 @@ import {
   assertEServiceTemplateNameAvailable,
   assertRiskAnalysisIsValidForPublication,
 } from "./validators.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<EServiceTemplate>> => {
   const eserviceTemplate = await readModelService.getEServiceTemplateById(
     eserviceTemplateId
@@ -255,7 +253,7 @@ export function validateRiskAnalysisSchemaOrThrow(
 async function parseAndCheckAttributesOfKind(
   attributesSeedForKind: eserviceTemplateApi.AttributeSeed[][],
   kind: AttributeKind,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EServiceAttribute[][]> {
   const parsedAttributesSeed = attributesSeedForKind.map((group) => {
     const groupAttributesIdsFound: Set<AttributeId> = new Set();
@@ -294,7 +292,7 @@ async function parseAndCheckAttributesOfKind(
 
 export async function parseAndCheckAttributes(
   attributesSeed: eserviceTemplateApi.AttributesSeed,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EserviceAttributes> {
   const [certifiedAttributes, declaredAttributes, verifiedAttributes] =
     await Promise.all([
@@ -344,7 +342,7 @@ const retrieveDocument = (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eserviceTemplateServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   fileManager: FileManager
 ) {
   const repository = eventRepository(
