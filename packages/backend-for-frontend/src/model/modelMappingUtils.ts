@@ -22,7 +22,6 @@ const invalidDescriptorState: catalogApi.EServiceDescriptorState[] = [
   catalogApiDescriptorState.WAITING_FOR_APPROVAL,
 ];
 
-// FIXME: Check every section and sub-section to be sure that every notification type is mapped correctly
 export const uiSectionToNotificationTypes = {
   erogazione: {
     richieste: [
