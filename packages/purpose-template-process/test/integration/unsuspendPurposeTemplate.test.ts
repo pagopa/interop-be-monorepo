@@ -232,7 +232,8 @@ describe("unsuspendPurposeTemplate", () => {
       }).rejects.toThrowError(
         purposeTemplateNotInExpectedState(
           purposeTemplateWithUnexpectedState.id,
-          state
+          state,
+          purposeTemplateState.suspended
         )
       );
     }
