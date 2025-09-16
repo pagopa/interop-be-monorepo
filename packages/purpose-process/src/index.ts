@@ -1,5 +1,4 @@
 import {
-  ReadModelRepository,
   initDB,
   initFileManager,
   initPDFGenerator,
@@ -15,7 +14,6 @@ import {
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { createApp } from "./app.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { purposeServiceBuilder } from "./services/purposeService.js";
 

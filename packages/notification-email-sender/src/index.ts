@@ -3,7 +3,6 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   EmailManagerSES,
-  ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
   initSesMailManager,

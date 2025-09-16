@@ -1,9 +1,4 @@
-import {
-  initDB,
-  initFileManager,
-  ReadModelRepository,
-  startServer,
-} from "pagopa-interop-commons";
+import { initDB, initFileManager, startServer } from "pagopa-interop-commons";
 import {
   makeDrizzleConnection,
   catalogReadModelServiceBuilder,

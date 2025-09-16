@@ -1,6 +1,5 @@
 import {
   InteropTokenGenerator,
-  ReadModelRepository,
   RefreshableInteropToken,
   initFileManager,
   logger,
@@ -15,10 +14,6 @@ import { config } from "./config/config.js";
 import { TenantProcessService } from "./service/tenantProcessService.js";
 import { importAttributes } from "./service/processor.js";
 import { downloadCSV } from "./service/fileDownloader.js";
-import {
-  ReadModelQueries,
-  readModelQueriesBuilder,
-} from "./service/readModelQueriesService.js";
 import { readModelQueriesBuilderSQL } from "./service/readModelQueriesServiceSQL.js";
 
 const correlationId = generateId<CorrelationId>();
