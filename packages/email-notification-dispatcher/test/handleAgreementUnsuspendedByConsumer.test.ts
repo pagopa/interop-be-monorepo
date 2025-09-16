@@ -77,7 +77,10 @@ describe("handleAgreementUnsuspendedByConsumer", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("eservice", "AgreementUnsuspendedByConsumer")
+      missingKafkaMessageDataError(
+        "agreement",
+        "AgreementUnsuspendedByConsumer"
+      )
     );
   });
 
