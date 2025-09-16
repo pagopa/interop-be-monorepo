@@ -6,7 +6,6 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { ReadModelService } from "./readModelService.js";
 import { CatalogProcessClient } from "./catalogProcessClient.js";
 
 // eslint-disable-next-line max-params
