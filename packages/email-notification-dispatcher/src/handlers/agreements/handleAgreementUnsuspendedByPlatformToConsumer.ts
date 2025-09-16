@@ -33,7 +33,7 @@ export async function handleAgreementUnsuspendedByPlatformToConsumer(
 
   if (!agreementV2Msg) {
     throw missingKafkaMessageDataError(
-      "eservice",
+      "agreement",
       "AgreementUnsuspendedByPlatform"
     );
   }
