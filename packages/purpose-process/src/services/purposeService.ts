@@ -919,6 +919,11 @@ export function purposeServiceBuilder(
         logger,
       });
 
+      const stamp: PurposeVersionStamp = {
+        who: authData.userId,
+        when: new Date(),
+      };
+
       const newPurposeVersion: PurposeVersion = {
         id: generateId(),
         riskAnalysis: riskAnalysisDocument,
@@ -926,6 +931,9 @@ export function purposeServiceBuilder(
         dailyCalls: seed.dailyCalls,
         firstActivationAt: new Date(),
         createdAt: new Date(),
+        stamps: {
+          creation: stamp,
+        },
       };
 
       const oldVersions = archiveActiveAndSuspendedPurposeVersions(
