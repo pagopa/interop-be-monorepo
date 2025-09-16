@@ -18,7 +18,6 @@ import {
   NotificationType,
   Tenant,
   TenantId,
-  TenantNotificationConfigId,
   toAgreementV2,
   unsafeBrandId,
   UserId,
@@ -73,14 +72,6 @@ describe("handleAgreementActivated", async () => {
     for (const user of users) {
       await addOneUser(user);
     }
-    readModelService.getTenantNotificationConfigByTenantId = vi
-      .fn()
-      .mockResolvedValue({
-        id: generateId<TenantNotificationConfigId>(),
-        tenantId: consumerTenant.id,
-        enabled: true,
-        createAt: new Date(),
-      });
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockImplementation((tenantIds: TenantId[], _: NotificationType) =>
