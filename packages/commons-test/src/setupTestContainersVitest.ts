@@ -26,6 +26,7 @@ import {
   ReadModelSQLDbConfig,
   AnalyticsSQLDbConfig,
   InAppNotificationDBConfig,
+  M2MEventSQLDbConfig,
 } from "pagopa-interop-commons";
 import axios from "axios";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -164,6 +165,30 @@ export async function setupTestContainersVitest(
   inAppNotificationDB: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }>;
+export async function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
+  emailManagerConfig?: PecEmailManagerConfigTest,
+  redisRateLimiterConfig?: RedisRateLimiterConfig,
+  awsSESConfig?: AWSSesConfig,
+  readModelSQLDbConfig?: ReadModelSQLDbConfig,
+  analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
+  inAppNotificationDbConfig?: InAppNotificationDBConfig,
+  m2mEventDbConfig?: M2MEventSQLDbConfig
+): Promise<{
+  readModelRepository: ReadModelRepository;
+  postgresDB: DB;
+  fileManager: FileManager;
+  pecEmailManager: EmailManagerPEC;
+  sesEmailManager: EmailManagerSES;
+  redisRateLimiter: RateLimiter;
+  readModelDB: DrizzleReturnType;
+  analyticsPostgresDB: DB;
+  inAppNotificationDB: DrizzleReturnType;
+  m2mEventDB: DrizzleReturnType;
+  cleanup: () => Promise<void>;
+}>;
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export async function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
@@ -174,7 +199,8 @@ export async function setupTestContainersVitest(
   awsSESConfig?: AWSSesConfig,
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
-  inAppNotificationDbConfig?: InAppNotificationDBConfig
+  inAppNotificationDbConfig?: InAppNotificationDBConfig,
+  m2mEventDbConfig?: M2MEventSQLDbConfig
 ): Promise<{
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
@@ -185,6 +211,7 @@ export async function setupTestContainersVitest(
   readModelDB?: DrizzleReturnType;
   analyticsPostgresDB?: DB;
   inAppNotificationDB?: DrizzleReturnType;
+  m2mEventDB?: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }> {
   let readModelRepository: ReadModelRepository | undefined;
@@ -197,6 +224,7 @@ export async function setupTestContainersVitest(
   let readModelDB: DrizzleReturnType | undefined;
   let analyticsPostgresDB: DB | undefined;
   let inAppNotificationDB: DrizzleReturnType | undefined;
+  let m2mEventDB: DrizzleReturnType | undefined;
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
   }
@@ -272,6 +300,18 @@ export async function setupTestContainersVitest(
     });
     inAppNotificationDB = drizzle({ client: pool });
   }
+  if (m2mEventDbConfig) {
+    const pool = new pg.Pool({
+      user: m2mEventDbConfig.m2mEventSQLDbUsername,
+      password: m2mEventDbConfig.m2mEventSQLDbPassword,
+      host: m2mEventDbConfig.m2mEventSQLDbHost,
+      port: m2mEventDbConfig.m2mEventSQLDbPort,
+      database: m2mEventDbConfig.m2mEventSQLDbName,
+      ssl: m2mEventDbConfig.m2mEventSQLDbUseSSL,
+    });
+    m2mEventDB = drizzle({ client: pool });
+  }
+
   return {
     readModelRepository,
     postgresDB,
@@ -282,6 +322,7 @@ export async function setupTestContainersVitest(
     readModelDB,
     analyticsPostgresDB,
     inAppNotificationDB,
+    m2mEventDB,
     cleanup: async (): Promise<void> => {
       await readModelRepository?.agreements.deleteMany({});
       await readModelRepository?.eservices.deleteMany({});
@@ -422,6 +463,45 @@ export async function setupTestContainersVitest(
       if (inAppNotificationDB) {
         await inAppNotificationDB.execute(
           "TRUNCATE TABLE notification.notification CASCADE"
+        );
+      }
+
+      if (m2mEventDB) {
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.eservice_m2m_event CASCADE"
+        );
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.eservice_template_m2m_event CASCADE"
+        );
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.agreement_m2m_event CASCADE"
+        );
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.purpose_m2m_event CASCADE"
+        );
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.tenant_m2m_event CASCADE"
+        );
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.attribute_m2m_event CASCADE"
+        );
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.consumer_delegation_m2m_event CASCADE"
+        );
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.producer_delegation_m2m_event CASCADE"
+        );
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.client_m2m_event CASCADE"
+        );
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.producer_keychain_m2m_event CASCADE"
+        );
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.key_m2m_event CASCADE"
+        );
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.producer_key_m2m_event CASCADE"
         );
       }
     },
