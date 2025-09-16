@@ -22,7 +22,6 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@anatine/zod-mock": "3.14.0",
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.19.9",
     "camelcase-keys": "9.1.3",
