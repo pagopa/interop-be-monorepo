@@ -85,7 +85,7 @@ describe("unsuspendPurposeTemplate", () => {
   });
 
   it("should write on event-store for the unsuspending of a purpose template in suspended state", async () => {
-    const metadataVersion = 1;
+    const metadataVersion = 2;
     await addOnePurposeTemplate(
       purposeTemplate,
       "PurposeTemplateSuspended",
