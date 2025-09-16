@@ -106,12 +106,22 @@ export const assertActivatableState = (
   if (purposeTemplate.state !== allowedState) {
     throw purposeTemplateNotInExpectedState(
       purposeTemplate.id,
-      purposeTemplate.state
       purposeTemplate.state,
       allowedState
     );
   }
 };
+
+export const assertSuspendableState = (
+  purposeTemplate: PurposeTemplate
+): void => {
+  const expectedState = purposeTemplateState.active;
+
+  if (purposeTemplate.state !== expectedState) {
+    throw purposeTemplateNotInExpectedState(
+      purposeTemplate.id,
+      purposeTemplate.state,
+      expectedState
     );
   }
 };

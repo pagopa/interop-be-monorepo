@@ -26,6 +26,7 @@ import {
 import {
   toCreateEventPurposeTemplateAdded,
   toCreateEventPurposeTemplatePublished,
+  toCreateEventPurposeTemplateSuspended,
   toCreateEventPurposeTemplateUnsuspended,
 } from "../model/domain/toEvent.js";
 import {
@@ -39,6 +40,7 @@ import {
   assertRequesterIsCreator,
   validateAndTransformRiskAnalysisTemplate,
   validateRiskAnalysisTemplateOrThrow,
+  assertSuspendableState,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -199,6 +201,43 @@ export function purposeTemplateServiceBuilder(
 
       return {
         data: updatedPurposeTemplate.data,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
+    async suspendPurposeTemplate(
+      id: PurposeTemplateId,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeTemplate>> {
+      logger.info(`Suspending purpose template ${id}`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        id,
+        readModelService
+      );
+
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertSuspendableState(purposeTemplate.data);
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        state: purposeTemplateState.suspended,
+        updatedAt: new Date(),
+      };
+
+      const createdEvent = await repository.createEvent(
+        toCreateEventPurposeTemplateSuspended({
+          purposeTemplate: updatedPurposeTemplate,
+          version: purposeTemplate.metadata.version,
+          correlationId,
+        })
+      );
+
+      return {
+        data: updatedPurposeTemplate,
         metadata: { version: createdEvent.newVersion },
       };
     },
