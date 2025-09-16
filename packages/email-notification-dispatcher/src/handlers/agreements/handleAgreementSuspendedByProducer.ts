@@ -33,7 +33,7 @@ export async function handleAgreementSuspendedByProducer(
 
   if (!agreementV2Msg) {
     throw missingKafkaMessageDataError(
-      "eservice",
+      "agreement",
       "AgreementSuspendedByProducer"
     );
   }
