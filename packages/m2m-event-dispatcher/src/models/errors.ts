@@ -1,6 +1,6 @@
 import { InternalError } from "pagopa-interop-models";
 
-type M2MEventsDispatcherErrorCode = ""; // TODO define error codes as needed
+type M2MEventsDispatcherErrorCode = "";
 
 export class M2MEventsDispatcherError extends InternalError<M2MEventsDispatcherErrorCode> {
   constructor({
