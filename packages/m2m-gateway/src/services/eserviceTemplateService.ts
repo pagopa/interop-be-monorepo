@@ -298,12 +298,20 @@ export function eserviceTemplateServiceBuilder(
         `Deleting version ${versionId} for eservice template with id ${templateId}`
       );
 
-      await clients.eserviceTemplateProcessClient.deleteDraftTemplateVersion(
-        undefined,
+      const response =
+        await clients.eserviceTemplateProcessClient.deleteDraftTemplateVersion(
+          undefined,
+          {
+            params: { templateId, templateVersionId: versionId },
+            headers,
+          }
+        );
+      await pollEServiceTemplate(
         {
-          params: { templateId, templateVersionId: versionId },
-          headers,
-        }
+          ...(await retrieveEServiceTemplateById(headers, templateId)),
+          metadata: response.metadata,
+        },
+        headers
       );
     },
     async suspendEServiceTemplateVersion(

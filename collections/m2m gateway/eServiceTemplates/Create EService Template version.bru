@@ -1,5 +1,5 @@
 meta {
-  name: Create EService Template versions
+  name: Create EService Template version
   type: http
   seq: 9
 }
@@ -16,16 +16,6 @@ params:path {
 
 headers {
   Authorization: {{JWT-M2M-ADMIN}}
-}
-
-body:json {
-  {
-    "description": "Version description 2 ",
-    "voucherLifespan": 100,
-    "dailyCallsPerConsumer": 100,
-    "dailyCallsTotal": 1000,
-    "agreementApprovalPolicy": "AUTOMATIC"
-  }
 }
 
 vars:post-response {

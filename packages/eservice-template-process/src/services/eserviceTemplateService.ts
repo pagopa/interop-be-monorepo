@@ -888,7 +888,7 @@ export function eserviceTemplateServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<void> {
+    ): Promise<WithMetadata<null>> {
       logger.info(
         `Deleting EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`
       );
@@ -927,33 +927,31 @@ export function eserviceTemplateServiceBuilder(
         await fileManager.delete(config.s3Bucket, document.path, logger);
       }
 
-      if (isLastVersion) {
-        await repository.createEvent(
-          toCreateEventEServiceTemplateDeleted(
+      const updatedEserviceTemplate: EServiceTemplate = {
+        ...eserviceTemplate.data,
+        versions: eserviceTemplate.data.versions.filter(
+          (v) => v.id !== eserviceTemplateVersionId
+        ),
+      };
+      const eventPayload = isLastVersion
+        ? toCreateEventEServiceTemplateDeleted(
             eserviceTemplate.data.id,
             eserviceTemplate.metadata.version,
             eserviceTemplate.data,
             correlationId
           )
-        );
-      } else {
-        const updatedEserviceTemplate: EServiceTemplate = {
-          ...eserviceTemplate.data,
-          versions: eserviceTemplate.data.versions.filter(
-            (v) => v.id !== eserviceTemplateVersionId
-          ),
-        };
-
-        await repository.createEvent(
-          toCreateEventEServiceTemplateDraftVersionDeleted(
+        : toCreateEventEServiceTemplateDraftVersionDeleted(
             eserviceTemplate.data.id,
             eserviceTemplate.metadata.version,
             eserviceTemplateVersionId,
             updatedEserviceTemplate,
             correlationId
-          )
-        );
-      }
+          );
+      const event = await repository.createEvent(eventPayload);
+      return {
+        data: null,
+        metadata: { version: event.newVersion },
+      };
     },
     async createRiskAnalysis(
       id: EServiceTemplateId,

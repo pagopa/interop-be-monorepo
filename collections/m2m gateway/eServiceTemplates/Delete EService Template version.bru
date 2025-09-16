@@ -1,11 +1,11 @@
 meta {
-  name: Suspend EService Template versions
+  name: Delete EService Template version
   type: http
-  seq: 10
+  seq: 14
 }
 
-post {
-  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/versions/:versionId/suspend
+delete {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/versions/:versionId
   body: json
   auth: none
 }
@@ -17,10 +17,6 @@ params:path {
 
 headers {
   Authorization: {{JWT-M2M-ADMIN}}
-}
-
-vars:post-response {
-  eserviceTemplateVersionId: res.body.id
 }
 
 script:pre-request {

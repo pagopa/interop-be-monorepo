@@ -1,16 +1,17 @@
 meta {
-  name: Edit EService Template description
+  name: Publish EService Template version
   type: http
-  seq: 4
+  seq: 12
 }
 
-patch {
-  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/description
+post {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/versions/:versionId/publish
   body: json
   auth: none
 }
 
 params:path {
+  versionId: {{eserviceTemplateVersionId}}
   templateId: {{eserviceTemplateId}}
 }
 
@@ -18,10 +19,8 @@ headers {
   Authorization: {{JWT-M2M-ADMIN}}
 }
 
-body:json {
-  {
-    "description": "Updated Description eserviceTemplate"
-  }
+vars:post-response {
+  eserviceTemplateVersionId: res.body.id
 }
 
 script:pre-request {
