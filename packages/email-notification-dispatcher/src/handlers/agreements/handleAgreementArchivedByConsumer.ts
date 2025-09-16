@@ -31,7 +31,10 @@ export async function handleAgreementArchivedByConsumer(
   } = params;
 
   if (!agreementV2Msg) {
-    throw missingKafkaMessageDataError("agreement", "AgreementArchivedByConsumer");
+    throw missingKafkaMessageDataError(
+      "agreement",
+      "AgreementArchivedByConsumer"
+    );
   }
 
   const agreement = fromAgreementV2(agreementV2Msg);
