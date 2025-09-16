@@ -16,10 +16,12 @@ import {
   PurposeRiskAnalysisForm,
   RiskAnalysisId,
   tenantKind,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import {
   getMockPurpose,
   getMockPurposeVersion,
+  getMockPurposeVersionStamps,
   getMockValidRiskAnalysisForm,
   toPurposeV1,
   toPurposeVersionV1,
@@ -34,7 +36,6 @@ import {
   purposeTables,
   resetTargetTables,
 } from "./utils.js";
-import { getMockPurposeVersionStamps } from "./utilsPurpose.js";
 
 describe("Purpose messages consumers - handlePurposeMessageV1", () => {
   beforeEach(async () => {
@@ -56,7 +57,6 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       freeOfChargeReason: "Free of charge reason",
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [getMockPurposeVersion()],
-      stamps: getMockPurposeVersionStamps(),
     };
     const payload: PurposeCreatedV1 = { purpose: toPurposeV1(mockPurpose) };
     const msg: PurposeEventEnvelopeV1 = {
@@ -314,6 +314,8 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       riskAnalysisId: generateId<RiskAnalysisId>(),
     };
 
+    const mockPurposeVersionStamps = getMockPurposeVersionStamps();
+
     const mockPurpose = {
       ...getMockPurpose(),
       delegationId: generateId<DelegationId>(),
@@ -322,7 +324,12 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       updatedAt: new Date(),
       freeOfChargeReason: "Free of charge reason",
       riskAnalysisForm: purposeRiskAnalysisForm,
-      versions: [getMockPurposeVersion()],
+      versions: [
+        getMockPurposeVersion(
+          purposeVersionState.draft,
+          mockPurposeVersionStamps
+        ),
+      ],
     };
 
     const payload: PurposeAddedV2 = { purpose: toPurposeV2(mockPurpose) };
@@ -357,6 +364,13 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
         { purposeVersionId: version.id }
       );
       expect(versionDocumentStored.length).toBeGreaterThan(0);
+
+      const versionStampsStored = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version_stamp,
+        { purposeVersionId: version.id }
+      );
+      expect(versionStampsStored.length).toBeGreaterThan(0);
 
       const riskAnalysisStored = await getManyFromDb(
         dbContext,
@@ -510,7 +524,12 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       dbContext
     );
 
-    const version = getMockPurposeVersion();
+    const mockPurposeVersionStamps = getMockPurposeVersionStamps();
+
+    const version = getMockPurposeVersion(
+      purposeVersionState.draft,
+      mockPurposeVersionStamps
+    );
     mock.versions.push(version);
 
     const payload: NewPurposeVersionActivatedV2 = {
@@ -535,6 +554,13 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       { id: version.id }
     );
     expect(storedVer).toBeDefined();
+
+    const versionStampsStored = await getOneFromDb(
+      dbContext,
+      PurposeDbTable.purpose_version_stamp,
+      { purposeVersionId: version.id }
+    );
+    expect(versionStampsStored).toBeDefined();
   });
 
   it("WaitingForApprovalPurposeVersionDeleted: delete purpose version", async () => {
@@ -602,6 +628,13 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       { purposeVersionId: mockVersion.id }
     );
     expect(versionDocumentStored).toHaveLength(0);
+
+    const versionStampsStored = await getManyFromDb(
+      dbContext,
+      PurposeDbTable.purpose_version_stamp,
+      { purposeVersionId: mockVersion.id }
+    );
+    expect(versionStampsStored).toHaveLength(0);
   });
 });
 
