@@ -22,7 +22,6 @@ import {
   makeDrizzleConnection,
 } from "pagopa-interop-readmodel";
 import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 import { config } from "./config/config.js";
 import { archiveDescriptorForArchivedAgreement } from "./services/archiveDescriptorProcessor.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
