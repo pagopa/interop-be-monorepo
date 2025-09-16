@@ -3,14 +3,19 @@ import {
   descriptorState,
   EService,
   EServiceId,
+  operationForbidden,
   PurposeTemplateId,
+  PurposeTemplateState,
   RiskAnalysisFormTemplate,
+  TenantId,
   TenantKind,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
+  M2MAdminAuthData,
   RiskAnalysisTemplateValidatedForm,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
+  UIAuthData,
   validatePurposeTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
@@ -18,6 +23,7 @@ import {
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
   associationEServicesForPurposeTemplateFailed,
   missingFreeOfChargeReason,
+  purposeTemplateNotInValidState,
   purposeTemplateNameConflict,
   riskAnalysisTemplateValidationFailed,
   tooManyEServicesForPurposeTemplate,
@@ -61,6 +67,24 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
       purposeTemplateWithSameName.data.id,
       purposeTemplateWithSameName.data.purposeTitle
     );
+  }
+};
+
+export const assertPurposeTemplateStateIsValid = (
+  state: PurposeTemplateState,
+  validStates: PurposeTemplateState[]
+): void => {
+  if (!validStates.includes(state)) {
+    throw purposeTemplateNotInValidState(state, validStates);
+  }
+};
+
+export const assertRequesterPurposeTemplateCreator = (
+  creatorId: TenantId,
+  authData: UIAuthData | M2MAdminAuthData
+): void => {
+  if (authData.organizationId !== creatorId) {
+    throw operationForbidden;
   }
 };
 

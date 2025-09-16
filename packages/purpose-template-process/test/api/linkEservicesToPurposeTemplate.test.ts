@@ -6,7 +6,9 @@ import {
   EServiceDescriptorPurposeTemplate,
   EServiceId,
   generateId,
+  operationForbidden,
   PurposeTemplateId,
+  purposeTemplateState,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -17,6 +19,7 @@ import {
   associationEServicesForPurposeTemplateFailed,
   tooManyEServicesForPurposeTemplate,
   purposeTemplateNotFound,
+  purposeTemplateNotInValidState,
 } from "../../src/model/domain/errors.js";
 import { eserviceNotFound } from "../../src/errors/purposeTemplateValidationErrors.js";
 
@@ -167,6 +170,24 @@ describe("API POST /purposeTemplates/:id/linkEservices", () => {
     {
       error: purposeTemplateNotFound(purposeTemplateId),
       expectedStatus: 404,
+    },
+    {
+      error: purposeTemplateNotInValidState(purposeTemplateState.suspended, [
+        purposeTemplateState.draft,
+        purposeTemplateState.active,
+      ]),
+      expectedStatus: 400,
+    },
+    {
+      error: purposeTemplateNotInValidState(purposeTemplateState.archived, [
+        purposeTemplateState.draft,
+        purposeTemplateState.active,
+      ]),
+      expectedStatus: 400,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",

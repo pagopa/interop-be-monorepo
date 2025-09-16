@@ -4,6 +4,7 @@ import {
   EServiceId,
   makeApiProblemBuilder,
   PurposeTemplateId,
+  PurposeTemplateState,
 } from "pagopa-interop-models";
 import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
 
@@ -15,6 +16,7 @@ export const errorCodes = {
   associationEServicesForPurposeTemplateFailed: "0005",
   associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0006",
   tooManyEServicesForPurposeTemplate: "0007",
+  purposeTemplateNotInValidState: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -92,5 +94,16 @@ export function tooManyEServicesForPurposeTemplate(
     detail: `Too many e-services provided. Maximum allowed: ${maxCount}, provided: ${actualCount}`,
     code: "tooManyEServicesForPurposeTemplate",
     title: "Too Many E-Services for Purpose Template",
+  });
+}
+
+export function purposeTemplateNotInValidState(
+  state: PurposeTemplateState,
+  validStates: PurposeTemplateState[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose template state is: ${state} but valid states are: ${validStates}`,
+    code: "purposeTemplateNotInValidState",
+    title: "Purpose template not in valid state",
   });
 }

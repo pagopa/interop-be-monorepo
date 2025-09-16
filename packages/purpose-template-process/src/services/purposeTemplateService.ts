@@ -34,7 +34,9 @@ import {
 import {
   assertConsistentFreeOfCharge,
   assertEServiceIdsCountIsBelowThreshold,
+  assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
+  assertRequesterPurposeTemplateCreator,
   validateAndTransformRiskAnalysisTemplate,
   validateEServicesForPurposeTemplate,
 } from "./validators.js";
@@ -157,6 +159,7 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       eserviceIds: EServiceId[],
       {
+        authData,
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
@@ -170,6 +173,16 @@ export function purposeTemplateServiceBuilder(
       const purposeTemplate = await retrievePurposeTemplate(
         purposeTemplateId,
         readModelService
+      );
+
+      assertPurposeTemplateStateIsValid(purposeTemplate.data.state, [
+        purposeTemplateState.draft,
+        purposeTemplateState.active,
+      ]);
+
+      assertRequesterPurposeTemplateCreator(
+        purposeTemplate.data.creatorId,
+        authData
       );
 
       const validationResult = await validateEServicesForPurposeTemplate(

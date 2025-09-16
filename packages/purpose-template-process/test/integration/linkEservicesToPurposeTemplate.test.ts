@@ -8,6 +8,7 @@ import {
   Tenant,
   descriptorState,
   generateId,
+  operationForbidden,
   purposeTemplateState,
   tenantKind,
   toEServiceV2,
@@ -29,6 +30,7 @@ import {
   associationEServicesForPurposeTemplateFailed,
   purposeTemplateNotFound,
   tooManyEServicesForPurposeTemplate,
+  purposeTemplateNotInValidState,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -329,5 +331,81 @@ describe("linkEservicesToPurposeTemplate", () => {
         purposeTemplate.id
       )
     );
+  });
+
+  it("should throw purposeTemplateNotInValidState when purpose template is suspended", async () => {
+    const suspendedPurposeTemplate: PurposeTemplate = {
+      ...getMockPurposeTemplate(),
+      creatorId: tenant.id,
+      state: purposeTemplateState.suspended,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEService(eService1);
+    await addOnePurposeTemplate(suspendedPurposeTemplate);
+
+    await expect(
+      purposeTemplateService.linkEservicesToPurposeTemplate(
+        suspendedPurposeTemplate.id,
+        [eService1.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      )
+    ).rejects.toThrowError(
+      purposeTemplateNotInValidState(purposeTemplateState.suspended, [
+        purposeTemplateState.draft,
+        purposeTemplateState.active,
+      ])
+    );
+  });
+
+  it("should throw purposeTemplateNotInValidState when purpose template is archived", async () => {
+    const archivedPurposeTemplate: PurposeTemplate = {
+      ...getMockPurposeTemplate(),
+      creatorId: tenant.id,
+      state: purposeTemplateState.archived,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEService(eService1);
+    await addOnePurposeTemplate(archivedPurposeTemplate);
+
+    await expect(
+      purposeTemplateService.linkEservicesToPurposeTemplate(
+        archivedPurposeTemplate.id,
+        [eService1.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      )
+    ).rejects.toThrowError(
+      purposeTemplateNotInValidState(purposeTemplateState.archived, [
+        purposeTemplateState.draft,
+        purposeTemplateState.active,
+      ])
+    );
+  });
+
+  it("should throw operationForbidden when user is not the creator of the purpose template", async () => {
+    const differentTenant: Tenant = {
+      ...getMockTenant(),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
+    await addOneTenant(differentTenant);
+    await addOneEService(eService1);
+    await addOnePurposeTemplate(purposeTemplate);
+
+    await expect(
+      purposeTemplateService.linkEservicesToPurposeTemplate(
+        purposeTemplate.id,
+        [eService1.id],
+        getMockContext({
+          authData: getMockAuthData(differentTenant.id),
+        })
+      )
+    ).rejects.toThrowError(operationForbidden);
   });
 });
