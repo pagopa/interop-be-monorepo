@@ -144,7 +144,7 @@ export function readModelServiceBuilderSQL({
       const tableColumns = getTableColumns(
         purposeTemplateInReadmodelPurposeTemplate
       );
-      const orderByClauses = createOrderByClauses({
+      const orderClause = createOrderByClauses({
         table: purposeTemplateInReadmodelPurposeTemplate,
         sortColumns,
         directions,
@@ -167,7 +167,7 @@ export function readModelServiceBuilderSQL({
         )
         .where(getPurposeTemplatesFilters(readModelDB, filters))
         .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
-        .orderBy(...orderByClauses)
+        .orderBy(...orderClause)
         .limit(limit)
         .offset(offset)
         .as("subquery");
@@ -221,7 +221,7 @@ export function readModelServiceBuilderSQL({
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
           )
         )
-        .orderBy(...orderByClauses);
+        .orderBy(...orderClause);
 
       const purposeTemplates = aggregatePurposeTemplateArray(
         toPurposeTemplateAggregatorArray(queryResult)
