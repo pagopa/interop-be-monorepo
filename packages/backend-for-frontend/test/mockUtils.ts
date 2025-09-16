@@ -520,6 +520,17 @@ export const getMockPurposeSeed = (): bffApi.PurposeSeed => ({
   dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
 });
 
+export const getMockPurposeTemplateSeed = (): bffApi.PurposeTemplateSeed => ({
+  targetDescription: generateMock(z.string()),
+  targetTenantKind: generateMock(bffApi.TenantKind),
+  purposeTitle: generateMock(z.string()),
+  purposeDescription: generateMock(z.string()),
+  purposeRiskAnalysisForm: generateMock(bffApi.RiskAnalysisFormTemplateSeed),
+  purposeIsFreeOfCharge: generateMock(z.boolean()),
+  purposeFreeOfChargeReason: generateMock(z.string().optional()),
+  purposeDailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
+});
+
 export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
   eserviceId: generateId(),
   consumerId: generateId(),
