@@ -41,6 +41,8 @@ export const eventMailTemplateType = {
     "agreement-unsuspended-by-consumer-mail",
   agreementUnsuspendedByPlatformMailTemplate:
     "agreement-unsuspended-by-platform-mail",
+  agreementArchivedByConsumerMailTemplate:
+    "agreement-archived-by-consumer-mail",
   clientPurposeAddedMailTemplate: "client-purpose-added-mail",
   clientPurposeRemovedMailTemplate: "client-purpose-removed-mail",
   purposeVersionSuspendedByConsumerMailTemplate:
