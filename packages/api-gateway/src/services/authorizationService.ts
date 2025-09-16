@@ -8,6 +8,7 @@ import { clientNotFound, keyNotFound } from "../models/errors.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   authorizationProcessClient: AuthorizationProcessClient,
   readModelService: ReadModelServiceSQL
