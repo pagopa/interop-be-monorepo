@@ -18,7 +18,7 @@ import {
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
   purposeTemplateState,
-  PurposeTemplatePublishedV2,
+  PurposeTemplateUnsuspendedV2,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -71,7 +71,7 @@ describe("unsuspendPurposeTemplate", () => {
     purposeRiskAnalysisForm: riskAnalysisFormTemplate,
     purposeFreeOfChargeReason: "Free of charge reason",
     purposeDailyCalls: 100,
-    state: purposeTemplateState.draft,
+    state: purposeTemplateState.suspended,
     creatorId,
   };
 
@@ -84,8 +84,13 @@ describe("unsuspendPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  it("should write on event-store for the unsuspending of a purpose template in active state", async () => {
-    await addOnePurposeTemplate(purposeTemplate);
+  it("should write on event-store for the unsuspending of a purpose template in suspended state", async () => {
+    const metadataVersion = 1;
+    await addOnePurposeTemplate(
+      purposeTemplate,
+      "PurposeTemplateSuspended",
+      metadataVersion
+    );
 
     const unsuspendResponse =
       await purposeTemplateService.unsuspendPurposeTemplate(
@@ -97,10 +102,12 @@ describe("unsuspendPurposeTemplate", () => {
 
     const writtenEvent = await readLastPurposeTemplateEvent(purposeTemplate.id);
 
+    const expectedMetadataVersion = metadataVersion + 1;
+
     expect(writtenEvent).toMatchObject({
       stream_id: purposeTemplate.id,
-      version: "1",
-      type: "PurposeTemplatePublished",
+      version: String(expectedMetadataVersion),
+      type: "PurposeTemplateUnsuspended",
       event_version: 2,
     });
 
@@ -111,7 +118,7 @@ describe("unsuspendPurposeTemplate", () => {
     };
 
     const writtenPayload = decodeProtobufPayload({
-      messageType: PurposeTemplatePublishedV2,
+      messageType: PurposeTemplateUnsuspendedV2,
       payload: writtenEvent.data,
     });
 
@@ -120,12 +127,12 @@ describe("unsuspendPurposeTemplate", () => {
     );
     expect(unsuspendResponse).toMatchObject({
       data: updatedPurposeTemplate,
-      metadata: { version: 1 },
+      metadata: { version: expectedMetadataVersion },
     });
   });
 
   it("should throw tenantNotAllowed if the caller is not the creator of the purpose template", async () => {
-    await addOnePurposeTemplate(purposeTemplate);
+    await addOnePurposeTemplate(purposeTemplate, "PurposeTemplateSuspended");
 
     const otherTenantId = generateId<TenantId>();
 
@@ -143,7 +150,10 @@ describe("unsuspendPurposeTemplate", () => {
       purposeRiskAnalysisForm: undefined,
     };
 
-    await addOnePurposeTemplate(purposeTemplateWithoutRiskAnalysis);
+    await addOnePurposeTemplate(
+      purposeTemplateWithoutRiskAnalysis,
+      "PurposeTemplateSuspended"
+    );
 
     await expect(async () => {
       await purposeTemplateService.unsuspendPurposeTemplate(
@@ -173,7 +183,10 @@ describe("unsuspendPurposeTemplate", () => {
       },
     };
 
-    await addOnePurposeTemplate(purposeTemplateWithInvalidRiskAnalysis);
+    await addOnePurposeTemplate(
+      purposeTemplateWithInvalidRiskAnalysis,
+      "PurposeTemplateSuspended"
+    );
 
     const result = validatePurposeTemplateRiskAnalysis(
       riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
@@ -197,7 +210,7 @@ describe("unsuspendPurposeTemplate", () => {
   it.each([
     purposeTemplateState.active,
     purposeTemplateState.archived,
-    purposeTemplateState.suspended,
+    purposeTemplateState.draft,
   ])(
     `should throw purposeTemplateNotInExpectedState if the purpose template is in %s state`,
     async (state) => {
@@ -206,7 +219,10 @@ describe("unsuspendPurposeTemplate", () => {
         state,
       };
 
-      await addOnePurposeTemplate(purposeTemplateWithUnexpectedState);
+      await addOnePurposeTemplate(
+        purposeTemplateWithUnexpectedState,
+        "PurposeTemplateSuspended"
+      );
 
       await expect(async () => {
         await purposeTemplateService.unsuspendPurposeTemplate(
