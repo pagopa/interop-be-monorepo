@@ -89,7 +89,7 @@ describe("handleAgreementRejected", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("eservice", "AgreementRejected")
+      missingKafkaMessageDataError("agreement", "AgreementRejected")
     );
   });
 

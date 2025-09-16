@@ -31,7 +31,7 @@ export async function handleAgreementActivatedToProducer(
   } = params;
 
   if (!agreementV2Msg) {
-    throw missingKafkaMessageDataError("eservice", "AgreementActivated");
+    throw missingKafkaMessageDataError("agreement", "AgreementActivated");
   }
 
   const agreement = fromAgreementV2(agreementV2Msg);

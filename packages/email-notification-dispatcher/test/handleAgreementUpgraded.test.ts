@@ -76,7 +76,7 @@ describe("handleAgreementUpgraded", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("eservice", "AgreementUpgraded")
+      missingKafkaMessageDataError("agreement", "AgreementUpgraded")
     );
   });
 

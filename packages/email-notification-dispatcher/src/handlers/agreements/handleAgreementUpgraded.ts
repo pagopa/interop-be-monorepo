@@ -31,7 +31,7 @@ export async function handleAgreementUpgraded(
   } = data;
 
   if (!agreementV2Msg) {
-    throw missingKafkaMessageDataError("eservice", "AgreementUpgraded");
+    throw missingKafkaMessageDataError("agreement", "AgreementUpgraded");
   }
 
   const agreement = fromAgreementV2(agreementV2Msg);
