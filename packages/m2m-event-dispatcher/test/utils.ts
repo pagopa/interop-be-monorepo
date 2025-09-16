@@ -24,6 +24,14 @@ afterEach(cleanup);
 export const testM2mEventWriterService =
   m2mEventWriterServiceSQLBuilder(m2mEventDB);
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const getMockEventEnvelopeCommons = () => ({
+  sequence_num: 1,
+  version: 1,
+  event_version: 1,
+  log_date: new Date(),
+});
+
 export async function retrieveLastAttributeM2MEvent(): Promise<AttributeM2MEvent> {
   const sqlEvents = await m2mEventDB
     .select()

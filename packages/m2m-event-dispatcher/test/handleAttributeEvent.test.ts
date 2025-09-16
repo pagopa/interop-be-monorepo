@@ -5,49 +5,63 @@
 import { describe, expect, it } from "vitest";
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
-  Attribute,
   AttributeAddedV1,
   AttributeEventEnvelope,
+  MaintenanceAttributeDeletedV1,
   toAttributeV1,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
+import { P, match } from "ts-pattern";
 import { handleAttributeEvent } from "../src/handlers/handleAttributeEvent.js";
 import {
+  getMockEventEnvelopeCommons,
   retrieveLastAttributeM2MEvent,
   testM2mEventWriterService,
 } from "./utils.js";
 
 describe("handleAgreementEvent test", async () => {
-  it("should write M2M event for AttributeAdded event", async () => {
-    const attribute: Attribute = getMockAttribute();
-    const payload: AttributeAddedV1 = {
-      attribute: toAttributeV1(attribute),
-    };
-    const message: AttributeEventEnvelope = {
-      sequence_num: 1,
+  const attribute = getMockAttribute();
+  it.each([
+    {
+      ...getMockEventEnvelopeCommons(),
       stream_id: attribute.id,
-      version: 1,
       type: "AttributeAdded",
-      event_version: 1,
-      data: payload,
-      log_date: new Date(),
-    };
+      data: { attribute: toAttributeV1(attribute) } satisfies AttributeAddedV1,
+    },
+    {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: attribute.id,
+      type: "MaintenanceAttributeDeleted",
+      data: { id: attribute.id } satisfies MaintenanceAttributeDeletedV1,
+    },
+  ] as AttributeEventEnvelope[])(
+    "should write M2M event for AttributeAdded event",
+    async (message: AttributeEventEnvelope) => {
+      const eventTimestamp = new Date();
 
-    const eventTimestamp = new Date();
+      await handleAttributeEvent(
+        message,
+        eventTimestamp,
+        genericLogger,
+        testM2mEventWriterService
+      );
 
-    await handleAttributeEvent(
-      message,
-      eventTimestamp,
-      genericLogger,
-      testM2mEventWriterService
-    );
-
-    const attributeM2MEvent = await retrieveLastAttributeM2MEvent();
-    expect(attributeM2MEvent).toEqual({
-      id: expect.any(String),
-      eventType: "AttributeAdded",
-      eventTimestamp,
-      attributeId: attribute.id,
-    });
-  });
+      const attributeM2MEvent = await retrieveLastAttributeM2MEvent();
+      expect(attributeM2MEvent).toEqual(
+        match(message)
+          .with(
+            {
+              type: P.union("AttributeAdded", "MaintenanceAttributeDeleted"),
+            },
+            (m) => ({
+              id: expect.any(String),
+              eventType: m.type,
+              eventTimestamp,
+              attributeId: attribute.id,
+            })
+          )
+          .exhaustive()
+      );
+    }
+  );
 });
