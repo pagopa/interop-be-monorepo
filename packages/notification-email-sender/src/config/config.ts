@@ -26,7 +26,7 @@ export type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
 export const NotificationEmailSenderRedisConfig = z
   .object({
     REDIS_NOTIFICATION_EMAIL_SENDER_HOST: z.string(),
-    REDIS_NOTIFICATION_EMAIL_SENDER_PORT: z.number(),
+    REDIS_NOTIFICATION_EMAIL_SENDER_PORT: z.coerce.number().min(1001),
   })
   .transform((c) => ({
     redisNotificationEmailSenderHost: c.REDIS_NOTIFICATION_EMAIL_SENDER_HOST,
