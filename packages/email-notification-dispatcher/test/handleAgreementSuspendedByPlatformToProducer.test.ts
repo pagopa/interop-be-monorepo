@@ -77,7 +77,7 @@ describe("handleAgreementSuspendedByPlatformToProducerToProducer", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("eservice", "AgreementSuspendedByPlatform")
+      missingKafkaMessageDataError("agreement", "AgreementSuspendedByPlatform")
     );
   });
 
