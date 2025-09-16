@@ -1,5 +1,6 @@
 import {
   PurposeTemplate,
+  purposeTemplateState,
   PurposeTemplateState,
   RiskAnalysisFormTemplate,
   TenantKind,
@@ -106,6 +107,11 @@ export const assertActivatableState = (
     throw purposeTemplateNotInExpectedState(
       purposeTemplate.id,
       purposeTemplate.state
+      purposeTemplate.state,
+      allowedState
+    );
+  }
+};
     );
   }
 };
