@@ -64,7 +64,7 @@ const purposeTemplateRouter = (
 
         setMetadataVersionHeader(res, metadata);
         return res
-          .status(200)
+          .status(201)
           .send(purposeTemplateToApiPurposeTemplate(purposeTemplate));
       } catch (error) {
         const errorRes = makeApiProblem(
