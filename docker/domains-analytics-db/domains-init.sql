@@ -227,6 +227,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose (
   updated_at TIMESTAMP WITH TIME ZONE,
   is_free_of_charge BOOLEAN NOT NULL,
   free_of_charge_reason VARCHAR(2048),
+  purpose_template_id VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );

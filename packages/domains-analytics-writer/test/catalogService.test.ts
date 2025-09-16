@@ -45,12 +45,14 @@ import {
 
 describe("Catalog messages consumers - handleCatalogMessageV1", () => {
   beforeEach(async () => {
+    await dbContext.conn.none("SET standard_conforming_strings = off");
     await resetTargetTables(catalogTables);
   });
 
   it("EServiceAdded: inserts eService with descriptors, docs, interfaces, riskAnalysis", async () => {
     const mock = getMockEService();
     const descriptor = getMockDescriptor();
+    descriptor.description = "Escape sanitize test\\";
     const interfaceId = generateId();
     descriptor.interface = {
       path: "path",

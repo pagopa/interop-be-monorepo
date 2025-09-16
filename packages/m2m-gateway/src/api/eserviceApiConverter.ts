@@ -1,4 +1,5 @@
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { toM2MGatewayApiRiskAnalysisForm } from "./riskAnalysisFormApiConverter.js";
 
 export function toGetEServicesQueryParams(
   params: m2mGatewayApi.GetEServicesQueryParams
@@ -103,53 +104,6 @@ export function toCatalogApiPatchUpdateEServiceDescriptorSeed(
     dailyCallsTotal: descriptor.dailyCallsTotal,
     agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
     attributes: undefined, // Attributes are updated with dedicated API calls
-  };
-}
-
-export function toM2MGatewayApiRiskAnalysisAnswers(
-  singleAnswers: catalogApi.EServiceRiskAnalysisSingleAnswer[],
-  multiAnswers: catalogApi.EServiceRiskAnalysisMultiAnswer[]
-): Record<string, string[]> {
-  const singleAnswersMap = singleAnswers.reduce<Record<string, string[]>>(
-    (map, { key, value }) => {
-      if (!value) {
-        return map;
-      }
-      // eslint-disable-next-line functional/immutable-data
-      map[key] = [value];
-      return map;
-    },
-    {}
-  );
-
-  const multiAnswersMap = multiAnswers.reduce<Record<string, string[]>>(
-    (map, { key, values }) => {
-      if (values.length === 0) {
-        return map;
-      }
-      // eslint-disable-next-line functional/immutable-data
-      map[key] = values;
-      return map;
-    },
-    {}
-  );
-
-  return {
-    ...singleAnswersMap,
-    ...multiAnswersMap,
-  };
-}
-
-export function toM2MGatewayApiRiskAnalysisForm(
-  riskAnalysisForm: catalogApi.EServiceRiskAnalysisForm
-): m2mGatewayApi.RiskAnalysisForm {
-  return {
-    id: riskAnalysisForm.id,
-    version: riskAnalysisForm.version,
-    answers: toM2MGatewayApiRiskAnalysisAnswers(
-      riskAnalysisForm.singleAnswers,
-      riskAnalysisForm.multiAnswers
-    ),
   };
 }
 

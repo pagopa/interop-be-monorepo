@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host-m2m-gw}}/clients?offset=0&limit=10&consumerId={{tenantId}}
+  url: {{host-m2m-gw}}/clients?offset=0&limit=10
   body: none
   auth: none
 }
@@ -13,8 +13,8 @@ get {
 params:query {
   offset: 0
   limit: 10
-  consumerId: {{tenantId}}
-  ~name: "test"
+  ~name: test
+  ~consumerId: {{tenantId2}}
   ~userIds: [{{userId1}}, {{userId2}}]
   ~purposeId: "{{purposeId}}"
 }

@@ -54,7 +54,7 @@ curl -X POST http://localhost:3000/eservices \
   -d '{ "name": "Example name", "description": "Example description", "technology": "REST", "attributes": { "certified": [], "declared": [], "verified": [] } }' \
   -H "Content-Type: application/json" \
   -H 'X-Correlation-Id: test' \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdhbml6YXRpb25JZCI6IjRENTU2OTZGLTE2QzAtNDk2OC04NTRCLTJCMTY2Mzk3RkMzMCIsInVzZXItcm9sZXMiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsInVpZCI6IjBmZGEwMzNjLThlOGUtNDhhOS1hMGZjLWFiYmExZjcxMWZlZiIsIm9yZ2FuaXphdGlvbiI6eyJyb2xlcyI6W3sicm9sZSI6IkFkbWluIn1dfSwiZXh0ZXJuYWxJZCI6eyJvcmlnaW4iOiJJUEEiLCJ2YWx1ZSI6IjEyMzQ1NiJ9fQ.308Ulfu4JXXMhqsWo26MIWWhv8tp3sdl-pU5gN_SIX4" 
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdhbml6YXRpb25JZCI6IjRENTU2OTZGLTE2QzAtNDk2OC04NTRCLTJCMTY2Mzk3RkMzMCIsInVzZXItcm9sZXMiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsInVpZCI6IjBmZGEwMzNjLThlOGUtNDhhOS1hMGZjLWFiYmExZjcxMWZlZiIsIm9yZ2FuaXphdGlvbiI6eyJyb2xlcyI6W3sicm9sZSI6IkFkbWluIn1dfSwiZXh0ZXJuYWxJZCI6eyJvcmlnaW4iOiJJUEEiLCJ2YWx1ZSI6IjEyMzQ1NiJ9fQ.308Ulfu4JXXMhqsWo26MIWWhv8tp3sdl-pU5gN_SIX4"
 ```
 
 You should see the event being processed by the consumer and the read model being updated.
@@ -62,3 +62,14 @@ You should see the event being processed by the consumer and the read model bein
 You can verify this by using Mongo Express, which is being started alongside the consumer and is available at http://localhost:8081/db/readmodel.
 
 Similarly, there is a Postgres web client that can be used to inspect the event stores at http://localhost:8082.
+
+## Licensing
+
+This project is licensed under the terms of the **European Union Public Licence version 1.2 (EUPL-1.2)**.
+The full text of the license can be found in the [LICENSE](LICENSE) file.
+Please see the [AUTHORS](AUTHORS) file for the copyright notice.
+
+### Package specific licensing
+
+Since this is a monorepo, some packages may have different licensing terms.
+For detailed info regarding each package of the monorepo, please refer to their respective license files.

@@ -28,6 +28,53 @@ const eserviceTemplateRouter = (
   );
 
   eserviceTemplateRouter
+    .get("/eserviceTemplates", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const templates = await eserviceTemplateService.getEServiceTemplates(
+          req.query,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.EServiceTemplates.parse(templates));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving templates`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/eserviceTemplates", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const template = await eserviceTemplateService.createEServiceTemplate(
+          req.body,
+          ctx
+        );
+
+        return res
+          .status(201)
+          .send(m2mGatewayApi.EServiceTemplate.parse(template));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating template`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/eserviceTemplates/:templateId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
@@ -47,6 +94,32 @@ const eserviceTemplateRouter = (
           emptyErrorMapper,
           ctx,
           `Error retrieving eservice template with id ${req.params.templateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/eserviceTemplates/:templateId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const eserviceTemplate =
+          await eserviceTemplateService.updateDraftEServiceTemplate(
+            unsafeBrandId(req.params.templateId),
+            req.body,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.EServiceTemplate.parse(eserviceTemplate));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating eservice with id ${req.params.templateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -103,7 +176,57 @@ const eserviceTemplateRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/eserviceTemplates/:templateId/riskAnalyses", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const riskAnalysis =
+          await eserviceTemplateService.createEServiceTemplateRiskAnalysis(
+            unsafeBrandId(req.params.templateId),
+            req.body,
+            ctx
+          );
+        return res
+          .status(201)
+          .send(m2mGatewayApi.EServiceTemplateRiskAnalysis.parse(riskAnalysis));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating risk analysis for eservice template with id ${req.params.templateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/eserviceTemplates/:templateId/riskAnalyses", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const riskAnalysis =
+          await eserviceTemplateService.getEServiceTemplateRiskAnalyses(
+            unsafeBrandId(req.params.templateId),
+            req.query,
+            ctx
+          );
+        return res
+          .status(200)
+          .send(m2mGatewayApi.EServiceTemplateRiskAnalyses.parse(riskAnalysis));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving risk analyses for eservice template with id ${req.params.templateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return eserviceTemplateRouter;
 };

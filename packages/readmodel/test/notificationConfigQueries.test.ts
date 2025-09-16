@@ -40,28 +40,6 @@ describe("Notification config queries", () => {
       });
     });
 
-    // Test that the query works even if there are no tenant_enabled_notification rows
-    it("should get a tenant notification config with all notifications disabled", async () => {
-      const tenantNotificationConfig = {
-        ...getMockTenantNotificationConfig(),
-        config: { newEServiceVersionPublished: false },
-      };
-      await insertTenantNotificationConfig(
-        readModelDB,
-        tenantNotificationConfig,
-        1
-      );
-
-      const retrievedConfig =
-        await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
-          tenantNotificationConfig.tenantId
-        );
-      expect(retrievedConfig).toStrictEqual({
-        data: tenantNotificationConfig,
-        metadata: { version: 1 },
-      });
-    });
-
     it("should *not* get a tenant notification config if not present", async () => {
       const retrievedConfig =
         await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
@@ -95,8 +73,48 @@ describe("Notification config queries", () => {
     it("should get a user notification config with all notifications disabled", async () => {
       const userNotificationConfig = {
         ...getMockUserNotificationConfig(),
-        inAppConfig: { newEServiceVersionPublished: false },
-        emailConfig: { newEServiceVersionPublished: false },
+        inAppConfig: {
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementManagementToProducer: false,
+          clientAddedRemovedToProducer: false,
+          purposeStatusChangedToProducer: false,
+          templateStatusChangedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
+          eserviceStateChangedToConsumer: false,
+          agreementActivatedRejectedToConsumer: false,
+          purposeActivatedRejectedToConsumer: false,
+          purposeSuspendedUnsuspendedToConsumer: false,
+          newEserviceTemplateVersionToInstantiator: false,
+          eserviceTemplateNameChangedToInstantiator: false,
+          eserviceTemplateStatusChangedToInstantiator: false,
+          delegationApprovedRejectedToDelegator: false,
+          eserviceNewVersionSubmittedToDelegator: false,
+          eserviceNewVersionApprovedRejectedToDelegate: false,
+          delegationSubmittedRevokedToDelegate: false,
+          certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
+          clientKeyAddedDeletedToClientUsers: false,
+        },
+        emailConfig: {
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementManagementToProducer: false,
+          clientAddedRemovedToProducer: false,
+          purposeStatusChangedToProducer: false,
+          templateStatusChangedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
+          eserviceStateChangedToConsumer: false,
+          agreementActivatedRejectedToConsumer: false,
+          purposeActivatedRejectedToConsumer: false,
+          purposeSuspendedUnsuspendedToConsumer: false,
+          newEserviceTemplateVersionToInstantiator: false,
+          eserviceTemplateNameChangedToInstantiator: false,
+          eserviceTemplateStatusChangedToInstantiator: false,
+          delegationApprovedRejectedToDelegator: false,
+          eserviceNewVersionSubmittedToDelegator: false,
+          eserviceNewVersionApprovedRejectedToDelegate: false,
+          delegationSubmittedRevokedToDelegate: false,
+          certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
+          clientKeyAddedDeletedToClientUsers: false,
+        },
       };
       await insertUserNotificationConfig(
         readModelDB,

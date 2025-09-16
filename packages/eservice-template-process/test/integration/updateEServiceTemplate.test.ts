@@ -86,7 +86,7 @@ describe("update EService template", () => {
       toEServiceTemplateV2(updatedEServiceTemplate)
     );
     expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(returnedEServiceTemplate)
+      toEServiceTemplateV2(returnedEServiceTemplate.data)
     );
     expect(fileManager.delete).not.toHaveBeenCalled();
   });
@@ -178,7 +178,7 @@ describe("update EService template", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(interfaceDocument.path);
     expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(returnedEServiceTemplate)
+      toEServiceTemplateV2(returnedEServiceTemplate.data)
     );
   });
 
@@ -194,7 +194,7 @@ describe("update EService template", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    const returnedEService =
+    const returnedEServiceTemplate =
       await eserviceTemplateService.updateEServiceTemplate(
         eserviceTemplate.id,
         {
@@ -236,7 +236,7 @@ describe("update EService template", () => {
       toEServiceTemplateV2(expectedEserviceTemplate)
     );
     expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(returnedEService)
+      toEServiceTemplateV2(returnedEServiceTemplate.data)
     );
   });
 
@@ -302,7 +302,7 @@ describe("update EService template", () => {
       ...mockEServiceTemplate,
       id: generateId(),
       creatorId: generateId(),
-      name: "eservice name already in use",
+      name: "eservice template name already in use",
       versions: [],
     };
     await addOneEServiceTemplate(eserviceTemplate1);
@@ -312,7 +312,7 @@ describe("update EService template", () => {
       eserviceTemplateService.updateEServiceTemplate(
         eserviceTemplate1.id,
         {
-          name: "ESERVICE NAME ALREADY IN USE",
+          name: "ESERVICE TEMPLATE NAME ALREADY IN USE",
           intendedTarget: eserviceTemplate1.intendedTarget,
           description: eserviceTemplate1.description,
           technology: "REST",
@@ -323,7 +323,7 @@ describe("update EService template", () => {
         })
       )
     ).rejects.toThrowError(
-      eserviceTemplateDuplicate("ESERVICE NAME ALREADY IN USE")
+      eserviceTemplateDuplicate("ESERVICE TEMPLATE NAME ALREADY IN USE")
     );
   });
 });

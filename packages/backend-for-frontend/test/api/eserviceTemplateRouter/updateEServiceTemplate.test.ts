@@ -14,7 +14,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId", () => {
     getMockBffApiEServiceTemplateUpdateSeed();
 
   beforeEach(() => {
-    clients.eserviceTemplateProcessClient.updateEServiceTemplate = vi
+    clients.eserviceTemplateProcessClient.updateDraftEServiceTemplate = vi
       .fn()
       .mockResolvedValue(undefined);
   });
