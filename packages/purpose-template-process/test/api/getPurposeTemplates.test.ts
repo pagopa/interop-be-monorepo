@@ -32,8 +32,6 @@ describe("API GET /purposeTemplates", () => {
     eserviceIds: generateId(),
     creatorIds: `${generateId()},${generateId()}`,
     states: "ACTIVE,DRAFT",
-    sort: "targetTenantKind",
-    order: "desc",
   };
 
   const purposeTemplates: ListResult<PurposeTemplate> = {
@@ -100,8 +98,6 @@ describe("API GET /purposeTemplates", () => {
     { query: { offset: 0, limit: 55 } },
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
-    { query: { sort: "invalid" } },
-    { query: { direction: "invalid" } },
     { query: { ...defaultQuery, eserviceIds: `${generateId()},invalid` } },
     { query: { ...defaultQuery, creatorIds: `${generateId()},invalid` } },
     { query: { ...defaultQuery, states: "ACTIVE,invalid" } },

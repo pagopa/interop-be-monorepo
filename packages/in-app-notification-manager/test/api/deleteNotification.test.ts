@@ -28,7 +28,11 @@ describe("API DELETE /notifications/:notificationId", () => {
     vi.restoreAllMocks();
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.SECURITY_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 204 when deleting notification with role %s",
     async (role) => {
