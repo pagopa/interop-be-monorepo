@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { TenantKind, tenantKind } from "pagopa-interop-models";
 import {
-  malformedTemplateFieldValueOrSuggestionError,
-  missingExpectedTemplateFieldError,
-  noRulesVersionTemplateFoundError,
+  malformedRiskAnalysisTemplateFieldValueOrSuggestionError,
+  missingExpectedRiskAnalysisTemplateFieldError,
+  noRiskAnalysisTemplateRulesVersionFoundError,
   riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
-  unexpectedTemplateDependencyValueError,
-  unexpectedTemplateFieldError,
-  unexpectedTemplateFieldValueError,
-  unexpectedTemplateFieldValueOrSuggestionError,
-  unexpectedTemplateRulesVersionError,
+  unexpectedRiskAnalysisTemplateDependencyValueError,
+  unexpectedRiskAnalysisTemplateFieldError,
+  unexpectedRiskAnalysisTemplateFieldValueError,
+  unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError,
+  unexpectedRiskAnalysisTemplateRulesVersionError,
   validatePurposeTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -142,7 +142,7 @@ describe("Risk Analysis Template Validation", () => {
 
     expect(result).toEqual({
       type: "invalid",
-      issues: [noRulesVersionTemplateFoundError(invalidTenantKind)],
+      issues: [noRiskAnalysisTemplateRulesVersionFoundError(invalidTenantKind)],
     });
   });
 
@@ -156,7 +156,9 @@ describe("Risk Analysis Template Validation", () => {
 
     expect(result).toEqual({
       type: "invalid",
-      issues: [unexpectedTemplateRulesVersionError(emptyTemplate.version)],
+      issues: [
+        unexpectedRiskAnalysisTemplateRulesVersionError(emptyTemplate.version),
+      ],
     });
   });
 
@@ -175,7 +177,9 @@ describe("Risk Analysis Template Validation", () => {
     expect(result).toEqual({
       type: "invalid",
       issues: [
-        missingExpectedTemplateFieldError(TEST_FIELDS.INSTITUTIONAL_PURPOSE),
+        missingExpectedRiskAnalysisTemplateFieldError(
+          TEST_FIELDS.INSTITUTIONAL_PURPOSE
+        ),
       ],
     });
   });
@@ -196,7 +200,7 @@ describe("Risk Analysis Template Validation", () => {
     expect(result).toEqual({
       type: "invalid",
       issues: [
-        malformedTemplateFieldValueOrSuggestionError(
+        malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
           TEST_FIELDS.INSTITUTIONAL_PURPOSE
         ),
       ],
@@ -219,7 +223,7 @@ describe("Risk Analysis Template Validation", () => {
     expect(result).toEqual({
       type: "invalid",
       issues: [
-        malformedTemplateFieldValueOrSuggestionError(
+        malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
           TEST_FIELDS.INSTITUTIONAL_PURPOSE
         ),
       ],
@@ -242,7 +246,7 @@ describe("Risk Analysis Template Validation", () => {
     expect(result).toEqual({
       type: "invalid",
       issues: [
-        malformedTemplateFieldValueOrSuggestionError(
+        malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
           TEST_FIELDS.INSTITUTIONAL_PURPOSE
         ),
       ],
@@ -265,7 +269,7 @@ describe("Risk Analysis Template Validation", () => {
     expect(result).toEqual({
       type: "invalid",
       issues: [
-        unexpectedTemplateFieldValueOrSuggestionError(
+        unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
           TEST_FIELDS.DELIVERY_METHOD
         ),
       ],
@@ -288,7 +292,7 @@ describe("Risk Analysis Template Validation", () => {
     expect(result).toEqual({
       type: "invalid",
       issues: [
-        unexpectedTemplateFieldValueOrSuggestionError(
+        unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
           TEST_FIELDS.DELIVERY_METHOD
         ),
       ],
@@ -310,7 +314,7 @@ describe("Risk Analysis Template Validation", () => {
 
     expect(result).toEqual({
       type: "invalid",
-      issues: [unexpectedTemplateFieldError("unexpectedField")],
+      issues: [unexpectedRiskAnalysisTemplateFieldError("unexpectedField")],
     });
   });
 
@@ -331,12 +335,12 @@ describe("Risk Analysis Template Validation", () => {
       type: "invalid",
       issues: [
         // wrongValue not in allowed values for purpose field
-        unexpectedTemplateFieldValueError(
+        unexpectedRiskAnalysisTemplateFieldValueError(
           TEST_FIELDS.PURPOSE,
           PURPOSE_ALLOWED_VALUES
         ),
         // wrongValue not the expected value for institutional purpose field
-        unexpectedTemplateDependencyValueError(
+        unexpectedRiskAnalysisTemplateDependencyValueError(
           TEST_FIELDS.INSTITUTIONAL_PURPOSE,
           TEST_FIELDS.PURPOSE,
           PURPOSE_VALUES.INSTITUTIONAL
@@ -361,7 +365,7 @@ describe("Risk Analysis Template Validation", () => {
     // otherPurpose is a missing field that is required if purpose is OTHER
     expect(result).toEqual({
       type: "invalid",
-      issues: [missingExpectedTemplateFieldError("otherPurpose")],
+      issues: [missingExpectedRiskAnalysisTemplateFieldError("otherPurpose")],
     });
   });
 });
