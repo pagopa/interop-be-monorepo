@@ -296,19 +296,6 @@ components:
         - entityId
         - createdAt
 
-    ListResult:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            type: string
-            format: uuid
-        totalCount:
-          type: integer
-          format: int32
-
     NotificationsByType:
       type: object
       additionalProperties: false
