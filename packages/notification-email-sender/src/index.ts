@@ -328,12 +328,14 @@ export async function handleAgreementMessage(
 
 function processMessage(topicHandlers: TopicHandlers) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
-    const redisKey = `notification-email-sender-${messagePayload.topic}-${messagePayload.message.offset}`;
+    const redisKey = `notification-email-sender-${messagePayload.topic}-${messagePayload.partition}-${messagePayload.message.offset}`;
     const isAlreadyProcessed = await redisClient.get(redisKey);
     if (isAlreadyProcessed) {
       return;
     }
-    await redisClient.set(redisKey, "true");
+    await redisClient.set(redisKey, "true", {
+      EX: config.redisNotificationEmailSenderTtlSeconds,
+    });
 
     const { catalogTopic, agreementTopic, purposeTopic } = topicHandlers;
 

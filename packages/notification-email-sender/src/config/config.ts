@@ -27,10 +27,13 @@ export const NotificationEmailSenderRedisConfig = z
   .object({
     REDIS_NOTIFICATION_EMAIL_SENDER_HOST: z.string(),
     REDIS_NOTIFICATION_EMAIL_SENDER_PORT: z.coerce.number().min(1001),
+    REDIS_NOTIFICATION_EMAIL_SENDER_TTL_SECONDS: z.coerce.number(),
   })
   .transform((c) => ({
     redisNotificationEmailSenderHost: c.REDIS_NOTIFICATION_EMAIL_SENDER_HOST,
     redisNotificationEmailSenderPort: c.REDIS_NOTIFICATION_EMAIL_SENDER_PORT,
+    redisNotificationEmailSenderTtlSeconds:
+      c.REDIS_NOTIFICATION_EMAIL_SENDER_TTL_SECONDS,
   }));
 
 export const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
