@@ -14,7 +14,6 @@ import {
   AgreementHandlerParams,
   getRecipientsForTenants,
   retrieveAgreementEservice,
-  getRecipientsForTenant,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
