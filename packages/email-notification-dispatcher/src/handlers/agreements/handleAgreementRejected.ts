@@ -32,7 +32,7 @@ export async function handleAgreementRejected(
   } = data;
 
   if (!agreementV2Msg) {
-    throw missingKafkaMessageDataError("eservice", "AgreementRejected");
+    throw missingKafkaMessageDataError("agreement", "AgreementRejected");
   }
 
   const agreement = fromAgreementV2(agreementV2Msg);

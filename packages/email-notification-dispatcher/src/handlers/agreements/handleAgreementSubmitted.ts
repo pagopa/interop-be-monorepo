@@ -31,7 +31,7 @@ export async function handleAgreementSubmitted(
   } = data;
 
   if (!agreementV2Msg) {
-    throw missingKafkaMessageDataError("eservice", "AgreementSubmitted");
+    throw missingKafkaMessageDataError("agreement", "AgreementSubmitted");
   }
 
   const agreement = fromAgreementV2(agreementV2Msg);
