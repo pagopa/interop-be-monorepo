@@ -61,16 +61,8 @@ const purposeTemplateRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const {
-          purposeTitle,
-          creatorIds,
-          eserviceIds,
-          states,
-          offset,
-          limit,
-          sort,
-          direction,
-        } = req.query;
+        const { purposeTitle, creatorIds, eserviceIds, states, offset, limit } =
+          req.query;
         const purposeTemplates =
           await purposeTemplateService.getPurposeTemplates(
             {
@@ -81,7 +73,7 @@ const purposeTemplateRouter = (
                 apiPurposeTemplateStateToPurposeTemplateState
               ),
             },
-            { offset, limit, sortColumns: sort, directions: direction },
+            { offset, limit },
             ctx
           );
         return res.status(200).send(
