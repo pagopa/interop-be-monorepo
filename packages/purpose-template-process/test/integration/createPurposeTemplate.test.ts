@@ -21,9 +21,9 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import {
   invalidTemplateResult,
-  unexpectedTemplateRulesVersionError,
-  unexpectedTemplateFieldError,
-  missingExpectedTemplateFieldError,
+  unexpectedRiskAnalysisTemplateRulesVersionError,
+  unexpectedRiskAnalysisTemplateFieldError,
+  missingExpectedRiskAnalysisTemplateFieldError,
 } from "pagopa-interop-commons";
 import {
   missingFreeOfChargeReason,
@@ -281,7 +281,7 @@ describe("createPurposeTemplate", () => {
     ).rejects.toThrowError(
       riskAnalysisTemplateValidationFailed(
         invalidTemplateResult([
-          unexpectedTemplateRulesVersionError(
+          unexpectedRiskAnalysisTemplateRulesVersionError(
             seedWithInvalidRiskAnalysis.purposeRiskAnalysisForm!.version
           ),
         ]).issues
@@ -318,8 +318,9 @@ describe("createPurposeTemplate", () => {
       )
     ).rejects.toThrowError(
       riskAnalysisTemplateValidationFailed(
-        invalidTemplateResult([unexpectedTemplateFieldError("unexpectedField")])
-          .issues
+        invalidTemplateResult([
+          unexpectedRiskAnalysisTemplateFieldError("unexpectedField"),
+        ]).issues
       )
     );
   });
@@ -359,7 +360,7 @@ describe("createPurposeTemplate", () => {
     ).rejects.toThrowError(
       riskAnalysisTemplateValidationFailed(
         invalidTemplateResult([
-          missingExpectedTemplateFieldError("otherPurpose"),
+          missingExpectedRiskAnalysisTemplateFieldError("otherPurpose"),
         ]).issues
       )
     );
