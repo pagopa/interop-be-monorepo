@@ -41,11 +41,15 @@
         "^test",
         "^test:old",
         "test:integration",
+        "test:integration:old",
         "test:api"
       ]
     },
     "test:old": {
-      "dependsOn": ["build", "^test:old"]
+      "dependsOn": ["build", "^test:old", "test:integration:old"]
+    },
+    "test:integration:old": {
+      "dependsOn": ["build", "^test:integration:old"]
     },
     "test:integration": {
       "dependsOn": ["build", "^test:integration"]
