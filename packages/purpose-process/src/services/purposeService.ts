@@ -911,7 +911,7 @@ export function purposeServiceBuilder(
       const riskAnalysisDocument = await generateRiskAnalysisDocument({
         eservice,
         purpose: purpose.data,
-        userId: undefined,
+        userId: authData.userId,
         dailyCalls: seed.dailyCalls,
         readModelService,
         fileManager,
