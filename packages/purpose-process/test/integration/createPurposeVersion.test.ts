@@ -212,6 +212,7 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 24,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
     const expectedPurpose: Purpose = sortPurpose({
@@ -343,6 +344,7 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 24,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
     const expectedPurpose: Purpose = sortPurpose({
@@ -462,6 +464,7 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 4,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
     const expectedPurpose: Purpose = sortPurpose({
@@ -681,6 +684,7 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 24,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
     const expectedPurpose: Purpose = sortPurpose({
@@ -861,6 +865,7 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 24,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
     const expectedPurpose: Purpose = sortPurpose({
