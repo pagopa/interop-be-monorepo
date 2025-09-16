@@ -968,25 +968,17 @@ export const purposeVersionStampInReadmodelPurpose = readmodelPurpose.table(
       name: "purpose_version_stamp_purpose_id_fkey",
     }).onDelete("cascade"),
     foreignKey({
+      columns: [table.purposeVersionId],
+      foreignColumns: [purposeVersionInReadmodelPurpose.id],
+      name: "purpose_version_stamp_purpose_version_id_fkey",
+    }).onDelete("cascade"),
+    foreignKey({
       columns: [table.purposeId, table.metadataVersion],
       foreignColumns: [
         purposeInReadmodelPurpose.id,
         purposeInReadmodelPurpose.metadataVersion,
       ],
       name: "purpose_version_stamp_purpose_id_metadata_version_fkey",
-    }),
-    foreignKey({
-      columns: [table.purposeVersionId],
-      foreignColumns: [purposeVersionInReadmodelPurpose.id],
-      name: "purpose_version_stamp_purpose_version_id_fkey",
-    }).onDelete("cascade"),
-    foreignKey({
-      columns: [table.purposeVersionId, table.metadataVersion],
-      foreignColumns: [
-        purposeVersionInReadmodelPurpose.id,
-        purposeVersionInReadmodelPurpose.metadataVersion,
-      ],
-      name: "purpose_version_stamp_purpose_version_id_metadata_version_fkey",
     }),
     primaryKey({
       columns: [table.purposeVersionId, table.kind],
