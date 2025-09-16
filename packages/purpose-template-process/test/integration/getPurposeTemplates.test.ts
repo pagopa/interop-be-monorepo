@@ -423,20 +423,20 @@ describe("getPurposeTemplates", async () => {
       {
         offset: 0,
         limit: 50,
-        sortColumns: "targetTenantKind,purposeTitle",
-        directions: `${sortDirection.desc},${sortDirection.desc}`,
+        sortColumns: "targetTenantKind",
+        directions: sortDirection.desc,
       },
       getMockContext({ authData: getMockAuthData(creatorId1) })
     );
     expectSinglePageListResult(result, [
-      draftPurposeTemplateByCreator2,
-      draftPurposeTemplateByCreator1,
-      activePurposeTemplateByCreator2,
       activePurposeTemplateByCreator1,
-      suspendedPurposeTemplateByCreator2,
-      suspendedPurposeTemplateByCreator1,
-      archivedPurposeTemplateByCreator2,
+      activePurposeTemplateByCreator2,
+      draftPurposeTemplateByCreator1,
+      draftPurposeTemplateByCreator2,
       archivedPurposeTemplateByCreator1,
+      archivedPurposeTemplateByCreator2,
+      suspendedPurposeTemplateByCreator1,
+      suspendedPurposeTemplateByCreator2,
     ]);
   });
 });
