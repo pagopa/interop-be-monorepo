@@ -50,7 +50,7 @@ describe("Purpose queries", () => {
       };
       const purposeVersion3: PurposeVersion = {
         ...getMockPurposeVersion(
-          purposeVersionState.draft,
+          purposeVersionState.active,
           getMockPurposeVersionStamps()
         ),
         riskAnalysis: getMockPurposeVersionDocument(),
@@ -165,7 +165,7 @@ describe("Purpose queries", () => {
       };
       const purposeVersion3: PurposeVersion = {
         ...getMockPurposeVersion(
-          purposeVersionState.draft,
+          purposeVersionState.active,
           getMockPurposeVersionStamps()
         ),
         riskAnalysis: getMockPurposeVersionDocument(),
@@ -238,7 +238,7 @@ describe("Purpose queries", () => {
           },
           {
             ...getMockPurposeVersion(
-              purposeVersionState.draft,
+              purposeVersionState.active,
               getMockPurposeVersionStamps()
             ),
             riskAnalysis: getMockPurposeVersionDocument(),
@@ -280,7 +280,7 @@ describe("Purpose queries", () => {
           },
           {
             ...getMockPurposeVersion(
-              purposeVersionState.draft,
+              purposeVersionState.active,
               getMockPurposeVersionStamps()
             ),
             riskAnalysis: getMockPurposeVersionDocument(),

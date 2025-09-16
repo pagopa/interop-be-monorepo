@@ -12,7 +12,6 @@ import {
   PurposeVersionStampsV2 as OutboundPurposeVersionStampsV2,
   PurposeVersionStampV2 as OutboundPurposeVersionStampV2,
 } from "@pagopa/interop-outbound-models";
-
 import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
 
