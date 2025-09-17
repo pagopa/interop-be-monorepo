@@ -35,6 +35,7 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
     await expect(() =>
       handleEserviceTemplateNameChangedToInstantiator(
         undefined,
+        undefined,
         logger,
         readModelService
       )
@@ -54,6 +55,7 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
 
     const notifications = await handleEserviceTemplateNameChangedToInstantiator(
       eserviceTemplateV2,
+      "oldName",
       logger,
       readModelService
     );
@@ -75,6 +77,7 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
 
     const notifications = await handleEserviceTemplateNameChangedToInstantiator(
       eserviceTemplateV2,
+      "oldName",
       logger,
       readModelService
     );
@@ -117,13 +120,14 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
 
     const notifications = await handleEserviceTemplateNameChangedToInstantiator(
       eserviceTemplateV2,
+      "oldName",
       logger,
       readModelService
     );
 
     const body = inAppTemplates.eserviceTemplateNameChangedToInstantiator(
-      creatorTenant.name,
-      eserviceTemplate.name
+      eserviceTemplate,
+      "oldName"
     );
 
     const expectedNotifications = users.flatMap((user) => [

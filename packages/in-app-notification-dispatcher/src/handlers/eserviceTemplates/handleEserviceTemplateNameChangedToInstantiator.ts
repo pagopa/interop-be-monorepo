@@ -10,10 +10,10 @@ import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant } from "../handlerCommons.js";
 
 export async function handleEserviceTemplateNameChangedToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
+  oldName: string | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
@@ -53,11 +53,6 @@ export async function handleEserviceTemplateNameChangedToInstantiator(
       "eserviceTemplateNameChangedToInstantiator"
     );
 
-  const creator = await retrieveTenant(
-    eserviceTemplate.creatorId,
-    readModelService
-  );
-
   if (!userNotificationConfigs) {
     logger.info(
       `No user notification configs found for handleEserviceTemplateNameChangedToInstantiator ${eserviceTemplate.id}`
@@ -71,8 +66,8 @@ export async function handleEserviceTemplateNameChangedToInstantiator(
       userId,
       tenantId,
       body: inAppTemplates.eserviceTemplateNameChangedToInstantiator(
-        creator.name,
-        eserviceTemplate.name
+        eserviceTemplate,
+        oldName
       ),
       notificationType: "eserviceTemplateNameChangedToInstantiator",
       entityId: eserviceId,

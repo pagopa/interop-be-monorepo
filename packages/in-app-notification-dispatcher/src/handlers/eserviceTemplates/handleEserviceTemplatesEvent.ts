@@ -49,9 +49,10 @@ export async function handleEServiceTemplateEvent(
       {
         type: "EServiceTemplateNameUpdated",
       },
-      ({ data: { eserviceTemplate } }) =>
+      ({ data: { eserviceTemplate, oldName } }) =>
         handleEserviceTemplateNameChangedToInstantiator(
           eserviceTemplate,
+          oldName,
           logger,
           readModelService
         )
