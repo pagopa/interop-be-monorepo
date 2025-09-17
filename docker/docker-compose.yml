@@ -301,7 +301,7 @@ services:
       - 8005:8005
     command: "/bin/bash -c 'npm install -g aws-ses-v2-local; aws-ses-v2-local --port=8005 --host=0.0.0.0'"
 
-  # Redis local cache database used by the RateLimiter
+  # Redis local cache database used by the RateLimiter and NotificationEmailSender
   redis:
     image: "redis:7.2.5-alpine3.20"
     ports:
