@@ -184,8 +184,12 @@ describe("handleAgreementUnsuspendedByPlatformToProducerToProducer", async () =>
       correlationId: generateId<CorrelationId>(),
     });
     expect(messages.length).toEqual(2);
-    expect(messages[0].address).toEqual(users[0].email);
-    expect(messages[1].address).toEqual(users[1].email);
+    expect(messages.some((message) => message.address === users[0].email)).toBe(
+      true
+    );
+    expect(messages.some((message) => message.address === users[1].email)).toBe(
+      true
+    );
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
