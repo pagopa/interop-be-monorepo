@@ -62,7 +62,7 @@ export async function handleDelegationMessageV2(
       },
       async (msg): Promise<void> => {
         if (!msg.data.delegation) {
-          return;
+          throw new Error("Delegation data can't be missing on event");
         }
         const delegation = fromDelegationV2(msg.data.delegation);
         const [delegator, delegate, eservice] = await Promise.all([

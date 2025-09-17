@@ -96,7 +96,7 @@ export const contractBuilder = {
     const templateFilePath = path.resolve(
       dirname,
       "..",
-      "resources/templates",
+      "resources/delegation",
       "delegationApprovedTemplate.html"
     );
 
@@ -185,7 +185,7 @@ export const contractBuilder = {
     const templateFilePath = path.resolve(
       dirname,
       "..",
-      "resources/templates",
+      "resources/delegation",
       "delegationRevokedTemplate.html"
     );
     const documentCreatedAt = new Date();

@@ -5,9 +5,9 @@ import { ReadModelService } from "../service/readModelService.js";
 
 export async function handlePurposeMessageV2(
   decodedMessage: PurposeEventEnvelopeV2,
-  pdfGenerator: PDFGenerator,
-  fileManager: FileManager,
-  readModelService: ReadModelService,
+  _pdfGenerator: PDFGenerator,
+  _fileManager: FileManager,
+  _readModelService: ReadModelService,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)

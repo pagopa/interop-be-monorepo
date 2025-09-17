@@ -1,7 +1,18 @@
-import { ReadModelRepository } from "pagopa-interop-commons";
+import {
+  AttributeCollection,
+  DelegationCollection,
+  ReadModelRepository,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
+  Attribute,
+  AttributeId,
+  AttributeReadmodel,
+  Delegation,
+  delegationKind,
+  DelegationReadModel,
+  delegationState,
   EService,
   EServiceId,
   genericInternalError,
@@ -9,13 +20,57 @@ import {
   TenantId,
   WithMetadata,
 } from "pagopa-interop-models";
+import { Filter } from "mongodb";
 import { z } from "zod";
+
+async function getAttribute(
+  attributes: AttributeCollection,
+  filter: Filter<{ data: AttributeReadmodel }>
+): Promise<Attribute | undefined> {
+  const data = await attributes.findOne(filter, {
+    projection: { data: true },
+  });
+  if (data) {
+    const result = Attribute.safeParse(data.data);
+    if (!result.success) {
+      throw genericInternalError(
+        `Unable to parse attribute item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return result.data;
+  }
+  return undefined;
+}
+
+async function getDelegation(
+  delegations: DelegationCollection,
+  filter: Filter<{ data: DelegationReadModel }>
+): Promise<Delegation | undefined> {
+  const data = await delegations.findOne(filter, {
+    projection: { data: true },
+  });
+  if (data) {
+    const result = Delegation.safeParse(data.data);
+    if (!result.success) {
+      throw genericInternalError(
+        `Unable to parse delegation item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return result.data;
+  }
+  return undefined;
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { eservices, tenants, agreements } = readModelRepository;
+  const { eservices, tenants, agreements, attributes, delegations } =
+    readModelRepository;
 
   return {
     async getEServiceById(
@@ -98,6 +153,29 @@ export function readModelServiceBuilder(
       }
 
       return result.data;
+    },
+
+    async getAttributeById(id: AttributeId): Promise<Attribute | undefined> {
+      return getAttribute(attributes, { "data.id": id });
+    },
+    async getActiveProducerDelegationByEserviceId(
+      eserviceId: EServiceId
+    ): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.eserviceId": eserviceId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedProducer,
+      });
+    },
+    async getActiveConsumerDelegationByAgreement(
+      agreement: Pick<Agreement, "consumerId" | "eserviceId">
+    ): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.eserviceId": agreement.eserviceId,
+        "data.delegatorId": agreement.consumerId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedConsumer,
+      });
     },
   };
 }
