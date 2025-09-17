@@ -13,6 +13,7 @@ import { makeApiProblem } from "../model/errors.js";
 import { EserviceTemplateService } from "../services/eserviceTemplateService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { getEServiceTemplateVersionErrorMapper } from "../utils/errorMappers.js";
+import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
 const eserviceTemplateRouter = (
   ctx: ZodiosContext,
@@ -253,6 +254,32 @@ const eserviceTemplateRouter = (
             emptyErrorMapper,
             ctx,
             `Error uploading document for eservice template ${req.params.templateId} version with id ${req.params.versionId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eserviceTemplates/:templateId/versions/:versionId/documents/:documentId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const file =
+            await eserviceTemplateService.downloadEServiceTemplateVersionDocument(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.versionId),
+              unsafeBrandId(req.params.documentId),
+              ctx
+            );
+
+          return sendDownloadedDocumentAsFormData(file, res);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error retrieving document with id ${req.params.documentId} for eservice template ${req.params.templateId} version with id ${req.params.versionId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

@@ -1,6 +1,7 @@
 import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
+  EServiceDocumentId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   RiskAnalysisId,
@@ -26,6 +27,8 @@ import {
 } from "../utils/polling.js";
 import { toM2MGatewayApiDocument } from "../api/documentApiConverter.js";
 import { uploadEServiceTemplateDocument } from "../utils/fileUpload.js";
+import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
+import { config } from "../config/config.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
@@ -338,6 +341,36 @@ export function eserviceTemplateServiceBuilder(
       await pollEServiceTemplateById(templateId, metadata, headers);
 
       return toM2MGatewayApiDocument(document);
+    },
+
+    async downloadEServiceTemplateVersionDocument(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      documentId: EServiceDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving document with id ${documentId} for eservice template version with id ${versionId} for eservice template with id ${templateId}`
+      );
+
+      const { data: document } =
+        await clients.eserviceTemplateProcessClient.getEServiceTemplateDocumentById(
+          {
+            params: {
+              templateId,
+              templateVersionId: versionId,
+              documentId,
+            },
+            headers,
+          }
+        );
+
+      return downloadDocument(
+        document,
+        fileManager,
+        config.eserviceTemplateDocumentsContainer,
+        logger
+      );
     },
   };
 }

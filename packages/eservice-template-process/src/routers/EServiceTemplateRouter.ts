@@ -469,7 +469,12 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SUPPORT_ROLE]);
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SUPPORT_ROLE,
+            M2M_ADMIN_ROLE,
+          ]);
 
           const { templateId, templateVersionId, documentId } = req.params;
 
