@@ -250,37 +250,29 @@ export function eserviceTemplateServiceBuilder(
     async updateEServiceTemplateVersion(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      seed: m2mGatewayApi.VersionSeedForEServiceTemplateCreation,
+      seed: {
+        description?: string;
+        voucherLifespan?: number;
+        dailyCallsPerConsumer?: number;
+        dailyCallsTotal?: number;
+        agreementApprovalPolicy?: "AUTOMATIC" | "MANUAL";
+      },
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
       logger.info(
-        `Updating version ${versionId} for eservice template with id ${templateId}`
+        `Updating version ${versionId} of eservice template with id ${templateId}`
       );
 
-      // Convert M2M Gateway seed to the format expected by eservice-template-process
-      const processClientSeed = {
-        voucherLifespan: seed.voucherLifespan,
-        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-        dailyCallsTotal: seed.dailyCallsTotal,
-        agreementApprovalPolicy: seed.agreementApprovalPolicy,
-        description: seed.description,
-        attributes: {
-          certified: [],
-          declared: [],
-          verified: [],
-        },
-      };
-
       const response =
-        await clients.eserviceTemplateProcessClient.updateDraftTemplateVersion(
-          processClientSeed,
+        await clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
+          seed,
           {
             params: { templateId, templateVersionId: versionId },
             headers,
           }
         );
-
       const polledResource = await pollEServiceTemplate(response, headers);
+
       const version = polledResource.data.versions.find(
         (v) => v.id === versionId
       );
