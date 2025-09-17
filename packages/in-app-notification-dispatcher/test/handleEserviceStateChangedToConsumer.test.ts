@@ -186,9 +186,13 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         type: "EServiceNameUpdated",
         data: {
           eservice: toEServiceV2(eservice),
+          oldName: "oldName",
         },
       },
-      expectedBody: inAppTemplates.eserviceNameUpdatedToConsumer(eservice.name),
+      expectedBody: inAppTemplates.eserviceNameUpdatedToConsumer(
+        eservice,
+        "oldName"
+      ),
     },
     {
       msg: {
@@ -196,9 +200,13 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         type: "EServiceNameUpdatedByTemplateUpdate",
         data: {
           eservice: toEServiceV2(eservice),
+          oldName: "oldName",
         },
       },
-      expectedBody: inAppTemplates.eserviceNameUpdatedToConsumer(eservice.name),
+      expectedBody: inAppTemplates.eserviceNameUpdatedToConsumer(
+        eservice,
+        "oldName"
+      ),
     },
     {
       msg: {
