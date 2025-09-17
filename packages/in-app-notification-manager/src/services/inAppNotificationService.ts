@@ -26,6 +26,7 @@ import {
   NotificationId,
   NotificationsByType,
   NotificationType,
+  IDS,
 } from "pagopa-interop-models";
 import { notificationNotFound } from "../model/errors.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -33,8 +34,11 @@ export function inAppNotificationServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
+    // eslint-disable-next-line max-params
     getNotifications: async (
       q: string | undefined,
+      entityIds: IDS[],
+      unread: boolean | undefined,
       limit: number,
       offset: number,
       {
@@ -50,7 +54,11 @@ export function inAppNotificationServiceBuilder(
           and(
             eq(notification.userId, userId),
             eq(notification.tenantId, organizationId),
-            q ? ilike(notification.body, `%${escapeRegExp(q)}%`) : undefined
+            q ? ilike(notification.body, `%${escapeRegExp(q)}%`) : undefined,
+            entityIds.length > 0
+              ? inArray(notification.entityId, entityIds)
+              : undefined,
+            unread ? isNull(notification.readAt) : undefined
           )
         )
         .orderBy(desc(notification.createdAt))
