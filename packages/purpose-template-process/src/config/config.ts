@@ -19,9 +19,11 @@ const PurposeTemplateProcessConfig = CommonHTTPServiceConfig.and(
     z
       .object({
         PURPOSE_TEMPLATE_DOCUMENTS_PATH: z.string(),
+        PURPOSE_TEMPLATE_ANNOTATIONS_PATH: z.string(),
       })
       .transform((c) => ({
         purposeTemplateDocumentsPath: c.PURPOSE_TEMPLATE_DOCUMENTS_PATH,
+        purposeTemplateAnnotationsPath: c.PURPOSE_TEMPLATE_ANNOTATIONS_PATH,
       }))
   );
 
