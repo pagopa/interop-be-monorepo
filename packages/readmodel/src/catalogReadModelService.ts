@@ -25,7 +25,7 @@ import {
 } from "./catalog/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function getQueryResultByFilter(db: DrizzleReturnType, filter: SQL) {
+function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
   /*
         eservice ->1 descriptor ->2 interface
                       descriptor ->3 document
@@ -139,7 +139,7 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
         throw genericInternalError("Filter cannot be undefined");
       }
 
-      const queryResult = await getQueryResultByFilter(db, filter);
+      const queryResult = await getEServicesQueryResult(db, filter);
 
       if (queryResult.length === 0) {
         return undefined;
@@ -152,7 +152,7 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
         throw genericInternalError("Filter cannot be undefined");
       }
 
-      const queryResult = await getQueryResultByFilter(db, filter);
+      const queryResult = await getEServicesQueryResult(db, filter);
 
       return aggregateEserviceArray(toEServiceAggregatorArray(queryResult)).map(
         (eservice) => eservice.data
