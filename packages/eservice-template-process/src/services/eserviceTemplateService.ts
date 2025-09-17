@@ -243,13 +243,13 @@ const replaceEServiceTemplateVersion = (
 export function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed["riskAnalysisForm"],
   tenantKind: TenantKind,
-  dateForValidation: Date
+  dateForExpirationValidation: Date
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
     tenantKind,
-    dateForValidation
+    dateForExpirationValidation
   );
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
