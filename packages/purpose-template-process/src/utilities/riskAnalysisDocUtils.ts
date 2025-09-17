@@ -43,14 +43,20 @@ export async function cleanupAnnotationDocsForRemovedAnswers(
     purposeTemplate.purposeRiskAnalysisForm
   );
 
-  const filesToDelete = annotationDocs.map(async (doc) =>
-    fileManager.delete(config.s3Bucket, doc.path, logger)
+  if (annotationDocs.length === 0) {
+    return;
+  }
+
+  const results = await Promise.allSettled(
+    annotationDocs.map((doc) =>
+      fileManager.delete(config.s3Bucket, doc.path, logger)
+    )
   );
 
-  try {
-    await Promise.all(filesToDelete);
-  } catch (error) {
-    // S3 file deletion errors aren't critical for the main flow
-    logger.error(`Error deleting annotation files: ${error}`);
-  }
+  // S3 file deletion errors aren't critical logs failed deletions
+  results.forEach((result) => {
+    if (result.status === "rejected") {
+      logger.warn(`Error deleting annotation files: ${result.reason}`);
+    }
+  });
 }
