@@ -7,6 +7,8 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
+  DescriptorId,
+  EServiceId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
@@ -39,6 +41,12 @@ export const errorCodes = {
   purposeAgreementNotFound: "0022",
   agreementContractNotFound: "0023",
   notAnActiveConsumerDelegation: "0024",
+  requesterIsNotTheDelegateConsumer: "0025",
+  cannotEditDeclaredAttributesForTenant: "0026",
+  tenantDeclaredAttributeNotFound: "0027",
+  tenantVerifiedAttributeNotFound: "0028",
+  cannotDeleteLastEServiceDescriptor: "0029",
+  eserviceRiskAnalysisNotFound: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -259,5 +267,74 @@ export function notAnActiveConsumerDelegation(
     detail: `Delegation ${delegation.id} is not an active consumer delegation for e-service ${eserviceId} and delegate ${requesterTenantId}`,
     code: "notAnActiveConsumerDelegation",
     title: "Not an active consumer delegation",
+  });
+}
+
+export function tenantDeclaredAttributeNotFound(
+  tenant: tenantApi.Tenant,
+  attributeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Declared attribute ${attributeId} not found for tenant ${tenant.id}`,
+    code: "tenantDeclaredAttributeNotFound",
+    title: "Tenant declared attribute not found",
+  });
+}
+
+export function tenantVerifiedAttributeNotFound(
+  tenant: tenantApi.Tenant,
+  attributeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Verified attribute ${attributeId} not found for tenant ${tenant.id}`,
+    code: "tenantVerifiedAttributeNotFound",
+    title: "Tenant verified attribute not found",
+  });
+}
+
+export function requesterIsNotTheDelegateConsumer(
+  delegation: delegationApi.Delegation
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requester tenant is not the delegate consumer for delegation ${delegation.id}`,
+    code: "requesterIsNotTheDelegateConsumer",
+    title: "Requester is not the delegate consumer",
+  });
+}
+
+export function cannotEditDeclaredAttributesForTenant(
+  targetTenantId: TenantId,
+  delegation: delegationApi.Delegation | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot edit declared attributes for tenant ${targetTenantId}${
+      delegation
+        ? ` since it is not the delegator for delegation ${delegation.id}`
+        : ` without a delegation (delegationId is missing)`
+    }`,
+    code: "cannotEditDeclaredAttributesForTenant",
+    title: "Tenant cannot edit declared attributes",
+  });
+}
+
+export function eserviceRiskAnalysisNotFound(
+  eserviceId: string,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis ${riskAnalysisId} not found for e-service ${eserviceId}`,
+    code: "eserviceRiskAnalysisNotFound",
+    title: "E-Service risk analysis not found",
+  });
+}
+
+export function cannotDeleteLastEServiceDescriptor(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot delete descriptor ${descriptorId} for e-service ${eserviceId} because it is the last remaining descriptor`,
+    code: "cannotDeleteLastEServiceDescriptor",
+    title: "Cannot delete last e-service descriptor",
   });
 }

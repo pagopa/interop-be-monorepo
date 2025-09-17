@@ -35,13 +35,12 @@ describe("createProducerKeychain", () => {
     members: [organizationId],
   };
   it("should write on event-store for the creation of a producer keychain", async () => {
-    const { producerKeychain } =
-      await authorizationService.createProducerKeychain(
-        {
-          producerKeychainSeed,
-        },
-        getMockContext({ authData: getMockAuthData(organizationId) })
-      );
+    const producerKeychain = await authorizationService.createProducerKeychain(
+      {
+        producerKeychainSeed,
+      },
+      getMockContext({ authData: getMockAuthData(organizationId) })
+    );
 
     const writtenEvent = await readLastEventByStreamId(
       producerKeychain.id,

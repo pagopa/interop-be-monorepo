@@ -13,6 +13,7 @@ import {
   UIAuthData,
   validatePurposeTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
@@ -80,11 +81,12 @@ function validateRiskAnalysisTemplateOrThrow({
     tenantKind
   );
 
-  if (result.type === "invalid") {
-    throw riskAnalysisTemplateValidationFailed(result.issues);
-  } else {
-    return result.value;
-  }
+  return match(result)
+    .with({ type: "invalid" }, ({ issues }) => {
+      throw riskAnalysisTemplateValidationFailed(issues);
+    })
+    .with({ type: "valid" }, ({ value }) => value)
+    .exhaustive();
 }
 
 export const assertRequesterCanRetrievePurposeTemplate = async (

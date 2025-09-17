@@ -4,6 +4,7 @@ import {
   CommonHTTPServiceConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
+  FeatureFlagNotificationConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
   SelfCareClientConfig,
@@ -76,6 +77,17 @@ export const PurposeProcessServerConfig = z
   }));
 export type PurposeProcessServerConfig = z.infer<
   typeof PurposeProcessServerConfig
+>;
+
+export const PurposeTemplateProcessServerConfig = z
+  .object({
+    PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    purposeTemplateUrl: c.PURPOSE_TEMPLATE_PROCESS_URL,
+  }));
+export type PurposeTemplateProcessServerConfig = z.infer<
+  typeof PurposeTemplateProcessServerConfig
 >;
 
 export const AuthorizationProcessServerConfig = z
@@ -228,6 +240,17 @@ export const SelfcareProcessConfig = z
   }));
 export type SelfcareProcessConfig = z.infer<typeof SelfcareProcessConfig>;
 
+export const NotificationConfigProcessServerConfig = z
+  .object({
+    NOTIFICATION_CONFIG_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    notificationConfigProcessUrl: c.NOTIFICATION_CONFIG_PROCESS_URL,
+  }));
+export type NotificationConfigProcessServerConfig = z.infer<
+  typeof NotificationConfigProcessServerConfig
+>;
+
 export const SwaggerConfig = z
   .object({
     BFF_SWAGGER_UI_ENABLED: z.coerce.boolean().default(false),
@@ -243,6 +266,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(SelfCareClientConfig)
   .and(PurposeProcessServerConfig)
+  .and(PurposeTemplateProcessServerConfig)
   .and(RedisRateLimiterConfig)
   .and(AuthorizationProcessServerConfig)
   .and(DelegationProcessServerConfig)
@@ -257,12 +281,14 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(ImportFileConfig)
   .and(InterfaceVersion)
   .and(SelfcareProcessConfig)
+  .and(NotificationConfigProcessServerConfig)
   .and(SwaggerConfig)
   .and(ClientAssertionValidationConfig)
   .and(EServiceTemplateS3Config)
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
-  .and(FeatureFlagClientAssertionStrictClaimsValidationConfig);
+  .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
+  .and(FeatureFlagNotificationConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

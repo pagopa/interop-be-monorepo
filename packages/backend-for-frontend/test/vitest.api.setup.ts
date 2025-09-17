@@ -67,7 +67,9 @@ import {
   CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
+  NotificationConfigProcessClient,
   PurposeProcessClient,
+  PurposeTemplateProcessClient,
   SelfcareV2InstitutionClient,
   SelfcareV2UserClient,
   TenantProcessClient,
@@ -95,6 +97,7 @@ export const clients = {
   catalogProcessClient: {} as CatalogProcessClient,
   agreementProcessClient: {} as AgreementProcessClient,
   purposeProcessClient: {} as PurposeProcessClient,
+  purposeTemplateProcessClient: {} as PurposeTemplateProcessClient,
   authorizationClient: {
     client: {},
     producerKeychain: {},
@@ -109,6 +112,7 @@ export const clients = {
     delegation: {},
   } as DelegationProcessClient,
   eserviceTemplateProcessClient: {} as EServiceTemplateProcessClient,
+  notificationConfigProcessClient: {} as NotificationConfigProcessClient,
 };
 
 const fileManager = initFileManager(config);
