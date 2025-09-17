@@ -10,6 +10,7 @@ import {
   FileManager,
   fromFilesToBodyMiddleware,
   multerMiddleware,
+  errorsToApiProblemsMiddleware,
 } from "pagopa-interop-commons";
 import express from "express";
 import {
@@ -263,6 +264,8 @@ export async function createApp(
     tenantRouter(zodiosCtx, services.tenantService),
     toolRouter(zodiosCtx, services.toolsService)
   );
+
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }

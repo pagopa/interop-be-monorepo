@@ -28,6 +28,13 @@ const inAppNotificationRouter = (
     .post("/inAppNotifications/:notificationId/markAsRead", (_, res) =>
       res.status(501).send()
     )
+    .post("/inAppNotifications/:notificationId/markAsUnread", (_, res) =>
+      res.status(501).send()
+    )
+    .post("/inAppNotifications/bulk/markAsUnread", (_, res) =>
+      res.status(501).send()
+    )
+    .delete("/inAppNotifications", (_, res) => res.status(501).send())
     .delete("/inAppNotifications/:notificationId", (_, res) =>
       res.status(501).send()
     )
