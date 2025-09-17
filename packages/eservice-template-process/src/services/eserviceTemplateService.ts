@@ -1458,8 +1458,12 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       document: eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Document>> {
       logger.info(
         `Creating EService Document ${document.documentId.toString()} of kind ${
           document.kind
@@ -1548,9 +1552,14 @@ export function eserviceTemplateServiceBuilder(
               correlationId
             );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return updatedEServiceTemplate;
+      return {
+        data: newDocument,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
 
     async getEServiceTemplateDocument(

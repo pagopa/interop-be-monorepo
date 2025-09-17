@@ -1,5 +1,5 @@
 import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
@@ -22,8 +22,10 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   pollResourceWithMetadata,
   isPolledVersionAtLeastResponseVersion,
+  isPolledVersionAtLeastMetadataTargetVersion,
 } from "../utils/polling.js";
 import { toM2MGatewayApiDocument } from "../api/documentApiConverter.js";
+import { uploadEServiceTemplateDocument } from "../utils/fileUpload.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
@@ -31,7 +33,8 @@ export type EserviceTemplateService = ReturnType<
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eserviceTemplateServiceBuilder(
-  clients: PagoPAInteropBeClients
+  clients: PagoPAInteropBeClients,
+  fileManager: FileManager
 ) {
   const retrieveEServiceTemplateRiskAnalysisById = (
     eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
@@ -88,6 +91,17 @@ export function eserviceTemplateServiceBuilder(
       retrieveEServiceTemplateById(headers, unsafeBrandId(response.data.id))
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
+    });
+
+  const pollEServiceTemplateById = (
+    templateId: EServiceTemplateId,
+    metadata: { version: number } | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrieveEServiceTemplateById(headers, templateId)
+    )({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
     });
 
   return {
@@ -290,6 +304,40 @@ export function eserviceTemplateServiceBuilder(
           totalCount: documents.length,
         },
       };
+    },
+
+    async uploadEServiceTemplateVersionDocument(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      fileUpload: m2mGatewayApi.FileUploadMultipart,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Document> {
+      logger.info(
+        `Adding document ${fileUpload.file.name} to version with id ${versionId} for eservice template with id ${templateId}`
+      );
+
+      const { data: eserviceTemplate } = await retrieveEServiceTemplateById(
+        headers,
+        templateId
+      );
+
+      const { data: document, metadata } = await uploadEServiceTemplateDocument(
+        {
+          eserviceTemplate,
+          versionId,
+          documentKind:
+            eserviceTemplateApi.EServiceDocumentKind.Values.DOCUMENT,
+          fileUpload,
+          fileManager,
+          eserviceTemplateProcessClient: clients.eserviceTemplateProcessClient,
+          headers,
+          logger,
+        }
+      );
+
+      await pollEServiceTemplateById(templateId, metadata, headers);
+
+      return toM2MGatewayApiDocument(document);
     },
   };
 }

@@ -655,10 +655,13 @@ paths:
       responses:
         "200":
           description: EService Template Document created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceTemplate"
+                $ref: "#/components/schemas/EServiceDoc"
         "400":
           description: Invalid input
           content:
