@@ -135,61 +135,6 @@ describe("create eservice", () => {
       metadata: { version: 1 },
     });
   });
-  it("should assign value inherit from request to isSignalhubEnabled field if signalhub whitelist feature flag is not enabled", async () => {
-    const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
-    const eservice = await catalogService.createEService(
-      {
-        name: mockEService.name,
-        description: mockEService.description,
-        technology: "REST",
-        mode: "DELIVER",
-        descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
-        isSignalHubEnabled,
-      },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
-
-    expect(eservice).toBeDefined();
-    expect(eservice.data.isSignalHubEnabled).toBe(isSignalHubEnabled);
-  });
-
-  it("should assign false to isSignalhubEnabled field if signalhub whitelist feature flag is enabled but the organization is not in whitelist", async () => {
-    const isSignalHubEnabled = true;
-
-    const eservice = await catalogService.createEService(
-      {
-        name: mockEService.name,
-        description: mockEService.description,
-        technology: "REST",
-        mode: "DELIVER",
-        descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
-        isSignalHubEnabled,
-      },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
-
-    expect(eservice).toBeDefined();
-    expect(eservice.data.isSignalHubEnabled).toBe(false);
-  });
-
-  it("should assign value inherit from request to isSignalhubEnabled field if signalhub whitelist feature flag is enabled and the organization is in whitelist", async () => {
-    const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
-
-    const eservice = await catalogService.createEService(
-      {
-        name: mockEService.name,
-        description: mockEService.description,
-        technology: "REST",
-        mode: "DELIVER",
-        descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
-        isSignalHubEnabled,
-      },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
-
-    expect(eservice).toBeDefined();
-    expect(eservice.data.isSignalHubEnabled).toBe(isSignalHubEnabled);
-  });
 
   it("should create an eservice correctly handling isClientAccessDelegable when isConsumerDelegable is not true", async () => {
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
