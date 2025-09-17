@@ -1572,7 +1572,10 @@ export function eserviceTemplateServiceBuilder(
         eServiceTemplateVersionId: EServiceTemplateVersionId;
         documentId: EServiceDocumentId;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Document> {
       logger.info(
         `Getting EService Document ${documentId.toString()} for EService Template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId}`
