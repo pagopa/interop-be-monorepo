@@ -105,7 +105,7 @@ jobs:
       - name: Build all packages
         run: pnpm build
       - name: Upload build artifact
-        uses: actions/upload-artifact@62b1662b76311894a4b8686a3452445c754668b8 # v4
+        uses: actions/upload-artifact@v4 # v4 utilizzo il tag generico
         with:
           name: build-output
           path: |
