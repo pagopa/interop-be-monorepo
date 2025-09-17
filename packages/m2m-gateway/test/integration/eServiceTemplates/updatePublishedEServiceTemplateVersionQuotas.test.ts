@@ -106,6 +106,71 @@ describe("updatePublishedEServiceTemplateVersionQuotas", () => {
     ).toHaveBeenCalledTimes(2);
   });
 
+  it.each([
+    {
+      voucherLifespan: 3600,
+    },
+    {
+      dailyCallsPerConsumer: 1000,
+    },
+    { dailyCallsTotal: 10000 },
+    {
+      voucherLifespan: 3600,
+      dailyCallsPerConsumer: 1000,
+    },
+    {
+      voucherLifespan: 3600,
+      dailyCallsTotal: 10000,
+    },
+    {
+      dailyCallsPerConsumer: 1000,
+      dailyCallsTotal: 10000,
+    },
+  ])("Should apply patch logic when seed is partial", async (seed) => {
+    mockGetEServiceTemplate.mockResolvedValueOnce(
+      mockEServiceTemplateProcessResponse
+    );
+
+    const result =
+      await eserviceTemplateService.updatePublishedEServiceTemplateVersionQuotas(
+        unsafeBrandId(mockEServiceTemplate.id),
+        unsafeBrandId(mockVersion.id),
+        seed,
+        getMockM2MAdminAppContext()
+      );
+
+    const expectedM2MDVersion: m2mGatewayApi.EServiceTemplateVersion = {
+      id: mockVersion.id,
+      version: mockVersion.version,
+      description: mockVersion.description,
+      voucherLifespan: mockVersion.voucherLifespan,
+      dailyCallsPerConsumer: mockVersion.dailyCallsPerConsumer,
+      dailyCallsTotal: mockVersion.dailyCallsTotal,
+      state: mockVersion.state,
+      agreementApprovalPolicy: mockVersion.agreementApprovalPolicy,
+      publishedAt: mockVersion.publishedAt,
+      suspendedAt: mockVersion.suspendedAt,
+      deprecatedAt: mockVersion.deprecatedAt,
+    };
+
+    expect(result).toEqual(expectedM2MDVersion);
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost:
+        mockInteropBeClients.eserviceTemplateProcessClient
+          .updateTemplateVersionQuotas,
+      params: {
+        templateId: mockEServiceTemplate.id,
+        templateVersionId: mockVersion.id,
+      },
+      body: {
+        voucherLifespan: seed.voucherLifespan ?? mockVersion.voucherLifespan,
+        dailyCallsPerConsumer:
+          seed.dailyCallsPerConsumer ?? mockVersion.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.dailyCallsTotal ?? mockVersion.dailyCallsTotal,
+      },
+    });
+  });
+
   it("Should throw missingMetadata in case the eservice template version returned by the PATCH call has no metadata", async () => {
     mockPatchUpdateQuotas.mockResolvedValueOnce({
       ...mockEServiceTemplateProcessResponse,
