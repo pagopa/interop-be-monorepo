@@ -1,6 +1,7 @@
 import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
+  AttributeId,
   DelegationId,
   DescriptorId,
   EServiceDocumentId,
@@ -52,7 +53,9 @@ export const errorCodes = {
   descriptorTemplateVersionNotFound: "0037",
   templateMissingRequiredRiskAnalysis: "0038",
   eserviceTemplateNameConflict: "0039",
-  eservicePersonalDataCanOnlyBeSetOnce: "0040",
+  checksumDuplicate: "0040",
+  attributeDuplicatedInGroup: "0041",
+  eservicePersonalDataCanOnlyBeSetOnce: "0042",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -450,6 +453,27 @@ export function templateMissingRequiredRiskAnalysis(
     detail: `Template ${templateId} cannot be instantiated: no risk analysis found for tenant ${tenantId} with kind ${tenantKind}`,
     code: "templateMissingRequiredRiskAnalysis",
     title: "Missing required risk analysis",
+  });
+}
+
+export function checksumDuplicate(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `A document with the same content already exists in descriptor ${descriptorId} of e-service ${eserviceId}`,
+    code: "checksumDuplicate",
+    title: "Duplicated checksum",
+  });
+}
+
+export function attributeDuplicatedInGroup(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} is duplicated in attribute group`,
+    code: "attributeDuplicatedInGroup",
+    title: "Duplicated attribute in group",
   });
 }
 

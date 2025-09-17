@@ -84,20 +84,35 @@ export function clientToApiClient(
   return clientToApiFullVisibilityClient(client);
 }
 
-export function producerKeychainToApiProducerKeychain(
-  producerKeychain: ProducerKeychain,
-  { showUsers }: { showUsers: boolean }
-): authorizationApi.ProducerKeychain {
+export function producerKeychainToApiFullVisibilityProducerKeychain(
+  producerKeychain: ProducerKeychain
+): authorizationApi.FullProducerKeychain {
   return {
+    visibility: authorizationApi.Visibility.Enum.FULL,
     id: producerKeychain.id,
     name: producerKeychain.name,
     producerId: producerKeychain.producerId,
-    users: showUsers ? producerKeychain.users : [],
+    users: producerKeychain.users,
     createdAt: producerKeychain.createdAt.toJSON(),
     eservices: producerKeychain.eservices,
     description: producerKeychain.description,
     keys: producerKeychain.keys.map(keyToApiKey),
   };
+}
+
+export function producerKeychainToApiProducerKeychain(
+  producerKeychain: ProducerKeychain,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): authorizationApi.ProducerKeychain {
+  if (authData.organizationId !== producerKeychain.producerId) {
+    return {
+      visibility: authorizationApi.Visibility.Enum.PARTIAL,
+      id: producerKeychain.id,
+      producerId: producerKeychain.producerId,
+    } satisfies authorizationApi.PartialProducerKeychain;
+  }
+
+  return producerKeychainToApiFullVisibilityProducerKeychain(producerKeychain);
 }
 
 export function jsonWebKeyToApiJWKKey(

@@ -48,7 +48,9 @@ export function validateRiskAnalysis(
     formRulesForValidation.expiration &&
     formRulesForValidation.expiration < dateForValidation
   ) {
-    return invalidResult([expiredRulesVersionError(riskAnalysisForm.version)]);
+    return invalidResult([
+      expiredRulesVersionError(riskAnalysisForm.version, tenantKind),
+    ]);
   }
 
   const validationRules = buildValidationRules(formRulesForValidation);
@@ -141,7 +143,7 @@ function questionRulesDepsToValidationRuleDeps(
   }));
 }
 
-function buildValidationRules(
+export function buildValidationRules(
   formRules: RiskAnalysisFormRules
 ): ValidationRule[] {
   return formRules.questions.map(buildValidationRule);
@@ -341,7 +343,7 @@ function answerToValidatedSingleOrMultiAnswer(
     .exhaustive();
 }
 
-function invalidResult(
+export function invalidResult(
   issues: RiskAnalysisValidationIssue[]
 ): RiskAnalysisValidationInvalid {
   return {
@@ -350,7 +352,7 @@ function invalidResult(
   };
 }
 
-function validResult<T>(value: T): RiskAnalysisValidationResult<T> {
+export function validResult<T>(value: T): RiskAnalysisValidationResult<T> {
   return {
     type: "valid",
     value,

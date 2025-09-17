@@ -61,6 +61,7 @@ describe("update eService", () => {
       .with(true, () => randomArrayItem([false, true, undefined]))
       .with(false, () => false)
       .exhaustive();
+    const personalData = randomArrayItem([false, true]);
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -74,7 +75,7 @@ describe("update eService", () => {
     };
     const updatedName = "eservice new name";
     await addOneEService(eservice);
-    const returnedEService = await catalogService.updateEService(
+    const updateEServiceReturn = await catalogService.updateEService(
       mockEService.id,
       {
         name: updatedName,
@@ -84,16 +85,18 @@ describe("update eService", () => {
         isSignalHubEnabled,
         isConsumerDelegable,
         isClientAccessDelegable,
+        personalData,
       },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       name: updatedName,
       isSignalHubEnabled,
       isConsumerDelegable,
       isClientAccessDelegable,
+      personalData,
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -106,8 +109,11 @@ describe("update eService", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(updateEServiceReturn).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
     expect(fileManager.delete).not.toHaveBeenCalled();
   });
 
@@ -137,7 +143,7 @@ describe("update eService", () => {
     };
     const updatedName = "eservice new name";
     await addOneEService(eservice);
-    const returnedEService = await catalogService.updateEService(
+    const updateEServiceReturn = await catalogService.updateEService(
       mockEService.id,
       {
         name: updatedName,
@@ -151,7 +157,7 @@ describe("update eService", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       name: updatedName,
       isSignalHubEnabled,
@@ -169,8 +175,11 @@ describe("update eService", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(updateEServiceReturn).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
     expect(fileManager.delete).not.toHaveBeenCalled();
   });
 
@@ -213,7 +222,7 @@ describe("update eService", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
 
-    const returnedEService = await catalogService.updateEService(
+    const updateEServiceReturn = await catalogService.updateEService(
       eservice.id,
       {
         name: updatedName,
@@ -224,7 +233,7 @@ describe("update eService", () => {
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       name: updatedName,
       technology: "Soap",
@@ -248,7 +257,7 @@ describe("update eService", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
       interfaceDocument.path,
@@ -257,7 +266,10 @@ describe("update eService", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(interfaceDocument.path);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(updateEServiceReturn).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
 
   it("should fail if the file deletion fails when interface file has to be deleted on technology change", async () => {
@@ -300,7 +312,7 @@ describe("update eService", () => {
     config.signalhubWhitelistProducer = [mockEService.producerId];
 
     await addOneEService(mockEService);
-    const returnedEService = await catalogService.updateEService(
+    const updateEServiceReturn = await catalogService.updateEService(
       mockEService.id,
       {
         name: mockEService.name,
@@ -311,7 +323,7 @@ describe("update eService", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...mockEService,
       description: updatedDescription,
     };
@@ -328,8 +340,11 @@ describe("update eService", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(updateEServiceReturn).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
   it("should write on event-store for the update of an eService (delegate)", async () => {
     const updatedDescription = "eservice new description";
@@ -341,7 +356,7 @@ describe("update eService", () => {
 
     await addOneEService(mockEService);
     await addOneDelegation(delegation);
-    const returnedEService = await catalogService.updateEService(
+    const updateEServiceReturn = await catalogService.updateEService(
       mockEService.id,
       {
         name: mockEService.name,
@@ -352,7 +367,7 @@ describe("update eService", () => {
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...mockEService,
       description: updatedDescription,
       isSignalHubEnabled: false,
@@ -370,8 +385,11 @@ describe("update eService", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(updateEServiceReturn).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
 
   it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
@@ -388,7 +406,7 @@ describe("update eService", () => {
 
     config.signalhubWhitelistProducer = [eservice.producerId];
 
-    const returnedEService = await catalogService.updateEService(
+    const updateEServiceReturn = await catalogService.updateEService(
       eservice.id,
       {
         name: eservice.name,
@@ -399,7 +417,7 @@ describe("update eService", () => {
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
-    const expectedEservice: EService = {
+    const expectedEService: EService = {
       ...eservice,
       mode: eserviceMode.deliver,
       riskAnalysis: [],
@@ -417,8 +435,11 @@ describe("update eService", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(updateEServiceReturn).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
