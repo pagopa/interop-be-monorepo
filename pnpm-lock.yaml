@@ -259,64 +259,6 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
 
-  packages/agreement-readmodel-writer:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@anatine/zod-mock':
-        specifier: 3.14.0
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
-      '@faker-js/faker':
-        specifier: 8.4.1
-        version: 8.4.1
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
   packages/agreement-readmodel-writer-sql:
     dependencies:
       '@protobuf-ts/runtime':
@@ -762,58 +704,6 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
 
-  packages/attribute-registry-readmodel-writer:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
   packages/attribute-registry-readmodel-writer-sql:
     dependencies:
       '@protobuf-ts/runtime':
@@ -1114,67 +1004,6 @@ importers:
       supertest:
         specifier: 7.0.0
         version: 7.0.0
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
-  packages/authorization-updater:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      '@zodios/core':
-        specifier: 10.9.6
-        version: 10.9.6(axios@1.8.2)(zod@3.23.8)
-      axios:
-        specifier: 1.8.2
-        version: 1.8.2
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
-      pagopa-interop-api-clients:
-        specifier: workspace:*
-        version: link:../api-clients
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
       tsx:
         specifier: 4.19.1
         version: 4.19.1
@@ -1519,61 +1348,6 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
 
-  packages/catalog-readmodel-writer:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      date-fns:
-        specifier: 3.6.0
-        version: 3.6.0
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
   packages/catalog-readmodel-writer-sql:
     dependencies:
       '@protobuf-ts/runtime':
@@ -1762,55 +1536,6 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
-  packages/client-readmodel-writer:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -2496,55 +2221,6 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
 
-  packages/delegation-readmodel-writer:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
   packages/delegation-readmodel-writer-sql:
     dependencies:
       '@protobuf-ts/runtime':
@@ -3115,61 +2791,6 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
 
-  packages/eservice-template-readmodel-writer:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      date-fns:
-        specifier: 3.6.0
-        version: 3.6.0
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
   packages/eservice-template-readmodel-writer-sql:
     dependencies:
       '@protobuf-ts/runtime':
@@ -3221,67 +2842,6 @@ importers:
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
-  packages/event-migration:
-    dependencies:
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      json-diff:
-        specifier: 1.0.6
-        version: 1.0.6
-      lodash.isequal:
-        specifier: 4.5.0
-        version: 4.5.0
-      mongodb:
-        specifier: 6.7.0
-        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      pg-promise:
-        specifier: 11.8.0
-        version: 11.8.0
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@types/json-diff':
-        specifier: 1.0.3
-        version: 1.0.3
-      '@types/lodash.isequal':
-        specifier: 4.5.8
-        version: 4.5.8
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      eslint:
-        specifier: 8.57.1
-        version: 8.57.1
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -3695,55 +3255,6 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
 
-  packages/key-readmodel-writer:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
   packages/key-readmodel-writer-sql:
     dependencies:
       '@protobuf-ts/runtime':
@@ -3868,6 +3379,192 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.19.9)
+
+  packages/m2m-event-db-models:
+    dependencies:
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pg:
+        specifier: 8.13.1
+        version: 8.13.1
+    devDependencies:
+      '@types/node':
+        specifier: 20.19.9
+        version: 20.19.9
+      '@types/pg':
+        specifier: 8.11.11
+        version: 8.11.11
+      drizzle-kit:
+        specifier: 0.30.4
+        version: 0.30.4
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      prettier-plugin-organize-imports:
+        specifier: 4.2.0
+        version: 4.2.0(prettier@2.8.8)(typescript@5.4.5)
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@20.19.9)(typescript@5.4.5)
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+
+  packages/m2m-event-dispatcher:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-m2m-event-db-models:
+        specifier: workspace:*
+        version: link:../m2m-event-db-models
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      pg:
+        specifier: 8.13.1
+        version: 8.13.1
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.19.9
+        version: 20.19.9
+      '@types/pg':
+        specifier: 8.11.11
+        version: 8.11.11
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.19.9)
+
+  packages/m2m-event-manager:
+    dependencies:
+      '@zodios/core':
+        specifier: 10.9.6
+        version: 10.9.6(axios@1.8.2)(zod@3.23.8)
+      '@zodios/express':
+        specifier: 10.6.1
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.8.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+      axios:
+        specifier: 1.8.2
+        version: 1.8.2
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      express:
+        specifier: 4.20.0
+        version: 4.20.0
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-m2m-event-db-models:
+        specifier: workspace:*
+        version: link:../m2m-event-db-models
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pg:
+        specifier: 8.13.1
+        version: 8.13.1
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/express':
+        specifier: 4.17.21
+        version: 4.17.21
+      '@types/node':
+        specifier: 20.19.9
+        version: 20.19.9
+      '@types/pg':
+        specifier: 8.11.11
+        version: 8.11.11
+      '@types/supertest':
+        specifier: 6.0.3
+        version: 6.0.3
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       tsx:
         specifier: 4.19.1
         version: 4.19.1
@@ -4576,55 +4273,6 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
 
-  packages/producer-key-readmodel-writer:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
   packages/producer-key-readmodel-writer-sql:
     dependencies:
       '@protobuf-ts/runtime':
@@ -4654,55 +4302,6 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
-  packages/producer-keychain-readmodel-writer:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -5003,55 +4602,6 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
 
-  packages/purpose-readmodel-writer:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
   packages/purpose-readmodel-writer-sql:
     dependencies:
       '@protobuf-ts/runtime':
@@ -5304,73 +4854,6 @@ importers:
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.19.9)(typescript@5.4.5)
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
-  packages/readmodel-checker:
-    dependencies:
-      '@types/lodash.isequal':
-        specifier: 4.5.8
-        version: 4.5.8
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      drizzle-orm:
-        specifier: 0.39.3
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
-      json-diff:
-        specifier: 1.0.6
-        version: 1.0.6
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      pagopa-interop-readmodel:
-        specifier: workspace:*
-        version: link:../readmodel
-      pagopa-interop-readmodel-models:
-        specifier: workspace:*
-        version: link:../readmodel-models
-      pg:
-        specifier: 8.13.1
-        version: 8.13.1
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/json-diff':
-        specifier: 1.0.3
-        version: 1.0.3
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      '@types/pg':
-        specifier: 8.11.11
-        version: 8.11.11
-      lodash.isequal:
-        specifier: 4.5.0
-        version: 4.5.0
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -5745,58 +5228,6 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
 
-  packages/tenant-readmodel-writer:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
   packages/tenant-readmodel-writer-sql:
     dependencies:
       '@protobuf-ts/runtime':
@@ -5958,49 +5389,6 @@ importers:
       '@types/json-diff':
         specifier: 1.0.3
         version: 1.0.3
-      '@types/node':
-        specifier: 20.19.9
-        version: 20.19.9
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.1
-        version: 1.6.1(@types/node@20.19.9)
-
-  packages/token-generation-readmodel-producer-id-updater:
-    dependencies:
-      '@aws-sdk/client-dynamodb':
-        specifier: 3.840.0
-        version: 3.840.0
-      '@aws-sdk/util-dynamodb':
-        specifier: 3.840.0
-        version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.19.9
         version: 20.19.9
@@ -10822,6 +10210,16 @@ packages:
   prettier-linter-helpers@1.0.0:
     resolution: {integrity: sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==}
     engines: {node: '>=6.0.0'}
+
+  prettier-plugin-organize-imports@4.2.0:
+    resolution: {integrity: sha512-Zdy27UhlmyvATZi67BTnLcKTo8fm6Oik59Sz6H64PgZJVs6NJpPD1mT240mmJn62c98/QaL+r3kx9Q3gRpDajg==}
+    peerDependencies:
+      prettier: '>=2.0'
+      typescript: '>=2.9'
+      vue-tsc: ^2.1.0 || 3
+    peerDependenciesMeta:
+      vue-tsc:
+        optional: true
 
   prettier@2.8.8:
     resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
@@ -18586,6 +17984,11 @@ snapshots:
   prettier-linter-helpers@1.0.0:
     dependencies:
       fast-diff: 1.3.0
+
+  prettier-plugin-organize-imports@4.2.0(prettier@2.8.8)(typescript@5.4.5):
+    dependencies:
+      prettier: 2.8.8
+      typescript: 5.4.5
 
   prettier@2.8.8: {}
 

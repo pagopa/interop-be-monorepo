@@ -74,6 +74,7 @@ describe("update eService name on published eservice", () => {
     });
     expect(writtenPayload).toEqual({
       eservice: toEServiceV2(expectedEService),
+      oldName: eservice.name,
     });
     expect(returnedEService).toEqual({
       data: expectedEService,
@@ -119,6 +120,7 @@ describe("update eService name on published eservice", () => {
     });
     expect(writtenPayload).toEqual({
       eservice: toEServiceV2(expectedEService),
+      oldName: eservice.name,
     });
     expect(returnedEService).toEqual({
       data: expectedEService,
