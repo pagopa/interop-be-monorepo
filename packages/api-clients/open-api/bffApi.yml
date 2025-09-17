@@ -10196,6 +10196,102 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /creators/purposeTemplates:
+    get:
+      tags:
+        - purposeTemplates
+      summary: Retrieves Creator Purpose Templates
+      operationId: getCreatorPurposeTemplates
+      description: Retrieves Creator Purpose Templates
+      parameters:
+        - in: query
+          name: q
+          description: filter by purpose template title
+          schema:
+            type: string
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Creator's Purpose Templates retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatorPurposeTemplates"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        #  TODO: is this needed?
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/tenants/{tenantId}/attributes/declared":
     get:
       tags:
@@ -23099,6 +23195,14 @@ components:
           format: uuid
       required:
         - purposeId
+    PurposeTemplateState:
+      type: string
+      description: Purpose Template State
+      enum:
+        - ACTIVE
+        - DRAFT
+        - SUSPENDED
+        - ARCHIVED
     PurposeTemplateSeed:
       type: object
       additionalProperties: false
@@ -23202,6 +23306,37 @@ components:
         - contentType
         - prettyName
         - path
+    CreatorPurposeTemplate:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - targetTenantKind
+        - purposeTitle
+        - state
+      properties:
+        id:
+          type: string
+          format: uuid
+        targetTenantKind:
+          $ref: "#/components/schemas/TenantKind"
+        purposeTitle:
+          type: string
+        state:
+          $ref: "#/components/schemas/PurposeTemplateState"
+    CreatorPurposeTemplates:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreatorPurposeTemplate"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     CompactUsers:
       type: array
       items:
