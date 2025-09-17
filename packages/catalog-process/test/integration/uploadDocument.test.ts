@@ -31,6 +31,7 @@ import {
   interfaceAlreadyExists,
   documentPrettyNameDuplicate,
   templateInstanceNotAllowed,
+  checksumDuplicate,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -384,5 +385,34 @@ describe("upload Document", () => {
         getMockContext({ authData: getMockAuthData(eService.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
+  });
+  it("should throw checksumDuplicate if the checksum is already present in the descriptor", async () => {
+    const document: Document = {
+      ...getMockDocument(),
+      prettyName: "TEST",
+    };
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.draft,
+      docs: [document],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+
+    await addOneEService(eservice);
+    expect(
+      catalogService.uploadDocument(
+        eservice.id,
+        descriptor.id,
+        {
+          ...buildDocumentSeed(),
+          checksum: document.checksum,
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(checksumDuplicate(eservice.id, descriptor.id));
   });
 });

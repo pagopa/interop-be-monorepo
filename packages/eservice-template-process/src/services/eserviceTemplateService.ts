@@ -35,6 +35,8 @@ import {
   EServiceTemplateRiskAnalysis,
   RiskAnalysisForm,
   badRequestError,
+  AttributeKind,
+  attributeKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -46,6 +48,7 @@ import {
   eserviceTemplateDocumentNotFound,
   instanceNameConflict,
   notValidEServiceTemplateVersionState,
+  attributeDuplicatedInGroup,
 } from "../model/domain/errors.js";
 import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
@@ -249,56 +252,73 @@ export function validateRiskAnalysisSchemaOrThrow(
   }
 }
 
-async function parseAndCheckAttributes(
+async function parseAndCheckAttributesOfKind(
+  attributesSeedForKind: eserviceTemplateApi.AttributeSeed[][],
+  kind: AttributeKind,
+  readModelService: ReadModelService
+): Promise<EServiceAttribute[][]> {
+  const parsedAttributesSeed = attributesSeedForKind.map((group) => {
+    const groupAttributesIdsFound: Set<AttributeId> = new Set();
+    return group.map((att) => {
+      const id = unsafeBrandId<AttributeId>(att.id);
+      if (groupAttributesIdsFound.has(id)) {
+        throw attributeDuplicatedInGroup(id);
+      }
+
+      groupAttributesIdsFound.add(id);
+      return {
+        ...att,
+        id,
+      };
+    });
+  });
+
+  const attributesSeedIds: AttributeId[] = parsedAttributesSeed
+    .flat()
+    .map(({ id }) => id);
+
+  const attributes = await readModelService.getAttributesByIds(
+    attributesSeedIds,
+    kind
+  );
+
+  const attributesIds = attributes.map((attr) => attr.id);
+  attributesSeedIds.forEach((attributeId) => {
+    if (!attributesIds.includes(attributeId)) {
+      throw attributeNotFound(attributeId);
+    }
+  });
+
+  return parsedAttributesSeed;
+}
+
+export async function parseAndCheckAttributes(
   attributesSeed: eserviceTemplateApi.AttributesSeed,
   readModelService: ReadModelService
 ): Promise<EserviceAttributes> {
-  const certifiedAttributes = attributesSeed.certified;
-  const declaredAttributes = attributesSeed.declared;
-  const verifiedAttributes = attributesSeed.verified;
-
-  const attributesSeeds = [
-    ...certifiedAttributes.flat(),
-    ...declaredAttributes.flat(),
-    ...verifiedAttributes.flat(),
-  ];
-
-  if (attributesSeeds.length > 0) {
-    const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
-      unsafeBrandId(attr.id)
-    );
-    const attributes = await readModelService.getAttributesByIds(
-      attributesSeedsIds
-    );
-    const attributesIds = attributes.map((attr) => attr.id);
-    for (const attributeSeedId of attributesSeedsIds) {
-      if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
-        throw attributeNotFound(attributeSeedId);
-      }
-    }
-  }
+  const [certifiedAttributes, declaredAttributes, verifiedAttributes] =
+    await Promise.all([
+      parseAndCheckAttributesOfKind(
+        attributesSeed.certified,
+        attributeKind.certified,
+        readModelService
+      ),
+      parseAndCheckAttributesOfKind(
+        attributesSeed.declared,
+        attributeKind.declared,
+        readModelService
+      ),
+      parseAndCheckAttributesOfKind(
+        attributesSeed.verified,
+        attributeKind.verified,
+        readModelService
+      ),
+    ]);
 
   return {
-    certified: certifiedAttributes.map((a) =>
-      a.map((a) => ({
-        ...a,
-        id: unsafeBrandId(a.id),
-      }))
-    ),
-    // eslint-disable-next-line sonarjs/no-identical-functions
-    declared: declaredAttributes.map((a) =>
-      a.map((a) => ({
-        ...a,
-        id: unsafeBrandId(a.id),
-      }))
-    ),
-    // eslint-disable-next-line sonarjs/no-identical-functions
-    verified: verifiedAttributes.map((a) =>
-      a.map((a) => ({
-        ...a,
-        id: unsafeBrandId(a.id),
-      }))
-    ),
+    certified: certifiedAttributes,
+    declared: declaredAttributes,
+    verified: verifiedAttributes,
   };
 }
 
@@ -626,6 +646,7 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
           updatedEserviceTemplate,
+          eserviceTemplate.data.name,
           correlationId
         )
       );
