@@ -28,7 +28,7 @@ import {
   toCreateEventPurposeTemplateAdded,
   toCreateEventPurposeTemplateUpdated,
 } from "../model/domain/toEvent.js";
-import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisAnnotationUtils.js";
+import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisDocUtils.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
