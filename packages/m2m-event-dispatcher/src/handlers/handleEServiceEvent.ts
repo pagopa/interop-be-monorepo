@@ -26,18 +26,13 @@ export async function handleEServiceEvent(
       },
       async (event) => {
         assertEServiceExistsInEvent(event);
-        const m2mEvent = toNewEServiceM2MEventSQL(
-          event.data.eservice,
-          event.type,
-          eventTimestamp,
-          {
-            visibility: m2mEventVisibility.restricted,
-            producerDelegation:
-              await readModelService.getActiveProducerDelegationForEService(
-                event.data.eservice
-              ),
-          }
-        );
+        const m2mEvent = toNewEServiceM2MEventSQL(event, eventTimestamp, {
+          visibility: m2mEventVisibility.restricted,
+          producerDelegation:
+            await readModelService.getActiveProducerDelegationForEService(
+              event.data.eservice
+            ),
+        });
         logger.info(
           `Writing EService Descriptor M2M Event with ID ${m2mEvent.id}, type ${m2mEvent.eventType}, eserviceId ${m2mEvent.eserviceId}`
         );
@@ -52,9 +47,7 @@ export async function handleEServiceEvent(
       async (event) => {
         assertEServiceExistsInEvent(event);
         const m2mEvent = toNewEServiceDescriptorM2MEventSQL(
-          event.data.eservice,
-          event.data.descriptorId,
-          event.type,
+          event,
           eventTimestamp,
           { visibility: m2mEventVisibility.public }
         );

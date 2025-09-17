@@ -11,7 +11,7 @@ import { EServiceM2MEventSQL } from "pagopa-interop-m2m-event-db-models";
 import { match } from "ts-pattern";
 import { generateM2MEventId } from "../utils/uuidv7.js";
 
-type EServiceVisibilityData =
+type EServiceM2MEventVisibilityData =
   | {
       visibility: Extract<M2MEventVisibility, "Public">;
     }
@@ -21,34 +21,33 @@ type EServiceVisibilityData =
     };
 
 export function toNewEServiceM2MEventSQL(
-  eservice: EServiceV2,
-  eventType: Extract<EServiceEventEnvelopeV2["type"], "DraftEServiceUpdated">,
+  event: Extract<EServiceEventEnvelopeV2, { type: "DraftEServiceUpdated" }> & {
+    data: { eservice: EServiceV2 };
+  },
   eventTimestamp: Date,
-  visibility: EServiceVisibilityData
+  visibility: EServiceM2MEventVisibilityData
 ): EServiceM2MEventSQL {
   return toNewEServiceM2MEventSQLHelper(
-    eservice,
+    event.data.eservice,
     null,
-    eventType,
+    event.type,
     eventTimestamp,
     visibility
   );
 }
 
 export function toNewEServiceDescriptorM2MEventSQL(
-  eservice: EServiceV2,
-  descriptorId: string,
-  eventType: Extract<
-    EServiceEventEnvelopeV2["type"],
-    "EServiceDescriptorPublished"
-  >,
+  event: Extract<
+    EServiceEventEnvelopeV2,
+    { type: "EServiceDescriptorPublished" }
+  > & { data: { eservice: EServiceV2; descriptorId: string } },
   eventTimestamp: Date,
-  visibility: EServiceVisibilityData
+  visibility: EServiceM2MEventVisibilityData
 ): EServiceM2MEventSQL {
   return toNewEServiceM2MEventSQLHelper(
-    eservice,
-    descriptorId,
-    eventType,
+    event.data.eservice,
+    event.data.descriptorId,
+    event.type,
     eventTimestamp,
     visibility
   );
@@ -59,7 +58,7 @@ function toNewEServiceM2MEventSQLHelper(
   descriptorId: string | null,
   eventType: EServiceM2MEvent["eventType"],
   eventTimestamp: Date,
-  visibility: EServiceVisibilityData
+  visibility: EServiceM2MEventVisibilityData
 ): EServiceM2MEventSQL {
   const visibilityFields = match(visibility)
     .with({ visibility: m2mEventVisibility.public }, () => ({
