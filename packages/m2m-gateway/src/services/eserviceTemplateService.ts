@@ -212,6 +212,37 @@ export function eserviceTemplateServiceBuilder(
       return toM2MGatewayApiEServiceTemplateRiskAnalysis(createdRiskAnalysis);
     },
 
+    async getEServiceTemplateRiskAnalyses(
+      templateId: EServiceTemplateId,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApi.GetEServiceTemplateRiskAnalysesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateRiskAnalyses> {
+      logger.info(
+        `Retrieving Risk Analyses for E-Service Template ${templateId}`
+      );
+
+      const { data: eserviceTemplate } = await retrieveEServiceTemplateById(
+        headers,
+        templateId
+      );
+
+      const paginated = eserviceTemplate.riskAnalysis.slice(
+        offset,
+        offset + limit
+      );
+
+      return {
+        results: paginated.map(toM2MGatewayApiEServiceTemplateRiskAnalysis),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceTemplate.riskAnalysis.length,
+        },
+      };
+    },
     async getEServiceTemplates(
       params: m2mGatewayApi.GetEServiceTemplatesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
