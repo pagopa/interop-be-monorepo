@@ -8,10 +8,13 @@ import {
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   agreementState,
   CorrelationId,
+  EService,
   generateId,
   missingKafkaMessageDataError,
+  Tenant,
   TenantId,
   toEServiceV2,
   UserId,
@@ -30,7 +33,7 @@ import {
 
 describe("handleNewEServiceDescriptorPublished", async () => {
   const descriptor = getMockDescriptorPublished();
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     descriptors: [descriptor],
   };
@@ -59,19 +62,19 @@ describe("handleNewEServiceDescriptorPublished", async () => {
     const eservice = getMockEService();
     await addOneEService(eservice);
 
-    const consumerTenant = {
+    const consumerTenant: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail()],
     };
     await addOneTenant(consumerTenant);
 
-    const producerTenant = {
+    const producerTenant: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail()],
     };
     await addOneTenant(producerTenant);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
