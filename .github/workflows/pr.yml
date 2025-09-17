@@ -31,28 +31,6 @@ jobs:
           node-version-file: ./package.json
       - run: pnpm format:check
 
-  # check:
-  #   name: Check
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-  #     - name: Cache turbo setup
-  #       uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
-  #       with:
-  #         path: |
-  #           .turbo
-  #           packages/*/.turbo
-  #         key: ${{ runner.os }}-turbo-check-${{ github.sha }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-turbo-check
-  #     - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-  #       with:
-  #         node-version-file: ./package.json
-  #     - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
-  #       with:
-  #         run_install: true
-  #     - run: pnpm check
-
   lint-openapi:
     name: Lint Open Api specification
     runs-on: ubuntu-latest
@@ -103,12 +81,43 @@ jobs:
             ]')
 
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
+  build:
+    name: Full project build
+    runs-on: ubuntu-latest
+    needs: [formatting, lint-openapi]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Cache turbo setup
+        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
+        with:
+          path: |
+            .turbo
+            packages/*/.turbo
+          key: ${{ runner.os }}-turbo-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-build-
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+        with:
+          run_install: true
+      - name: Build all packages
+        run: pnpm build
+      - name: Upload build artifact
+        uses: actions/upload-artifact@62b1662b76311894a4b8686a3452445c754668b8 # v4
+        with:
+          name: build-output
+          path: |
+            .turbo/
+            packages/*/dist/
+
   lint:
     name: Lint sharded
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    needs: [packages_sharding, formatting]
+    needs: [packages_sharding, formatting, build]
     strategy:
       fail-fast: false
       matrix:
@@ -117,21 +126,17 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: Cache turbo setup
-        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
-        with:
-          path: |
-            .turbo
-            packages/*/.turbo
-          key: ${{ runner.os }}-shard-${{ matrix.shard.shardIndex }}-turbo-lint-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-shard-${{ matrix.shard.shardIndex }}-turbo-lint-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           run_install: true
+      - name: Download build artifact
+        uses: actions/download-artifact@v4 # Non so se mettere un commit specifico, per questo ho lasciato semplicemente v4
+        with:
+          name: build-output
+          path: .
       - name: Run lint for shard
         run: |
           PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
@@ -145,7 +150,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    needs: [formatting, packages_sharding] # check
+    needs: [formatting, packages_sharding, build]
     strategy:
       fail-fast: false
       matrix:
@@ -154,21 +159,17 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: Cache turbo setup
-        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
-        with:
-          path: |
-            .turbo
-            packages/*/.turbo
-          key: ${{ runner.os }}-shard-${{ matrix.shard.shardIndex }}-turbo-test-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-shard-${{ matrix.shard.shardIndex }}-turbo-test
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           run_install: true
+      - name: Download build artifact
+        uses: actions/download-artifact@v4 # Non so se mettere un commit specifico, per questo ho lasciato semplicemente v4
+        with:
+          name: build-output
+          path: .
       - name: Run tests for shard
         run: |
           PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
