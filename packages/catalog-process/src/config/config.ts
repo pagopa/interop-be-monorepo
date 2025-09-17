@@ -5,7 +5,6 @@ import {
   EventStoreConfig,
   S3Config,
   ApplicationAuditProducerConfig,
-  FeatureFlagSignalhubWhitelistConfig,
   FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
@@ -27,7 +26,6 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(EventStoreConfig)
-  .and(FeatureFlagSignalhubWhitelistConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
   .and(
     z

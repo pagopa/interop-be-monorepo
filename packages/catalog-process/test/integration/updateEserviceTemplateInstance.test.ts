@@ -28,7 +28,6 @@ import {
   eserviceNotInDraftState,
   eServiceNotAnInstance,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneEService,
   catalogService,
@@ -42,9 +41,6 @@ describe("update eService Instance", () => {
   const mockDocument = getMockDocument();
 
   it("should write on event-store for the update of an eService", async () => {
-    config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelistProducer = [mockEService.producerId];
-
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
     const isConsumerDelegable = randomArrayItem([false, true, undefined]);
     const isClientAccessDelegable = match(isConsumerDelegable)

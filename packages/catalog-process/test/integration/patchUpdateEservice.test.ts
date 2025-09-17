@@ -99,9 +99,6 @@ describe("update eService", () => {
   ] as catalogApi.PatchUpdateEServiceSeed[])(
     "should write on event-store and update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",
     async (seed) => {
-      config.featureFlagSignalhubWhitelist = true;
-      config.signalhubWhitelistProducer = [mockEService.producerId];
-
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.draft,
@@ -178,9 +175,6 @@ describe("update eService", () => {
   );
 
   it("should update an eservice correctly handling isClientAccessDelegable when isConsumerDelegable is not true", async () => {
-    config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelistProducer = [mockEService.producerId];
-
     const isConsumerDelegable: false | undefined = randomArrayItem([
       false,
       undefined,
@@ -253,52 +247,8 @@ describe("update eService", () => {
     });
   });
 
-  it("should update an eservice setting isSignalHubEnabled to false if tenant is not in whitelist", async () => {
-    config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelistProducer = [];
-
-    await addOneEService({
-      ...mockEService,
-      isSignalHubEnabled: randomArrayItem([false, true, undefined]),
-    });
-    const updateEServiceReturn = await catalogService.patchUpdateEService(
-      mockEService.id,
-      {
-        isSignalHubEnabled: randomArrayItem([false, true, undefined]),
-      },
-      getMockContextM2MAdmin({ organizationId: mockEService.producerId })
-    );
-
-    const expectedEService: EService = {
-      ...mockEService,
-      isSignalHubEnabled: false,
-    };
-
-    const writtenEvent = await readLastEserviceEvent(mockEService.id);
-    expect(writtenEvent).toMatchObject({
-      stream_id: mockEService.id,
-      version: "1",
-      type: "DraftEServiceUpdated",
-      event_version: 2,
-    });
-
-    const writtenPayload = decodeProtobufPayload({
-      messageType: DraftEServiceUpdatedV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
-    expect(updateEServiceReturn).toEqual({
-      data: expectedEService,
-      metadata: { version: 1 },
-    });
-  });
-
   it("should delete interface on technology change)", async () => {
     vi.spyOn(fileManager, "delete");
-
-    config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelistProducer = [mockEService.producerId];
 
     const interfaceDocument = {
       ...mockDocument,
