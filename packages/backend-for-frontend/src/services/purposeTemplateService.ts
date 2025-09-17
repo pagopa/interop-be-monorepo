@@ -43,6 +43,26 @@ export function purposeTemplateServiceBuilder(
 
       return result[0];
     },
+    async unlinkEServicesFromPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceId: bffApi.EServiceId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Unlinking e-service ${eserviceId} from purpose template ${purposeTemplateId}`
+      );
+      await purposeTemplateClient.unlinkEServicesFromPurposeTemplate(
+        {
+          eserviceIds: [eserviceId],
+        },
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+    },
   };
 }
 
