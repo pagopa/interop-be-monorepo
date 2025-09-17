@@ -63,6 +63,33 @@ const purposeTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .get("/catalog/purposeTemplates", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const response =
+          await purposeTemplateService.getCatalogPurposeTemplates(
+            req.query.q,
+            req.query.eserviceIds,
+            req.query.offset,
+            req.query.limit,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(bffApi.CatalogPurposeTemplates.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          // TODO: add custom error mapper if necessary
+          emptyErrorMapper,
+          ctx,
+          "Error retrieving catalog purpose templates"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return purposeTemplateRouter;

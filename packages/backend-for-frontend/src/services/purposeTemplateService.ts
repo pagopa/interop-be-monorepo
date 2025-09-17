@@ -1,13 +1,43 @@
-import { bffApi, purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  bffApi,
+  purposeTemplateApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { PurposeTemplateProcessClient } from "../clients/clientsProvider.js";
+import {
+  PurposeTemplateProcessClient,
+  TenantProcessClient,
+} from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
-import { toBffCreatorPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
+import {
+  toBffCatalogPurposeTemplate,
+  toBffCreatorPurposeTemplate,
+} from "../api/purposeTemplateApiConverter.js";
+import { tenantNotFound } from "../model/errors.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
-  purposeTemplateClient: PurposeTemplateProcessClient
+  purposeTemplateClient: PurposeTemplateProcessClient,
+  tenantProcessClient: TenantProcessClient
 ) {
+  async function getTenantsFromPurposeTemplates(
+    tenantClient: TenantProcessClient,
+    purposeTemplates: purposeTemplateApi.PurposeTemplate[],
+    headers: BffAppContext["headers"]
+  ): Promise<Map<string, tenantApi.Tenant>> {
+    const creatorIds = Array.from(
+      new Set(purposeTemplates.map((t) => t.creatorId))
+    );
+
+    const tenants = await Promise.all(
+      creatorIds.map(async (id) =>
+        tenantClient.tenant.getTenant({ headers, params: { id } })
+      )
+    );
+
+    return new Map(tenants.map((t) => [t.id, t]));
+  }
+
   return {
     async createPurposeTemplate(
       seed: bffApi.PurposeTemplateSeed,
@@ -30,7 +60,7 @@ export function purposeTemplateServiceBuilder(
         `Retrieving creator's purpose templates with title ${purposeTitle}, offset ${offset}, limit ${limit}`
       );
 
-      const creatorPurposeTemplatesResponse: purposeTemplateApi.PurposeTemplates =
+      const creatorPurposeTemplatesResponse =
         await purposeTemplateClient.getPurposeTemplates({
           headers,
           queries: {
@@ -52,9 +82,58 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
+    async getCatalogPurposeTemplates(
+      purposeTitle: string | undefined,
+      eserviceIds: string[],
+      offset: number,
+      limit: number,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CatalogPurposeTemplates> {
+      logger.info(
+        `Retrieving catalog purpose templates with title ${purposeTitle}, eserviceIds ${eserviceIds.toString()} offset ${offset}, limit ${limit}`
+      );
+
+      const catalogPurposeTemplatesResponse =
+        await purposeTemplateClient.getPurposeTemplates({
+          headers,
+          queries: {
+            purposeTitle,
+            eserviceIds,
+            states: [purposeTemplateApi.PurposeTemplateState.Enum.ACTIVE],
+            limit,
+            offset,
+          },
+        });
+
+      const creatorTenantsMap = await getTenantsFromPurposeTemplates(
+        tenantProcessClient,
+        catalogPurposeTemplatesResponse.results,
+        headers
+      );
+
+      const results = catalogPurposeTemplatesResponse.results.map(
+        (template) => {
+          const creator = creatorTenantsMap.get(template.creatorId);
+
+          if (!creator) {
+            throw tenantNotFound(template.creatorId);
+          }
+
+          return toBffCatalogPurposeTemplate(template, creator);
+        }
+      );
+
+      return {
+        results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: catalogPurposeTemplatesResponse.totalCount,
+        },
+      };
+    },
   };
 }
-
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;
