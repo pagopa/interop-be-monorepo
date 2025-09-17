@@ -506,15 +506,22 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          await eserviceTemplateService.deleteDocument(
-            unsafeBrandId(req.params.templateId),
-            unsafeBrandId(req.params.templateVersionId),
-            unsafeBrandId(req.params.documentId),
-            ctx
-          );
-          return res.status(204).send();
+          const { data: updatedEServiceTemplate, metadata } =
+            await eserviceTemplateService.deleteDocument(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.templateVersionId),
+              unsafeBrandId(req.params.documentId),
+              ctx
+            );
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(
+              eserviceTemplateToApiEServiceTemplate(updatedEServiceTemplate)
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

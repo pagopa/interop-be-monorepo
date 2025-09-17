@@ -284,6 +284,33 @@ const eserviceTemplateRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .delete(
+      "/eserviceTemplates/:templateId/versions/:versionId/documents/:documentId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await eserviceTemplateService.deleteEServiceTemplateVersionDocument(
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.versionId),
+            unsafeBrandId(req.params.documentId),
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error deleting document with id ${req.params.documentId} for eservice template ${req.params.templateId} version with id ${req.params.versionId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
 
   return eserviceTemplateRouter;

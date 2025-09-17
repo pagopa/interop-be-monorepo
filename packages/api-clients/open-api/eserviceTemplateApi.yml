@@ -769,8 +769,15 @@ paths:
             type: string
             format: uuid
       responses:
-        "204":
+        "200":
           description: Document deleted.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplate"
         "404":
           description: E-Service template document not found
           content:
