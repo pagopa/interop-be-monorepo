@@ -225,7 +225,8 @@ export const getMockEServiceAttributes = (): EserviceAttributes => ({
 export const getMockEService = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   producerId: TenantId = generateId<TenantId>(),
-  descriptors: Descriptor[] = []
+  descriptors: Descriptor[] = [],
+  templateId?: EServiceTemplateId | undefined
 ): EService => ({
   id: eserviceId,
   name: "eService name",
@@ -236,6 +237,7 @@ export const getMockEService = (
   descriptors,
   riskAnalysis: [],
   mode: "Deliver",
+  ...(templateId && { templateId }),
 });
 
 export const getMockVerifiedTenantAttribute = (
