@@ -375,6 +375,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{id}/eservices:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
