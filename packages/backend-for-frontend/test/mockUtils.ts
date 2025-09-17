@@ -1027,3 +1027,12 @@ export const getMockBffApiCreatorPurposeTemplate =
     purposeTitle: generateMock(z.string()),
     state: generateMock(bffApi.PurposeTemplateState),
   });
+
+export const getMockBffApiCatalogPurposeTemplate =
+  (): bffApi.CatalogPurposeTemplate => ({
+    id: generateId(),
+    targetTenantKind: generateMock(bffApi.TenantKind),
+    purposeTitle: generateMock(z.string()),
+    purposeDescription: generateMock(z.string()),
+    creator: generateMock(bffApi.CompactOrganization),
+  });
