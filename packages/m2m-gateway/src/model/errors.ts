@@ -46,7 +46,8 @@ export const errorCodes = {
   tenantVerifiedAttributeNotFound: "0028",
   cannotDeleteLastEServiceDescriptor: "0029",
   eserviceRiskAnalysisNotFound: "0030",
-  delegationEServiceMismatch: "0031",
+  eserviceTemplateRiskAnalysisNotFound: "0031",
+  delegationEServiceMismatch: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -335,5 +336,16 @@ export function cannotDeleteLastEServiceDescriptor(
     detail: `Cannot delete descriptor ${descriptorId} for e-service ${eserviceId} because it is the last remaining descriptor`,
     code: "cannotDeleteLastEServiceDescriptor",
     title: "Cannot delete last e-service descriptor",
+  });
+}
+
+export function eserviceTemplateRiskAnalysisNotFound(
+  templateId: string,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis ${riskAnalysisId} not found for e-service template ${templateId}`,
+    code: "eserviceTemplateRiskAnalysisNotFound",
+    title: "E-Service Template risk analysis not found",
   });
 }
