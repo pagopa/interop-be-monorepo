@@ -1019,3 +1019,11 @@ export const toBffCompactEServiceLight = (
   id: compactEService.id,
   name: compactEService.name,
 });
+
+export const getMockBffApiCreatorPurposeTemplate =
+  (): bffApi.CreatorPurposeTemplate => ({
+    id: generateId(),
+    targetTenantKind: generateMock(bffApi.TenantKind),
+    purposeTitle: generateMock(z.string()),
+    state: generateMock(bffApi.PurposeTemplateState),
+  });
