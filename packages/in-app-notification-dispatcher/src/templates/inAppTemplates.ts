@@ -4,8 +4,13 @@ import { DelegationSubmittedRevokedToDelegateEventType } from "../handlers/deleg
 import { EserviceNewVersionApprovedRejectedToDelegateEventType } from "../handlers/eservices/handleEserviceNewVersionApprovedRejectedToDelegate.js";
 
 export const inAppTemplates = {
-  eserviceNameUpdatedToConsumer: (eserviceName: string): string =>
-    `Il nome dell'e-service <strong>${eserviceName}</strong> è stato aggiornato.`,
+  eserviceNameUpdatedToConsumer: (
+    eserviceName: string,
+    oldName: string | undefined
+  ): string =>
+    `Ti informiamo che l'e-service ${
+      oldName ?? ""
+    } è stato rinominato in ${eserviceName} dall'ente erogatore. La tua richiesta di fruizione rimane attiva e non sono richieste azioni da parte tua.`,
   eserviceDescriptionUpdatedToConsumer: (eserviceName: string): string =>
     `La descrizione dell'e-service <strong>${eserviceName}</strong> è stata aggiornata.`,
   eserviceDescriptorAttributesUpdatedToConsumer: (
