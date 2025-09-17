@@ -12,8 +12,9 @@ import { generateMock } from "@anatine/zod-mock";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
+  delegationEServiceMismatch,
   missingMetadata,
-  notAnActiveConsumerDelegation,
+  requesterIsNotTheDelegateConsumer,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 import { config } from "../../../src/config/config.js";
@@ -75,16 +76,11 @@ describe("POST /purposes router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should return 403 in case of notAnActiveConsumerDelegation error", async () => {
-    mockPurposeService.createPurpose = vi
-      .fn()
-      .mockRejectedValue(
-        notAnActiveConsumerDelegation(
-          generateId(),
-          generateId(),
-          getMockedApiDelegation()
-        )
-      );
+  it.each([
+    delegationEServiceMismatch(generateId(), getMockedApiDelegation()),
+    requesterIsNotTheDelegateConsumer(getMockedApiDelegation()),
+  ])("Should return 403 in case of $code error", async (error) => {
+    mockPurposeService.createPurpose = vi.fn().mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockPurposeSeed);
 
