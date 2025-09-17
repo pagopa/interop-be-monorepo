@@ -1,9 +1,11 @@
 import {
+  DescriptorId,
   EService,
   EServiceEventV2,
   fromEServiceV2,
   missingKafkaMessageDataError,
   NewNotification,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
@@ -55,9 +57,6 @@ export async function handleEserviceStateChangedToConsumer(
 
   const eservice = fromEServiceV2(eserviceV2Msg.data.eservice);
 
-  // FIXME: what if is not the latest descriptor? Is it ok to navigate the user always to the latest in the moment the event is generated?
-  const descriptor = retrieveLatestPublishedDescriptor(eservice);
-
   const agreements = await readModelService.getAgreementsByEserviceId(
     eservice.id
   );
@@ -77,14 +76,19 @@ export async function handleEserviceStateChangedToConsumer(
       "eserviceStateChangedToConsumer"
     );
 
-  const body = getBody(eserviceV2Msg, eservice);
+  const { body, descriptorId } = getBodyAndDescriptorId(
+    eserviceV2Msg,
+    eservice
+  );
 
   return userNotificationConfigs.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
     notificationType: "eserviceStateChangedToConsumer",
-    entityId: descriptor.id,
+    entityId: descriptorId
+      ? unsafeBrandId<DescriptorId>(descriptorId)
+      : retrieveLatestPublishedDescriptor(eservice).id,
   }));
 }
 
@@ -105,7 +109,13 @@ function getDocumentName(
   return descriptor?.docs?.find((d) => d.id === documentId)?.prettyName;
 }
 
-function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
+function getBodyAndDescriptorId(
+  msg: EServiceStateChangedEvent,
+  eservice: EService
+): {
+  body: string;
+  descriptorId?: string | undefined;
+} {
   return match(msg)
     .with(
       {
@@ -114,7 +124,9 @@ function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
           "EServiceNameUpdatedByTemplateUpdate"
         ),
       },
-      () => inAppTemplates.eserviceNameUpdatedToConsumer(eservice.name)
+      () => ({
+        body: inAppTemplates.eserviceNameUpdatedToConsumer(eservice.name),
+      })
     )
     .with(
       {
@@ -123,7 +135,11 @@ function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
           "EServiceDescriptionUpdatedByTemplateUpdate"
         ),
       },
-      () => inAppTemplates.eserviceDescriptionUpdatedToConsumer(eservice.name)
+      () => ({
+        body: inAppTemplates.eserviceDescriptionUpdatedToConsumer(
+          eservice.name
+        ),
+      })
     )
     .with(
       {
@@ -132,19 +148,39 @@ function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
           "EServiceDescriptorAttributesUpdatedByTemplateUpdate"
         ),
       },
-      () =>
-        inAppTemplates.eserviceDescriptorAttributesUpdatedToConsumer(
+      ({ data: { descriptorId } }) => ({
+        body: inAppTemplates.eserviceDescriptorAttributesUpdatedToConsumer(
           eservice.name
-        )
+        ),
+        descriptorId,
+      })
     )
-    .with({ type: "EServiceDescriptorPublished" }, () =>
-      inAppTemplates.eserviceDescriptorPublishedToConsumer(eservice.name)
+    .with(
+      { type: "EServiceDescriptorPublished" },
+      ({ data: { descriptorId } }) => ({
+        body: inAppTemplates.eserviceDescriptorPublishedToConsumer(
+          eservice.name
+        ),
+        descriptorId,
+      })
     )
-    .with({ type: "EServiceDescriptorSuspended" }, () =>
-      inAppTemplates.eserviceDescriptorSuspendedToConsumer(eservice.name)
+    .with(
+      { type: "EServiceDescriptorSuspended" },
+      ({ data: { descriptorId } }) => ({
+        body: inAppTemplates.eserviceDescriptorSuspendedToConsumer(
+          eservice.name
+        ),
+        descriptorId,
+      })
     )
-    .with({ type: "EServiceDescriptorActivated" }, () =>
-      inAppTemplates.eserviceDescriptorActivatedToConsumer(eservice.name)
+    .with(
+      { type: "EServiceDescriptorActivated" },
+      ({ data: { descriptorId } }) => ({
+        body: inAppTemplates.eserviceDescriptorActivatedToConsumer(
+          eservice.name
+        ),
+        descriptorId,
+      })
     )
     .with(
       {
@@ -153,22 +189,33 @@ function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
           "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
         ),
       },
-      () =>
-        inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(eservice.name)
+      ({ data: { descriptorId } }) => ({
+        body: inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(
+          eservice.name
+        ),
+        descriptorId,
+      })
     )
-    .with({ type: "EServiceDescriptorAgreementApprovalPolicyUpdated" }, () =>
-      inAppTemplates.eserviceDescriptorAgreementApprovalPolicyUpdatedToConsumer(
-        eservice.name
-      )
+    .with(
+      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
+      ({ data: { descriptorId } }) => ({
+        body: inAppTemplates.eserviceDescriptorAgreementApprovalPolicyUpdatedToConsumer(
+          eservice.name
+        ),
+        descriptorId,
+      })
     )
     .with(
       { type: "EServiceDescriptorInterfaceAdded" },
       ({ data: { descriptorId } }) => {
         const interfaceName = getInterfaceName(eservice, descriptorId);
-        return inAppTemplates.eserviceDescriptorInterfaceAddedToConsumer(
-          eservice.name,
-          interfaceName
-        );
+        return {
+          body: inAppTemplates.eserviceDescriptorInterfaceAddedToConsumer(
+            eservice.name,
+            interfaceName
+          ),
+          descriptorId,
+        };
       }
     )
     .with(
@@ -184,10 +231,13 @@ function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
           descriptorId,
           documentId
         );
-        return inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
-          eservice.name,
-          documentName
-        );
+        return {
+          body: inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
+            eservice.name,
+            documentName
+          ),
+          descriptorId,
+        };
       }
     )
     .with(
@@ -203,20 +253,26 @@ function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
           descriptorId,
           documentId
         );
-        return inAppTemplates.eserviceDescriptorDocumentDeletedToConsumer(
-          eservice.name,
-          documentName
-        );
+        return {
+          body: inAppTemplates.eserviceDescriptorDocumentDeletedToConsumer(
+            eservice.name,
+            documentName
+          ),
+          descriptorId,
+        };
       }
     )
     .with(
       { type: "EServiceDescriptorInterfaceUpdated" },
       ({ data: { descriptorId } }) => {
         const interfaceName = getInterfaceName(eservice, descriptorId);
-        return inAppTemplates.eserviceDescriptorInterfaceUpdatedToConsumer(
-          eservice.name,
-          interfaceName
-        );
+        return {
+          body: inAppTemplates.eserviceDescriptorInterfaceUpdatedToConsumer(
+            eservice.name,
+            interfaceName
+          ),
+          descriptorId,
+        };
       }
     )
     .with(
@@ -232,10 +288,13 @@ function getBody(msg: EServiceStateChangedEvent, eservice: EService): string {
           descriptorId,
           documentId
         );
-        return inAppTemplates.eserviceDescriptorDocumentUpdatedToConsumer(
-          eservice.name,
-          documentName
-        );
+        return {
+          body: inAppTemplates.eserviceDescriptorDocumentUpdatedToConsumer(
+            eservice.name,
+            documentName
+          ),
+          descriptorId,
+        };
       }
     )
     .exhaustive();
