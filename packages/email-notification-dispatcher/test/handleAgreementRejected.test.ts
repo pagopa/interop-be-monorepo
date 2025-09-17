@@ -17,6 +17,7 @@ import {
   missingKafkaMessageDataError,
   Tenant,
   TenantId,
+  TenantMail,
   TenantNotificationConfigId,
   toAgreementV2,
   UserId,
@@ -238,7 +239,7 @@ describe("handleAgreementRejected", async () => {
   });
 
   it("should generate a message using the latest consumer mail that was registered", async () => {
-    const oldMail: Tenant["mails"][number] = {
+    const oldMail: TenantMail = {
       ...getMockTenantMail(),
       createdAt: new Date(1999),
     };
