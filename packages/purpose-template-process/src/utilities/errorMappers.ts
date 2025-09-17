@@ -52,6 +52,7 @@ export const disassociationEServicesForPurposeTemplateErrorMapper = (
     .with(
       "disassociationEServicesFromPurposeTemplateFailed",
       "tooManyEServicesForPurposeTemplate",
+      "purposeTemplateNotInValidState",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
