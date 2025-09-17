@@ -574,5 +574,25 @@ export function purposeServiceBuilder(
 
       return toM2MGatewayApiPurpose(polledResource.data);
     },
+    async updateDraftReversePurpose(
+      purposeId: PurposeId,
+      updateSeed: m2mGatewayApi.ReversePurposeDraftUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Purpose> {
+      logger.info(`Updating draft reverse purpose with id ${purposeId}`);
+
+      const updatedPurpose =
+        await clients.purposeProcessClient.patchUpdateReversePurpose(
+          updateSeed,
+          {
+            params: { id: purposeId },
+            headers,
+          }
+        );
+
+      const polledResource = await pollPurpose(updatedPurpose, headers);
+
+      return toM2MGatewayApiPurpose(polledResource.data);
+    },
   };
 }

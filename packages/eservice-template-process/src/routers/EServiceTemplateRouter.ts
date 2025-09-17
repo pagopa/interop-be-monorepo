@@ -7,6 +7,7 @@ import {
   fromAppContext,
   authRole,
   validateAuthorization,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -75,6 +76,7 @@ const eserviceTemplatesRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
         ]);
 
         const {
@@ -123,10 +125,12 @@ const eserviceTemplatesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const eserviceTemplate =
+        const { data: eserviceTemplate, metadata } =
           await eserviceTemplateService.createEServiceTemplate(req.body, ctx);
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .send(
             eserviceTemplateApi.EServiceTemplate.parse(
@@ -156,11 +160,12 @@ const eserviceTemplatesRouter = (
           M2M_ADMIN_ROLE,
         ]);
 
-        const eserviceTemplate =
+        const { data: eserviceTemplate, metadata } =
           await eserviceTemplateService.getEServiceTemplateById(
             unsafeBrandId(req.params.templateId),
             ctx
           );
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
@@ -183,12 +188,42 @@ const eserviceTemplatesRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-        const updatedEServiceTemplate =
+        const { data: updatedEServiceTemplate } =
           await eserviceTemplateService.updateEServiceTemplate(
             unsafeBrandId(req.params.templateId),
             req.body,
             ctx
           );
+        return res
+          .status(200)
+          .send(
+            eserviceTemplateApi.EServiceTemplate.parse(
+              eserviceTemplateToApiEServiceTemplate(updatedEServiceTemplate)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateEServiceTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/templates/:templateId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const { data: updatedEServiceTemplate, metadata } =
+          await eserviceTemplateService.patchUpdateEServiceTemplate(
+            unsafeBrandId(req.params.templateId),
+            req.body,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
@@ -514,14 +549,24 @@ const eserviceTemplatesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        await eserviceTemplateService.createRiskAnalysis(
+        const {
+          data: { eserviceTemplate, createdRiskAnalysisId },
+          metadata,
+        } = await eserviceTemplateService.createRiskAnalysis(
           unsafeBrandId(req.params.templateId),
           req.body,
           ctx
         );
-        return res.status(204).send();
+        setMetadataVersionHeader(res, metadata);
+        return res.status(200).send(
+          eserviceTemplateApi.CreatedEServiceTemplateRiskAnalysis.parse({
+            eserviceTemplate:
+              eserviceTemplateToApiEServiceTemplate(eserviceTemplate),
+            createdRiskAnalysisId,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
