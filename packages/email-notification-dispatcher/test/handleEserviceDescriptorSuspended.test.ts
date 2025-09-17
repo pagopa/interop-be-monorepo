@@ -8,8 +8,10 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   agreementState,
   CorrelationId,
+  EService,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
@@ -39,7 +41,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
   const eserviceId = generateId<EServiceId>();
 
   const descriptor = getMockDescriptorPublished();
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
@@ -91,7 +93,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
   it("should throw tenantNotFound when producer is not found", async () => {
     const unknownProducerId = generateId<TenantId>();
 
-    const eserviceWithUnknownProducer = {
+    const eserviceWithUnknownProducer: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
       producerId: unknownProducerId,
@@ -110,10 +112,13 @@ describe("handleEserviceDescriptorSuspended", async () => {
   });
 
   it("should throw descriptorPublishedNotFound when descriptor is not found", async () => {
-    const eserviceNoDescriptor = { ...getMockEService(), descriptors: [] };
+    const eserviceNoDescriptor: EService = {
+      ...getMockEService(),
+      descriptors: [],
+    };
     await addOneEService(eserviceNoDescriptor);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: agreementState.active,
       stamps: {},
@@ -148,7 +153,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
   });
 
   it("should generate one message per user of the consumers of the eservice", async () => {
-    const agreements = consumerTenants.map((consumerTenant) => ({
+    const agreements: Agreement[] = consumerTenants.map((consumerTenant) => ({
       ...getMockAgreement(),
       stamps: {},
       producerId: producerTenant.id,
@@ -192,7 +197,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
         { userId: users[2].id, tenantId: users[2].tenantId },
       ]);
 
-    const agreements = consumerTenants.map((consumerTenant) => ({
+    const agreements: Agreement[] = consumerTenants.map((consumerTenant) => ({
       ...getMockAgreement(),
       state: agreementState.active,
       stamps: {},
@@ -229,7 +234,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
   });
 
   it("should generate a complete and correct message", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: agreementState.active,
       stamps: {},

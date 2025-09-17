@@ -18,8 +18,7 @@ import { getRecipientsForTenants } from "../handlerCommons.js";
 import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { eServiceNotFound } from "../../models/errors.js";
 
-const notificationType: NotificationType =
-  "purposeSuspendedUnsuspendedToConsumer";
+const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
 export type ProductKeychainEServiceAddedData = {
   eserviceId: EServiceId;

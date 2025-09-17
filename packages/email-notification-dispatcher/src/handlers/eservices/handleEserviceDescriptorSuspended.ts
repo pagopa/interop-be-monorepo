@@ -16,8 +16,7 @@ import {
   getRecipientsForTenants,
 } from "../handlerCommons.js";
 
-const notificationType: NotificationType =
-  "purposeSuspendedUnsuspendedToConsumer";
+const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
 export async function handleEserviceDescriptorSuspended(
   data: EServiceHandlerParams
