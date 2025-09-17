@@ -1,21 +1,73 @@
-import { EServiceEventEnvelopeV2 } from "pagopa-interop-models";
+import {
+  EServiceEventEnvelopeV2,
+  m2mEventVisibility,
+} from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
+import {
+  toNewEServiceDescriptorM2MEventSQL,
+  toNewEServiceM2MEventSQL,
+} from "../models/eserviceM2MEventAdapterSQL.js";
+import { assertEServiceExistsInEvent } from "./validators.js";
 
 export async function handleEServiceEvent(
   decodedMessage: EServiceEventEnvelopeV2,
-  _eventTimestamp: Date,
-  _logger: Logger,
-  _m2mEventWriterService: M2MEventWriterServiceSQL,
-  _readModelService: ReadModelServiceSQL
+  eventTimestamp: Date,
+  logger: Logger,
+  m2mEventWriterService: M2MEventWriterServiceSQL,
+  readModelService: ReadModelServiceSQL
 ): Promise<void> {
   return match(decodedMessage)
     .with(
       {
+        type: P.union("DraftEServiceUpdated"),
+      },
+      async (event) => {
+        assertEServiceExistsInEvent(event);
+        const m2mEvent = toNewEServiceM2MEventSQL(
+          event.data.eservice,
+          event.type,
+          eventTimestamp,
+          {
+            visibility: m2mEventVisibility.restricted,
+            producerDelegation:
+              await readModelService.getActiveProducerDelegationForEService(
+                event.data.eservice
+              ),
+          }
+        );
+        logger.info(
+          `Writing EService Descriptor M2M Event with ID ${m2mEvent.id}, type ${m2mEvent.eventType}, eserviceId ${m2mEvent.eserviceId}`
+        );
+
+        await m2mEventWriterService.insertEServiceM2MEvent(m2mEvent);
+      }
+    )
+    .with(
+      {
+        type: P.union("EServiceDescriptorPublished"),
+      },
+      async (event) => {
+        assertEServiceExistsInEvent(event);
+        const m2mEvent = toNewEServiceDescriptorM2MEventSQL(
+          event.data.eservice,
+          event.data.descriptorId,
+          event.type,
+          eventTimestamp,
+          { visibility: m2mEventVisibility.public }
+        );
+        logger.info(
+          `Writing EService Descriptor M2M Event with ID ${m2mEvent.id}, type ${m2mEvent.eventType}, eserviceId ${m2mEvent.eserviceId}`
+        );
+
+        await m2mEventWriterService.insertEServiceM2MEvent(m2mEvent);
+      }
+    )
+    .with(
+      {
         type: P.union(
-          "EServiceDescriptorPublished",
           "EServiceDescriptorActivated",
           "EServiceDescriptorApprovedByDelegator",
           "EServiceDescriptorSuspended",
@@ -25,7 +77,6 @@ export async function handleEServiceEvent(
           "EServiceAdded",
           "EServiceCloned",
           "EServiceDeleted",
-          "DraftEServiceUpdated",
           "EServiceDescriptorAdded",
           "EServiceDraftDescriptorDeleted",
           "EServiceDraftDescriptorUpdated",

@@ -12,6 +12,7 @@ import {
   eserviceTemplateM2MEventInM2MEvent,
   producerKeychainM2MEventInM2MEvent,
   AttributeM2MEventSQL,
+  EServiceM2MEventSQL,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 
@@ -20,8 +21,8 @@ export function m2mEventWriterServiceSQLBuilder(
   m2mEventDB: ReturnType<typeof drizzle>
 ) {
   return {
-    async insertEServiceM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(eserviceM2MEventInM2MEvent).values([]);
+    async insertEServiceM2MEvent(event: EServiceM2MEventSQL): Promise<void> {
+      await m2mEventDB.insert(eserviceM2MEventInM2MEvent).values(event);
     },
     async insertAgreementM2MEvent(): Promise<void> {
       await m2mEventDB.insert(agreementM2MEventInM2MEvent).values([]);

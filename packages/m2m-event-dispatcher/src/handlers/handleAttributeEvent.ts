@@ -16,9 +16,13 @@ export async function handleAttributeEvent(
         type: P.union("AttributeAdded", "MaintenanceAttributeDeleted"),
       },
       async (event) => {
-        const m2mEvent = toNewAttributeM2MEventSQL(event, eventTimestamp);
+        const m2mEvent = toNewAttributeM2MEventSQL(
+          event.stream_id,
+          event.type,
+          eventTimestamp
+        );
         logger.info(
-          `Writing AttributeM2MEvent with ID ${m2mEvent.id}, type ${m2mEvent.eventType}, attributeId ${m2mEvent.attributeId}`
+          `Writing Attribute M2M Event with ID ${m2mEvent.id}, type ${m2mEvent.eventType}, attributeId ${m2mEvent.attributeId}`
         );
 
         await m2mEventWriterService.insertAttributeM2MEvent(m2mEvent);
