@@ -9,11 +9,14 @@ import {
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   CorrelationId,
+  EService,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
   NotificationType,
+  Tenant,
   TenantId,
   TenantNotificationConfigId,
   toAgreementV2,
@@ -40,17 +43,17 @@ describe("handleAgreementActivated", async () => {
   const eserviceId = generateId<EServiceId>();
 
   const descriptor = getMockDescriptorPublished();
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
     descriptors: [descriptor],
   };
-  const producerTenant = {
+  const producerTenant: Tenant = {
     ...getMockTenant(producerId),
     mails: [getMockTenantMail()],
   };
-  const consumerTenant = {
+  const consumerTenant: Tenant = {
     ...getMockTenant(consumerId),
     mails: [getMockTenantMail()],
   };
@@ -107,7 +110,7 @@ describe("handleAgreementActivated", async () => {
   it("should throw tenantNotFound when producer is not found", async () => {
     const unknownProducerId = generateId<TenantId>();
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: unknownProducerId,
@@ -131,7 +134,7 @@ describe("handleAgreementActivated", async () => {
 
   it("should throw eServiceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {},
       producerId: producerTenant.id,
@@ -154,7 +157,7 @@ describe("handleAgreementActivated", async () => {
   });
 
   it("should generate one message per user of the tenant that consumed the eservice", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
@@ -189,7 +192,7 @@ describe("handleAgreementActivated", async () => {
         { userId: users[2].id, tenantId: users[2].tenantId },
       ]);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
@@ -218,7 +221,7 @@ describe("handleAgreementActivated", async () => {
   });
 
   it("should generate one message to the consumer of the agreement that was activated", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
@@ -246,15 +249,18 @@ describe("handleAgreementActivated", async () => {
   });
 
   it("should generate a message using the latest consumer mail that was registered", async () => {
-    const oldMail = { ...getMockTenantMail(), createdAt: new Date(1999) };
+    const oldMail: Tenant["mails"][number] = {
+      ...getMockTenantMail(),
+      createdAt: new Date(1999),
+    };
     const newMail = getMockTenantMail();
-    const consumerTenantWithMultipleMails = {
+    const consumerTenantWithMultipleMails: Tenant = {
       ...getMockTenant(),
       mails: [oldMail, newMail],
     };
     await addOneTenant(consumerTenantWithMultipleMails);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
@@ -289,7 +295,7 @@ describe("handleAgreementActivated", async () => {
         createAt: new Date(),
       });
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
@@ -318,7 +324,7 @@ describe("handleAgreementActivated", async () => {
 
   it("should generate a complete and correct message", async () => {
     const activationDate = new Date();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {
         activation: { when: activationDate, who: generateId<UserId>() },
