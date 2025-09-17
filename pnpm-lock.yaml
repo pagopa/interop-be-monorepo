@@ -3574,6 +3574,9 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
+      uuid:
+        specifier: 13.0.0
+        version: 13.0.0
       vitest:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
