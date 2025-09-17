@@ -1,16 +1,19 @@
 import { match } from "ts-pattern";
+import { EService } from "pagopa-interop-models";
 import { DelegationApprovedRejectedToDelegatorEventType } from "../handlers/delegations/handleDelegationApprovedRejectedToDelegator.js";
 import { DelegationSubmittedRevokedToDelegateEventType } from "../handlers/delegations/handleDelegationSubmittedRevokedToDelegate.js";
 import { EserviceNewVersionApprovedRejectedToDelegateEventType } from "../handlers/eservices/handleEserviceNewVersionApprovedRejectedToDelegate.js";
 
 export const inAppTemplates = {
   eserviceNameUpdatedToConsumer: (
-    eserviceName: string,
+    eservice: EService,
     oldName: string | undefined
   ): string =>
     `Ti informiamo che l'e-service ${
-      oldName ?? ""
-    } è stato rinominato in ${eserviceName} dall'ente erogatore. La tua richiesta di fruizione rimane attiva e non sono richieste azioni da parte tua.`,
+      oldName ?? eservice.id
+    } è stato rinominato in ${
+      eservice.name
+    } dall'ente erogatore. La tua richiesta di fruizione rimane attiva e non sono richieste azioni da parte tua.`,
   eserviceDescriptionUpdatedToConsumer: (eserviceName: string): string =>
     `La descrizione dell'e-service <strong>${eserviceName}</strong> è stata aggiornata.`,
   eserviceDescriptorAttributesUpdatedToConsumer: (

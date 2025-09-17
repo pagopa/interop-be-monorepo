@@ -125,7 +125,7 @@ function getBodyAndDescriptorId(
         ),
       },
       ({ data: { oldName } }) => ({
-        body: inAppTemplates.eserviceNameUpdatedToConsumer(eservice.name, oldName),
+        body: inAppTemplates.eserviceNameUpdatedToConsumer(eservice, oldName),
       })
     )
     .with(
