@@ -131,11 +131,12 @@ function validateRiskAnalysisTemplateOrThrow({
     tenantKind
   );
 
-  if (result.type === "invalid") {
-    throw riskAnalysisTemplateValidationFailed(result.issues);
-  } else {
-    return result.value;
-  }
+  return match(result)
+    .with({ type: "invalid" }, ({ issues }) => {
+      throw riskAnalysisTemplateValidationFailed(issues);
+    })
+    .with({ type: "valid" }, ({ value }) => value)
+    .exhaustive();
 }
 
 /**

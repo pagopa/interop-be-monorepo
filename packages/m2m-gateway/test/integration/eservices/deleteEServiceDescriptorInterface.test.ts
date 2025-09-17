@@ -121,7 +121,7 @@ describe("deleteEServiceDescriptorInterface", () => {
     );
   });
 
-  it("Should throw missingMetadata in case the agreement returned by the delete interface DELETE call has no metadata", async () => {
+  it("Should throw missingMetadata in case the eservice returned by the document DELETE call has no metadata", async () => {
     mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
     mockDeleteEServiceDocumentById.mockResolvedValueOnce({
       ...mockGetEServiceResponse,
@@ -137,7 +137,7 @@ describe("deleteEServiceDescriptorInterface", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw missingMetadata in case the agreement returned by the polling GET call has no metadata", async () => {
+  it("Should throw missingMetadata in case the eservice returned by the polling GET call has no metadata", async () => {
     mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
     mockGetEService.mockResolvedValueOnce({
       ...mockGetEServiceResponse,

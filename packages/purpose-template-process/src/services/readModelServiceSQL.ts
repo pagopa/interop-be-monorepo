@@ -18,7 +18,6 @@ import {
   toPurposeTemplateAggregatorArray,
   aggregatePurposeTemplateEServiceDescriptor,
 } from "pagopa-interop-readmodel";
-
 import {
   DrizzleReturnType,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
@@ -28,19 +27,10 @@ import {
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
+import { and, eq, exists, ilike, inArray, isNotNull, SQL } from "drizzle-orm";
 import {
-  and,
-  eq,
-  exists,
-  getTableColumns,
-  ilike,
-  inArray,
-  isNotNull,
-  SQL,
-} from "drizzle-orm";
-import {
+  ascLower,
   createListResult,
-  createOrderByClauses,
   escapeRegExp,
   withTotalCount,
 } from "pagopa-interop-commons";
@@ -70,7 +60,6 @@ const getPurposeTemplatesFilters = (
       ? inArray(purposeTemplateInReadmodelPurposeTemplate.creatorId, creatorIds)
       : undefined;
 
-  // TODO: better solution?
   const eserviceIdsFilter =
     eserviceIds.length > 0
       ? and(
@@ -117,9 +106,6 @@ export function readModelServiceBuilderSQL({
   purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
 }) {
   return {
-    async checkPurposeTemplateName(): Promise<boolean> {
-      return false;
-    },
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
@@ -127,38 +113,16 @@ export function readModelServiceBuilderSQL({
       title: string
     ): Promise<WithMetadata<PurposeTemplate> | undefined> {
       return await purposeTemplateReadModelServiceSQL.getPurposeTemplateByFilter(
-        and(
-          ilike(
-            purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
-            escapeRegExp(title)
-          )
+        ilike(
+          purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
+          escapeRegExp(title)
         )
       );
     },
     async getPurposeTemplates(
       filters: GetPurposeTemplatesFilters,
-      {
-        offset,
-        limit,
-        sortColumns,
-        directions: directions,
-      }: {
-        offset: number;
-        limit: number;
-        sortColumns: string | undefined;
-        directions: string | undefined;
-      }
+      { limit, offset }: { limit: number; offset: number }
     ): Promise<ListResult<PurposeTemplate>> {
-      const tableColumns = getTableColumns(
-        purposeTemplateInReadmodelPurposeTemplate
-      );
-      const orderClause = createOrderByClauses({
-        table: purposeTemplateInReadmodelPurposeTemplate,
-        sortColumns,
-        directions,
-        defaultSortColumn: tableColumns.purposeTitle, // here i want the purposeTitle key as a string
-      });
-
       const subquery = readModelDB
         .select(
           withTotalCount({
@@ -175,7 +139,9 @@ export function readModelServiceBuilderSQL({
         )
         .where(getPurposeTemplatesFilters(readModelDB, filters))
         .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
-        .orderBy(...orderClause)
+        .orderBy(
+          ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
+        )
         .limit(limit)
         .offset(offset)
         .as("subquery");
@@ -210,32 +176,28 @@ export function readModelServiceBuilderSQL({
         )
         .leftJoin(
           purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
-            )
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
           )
         )
         .leftJoin(
           purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
-            )
+          eq(
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
           )
         )
         .leftJoin(
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-          and(
-            eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
-            )
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
           )
         )
-        .orderBy(...orderClause);
+        .orderBy(
+          ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
+        );
 
       const purposeTemplates = aggregatePurposeTemplateArray(
         toPurposeTemplateAggregatorArray(queryResult)

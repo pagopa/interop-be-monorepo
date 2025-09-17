@@ -1,0 +1,26 @@
+meta {
+  name: Reject eservice descriptor
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/reject
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+      "rejectionReason": "test rejction-reason",
+  }
+}
