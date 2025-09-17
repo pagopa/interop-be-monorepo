@@ -174,9 +174,8 @@ jobs:
         run: |
           PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
           echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
-            echo "Running tests for package: $PACKAGE"
-            export PACKAGE_FILTER=$PACKAGE
-            pnpm run test:filter
+            echo "Running lint for package: $PACKAGE"
+            pnpm --filter "$PACKAGE" test
           done
 
   find_dockerfiles:
