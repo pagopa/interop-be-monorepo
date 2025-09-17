@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAuthData,
@@ -28,13 +29,14 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
+import { config } from "../../src/config/config.js";
 import {
   missingFreeOfChargeReason,
   purposeTemplateNotFound,
   purposeTemplateNotInDraftState,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
+import * as validators from "../../src/services/validators.js";
 import {
   addOnePurposeTemplate,
   addOneTenant,
@@ -47,7 +49,6 @@ import {
   buildRiskAnalysisFormTemplateSeed,
   getMockPurposeTemplateSeed,
 } from "../mockUtils.js";
-import { config } from "../../src/config/config.js";
 
 describe("updatePurposeTemplate", () => {
   const mockDate = new Date();
@@ -86,25 +87,63 @@ describe("updatePurposeTemplate", () => {
     },
   ])(
     "should successfully update a purpose template in draft state with valid data and targetTenantKind %s",
-    async ({ kind, riskAnalysisVersion }) => {
+    async ({ kind: tenantKind, riskAnalysisVersion }) => {
+      const spy = vi.spyOn(
+        validators,
+        "validateAndTransformRiskAnalysisTemplate"
+      );
+
       const mockValidRiskAnalysisTemplateForm =
-        getMockValidRiskAnalysisFormTemplate(kind);
+        getMockValidRiskAnalysisFormTemplate(tenantKind);
 
       const riskAnalysisFormTemplateSeed = {
         ...buildRiskAnalysisFormTemplateSeed(mockValidRiskAnalysisTemplateForm),
         version: riskAnalysisVersion,
       };
 
+      const updatedAnswers = Object.fromEntries([
+        ...Object.entries(riskAnalysisFormTemplateSeed.answers)
+          .map(([key, answer]) =>
+            key === "purpose"
+              ? [
+                  "purpose",
+                  {
+                    editable: false,
+                    annotation: undefined,
+                    // change "purpose" value to OTHER to enable "otherPurpose"
+                    values: ["OTHER"],
+                    suggestedValues: [],
+                  },
+                ]
+              : [key, answer]
+          )
+          // "institutionalPurpose" not allow if "purpose" = OTHER
+          .filter(([key]) => key !== "institutionalPurpose"),
+        [
+          // add new value to answer "otherPurpose"
+          "otherPurpose",
+          {
+            editable: false,
+            annotation: undefined,
+            values: ["Updated Answer value"],
+            suggestedValues: [],
+          },
+        ],
+      ]);
+
       const validPurposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed = {
         ...getMockPurposeTemplateSeed(),
-        targetTenantKind: kind,
-        purposeTitle: "Updated Purpose Template title",
-        purposeRiskAnalysisForm: riskAnalysisFormTemplateSeed,
+        targetTenantKind: tenantKind,
+        purposeTitle: "Updated Purpose Template title", // updated field
+        purposeRiskAnalysisForm: {
+          ...riskAnalysisFormTemplateSeed,
+          answers: updatedAnswers,
+        },
       };
 
       const existingPurposeTemplate: PurposeTemplate = {
         ...getMockPurposeTemplate(creatorId),
-        targetTenantKind: kind,
+        targetTenantKind: tenantKind,
         purposeRiskAnalysisForm: {
           ...mockValidRiskAnalysisTemplateForm,
           version: riskAnalysisVersion,
@@ -139,12 +178,30 @@ describe("updatePurposeTemplate", () => {
         purposeRiskAnalysisForm: {
           id: expect.anything(),
           version: riskAnalysisVersion,
-          singleAnswers: mockValidRiskAnalysisTemplateForm.singleAnswers.map(
-            (a: RiskAnalysisTemplateSingleAnswer) => ({
-              ...a,
+          singleAnswers: mockValidRiskAnalysisTemplateForm.singleAnswers
+            // change "purpose" value to OTHER to enable "otherPurpose"
+            .map((a: RiskAnalysisTemplateSingleAnswer) =>
+              a.key === "purpose"
+                ? {
+                    ...a,
+                    id: expect.anything(),
+                    value: "OTHER",
+                  }
+                : {
+                    ...a,
+                    id: expect.anything(),
+                  }
+            )
+            // "institutionalPurpose" not allow if "purpose" = OTHER
+            .filter((a) => a.key !== "institutionalPurpose")
+            // add new value to answer "otherPurpose"
+            .concat({
               id: expect.anything(),
-            })
-          ),
+              value: "Updated Answer value",
+              key: "otherPurpose",
+              editable: false,
+              suggestedValues: [],
+            }),
           multiAnswers: mockValidRiskAnalysisTemplateForm.multiAnswers.map(
             (a) => ({
               ...a,
@@ -182,6 +239,15 @@ describe("updatePurposeTemplate", () => {
         data: expectedPurposeTemplate,
         metadata: { version: 1 },
       });
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(
+        {
+          ...riskAnalysisFormTemplateSeed,
+          answers: updatedAnswers,
+        },
+        tenantKind
+      );
     }
   );
 
