@@ -25,6 +25,7 @@ import {
   ownership,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
@@ -128,11 +129,12 @@ export function validateRiskAnalysisOrThrow({
     tenantKind,
     dateForValidation
   );
-  if (result.type === "invalid") {
-    throw riskAnalysisValidationFailed(result.issues);
-  } else {
-    return result.value;
-  }
+  return match(result)
+    .with({ type: "invalid" }, ({ issues }) => {
+      throw riskAnalysisValidationFailed(issues);
+    })
+    .with({ type: "valid" }, ({ value }) => value)
+    .exhaustive();
 }
 
 export function validateAndTransformRiskAnalysis(

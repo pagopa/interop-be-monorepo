@@ -652,6 +652,7 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
           updatedEserviceTemplate,
+          eserviceTemplate.data.name,
           correlationId
         )
       );
