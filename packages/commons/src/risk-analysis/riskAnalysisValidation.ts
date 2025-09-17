@@ -31,7 +31,7 @@ export function validateRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate,
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind,
-  dateForValidation: Date
+  dateForExpirationValidation: Date
 ): RiskAnalysisValidationResult<RiskAnalysisValidatedForm> {
   const formRulesForValidation = getFormRulesByVersion(
     tenantKind,
@@ -46,7 +46,7 @@ export function validateRiskAnalysis(
 
   if (
     formRulesForValidation.expiration &&
-    formRulesForValidation.expiration < dateForValidation
+    formRulesForValidation.expiration < dateForExpirationValidation
   ) {
     return invalidResult([
       expiredRulesVersionError(riskAnalysisForm.version, tenantKind),
