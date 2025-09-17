@@ -14,7 +14,8 @@ export const errorCodes = {
   riskAnalysisTemplateValidationFailed: "0004",
   tenantNotAllowed: "0005",
   purposeTemplateNotInExpectedState: "0006",
-  missingRiskAnalysisFormTemplate: "0007",
+  purposeTemplateStateConflict: "0007",
+  missingRiskAnalysisFormTemplate: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -76,6 +77,17 @@ export function purposeTemplateNotInExpectedState(
     detail: `Purpose Template ${purposeTemplateId} not in expected state (current state: ${state})`,
     code: "purposeTemplateNotInExpectedState",
     title: "Purpose Template not in expected state",
+  });
+}
+
+export function purposeTemplateStateConflict(
+  purposeTemplateId: PurposeTemplateId,
+  state: PurposeTemplateState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template ${purposeTemplateId} is already in state ${state}`,
+    code: "purposeTemplateStateConflict",
+    title: "Purpose Template state conflict",
   });
 }
 

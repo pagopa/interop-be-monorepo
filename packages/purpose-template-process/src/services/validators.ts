@@ -17,6 +17,7 @@ import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInExpectedState,
+  purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../model/domain/errors.js";
@@ -101,10 +102,23 @@ export const assertRequesterIsCreator = (
 export const assertPublishableState = (
   purposeTemplate: PurposeTemplate
 ): void => {
-  if (purposeTemplate.state !== purposeTemplateState.draft) {
-    throw purposeTemplateNotInExpectedState(
-      purposeTemplate.id,
-      purposeTemplate.state
-    );
-  }
+  match(purposeTemplate)
+    .with({ state: purposeTemplateState.active }, () => {
+      throw purposeTemplateStateConflict(
+        purposeTemplate.id,
+        purposeTemplate.state
+      );
+    })
+    .with(
+      { state: purposeTemplateState.archived },
+      { state: purposeTemplateState.suspended },
+      () => {
+        throw purposeTemplateNotInExpectedState(
+          purposeTemplate.id,
+          purposeTemplate.state
+        );
+      }
+    )
+    .with({ state: purposeTemplateState.draft }, () => undefined)
+    .exhaustive();
 };
