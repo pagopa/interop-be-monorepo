@@ -31,7 +31,6 @@
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "supertest": "7.0.0",
-    "testcontainers": "10.9.0",
     "jsonwebtoken": "9.0.2",
     "tsx": "4.19.1",
     "typescript": "5.4.5",

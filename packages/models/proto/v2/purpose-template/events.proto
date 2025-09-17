@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package purpose.template.v2;
+
+import "v2/purpose-template/purpose-template.proto";
+import "v2/eservice/eservice.proto";
+
+message PurposeTemplateAddedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+}
+
+message PurposeTemplateEServiceLinkedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+  eservice.v2.EServiceV2 eservice = 2;
+  string descriptorId = 3;
+  int64 createdAt = 4;
+}
+
+message PurposeTemplateEServiceUnlinkedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+  eservice.v2.EServiceV2 eservice = 2;
+  string descriptorId = 3;
+}
+
+message PurposeTemplateDraftUpdatedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+}
+
+message PurposeTemplateDraftDeletedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+}
+
+message PurposeTemplatePublishedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+}
+
+message PurposeTemplateUnsuspendedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+}
+
+message PurposeTemplateSuspendedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+}
+
+message PurposeTemplateArchivedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+}
+
