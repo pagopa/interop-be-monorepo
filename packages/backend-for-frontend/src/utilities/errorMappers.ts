@@ -284,7 +284,7 @@ export const linkEServiceToPurposeTemplateErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const disassociationEServicesForPurposeTemplateErrorMapper = (
+export const unlinkEServicesFromPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

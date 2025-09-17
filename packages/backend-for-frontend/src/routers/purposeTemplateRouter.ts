@@ -11,7 +11,7 @@ import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
-  disassociationEServicesForPurposeTemplateErrorMapper,
+  unlinkEServicesFromPurposeTemplateErrorMapper,
   linkEServiceToPurposeTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 
@@ -83,7 +83,7 @@ const purposeTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          disassociationEServicesForPurposeTemplateErrorMapper,
+          unlinkEServicesFromPurposeTemplateErrorMapper,
           ctx,
           `Error unlinking e-service ${req.body.eserviceId} from purpose template ${req.params.purposeTemplateId}`
         );
