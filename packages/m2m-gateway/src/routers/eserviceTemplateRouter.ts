@@ -177,6 +177,36 @@ const eserviceTemplateRouter = (
         }
       }
     )
+    .patch(
+      "/eserviceTemplates/:templateId/versions/:versionId/quotas",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const version =
+            await eserviceTemplateService.updatePublishedEServiceTemplateVersionQuotas(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.versionId),
+              req.body,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceTemplateVersion.parse(version));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating quotas for eservice template version with id ${req.params.versionId} for eservice template ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post("/eserviceTemplates/:templateId/riskAnalyses", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
