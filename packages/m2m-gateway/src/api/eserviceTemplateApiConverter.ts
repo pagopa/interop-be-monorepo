@@ -59,3 +59,15 @@ export function toGetEServiceTemplatesQueryParams(
     limit: params.limit,
   };
 }
+
+export function toM2MGatewayApiDocument(
+  document: eserviceTemplateApi.EServiceDoc
+): m2mGatewayApi.Document {
+  return {
+    id: document.id,
+    name: document.name,
+    prettyName: document.prettyName,
+    createdAt: document.uploadDate,
+    contentType: document.contentType,
+  };
+}
