@@ -8371,7 +8371,7 @@ paths:
     patch:
       tags:
         - eserviceTemplates
-      summary: Update a draft E-Service Template Version
+      summary: Update a Draft E-Service Template Version
       description: Update an E-Service Template Version in Draft state
       operationId: updateDraftEServiceTemplateVersion
       requestBody:
