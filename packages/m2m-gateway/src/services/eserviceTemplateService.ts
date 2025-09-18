@@ -79,24 +79,6 @@ export function eserviceTemplateServiceBuilder(
     return version;
   };
 
-  const retrieveEServiceTemplateVersionById = (
-    eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
-    versionId: EServiceTemplateVersionId
-  ): eserviceTemplateApi.EServiceTemplateVersion => {
-    const version = eserviceTemplate.data.versions.find(
-      (v) => v.id === versionId
-    );
-
-    if (!version) {
-      throw eserviceTemplateVersionNotFound(
-        unsafeBrandId(eserviceTemplate.data.id),
-        versionId
-      );
-    }
-
-    return version;
-  };
-
   const pollEServiceTemplate = (
     response: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
     headers: M2MGatewayAppContext["headers"]
