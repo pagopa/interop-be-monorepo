@@ -14,6 +14,7 @@ import {
   PurposeTemplate,
   purposeTemplateState,
   TenantId,
+  tenantKind,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -43,24 +44,28 @@ describe("getPurposeTemplates", async () => {
     purposeTitle: "Active Purpose Template 1 - test",
     state: purposeTemplateState.active,
     creatorId: creatorId1,
+    targetTenantKind: tenantKind.PA,
   };
   const draftPurposeTemplateByCreator1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeTitle: "Draft Purpose Template 1",
     state: purposeTemplateState.draft,
     creatorId: creatorId1,
+    targetTenantKind: tenantKind.PRIVATE,
   };
   const suspendedPurposeTemplateByCreator1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeTitle: "Suspended Purpose Template 1",
     state: purposeTemplateState.suspended,
     creatorId: creatorId1,
+    targetTenantKind: tenantKind.GSP,
   };
   const archivedPurposeTemplateByCreator1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeTitle: "Archived Purpose Template 1",
     state: purposeTemplateState.archived,
     creatorId: creatorId1,
+    targetTenantKind: tenantKind.SCP,
   };
 
   const activePurposeTemplateByCreator2: PurposeTemplate = {
@@ -68,24 +73,28 @@ describe("getPurposeTemplates", async () => {
     purposeTitle: "Active Purpose Template 2",
     state: purposeTemplateState.active,
     creatorId: creatorId2,
+    targetTenantKind: tenantKind.PA,
   };
   const draftPurposeTemplateByCreator2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeTitle: "Draft Purpose Template 2",
     state: purposeTemplateState.draft,
     creatorId: creatorId2,
+    targetTenantKind: tenantKind.PRIVATE,
   };
   const suspendedPurposeTemplateByCreator2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeTitle: "Suspended Purpose Template 2 - test",
     state: purposeTemplateState.suspended,
     creatorId: creatorId2,
+    targetTenantKind: tenantKind.GSP,
   };
   const archivedPurposeTemplateByCreator2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeTitle: "Archived Purpose Template 2",
     state: purposeTemplateState.archived,
     creatorId: creatorId2,
+    targetTenantKind: tenantKind.SCP,
   };
 
   const purposeTemplateEServiceDescriptor1: EServiceDescriptorPurposeTemplate =
@@ -136,7 +145,6 @@ describe("getPurposeTemplates", async () => {
     const allPurposeTemplates =
       await purposeTemplateService.getPurposeTemplates(
         {
-          purposeTitle: undefined,
           eserviceIds: [],
           creatorIds: [],
           states: [],
@@ -172,6 +180,24 @@ describe("getPurposeTemplates", async () => {
     expectSinglePageListResult(result, [
       activePurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
+    ]);
+  });
+
+  it("should get purpose templates with filters: targetTenantKind", async () => {
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        targetTenantKind: tenantKind.PA,
+        eserviceIds: [],
+        creatorIds: [],
+        states: [],
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(creatorId1) })
+    );
+
+    expectSinglePageListResult(result, [
+      activePurposeTemplateByCreator1,
+      activePurposeTemplateByCreator2,
     ]);
   });
 

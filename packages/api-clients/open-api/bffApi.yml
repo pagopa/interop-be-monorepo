@@ -10588,6 +10588,11 @@ paths:
             default: []
           explode: false
         - in: query
+          name: targetTenantKind
+          description: filter by target tenant kind
+          schema:
+            $ref: "#/components/schemas/TenantKind"
+        - in: query
           name: offset
           required: true
           schema:

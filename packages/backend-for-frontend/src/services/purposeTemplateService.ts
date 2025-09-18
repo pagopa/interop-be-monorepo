@@ -4,11 +4,12 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
+import { TenantKind } from "pagopa-interop-models";
+import { PurposeTemplateId } from "pagopa-interop-models";
 import {
   PurposeTemplateProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
-import { PurposeTemplateId } from "pagopa-interop-models";
 import { BffAppContext } from "../utilities/context.js";
 import {
   toBffCatalogPurposeTemplate,
@@ -126,13 +127,23 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
-    async getCatalogPurposeTemplates(
-      purposeTitle: string | undefined,
-      eserviceIds: string[],
-      offset: number,
-      limit: number,
-      { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CatalogPurposeTemplates> {
+    async getCatalogPurposeTemplates({
+      purposeTitle,
+      targetTenantKind,
+      eserviceIds,
+      offset,
+      limit,
+      ctx,
+    }: {
+      purposeTitle: string | undefined;
+      targetTenantKind: TenantKind | undefined;
+      eserviceIds: string[];
+      offset: number;
+      limit: number;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<bffApi.CatalogPurposeTemplates> {
+      const { headers, logger } = ctx;
+
       logger.info(
         `Retrieving catalog purpose templates with title ${purposeTitle}, eserviceIds ${eserviceIds.toString()} offset ${offset}, limit ${limit}`
       );
@@ -142,6 +153,7 @@ export function purposeTemplateServiceBuilder(
           headers,
           queries: {
             purposeTitle,
+            targetTenantKind,
             eserviceIds,
             states: [purposeTemplateApi.PurposeTemplateState.Enum.ACTIVE],
             limit,
