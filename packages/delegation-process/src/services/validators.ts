@@ -133,6 +133,7 @@ export const assertIsDelegate = (
   }
 };
 
+// rename to assertRequesterIsDelegator?
 export const assertIsDelegator = (
   delegation: Delegation,
   authData: UIAuthData
@@ -145,6 +146,8 @@ export const assertIsDelegator = (
   }
 };
 
+// 1. rename to assertDelegationIsInExpectedState or assertDelegationHasExpectedState
+// 2. use only DelegationState[] as input, so the implementation is cleaner. A single state can always be passed like [state]
 export const assertIsState = (
   expected: DelegationState | DelegationState[],
   delegation: Delegation
