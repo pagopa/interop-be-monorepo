@@ -444,7 +444,7 @@ paths:
             type: string
             format: uuid
       requestBody:
-        description: An E-Service template version patch seed
+        description: A partial E-Service template version seed
         content:
           application/json:
             schema:
