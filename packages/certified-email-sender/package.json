@@ -9,7 +9,7 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "test": "echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
+    "test": "echo \"SQL readmodel\" && vitest --config vitest.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
