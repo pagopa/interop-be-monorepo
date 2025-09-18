@@ -51,6 +51,7 @@ import {
   DelegationId,
   PurposeVersionStamp,
   UserId,
+  PurposeVersionStamps,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -1914,26 +1915,30 @@ async function activatePurposeLogic({
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
 }> {
-  const stamp: PurposeVersionStamp = {
-    who: authData.userId,
-    when: new Date(),
-  };
+  // We generate the stamp in the transition draft -> active.
+  // Instead, the transition waiting_for_approval -> active is performed by the producer,
+  // so in this case the stamp doesn't have to be generated
+  const stamps: PurposeVersionStamps | undefined =
+    fromState === purposeVersionState.draft
+      ? {
+          creation: { who: authData.userId, when: new Date() },
+        }
+      : purposeVersion.stamps;
+
   const updatedPurposeVersion: PurposeVersion = {
     ...purposeVersion,
     state: purposeVersionState.active,
     riskAnalysis: await generateRiskAnalysisDocument({
       eservice,
       purpose: purpose.data,
-      userId: stamp.who,
+      userId: stamps?.creation.who,
       dailyCalls: purposeVersion.dailyCalls,
       readModelService,
       fileManager,
       pdfGenerator,
       logger,
     }),
-    stamps: {
-      creation: stamp,
-    },
+    stamps,
     updatedAt: new Date(),
     firstActivationAt: new Date(),
   };
