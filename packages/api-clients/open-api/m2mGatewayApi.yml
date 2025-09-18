@@ -8151,9 +8151,9 @@ paths:
     patch:
       tags:
         - eserviceTemplates
-      summary: Update the description of an E-Service Template
-      description: Update the description of an E-Service Template
-      operationId: updateEServiceTemplateDescription
+      summary: Update the description of an E-Service Template  after its publication
+      description: Update the description of an E-Service Template in Published or Suspended state
+      operationId: updatePublishedEServiceTemplateDescription
       requestBody:
         required: true
         content:
@@ -8251,9 +8251,9 @@ paths:
     patch:
       tags:
         - eserviceTemplates
-      summary: Update the intended target of an E-Service Template
-      description: Update the intended target of an E-Service Template
-      operationId: updateEServiceTemplateIntendedTarget
+      summary: Update the intended target of an E-Service Template after its publication
+      description: Update the intended target of an E-Service Template in Published or Suspended state
+      operationId: updatePublishedEServiceTemplateIntendedTarget
       requestBody:
         required: true
         content:
@@ -8351,9 +8351,9 @@ paths:
     patch:
       tags:
         - eserviceTemplates
-      summary: Update the name of an E-Service Template
-      description: Update the name of an E-Service Template
-      operationId: updateEServiceTemplateName
+      summary: Update the name of an E-Service Template after its publication
+      description: Update the name of an E-Service Template in Published or Suspended state
+      operationId: updatePublishedEServiceTemplateName
       requestBody:
         required: true
         content:
@@ -8415,6 +8415,19 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Name Conflict
           content:
             application/problem+json:
               schema:
@@ -8547,7 +8560,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Adds a version to the specified e-service template
-      description: Adds a new version to the specified E-Service template
+      description: Adds a new Draft version to the specified E-Service template
       operationId: createEServiceTemplateVersion
       responses:
         "201":
@@ -8732,9 +8745,9 @@ paths:
     patch:
       tags:
         - eserviceTemplates
-      summary: Update specific Version for the specified E-Service Template
+      summary: Update a draft E-Service Template Version
       description: Update an E-Service Template Version in Draft state
-      operationId: updateEServiceTemplateVersion
+      operationId: updateDraftEServiceTemplateVersion
       requestBody:
         description: Updated version data
         required: true
@@ -8824,9 +8837,9 @@ paths:
     delete:
       tags:
         - eserviceTemplates
-      summary: Delete an E-Service Template Version
+      summary: Delete a draft E-Service Template Version
       description: Delete an E-Service Template Version in Draft state
-      operationId: deleteEServiceTemplateVersion
+      operationId: deleteDraftEServiceTemplateVersion
       responses:
         "204":
           description: E-Service Template Version deleted
@@ -8935,7 +8948,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Suspend an E-Service Template Version
-      description: Suspend an E-Service Template Version transitioning it to Suspended state
+      description: Suspend an E-Service Template Version transitioning it to Suspended state from Published state
       operationId: suspendEServiceTemplateVersion
       responses:
         "200":
