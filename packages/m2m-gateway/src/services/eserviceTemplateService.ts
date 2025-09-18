@@ -268,13 +268,7 @@ export function eserviceTemplateServiceBuilder(
     async updateDraftEServiceTemplateVersion(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      seed: {
-        description?: string;
-        voucherLifespan?: number;
-        dailyCallsPerConsumer?: number;
-        dailyCallsTotal?: number;
-        agreementApprovalPolicy?: "AUTOMATIC" | "MANUAL";
-      },
+      seed: eserviceTemplateApi.PatchUpdateDraftEServiceTemplateVersionSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
       logger.info(
