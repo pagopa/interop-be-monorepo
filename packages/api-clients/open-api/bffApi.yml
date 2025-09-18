@@ -19950,6 +19950,10 @@ paths:
       responses:
         "200":
           description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notifications"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -25073,6 +25077,9 @@ components:
         body:
           type: string
           description: Content of the notification
+        deepLink:
+          type: string
+          description: Deep link to the notification
         readAt:
           type: string
           format: date-time
@@ -25087,7 +25094,7 @@ components:
         - userId
         - tenantId
         - body
-        - readAt
+        - deepLink
         - createdAt
     NotificationConfig:
       type: object
