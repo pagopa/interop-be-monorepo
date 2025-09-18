@@ -41,6 +41,7 @@ import {
   TenantId,
   Tenant,
   EServiceTemplateEvent,
+  agreementApprovalPolicy,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -437,6 +438,99 @@ export function eserviceTemplateServiceBuilder(
       await repository.createEvent(event);
 
       return updatedEServiceTemplate;
+    },
+    async patchUpdateDraftTemplateVersion(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      seed: Partial<{
+        description: string;
+        voucherLifespan: number;
+        dailyCallsPerConsumer: number;
+        dailyCallsTotal: number;
+        agreementApprovalPolicy: "AUTOMATIC" | "MANUAL";
+      }>,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
+      logger.info(
+        `Patch update draft e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      const eserviceTemplateVersion = retrieveEServiceTemplateVersion(
+        eserviceTemplateVersionId,
+        eserviceTemplate.data
+      );
+
+      if (
+        eserviceTemplateVersion.state !== eserviceTemplateVersionState.draft
+      ) {
+        throw notValidEServiceTemplateVersionState(
+          eserviceTemplateVersionId,
+          eserviceTemplateVersion.state
+        );
+      }
+
+      // Only check consistency if both dailyCallsPerConsumer and dailyCallsTotal are provided
+      if (
+        seed.dailyCallsPerConsumer !== undefined &&
+        seed.dailyCallsTotal !== undefined
+      ) {
+        assertConsistentDailyCalls(seed);
+      }
+
+      const updatedVersion: EServiceTemplateVersion = {
+        ...eserviceTemplateVersion,
+        ...(seed.agreementApprovalPolicy !== undefined && {
+          agreementApprovalPolicy:
+            seed.agreementApprovalPolicy === "AUTOMATIC"
+              ? agreementApprovalPolicy.automatic
+              : agreementApprovalPolicy.manual,
+        }),
+        ...(seed.dailyCallsPerConsumer !== undefined && {
+          dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        }),
+        ...(seed.dailyCallsTotal !== undefined && {
+          dailyCallsTotal: seed.dailyCallsTotal,
+        }),
+        ...(seed.description !== undefined && {
+          description: seed.description,
+        }),
+        ...(seed.voucherLifespan !== undefined && {
+          voucherLifespan: seed.voucherLifespan,
+        }),
+      };
+
+      const updatedEServiceTemplate = replaceEServiceTemplateVersion(
+        eserviceTemplate.data,
+        updatedVersion
+      );
+
+      const creationEvent = toCreateEventEServiceTemplateDraftVersionUpdated(
+        eserviceTemplateId,
+        eserviceTemplate.metadata.version,
+        eserviceTemplateVersionId,
+        updatedEServiceTemplate,
+        correlationId
+      );
+      const event = await repository.createEvent(creationEvent);
+
+      return {
+        data: updatedEServiceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async suspendEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,

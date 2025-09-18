@@ -182,6 +182,40 @@ const eserviceTemplatesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .patch(
+      "/templates/:templateId/versions/:templateVersionId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const { data: eserviceTemplate, metadata } =
+            await eserviceTemplateService.patchUpdateDraftTemplateVersion(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.templateVersionId),
+              req.body,
+              ctx
+            );
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(
+              eserviceTemplateApi.EServiceTemplate.parse(
+                eserviceTemplateToApiEServiceTemplate(eserviceTemplate)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateDraftTemplateVersionErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post("/templates/:templateId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
