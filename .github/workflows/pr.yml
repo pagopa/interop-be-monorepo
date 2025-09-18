@@ -175,37 +175,7 @@ jobs:
           PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
           echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
             echo "Running tests for package: $PACKAGE"
-
-            HAS_API_TESTS=false
-            HAS_INTEGRATION_TESTS=false
-            HAS_STANDARD_TESTS=false
-            
-            # Check for API and Integration test configurations
-            if [ -f "packages/$PACKAGE/vitest.api.config.ts" ]; then
-              HAS_API_TESTS=true
-            fi
-            if [ -f "packages/$PACKAGE/vitest.integrationsql.config.ts" ]; then
-              HAS_INTEGRATION_TESTS=true
-            fi
-            
-            # Check for standard test files as a fallback
-            if [ -f "packages/$PACKAGE/vitest.config.ts" ] || find "packages/$PACKAGE" -type f \( -name "*.test.ts" -o -name "*.spec.ts" \) -print -quit | grep -q .; then
-                HAS_STANDARD_TESTS=true
-            fi
-            
-            # Run the appropriate test command based on the detected configuration
-            if [ "$HAS_API_TESTS" = true ]; then
-                pnpm --filter "$PACKAGE" test:api
-            fi
-            
-            if [ "$HAS_INTEGRATION_TESTS" = true ]; then
-                pnpm --filter "$PACKAGE" test:integration
-            fi
-
-            # If no specific configs are found, run the default test script
-            if [ "$HAS_API_TESTS" = false ] && [ "$HAS_INTEGRATION_TESTS" = false ] && [ "$HAS_STANDARD_TESTS" = true ]; then
-                pnpm --filter "$PACKAGE" test
-            fi
+            pnpm --filter "$PACKAGE" test
           done
 
   find_dockerfiles:
