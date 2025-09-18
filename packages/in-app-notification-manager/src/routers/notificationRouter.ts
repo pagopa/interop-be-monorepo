@@ -46,9 +46,9 @@ export const notificationRouter = (
         const { results, totalCount } = await service.getNotifications(
           q,
           entityIds.map(unsafeBrandId<IDS>),
+          unread,
           limit,
           offset,
-          unread,
           ctx
         );
         return res.status(200).send(
