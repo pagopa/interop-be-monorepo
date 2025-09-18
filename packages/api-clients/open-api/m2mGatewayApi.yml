@@ -8375,7 +8375,6 @@ paths:
       description: Update an E-Service Template Version in Draft state
       operationId: updateDraftEServiceTemplateVersion
       requestBody:
-        description: Updated version data
         required: true
         content:
           application/json:
