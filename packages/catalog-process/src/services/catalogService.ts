@@ -3969,10 +3969,12 @@ async function updateDraftEService(
     )
     .exhaustive();
 
-  const updatedPersonalData = match(type)
-    .with("put", () => personalData)
-    .with("patch", () => personalData ?? eservice.data.personalData)
-    .exhaustive();
+  const updatedPersonalData = config.featureFlagEservicePersonalData
+    ? match(type)
+        .with("put", () => personalData)
+        .with("patch", () => personalData ?? eservice.data.personalData)
+        .exhaustive()
+    : undefined;
 
   const updatedEService: EService = {
     ...eservice.data,
