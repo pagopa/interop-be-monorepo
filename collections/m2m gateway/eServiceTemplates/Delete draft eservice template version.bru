@@ -1,5 +1,5 @@
 meta {
-  name: Delete EService Template version
+  name: Delete draft eservice template version
   type: http
   seq: 14
 }
@@ -17,10 +17,4 @@ params:path {
 
 headers {
   Authorization: {{JWT-M2M-ADMIN}}
-}
-
-script:pre-request {
-  const random = Math.round(Math.random() * 100)
-  
-  bru.setVar("randomName",`test name ${random}`)
 }

@@ -1,5 +1,5 @@
 meta {
-  name: Create EService Template version
+  name: Create eservice template version
   type: http
   seq: 9
 }
@@ -20,10 +20,4 @@ headers {
 
 vars:post-response {
   eserviceTemplateVersionId: res.body.id
-}
-
-script:pre-request {
-  const random = Math.round(Math.random() * 100)
-  
-  bru.setVar("randomName",`test name ${random}`)
 }

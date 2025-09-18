@@ -1,5 +1,5 @@
 meta {
-  name: Edit EService Template version
+  name: Update draft eservice template version
   type: http
   seq: 13
 }
@@ -21,12 +21,10 @@ headers {
 
 body:json {
   {
-    "agreementApprovalPolicy": "MANUAL"
+    "description": "Version description",
+    "voucherLifespan": 100,
+    "dailyCallsPerConsumer": 100,
+    "dailyCallsTotal": 1000,
+    "agreementApprovalPolicy": "AUTOMATIC"
   }
-}
-
-script:pre-request {
-  const random = Math.round(Math.random() * 100)
-  
-  bru.setVar("randomName",`test name ${random}`)
 }

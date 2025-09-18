@@ -1,5 +1,5 @@
 meta {
-  name: Edit EService Template name
+  name: Update published eservice template name
   type: http
   seq: 6
 }
@@ -22,10 +22,4 @@ body:json {
   {
     "name": "Updated Name eserviceTemplate"
   }
-}
-
-script:pre-request {
-  const random = Math.round(Math.random() * 100)
-  
-  bru.setVar("randomName",`test name ${random}`)
 }
