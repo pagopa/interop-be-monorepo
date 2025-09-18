@@ -5,11 +5,11 @@ import {
 } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { TenantKind } from "pagopa-interop-models";
+import { PurposeTemplateId } from "pagopa-interop-models";
 import {
   PurposeTemplateProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
-import { PurposeTemplateId } from "pagopa-interop-models";
 import { BffAppContext } from "../utilities/context.js";
 import {
   toBffCatalogPurposeTemplate,
