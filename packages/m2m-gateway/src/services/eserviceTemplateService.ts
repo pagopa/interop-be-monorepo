@@ -265,7 +265,39 @@ export function eserviceTemplateServiceBuilder(
       const polledResource = await pollEServiceTemplate(response, headers);
       return toM2MGatewayEServiceTemplate(polledResource.data);
     },
+    async updateDraftEServiceTemplateVersion(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      seed: {
+        description?: string;
+        voucherLifespan?: number;
+        dailyCallsPerConsumer?: number;
+        dailyCallsTotal?: number;
+        agreementApprovalPolicy?: "AUTOMATIC" | "MANUAL";
+      },
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
+      logger.info(
+        `Updating version ${versionId} of eservice template with id ${templateId}`
+      );
 
+      const response =
+        await clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
+          seed,
+          {
+            params: { templateId, templateVersionId: versionId },
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplate(response, headers);
+
+      return toM2MGatewayEServiceTemplateVersion(
+        retrieveEServiceTemplateVersionById(
+          polledResource,
+          unsafeBrandId(versionId)
+        )
+      );
+    },
     async updatePublishedEServiceTemplateVersionQuotas(
       templateId: EServiceTemplateId,
       templateVersionId: EServiceTemplateVersionId,
