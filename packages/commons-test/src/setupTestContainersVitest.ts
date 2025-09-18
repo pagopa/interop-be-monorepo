@@ -324,18 +324,6 @@ export async function setupTestContainersVitest(
     inAppNotificationDB,
     m2mEventDB,
     cleanup: async (): Promise<void> => {
-      await readModelRepository?.agreements.deleteMany({});
-      await readModelRepository?.eservices.deleteMany({});
-      await readModelRepository?.tenants.deleteMany({});
-      await readModelRepository?.purposes.deleteMany({});
-      await readModelRepository?.attributes.deleteMany({});
-      await readModelRepository?.clients.deleteMany({});
-      await readModelRepository?.keys.deleteMany({});
-      await readModelRepository?.producerKeychains.deleteMany({});
-      await readModelRepository?.producerKeys.deleteMany({});
-      await readModelRepository?.delegations.deleteMany({});
-      await readModelRepository?.eserviceTemplates.deleteMany({});
-
       await postgresDB?.none(
         "TRUNCATE TABLE agreement.events RESTART IDENTITY"
       );
