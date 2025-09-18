@@ -102,7 +102,8 @@ export const handleCatalogMessageV2 = async (
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorDocumentDeletedByTemplateUpdate",
             "EServiceSignalHubEnabled",
-            "EServiceSignalHubDisabled"
+            "EServiceSignalHubDisabled",
+            "EServicePersonalDataUpdatedAfterPublish"
           ),
         },
         (event) => {
