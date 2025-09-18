@@ -7,6 +7,7 @@ import {
   PurposeTemplateState,
   Tenant,
   TenantId,
+  TenantKind,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -35,6 +36,7 @@ import {
 
 export type GetPurposeTemplatesFilters = {
   purposeTitle?: string;
+  targetTenantKind?: TenantKind;
   creatorIds: TenantId[];
   eserviceIds: EServiceId[];
   states: PurposeTemplateState[];
@@ -44,7 +46,8 @@ const getPurposeTemplatesFilters = (
   readModelDB: DrizzleReturnType,
   filters: GetPurposeTemplatesFilters
 ): SQL | undefined => {
-  const { purposeTitle, creatorIds, eserviceIds, states } = filters;
+  const { purposeTitle, creatorIds, eserviceIds, states, targetTenantKind } =
+    filters;
 
   const purposeTitleFilter = purposeTitle
     ? ilike(
@@ -83,11 +86,19 @@ const getPurposeTemplatesFilters = (
       ? inArray(purposeTemplateInReadmodelPurposeTemplate.state, states)
       : undefined;
 
+  const targetTenantKindFilter = targetTenantKind
+    ? eq(
+        purposeTemplateInReadmodelPurposeTemplate.targetTenantKind,
+        targetTenantKind
+      )
+    : undefined;
+
   return and(
     purposeTitleFilter,
     creatorIdsFilter,
     eserviceIdsFilter,
-    statesFilter
+    statesFilter,
+    targetTenantKindFilter
   );
 };
 

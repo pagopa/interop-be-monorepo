@@ -3,7 +3,12 @@ import {
   generateToken,
   getMockPurposeTemplate,
 } from "pagopa-interop-commons-test";
-import { generateId, ListResult, PurposeTemplate } from "pagopa-interop-models";
+import {
+  generateId,
+  ListResult,
+  PurposeTemplate,
+  tenantKind,
+} from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import request from "supertest";
@@ -32,6 +37,7 @@ describe("API GET /purposeTemplates", () => {
     eserviceIds: generateId(),
     creatorIds: `${generateId()},${generateId()}`,
     states: "ACTIVE,DRAFT",
+    targetTenantKind: tenantKind.PA,
   };
 
   const purposeTemplates: ListResult<PurposeTemplate> = {
