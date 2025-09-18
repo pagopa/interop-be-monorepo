@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { JsonWebKey } from "crypto";
 import {
   authorizationEventToBinaryData,

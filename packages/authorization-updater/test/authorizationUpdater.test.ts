@@ -1,5 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { RefreshableInteropToken, genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,

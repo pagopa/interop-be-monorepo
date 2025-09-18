@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {

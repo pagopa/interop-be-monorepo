@@ -91,3 +91,7 @@ export function createPollingUntilDeletion(
     throw pollingMaxRetriesExceeded(maxRetries, retryDelay);
   };
 }
+
+export function test(test: string): string {
+  return test;
+}

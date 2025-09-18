@@ -1,11 +1,11 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig, mergeConfig } from "vitest/config";
+import rootConfig from "../../vitest.config.js";
 
-export default defineConfig({
-  test: {
-    globalSetup: ["./test/vitestGlobalSetup.ts"],
-    testTimeout: 60000,
-    hookTimeout: 60000,
-    fileParallelism: false,
-    pool: "forks"
-  },
-});
+export default mergeConfig(
+  rootConfig,
+  defineConfig({
+    test: {
+      globalSetup: ["./test/vitestGlobalSetup.ts"],
+    },
+  })
+);

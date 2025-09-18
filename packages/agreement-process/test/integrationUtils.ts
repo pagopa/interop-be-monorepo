@@ -1,5 +1,6 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import {
   StoredEvent,
   readLastEventByStreamId,

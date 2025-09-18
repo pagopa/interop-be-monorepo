@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { ClientId, UserId, unsafeBrandId } from "pagopa-interop-models";
 import { WithLogger } from "pagopa-interop-commons";
 import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";

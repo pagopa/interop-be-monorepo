@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { DescriptorId, EServiceId, unsafeBrandId } from "pagopa-interop-models";

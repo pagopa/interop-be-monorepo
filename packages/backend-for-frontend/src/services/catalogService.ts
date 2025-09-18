@@ -1,6 +1,7 @@
 /* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { randomUUID } from "crypto";
 import AdmZip from "adm-zip";
 import {
