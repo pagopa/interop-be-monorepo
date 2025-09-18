@@ -14,8 +14,8 @@ import {
 } from "pagopa-interop-commons";
 import { tenantKind } from "pagopa-interop-models";
 import {
+  expiredRiskAnalysis1_0_Private,
   expiredRiskAnalysis2_0_Pa,
-  validRiskAnalysis1_0_Private,
   validRiskAnalysis2_0_Private,
   validRiskAnalysis3_0_Pa,
   validSchemaOnlyRiskAnalysis2_0_Private,
@@ -191,7 +191,7 @@ describe("Risk Analysis Validation", () => {
 
     const expiredVersionForPrivate = "1.0";
     const expiredRiskAnalysis2: RiskAnalysisFormToValidate = {
-      ...validRiskAnalysis1_0_Private,
+      ...expiredRiskAnalysis1_0_Private,
       version: expiredVersionForPrivate,
     };
 
