@@ -133,7 +133,6 @@ export const getRecipientsForTenants = async ({
         } => tenantContactEmail.email !== undefined
       )
     : [];
-
   return [
     ...tenantContactEmails.map((tenantContactEmail) => ({
       tenantName: tenantContactEmail.name,
