@@ -31,77 +31,6 @@ jobs:
           node-version-file: ./package.json
       - run: pnpm format:check
 
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Cache turbo setup
-        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
-        with:
-          path: |
-            .turbo
-            packages/*/.turbo
-          key: ${{ runner.os }}-turbo-lint-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-lint-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: ./package.json
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
-        with:
-          run_install: true
-      - run: pnpm lint
-
-  check:
-    name: Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Cache turbo setup
-        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
-        with:
-          path: |
-            .turbo
-            packages/*/.turbo
-          key: ${{ runner.os }}-turbo-check-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-check
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: ./package.json
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
-        with:
-          run_install: true
-      - run: pnpm check
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Cache turbo setup
-        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
-        with:
-          path: |
-            .turbo
-            packages/*/.turbo
-          key: ${{ runner.os }}-turbo-test-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-test
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: ./package.json
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
-        with:
-          run_install: true
-      - run: pnpm test
-
   lint-openapi:
     name: Lint Open Api specification
     runs-on: ubuntu-latest
@@ -111,13 +40,147 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: stoplightio/spectral-action@6416fd018ae38e60136775066eb3e98172143141 # v0.8.13
+      - uses: stoplightio/spectral-action@6416fd018ae38e60136775066eb3e98172143141 # v0.8.12
         with:
           file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
 
+  packages_sharding:
+    name: Create packages sharding
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.sharded_packages.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Find packages with test directories
+        id: get_packages
+        run: |
+          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
+            PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
+            echo "$PACKAGE_NAME"
+          done | grep -v 'commons-test' | sort | jq -R -s -c 'split("\n")[:-1]')
+
+          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+      - name: Create shards matrix
+        id: sharded_packages
+        run: |
+          SHARD_NUM=10  
+          PACKAGES_JSON='${{ steps.get_packages.outputs.packages }}'
+          PACK_NUM=$(echo "$PACKAGES_JSON" | jq -r length)
+
+          matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n -c '
+            [range(0; $shardNum) as $i |
+            {
+              "shardIndex": ($i + 1),
+              "packages": ($packs[
+              ($i * $len / $shardNum | floor):
+              (($i + 1) * $len / $shardNum | floor)
+              ])
+            }
+            ]')
+
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+  build:
+    name: Full project build
+    runs-on: ubuntu-latest
+    needs: [formatting]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Cache turbo setup
+        uses: actions/cache@638ed79f9dc94c1de1baef91bcab5edaa19451f4
+        with:
+          path: |
+            .turbo
+            packages/*/.turbo
+          key: ${{ runner.os }}-turbo-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-build-
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+        with:
+          run_install: true
+      - name: Build all packages
+        run: pnpm build
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4 # v4 utilizzo il tag generico
+        with:
+          name: build-output
+          path: |
+            .turbo/
+            packages/*/dist/
+
+  lint:
+    name: Lint sharded
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: [packages_sharding, formatting, build]
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.packages_sharding.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+        with:
+          run_install: true
+      - name: Download build artifact
+        uses: actions/download-artifact@v4 # Non so se mettere un commit specifico, per questo ho lasciato semplicemente v4
+        with:
+          name: build-output
+          path: .
+      - name: Run lint for shard
+        run: |
+          PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
+          echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
+            echo "Running lint for package: $PACKAGE"
+            pnpm --filter "$PACKAGE" lint
+          done
+
+  test:
+    name: Tests sharded
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: [formatting, packages_sharding, build]
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.packages_sharding.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+        with:
+          run_install: true
+      - name: Download build artifact
+        uses: actions/download-artifact@v4 # Non so se mettere un commit specifico, per questo ho lasciato semplicemente v4
+        with:
+          name: build-output
+          path: .
+      - name: Run tests for shard
+        run: |
+          PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
+          echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
+            echo "Running tests for package: $PACKAGE"
+            pnpm --filter "$PACKAGE" test
+          done
+
   find_dockerfiles:
     name: Find Dockerfiles
-    needs: [formatting, lint, check, test, lint-openapi]
+    needs: [formatting, lint, test, lint-openapi]
     if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     outputs:
@@ -133,7 +196,7 @@ jobs:
           echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
 
   docker_build:
-    name: Build
+    name: Docker Build
     needs: [find_dockerfiles]
     if: ${{ github.base_ref == 'main' }}
     runs-on: ubuntu-latest
