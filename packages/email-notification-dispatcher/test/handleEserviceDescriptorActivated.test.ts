@@ -8,8 +8,10 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   agreementState,
   CorrelationId,
+  EService,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
