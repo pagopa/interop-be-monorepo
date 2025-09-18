@@ -278,7 +278,7 @@ export function eserviceTemplateServiceBuilder(
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
       logger.info(
-        `Updating version ${versionId} of eservice template with id ${templateId}`
+        `Updating draft version ${versionId} of eservice template with id ${templateId}`
       );
 
       const response =
