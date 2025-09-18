@@ -23,12 +23,12 @@ import {
   toGetAgreementsApiQueryParams,
   toGetPurposesApiQueryParamsForAgreement,
   toM2MGatewayApiAgreement,
+  toM2MGatewayApiDocument,
 } from "../api/agreementApiConverter.js";
 import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import { agreementContractNotFound } from "../model/errors.js";
-import { toM2MGatewayApiDocument } from "../api/documentApiConverter.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 

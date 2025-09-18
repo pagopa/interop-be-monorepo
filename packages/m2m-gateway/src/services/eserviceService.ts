@@ -16,6 +16,7 @@ import {
   toCatalogApiEServiceDescriptorSeed,
   toM2MGatewayApiEServiceRiskAnalysis,
   toCatalogApiPatchUpdateEServiceDescriptorSeed,
+  toM2MGatewayApiDocument,
 } from "../api/eserviceApiConverter.js";
 import {
   cannotDeleteLastEServiceDescriptor,
@@ -33,7 +34,6 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
-import { toM2MGatewayApiDocument } from "../api/documentApiConverter.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 

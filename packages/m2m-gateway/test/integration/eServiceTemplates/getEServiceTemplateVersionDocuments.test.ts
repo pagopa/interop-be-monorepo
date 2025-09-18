@@ -14,8 +14,8 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
-import { toM2MGatewayApiDocument } from "../../../src/api/documentApiConverter.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { toM2MGatewayApiDocument } from "../../../src/api/eserviceTemplateApiConverter.js";
 
 describe("getEServiceDescriptorDocuments", () => {
   type EServiceTemplateDocs = {

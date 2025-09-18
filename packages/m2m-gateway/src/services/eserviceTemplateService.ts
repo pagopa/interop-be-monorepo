@@ -13,6 +13,7 @@ import {
   toM2MGatewayEServiceTemplate,
   toM2MGatewayEServiceTemplateVersion,
   toGetEServiceTemplatesQueryParams,
+  toM2MGatewayApiDocument,
 } from "../api/eserviceTemplateApiConverter.js";
 import {
   eserviceTemplateRiskAnalysisNotFound,
@@ -23,7 +24,6 @@ import {
   pollResourceWithMetadata,
   isPolledVersionAtLeastResponseVersion,
 } from "../utils/polling.js";
-import { toM2MGatewayApiDocument } from "../api/documentApiConverter.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
