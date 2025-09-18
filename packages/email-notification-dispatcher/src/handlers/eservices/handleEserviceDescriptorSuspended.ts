@@ -18,7 +18,7 @@ import {
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
-export async function handleEserviceDescriptorPublished(
+export async function handleEserviceDescriptorSuspended(
   data: EServiceHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -33,7 +33,7 @@ export async function handleEserviceDescriptorPublished(
   if (!eserviceV2Msg) {
     throw missingKafkaMessageDataError(
       "eservice",
-      "EServiceDescriptorPublished"
+      "EServiceDescriptorSuspended"
     );
   }
 
@@ -41,7 +41,7 @@ export async function handleEserviceDescriptorPublished(
 
   const [htmlTemplate, agreements, descriptor, producer] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceDescriptorPublishedMailTemplate
+      eventMailTemplateType.eserviceDescriptorSuspendedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
     retrieveLatestPublishedDescriptor(eservice),
@@ -78,15 +78,15 @@ export async function handleEserviceDescriptorPublished(
   return targets.map(({ tenantName, address }) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Nuova versione disponibile per "${eservice.name}"`,
+      subject: `Una versione di "${eservice.name}" è stata sospesa`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: `Nuova versione disponibile per "${eservice.name}"`,
+        title: `Una versione di "${eservice.name}" è stata sospesa`,
         notificationType,
         entityId: descriptor.id,
         consumerName: tenantName,
         eserviceName: eservice.name,
-        eserviceVersion: descriptor.version,
         producerName: producer.name,
+        eserviceVersion: descriptor.version,
         ctaLabel: `Visualizza e-service`,
       }),
     },

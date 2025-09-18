@@ -23,7 +23,11 @@ export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
 };
 
-type EmailNotificationRecipient = { type: "Tenant" | "User"; address: string };
+type EmailNotificationRecipient = {
+  type: "Tenant" | "User";
+  tenantName: string;
+  address: string;
+};
 
 export async function getUserEmailsToNotify(
   tenantId: TenantId,
@@ -102,33 +106,50 @@ export const getRecipientsForTenants = async ({
       notificationType
     );
 
-  const userEmails: string[] = (
-    await userService.readUsers(tenantUsers.map((u) => u.userId))
-  ).map((u) => u.email);
+  const userEmails = await userService.readUsers(
+    tenantUsers.map((u) => u.userId)
+  );
 
   const tenantContactEmails = includeTenantContactEmails
     ? (
         await Promise.all(
-          tenants.map(
-            async (tenant) =>
-              await getTenantContactEmailIfEnabled(
-                tenant,
-                readModelService,
-                logger
-              )
-          )
+          tenants.map(async (tenant) => ({
+            tenantId: tenant.id,
+            name: tenant.name,
+            email: await getTenantContactEmailIfEnabled(
+              tenant,
+              readModelService,
+              logger
+            ),
+          }))
         )
-      ).filter((email): email is string => email !== undefined)
+      ).filter(
+        (
+          tenantContactEmail
+        ): tenantContactEmail is {
+          tenantId: TenantId;
+          name: string;
+          email: string;
+        } => tenantContactEmail.email !== undefined
+      )
     : [];
-
   return [
     ...tenantContactEmails.map((tenantContactEmail) => ({
+      tenantName: tenantContactEmail.name,
       type: "Tenant" as const,
-      address: tenantContactEmail,
+      address: tenantContactEmail.email,
     })),
-    ...userEmails.map((address) => ({
+    ...userEmails.map((userEmail) => ({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      tenantName: tenants.find(
+        (tenant) =>
+          tenant.id ===
+          tenantUsers.find(
+            (tenantUser) => tenantUser.userId === userEmail.userId
+          )?.tenantId
+      )!.name,
       type: "User" as const,
-      address,
+      address: userEmail.email,
     })),
   ];
 };
