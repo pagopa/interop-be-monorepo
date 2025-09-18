@@ -358,7 +358,6 @@ describe("update eService", () => {
     const expectedEService: EService = {
       ...mockEService,
       description: updatedDescription,
-      isSignalHubEnabled: false,
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
