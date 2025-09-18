@@ -2,6 +2,48 @@ import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import { bffApi } from "pagopa-interop-api-clients";
 import { uiSectionToNotificationTypes } from "../model/modelMappingUtils.js";
 
+function findNotificationSection(
+  notificationType: string
+): { section: string; subsection?: string } | null {
+  for (const [section, sectionData] of Object.entries(
+    uiSectionToNotificationTypes
+  )) {
+    if (Array.isArray(sectionData)) {
+      if (sectionData.includes(notificationType)) {
+        return { section };
+      }
+    } else {
+      for (const [subsection, notificationTypes] of Object.entries(
+        sectionData
+      )) {
+        if (notificationTypes.includes(notificationType)) {
+          return { section, subsection };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function calculateDeepLink(
+  notification: inAppNotificationApi.Notification
+): string {
+  const { notificationType, entityId } = notification;
+
+  const sectionInfo = findNotificationSection(notificationType);
+  if (!sectionInfo) {
+    return "/";
+  }
+
+  const { section, subsection } = sectionInfo;
+
+  if (!subsection) {
+    return `/${section}`;
+  }
+
+  return `/${section}/${subsection}/${entityId}`;
+}
+
 function sumNotificationTypesCount(
   results: Record<string, number>,
   notificationTypes: ReadonlyArray<string>
@@ -105,5 +147,22 @@ export function toBffApiNotificationsCountBySection(
       totalCount: gestioneClientApiEservice,
     },
     totalCount: notificationsCountBySection.totalCount,
+  };
+}
+
+export function toBffApiNotifications(
+  notifications: inAppNotificationApi.Notifications
+): bffApi.Notifications {
+  return {
+    totalCount: notifications.totalCount,
+    results: notifications.results.map((notification) => ({
+      id: notification.id,
+      tenantId: notification.tenantId,
+      userId: notification.userId,
+      body: notification.body,
+      deepLink: calculateDeepLink(notification),
+      createdAt: notification.createdAt,
+      readAt: notification.readAt,
+    })),
   };
 }
