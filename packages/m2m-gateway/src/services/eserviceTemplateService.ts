@@ -150,7 +150,7 @@ export function eserviceTemplateServiceBuilder(
       const polledResource = await pollEServiceTemplate(response, headers);
       return toM2MGatewayEServiceTemplate(polledResource.data);
     },
-    async updateEServiceTemplateDescription(
+    async updatePublishedEServiceTemplateDescription(
       templateId: EServiceTemplateId,
       seed: m2mGatewayApi.EServiceTemplateDescriptionUpdateSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -170,7 +170,7 @@ export function eserviceTemplateServiceBuilder(
       const polledResource = await pollEServiceTemplate(response, headers);
       return toM2MGatewayEServiceTemplate(polledResource.data);
     },
-    async updateEServiceTemplateIntendedTarget(
+    async updatePublishedEServiceTemplateIntendedTarget(
       templateId: EServiceTemplateId,
       seed: m2mGatewayApi.EServiceTemplateIntendedTargetUpdateSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -190,7 +190,7 @@ export function eserviceTemplateServiceBuilder(
       const polledResource = await pollEServiceTemplate(response, headers);
       return toM2MGatewayEServiceTemplate(polledResource.data);
     },
-    async updateEServiceTemplateName(
+    async updatePublishedEServiceTemplateName(
       templateId: EServiceTemplateId,
       seed: m2mGatewayApi.EServiceTemplateNameUpdateSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -247,7 +247,7 @@ export function eserviceTemplateServiceBuilder(
       }
       return toM2MGatewayEServiceTemplateVersion(version);
     },
-    async updateEServiceTemplateVersion(
+    async updateDraftEServiceTemplateVersion(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
       seed: {
@@ -281,7 +281,7 @@ export function eserviceTemplateServiceBuilder(
       }
       return toM2MGatewayEServiceTemplateVersion(version);
     },
-    async deleteEServiceTemplateVersion(
+    async deleteDraftEServiceTemplateVersion(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
