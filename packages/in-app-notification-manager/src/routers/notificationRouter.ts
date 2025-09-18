@@ -10,6 +10,7 @@ import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import {
   emptyErrorMapper,
+  IDS,
   NotificationId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -41,9 +42,11 @@ export const notificationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
 
-        const { limit, offset, q } = req.query;
+        const { limit, offset, q, entityIds, unread } = req.query;
         const { results, totalCount } = await service.getNotifications(
           q,
+          entityIds.map(unsafeBrandId<IDS>),
+          unread,
           limit,
           offset,
           ctx

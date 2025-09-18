@@ -70,7 +70,7 @@ export function agreementServiceBuilder(
   clients: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
-  const { agreementProcessClient } = clients;
+  const { agreementProcessClient, inAppNotificationManagerClient } = clients;
   return {
     async createAgreement(
       payload: bffApi.AgreementPayload,
@@ -165,7 +165,27 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         });
 
-      const agreements = await enrichAgreementListEntry(results, clients, ctx);
+      const notificationsPromise =
+        inAppNotificationManagerClient.getNotifications({
+          queries: {
+            offset: 0,
+            limit,
+            entityIds: results.map((a) => a.id),
+            unread: true,
+          },
+          headers: ctx.headers,
+        });
+
+      const agreementsPromise = await enrichAgreementListEntry(
+        results,
+        clients,
+        ctx
+      );
+
+      const [agreements, notifications] = await Promise.all([
+        agreementsPromise,
+        notificationsPromise,
+      ]);
 
       return {
         pagination: {
@@ -173,7 +193,12 @@ export function agreementServiceBuilder(
           offset,
           totalCount,
         },
-        results: agreements,
+        results: agreements.map((a) => ({
+          ...a,
+          hasUnreadNotifications: notifications.results.some(
+            (n) => n.entityId === a.id
+          ),
+        })),
       };
     },
 
