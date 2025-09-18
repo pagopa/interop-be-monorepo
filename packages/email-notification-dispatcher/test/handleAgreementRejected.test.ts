@@ -244,7 +244,7 @@ describe("handleAgreementRejected", async () => {
     ).toBe(true);
   });
 
-  it.only("should generate a message using the latest consumer mail that was registered", async () => {
+  it("should generate a message using the latest consumer mail that was registered", async () => {
     const oldMail: TenantMail = {
       ...getMockTenantMail(),
       createdAt: new Date(1999),
