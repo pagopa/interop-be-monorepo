@@ -83,7 +83,6 @@ const purposeTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          // TODO: add custom error mapper if necessary
           emptyErrorMapper,
           ctx,
           "Error retrieving catalog purpose templates"
