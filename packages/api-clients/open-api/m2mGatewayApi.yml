@@ -8388,7 +8388,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: List E-Service Template Version Documents
-      description: Retrieve a list of documents for the specified E-Service Template Version
+      description: Retrieve a list of Documents for the specified E-Service Template Version
       operationId: getEServiceTemplateVersionDocuments
       parameters:
         - in: query

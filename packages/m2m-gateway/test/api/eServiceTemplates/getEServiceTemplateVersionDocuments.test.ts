@@ -97,6 +97,18 @@ describe("GET /eserviceTemplates/:templateId/descriptor/:versionId/documents rou
     expect(res.status).toBe(400);
   });
 
+  it("should return 400 if passed an invalid eservice template version id", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      generateId(),
+      "invalidEServiceId" as EServiceTemplateVersionId,
+      mockQueryParams
+    );
+
+    expect(res.status).toBe(400);
+  });
+
   it.each([
     {},
     { ...mockQueryParams, offset: -2 },
