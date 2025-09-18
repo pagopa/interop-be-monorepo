@@ -189,7 +189,7 @@ jobs:
             fi
             
             # Check for standard test files as a fallback
-            if [ -f "packages/$PACKAGE/vitest.config.ts" ] || find "packages/$PACKAGE/test" -type f \( -name "*.test.ts" -o -name "*.spec.ts" \) -print -quit | grep -q .; then
+            if [ -f "packages/$PACKAGE/vitest.config.ts" ] || find "packages/$PACKAGE" -type f \( -name "*.test.ts" -o -name "*.spec.ts" \) -print -quit | grep -q .; then
                 HAS_STANDARD_TESTS=true
             fi
             
