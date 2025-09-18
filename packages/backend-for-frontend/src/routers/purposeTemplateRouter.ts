@@ -70,13 +70,14 @@ const purposeTemplateRouter = (
 
       try {
         const response =
-          await purposeTemplateService.getCatalogPurposeTemplates(
-            req.query.q,
-            req.query.eserviceIds,
-            req.query.offset,
-            req.query.limit,
-            ctx
-          );
+          await purposeTemplateService.getCatalogPurposeTemplates({
+            purposeTitle: req.query.q,
+            targetTenantKind: req.query.targetTenantKind,
+            eserviceIds: req.query.eserviceIds,
+            offset: req.query.offset,
+            limit: req.query.limit,
+            ctx,
+          });
 
         return res
           .status(200)
