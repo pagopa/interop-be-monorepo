@@ -307,7 +307,7 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [M2M_ADMIN_ROLE, ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
           const { data: eserviceTemplate, metadata } =
             await eserviceTemplateService.patchUpdateDraftTemplateVersion(
