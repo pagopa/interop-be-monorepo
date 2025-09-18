@@ -196,7 +196,8 @@ export async function createServices(
     producerKeychainService: producerKeychainServiceBuilder(clients),
     purposeService: purposeServiceBuilder(clients, fileManager),
     purposeTemplateService: purposeTemplateServiceBuilder(
-      clients.purposeTemplateProcessClient
+      clients.purposeTemplateProcessClient,
+      clients.tenantProcessClient
     ),
     selfcareService: selfcareServiceBuilder(clients),
     tenantService: tenantServiceBuilder(
