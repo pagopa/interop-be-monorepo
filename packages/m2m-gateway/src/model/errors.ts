@@ -40,7 +40,6 @@ export const errorCodes = {
   unexpectedClientKind: "0021",
   purposeAgreementNotFound: "0022",
   agreementContractNotFound: "0023",
-  notAnActiveConsumerDelegation: "0024",
   requesterIsNotTheDelegateConsumer: "0025",
   cannotEditDeclaredAttributesForTenant: "0026",
   tenantDeclaredAttributeNotFound: "0027",
@@ -48,6 +47,7 @@ export const errorCodes = {
   cannotDeleteLastEServiceDescriptor: "0029",
   eserviceRiskAnalysisNotFound: "0030",
   eserviceTemplateRiskAnalysisNotFound: "0031",
+  delegationEServiceMismatch: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -259,15 +259,14 @@ export function agreementContractNotFound(
   });
 }
 
-export function notAnActiveConsumerDelegation(
-  requesterTenantId: TenantId,
+export function delegationEServiceMismatch(
   eserviceId: string,
   delegation: delegationApi.Delegation
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Delegation ${delegation.id} is not an active consumer delegation for e-service ${eserviceId} and delegate ${requesterTenantId}`,
-    code: "notAnActiveConsumerDelegation",
-    title: "Not an active consumer delegation",
+    detail: `Delegation ${delegation.id} is not a delegation for e-service ${eserviceId}`,
+    code: "delegationEServiceMismatch",
+    title: "Delegation e-service mismatch",
   });
 }
 

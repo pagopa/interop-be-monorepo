@@ -60,6 +60,23 @@ export function eserviceTemplateServiceBuilder(
       },
       headers,
     });
+  const retrieveEServiceTemplateVersionById = (
+    eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
+    versionId: EServiceTemplateVersionId
+  ): eserviceTemplateApi.EServiceTemplateVersion => {
+    const version = eserviceTemplate.data.versions.find(
+      (v) => v.id === versionId
+    );
+
+    if (!version) {
+      throw eserviceTemplateVersionNotFound(
+        unsafeBrandId(eserviceTemplate.data.id),
+        versionId
+      );
+    }
+
+    return version;
+  };
 
   const pollEServiceTemplate = (
     response: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
@@ -127,17 +144,15 @@ export function eserviceTemplateServiceBuilder(
         `Retrieving version ${versionId} of eservice template with id ${templateId}`
       );
 
-      const { data } =
-        await clients.eserviceTemplateProcessClient.getEServiceTemplateById({
-          headers,
-          params: { templateId },
-        });
+      const eserviceTemplate = await retrieveEServiceTemplateById(
+        headers,
+        templateId
+      );
 
-      const version = data.versions.find((v) => v.id === versionId);
-
-      if (!version) {
-        throw eserviceTemplateVersionNotFound(templateId, versionId);
-      }
+      const version = retrieveEServiceTemplateVersionById(
+        eserviceTemplate,
+        versionId
+      );
 
       return toM2MGatewayEServiceTemplateVersion(version);
     },
@@ -268,6 +283,43 @@ export function eserviceTemplateServiceBuilder(
       return toM2MGatewayApiEServiceTemplateRiskAnalysis(riskAnalysis);
     },
 
+    async updatePublishedEServiceTemplateVersionQuotas(
+      templateId: EServiceTemplateId,
+      templateVersionId: EServiceTemplateVersionId,
+      seed: m2mGatewayApi.EServiceTemplateVersionQuotasUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
+      logger.info(
+        `Updating Version Quotas for published E-Service Template with id ${templateId}`
+      );
+
+      const version = retrieveEServiceTemplateVersionById(
+        await retrieveEServiceTemplateById(headers, templateId),
+        templateVersionId
+      );
+
+      const response =
+        await clients.eserviceTemplateProcessClient.updateTemplateVersionQuotas(
+          {
+            voucherLifespan: seed.voucherLifespan ?? version.voucherLifespan,
+            dailyCallsPerConsumer:
+              seed.dailyCallsPerConsumer ?? version.dailyCallsPerConsumer,
+            dailyCallsTotal: seed.dailyCallsTotal ?? version.dailyCallsTotal,
+          },
+          {
+            params: { templateId, templateVersionId },
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplate(response, headers);
+
+      return toM2MGatewayEServiceTemplateVersion(
+        retrieveEServiceTemplateVersionById(
+          polledResource,
+          unsafeBrandId(templateVersionId)
+        )
+      );
+    },
     async updateDraftEServiceTemplate(
       templateId: EServiceTemplateId,
       seed: m2mGatewayApi.EServiceTemplateDraftUpdateSeed,
