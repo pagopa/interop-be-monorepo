@@ -8382,7 +8382,7 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateVersionDraftUpdateSeed"
       responses:
         "200":
-          description: E-Service Template Version updated
+          description: Draft E-Service Template Version updated
           content:
             application/json:
               schema:
