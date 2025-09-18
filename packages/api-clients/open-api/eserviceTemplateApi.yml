@@ -448,7 +448,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchUpdateEServiceTemplateVersionSeed"
+              $ref: "#/components/schemas/PatchUpdateDraftEServiceTemplateVersionSeed"
         required: true
       responses:
         "200":
@@ -1493,7 +1493,7 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
-    PatchUpdateEServiceTemplateVersionSeed:
+    PatchUpdateDraftEServiceTemplateVersionSeed:
       type: object
       additionalProperties: false
       properties:

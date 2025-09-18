@@ -31,7 +31,7 @@ describe("PATCH /templates/:templateId/versions/:templateVersionId router test",
     eserviceTemplateToApiEServiceTemplate(mockEserviceTemplate)
   );
 
-  const eserviceTemplateSeed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed =
+  const eserviceTemplateSeed: eserviceTemplateApi.PatchUpdateDraftEServiceTemplateVersionSeed =
     {
       description: "updated description",
       voucherLifespan: 120,
@@ -49,7 +49,7 @@ describe("PATCH /templates/:templateId/versions/:templateVersionId router test",
     templateId: EServiceTemplateId = mockEserviceTemplate.id,
     templateVersionId: EServiceTemplateVersionId = mockEserviceTemplate
       .versions[0].id,
-    body: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed = eserviceTemplateSeed
+    body: eserviceTemplateApi.PatchUpdateDraftEServiceTemplateVersionSeed = eserviceTemplateSeed
   ) =>
     request(api)
       .patch(`/templates/${templateId}/versions/${templateVersionId}`)
@@ -96,7 +96,7 @@ describe("PATCH /templates/:templateId/versions/:templateVersionId router test",
       dailyCallsTotal: 1500,
       agreementApprovalPolicy: "AUTOMATIC" as const,
     },
-  ] as eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed[])(
+  ] as eserviceTemplateApi.PatchUpdateDraftEServiceTemplateVersionSeed[])(
     "Should return 200 with partial seed (seed #%#)",
     async (seed) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -146,7 +146,7 @@ describe("PATCH /templates/:templateId/versions/:templateVersionId router test",
         token,
         templateId as EServiceTemplateId,
         templateVersionId as EServiceTemplateVersionId,
-        body as eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed
+        body as unknown as eserviceTemplateApi.PatchUpdateDraftEServiceTemplateVersionSeed
       );
 
       expect(res.status).toBe(400);

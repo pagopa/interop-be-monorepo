@@ -442,13 +442,7 @@ export function eserviceTemplateServiceBuilder(
     async patchUpdateDraftTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      seed: Partial<{
-        description: string;
-        voucherLifespan: number;
-        dailyCallsPerConsumer: number;
-        dailyCallsTotal: number;
-        agreementApprovalPolicy: "AUTOMATIC" | "MANUAL";
-      }>,
+      seed: eserviceTemplateApi.PatchUpdateDraftEServiceTemplateVersionSeed,
       {
         authData,
         correlationId,
