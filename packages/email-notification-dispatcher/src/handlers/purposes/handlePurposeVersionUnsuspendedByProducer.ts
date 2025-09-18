@@ -58,7 +58,7 @@ export async function handlePurposeVersionUnsuspendedByProducer(
     readModelService,
     userService,
     logger,
-    includeTenantContactEmails: true,
+    includeTenantContactEmails: false,
   });
 
   if (targets.length === 0) {
@@ -76,6 +76,7 @@ export async function handlePurposeVersionUnsuspendedByProducer(
         title: `Riattivazione della finalità "${purpose.title}"`,
         notificationType,
         entityId: purpose.id,
+        consumerName: consumer.name,
         producerName: producer.name,
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
