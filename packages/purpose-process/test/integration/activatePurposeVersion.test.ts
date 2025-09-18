@@ -207,7 +207,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
-      userId,
+      userId: undefined,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -309,7 +309,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
-      userId,
+      userId: undefined,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -977,7 +977,9 @@ describe("activatePurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         delegationId: consumerDelegation.id,
       },
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id, userId) })
+      getMockContext({
+        authData: getMockAuthData(consumerDelegate.id, userId),
+      })
     );
 
     const updatedVersion = activateResponse.data;
