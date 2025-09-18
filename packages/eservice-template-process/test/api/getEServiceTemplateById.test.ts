@@ -4,6 +4,7 @@ import { EServiceTemplateId, generateId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockEServiceTemplate,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -13,6 +14,7 @@ import { eserviceTemplateNotFound } from "../../src/model/domain/errors.js";
 
 describe("API GET /templates/:templateId", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
+  const serviceResponse = getMockWithMetadata(mockEserviceTemplate);
 
   const makeRequest = async (
     token: string,
@@ -27,7 +29,7 @@ describe("API GET /templates/:templateId", () => {
   beforeEach(() => {
     eserviceTemplateService.getEServiceTemplateById = vi
       .fn()
-      .mockResolvedValue(mockEserviceTemplate);
+      .mockResolvedValue(serviceResponse);
   });
 
   const authorizedRoles: AuthRole[] = [

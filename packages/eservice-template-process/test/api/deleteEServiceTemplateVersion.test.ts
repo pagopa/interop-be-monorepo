@@ -10,6 +10,7 @@ import {
 import {
   generateToken,
   getMockEServiceTemplate,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -22,6 +23,7 @@ import {
 
 describe("API DELETE /templates/:templateId/versions/:templateVersionId", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
+  const serviceResponse = getMockWithMetadata(mockEserviceTemplate);
 
   const makeRequest = async (
     token: string,
@@ -38,10 +40,14 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId", () => 
   beforeEach(() => {
     eserviceTemplateService.deleteEServiceTemplateVersion = vi
       .fn()
-      .mockResolvedValue(undefined);
+      .mockResolvedValue(serviceResponse);
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+    authRole.API_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {

@@ -8,6 +8,7 @@ import {
 import {
   generateToken,
   getMockEServiceTemplateVersion,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -23,6 +24,8 @@ import {
 describe("API POST /templates/:templateId/versions", () => {
   const eserviceTemplateId = generateId<EServiceTemplateId>();
   const mockEserviceTemplateVersion = getMockEServiceTemplateVersion();
+  const serviceResponse = getMockWithMetadata(mockEserviceTemplateVersion);
+
   const notFoundEserviceTemplateId = generateId<EServiceTemplateId>();
 
   const makeRequest = async (
@@ -38,10 +41,14 @@ describe("API POST /templates/:templateId/versions", () => {
   beforeEach(() => {
     eserviceTemplateService.createEServiceTemplateVersion = vi
       .fn()
-      .mockResolvedValue(mockEserviceTemplateVersion);
+      .mockResolvedValue(serviceResponse);
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.M2M_ADMIN_ROLE,
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
