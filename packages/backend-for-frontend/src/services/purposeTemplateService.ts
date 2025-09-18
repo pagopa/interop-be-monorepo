@@ -21,6 +21,17 @@ export function purposeTemplateServiceBuilder(
 
       return { id: result.id };
     },
+    async updatePurposeTemplate(
+      id: string,
+      seed: bffApi.PurposeTemplateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplateSeed> {
+      logger.info(`Updating purpose template ${id}`);
+      return await purposeTemplateClient.updatePurposeTemplate(seed, {
+        headers,
+        params: { id },
+      });
+    },
   };
 }
 
