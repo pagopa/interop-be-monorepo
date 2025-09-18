@@ -425,9 +425,9 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Patch a draft template version
+      summary: Partially updates a draft template version
       operationId: patchUpdateDraftTemplateVersion
-      description: Patch updates a draft version of the specified E-Service template
+      description: Partially updates a draft version of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -444,7 +444,7 @@ paths:
             type: string
             format: uuid
       requestBody:
-        description: An E-Service template version patch seed
+        description: A partial E-Service template version seed
         content:
           application/json:
             schema:

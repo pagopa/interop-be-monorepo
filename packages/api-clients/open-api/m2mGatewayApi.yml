@@ -8371,11 +8371,10 @@ paths:
     patch:
       tags:
         - eserviceTemplates
-      summary: Update a draft E-Service Template Version
+      summary: Update a Draft E-Service Template Version
       description: Update an E-Service Template Version in Draft state
       operationId: updateDraftEServiceTemplateVersion
       requestBody:
-        description: Updated version data
         required: true
         content:
           application/json:
@@ -8383,7 +8382,7 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateVersionDraftUpdateSeed"
       responses:
         "200":
-          description: E-Service Template Version updated
+          description: Draft E-Service Template Version updated
           content:
             application/json:
               schema:
