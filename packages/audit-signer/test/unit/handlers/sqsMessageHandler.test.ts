@@ -55,7 +55,7 @@ describe("sqsMessageHandler", () => {
 
     expect(mockDbService.saveSignatureReference).toHaveBeenCalledWith({
       safeStorageId: "mock-key",
-      fileKind: "AUDIT_EVENTS",
+      fileKind: "VOUCHER_AUDIT",
       fileName: "my-audit-file.json",
       correlationId: mockCorrelationId,
     });
