@@ -556,7 +556,7 @@ export function purposeServiceBuilder(
         throw purposeAgreementNotFound(purposeId);
       }
 
-      return toM2MGatewayApiAgreement(agreement);
+      return toM2MGatewayApiAgreement(agreement, purpose.delegationId);
     },
     async updateDraftPurpose(
       purposeId: PurposeId,

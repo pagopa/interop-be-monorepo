@@ -12150,6 +12150,9 @@ components:
         consumerId:
           type: string
           format: uuid
+        delegationId:
+          type: string
+          format: uuid
         state:
           $ref: "#/components/schemas/AgreementState"
         suspendedByConsumer:
