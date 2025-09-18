@@ -50,7 +50,7 @@ export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind,
-  dateForValidation: Date
+  dateForExpirationValidation: Date
 ): boolean => {
   if (riskAnalysisForm === undefined) {
     return false;
@@ -60,7 +60,7 @@ export const isRiskAnalysisFormValid = (
         riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
         schemaOnlyValidation,
         tenantKind,
-        dateForValidation
+        dateForExpirationValidation
       ).type === "valid"
     );
   }
@@ -116,18 +116,18 @@ export function validateRiskAnalysisOrThrow({
   riskAnalysisForm,
   schemaOnlyValidation,
   tenantKind,
-  dateForValidation,
+  dateForExpirationValidation,
 }: {
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
   schemaOnlyValidation: boolean;
   tenantKind: TenantKind;
-  dateForValidation: Date;
+  dateForExpirationValidation: Date;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
     tenantKind,
-    dateForValidation
+    dateForExpirationValidation
   );
   return match(result)
     .with({ type: "invalid" }, ({ issues }) => {
@@ -141,7 +141,7 @@ export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind,
-  dateForValidation: Date
+  dateForExpirationValidation: Date
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
@@ -150,7 +150,7 @@ export function validateAndTransformRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
     tenantKind,
-    dateForValidation,
+    dateForExpirationValidation,
   });
 
   return {

@@ -1003,7 +1003,7 @@ export function purposeServiceBuilder(
             riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
           schemaOnlyValidation: false,
           tenantKind,
-          dateForValidation: new Date(), // beware: if the purpose version was waiting for approval, a new RA might have been published
+          dateForExpirationValidation: new Date(), // beware: if the purpose version was waiting for approval, a new RA might have been published
         });
       }
 
@@ -1340,7 +1340,7 @@ export function purposeServiceBuilder(
         ),
         schemaOnlyValidation: false,
         tenantKind: producerKind,
-        dateForValidation: createdAt,
+        dateForExpirationValidation: createdAt,
       });
 
       const newVersion: PurposeVersion = {
