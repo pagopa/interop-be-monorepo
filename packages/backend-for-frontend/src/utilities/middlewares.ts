@@ -40,7 +40,7 @@ export function purposeTemplateConfigFeatureFlagMiddleware(): ZodiosRouterContex
   return async (req, res, next) => {
     const ctx = fromAppContext(req.ctx);
 
-    if (!isFeatureFlagEnabled(config, "featureFlagNotificationConfig")) {
+    if (!isFeatureFlagEnabled(config, "featureFlagPurposeTemplateConfig")) {
       const errorRes = makeApiProblem(
         featureFlagNotEnabled("featureFlagPurposeTemplateConfig"),
         () => constants.HTTP_STATUS_FORBIDDEN,
