@@ -13,6 +13,7 @@ export const eserviceM2MEventInM2MEvent = m2mEvent.table("eservice_m2m_event", {
   visibility: varchar().notNull(),
   producerId: uuid("producer_id"),
   producerDelegateId: uuid("producer_delegate_id"),
+  producerDelegationId: uuid("producer_delegation_id"),
 });
 
 export const eserviceTemplateM2MEventInM2MEvent = m2mEvent.table(
@@ -45,7 +46,9 @@ export const agreementM2MEventInM2MEvent = m2mEvent.table(
     consumerId: uuid("consumer_id"),
     producerId: uuid("producer_id"),
     consumerDelegateId: uuid("consumer_delegate_id"),
+    consumerDelegationId: uuid("consumer_delegation_id"),
     producerDelegateId: uuid("producer_delegate_id"),
+    producerDelegationId: uuid("producer_delegation_id"),
   }
 );
 
@@ -62,7 +65,9 @@ export const purposeM2MEventInM2MEvent = m2mEvent.table("purpose_m2m_event", {
   consumerId: uuid("consumer_id"),
   producerId: uuid("producer_id"),
   consumerDelegateId: uuid("consumer_delegate_id"),
+  consumerDelegationId: uuid("consumer_delegation_id"),
   producerDelegateId: uuid("producer_delegate_id"),
+  producerDelegationId: uuid("producer_delegation_id"),
 });
 
 export const tenantM2MEventInM2MEvent = m2mEvent.table("tenant_m2m_event", {

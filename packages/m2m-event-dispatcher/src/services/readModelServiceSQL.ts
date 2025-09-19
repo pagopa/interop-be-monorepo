@@ -1,19 +1,37 @@
+import { and, eq } from "drizzle-orm";
 import {
-  AgreementReadModelService,
-  CatalogReadModelService,
-  TenantReadModelService,
-} from "pagopa-interop-readmodel";
+  Delegation,
+  EServiceV2,
+  delegationKind,
+  delegationState,
+} from "pagopa-interop-models";
+import { DelegationReadModelService } from "pagopa-interop-readmodel";
+import { delegationInReadmodelDelegation } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
-  agreementReadModelServiceSQL: _agreementReadModelServiceSQL,
-  catalogReadModelServiceSQL: _catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL: _tenantReadModelServiceSQL,
+  delegationReadModelServiceSQL,
 }: {
-  agreementReadModelServiceSQL: AgreementReadModelService;
-  catalogReadModelServiceSQL: CatalogReadModelService;
-  tenantReadModelServiceSQL: TenantReadModelService;
+  delegationReadModelServiceSQL: DelegationReadModelService;
 }) {
-  return {};
+  return {
+    async getActiveProducerDelegationForEService(
+      eservice: EServiceV2
+    ): Promise<Delegation | undefined> {
+      const delegation =
+        await delegationReadModelServiceSQL.getDelegationByFilter(
+          and(
+            eq(delegationInReadmodelDelegation.eserviceId, eservice.id),
+            eq(delegationInReadmodelDelegation.state, delegationState.active),
+            eq(
+              delegationInReadmodelDelegation.kind,
+              delegationKind.delegatedProducer
+            ),
+            eq(delegationInReadmodelDelegation.delegatorId, eservice.producerId)
+          )
+        );
+      return delegation?.data;
+    },
+  };
 }
 export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;

@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.eservice_m2m_event (
   visibility VARCHAR NOT NULL,
   producer_id UUID,
   producer_delegate_id UUID,
+  producer_delegation_id UUID,
 
   PRIMARY KEY (id)
 );
@@ -46,7 +47,9 @@ CREATE TABLE IF NOT EXISTS m2m_event.agreement_m2m_event (
   consumer_id UUID,
   producer_id UUID,
   consumer_delegate_id UUID,
+  consumer_delegation_id UUID,
   producer_delegate_id UUID,
+  producer_delegation_id UUID,
 
   PRIMARY KEY (id)
 );
@@ -65,7 +68,9 @@ CREATE TABLE IF NOT EXISTS m2m_event.purpose_m2m_event (
   consumer_id UUID,
   producer_id UUID,
   consumer_delegate_id UUID,
+  consumer_delegation_id UUID,
   producer_delegate_id UUID,
+  producer_delegation_id UUID,
 
   PRIMARY KEY (id)
 );
