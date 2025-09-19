@@ -475,5 +475,31 @@ export function eserviceTemplateServiceBuilder(
         logger
       );
     },
+
+    async deleteEServiceTemplateVersionDocument(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      documentId: EServiceDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting document with id ${documentId} from eservice template version with id ${versionId} for eservice template with id ${templateId}`
+      );
+
+      const response =
+        await clients.eserviceTemplateProcessClient.deleteEServiceTemplateDocumentById(
+          undefined,
+          {
+            params: {
+              templateId,
+              templateVersionId: versionId,
+              documentId,
+            },
+            headers,
+          }
+        );
+
+      await pollEServiceTemplate(response, headers);
+    },
   };
 }

@@ -1,0 +1,20 @@
+meta {
+  name: Delete eservice template version document
+  type: http
+}
+
+delete {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/versions/:versionId/documents/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  versionId: {{versionId}}
+  templateId: {{templateId}}
+  documentId: {{documentId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
