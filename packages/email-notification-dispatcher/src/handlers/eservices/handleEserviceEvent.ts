@@ -5,6 +5,7 @@ import {
 import { match, P } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleEserviceDescriptorPublished } from "./handleEserviceDescriptorPublished.js";
+import { handleEserviceDescriptorSubmittedByDelegate } from "./handleEserviceDescriptorSubmittedByDelegate.js";
 
 export async function handleEServiceEvent(
   params: HandlerParams<typeof EServiceEventV2>
@@ -27,6 +28,18 @@ export async function handleEServiceEvent(
         userService,
         correlationId,
       })
+    )
+    .with(
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      ({ data: { eservice } }) =>
+        handleEserviceDescriptorSubmittedByDelegate({
+          eserviceV2Msg: eservice,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })
     )
     .with(
       {
@@ -56,7 +69,6 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAttributesUpdated",
           "EServiceDescriptionUpdated",
           "EServiceNameUpdated",
-          "EServiceDescriptorSubmittedByDelegate",
           "EServiceDescriptorRejectedByDelegator",
           "EServiceIsConsumerDelegableEnabled",
           "EServiceIsConsumerDelegableDisabled",

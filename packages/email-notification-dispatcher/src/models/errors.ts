@@ -12,6 +12,7 @@ type EmailNotificationDispatcherErrorCode =
   | "eServiceNotFound"
   | "tenantNotFound"
   | "descriptorNotFound"
+  | "activeProducerDelegationNotFound"
   | "eserviceAgreementsNotFound"
   | "descriptorPublishedNotFound";
 
@@ -89,5 +90,14 @@ export function descriptorPublishedNotFound(
   return new InternalError({
     detail: `Published descriptor not found in EService ${eServiceId}`,
     code: "descriptorPublishedNotFound",
+  });
+}
+
+export function activeProducerDelegationNotFound(
+  eServiceId: EServiceId
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Active producer delegation not found for EService ${eServiceId}`,
+    code: "activeProducerDelegationNotFound",
   });
 }
