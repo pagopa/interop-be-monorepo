@@ -333,6 +333,7 @@ describe("publish descriptor", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor1, descriptor2],
+      personalData: false,
     };
     await addOneEService(eservice);
     const tenant: Tenant = {
