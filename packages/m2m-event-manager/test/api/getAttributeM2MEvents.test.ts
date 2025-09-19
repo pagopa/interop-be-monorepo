@@ -3,7 +3,7 @@ import { m2mEventApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { generateId } from "pagopa-interop-models";
+import { AttributeM2MEventType, generateId } from "pagopa-interop-models";
 import {
   generateM2MEventId,
   getMockedAttributeM2MEvent,
@@ -12,10 +12,9 @@ import { api, m2mEventService } from "../vitest.api.setup.js";
 import { testToUpperSnakeCase } from "../utils.js";
 
 describe("API /events/attributes test", () => {
-  const mockAttributeM2MEvents = [
-    getMockedAttributeM2MEvent("AttributeAdded"),
-    getMockedAttributeM2MEvent("MaintenanceAttributeDeleted"),
-  ];
+  const mockAttributeM2MEvents = AttributeM2MEventType.options.map((type) =>
+    getMockedAttributeM2MEvent(type)
+  );
 
   const mockAttributeM2MEventsResponse: m2mEventApi.AttributeM2MEvents = {
     events: mockAttributeM2MEvents.map(
@@ -80,7 +79,7 @@ describe("API /events/attributes test", () => {
   it.each([
     {},
     { ...mockQueryParams, limit: 0 },
-    { ...mockQueryParams, limit: 51 },
+    { ...mockQueryParams, limit: 501 },
     { ...mockQueryParams, limit: "invalidLimit" },
     { ...mockQueryParams, limit: undefined },
     { ...mockQueryParams, lastEventId: -1 },

@@ -18,7 +18,7 @@ import {
   testM2mEventWriterService,
 } from "./utils.js";
 
-describe("handleAgreementEvent test", async () => {
+describe("handleAttributeEvent test", async () => {
   const attribute = getMockAttribute();
   vi.spyOn(testM2mEventWriterService, "insertAttributeM2MEvent");
 

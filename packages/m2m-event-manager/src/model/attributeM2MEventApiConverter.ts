@@ -13,7 +13,6 @@ function toApiAttributeM2MEventType(
     m2mEventApi.AttributeM2MEvent["eventType"]
   >(eventType)
     .with("AttributeAdded", () => "ATTRIBUTE_ADDED")
-    .with("MaintenanceAttributeDeleted", () => "MAINTENANCE_ATTRIBUTE_DELETED")
     .exhaustive();
 }
 
