@@ -2,13 +2,14 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   AttributeAddedV1,
   AttributeEventEnvelope,
   toAttributeV1,
   AttributeM2MEventType,
+  AttributeEvent,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
@@ -21,15 +22,21 @@ import {
 
 describe("handleAgreementEvent test", async () => {
   const attribute = getMockAttribute();
+  vi.spyOn(testM2mEventWriterService, "insertAttributeM2MEvent");
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it.each(
-    AttributeM2MEventType.options.map((type) => ({
+    AttributeEvent.options.map((o) => ({
       ...getMockEventEnvelopeCommons(),
       stream_id: attribute.id,
-      type,
+      type: o.shape.type.value,
       data: {
         attribute: toAttributeV1(attribute),
       },
-    })) satisfies AttributeEventEnvelope[]
+    })) as AttributeEventEnvelope[]
   )(
     "should write M2M event for AttributeAdded event",
     async (message: AttributeEventEnvelope) => {
@@ -42,17 +49,25 @@ describe("handleAgreementEvent test", async () => {
         testM2mEventWriterService
       );
 
-      const attributeM2MEvent = await retrieveLastAttributeM2MEvent();
-      expect(attributeM2MEvent).toEqual(
-        match(attributeM2MEvent)
-          .with({ eventType: "AttributeAdded" }, (e) => ({
+      await match(message)
+        .with({ type: "AttributeAdded" }, async (m) => {
+          expect(
+            testM2mEventWriterService.insertAttributeM2MEvent
+          ).toHaveBeenCalledTimes(1);
+          const attributeM2MEvent = await retrieveLastAttributeM2MEvent();
+          expect(attributeM2MEvent).toEqual({
             id: expect.any(String),
-            eventType: e.eventType,
+            eventType: m.type,
             eventTimestamp,
             attributeId: attribute.id,
-          }))
-          .exhaustive()
-      );
+          });
+        })
+        .with({ type: "MaintenanceAttributeDeleted" }, () => {
+          expect(
+            testM2mEventWriterService.insertAttributeM2MEvent
+          ).toHaveBeenCalledTimes(0);
+        })
+        .exhaustive();
     }
   );
 });
