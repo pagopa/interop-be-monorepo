@@ -284,7 +284,7 @@ export const aggregateEservice = ({
           templateId: unsafeBrandId<EServiceTemplateId>(eserviceSQL.templateId),
         }
       : {}),
-    ...(eserviceSQL.personalData
+    ...(eserviceSQL.personalData !== null
       ? {
           personalData: eserviceSQL.personalData,
         }
