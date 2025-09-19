@@ -211,6 +211,12 @@ export type RiskAnalysisTemplateAnswerAnnotationDocumentId = z.infer<
   typeof RiskAnalysisTemplateAnswerAnnotationDocumentId
 >;
 
+export const AttributeM2MEventId = z
+  .string()
+  .uuid()
+  .brand("AttributeM2MEventId");
+export type AttributeM2MEventId = z.infer<typeof AttributeM2MEventId>;
+
 export const IDS = z.union([
   CorrelationId,
   SpanId,
@@ -253,6 +259,7 @@ export const IDS = z.union([
   RiskAnalysisFormTemplateId,
   RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  AttributeM2MEventId,
 ]);
 export type IDS = z.infer<typeof IDS>;
 
