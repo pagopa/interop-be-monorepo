@@ -10,9 +10,12 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   CorrelationId,
+  EService,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
+  Purpose,
+  Tenant,
   TenantId,
   TenantNotificationConfigId,
   toPurposeV2,
@@ -37,15 +40,14 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
   const eserviceId = generateId<EServiceId>();
 
   const descriptor = getMockDescriptorPublished();
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
-    consumerId,
     descriptors: [descriptor],
   };
   const producerTenant = getMockTenant(producerId);
-  const consumerTenant = {
+  const consumerTenant: Tenant = {
     ...getMockTenant(consumerId),
     mails: [getMockTenantMail()],
   };
@@ -99,7 +101,7 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
   it("should throw tenantNotFound when consumer is not found", async () => {
     const unknownConsumerId = generateId<TenantId>();
 
-    const purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
       consumerId: unknownConsumerId,
@@ -121,13 +123,13 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
   it("should throw tenantNotFound when producer is not found", async () => {
     const unkonwnProducerId = generateId<TenantId>();
 
-    const eserviceWithUnknownProducer = {
+    const eserviceWithUnknownProducer: EService = {
       ...getMockEService(),
       producerId: unkonwnProducerId,
     };
     await addOneEService(eserviceWithUnknownProducer);
 
-    const purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eserviceWithUnknownProducer.id,
       consumerId: consumerTenant.id,
@@ -149,7 +151,7 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
   it("should throw eServiceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
 
-    const purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: unknownEServiceId,
       consumerId: consumerTenant.id,
@@ -169,7 +171,7 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
   });
 
   it("should generate one message per user of the tenant that consumed the eservice", async () => {
-    const purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
@@ -201,7 +203,7 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
         { userId: users[0].id, tenantId: users[0].tenantId },
       ]);
 
-    const purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
@@ -227,7 +229,7 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
   });
 
   it("should generate one message to the consumer whose agreement was rejected", async () => {
-    const purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
@@ -254,7 +256,7 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
   it("should generate a message using the latest consumer mail that was registered", async () => {
     const oldMail = { ...getMockTenantMail(), createdAt: new Date(1999) };
     const newMail = getMockTenantMail();
-    const consumerTenantWithMultipleMails = {
+    const consumerTenantWithMultipleMails: Tenant = {
       ...getMockTenant(),
       mails: [oldMail, newMail],
     };
@@ -292,7 +294,7 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
         createAt: new Date(),
       });
 
-    const purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
@@ -317,7 +319,7 @@ describe("handlePurposeVersionSuspendedByProducer", async () => {
   });
 
   it("should generate a complete and correct message", async () => {
-    const purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
