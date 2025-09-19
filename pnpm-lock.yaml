@@ -759,6 +759,55 @@ importers:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.9)
 
+  packages/audit-signer:
+    dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: 3.840.0
+        version: 3.840.0
+      '@aws-sdk/client-s3':
+        specifier: 3.842.0
+        version: 3.842.0
+      '@aws-sdk/client-sqs':
+        specifier: 3.840.0
+        version: 3.840.0
+      axios:
+        specifier: 1.8.2
+        version: 1.8.2
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 20.19.4
+        version: 20.19.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@20.19.4)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.19.4)
+
   packages/authorization-platformstate-writer:
     dependencies:
       '@aws-sdk/client-dynamodb':
