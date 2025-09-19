@@ -75,14 +75,14 @@ function processMessage(
   delegationTopicConfig: DelegationTopicConfig
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
-    const { decodedMessage, updater } = match(messagePayload.topic)
+    const { decodedMessage, documentGenerator } = match(messagePayload.topic)
       .with(agreementTopicConfig.agreementTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
           AgreementEventV2
         );
 
-        const updater = handleAgreementMessageV2.bind(
+        const documentGenerator = handleAgreementMessageV2.bind(
           null,
           decodedMessage,
           pdfGenerator,
@@ -90,7 +90,7 @@ function processMessage(
           readModelService
         );
 
-        return { decodedMessage, updater };
+        return { decodedMessage, documentGenerator };
       })
       .with(purposeTopicConfig.purposeTopic, () => {
         const decodedMessage = decodeKafkaMessage(
@@ -98,7 +98,7 @@ function processMessage(
           PurposeEventV2
         );
 
-        const updater = handlePurposeMessageV2.bind(
+        const documentGenerator = handlePurposeMessageV2.bind(
           null,
           decodedMessage,
           pdfGenerator,
@@ -106,7 +106,7 @@ function processMessage(
           readModelService
         );
 
-        return { decodedMessage, updater };
+        return { decodedMessage, documentGenerator };
       })
       .with(delegationTopicConfig.delegationTopic, () => {
         const decodedMessage = decodeKafkaMessage(
@@ -114,7 +114,7 @@ function processMessage(
           DelegationEventV2
         );
 
-        const updater = handleDelegationMessageV2.bind(
+        const documentGenerator = handleDelegationMessageV2.bind(
           null,
           decodedMessage,
           pdfGenerator,
@@ -122,7 +122,7 @@ function processMessage(
           readModelService
         );
 
-        return { decodedMessage, updater };
+        return { decodedMessage, documentGenerator };
       })
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
@@ -145,7 +145,7 @@ function processMessage(
       `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
     );
 
-    await updater(loggerInstance);
+    await documentGenerator(loggerInstance);
   };
 }
 

@@ -1,11 +1,6 @@
-import {
-  EService,
-  EServiceId,
-  Tenant,
-  TenantId,
-  genericInternalError,
-} from "pagopa-interop-models";
+import { EService, EServiceId, Tenant, TenantId } from "pagopa-interop-models";
 import { ReadModelService } from "../readModelService.js";
+import { eServiceNotFound, tenantNotFound } from "../../model/errors.js";
 
 export const retrieveTenantById = async (
   readModelService: ReadModelService,
@@ -13,7 +8,7 @@ export const retrieveTenantById = async (
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
-    throw genericInternalError(`Tenant ${tenantId} not found`);
+    throw tenantNotFound(tenantId);
   }
   return tenant;
 };
@@ -24,7 +19,7 @@ export const retrieveEserviceById = async (
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(id);
   if (!eservice) {
-    throw genericInternalError(`Eservice ${eservice} not found`);
+    throw eServiceNotFound(id);
   }
   return eservice.data;
 };

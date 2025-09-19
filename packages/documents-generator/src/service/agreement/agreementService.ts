@@ -4,11 +4,11 @@ import {
   DescriptorId,
   EService,
   Descriptor,
-  genericInternalError,
   Agreement,
 } from "pagopa-interop-models";
 import { ReadModelService } from "../readModelService.js";
 import { ActiveDelegations } from "../../model/agreementModels.js";
+import { descriptorNotFound, tenantNotFound } from "../../model/errors.js";
 
 export const retrieveTenant = async (
   tenantId: TenantId,
@@ -16,7 +16,7 @@ export const retrieveTenant = async (
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
-    throw genericInternalError(tenantId); // to do throw right internal error
+    throw tenantNotFound(tenantId);
   }
   return tenant;
 };
@@ -30,7 +30,7 @@ export const retrieveDescriptor = (
   );
 
   if (!descriptor) {
-    throw genericInternalError(`${eservice.id}, ${descriptorId}`); // to do throw right internal error
+    throw descriptorNotFound(eservice.id, descriptorId);
   }
 
   return descriptor;

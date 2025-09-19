@@ -1,7 +1,6 @@
 import {
   TenantId,
   Tenant,
-  genericInternalError,
   EService,
   EServiceId,
   WithMetadata,
@@ -9,6 +8,11 @@ import {
   Purpose,
 } from "pagopa-interop-models";
 import { ReadModelService } from "../readModelService.js";
+import {
+  eServiceNotFound,
+  purposeDelegationNotFound,
+  tenantNotFound,
+} from "../../model/errors.js";
 
 export const retrieveTenant = async (
   tenantId: TenantId,
@@ -16,7 +20,7 @@ export const retrieveTenant = async (
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
-    throw genericInternalError(tenantId); // todo handle right error
+    throw tenantNotFound(tenantId);
   }
   return tenant;
 };
@@ -27,7 +31,7 @@ export const retrieveEService = async (
 ): Promise<WithMetadata<EService> | undefined> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (eservice === undefined) {
-    throw genericInternalError(eserviceId);
+    throw eServiceNotFound(eserviceId);
   }
   return eservice;
 };
@@ -44,7 +48,7 @@ export const retrievePurposeDelegation = async (
       purpose.delegationId
     );
   if (!delegation) {
-    throw genericInternalError(`${purpose.id}, ${purpose.delegationId}`); // todo handle error
+    throw purposeDelegationNotFound(purpose.id, purpose.delegationId);
   }
   return delegation;
 };
