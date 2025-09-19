@@ -550,9 +550,9 @@ async function innerCreateEService(
       .with(true, () => seed.isClientAccessDelegable)
       .exhaustive(),
     templateId: template?.id,
-    personalData: config.featureFlagEservicePersonalData
-      ? seed.personalData
-      : undefined,
+    ...(config.featureFlagEservicePersonalData
+      ? { personalData: seed.personalData }
+      : {}),
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -3969,12 +3969,10 @@ async function updateDraftEService(
     )
     .exhaustive();
 
-  const updatedPersonalData = config.featureFlagEservicePersonalData
-    ? match(type)
-        .with("put", () => personalData)
-        .with("patch", () => personalData ?? eservice.data.personalData)
-        .exhaustive()
-    : undefined;
+  const updatedPersonalData = match(type)
+    .with("put", () => personalData)
+    .with("patch", () => personalData ?? eservice.data.personalData)
+    .exhaustive();
 
   const updatedEService: EService = {
     ...eservice.data,
@@ -4005,7 +4003,9 @@ async function updateDraftEService(
       .with(false, () => false)
       .with(true, () => updatedIsClientAccessDelegable)
       .exhaustive(),
-    personalData: updatedPersonalData,
+    ...(config.featureFlagEservicePersonalData
+      ? { personalData: updatedPersonalData }
+      : {}),
   };
 
   const event = await repository.createEvent(
