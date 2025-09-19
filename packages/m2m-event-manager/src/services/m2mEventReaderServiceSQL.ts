@@ -1,7 +1,7 @@
 import { attributeM2MEventInM2MEvent } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { AttributeM2MEvent, AttributeM2MEventId } from "pagopa-interop-models";
-import { asc, desc } from "drizzle-orm";
+import { asc } from "drizzle-orm";
 import { afterEventIdFilter } from "../utilities/m2mEventSQLUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
