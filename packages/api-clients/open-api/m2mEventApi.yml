@@ -30,7 +30,7 @@ paths:
       summary: Get E-Service events
       description: |
         Retrieve list of E-Service events that occurred after the specified event ID.
-        Results are ordered in descending order (most recent events first).
+        Results are ordered in ascending order (oldest events first).
       operationId: getEServiceM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
@@ -67,7 +67,7 @@ paths:
       summary: Get Agreement events
       description: |
         Retrieve list of Agreement events that occurred after the specified event ID.
-        Results are ordered in descending order (most recent events first).
+        Results are ordered in ascending order (oldest events first).
       operationId: getAgreementM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
@@ -104,7 +104,7 @@ paths:
       summary: Get Purpose events
       description: |
         Retrieve list of Purpose events that occurred after the specified event ID.
-        Results are ordered in descending order (most recent events first).
+        Results are ordered in ascending order (oldest events first).
       operationId: getPurposeM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
@@ -141,7 +141,7 @@ paths:
       summary: Get Tenant events
       description: |
         Retrieve list of Tenant events that occurred after the specified event ID.
-        Results are ordered in descending order (most recent events first).
+        Results are ordered in ascending order (oldest events first).
       operationId: getTenantM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
@@ -178,7 +178,7 @@ paths:
       summary: Get Attribute events
       description: |
         Retrieve list of Attribute events that occurred after the specified event ID.
-        Results are ordered in descending order (most recent events first).
+        Results are ordered in ascending order (oldest events first).
       operationId: getAttributeM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
@@ -215,7 +215,7 @@ paths:
       summary: Get Consumer Delegation events
       description: |
         Retrieve list of Consumer Delegation events that occurred after the specified event ID.
-        Results are ordered in descending order (most recent events first).
+        Results are ordered in ascending order (oldest events first).
       operationId: getConsumerDelegationM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
@@ -252,7 +252,7 @@ paths:
       summary: Get Producer Delegation events
       description: |
         Retrieve list of Producer Delegation events that occurred after the specified event ID.
-        Results are ordered in descending order (most recent events first).
+        Results are ordered in ascending order (oldest events first).
       operationId: getProducerDelegationM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
@@ -289,7 +289,7 @@ paths:
       summary: Get Client events
       description: |
         Retrieve list of Client events that occurred after the specified event ID.
-        Results are ordered in descending order (most recent events first).
+        Results are ordered in ascending order (oldest events first).
       operationId: getClientM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
@@ -326,7 +326,7 @@ paths:
       summary: Get Producer Keychain events
       description: |
         Retrieve list of Producer Keychain events that occurred after the specified event ID.
-        Results are ordered in descending order (most recent events first).
+        Results are ordered in ascending order (oldest events first).
       operationId: getProducerKeychainM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
@@ -363,7 +363,7 @@ paths:
       summary: Get Key events
       description: |
         Retrieve list of Key events that occurred after the specified event ID.
-        Results are ordered in descending order (most recent events first).
+        Results are ordered in ascending order (oldest events first).
       operationId: getKeyM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
@@ -400,7 +400,7 @@ paths:
       summary: Get Producer Key events
       description: |
         Retrieve list of Producer Key events that occurred after the specified event ID.
-        Results are ordered in descending order (most recent events first).
+        Results are ordered in ascending order (oldest events first).
       operationId: getProducerKeyM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
@@ -437,7 +437,7 @@ paths:
       summary: Get E-Service Template events
       description: |
         Retrieve list of E-Service Template events that occurred after the specified event ID.
-        Results are ordered in descending order (most recent events first).
+        Results are ordered in ascending order (oldest events first).
       operationId: getEServiceTemplateM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
@@ -490,7 +490,7 @@ components:
       description: |
         ID of the last event already received.
         Only events that occurred after this ID will be returned.
-        If not provided, the most recent events up to the specified limit will be returned.
+        If not provided, the oldest events up to the specified limit will be returned.
       schema:
         type: string
         format: uuid
