@@ -26,8 +26,8 @@ import {
   toCreateEventAgreementSuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByPlatform,
 } from "../model/domain/toEvent.js";
-import { ReadModelService } from "./readModelService.js";
 import { retrieveEService } from "./agreementService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const {
   draft,
@@ -317,7 +317,7 @@ function eserviceContainsAttribute(
 export async function computeAgreementsStateByAttribute(
   attributeId: AttributeId,
   consumer: CompactTenant,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   correlationId: CorrelationId,
   logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {

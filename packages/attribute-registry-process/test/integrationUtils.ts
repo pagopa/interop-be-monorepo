@@ -25,10 +25,8 @@ import {
   upsertAttribute,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { attributeRegistryServiceBuilder } from "../src/services/attributeRegistryService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import { config } from "../src/config/config.js";
 
 export const { cleanup, readModelRepository, postgresDB, readModelDB } =
   await setupTestContainersVitest(
@@ -52,23 +50,15 @@ const attributeReadModelServiceSQL =
   attributeReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   attributeReadModelServiceSQL,
   tenantReadModelServiceSQL,
 });
 
-export const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
 export const attributeRegistryService = attributeRegistryServiceBuilder(
   postgresDB,
-  readModelService
+  readModelServiceSQL
 );
 
 export const writeAttributeInEventstore = async (

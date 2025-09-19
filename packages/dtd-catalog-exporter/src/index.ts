@@ -1,8 +1,4 @@
-import {
-  initFileManager,
-  logger,
-  ReadModelRepository,
-} from "pagopa-interop-commons";
+import { initFileManager, logger } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import {
   attributeReadModelServiceBuilder,
@@ -10,13 +6,9 @@ import {
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 import { dtdCatalogExporterServiceBuilder } from "./services/dtdCatalogExporterService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
 const db = makeDrizzleConnection(config);
 const attributeReadModelService = attributeReadModelServiceBuilder(db);
 const tenantReadModelService = tenantReadModelServiceBuilder(db);
@@ -26,15 +18,8 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   tenantReadModelService
 );
 
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
 await dtdCatalogExporterServiceBuilder({
-  readModelService,
+  readModelService: readModelServiceSQL,
   fileManager: initFileManager(config),
   loggerInstance: logger({
     serviceName: "dtd-catalog-exporter",

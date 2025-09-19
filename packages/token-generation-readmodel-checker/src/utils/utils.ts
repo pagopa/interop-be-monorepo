@@ -56,8 +56,8 @@ import {
   ComparisonPlatformStatesPurposeEntry,
   ComparisonTokenGenStatesGenericClient,
 } from "../models/types.js";
-import { ReadModelService } from "../services/readModelService.js";
 import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerationReadModelService.js";
+import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 
 export function getLastPurposeVersion(
   purposeVersions: PurposeVersion[]
@@ -154,7 +154,7 @@ function getPurposeIdFromTokenGenStatesPK(
 
 export async function compareTokenGenerationReadModel(
   dynamoDBClient: DynamoDBClient,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   logger: Logger
 ): Promise<number> {
   const tokenGenerationService =

@@ -48,9 +48,7 @@ import {
   upsertProducerKeychain,
   upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
-import { config } from "../src/config/config.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, readModelRepository, postgresDB, readModelDB } =
@@ -95,7 +93,6 @@ export const clientJWKKeyReadModelServiceSQL =
 export const producerJWKKeyReadModelServiceSQL =
   producerJWKKeyReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   clientReadModelServiceSQL,
@@ -107,19 +104,13 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   clientJWKKeyReadModelServiceSQL,
   producerJWKKeyReadModelServiceSQL,
 });
-export const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 export const selfcareV2Client: SelfcareV2InstitutionClient =
   {} as SelfcareV2InstitutionClient;
 
 export const authorizationService = authorizationServiceBuilder(
   postgresDB,
-  readModelService,
+  readModelServiceSQL,
   selfcareV2Client
 );
 

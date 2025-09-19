@@ -1,5 +1,4 @@
 import {
-  ReadModelRepository,
   initDB,
   initFileManager,
   initPDFGenerator,
@@ -16,7 +15,6 @@ import {
 import { config } from "./config/config.js";
 import { createApp } from "./app.js";
 import { agreementServiceBuilder } from "./services/agreementService.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const db = makeDrizzleConnection(config);
@@ -26,9 +24,6 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
 const attributeReadModelServiceSQL = attributeReadModelServiceBuilder(db);
 const delegationReadModelServiceSQL = delegationReadModelServiceBuilder(db);
 
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
 const readModelServiceSQL = readModelServiceBuilderSQL(
   db,
   agreementReadModelServiceSQL,
@@ -37,13 +32,6 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   attributeReadModelServiceSQL,
   delegationReadModelServiceSQL
 );
-
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 const pdfGenerator = await initPDFGenerator();
 
@@ -57,7 +45,7 @@ const service = agreementServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService,
+  readModelServiceSQL,
   initFileManager(config),
   pdfGenerator
 );

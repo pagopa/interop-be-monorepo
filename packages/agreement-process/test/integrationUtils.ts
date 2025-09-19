@@ -53,7 +53,6 @@ import {
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/config/config.js";
 import { contractBuilder } from "../src/services/agreementContractBuilder.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -91,8 +90,6 @@ vi.spyOn(puppeteer, "launch").mockImplementation(
 export const { agreements, attributes, eservices, tenants, delegations } =
   readModelRepository;
 
-export const oldReadModelService = readModelServiceBuilder(readModelRepository);
-
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
@@ -110,17 +107,10 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   delegationReadModelServiceSQL
 );
 
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
 export const pdfGenerator = await initPDFGenerator();
 
 export const agreementContractBuilder = contractBuilder(
-  readModelService,
+  readModelServiceSQL,
   pdfGenerator,
   fileManager,
   config,
@@ -129,7 +119,7 @@ export const agreementContractBuilder = contractBuilder(
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,
-  readModelService,
+  readModelServiceSQL,
   fileManager,
   pdfGenerator
 );

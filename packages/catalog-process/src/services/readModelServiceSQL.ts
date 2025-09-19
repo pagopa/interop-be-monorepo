@@ -2,6 +2,7 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   withTotalCount,
@@ -124,7 +125,7 @@ export function readModelServiceBuilderSQL(
   return {
     // eslint-disable-next-line sonarjs/cognitive-complexity
     async getEServices(
-      authData: UIAuthData | M2MAuthData,
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number

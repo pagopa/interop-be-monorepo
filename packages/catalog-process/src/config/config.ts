@@ -1,12 +1,10 @@
 import {
   CommonHTTPServiceConfig,
-  ReadModelDbConfig,
   FileManagerConfig,
   EventStoreConfig,
   S3Config,
   ApplicationAuditProducerConfig,
   FeatureFlagSignalhubWhitelistConfig,
-  FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
 } from "pagopa-interop-commons";
@@ -23,7 +21,7 @@ export const EServiceTemplateS3Config = z
   }));
 export type EServiceTemplateS3Config = z.infer<typeof EServiceTemplateS3Config>;
 
-const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
+const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(EventStoreConfig)
@@ -43,9 +41,7 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
       }))
   )
   .and(EServiceTemplateS3Config)
-  .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig);
+  .and(ApplicationAuditProducerConfig);
 
 export type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
 

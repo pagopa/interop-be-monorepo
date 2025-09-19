@@ -111,3 +111,5 @@ export function readModelServiceBuilderSQL(readmodelDB: DrizzleReturnType) {
     },
   };
 }
+
+export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;

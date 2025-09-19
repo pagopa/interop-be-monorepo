@@ -2,9 +2,7 @@ import {
   AgreementTopicConfig,
   PecEmailManagerConfig,
   KafkaConsumerConfig,
-  ReadModelDbConfig,
   ReadModelSQLDbConfig,
-  FeatureFlagSQLConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -20,13 +18,11 @@ export const PECEmailSenderConfig = z
 export type PECEmailSenderConfig = z.infer<typeof PECEmailSenderConfig>;
 
 export const CertifiedEmailSenderConfig = KafkaConsumerConfig.and(
-  ReadModelDbConfig
+  ReadModelSQLDbConfig
 )
   .and(AgreementTopicConfig)
   .and(PecEmailManagerConfig)
-  .and(PECEmailSenderConfig)
-  .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig.optional());
+  .and(PECEmailSenderConfig);
 
 export type CertifiedEmailSenderConfig = z.infer<
   typeof CertifiedEmailSenderConfig
