@@ -403,15 +403,16 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const updatedEServiceTemplate =
+          const { data: updatedEServiceTemplate, metadata } =
             await eserviceTemplateService.updateEServiceTemplateVersionQuotas(
               unsafeBrandId(req.params.templateId),
               unsafeBrandId(req.params.templateVersionId),
               req.body,
               ctx
             );
+          setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
             .send(
@@ -613,13 +614,14 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          await eserviceTemplateService.deleteRiskAnalysis(
+          const { metadata } = await eserviceTemplateService.deleteRiskAnalysis(
             unsafeBrandId(req.params.templateId),
             unsafeBrandId(req.params.riskAnalysisId),
             ctx
           );
+          setMetadataVersionHeader(res, metadata);
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(

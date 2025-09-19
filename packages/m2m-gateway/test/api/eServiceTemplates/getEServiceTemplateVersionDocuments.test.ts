@@ -14,7 +14,7 @@ import {
 } from "pagopa-interop-models";
 import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { toM2MGatewayApiDocument } from "../../../src/api/documentApiConverter.js";
+import { toM2MGatewayApiDocument } from "../../../src/api/eserviceTemplateApiConverter.js";
 
 describe("GET /eserviceTemplates/:templateId/descriptor/:versionId/documents route test", () => {
   const mockResponse: m2mGatewayApi.Documents = {
@@ -91,6 +91,18 @@ describe("GET /eserviceTemplates/:templateId/descriptor/:versionId/documents rou
       token,
       "invalidEServiceId" as EServiceTemplateId,
       generateId(),
+      mockQueryParams
+    );
+
+    expect(res.status).toBe(400);
+  });
+
+  it("should return 400 if passed an invalid eservice template version id", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      generateId(),
+      "invalidEServiceId" as EServiceTemplateVersionId,
       mockQueryParams
     );
 
