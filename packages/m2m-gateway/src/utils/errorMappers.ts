@@ -141,7 +141,7 @@ export const uploadEServiceDescriptorInterfaceErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "invalidInterfaceContentTypeDetected",
+      "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
       () => HTTP_STATUS_BAD_REQUEST
@@ -157,4 +157,29 @@ export const deleteEServiceDescriptorInterfaceErrorMapper = (
       "eserviceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const assignTenantDeclaredAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "requesterIsNotTheDelegateConsumer",
+      "cannotEditDeclaredAttributesForTenant",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteDraftEServiceDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("cannotDeleteLastEServiceDescriptor", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getEServiceRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceRiskAnalysisNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

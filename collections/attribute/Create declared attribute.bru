@@ -24,10 +24,11 @@ body:json {
 
 vars:post-response {
   attributeId: res.body.id
+  declaredAttributeId: res.body.id
 }
 
 script:pre-request {
   const randomName = Math.round(Math.random() * 10000)
-
+  
   bru.setVar("randomName", randomName)
 }

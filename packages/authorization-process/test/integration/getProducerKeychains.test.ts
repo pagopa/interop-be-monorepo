@@ -292,7 +292,7 @@ describe("getProducerKeychains", async () => {
       {
         filters: {
           userIds: [],
-          producerId: generateId(),
+          producerId: generateId<TenantId>(),
           eserviceId: undefined,
         },
         offset: 0,

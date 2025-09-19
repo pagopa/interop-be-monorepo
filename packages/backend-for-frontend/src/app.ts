@@ -10,6 +10,7 @@ import {
   FileManager,
   fromFilesToBodyMiddleware,
   multerMiddleware,
+  errorsToApiProblemsMiddleware,
 } from "pagopa-interop-commons";
 import express from "express";
 import {
@@ -28,6 +29,7 @@ import attributeRouter from "./routers/attributeRouter.js";
 import authorizationRouter from "./routers/authorizationRouter.js";
 import catalogRouter from "./routers/catalogRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
+import purposeTemplateRouter from "./routers/purposeTemplateRouter.js";
 import selfcareRouter from "./routers/selfcareRouter.js";
 import supportRouter from "./routers/supportRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
@@ -77,6 +79,10 @@ import {
   purposeServiceBuilder,
 } from "./services/purposeService.js";
 import {
+  PurposeTemplateService,
+  purposeTemplateServiceBuilder,
+} from "./services/purposeTemplateService.js";
+import {
   SelfcareService,
   selfcareServiceBuilder,
 } from "./services/selfcareService.js";
@@ -91,6 +97,11 @@ import {
   PrivacyNoticeService,
   privacyNoticeServiceBuilder,
 } from "./services/privacyNoticeService.js";
+import {
+  NotificationConfigService,
+  notificationConfigServiceBuilder,
+} from "./services/notificationConfigService.js";
+import notificationConfigRouter from "./routers/notificationConfigRouter.js";
 
 export type BFFServices = {
   agreementService: AgreementService;
@@ -100,10 +111,12 @@ export type BFFServices = {
   catalogService: CatalogService;
   clientService: ClientService;
   delegationService: DelegationService;
+  notificationConfigService: NotificationConfigService;
   eServiceTemplateService: EServiceTemplateService;
   privacyNoticeService: PrivacyNoticeService;
   producerKeychainService: ProducerKeychainService;
   purposeService: PurposeService;
+  purposeTemplateService: PurposeTemplateService;
   selfcareService: SelfcareService;
   tenantService: TenantService;
   toolsService: ToolsService;
@@ -172,6 +185,9 @@ export async function createServices(
       clients.catalogProcessClient,
       fileManager
     ),
+    notificationConfigService: notificationConfigServiceBuilder(
+      clients.notificationConfigProcessClient
+    ),
     privacyNoticeService: privacyNoticeServiceBuilder(
       privacyNoticeStorage,
       fileManager,
@@ -179,6 +195,10 @@ export async function createServices(
     ),
     producerKeychainService: producerKeychainServiceBuilder(clients),
     purposeService: purposeServiceBuilder(clients, fileManager),
+    purposeTemplateService: purposeTemplateServiceBuilder(
+      clients.purposeTemplateProcessClient,
+      clients.tenantProcessClient
+    ),
     selfcareService: selfcareServiceBuilder(clients),
     tenantService: tenantServiceBuilder(
       clients.tenantProcessClient,
@@ -234,15 +254,19 @@ export async function createApp(
     consumerDelegationRouter(zodiosCtx, services.delegationService),
     delegationRouter(zodiosCtx, services.delegationService),
     eserviceTemplateRouter(zodiosCtx, services.eServiceTemplateService),
+    notificationConfigRouter(zodiosCtx, services.notificationConfigService),
     privacyNoticeRouter(zodiosCtx, services.privacyNoticeService),
     producerDelegationRouter(zodiosCtx, services.delegationService),
     producerKeychainRouter(zodiosCtx, services.producerKeychainService),
     purposeRouter(zodiosCtx, services.purposeService),
+    purposeTemplateRouter(zodiosCtx, services.purposeTemplateService),
     selfcareRouter(zodiosCtx, services.selfcareService),
     supportRouter(zodiosCtx, services.authorizationServiceForSupport),
     tenantRouter(zodiosCtx, services.tenantService),
     toolRouter(zodiosCtx, services.toolsService)
   );
+
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }
