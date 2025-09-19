@@ -436,21 +436,27 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          // The same check is done in the backend-for-frontend, if you change this check, change it there too
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            // ^^ The same check for the roles above is done in the backend-for-frontend
+            // If you change this check, change it there too
+            M2M_ADMIN_ROLE,
+          ]);
 
-          const updatedEServiceTemplate =
+          const { data: document, metadata } =
             await eserviceTemplateService.createEServiceTemplateDocument(
               unsafeBrandId(req.params.templateId),
               unsafeBrandId(req.params.templateVersionId),
               req.body,
               ctx
             );
+          setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
             .send(
-              eserviceTemplateApi.EServiceTemplate.parse(
-                eserviceTemplateToApiEServiceTemplate(updatedEServiceTemplate)
+              eserviceTemplateApi.EServiceDoc.parse(
+                documentToApiDocument(document)
               )
             );
         } catch (error) {

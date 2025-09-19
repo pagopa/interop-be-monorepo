@@ -263,6 +263,34 @@ const eserviceTemplateRouter = (
         }
       }
     )
+    .post(
+      "/eserviceTemplates/:templateId/versions/:versionId/documents",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const document =
+            await eserviceTemplateService.uploadEServiceTemplateVersionDocument(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.versionId),
+              req.body,
+              ctx
+            );
+
+          return res.status(201).send(m2mGatewayApi.Document.parse(document));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error uploading document for eservice template ${req.params.templateId} version with id ${req.params.versionId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get("/eserviceTemplates/:templateId/riskAnalyses", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
