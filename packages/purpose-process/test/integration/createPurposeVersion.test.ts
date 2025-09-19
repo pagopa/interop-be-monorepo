@@ -40,6 +40,7 @@ import {
   TenantId,
   tenantKind,
   DelegationId,
+  UserId,
 } from "pagopa-interop-models";
 import { genericLogger, getIpaCode } from "pagopa-interop-commons";
 import {
@@ -69,6 +70,8 @@ import {
 } from "../integrationUtils.js";
 
 describe("createPurposeVersion", () => {
+  const userId: UserId = generateId();
+
   let mockConsumer: Tenant;
   let mockProducer: Tenant;
   let mockEService: EService;
@@ -144,7 +147,9 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({
+        authData: getMockAuthData(mockPurpose.consumerId, userId),
+      })
     );
 
     const createdPurposeVersion =
@@ -170,6 +175,7 @@ describe("createPurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
+      userId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -206,6 +212,7 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 24,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
     const expectedPurpose: Purpose = sortPurpose({
@@ -272,7 +279,9 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({
+        authData: getMockAuthData(mockPurpose.consumerId, userId),
+      })
     );
 
     const createdPurposeVersion =
@@ -298,6 +307,7 @@ describe("createPurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
+      userId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -334,6 +344,7 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 24,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
     const expectedPurpose: Purpose = sortPurpose({
@@ -388,7 +399,9 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 4,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({
+        authData: getMockAuthData(mockPurpose.consumerId, userId),
+      })
     );
 
     const createdPurposeVersion =
@@ -414,6 +427,7 @@ describe("createPurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
+      userId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -450,6 +464,7 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 4,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
     const expectedPurpose: Purpose = sortPurpose({
@@ -606,7 +621,7 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+      getMockContext({ authData: getMockAuthData(consumerDelegate.id, userId) })
     );
 
     const createdPurposeVersion =
@@ -632,6 +647,7 @@ describe("createPurposeVersion", () => {
       consumerDelegationId: delegation.id,
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
+      userId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -668,6 +684,7 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 24,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
     const expectedPurpose: Purpose = sortPurpose({
@@ -785,7 +802,7 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+      getMockContext({ authData: getMockAuthData(consumerDelegate.id, userId) })
     );
 
     const createdPurposeVersion =
@@ -811,6 +828,7 @@ describe("createPurposeVersion", () => {
       consumerDelegationId: consumerDelegation.id,
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
+      userId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -847,6 +865,7 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 24,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
     const expectedPurpose: Purpose = sortPurpose({
