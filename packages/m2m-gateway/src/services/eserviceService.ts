@@ -34,7 +34,6 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
-import { toM2MGatewayApiDocument } from "../api/documentApiConverter.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 

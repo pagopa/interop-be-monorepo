@@ -474,6 +474,7 @@ const eserviceTemplatesRouter = (
             ADMIN_ROLE,
             API_ROLE,
             SUPPORT_ROLE,
+            M2M_ROLE,
             M2M_ADMIN_ROLE,
           ]);
 

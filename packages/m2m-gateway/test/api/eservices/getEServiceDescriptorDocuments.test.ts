@@ -10,7 +10,7 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { DescriptorId, EServiceId, generateId } from "pagopa-interop-models";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { toM2MGatewayApiDocument } from "../../../src/api/documentApiConverter.js";
+import { toM2MGatewayApiDocument } from "../../../src/api/eserviceApiConverter.js";
 
 describe("GET /eservices/:eserviceId/descriptor/:descriptorId/documents route test", () => {
   const mockResponse: m2mGatewayApi.Documents = {
