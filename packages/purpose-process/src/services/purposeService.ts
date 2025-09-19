@@ -1917,13 +1917,13 @@ async function activatePurposeLogic({
 }> {
   // We generate the stamp in the transition draft -> active.
   // Instead, the transition waiting_for_approval -> active is performed by the producer,
-  // so in this case the stamp doesn't have to be generated
-  const stamps: PurposeVersionStamps | undefined =
-    fromState === purposeVersionState.draft
-      ? {
-          creation: { who: authData.userId, when: new Date() },
-        }
-      : purposeVersion.stamps;
+  // so in this case the stamp doesn't have to be regenerated
+  const stamps: PurposeVersionStamps | undefined = match(fromState)
+    .with(purposeVersionState.draft, () => ({
+      creation: { who: authData.userId, when: new Date() },
+    }))
+    .with(purposeVersionState.waitingForApproval, () => purposeVersion.stamps)
+    .exhaustive();
 
   const updatedPurposeVersion: PurposeVersion = {
     ...purposeVersion,
