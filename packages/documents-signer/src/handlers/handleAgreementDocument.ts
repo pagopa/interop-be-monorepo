@@ -8,7 +8,7 @@ import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
 import { config, safeStorageApiConfig } from "../config/config.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
 
-export async function handleAgreementContract(
+export async function handleAgreementDocument(
   decodedMessage:
     | AgreementEventEnvelopeV2
     | {
@@ -58,10 +58,10 @@ export async function handleAgreementContract(
         await dbService.saveDocumentReference({
           safeStorageKey: key,
           fileKind: "AGREEMENT_CONTRACT",
-          streamId: event.stream_id,
+          streamId: event.data.agreement.id,
           subObjectId: "",
           fileName,
-          version: event.version,
+          version: event.event_version,
         });
       }
     })
