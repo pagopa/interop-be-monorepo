@@ -11608,6 +11608,8 @@ components:
         templateId:
           type: string
           format: uuid
+        personalData:
+          type: boolean
       required:
         - id
         - producerId
@@ -11637,6 +11639,8 @@ components:
         isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
+          type: boolean
+        personalData:
           type: boolean
     EServiceDescriptor:
       type: object
@@ -11961,6 +11965,8 @@ components:
         isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
+          type: boolean
+        personalData:
           type: boolean
     EServiceNameUpdateSeed:
       type: object

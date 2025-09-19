@@ -61,6 +61,7 @@ describe("update eService", () => {
       .with(true, () => randomArrayItem([false, true, undefined]))
       .with(false, () => false)
       .exhaustive();
+    const personalData = randomArrayItem([false, true]);
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -84,6 +85,7 @@ describe("update eService", () => {
         isSignalHubEnabled,
         isConsumerDelegable,
         isClientAccessDelegable,
+        personalData,
       },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
@@ -94,6 +96,7 @@ describe("update eService", () => {
       isSignalHubEnabled,
       isConsumerDelegable,
       isClientAccessDelegable,
+      personalData,
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);

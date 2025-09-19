@@ -112,13 +112,30 @@ export type FeatureFlagNotificationConfig = z.infer<
   typeof FeatureFlagNotificationConfig
 >;
 
+export const FeatureFlagEServicePersonalDataConfig = z
+  .object({
+    FEATURE_FLAG_ESERVICE_PERSONAL_DATA: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagEservicePersonalData:
+      c.FEATURE_FLAG_ESERVICE_PERSONAL_DATA ?? false,
+  }));
+export type FeatureFlagEServicePersonalDataConfig = z.infer<
+  typeof FeatureFlagEServicePersonalDataConfig
+>;
+
 type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
   FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagSQLConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
-  FeatureFlagNotificationConfig;
+  FeatureFlagNotificationConfig &
+  FeatureFlagEServicePersonalDataConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 

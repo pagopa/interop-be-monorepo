@@ -2609,6 +2609,8 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        personalData:
+          type: boolean
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2636,6 +2638,8 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        personalData:
+          type: boolean
     PatchUpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2657,6 +2661,8 @@ components:
         isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
+          type: boolean
+        personalData:
           type: boolean
     UpdateEServiceTemplateInstanceSeed:
       type: object
