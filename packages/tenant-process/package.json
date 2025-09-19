@@ -5,8 +5,7 @@
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test:integration": "echo \"SQL readmodel\" && vitest --config vitest.integrationsql.config.ts",
-    "test:integration:old": "echo \"Old readmodel\" && vitest --config vitest.integration.config.ts ",
+    "test:integration": "vitest --config vitest.integration.config.ts",
     "test:api": "vitest --config vitest.api.config.ts",
     "test": "pnpm test:api && pnpm test:integration",
     "lint": "eslint . --ext .ts,.tsx",

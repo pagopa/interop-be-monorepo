@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test:api": "vitest --config vitest.api.config.ts",
-    "test:integration": "vitest --config vitest.integrationsql.config.ts",
+    "test:integration": "vitest --config vitest.integration.config.ts",
     "test": "pnpm test:api && pnpm test:integration",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
