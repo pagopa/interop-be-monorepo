@@ -1,18 +1,13 @@
-import { AttributeEventEnvelope, dateToString } from "pagopa-interop-models";
+import { AttributeM2MEvent, dateToString } from "pagopa-interop-models";
 import { AttributeM2MEventSQL } from "pagopa-interop-m2m-event-db-models";
-import { generateM2MEventId } from "../utils/uuidv7.js";
 
-export function toNewAttributeM2MEventSQL(
-  event: Extract<
-    AttributeEventEnvelope,
-    { type: "AttributeAdded" | "MaintenanceAttributeDeleted" }
-  >,
-  eventTimestamp: Date
+export function toAttributeM2MEventSQL(
+  event: AttributeM2MEvent
 ): AttributeM2MEventSQL {
   return {
-    id: generateM2MEventId(),
-    eventType: event.type,
-    eventTimestamp: dateToString(eventTimestamp),
-    attributeId: event.stream_id,
+    id: event.id,
+    eventType: event.eventType,
+    eventTimestamp: dateToString(event.eventTimestamp),
+    attributeId: event.attributeId,
   };
 }
