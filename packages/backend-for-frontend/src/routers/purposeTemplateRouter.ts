@@ -10,6 +10,7 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
+import { getCatalogPurposeTemplatesErrorMapper } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -84,7 +85,7 @@ const purposeTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getCatalogPurposeTemplatesErrorMapper,
           ctx,
           "Error retrieving catalog purpose templates"
         );
