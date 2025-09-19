@@ -79,7 +79,7 @@ describe("API /events/attributes test", () => {
   it.each([
     {},
     { ...mockQueryParams, limit: 0 },
-    { ...mockQueryParams, limit: 51 },
+    { ...mockQueryParams, limit: 501 },
     { ...mockQueryParams, limit: "invalidLimit" },
     { ...mockQueryParams, limit: undefined },
     { ...mockQueryParams, lastEventId: -1 },
