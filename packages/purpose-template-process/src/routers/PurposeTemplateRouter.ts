@@ -22,6 +22,7 @@ import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   createPurposeTemplateErrorMapper,
+  getPurposeTemplateErrorMapper,
   getPurposeTemplatesErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
@@ -56,8 +57,8 @@ const purposeTemplateRouter = (
         validateAuthorization(ctx, [
           ADMIN_ROLE,
           API_ROLE,
-          M2M_ROLE,
           M2M_ADMIN_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
         ]);
@@ -121,12 +122,49 @@ const purposeTemplateRouter = (
 
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
-          M2M_ROLE,
+          API_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
+        ]);
+
+        const { data: purposeTemplate, metadata } =
+          await purposeTemplateService.getPurposeTemplateById(
+            unsafeBrandId(req.params.id),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            purposeTemplateApi.PurposeTemplate.parse(
+              purposeTemplateToApiPurposeTemplate(purposeTemplate)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/purposeTemplates/:id", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          M2M_ADMIN_ROLE,
+          M2M_ROLE,
+          SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
 
         await purposeTemplateService.getPurposeTemplateById(
@@ -162,12 +200,12 @@ const purposeTemplateRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
-          M2M_ROLE,
+          API_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
       } catch (error) {
         return res.status(501);
