@@ -1,8 +1,13 @@
-import { AttributeEventEnvelope } from "pagopa-interop-models";
+import {
+  AttributeEventEnvelope,
+  fromAttributeV1,
+  missingKafkaMessageDataError,
+} from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
-import { toNewAttributeM2MEventSQL } from "../models/attributeM2MEventAdapterSQL.js";
+import { toAttributeM2MEventSQL } from "../models/attributeM2MEventAdapterSQL.js";
+import { createAttributeM2MEvent } from "../models/attributeM2MEventBuilder.js";
 
 export async function handleAttributeEvent(
   decodedMessage: AttributeEventEnvelope,
@@ -13,16 +18,32 @@ export async function handleAttributeEvent(
   return match(decodedMessage)
     .with(
       {
-        type: P.union("AttributeAdded", "MaintenanceAttributeDeleted"),
+        type: P.union("AttributeAdded"),
       },
       async (event) => {
-        const m2mEvent = toNewAttributeM2MEventSQL(event, eventTimestamp);
+        if (!event.data.attribute) {
+          throw missingKafkaMessageDataError("attribute", event.type);
+        }
+        const attribute = fromAttributeV1(event.data.attribute);
         logger.info(
-          `Writing AttributeM2MEvent with ID ${m2mEvent.id}, type ${m2mEvent.eventType}, attributeId ${m2mEvent.attributeId}`
+          `Creating Attribute M2M Event - type ${event.type}, attributeId ${attribute.id}`
+        );
+        const m2mEvent = createAttributeM2MEvent(
+          attribute,
+          event.type,
+          eventTimestamp
         );
 
-        await m2mEventWriterService.insertAttributeM2MEvent(m2mEvent);
+        await m2mEventWriterService.insertAttributeM2MEvent(
+          toAttributeM2MEventSQL(m2mEvent)
+        );
       }
+    )
+    .with(
+      {
+        type: P.union("MaintenanceAttributeDeleted"),
+      },
+      () => Promise.resolve(void 0)
     )
     .exhaustive();
 }

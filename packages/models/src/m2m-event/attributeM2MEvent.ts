@@ -2,8 +2,7 @@ import { z } from "zod";
 import { AttributeId, AttributeM2MEventId } from "../brandedIds.js";
 import { AttributeEvent } from "../attribute/attributeEvents.js";
 
-const AttributeM2MEventType = z.literal("AttributeAdded");
-// ^ Convert into a z.union([...]) if supporting more event types
+export const AttributeM2MEventType = z.enum(["AttributeAdded"]);
 export type AttributeM2MEventType = z.infer<typeof AttributeM2MEventType>;
 
 const _: AttributeEvent["type"] = {} as AttributeM2MEventType;
