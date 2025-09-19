@@ -7,6 +7,7 @@ import {
   ApplicationAuditProducerConfig,
   FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
+  FeatureFlagEServicePersonalDataConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -31,7 +32,8 @@ const EServiceTemplateProcessConfig = CommonHTTPServiceConfig.and(
   )
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig.optional());
+  .and(ReadModelSQLDbConfig.optional())
+  .and(FeatureFlagEServicePersonalDataConfig);
 
 export type EServiceTemplateProcessConfig = z.infer<
   typeof EServiceTemplateProcessConfig
