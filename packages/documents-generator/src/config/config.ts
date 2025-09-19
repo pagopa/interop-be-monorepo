@@ -32,11 +32,13 @@ export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
         SERVICE_NAME: z.string(),
         DELEGATION_DOCUMENT_PATH: z.string(),
         AGREEMENT_DOCUMENT_PATH: z.string(),
+        RISK_ANALYSYS_DOCUMENT_PATH: z.string(),
       })
       .transform((c) => ({
         serviceName: c.SERVICE_NAME,
         delegationDocumentPath: c.DELEGATION_DOCUMENT_PATH,
         agreementContractsPath: c.AGREEMENT_DOCUMENT_PATH,
+        riskAnalysisDocumentsPath: c.RISK_ANALYSYS_DOCUMENT_PATH,
       }))
   );
 

@@ -2620,6 +2620,9 @@ importers:
       drizzle-orm:
         specifier: 0.39.3
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      handlebars:
+        specifier: 4.7.8
+        version: 4.7.8
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.862.0)(socks@2.8.6)
