@@ -25,7 +25,6 @@ import {
   isPolledVersionAtLeastResponseVersion,
   isPolledVersionAtLeastMetadataTargetVersion,
 } from "../utils/polling.js";
-import { toM2MGatewayApiDocument } from "../api/documentApiConverter.js";
 import { uploadEServiceTemplateDocument } from "../utils/fileUpload.js";
 
 export type EserviceTemplateService = ReturnType<
@@ -65,24 +64,6 @@ export function eserviceTemplateServiceBuilder(
       },
       headers,
     });
-  const retrieveEServiceTemplateVersionById = (
-    eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
-    versionId: EServiceTemplateVersionId
-  ): eserviceTemplateApi.EServiceTemplateVersion => {
-    const version = eserviceTemplate.data.versions.find(
-      (v) => v.id === versionId
-    );
-
-    if (!version) {
-      throw eserviceTemplateVersionNotFound(
-        unsafeBrandId(eserviceTemplate.data.id),
-        versionId
-      );
-    }
-
-    return version;
-  };
-
   const retrieveEServiceTemplateVersionById = (
     eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
     versionId: EServiceTemplateVersionId
