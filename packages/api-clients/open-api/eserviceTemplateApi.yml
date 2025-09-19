@@ -987,6 +987,9 @@ paths:
             format: uuid
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: EService Template Risk Analysis deleted.
         "403":
           description: Forbidden

@@ -317,6 +317,31 @@ const eserviceTemplateRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .delete(
+      "/eserviceTemplates/:templateId/riskAnalyses/:riskAnalysisId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await eserviceTemplateService.deleteEServiceTemplateRiskAnalysis(
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error deleting risk analysis ${req.params.riskAnalysisId} for eservice template with id ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
 
   return eserviceTemplateRouter;
