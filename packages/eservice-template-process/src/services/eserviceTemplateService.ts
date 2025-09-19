@@ -1222,6 +1222,9 @@ export function eserviceTemplateServiceBuilder(
         createdAt: creationDate,
         riskAnalysis: [],
         isSignalHubEnabled: seed.isSignalHubEnabled,
+        ...(config.featureFlagEservicePersonalData
+          ? { personalData: seed.personalData }
+          : {}),
       };
 
       const eserviceTemplateCreationEvent = toCreateEventEServiceTemplateAdded(
@@ -1303,6 +1306,9 @@ export function eserviceTemplateServiceBuilder(
             }))
           : eserviceTemplate.data.versions,
         isSignalHubEnabled: eserviceTemplateSeed.isSignalHubEnabled,
+        ...(config.featureFlagEservicePersonalData
+          ? { personalData: eserviceTemplateSeed.personalData }
+          : {}),
       };
 
       const event = toCreateEventEServiceTemplateDraftUpdated(
