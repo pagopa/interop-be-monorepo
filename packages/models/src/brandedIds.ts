@@ -263,6 +263,7 @@ export const IDS = z.union([
   RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   AttributeM2MEventId,
+  EServiceM2MEventId,
 ]);
 export type IDS = z.infer<typeof IDS>;
 
