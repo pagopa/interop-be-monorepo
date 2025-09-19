@@ -115,6 +115,10 @@ import {
   purposeTemplateState,
   PurposeTemplateState,
   PurposeTemplateV2,
+  RiskAnalysisTemplateSingleAnswer,
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswerV2,
+  RiskAnalysisTemplateMultiAnswerV2,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -1066,6 +1070,31 @@ export const sortPurpose = <
   }
 };
 
+const sortRiskAnalysisTemplateAnswers = <
+  T extends
+    | RiskAnalysisTemplateSingleAnswer
+    | RiskAnalysisTemplateSingleAnswerV2
+    | RiskAnalysisTemplateMultiAnswer
+    | RiskAnalysisTemplateMultiAnswerV2
+>(
+  answers: T[]
+): T[] =>
+  [...answers]
+    .map((answer) => ({
+      ...answer,
+      ...(answer.annotation && {
+        annotation: {
+          ...answer.annotation,
+          docs: [...answer.annotation.docs].sort(sortBy((doc) => doc.id)),
+        },
+      }),
+      ...("suggestedValues" in answer &&
+        answer.suggestedValues && {
+          suggestedValues: [...answer.suggestedValues].sort(),
+        }),
+    }))
+    .sort(sortBy((a) => a.key));
+
 export const sortPurposeTemplate = <
   T extends
     | PurposeTemplate
@@ -1089,43 +1118,20 @@ export const sortPurposeTemplate = <
         ? {
             purposeRiskAnalysisForm: {
               ...purposeTemplate.purposeRiskAnalysisForm,
-              singleAnswers: [
-                ...purposeTemplate.purposeRiskAnalysisForm.singleAnswers.map(
+              singleAnswers: sortRiskAnalysisTemplateAnswers(
+                purposeTemplate.purposeRiskAnalysisForm.singleAnswers.map(
                   (answer) => ({
                     ...answer,
-                    ...(answer.annotation
-                      ? {
-                          annotation: {
-                            ...answer.annotation,
-                            docs: [...answer.annotation.docs].sort(
-                              sortBy((doc) => doc.id)
-                            ),
-                          },
-                        }
-                      : {}),
-                    ...(answer.suggestedValues
-                      ? { suggestedValues: [...answer.suggestedValues].sort() }
-                      : {}),
                   })
-                ),
-              ].sort(sortBy((answer) => answer.key)),
-              multiAnswers: [
-                ...purposeTemplate.purposeRiskAnalysisForm.multiAnswers.map(
+                )
+              ),
+              multiAnswers: sortRiskAnalysisTemplateAnswers(
+                purposeTemplate.purposeRiskAnalysisForm.multiAnswers.map(
                   (answer) => ({
                     ...answer,
-                    ...(answer.annotation
-                      ? {
-                          annotation: {
-                            ...answer.annotation,
-                            docs: [...answer.annotation.docs].sort(
-                              sortBy((doc) => doc.id)
-                            ),
-                          },
-                        }
-                      : {}),
                   })
-                ),
-              ].sort(sortBy((answer) => answer.key)),
+                )
+              ),
             },
           }
         : {}),
