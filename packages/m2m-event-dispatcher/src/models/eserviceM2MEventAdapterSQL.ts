@@ -5,7 +5,6 @@ import {
 } from "pagopa-interop-models";
 import { EServiceM2MEventSQL } from "pagopa-interop-m2m-event-db-models";
 import { match } from "ts-pattern";
-import { generateM2MEventId } from "../utils/uuidv7.js";
 
 export function toEServiceM2MEventSQL(
   event: EServiceM2MEvent
@@ -26,7 +25,7 @@ export function toEServiceM2MEventSQL(
     .exhaustive();
 
   return {
-    id: generateM2MEventId(),
+    id: event.id,
     eventType: event.eventType,
     eventTimestamp: dateToString(event.eventTimestamp),
     eserviceId: event.eserviceId,
