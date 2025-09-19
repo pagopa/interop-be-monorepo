@@ -1520,6 +1520,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/PatchAttributesSeed"
     UpdateEServiceTemplateVersionQuotasSeed:
       type: object
       additionalProperties: false
@@ -1608,6 +1610,26 @@ components:
         - certified
         - declared
         - verified
+    PatchAttributesSeed:
+      properties:
+        certified:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
+        declared:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
+        verified:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
     AttributeSeed:
       type: object
       additionalProperties: false

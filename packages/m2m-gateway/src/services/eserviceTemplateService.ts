@@ -277,7 +277,10 @@ export function eserviceTemplateServiceBuilder(
 
       const response =
         await clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
-          seed,
+          {
+            ...seed,
+            attributes: undefined,
+          },
           {
             params: { templateId, templateVersionId: versionId },
             headers,

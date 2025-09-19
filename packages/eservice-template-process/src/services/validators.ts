@@ -16,6 +16,7 @@ import {
   operationForbidden,
   TenantId,
   eserviceMode,
+  EServiceTemplateVersionId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -27,6 +28,7 @@ import {
   eserviceTemplateDuplicate,
   missingRiskAnalysis,
   riskAnalysisValidationFailed,
+  notValidEServiceTemplateVersionState,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -97,6 +99,19 @@ export function assertConsistentDailyCalls({
     dailyCallsPerConsumer > dailyCallsTotal
   ) {
     throw inconsistentDailyCalls();
+  }
+}
+
+export function assertEServiceTemplateVersionState(
+  eserviceTemplateVersionId: EServiceTemplateVersionId,
+  eserviceTemplateVersion: EServiceTemplateVersion,
+  allowedStates: Array<EServiceTemplateVersion["state"]>
+): void {
+  if (!allowedStates.includes(eserviceTemplateVersion.state)) {
+    throw notValidEServiceTemplateVersionState(
+      eserviceTemplateVersionId,
+      eserviceTemplateVersion.state
+    );
   }
 }
 
