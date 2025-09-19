@@ -101,6 +101,7 @@ import {
   checksumDuplicate,
   attributeDuplicatedInGroup,
   eservicePersonalDataCanOnlyBeSetOnce,
+  eservicePersonalDataMustBeSet,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -1628,6 +1629,10 @@ export function catalogServiceBuilder(
 
       if (descriptor.audience.length === 0) {
         throw audienceCannotBeEmpty(descriptor.id);
+      }
+
+      if (eservice.data.personalData === undefined) {
+        throw eservicePersonalDataMustBeSet(eserviceId, descriptorId);
       }
 
       if (producerDelegation) {

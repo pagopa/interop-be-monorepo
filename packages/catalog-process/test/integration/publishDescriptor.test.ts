@@ -72,6 +72,7 @@ describe("publish descriptor", () => {
       ...mockEService,
       mode: eserviceMode.deliver,
       descriptors: [descriptor],
+      personalData: false,
     };
     await addOneEService(eservice);
     const publishDescriptorResponse = await catalogService.publishDescriptor(
@@ -134,6 +135,7 @@ describe("publish descriptor", () => {
       mode: eserviceMode.receive,
       descriptors: [descriptor],
       riskAnalysis: [riskAnalysis],
+      personalData: false,
     };
 
     await addOneTenant(producer);
@@ -199,6 +201,7 @@ describe("publish descriptor", () => {
       mode: eserviceMode.receive,
       descriptors: [descriptor],
       riskAnalysis: [riskAnalysis],
+      personalData: false,
     };
 
     const delegate = {
@@ -268,6 +271,7 @@ describe("publish descriptor", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor1, descriptor2],
+      personalData: false,
     };
     await addOneEService(eservice);
     await catalogService.publishDescriptor(
