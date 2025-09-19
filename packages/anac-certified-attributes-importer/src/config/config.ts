@@ -1,7 +1,6 @@
 import {
   APIEndpoint,
   LoggerConfig,
-  ReadModelDbConfig,
   ReadModelSQLDbConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
@@ -9,7 +8,7 @@ import { z } from "zod";
 import { SftpConfig } from "./sftpConfig.js";
 
 const AnacCertifiedAttributesImporterConfig = LoggerConfig.and(
-  ReadModelDbConfig
+  ReadModelSQLDbConfig
 )
   .and(SftpConfig)
   .and(TokenGenerationConfig)
@@ -25,8 +24,7 @@ const AnacCertifiedAttributesImporterConfig = LoggerConfig.and(
         recordsProcessBatchSize: c.RECORDS_PROCESS_BATCH_SIZE,
         anacTenantId: c.ANAC_TENANT_ID,
       }))
-  )
-  .and(ReadModelSQLDbConfig);
+  );
 
 export type AnacCertifiedAttributesImporterConfig = z.infer<
   typeof AnacCertifiedAttributesImporterConfig

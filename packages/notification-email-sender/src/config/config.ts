@@ -1,7 +1,6 @@
 import {
   AgreementTopicConfig,
   KafkaConsumerConfig,
-  ReadModelDbConfig,
   AWSSesConfig,
   PurposeTopicConfig,
   CatalogTopicConfig,
@@ -36,14 +35,13 @@ export const NotificationEmailSenderRedisConfig = z
   }));
 
 export const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
-  ReadModelDbConfig
+  ReadModelSQLDbConfig
 )
   .and(AgreementTopicConfig)
   .and(AWSSesConfig)
   .and(SESEmailSenderConfig)
   .and(PurposeTopicConfig)
   .and(CatalogTopicConfig)
-  .and(ReadModelSQLDbConfig.optional())
   .and(NotificationEmailSenderRedisConfig);
 
 export type NotificationEmailSenderConfig = z.infer<

@@ -10,7 +10,6 @@ import {
   DPoPConfig,
   EventStoreConfig,
   FileManagerConfig,
-  ReadModelDbConfig,
   ReadModelSQLDbConfig,
   RedisRateLimiterConfig,
   S3Config,
@@ -50,7 +49,6 @@ import {
 
 declare module "vitest" {
   export interface ProvidedContext {
-    readModelConfig?: ReadModelDbConfig;
     readModelSQLConfig?: ReadModelSQLDbConfig;
     tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;

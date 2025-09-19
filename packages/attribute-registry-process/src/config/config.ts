@@ -1,13 +1,14 @@
 import {
   CommonHTTPServiceConfig,
-  ReadModelDbConfig,
   EventStoreConfig,
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const AttributeRegistryConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
+const AttributeRegistryConfig = CommonHTTPServiceConfig.and(
+  ReadModelSQLDbConfig
+)
   .and(EventStoreConfig)
   .and(
     z.object({ PRODUCER_ALLOWED_ORIGINS: z.string() }).transform((c) => ({
@@ -16,9 +17,7 @@ const AttributeRegistryConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
         .filter(Boolean),
     }))
   )
-  .and(ApplicationAuditProducerConfig)
-  .and(ReadModelSQLDbConfig);
-
+  .and(ApplicationAuditProducerConfig);
 export type AttributeRegistryConfig = z.infer<typeof AttributeRegistryConfig>;
 
 export const config: AttributeRegistryConfig = AttributeRegistryConfig.parse(

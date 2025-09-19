@@ -1,6 +1,5 @@
 import {
   CommonHTTPServiceConfig,
-  ReadModelDbConfig,
   FileManagerConfig,
   EventStoreConfig,
   S3Config,
@@ -10,7 +9,7 @@ import {
 import { z } from "zod";
 
 const EServiceTemplateProcessConfig = CommonHTTPServiceConfig.and(
-  ReadModelDbConfig
+  ReadModelSQLDbConfig
 )
   .and(FileManagerConfig)
   .and(S3Config)
@@ -28,8 +27,7 @@ const EServiceTemplateProcessConfig = CommonHTTPServiceConfig.and(
         eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
       }))
   )
-  .and(ApplicationAuditProducerConfig)
-  .and(ReadModelSQLDbConfig.optional());
+  .and(ApplicationAuditProducerConfig);
 
 export type EServiceTemplateProcessConfig = z.infer<
   typeof EServiceTemplateProcessConfig

@@ -1,14 +1,12 @@
 import {
   LoggerConfig,
-  ReadModelDbConfig,
   ReadModelSQLDbConfig,
   TokenGenerationReadModelDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const TokenReadModelCheckerConfig = LoggerConfig.and(ReadModelDbConfig)
+const TokenReadModelCheckerConfig = LoggerConfig.and(ReadModelSQLDbConfig)
   .and(TokenGenerationReadModelDbConfig)
-  .and(ReadModelSQLDbConfig.optional())
   .and(
     z
       .object({
