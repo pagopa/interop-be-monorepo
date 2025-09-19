@@ -4,6 +4,7 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
+import { PurposeTemplateId } from "pagopa-interop-models";
 import {
   PurposeTemplateProcessClient,
   TenantProcessClient,
@@ -14,6 +15,7 @@ import {
   toBffCreatorPurposeTemplate,
 } from "../api/purposeTemplateApiConverter.js";
 import { tenantNotFound } from "../model/errors.js";
+import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
@@ -131,6 +133,41 @@ export function purposeTemplateServiceBuilder(
           totalCount: catalogPurposeTemplatesResponse.totalCount,
         },
       };
+    },
+    async getPurposeTemplate(
+      id: PurposeTemplateId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplate> {
+      logger.info(`Retrieving Purpose Template ${id}`);
+
+      const result = await purposeTemplateClient.getPurposeTemplate({
+        params: {
+          id,
+        },
+        headers,
+      });
+
+      const creator = await tenantProcessClient.tenant.getTenant({
+        params: {
+          id: result.creatorId,
+        },
+        headers,
+      });
+      if (!creator) {
+        throw tenantNotFound(result.creatorId);
+      }
+
+      const annotationDocuments = result.purposeRiskAnalysisForm
+        ? Object.values(result.purposeRiskAnalysisForm.answers).flatMap(
+            (answer) => (answer.annotation ? answer.annotation.docs : [])
+          )
+        : [];
+
+      return bffApi.PurposeTemplate.parse({
+        ...result,
+        creator: toBffCompactOrganization(creator),
+        annotationDocuments,
+      });
     },
   };
 }
