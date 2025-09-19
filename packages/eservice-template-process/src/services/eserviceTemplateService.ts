@@ -741,8 +741,12 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       seed: eserviceTemplateApi.UpdateEServiceTemplateVersionQuotasSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Updating e-service template version quotas of EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`
       );
@@ -795,7 +799,7 @@ export function eserviceTemplateServiceBuilder(
           updatedEserviceTemplateVersion
         );
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateVersionQuotasUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
@@ -805,7 +809,10 @@ export function eserviceTemplateServiceBuilder(
         )
       );
 
-      return updatedEserviceTemplate;
+      return {
+        data: updatedEserviceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async getEServiceTemplateById(
       eserviceTemplateId: EServiceTemplateId,
