@@ -10,6 +10,8 @@ export const errorCodes = {
   purposeTemplateNameConflict: "0002",
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
+  purposeTemplateNotInDraftState: "0005",
+  tenantNotAllowed: "0006",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -52,5 +54,23 @@ export function riskAnalysisTemplateValidationFailed(
     detail: `Risk analysis template validation failed. Reasons: ${reasons}`,
     code: "riskAnalysisTemplateValidationFailed",
     title: "Risk analysis template validation failed",
+  });
+}
+
+export function purposeTemplateNotInDraftState(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose template ${purposeTemplateId} is not in draft state`,
+    code: "purposeTemplateNotInDraftState",
+    title: "Purpose template not in draft state",
+  });
+}
+
+export function tenantNotAllowed(tenantId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation`,
+    code: "tenantNotAllowed",
+    title: "Operation not allowed",
   });
 }

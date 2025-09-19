@@ -4,9 +4,12 @@ import {
 } from "pagopa-interop-commons";
 import {
   generateId,
+  PurposeTemplateId,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  RiskAnalysisTemplateAnswerAnnotationId,
   TenantKind,
   tenantKind,
 } from "pagopa-interop-models";
@@ -278,19 +281,36 @@ export const getMockValidRiskAnalysisFormTemplate = (
     )
     .exhaustive();
 
-export const getMockRiskAnalysisTemplateAnswerAnnotationDocument =
-  (): RiskAnalysisTemplateAnswerAnnotationDocument => ({
-    id: generateId(),
-    name: "fileName",
-    prettyName: "prettyName",
-    contentType: "json",
-    path: "filePath",
-    createdAt: new Date(),
-  });
+export const getMockRiskAnalysisTemplateAnswerAnnotationDocument = (
+  id: RiskAnalysisTemplateAnswerAnnotationDocumentId = generateId(),
+  purposeTemplateId: PurposeTemplateId = generateId(),
+  basePath: string = "purposeTemplateAnnotationsPath",
+  name: string = `Document-${id}`
+): RiskAnalysisTemplateAnswerAnnotationDocument => ({
+  id,
+  name,
+  path: `${basePath}/${purposeTemplateId}/${id}/${name}`,
+  prettyName: "prettyName",
+  contentType: "application/pdf",
+  createdAt: new Date(),
+});
 
-export const getMockRiskAnalysisTemplateAnswerAnnotation =
-  (): RiskAnalysisTemplateAnswerAnnotation => ({
-    id: generateId(),
-    text: "Risk analysis template answer annotation text",
-    docs: [],
-  });
+export const getMockRiskAnalysisTemplateAnswerAnnotation = (
+  id: RiskAnalysisTemplateAnswerAnnotationId = generateId(),
+  docNumber: number = 0
+): RiskAnalysisTemplateAnswerAnnotation => ({
+  id,
+  text: "Do people have the right to be happy, or should they earn it?",
+  docs: Array.from({ length: docNumber }, () =>
+    getMockRiskAnalysisTemplateAnswerAnnotationDocument()
+  ),
+});
+
+export const getMockRiskAnalysisTemplateAnswerAnnotationWithDocs = (
+  id: RiskAnalysisTemplateAnswerAnnotationId = generateId(),
+  docs: RiskAnalysisTemplateAnswerAnnotationDocument[]
+): RiskAnalysisTemplateAnswerAnnotation => ({
+  id,
+  text: "Do people have the right to be happy, or should they earn it?",
+  docs,
+});
