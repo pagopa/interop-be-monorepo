@@ -11,6 +11,7 @@ import {
   Delegation,
   delegationKind,
   delegationState,
+  DelegationId,
 } from "pagopa-interop-models";
 import {
   CatalogReadModelService,
@@ -115,6 +116,22 @@ export function readModelServiceBuilderSQL({
           )
         );
       return delegation?.data;
+    },
+    async getActiveConsumerDelegationByDelegationId(
+      delegationId: DelegationId
+    ): Promise<Delegation | undefined> {
+      return (
+        await delegationReadModelServiceSQL.getDelegationByFilter(
+          and(
+            eq(delegationInReadmodelDelegation.id, delegationId),
+            eq(delegationInReadmodelDelegation.state, delegationState.active),
+            eq(
+              delegationInReadmodelDelegation.kind,
+              delegationKind.delegatedConsumer
+            )
+          )
+        )
+      )?.data;
     },
   };
 }

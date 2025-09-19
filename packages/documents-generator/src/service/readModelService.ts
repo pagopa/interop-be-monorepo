@@ -1,6 +1,7 @@
 import {
   AttributeCollection,
   DelegationCollection,
+  ReadModelFilter,
   ReadModelRepository,
 } from "pagopa-interop-commons";
 import {
@@ -10,6 +11,7 @@ import {
   AttributeId,
   AttributeReadmodel,
   Delegation,
+  DelegationId,
   delegationKind,
   DelegationReadModel,
   delegationState,
@@ -176,6 +178,15 @@ export function readModelServiceBuilder(
         "data.state": delegationState.active,
         "data.kind": delegationKind.delegatedConsumer,
       });
+    },
+    async getActiveConsumerDelegationByDelegationId(
+      delegationId: DelegationId
+    ): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.id": delegationId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedConsumer,
+      } satisfies ReadModelFilter<Delegation>);
     },
   };
 }

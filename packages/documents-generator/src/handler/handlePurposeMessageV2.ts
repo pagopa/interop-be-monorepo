@@ -1,13 +1,33 @@
-import { PurposeEventEnvelopeV2 } from "pagopa-interop-models";
+import {
+  eserviceMode,
+  fromPurposeV2,
+  genericInternalError,
+  PurposeEventEnvelopeV2,
+  Tenant,
+  TenantKind,
+} from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { FileManager, Logger, PDFGenerator } from "pagopa-interop-commons";
+import {
+  FileManager,
+  getIpaCode,
+  Logger,
+  PDFGenerator,
+} from "pagopa-interop-commons";
 import { ReadModelService } from "../service/readModelService.js";
+import {
+  retrieveEService,
+  retrievePurposeDelegation,
+  retrieveTenant,
+} from "../service/purpose/purposeService.js";
+import { config } from "../config/config.js";
+import { PurposeDocumentEServiceInfo } from "../model/purposeModels.js";
+import { riskAnalysisDocumentBuilder } from "../service/purpose/purposeContractBuilder.js";
 
 export async function handlePurposeMessageV2(
   decodedMessage: PurposeEventEnvelopeV2,
-  _pdfGenerator: PDFGenerator,
-  _fileManager: FileManager,
-  _readModelService: ReadModelService,
+  pdfGenerator: PDFGenerator,
+  fileManager: FileManager,
+  readModelService: ReadModelService,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -20,7 +40,77 @@ export async function handlePurposeMessageV2(
         ),
       },
       async (msg): Promise<void> => {
-        logger.info(`purpose event ${msg.type} handled successfully`);
+        if (!msg.data.purpose) {
+          throw new Error(`Purpose can't be missing on event message`);
+        }
+        const purpose = fromPurposeV2(msg.data.purpose);
+        const purposeVersion = purpose.versions[purpose.versions.length - 1];
+
+        const eservice = await retrieveEService(
+          purpose.eserviceId,
+          readModelService
+        );
+        if (!eservice) {
+          throw new Error(`Eservice ${purpose.eserviceId} is missing`); // todo handle error
+        }
+        const [producer, consumer, producerDelegation, consumerDelegation] =
+          await Promise.all([
+            retrieveTenant(eservice?.data.producerId, readModelService),
+            retrieveTenant(purpose.consumerId, readModelService),
+            readModelService.getActiveProducerDelegationByEserviceId(
+              purpose.eserviceId
+            ),
+            retrievePurposeDelegation(purpose, readModelService),
+          ]);
+
+        const [producerDelegate, consumerDelegate] = await Promise.all([
+          producerDelegation &&
+            retrieveTenant(producerDelegation.delegateId, readModelService),
+          consumerDelegation &&
+            retrieveTenant(consumerDelegation.delegateId, readModelService),
+        ]);
+
+        const eserviceInfo: PurposeDocumentEServiceInfo = {
+          name: eservice.data.name,
+          mode: eservice.data.mode,
+          producerName: producer.name,
+          producerIpaCode: getIpaCode(producer),
+          consumerName: consumer.name,
+          consumerIpaCode: getIpaCode(consumer),
+          producerDelegationId: producerDelegation?.id,
+          producerDelegateName: producerDelegate?.name,
+          producerDelegateIpaCode:
+            producerDelegate && getIpaCode(producerDelegate),
+          consumerDelegationId: consumerDelegation?.id,
+          consumerDelegateName: consumerDelegate?.name,
+          consumerDelegateIpaCode:
+            consumerDelegate && getIpaCode(consumerDelegate),
+        };
+
+        function getTenantKind(tenant: Tenant): TenantKind {
+          if (!tenant.kind) {
+            throw genericInternalError(tenant.id); // todo handle right error;
+          }
+          return tenant.kind;
+        }
+
+        const tenantKind = match(eservice.data.mode)
+          .with(eserviceMode.deliver, () => getTenantKind(consumer))
+          .with(eserviceMode.receive, () => getTenantKind(producer))
+          .exhaustive();
+
+        await riskAnalysisDocumentBuilder(
+          pdfGenerator,
+          fileManager,
+          config,
+          logger
+        ).createRiskAnalysisDocument(
+          purpose,
+          purposeVersion.dailyCalls,
+          eserviceInfo,
+          tenantKind,
+          "it"
+        );
       }
     )
     .with(
