@@ -3,6 +3,8 @@ import {
   ApiError,
   makeApiProblemBuilder,
   PurposeTemplateId,
+  PurposeTemplateState,
+  TenantId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -10,6 +12,10 @@ export const errorCodes = {
   purposeTemplateNameConflict: "0002",
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
+  tenantNotAllowed: "0005",
+  purposeTemplateNotInExpectedState: "0006",
+  purposeTemplateStateConflict: "0007",
+  missingRiskAnalysisFormTemplate: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -52,5 +58,45 @@ export function riskAnalysisTemplateValidationFailed(
     detail: `Risk analysis template validation failed. Reasons: ${reasons}`,
     code: "riskAnalysisTemplateValidationFailed",
     title: "Risk analysis template validation failed",
+  });
+}
+
+export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because it's not the creator`,
+    code: "tenantNotAllowed",
+    title: "Tenant not allowed",
+  });
+}
+
+export function purposeTemplateNotInExpectedState(
+  purposeTemplateId: PurposeTemplateId,
+  state: PurposeTemplateState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template ${purposeTemplateId} not in expected state (current state: ${state})`,
+    code: "purposeTemplateNotInExpectedState",
+    title: "Purpose Template not in expected state",
+  });
+}
+
+export function purposeTemplateStateConflict(
+  purposeTemplateId: PurposeTemplateId,
+  state: PurposeTemplateState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template ${purposeTemplateId} is already in state ${state}`,
+    code: "purposeTemplateStateConflict",
+    title: "Purpose Template state conflict",
+  });
+}
+
+export function missingRiskAnalysisFormTemplate(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template ${purposeTemplateId} must contain a valid risk analysis form template`,
+    code: "missingRiskAnalysisFormTemplate",
+    title: "Missing risk analysis form template",
   });
 }
