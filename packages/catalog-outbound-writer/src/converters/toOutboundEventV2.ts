@@ -97,6 +97,7 @@ export function toOutboundEventV2(
       { type: "EServiceNameUpdatedByTemplateUpdate" },
       { type: "EServiceSignalHubEnabled" },
       { type: "EServiceSignalHubDisabled" },
+      { type: "EServicePersonalDataUpdatedAfterPublish" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -212,7 +213,6 @@ export function toOutboundEventV2(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceRiskAnalysisUpdated" },
-      { type: "EServicePersonalDataUpdatedAfterPublish" }, // TODO move to the first handler after outbound gets updated
       () => undefined
     )
     .exhaustive();
