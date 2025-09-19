@@ -40,16 +40,17 @@ export async function handleConsumerDelegationApproved(
 
   const delegation = fromDelegationV2(delegationV2Msg);
 
-  const [htmlTemplate, eservice, consumer] = await Promise.all([
+  const [htmlTemplate, eservice, delegator, delegate] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.consumerDelegationApprovedMailTemplate
     ),
     retrieveEService(delegation.eserviceId, readModelService),
+    retrieveTenant(delegation.delegatorId, readModelService),
     retrieveTenant(delegation.delegateId, readModelService),
   ]);
 
   const targets = await getRecipientsForTenants({
-    tenants: [consumer],
+    tenants: [delegator],
     notificationType,
     readModelService,
     userService,
@@ -59,7 +60,7 @@ export async function handleConsumerDelegationApproved(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Agreement ${delegation.id}, no emails to dispatch.`
+      `No targets found for tenant. Delegation ${delegation.id}, no emails to dispatch.`
     );
     return [];
   }
@@ -72,7 +73,8 @@ export async function handleConsumerDelegationApproved(
         title: `La tua richiesta di delega è stata accettata`,
         notificationType,
         entityId: delegation.id,
-        consumerName: consumer.name,
+        delegatorName: delegator.name,
+        delegateName: delegate.name,
         eserviceName: eservice.name,
       }),
     },
