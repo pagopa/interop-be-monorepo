@@ -1,5 +1,6 @@
 import {
   PurposeTemplate,
+  purposeTemplateState,
   PurposeTemplateState,
   RiskAnalysisFormTemplate,
   TenantKind,
@@ -17,6 +18,7 @@ import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInExpectedState,
+  purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../model/domain/errors.js";
@@ -100,12 +102,21 @@ export const assertRequesterIsCreator = (
 
 export const assertActivatableState = (
   purposeTemplate: PurposeTemplate,
-  allowedState: PurposeTemplateState
+  allowedState: PurposeTemplateState,
+  conflictState: PurposeTemplateState
 ): void => {
-  if (purposeTemplate.state !== allowedState) {
-    throw purposeTemplateNotInExpectedState(
-      purposeTemplate.id,
-      purposeTemplate.state
-    );
-  }
+  match(purposeTemplate)
+    .with({ state: conflictState }, () => {
+      throw purposeTemplateStateConflict(
+        purposeTemplate.id,
+        purposeTemplate.state
+      );
+    })
+    .with({ state: allowedState }, () => undefined)
+    .otherwise(() => {
+      throw purposeTemplateNotInExpectedState(
+        purposeTemplate.id,
+        purposeTemplate.state
+      );
+    });
 };

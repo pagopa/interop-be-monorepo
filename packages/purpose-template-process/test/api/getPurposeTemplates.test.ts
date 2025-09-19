@@ -3,7 +3,12 @@ import {
   generateToken,
   getMockPurposeTemplate,
 } from "pagopa-interop-commons-test";
-import { generateId, ListResult, PurposeTemplate } from "pagopa-interop-models";
+import {
+  generateId,
+  ListResult,
+  PurposeTemplate,
+  tenantKind,
+} from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import request from "supertest";
@@ -32,6 +37,7 @@ describe("API GET /purposeTemplates", () => {
     eserviceIds: generateId(),
     creatorIds: `${generateId()},${generateId()}`,
     states: "ACTIVE,DRAFT",
+    targetTenantKind: tenantKind.PA,
   };
 
   const purposeTemplates: ListResult<PurposeTemplate> = {
@@ -87,6 +93,15 @@ describe("API GET /purposeTemplates", () => {
     const token = generateToken(role);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 if an invalid targetTenantKind is passed", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, {
+      ...defaultQuery,
+      targetTenantKind: "invalid" as (typeof defaultQuery)["targetTenantKind"],
+    });
+    expect(res.status).toBe(400);
   });
 
   it.each([

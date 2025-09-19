@@ -87,6 +87,11 @@ paths:
             default: []
           explode: false
         - in: query
+          name: targetTenantKind
+          description: filter by target tenant kind
+          schema:
+            $ref: "#/components/schemas/TenantKind"
+        - in: query
           name: offset
           required: true
           schema:
@@ -550,6 +555,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
