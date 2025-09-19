@@ -1631,7 +1631,10 @@ export function catalogServiceBuilder(
         throw audienceCannotBeEmpty(descriptor.id);
       }
 
-      if (eservice.data.personalData === undefined) {
+      if (
+        config.featureFlagEservicePersonalData &&
+        eservice.data.personalData === undefined
+      ) {
         throw eservicePersonalDataMustBeSet(eserviceId, descriptorId);
       }
 
