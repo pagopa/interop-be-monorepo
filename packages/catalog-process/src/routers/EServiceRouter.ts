@@ -74,8 +74,10 @@ import {
   updateAgreementApprovalPolicyErrorMapper,
   updateEServiceSignalhubFlagErrorMapper,
   documentListErrorMapper,
+  updateEServicePersonalDataErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
+import { config } from "../config/config.js";
 
 const eservicesRouter = (
   ctx: ZodiosContext,
@@ -1468,7 +1470,37 @@ const eservicesRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/eservices/:eServiceId/personalData", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        if (config.featureFlagEservicePersonalData === false) {
+          return res.status(501);
+        }
+
+        const updatedEService =
+          await catalogService.updateEServicePersonalDataAfterPublish(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.personalData,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateEServicePersonalDataErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return eservicesRouter;
 };
