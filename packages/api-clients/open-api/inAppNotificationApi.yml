@@ -299,6 +299,34 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /notifications/byType:
+    get:
+      tags:
+        - notification
+      summary: Get all notifications by type
+      description: Returns a list of all notifications count grouped by notificationType
+      operationId: getNotificationsByType
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      responses:
+        "200":
+          description: A list of notifications count grouped by notificationType
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationsByType"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -378,8 +406,78 @@ components:
         - body
         - notificationType
         - entityId
-        - readAt
         - createdAt
+
+    NotificationsByType:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: object
+          properties:
+            agreementSuspendedUnsuspendedToProducer:
+              type: integer
+              format: int32
+            agreementManagementToProducer:
+              type: integer
+              format: int32
+            clientAddedRemovedToProducer:
+              type: integer
+              format: int32
+            purposeStatusChangedToProducer:
+              type: integer
+              format: int32
+            templateStatusChangedToProducer:
+              type: integer
+              format: int32
+            agreementSuspendedUnsuspendedToConsumer:
+              type: integer
+              format: int32
+            eserviceStateChangedToConsumer:
+              type: integer
+              format: int32
+            agreementActivatedRejectedToConsumer:
+              type: integer
+              format: int32
+            purposeActivatedRejectedToConsumer:
+              type: integer
+              format: int32
+            purposeSuspendedUnsuspendedToConsumer:
+              type: integer
+              format: int32
+            newEserviceTemplateVersionToInstantiator:
+              type: integer
+              format: int32
+            eserviceTemplateNameChangedToInstantiator:
+              type: integer
+              format: int32
+            eserviceTemplateStatusChangedToInstantiator:
+              type: integer
+              format: int32
+            delegationApprovedRejectedToDelegator:
+              type: integer
+              format: int32
+            eserviceNewVersionSubmittedToDelegator:
+              type: integer
+              format: int32
+            eserviceNewVersionApprovedRejectedToDelegate:
+              type: integer
+              format: int32
+            delegationSubmittedRevokedToDelegate:
+              type: integer
+              format: int32
+            certifiedVerifiedAttributeAssignedRevokedToAssignee:
+              type: integer
+              format: int32
+            clientKeyAddedDeletedToClientUsers:
+              type: integer
+              format: int32
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
 
     Problem:
       properties:
