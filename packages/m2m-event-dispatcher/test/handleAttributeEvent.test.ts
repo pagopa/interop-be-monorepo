@@ -5,10 +5,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
-  AttributeAddedV1,
   AttributeEventEnvelope,
   toAttributeV1,
-  AttributeM2MEventType,
   AttributeEvent,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
