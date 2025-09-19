@@ -95,6 +95,15 @@ describe("API GET /purposeTemplates", () => {
     expect(res.status).toBe(403);
   });
 
+  it("Should return 400 if an invalid targetTenantKind is passed", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, {
+      ...defaultQuery,
+      targetTenantKind: "invalid" as (typeof defaultQuery)["targetTenantKind"],
+    });
+    expect(res.status).toBe(400);
+  });
+
   it.each([
     { query: {} },
     { query: { offset: 0 } },
