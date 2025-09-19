@@ -102,17 +102,22 @@ export const assertRequesterIsCreator = (
 
 export const assertActivatableState = (
   purposeTemplate: PurposeTemplate,
-  allowedState: PurposeTemplateState,
-  conflictState: PurposeTemplateState
+  allowedState: PurposeTemplateState
 ): void => {
   match(purposeTemplate)
-    .with({ state: conflictState }, () => {
-      throw purposeTemplateStateConflict(
-        purposeTemplate.id,
-        purposeTemplate.state
-      );
-    })
-    .with({ state: allowedState }, () => undefined)
+    .when(
+      (p) => p.state === purposeTemplateState.active,
+      () => {
+        throw purposeTemplateStateConflict(
+          purposeTemplate.id,
+          purposeTemplate.state
+        );
+      }
+    )
+    .when(
+      (p) => p.state === allowedState,
+      () => undefined
+    )
     .otherwise(() => {
       throw purposeTemplateNotInExpectedState(
         purposeTemplate.id,

@@ -152,12 +152,12 @@ export function purposeTemplateServiceBuilder(
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Publishing purpose template ${id}`);
 
-      const updatedPurposeTemplate = await activatePurposeTemplate(
+      const updatedPurposeTemplate = await activatePurposeTemplate({
         id,
-        purposeTemplateState.draft,
+        allowedState: purposeTemplateState.draft,
         authData,
-        readModelService
-      );
+        readModelService,
+      });
 
       const createdEvent = await repository.createEvent(
         toCreateEventPurposeTemplatePublished({
@@ -182,12 +182,12 @@ export function purposeTemplateServiceBuilder(
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Unsuspending purpose template ${id}`);
 
-      const updatedPurposeTemplate = await activatePurposeTemplate(
+      const updatedPurposeTemplate = await activatePurposeTemplate({
         id,
-        purposeTemplateState.suspended,
+        allowedState: purposeTemplateState.suspended,
         authData,
-        readModelService
-      );
+        readModelService,
+      });
 
       const createdEvent = await repository.createEvent(
         toCreateEventPurposeTemplateUnsuspended({
@@ -208,12 +208,17 @@ export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;
 
-async function activatePurposeTemplate(
-  id: PurposeTemplateId,
-  allowedState: PurposeTemplateState,
-  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">,
-  readModelService: ReadModelServiceSQL
-): Promise<WithMetadata<PurposeTemplate>> {
+async function activatePurposeTemplate({
+  id,
+  allowedState,
+  authData,
+  readModelService,
+}: {
+  id: PurposeTemplateId;
+  allowedState: PurposeTemplateState;
+  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">;
+  readModelService: ReadModelServiceSQL;
+}): Promise<WithMetadata<PurposeTemplate>> {
   const purposeTemplate = await retrievePurposeTemplate(id, readModelService);
 
   const purposeRiskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
