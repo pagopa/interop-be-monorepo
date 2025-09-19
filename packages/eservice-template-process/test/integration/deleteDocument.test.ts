@@ -111,9 +111,12 @@ describe("delete Document", () => {
         eserviceTemplateVersion.id
       );
       expect(writtenPayload.documentId).toEqual(document.id);
-      expect(writtenPayload.eserviceTemplate).toEqual(
-        toEServiceTemplateV2(expectedEserviceTemplate)
-      );
+
+      expect(writtenPayload).toEqual({
+        eserviceTemplateVersionId: eserviceTemplateVersion.id,
+        documentId: document.id,
+        eserviceTemplate: toEServiceTemplateV2(expectedEserviceTemplate),
+      });
 
       expect(fileManager.delete).toHaveBeenCalledWith(
         config.s3Bucket,
@@ -200,9 +203,11 @@ describe("delete Document", () => {
       eserviceTemplateVersion.id
     );
     expect(writtenPayload.documentId).toEqual(interfaceDocument.id);
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(expectedEserviceTemplate)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: eserviceTemplateVersion.id,
+      documentId: interfaceDocument.id,
+      eserviceTemplate: toEServiceTemplateV2(expectedEserviceTemplate),
+    });
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
