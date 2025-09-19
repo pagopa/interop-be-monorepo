@@ -7,11 +7,11 @@ import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   AttributeAddedV1,
   AttributeEventEnvelope,
-  MaintenanceAttributeDeletedV1,
   toAttributeV1,
+  AttributeM2MEventType,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
-import { P, match } from "ts-pattern";
+import { match } from "ts-pattern";
 import { handleAttributeEvent } from "../src/handlers/handleAttributeEvent.js";
 import {
   getMockEventEnvelopeCommons,
@@ -21,20 +21,16 @@ import {
 
 describe("handleAgreementEvent test", async () => {
   const attribute = getMockAttribute();
-  it.each([
-    {
+  it.each(
+    AttributeM2MEventType.options.map((type) => ({
       ...getMockEventEnvelopeCommons(),
       stream_id: attribute.id,
-      type: "AttributeAdded",
-      data: { attribute: toAttributeV1(attribute) } satisfies AttributeAddedV1,
-    },
-    {
-      ...getMockEventEnvelopeCommons(),
-      stream_id: attribute.id,
-      type: "MaintenanceAttributeDeleted",
-      data: { id: attribute.id } satisfies MaintenanceAttributeDeletedV1,
-    },
-  ] as AttributeEventEnvelope[])(
+      type,
+      data: {
+        attribute: toAttributeV1(attribute),
+      },
+    })) satisfies AttributeEventEnvelope[]
+  )(
     "should write M2M event for AttributeAdded event",
     async (message: AttributeEventEnvelope) => {
       const eventTimestamp = new Date();
@@ -48,18 +44,13 @@ describe("handleAgreementEvent test", async () => {
 
       const attributeM2MEvent = await retrieveLastAttributeM2MEvent();
       expect(attributeM2MEvent).toEqual(
-        match(message)
-          .with(
-            {
-              type: P.union("AttributeAdded", "MaintenanceAttributeDeleted"),
-            },
-            (m) => ({
-              id: expect.any(String),
-              eventType: m.type,
-              eventTimestamp,
-              attributeId: attribute.id,
-            })
-          )
+        match(attributeM2MEvent)
+          .with({ eventType: "AttributeAdded" }, (e) => ({
+            id: expect.any(String),
+            eventType: e.eventType,
+            eventTimestamp,
+            attributeId: attribute.id,
+          }))
           .exhaustive()
       );
     }

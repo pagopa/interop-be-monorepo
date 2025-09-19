@@ -2,7 +2,10 @@ import { desc } from "drizzle-orm";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { attributeM2MEventInM2MEvent } from "pagopa-interop-m2m-event-db-models";
 import { afterEach, inject } from "vitest";
-import { AttributeM2MEvent } from "pagopa-interop-models";
+import {
+  AttributeEventEnvelope,
+  AttributeM2MEvent,
+} from "pagopa-interop-models";
 import { m2mEventWriterServiceSQLBuilder } from "../src/services/m2mEventWriterServiceSQL.js";
 
 export const { cleanup, readModelDB, m2mEventDB } =
@@ -25,7 +28,10 @@ export const testM2mEventWriterService =
   m2mEventWriterServiceSQLBuilder(m2mEventDB);
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const getMockEventEnvelopeCommons = () => ({
+export const getMockEventEnvelopeCommons = (): Pick<
+  AttributeEventEnvelope,
+  "sequence_num" | "version" | "event_version" | "log_date"
+> => ({
   sequence_num: 1,
   version: 1,
   event_version: 1,
