@@ -30,7 +30,8 @@
     "supertest": "7.0.0",
     "drizzle-orm": "0.39.3",
     "vitest": "1.6.1",
-    "typescript": "5.4.5"
+    "typescript": "5.4.5",
+    "uuid": "13.0.0"
   },
   "dependencies": {
     "@zodios/core": "10.9.6",
