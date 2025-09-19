@@ -22,9 +22,11 @@ import {
 import {
   associationEServicesForPurposeTemplateFailed,
   purposeTemplateNotFound,
+  disassociationEServicesFromPurposeTemplateFailed,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateEServiceLinked,
+  toCreateEventPurposeTemplateEServiceUnlinked,
   toCreateEventPurposeTemplateAdded,
 } from "../model/domain/toEvent.js";
 import {
@@ -38,7 +40,8 @@ import {
   assertPurposeTemplateTitleIsNotDuplicated,
   assertRequesterPurposeTemplateCreator,
   validateAndTransformRiskAnalysisTemplate,
-  validateEServicesForPurposeTemplate,
+  validateEservicesAssociations,
+  validateEservicesDisassociations,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -172,7 +175,7 @@ export function purposeTemplateServiceBuilder(
         authData
       );
 
-      const validationResult = await validateEServicesForPurposeTemplate(
+      const validationResult = await validateEservicesAssociations(
         eserviceIds,
         purposeTemplateId,
         readModelService
@@ -218,6 +221,76 @@ export function purposeTemplateServiceBuilder(
         descriptorId: purposeTemplateValidationResult.descriptorId,
         createdAt: creationTimestamp,
       }));
+    },
+    async unlinkEservicesFromPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceIds: EServiceId[],
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Unlinking e-services ${eserviceIds} from purpose template ${purposeTemplateId}`
+      );
+
+      assertEServiceIdsCountIsBelowThreshold(eserviceIds.length);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertPurposeTemplateStateIsValid(purposeTemplate.data.state, [
+        purposeTemplateState.draft,
+        purposeTemplateState.active,
+      ]);
+
+      assertRequesterPurposeTemplateCreator(
+        purposeTemplate.data.creatorId,
+        authData
+      );
+
+      const validationResult = await validateEservicesDisassociations(
+        eserviceIds,
+        purposeTemplateId,
+        readModelService
+      );
+
+      if (validationResult.type === "invalid") {
+        throw disassociationEServicesFromPurposeTemplateFailed(
+          validationResult.issues,
+          eserviceIds,
+          purposeTemplateId
+        );
+      }
+
+      const creationTimestamp = new Date();
+
+      const createEvents = validationResult.value.map(
+        (purposeTemplateValidationResult, index: number) => {
+          const eServiceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate =
+            {
+              purposeTemplateId,
+              eserviceId: purposeTemplateValidationResult.eservice.id,
+              descriptorId: purposeTemplateValidationResult.descriptorId,
+              createdAt: creationTimestamp,
+            };
+
+          const version = purposeTemplate.metadata.version + index;
+
+          return toCreateEventPurposeTemplateEServiceUnlinked(
+            eServiceDescriptorPurposeTemplate,
+            purposeTemplate.data,
+            purposeTemplateValidationResult.eservice,
+            correlationId,
+            version
+          );
+        }
+      );
+
+      await repository.createEvents(createEvents);
     },
   };
 }

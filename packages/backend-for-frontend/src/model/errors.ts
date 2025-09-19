@@ -65,6 +65,8 @@ export const errorCodes = {
   purposeTemplateNotInValidState: "0061",
   purposeTemplateNotFound: "0062",
   operationForbidden: "0063",
+  disassociationEServicesFromPurposeTemplateFailed: "0064",
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0065",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
