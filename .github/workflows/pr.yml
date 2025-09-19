@@ -103,9 +103,9 @@ jobs:
         with:
           run_install: true
       - name: Build all packages
-        run: pnpm build --force
+        run: pnpm build
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4 # v4 utilizzo il tag generico
+        uses: actions/upload-artifact@v4 # v4
         with:
           name: build-output
           path: |
@@ -133,7 +133,7 @@ jobs:
         with:
           run_install: true
       - name: Download build artifact
-        uses: actions/download-artifact@v4 # Non so se mettere un commit specifico, per questo ho lasciato semplicemente v4
+        uses: actions/download-artifact@v4 # v4
         with:
           name: build-output
           path: .
@@ -166,7 +166,7 @@ jobs:
         with:
           run_install: true
       - name: Download build artifact
-        uses: actions/download-artifact@v4 # Non so se mettere un commit specifico, per questo ho lasciato semplicemente v4
+        uses: actions/download-artifact@v4 # v4
         with:
           name: build-output
           path: .
