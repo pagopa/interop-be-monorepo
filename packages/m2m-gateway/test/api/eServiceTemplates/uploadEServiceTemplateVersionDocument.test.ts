@@ -92,7 +92,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/documents rout
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for incorrect value for eservice id", async () => {
+  it("Should return 400 for incorrect value for eservice template id", async () => {
     mockEServiceTemplateService.uploadEServiceTemplateVersionDocument = vi
       .fn()
       .mockResolvedValue(mockM2MEServiceTemplateDocumentResponse);
@@ -107,7 +107,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/documents rout
     expect(res.status).toBe(400);
   });
 
-  it("Should return 400 for incorrect value for descriptor id", async () => {
+  it("Should return 400 for incorrect value for version id", async () => {
     mockEServiceTemplateService.uploadEServiceTemplateVersionDocument = vi
       .fn()
       .mockResolvedValue(mockM2MEServiceTemplateDocumentResponse);

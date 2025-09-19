@@ -100,7 +100,9 @@ describe("upload Document", () => {
       });
 
       expect(writtenPayload.eserviceTemplateVersionId).toEqual(version.id);
-      expect(writtenPayload.eserviceTemplate).toEqual(expectedEserviceTemplate);
+      expect(writtenPayload).toEqual({
+        eserviceTemplate: expectedEserviceTemplate,
+      });
       expect(returnedDocument).toEqual({
         data: expectedDocument,
         metadata: {
