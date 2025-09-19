@@ -20,6 +20,7 @@ import {
   missingRiskAnalysisFormTemplate,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedState,
+  purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
 } from "../../src/model/domain/errors.js";
 
@@ -89,6 +90,13 @@ describe("API POST /purposeTemplates/{id}/unsuspend", () => {
     {
       error: purposeTemplateNotFound(generateId()),
       expectedStatus: 404,
+    },
+    {
+      error: purposeTemplateStateConflict(
+        generateId(),
+        purposeTemplateState.active
+      ),
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",
