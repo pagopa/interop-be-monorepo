@@ -14,10 +14,10 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
-import { toM2MGatewayApiDocument } from "../../../src/api/documentApiConverter.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { toM2MGatewayApiDocument } from "../../../src/api/eserviceTemplateApiConverter.js";
 
-describe("getEServiceDescriptorDocuments", () => {
+describe("getEServiceTemplateVersionDocuments", () => {
   type EServiceTemplateDocs = {
     results: eserviceTemplateApi.EServiceDoc[];
     totalCount: number;
@@ -31,10 +31,16 @@ describe("getEServiceDescriptorDocuments", () => {
 
   const mockApiEServiceTemplateDoc1 = getMockedApiEserviceDoc();
   const mockApiEServiceTemplateDoc2 = getMockedApiEserviceDoc();
+  const mockApiEServiceTemplateDoc3 = getMockedApiEserviceDoc();
+  const mockApiEServiceTemplateDoc4 = getMockedApiEserviceDoc();
+  const mockApiEServiceTemplateDoc5 = getMockedApiEserviceDoc();
 
   const mockApiEServiceTemplateDocs = [
     mockApiEServiceTemplateDoc1,
     mockApiEServiceTemplateDoc2,
+    mockApiEServiceTemplateDoc3,
+    mockApiEServiceTemplateDoc4,
+    mockApiEServiceTemplateDoc5,
   ];
 
   const mockEServiceProcessResponse: WithMaybeMetadata<EServiceTemplateDocs> = {
@@ -65,8 +71,41 @@ describe("getEServiceDescriptorDocuments", () => {
     checksum: mockApiEServiceTemplateDoc2.checksum,
   };
 
+  const document3: eserviceTemplateApi.EServiceDoc = {
+    id: mockApiEServiceTemplateDoc3.id,
+    name: mockApiEServiceTemplateDoc3.name,
+    contentType: mockApiEServiceTemplateDoc3.contentType,
+    uploadDate: mockApiEServiceTemplateDoc3.uploadDate,
+    prettyName: mockApiEServiceTemplateDoc3.prettyName,
+    path: mockApiEServiceTemplateDoc3.path,
+    checksum: mockApiEServiceTemplateDoc3.checksum,
+  };
+
+  const document4: eserviceTemplateApi.EServiceDoc = {
+    id: mockApiEServiceTemplateDoc4.id,
+    name: mockApiEServiceTemplateDoc4.name,
+    contentType: mockApiEServiceTemplateDoc4.contentType,
+    uploadDate: mockApiEServiceTemplateDoc4.uploadDate,
+    prettyName: mockApiEServiceTemplateDoc4.prettyName,
+    path: mockApiEServiceTemplateDoc4.path,
+    checksum: mockApiEServiceTemplateDoc4.checksum,
+  };
+
+  const document5: eserviceTemplateApi.EServiceDoc = {
+    id: mockApiEServiceTemplateDoc5.id,
+    name: mockApiEServiceTemplateDoc5.name,
+    contentType: mockApiEServiceTemplateDoc5.contentType,
+    uploadDate: mockApiEServiceTemplateDoc5.uploadDate,
+    prettyName: mockApiEServiceTemplateDoc5.prettyName,
+    path: mockApiEServiceTemplateDoc5.path,
+    checksum: mockApiEServiceTemplateDoc5.checksum,
+  };
+
   const m2mDocument1 = toM2MGatewayApiDocument(document1);
   const m2mDocument2 = toM2MGatewayApiDocument(document2);
+  const m2mDocument3 = toM2MGatewayApiDocument(document3);
+  const m2mDocument4 = toM2MGatewayApiDocument(document4);
+  const m2mDocument5 = toM2MGatewayApiDocument(document5);
 
   const m2mDocumentsResponse: m2mGatewayApi.Documents = {
     pagination: {
@@ -74,7 +113,13 @@ describe("getEServiceDescriptorDocuments", () => {
       offset: mockQueryParams.offset,
       totalCount: mockEServiceProcessResponse.data.totalCount,
     },
-    results: [m2mDocument1, m2mDocument2],
+    results: [
+      m2mDocument1,
+      m2mDocument2,
+      m2mDocument3,
+      m2mDocument4,
+      m2mDocument5,
+    ],
   };
 
   const eserviceTemplate: eserviceTemplateApi.EServiceTemplate = {
@@ -82,7 +127,7 @@ describe("getEServiceDescriptorDocuments", () => {
     versions: [
       {
         ...getMockedApiEserviceTemplateVersion(),
-        docs: [document1, document2],
+        docs: [document1, document2, document3, document4, document5],
       },
     ],
   };
@@ -113,5 +158,73 @@ describe("getEServiceDescriptorDocuments", () => {
       );
 
     expect(result).toEqual(m2mDocumentsResponse);
+  });
+
+  it("Should apply filters (offset, limit)", async () => {
+    const response1: m2mGatewayApi.Documents = {
+      pagination: {
+        offset: 0,
+        limit: 2,
+        totalCount: eserviceTemplate.versions[0].docs.length,
+      },
+      results: [m2mDocument1, m2mDocument2],
+    };
+
+    const result =
+      await eserviceTemplateService.getEServiceTemplateVersionDocuments(
+        unsafeBrandId(eserviceTemplate.id),
+        unsafeBrandId(eserviceTemplate.versions[0].id),
+        {
+          offset: 0,
+          limit: 2,
+        },
+        getMockM2MAdminAppContext()
+      );
+
+    expect(result).toEqual(response1);
+
+    const response2: m2mGatewayApi.Documents = {
+      pagination: {
+        offset: 2,
+        limit: 2,
+        totalCount: eserviceTemplate.versions[0].docs.length,
+      },
+      results: [m2mDocument3, m2mDocument4],
+    };
+
+    const result2 =
+      await eserviceTemplateService.getEServiceTemplateVersionDocuments(
+        unsafeBrandId(eserviceTemplate.id),
+        unsafeBrandId(eserviceTemplate.versions[0].id),
+        {
+          offset: 2,
+          limit: 2,
+        },
+        getMockM2MAdminAppContext()
+      );
+
+    expect(result2).toEqual(response2);
+
+    const response3: m2mGatewayApi.Documents = {
+      pagination: {
+        offset: 4,
+        limit: 2,
+        totalCount: eserviceTemplate.versions[0].docs.length,
+      },
+      results: [m2mDocument5],
+    };
+
+    const result3 =
+      await eserviceTemplateService.getEServiceTemplateVersionDocuments(
+        unsafeBrandId(eserviceTemplate.id),
+        unsafeBrandId(eserviceTemplate.versions[0].id),
+        {
+          offset: 4,
+          limit: 2,
+        },
+        getMockM2MAdminAppContext()
+      );
+
+    expect(result3).toEqual(response3);
   });
 });

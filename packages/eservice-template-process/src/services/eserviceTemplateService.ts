@@ -741,8 +741,12 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       seed: eserviceTemplateApi.UpdateEServiceTemplateVersionQuotasSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Updating e-service template version quotas of EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`
       );
@@ -795,7 +799,7 @@ export function eserviceTemplateServiceBuilder(
           updatedEserviceTemplateVersion
         );
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateVersionQuotasUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
@@ -805,7 +809,10 @@ export function eserviceTemplateServiceBuilder(
         )
       );
 
-      return updatedEserviceTemplate;
+      return {
+        data: updatedEserviceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async getEServiceTemplateById(
       eserviceTemplateId: EServiceTemplateId,
@@ -967,8 +974,12 @@ export function eserviceTemplateServiceBuilder(
     async deleteRiskAnalysis(
       templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Deleting risk analysis with id: ${riskAnalysisId} from eServiceTemplate with id: ${templateId}`
       );
@@ -988,15 +999,20 @@ export function eserviceTemplateServiceBuilder(
         ),
       };
 
-      const event = toCreateEventEServiceTemplateRiskAnalysisDeleted(
-        template.data.id,
-        template.metadata.version,
-        riskAnalysisId,
-        newTemplate,
-        correlationId
+      const event = await repository.createEvent(
+        toCreateEventEServiceTemplateRiskAnalysisDeleted(
+          template.data.id,
+          template.metadata.version,
+          riskAnalysisId,
+          newTemplate,
+          correlationId
+        )
       );
 
-      await repository.createEvent(event);
+      return {
+        data: newTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateRiskAnalysis(
       templateId: EServiceTemplateId,
@@ -1575,7 +1591,7 @@ export function eserviceTemplateServiceBuilder(
       {
         authData,
         logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData | M2MAuthData>>
     ): Promise<Document> {
       logger.info(
         `Getting EService Document ${documentId.toString()} for EService Template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId}`
