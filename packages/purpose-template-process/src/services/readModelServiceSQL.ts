@@ -1,5 +1,6 @@
 import {
   EService,
+  EServiceDescriptorPurposeTemplate,
   EServiceId,
   ListResult,
   PurposeTemplate,
@@ -16,6 +17,7 @@ import {
   PurposeTemplateReadModelService,
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
+  aggregatePurposeTemplateEServiceDescriptor,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
@@ -26,7 +28,16 @@ import {
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, exists, ilike, inArray, isNotNull, SQL } from "drizzle-orm";
+import {
+  and,
+  eq,
+  exists,
+  getTableColumns,
+  ilike,
+  inArray,
+  isNotNull,
+  SQL,
+} from "drizzle-orm";
 import {
   ascLower,
   createListResult,
@@ -218,13 +229,48 @@ export function readModelServiceBuilderSQL({
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getPurposeTemplateById(
-      _id: PurposeTemplateId
+      id: PurposeTemplateId
     ): Promise<WithMetadata<PurposeTemplate> | undefined> {
-      // TO DO: this is a placeholder function Replace with actual implementation to fetch the purpose template by ID
-      return undefined;
+      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateById(
+        id
+      );
     },
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
+    },
+    async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceId: EServiceId
+    ): Promise<EServiceDescriptorPurposeTemplate | undefined> {
+      const queryResult = await readModelDB
+        .select(
+          getTableColumns(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+          )
+        )
+        .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+        .where(
+          and(
+            eq(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+              eserviceId
+            )
+          )
+        )
+        .limit(1);
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      const purposeTemplateEServiceDescriptor =
+        aggregatePurposeTemplateEServiceDescriptor(queryResult[0]);
+
+      return purposeTemplateEServiceDescriptor.data;
     },
   };
 }

@@ -6,6 +6,8 @@ import {
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
   ListResult,
+  EServiceDescriptorPurposeTemplate,
+  EServiceId,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -17,16 +19,26 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import { purposeTemplateNotFound } from "../model/domain/errors.js";
-import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
+import {
+  associationEServicesForPurposeTemplateFailed,
+  purposeTemplateNotFound,
+} from "../model/domain/errors.js";
+import {
+  toCreateEventPurposeTemplateEServiceLinked,
+  toCreateEventPurposeTemplateAdded,
+} from "../model/domain/toEvent.js";
 import {
   GetPurposeTemplatesFilters,
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
+  assertEServiceIdsCountIsBelowThreshold,
+  assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
+  assertRequesterPurposeTemplateCreator,
   validateAndTransformRiskAnalysisTemplate,
+  validateEServicesForPurposeTemplate,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -129,6 +141,83 @@ export function purposeTemplateServiceBuilder(
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Retrieving purpose template ${id}`);
       return retrievePurposeTemplate(id, readModelService);
+    },
+    async linkEservicesToPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceIds: EServiceId[],
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<EServiceDescriptorPurposeTemplate[]> {
+      logger.info(
+        `Linking e-services ${eserviceIds} to purpose template ${purposeTemplateId}`
+      );
+
+      assertEServiceIdsCountIsBelowThreshold(eserviceIds.length);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertPurposeTemplateStateIsValid(purposeTemplate.data.state, [
+        purposeTemplateState.draft,
+        purposeTemplateState.active,
+      ]);
+
+      assertRequesterPurposeTemplateCreator(
+        purposeTemplate.data.creatorId,
+        authData
+      );
+
+      const validationResult = await validateEServicesForPurposeTemplate(
+        eserviceIds,
+        purposeTemplateId,
+        readModelService
+      );
+
+      if (validationResult.type === "invalid") {
+        throw associationEServicesForPurposeTemplateFailed(
+          validationResult.issues,
+          eserviceIds,
+          purposeTemplateId
+        );
+      }
+
+      const creationTimestamp = new Date();
+
+      const createEvents = validationResult.value.map(
+        (purposeTemplateValidationResult, index: number) => {
+          const eServiceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate =
+            {
+              purposeTemplateId,
+              eserviceId: purposeTemplateValidationResult.eservice.id,
+              descriptorId: purposeTemplateValidationResult.descriptorId,
+              createdAt: creationTimestamp,
+            };
+
+          const version = purposeTemplate.metadata.version + index;
+
+          return toCreateEventPurposeTemplateEServiceLinked(
+            eServiceDescriptorPurposeTemplate,
+            purposeTemplate.data,
+            purposeTemplateValidationResult.eservice,
+            correlationId,
+            version
+          );
+        }
+      );
+
+      await repository.createEvents(createEvents);
+
+      return validationResult.value.map((purposeTemplateValidationResult) => ({
+        purposeTemplateId,
+        eserviceId: purposeTemplateValidationResult.eservice.id,
+        descriptorId: purposeTemplateValidationResult.descriptorId,
+        createdAt: creationTimestamp,
+      }));
     },
   };
 }
