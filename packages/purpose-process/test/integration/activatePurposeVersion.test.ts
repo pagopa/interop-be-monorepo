@@ -146,7 +146,21 @@ describe("activatePurposeVersion", () => {
   it("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
     vi.spyOn(pdfGenerator, "generate");
 
-    await addOnePurpose(mockPurpose);
+    const consumerUserId = generateId<UserId>();
+    const versionWithStamp: PurposeVersion = {
+      ...mockPurposeVersion,
+      stamps: {
+        creation: {
+          who: consumerUserId,
+          when: new Date(),
+        },
+      },
+    };
+    const purposeWithStamp: Purpose = {
+      ...mockPurpose,
+      versions: [versionWithStamp],
+    };
+    await addOnePurpose(purposeWithStamp);
     await addOneEService(mockEService);
     await addOneAgreement(mockAgreement);
     await addOneTenant(mockConsumer);
@@ -154,8 +168,8 @@ describe("activatePurposeVersion", () => {
 
     const activateResponse = await purposeService.activatePurposeVersion(
       {
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
+        purposeId: purposeWithStamp.id,
+        versionId: versionWithStamp.id,
         delegationId: undefined,
       },
       getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
@@ -164,7 +178,7 @@ describe("activatePurposeVersion", () => {
     const updatedVersion = activateResponse.data;
 
     const writtenEvent = await readLastEventByStreamId(
-      mockPurpose.id,
+      purposeWithStamp.id,
       "purpose",
       postgresDB
     );
@@ -177,7 +191,7 @@ describe("activatePurposeVersion", () => {
     });
 
     const expectedPurpose: Purpose = {
-      ...mockPurpose,
+      ...purposeWithStamp,
       suspendedByConsumer: false,
       suspendedByProducer: false,
       versions: [updatedVersion],
@@ -190,7 +204,7 @@ describe("activatePurposeVersion", () => {
     });
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: mockPurposeVersion.dailyCalls.toString(),
+      dailyCalls: versionWithStamp.dailyCalls.toString(),
       answers: expect.any(String),
       eServiceName: mockEService.name,
       producerName: mockProducer.name,
@@ -207,7 +221,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
-      userId: undefined,
+      userId: consumerUserId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
