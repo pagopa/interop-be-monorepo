@@ -2,6 +2,7 @@
 import {
   AgreementEventEnvelopeV2,
   fromAgreementV2,
+  missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { FileManager, Logger, PDFGenerator } from "pagopa-interop-commons";
@@ -28,7 +29,7 @@ export async function handleAgreementMessageV2(
       },
       async (msg): Promise<void> => {
         if (!msg.data.agreement) {
-          throw new Error(`Agreement can't be missing on event message`);
+          throw missingKafkaMessageDataError("agreement", msg.type);
         }
         const agreement = fromAgreementV2(msg.data.agreement);
         const eservice = await retrieveEserviceById(

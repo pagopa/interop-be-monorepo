@@ -2,6 +2,7 @@
 import {
   DelegationEventEnvelopeV2,
   fromDelegationV2,
+  missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { FileManager, Logger, PDFGenerator } from "pagopa-interop-commons";
@@ -30,7 +31,7 @@ export async function handleDelegationMessageV2(
       },
       async (msg): Promise<void> => {
         if (!msg.data.delegation) {
-          return;
+          throw missingKafkaMessageDataError("delegation", msg.type);
         }
         const delegation = fromDelegationV2(msg.data.delegation);
         const [delegator, delegate, eservice] = await Promise.all([
@@ -62,7 +63,7 @@ export async function handleDelegationMessageV2(
       },
       async (msg): Promise<void> => {
         if (!msg.data.delegation) {
-          throw new Error("Delegation data can't be missing on event");
+          throw missingKafkaMessageDataError("delegation", msg.type);
         }
         const delegation = fromDelegationV2(msg.data.delegation);
         const [delegator, delegate, eservice] = await Promise.all([

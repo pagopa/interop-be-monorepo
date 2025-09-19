@@ -1,7 +1,7 @@
 import {
   eserviceMode,
   fromPurposeV2,
-  genericInternalError,
+  missingKafkaMessageDataError,
   PurposeEventEnvelopeV2,
   Tenant,
   TenantKind,
@@ -22,6 +22,7 @@ import {
 import { config } from "../config/config.js";
 import { PurposeDocumentEServiceInfo } from "../model/purposeModels.js";
 import { riskAnalysisDocumentBuilder } from "../service/purpose/purposeContractBuilder.js";
+import { eServiceNotFound, tenantKindNotFound } from "../model/errors.js";
 
 export async function handlePurposeMessageV2(
   decodedMessage: PurposeEventEnvelopeV2,
@@ -41,7 +42,7 @@ export async function handlePurposeMessageV2(
       },
       async (msg): Promise<void> => {
         if (!msg.data.purpose) {
-          throw new Error(`Purpose can't be missing on event message`);
+          throw missingKafkaMessageDataError("purpose", msg.type);
         }
         const purpose = fromPurposeV2(msg.data.purpose);
         const purposeVersion = purpose.versions[purpose.versions.length - 1];
@@ -51,7 +52,7 @@ export async function handlePurposeMessageV2(
           readModelService
         );
         if (!eservice) {
-          throw new Error(`Eservice ${purpose.eserviceId} is missing`); // todo handle error
+          throw eServiceNotFound(purpose.eserviceId);
         }
         const [producer, consumer, producerDelegation, consumerDelegation] =
           await Promise.all([
@@ -89,7 +90,7 @@ export async function handlePurposeMessageV2(
 
         function getTenantKind(tenant: Tenant): TenantKind {
           if (!tenant.kind) {
-            throw genericInternalError(tenant.id); // todo handle right error;
+            throw tenantKindNotFound(tenant.id);
           }
           return tenant.kind;
         }

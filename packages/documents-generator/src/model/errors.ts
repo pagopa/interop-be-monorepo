@@ -4,11 +4,13 @@ import {
   EServiceId,
   InternalError,
   PurposeId,
+  TenantId,
 } from "pagopa-interop-models";
 
 type DocumentsGeneratorErrorCode =
   | "descriptorNotFound"
   | "tenantNotFound"
+  | "tenantKindNotFound"
   | "purposeDelegationNotFound"
   | "eServiceNotFound"
   | "descriptorNotFound";
@@ -58,5 +60,14 @@ export function descriptorNotFound(
   return new InternalError({
     detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
     code: "descriptorNotFound",
+  });
+}
+
+export function tenantKindNotFound(
+  tenantId: TenantId
+): DocumentsGeneratorError {
+  return new InternalError({
+    detail: `Tenant kind for tenant ${tenantId} not found`,
+    code: "tenantKindNotFound",
   });
 }
