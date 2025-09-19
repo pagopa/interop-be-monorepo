@@ -13,6 +13,7 @@ describe("getAttributeM2MEvents", () => {
       getMockedAttributeM2MEvent(type),
       getMockedAttributeM2MEvent(type),
       getMockedAttributeM2MEvent(type),
+      getMockedAttributeM2MEvent(type),
     ])
     .flat();
 
@@ -21,7 +22,7 @@ describe("getAttributeM2MEvents", () => {
   });
 
   it.each([1, 3, 10])(
-    "should list the %d newest attribute M2M events if lastEventId is not provided",
+    "should list the %d oldest attribute M2M events if lastEventId is not provided",
     async (limit) => {
       const events = await m2mEventService.getAttributeM2MEvents(
         undefined,
@@ -29,15 +30,13 @@ describe("getAttributeM2MEvents", () => {
         getMockContextM2M({})
       );
       expect(events).toEqual(
-        mockAttributeM2MEvents
-          .slice(-limit) // get the last N events
-          .reverse() // newest first
+        mockAttributeM2MEvents.slice(0, limit) // get the first N events
       );
     }
   );
 
   it.each([1, 3, 10])(
-    "should list the %d newest attribute M2M events after the given lastEventId",
+    "should list the %d oldest attribute M2M events after the given lastEventId",
     async (limit) => {
       const lastEventId = mockAttributeM2MEvents[1].id;
       const events = await m2mEventService.getAttributeM2MEvents(
@@ -50,9 +49,7 @@ describe("getAttributeM2MEvents", () => {
         (e) => e.id > lastEventId
       );
       expect(events).toEqual(
-        filteredEvents
-          .slice(-limit) // get the last N events
-          .reverse() // newest first
+        filteredEvents.slice(0, limit) // get the first N events after the lastEventId
       );
     }
   );
