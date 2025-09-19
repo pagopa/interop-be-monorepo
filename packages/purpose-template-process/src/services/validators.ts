@@ -1,6 +1,7 @@
 import {
   PurposeTemplate,
   purposeTemplateState,
+  PurposeTemplateState,
   RiskAnalysisFormTemplate,
   TenantKind,
 } from "pagopa-interop-models";
@@ -99,26 +100,28 @@ export const assertRequesterIsCreator = (
   }
 };
 
-export const assertPublishableState = (
-  purposeTemplate: PurposeTemplate
+export const assertActivatableState = (
+  purposeTemplate: PurposeTemplate,
+  allowedState: PurposeTemplateState
 ): void => {
   match(purposeTemplate)
-    .with({ state: purposeTemplateState.active }, () => {
-      throw purposeTemplateStateConflict(
-        purposeTemplate.id,
-        purposeTemplate.state
-      );
-    })
-    .with(
-      { state: purposeTemplateState.archived },
-      { state: purposeTemplateState.suspended },
+    .when(
+      (p) => p.state === purposeTemplateState.active,
       () => {
-        throw purposeTemplateNotInExpectedState(
+        throw purposeTemplateStateConflict(
           purposeTemplate.id,
           purposeTemplate.state
         );
       }
     )
-    .with({ state: purposeTemplateState.draft }, () => undefined)
-    .exhaustive();
+    .when(
+      (p) => p.state === allowedState,
+      () => undefined
+    )
+    .otherwise(() => {
+      throw purposeTemplateNotInExpectedState(
+        purposeTemplate.id,
+        purposeTemplate.state
+      );
+    });
 };

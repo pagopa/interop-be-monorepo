@@ -29,7 +29,7 @@ export const createPurposeTemplateErrorMapper = (
 export const getPurposeTemplatesErrorMapper = (): number =>
   HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
-export const publishPurposeTemplateErrorMapper = (
+export const activatePurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

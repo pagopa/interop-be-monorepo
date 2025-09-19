@@ -17,6 +17,7 @@ import {
   ListResult,
   PurposeTemplate,
   PurposeTemplateEvent,
+  PurposeTemplateEventEnvelopeV2,
   PurposeTemplateId,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
@@ -24,6 +25,7 @@ import {
   upsertPurposeTemplate,
   upsertPurposeTemplateEServiceDescriptor,
 } from "pagopa-interop-readmodel/testUtils";
+import { match } from "ts-pattern";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
 
@@ -85,7 +87,8 @@ export function expectSinglePageListResult(
 }
 
 export const writePurposeTemplateInEventstore = async (
-  purposeTemplate: PurposeTemplate
+  purposeTemplate: PurposeTemplate,
+  metadataVersion: number
 ): Promise<void> => {
   const purposeTemplateEvent: PurposeTemplateEvent = {
     type: "PurposeTemplateAdded",
@@ -95,17 +98,61 @@ export const writePurposeTemplateInEventstore = async (
   const eventToWrite: StoredEvent<PurposeTemplateEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     stream_id: purposeTemplateEvent.data.purposeTemplate!.id,
-    version: 0,
+    version: metadataVersion,
+    event: purposeTemplateEvent,
+  };
+  await writeInEventstore(eventToWrite, "purpose_template", postgresDB);
+};
+
+export const writePurposeTemplateSuspendedInEventstore = async (
+  purposeTemplate: PurposeTemplate,
+  metadataVersion: number
+): Promise<void> => {
+  const purposeTemplateEvent: PurposeTemplateEvent = {
+    type: "PurposeTemplateSuspended",
+    event_version: 2,
+    data: { purposeTemplate: toPurposeTemplateV2(purposeTemplate) },
+  };
+  const eventToWrite: StoredEvent<PurposeTemplateEvent> = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    stream_id: purposeTemplateEvent.data.purposeTemplate!.id,
+    version: metadataVersion,
     event: purposeTemplateEvent,
   };
   await writeInEventstore(eventToWrite, "purpose_template", postgresDB);
 };
 
 export const addOnePurposeTemplate = async (
-  purposeTemplate: PurposeTemplate
+  purposeTemplate: PurposeTemplate,
+  event: PurposeTemplateEventEnvelopeV2["type"] = "PurposeTemplateAdded",
+  metadataVersion: number = 0
 ): Promise<void> => {
-  await writePurposeTemplateInEventstore(purposeTemplate);
-  await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
+  await match(event)
+    .with(
+      "PurposeTemplateAdded",
+      "PurposeTemplateArchived",
+      "PurposeTemplateDraftDeleted",
+      "PurposeTemplateDraftUpdated",
+      "PurposeTemplatePublished",
+      "PurposeTemplateUnsuspended",
+      "PurposeTemplateEServiceLinked",
+      "PurposeTemplateEServiceUnlinked",
+      async () => {
+        await writePurposeTemplateInEventstore(
+          purposeTemplate,
+          metadataVersion
+        );
+      }
+    )
+    .with("PurposeTemplateSuspended", async () => {
+      await writePurposeTemplateSuspendedInEventstore(
+        purposeTemplate,
+        metadataVersion
+      );
+    })
+    .exhaustive();
+
+  await upsertPurposeTemplate(readModelDB, purposeTemplate, metadataVersion);
 };
 
 export const addOnePurposeTemplateEServiceDescriptor = async (
