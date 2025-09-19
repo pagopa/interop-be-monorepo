@@ -1,7 +1,8 @@
 import { bffApi } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
 import { PurposeTemplateProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
+import { config } from "../config/config.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
@@ -12,6 +13,7 @@ export function purposeTemplateServiceBuilder(
       seed: bffApi.PurposeTemplateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplateConfig");
       logger.info(`Creating purpose template`);
       const result = await purposeTemplateClient.createPurposeTemplate(seed, {
         headers,
