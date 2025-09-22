@@ -113,8 +113,6 @@ import {
   hasRoleToAccessDraftTemplateVersions,
   assertEServiceTemplateNameAvailable,
   assertRiskAnalysisIsValidForPublication,
-  assertEServiceTemplateVersionState,
-  assertConsistentDailyCallsPatch,
 } from "./validators.js";
 
 export const retrieveEServiceTemplate = async (
@@ -390,7 +388,7 @@ export function eserviceTemplateServiceBuilder(
     async patchUpdateDraftTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      seed: eserviceTemplateApi.PatchUpdateDraftEServiceTemplateVersionSeed,
+      seed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed,
       ctx: WithLogger<AppContext<M2MAdminAuthData>>
     ): Promise<WithMetadata<EServiceTemplate>> {
       return await updateDraftEServiceTemplateVersion(
@@ -1958,7 +1956,7 @@ async function updateDraftEServiceTemplateVersion(
       }
     | {
         type: "patch";
-        seed: eserviceTemplateApi.PatchUpdateDraftEServiceTemplateVersionSeed;
+        seed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed;
       },
   readModelService: ReadModelService,
   repository: ReturnType<typeof eventRepository<EServiceTemplateEvent>>,
@@ -1986,14 +1984,27 @@ async function updateDraftEServiceTemplateVersion(
     eserviceTemplate.data
   );
 
-  assertEServiceTemplateVersionState(
-    eserviceTemplateVersionId,
-    eserviceTemplateVersion,
-    [eserviceTemplateVersionState.draft]
+  if (eserviceTemplateVersion.state !== eserviceTemplateVersionState.draft) {
+    throw notValidEServiceTemplateVersionState(
+      eserviceTemplateVersionId,
+      eserviceTemplateVersion.state
+    );
+  }
+
+  const updatedDailyCallsPerConsumer = resolveValue(
+    type,
+    seed.dailyCallsPerConsumer,
+    eserviceTemplateVersion.dailyCallsPerConsumer
   );
-  assertConsistentDailyCallsPatch({
-    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-    dailyCallsTotal: seed.dailyCallsTotal,
+  const updatedDailyCallsTotal = resolveValue(
+    type,
+    seed.dailyCallsTotal,
+    eserviceTemplateVersion.dailyCallsTotal
+  );
+
+  assertConsistentDailyCalls({
+    dailyCallsPerConsumer: updatedDailyCallsPerConsumer,
+    dailyCallsTotal: updatedDailyCallsTotal,
   });
 
   const parsedAttributes = await parseAndCheckAttributes(
@@ -2021,16 +2032,8 @@ async function updateDraftEServiceTemplateVersion(
           ),
       eserviceTemplateVersion.agreementApprovalPolicy
     ),
-    dailyCallsPerConsumer: resolveValue(
-      type,
-      seed.dailyCallsPerConsumer,
-      eserviceTemplateVersion.dailyCallsPerConsumer
-    ),
-    dailyCallsTotal: resolveValue(
-      type,
-      seed.dailyCallsTotal,
-      eserviceTemplateVersion.dailyCallsTotal
-    ),
+    dailyCallsPerConsumer: updatedDailyCallsPerConsumer,
+    dailyCallsTotal: updatedDailyCallsTotal,
     description: resolveValue(
       type,
       seed.description,
