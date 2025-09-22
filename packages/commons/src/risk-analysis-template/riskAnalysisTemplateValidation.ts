@@ -8,6 +8,7 @@ import {
   buildValidationRules,
   getLatestVersionFormRules,
 } from "../risk-analysis/riskAnalysisValidation.js";
+import { validateNoHyperlinks } from "../utils/regexpUtils.js";
 import {
   RiskAnalysisFormTemplateToValidate,
   RiskAnalysisTemplateAnswerToValidate,
@@ -29,6 +30,8 @@ import {
   unexpectedRiskAnalysisTemplateRulesVersionError,
   validTemplateResult,
   unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError,
+  annotationTextLengthError,
+  hyperlinkDetectionError,
 } from "./riskAnalysisTemplateValidationErrors.js";
 
 /*
@@ -109,6 +112,55 @@ export function validatePurposeTemplateRiskAnalysis(
     singleAnswers,
     multiAnswers,
   });
+}
+
+export function validateRiskAnalysisAnswer(
+  riskAnalysisAnswerKey: string,
+  riskAnalysisAnswerValue: RiskAnalysisTemplateAnswerToValidate,
+  tenantKind: TenantKind
+): RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer> {
+  const latestVersionFormRules = getLatestVersionFormRules(tenantKind);
+
+  if (latestVersionFormRules === undefined) {
+    return invalidTemplateResult([
+      noRiskAnalysisTemplateRulesVersionFoundError(tenantKind),
+    ]);
+  }
+
+  const validationRules = buildValidationRules(latestVersionFormRules);
+  const validationRule = validationRules.find(
+    (rule) => rule.fieldName === riskAnalysisAnswerKey
+  );
+
+  if (!validationRule) {
+    return invalidTemplateResult([
+      unexpectedRiskAnalysisTemplateFieldError(riskAnalysisAnswerKey),
+    ]);
+  }
+
+  // Validate only the value, NOT the dependencies
+  const valueValidationErrors = validateAnswerValue(
+    riskAnalysisAnswerValue,
+    validationRule
+  );
+
+  if (valueValidationErrors.length > 0) {
+    return invalidTemplateResult(valueValidationErrors);
+  }
+
+  return buildValidResultAnswer(
+    riskAnalysisAnswerKey,
+    riskAnalysisAnswerValue,
+    validationRule
+  );
+}
+
+export function validateAnnotationText(text: string): void {
+  if (text.length > 250) {
+    throw annotationTextLengthError(text, text.length);
+  }
+
+  validateNoHyperlinks(text, hyperlinkDetectionError(text));
 }
 
 function validateTemplateFormAnswers(
@@ -329,6 +381,7 @@ function buildValidResultAnswer(
           value: answerValue.values[0] ?? undefined,
           editable: answerValue.editable,
           suggestedValues: answerValue.suggestedValues,
+          annotation: answerValue.annotation,
         },
       })
     )
@@ -339,6 +392,7 @@ function buildValidResultAnswer(
           key: answerKey,
           values: answerValue.values,
           editable: answerValue.editable,
+          annotation: answerValue.annotation,
         },
       })
     )
