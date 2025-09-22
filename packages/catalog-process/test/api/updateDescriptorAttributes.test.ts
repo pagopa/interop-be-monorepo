@@ -17,7 +17,7 @@ import {
   getMockDescriptor,
   getMockEService,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import {
@@ -126,15 +126,23 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("Should return 200 for user with role admin", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockEService.id, descriptor.id);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(apiEservice);
-  });
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token, mockEService.id, descriptor.id);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiEservice);
+    }
+  );
 
   it.each(
-    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token, mockEService.id, descriptor.id);
