@@ -1,14 +1,25 @@
-import { RiskAnalysisFormTemplate, TenantKind } from "pagopa-interop-models";
+import {
+  PurposeTemplateState,
+  RiskAnalysisFormTemplate,
+  TenantKind,
+  RiskAnalysisTemplateSingleAnswer,
+  RiskAnalysisTemplateMultiAnswer,
+} from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import {
   RiskAnalysisTemplateValidatedForm,
+  RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   validatePurposeTemplateRiskAnalysis,
+  validateRiskAnalysisAnswer,
 } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
+import { riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer } from "../../../commons/src/risk-analysis-template/riskAnalysisFormTemplate.js";
+import { validateAnnotationText } from "../../../commons/src/risk-analysis-template/riskAnalysisTemplateValidation.js";
 import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
+  purposeTemplateNotInValidState,
   riskAnalysisTemplateValidationFailed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -40,6 +51,15 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
   }
 };
 
+export const assertPurposeTemplateStateIsValid = (
+  state: PurposeTemplateState,
+  validStates: PurposeTemplateState[]
+): void => {
+  if (!validStates.includes(state)) {
+    throw purposeTemplateNotInValidState(state, validStates);
+  }
+};
+
 export function validateAndTransformRiskAnalysisTemplate(
   purposeRiskAnalysisForm:
     | purposeTemplateApi.RiskAnalysisFormTemplateSeed
@@ -60,6 +80,18 @@ export function validateAndTransformRiskAnalysisTemplate(
   );
 }
 
+export function validateAndTransformRiskAnalysisAnswer(
+  riskAnalysisAnswer: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest,
+  tenantKind: TenantKind
+): RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer {
+  const validatedAnswer = validateRiskAnalysisAnswerOrThrow({
+    riskAnalysisAnswer,
+    tenantKind,
+  });
+
+  return riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer(validatedAnswer);
+}
+
 function validateRiskAnalysisTemplateOrThrow({
   riskAnalysisForm,
   tenantKind,
@@ -78,4 +110,28 @@ function validateRiskAnalysisTemplateOrThrow({
     })
     .with({ type: "valid" }, ({ value }) => value)
     .exhaustive();
+}
+
+function validateRiskAnalysisAnswerOrThrow({
+  riskAnalysisAnswer,
+  tenantKind,
+}: {
+  riskAnalysisAnswer: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest;
+  tenantKind: TenantKind;
+}): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {
+  const result = validateRiskAnalysisAnswer(
+    riskAnalysisAnswer.answerKey,
+    riskAnalysisAnswer.answerData,
+    tenantKind
+  );
+
+  if (result.type === "invalid") {
+    throw riskAnalysisTemplateValidationFailed(result.issues);
+  }
+
+  if (riskAnalysisAnswer.answerData.annotation) {
+    validateAnnotationText(riskAnalysisAnswer.answerData.annotation.text);
+  }
+
+  return result.value;
 }

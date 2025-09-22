@@ -24,3 +24,19 @@ export const createPurposeTemplateErrorMapper = (
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("purposeTemplateNameConflict", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createRiskAnalysisAnswerErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "riskAnalysisTemplateValidationFailed",
+      "annotationTextLengthError",
+      "hyperlinkDetectionError",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "purposeTemplateRiskAnalysisFormNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

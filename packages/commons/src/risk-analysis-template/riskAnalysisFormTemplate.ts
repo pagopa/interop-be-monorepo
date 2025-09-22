@@ -1,8 +1,13 @@
 import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateSingleAnswer,
+  RiskAnalysisTemplateMultiAnswer,
   generateId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisMultiAnswerId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export type RiskAnalysisFormTemplateToValidate = {
   version: string;
@@ -119,6 +124,32 @@ export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
       ),
     },
   };
+}
+
+export function riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer(
+  validatedAnswer: RiskAnalysisTemplateValidatedSingleOrMultiAnswer
+): RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer {
+  return match(validatedAnswer)
+    .with({ type: "single" }, (a) => ({
+      id: generateId<RiskAnalysisSingleAnswerId>(),
+      key: a.answer.key,
+      ...(a.answer.value ? { value: a.answer.value } : {}),
+      editable: a.answer.editable,
+      suggestedValues: a.answer.suggestedValues,
+      ...(a.answer.annotation
+        ? { annotation: mapAnnotation(a.answer.annotation) }
+        : {}),
+    }))
+    .with({ type: "multi" }, (a) => ({
+      id: generateId<RiskAnalysisMultiAnswerId>(),
+      key: a.answer.key,
+      values: a.answer.values,
+      editable: a.answer.editable,
+      ...(a.answer.annotation
+        ? { annotation: mapAnnotation(a.answer.annotation) }
+        : {}),
+    }))
+    .exhaustive();
 }
 
 function mapAnnotation(
