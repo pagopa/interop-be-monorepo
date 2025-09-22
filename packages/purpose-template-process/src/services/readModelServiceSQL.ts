@@ -43,12 +43,12 @@ export function readModelServiceBuilderSQL({
         )
       );
     },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getPurposeTemplateById(
-      _id: PurposeTemplateId
+      purposeTemplateId: PurposeTemplateId
     ): Promise<WithMetadata<PurposeTemplate> | undefined> {
-      // TO DO: this is a placeholder function Replace with actual implementation to fetch the purpose template by ID
-      return undefined;
+      return purposeTemplateReadModelServiceSQL.getPurposeTemplateById(
+        purposeTemplateId
+      );
     },
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;

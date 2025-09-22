@@ -18,7 +18,6 @@ const purposeTemplateReadModelServiceSQL =
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
 const readModelServiceSQL = readModelServiceBuilderSQL({
-  readModelDB,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
