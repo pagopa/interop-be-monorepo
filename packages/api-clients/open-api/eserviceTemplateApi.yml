@@ -1656,10 +1656,10 @@ components:
     AgreementApprovalPolicyNullable:
       type: string
       description: E-Service Descriptor policy for new Agreements approval
+      nullable: true
       enum:
         - AUTOMATIC
         - MANUAL
-      nullable: true
     EServiceTemplateRiskAnalysisSeed:
       type: object
       additionalProperties: false

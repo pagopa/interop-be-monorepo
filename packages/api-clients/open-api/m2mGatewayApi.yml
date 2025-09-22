@@ -7833,7 +7833,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description:  E-Service Templates retrieved
+          description: E-Service Templates retrieved
           content:
             application/json:
               schema:
@@ -8639,18 +8639,18 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "429":
-              description: Too Many Requests
-              content:
-                application/problem+json:
-                  schema:
-                    $ref: "#/components/schemas/Problem"
-              headers:
-                X-Rate-Limit-Limit:
-                  $ref: "#/components/headers/RateLimitLimitHeader"
-                X-Rate-Limit-Remaining:
-                  $ref: "#/components/headers/RateLimitRemainingHeader"
-                X-Rate-Limit-Interval:
-                  $ref: "#/components/headers/RateLimitIntervalHeader"
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /eserviceTemplates/{templateId}/versions/{versionId}/quotas:
     parameters:
       - name: templateId
@@ -8671,7 +8671,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update the quotas of an E-Service Template Version after its publication
-      description: Update the quotas of an E-Service Template Version in Published or Suspended state      
+      description: Update the quotas of an E-Service Template Version in Published or Suspended state
       operationId: updatePublishedEServiceTemplateVersionQuotas
       requestBody:
         required: true
@@ -12173,10 +12173,10 @@ components:
     AgreementApprovalPolicyNullable:
       type: string
       description: E-Service Descriptor policy for new Agreements approval
+      nullable: true
       enum:
         - AUTOMATIC
         - MANUAL
-      nullable: true
     Agreements:
       type: object
       additionalProperties: false
