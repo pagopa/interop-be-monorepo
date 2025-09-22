@@ -4,6 +4,7 @@ import pg from "pg";
 import { config } from "./config/config.js";
 import { createApp } from "./app.js";
 import { m2mEventServiceBuilder } from "./services/m2mEventService.js";
+import { m2mEventReaderServiceSQLBuilder } from "./services/m2mEventReaderServiceSQL.js";
 
 const pool = new pg.Pool({
   host: config.m2mEventSQLDbHost,
@@ -15,5 +16,7 @@ const pool = new pg.Pool({
 });
 const db = drizzle({ client: pool });
 
-const service = m2mEventServiceBuilder(db);
+const reader = m2mEventReaderServiceSQLBuilder(db);
+const service = m2mEventServiceBuilder(reader);
+
 startServer(await createApp(service), config);
