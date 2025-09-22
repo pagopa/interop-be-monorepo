@@ -251,6 +251,15 @@ export type InAppNotificationManagerServerConfig = z.infer<
   typeof InAppNotificationManagerServerConfig
 >;
 
+export const FrontendBaseURLConfig = z
+  .object({
+    FRONTEND_BASE_URL: z.string().url(),
+  })
+  .transform((c) => ({
+    frontendBaseUrl: c.FRONTEND_BASE_URL,
+  }));
+export type FrontendBaseURLConfig = z.infer<typeof FrontendBaseURLConfig>;
+
 export const SwaggerConfig = z
   .object({
     BFF_SWAGGER_UI_ENABLED: z.coerce.boolean().default(false),
@@ -288,7 +297,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
-  .and(FeatureFlagNotificationConfig);
+  .and(FeatureFlagNotificationConfig)
+  .and(FrontendBaseURLConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

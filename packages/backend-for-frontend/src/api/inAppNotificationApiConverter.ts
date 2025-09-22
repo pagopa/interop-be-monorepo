@@ -25,11 +25,10 @@ function findNotificationSection(
   return null;
 }
 
-function calculateDeepLink(
-  notification: inAppNotificationApi.Notification
+export function calculateDeepLink(
+  notificationType: string,
+  entityId: string
 ): string {
-  const { notificationType, entityId } = notification;
-
   const sectionInfo = findNotificationSection(notificationType);
   if (!sectionInfo) {
     return "/";
@@ -160,7 +159,10 @@ export function toBffApiNotifications(
       tenantId: notification.tenantId,
       userId: notification.userId,
       body: notification.body,
-      deepLink: calculateDeepLink(notification),
+      deepLink: calculateDeepLink(
+        notification.notificationType,
+        notification.entityId
+      ),
       createdAt: notification.createdAt,
       readAt: notification.readAt,
     })),
