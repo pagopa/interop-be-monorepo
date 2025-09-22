@@ -360,6 +360,11 @@ export const getMockBffApiInstanceEServiceSeed =
     isConsumerDelegable: generateMock(z.boolean().optional()),
   });
 
+export const getMockBffApiEServicePersonalDataUpdateSeed =
+  (): bffApi.EServicePersonalDataUpdateSeed => ({
+    personalData: generateMock(z.boolean()),
+  });
+
 export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
   name: generateMock(z.string()),
   description: generateMock(z.string()),
@@ -368,6 +373,7 @@ export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
   isSignalHubEnabled: generateMock(z.boolean().optional()),
   isClientAccessDelegable: generateMock(z.boolean().optional()),
   isConsumerDelegable: generateMock(z.boolean().optional()),
+  personalData: generateMock(z.boolean().optional()),
 });
 
 export const getMockBffApiRejectDelegatedEServiceDescriptorSeed =
