@@ -248,9 +248,8 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
           ],
         }))
         .with(riskAnalysisAnswerKind.multi, () => ({
-          riskAnalysisTemplateSingleAnswers: [
-            ...acc.riskAnalysisTemplateSingleAnswers,
-          ],
+          riskAnalysisTemplateSingleAnswers:
+            acc.riskAnalysisTemplateSingleAnswers,
           riskAnalysisTemplateMultiAnswers: [
             ...acc.riskAnalysisTemplateMultiAnswers,
             {
