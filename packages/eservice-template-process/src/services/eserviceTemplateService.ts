@@ -1948,7 +1948,10 @@ function resolveValue<T>(
 async function updateDraftEServiceTemplateVersion(
   eserviceTemplateId: EServiceTemplateId,
   eserviceTemplateVersionId: EServiceTemplateVersionId,
-  args:
+  {
+    type,
+    seed,
+  }:
     | {
         type: "post";
         seed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed;
@@ -1965,7 +1968,6 @@ async function updateDraftEServiceTemplateVersion(
     logger,
   }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
 ): Promise<WithMetadata<EServiceTemplate>> {
-  const { type, seed } = args;
   logger.info(
     `${type.toUpperCase()} update draft e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
   );
