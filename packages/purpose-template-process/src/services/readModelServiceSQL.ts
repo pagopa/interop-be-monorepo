@@ -28,7 +28,16 @@ import {
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, exists, ilike, inArray, isNotNull, SQL } from "drizzle-orm";
+import {
+  and,
+  eq,
+  exists,
+  getTableColumns,
+  ilike,
+  inArray,
+  isNotNull,
+  SQL,
+} from "drizzle-orm";
 import {
   ascLower,
   createListResult,
