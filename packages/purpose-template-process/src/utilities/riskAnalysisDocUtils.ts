@@ -33,13 +33,13 @@ function findRemovedAnswerWithAnnotationDocs(
 }
 
 export async function cleanupAnnotationDocsForRemovedAnswers(
-  purposetemplateSeed: purposeTemplateApi.PurposeTemplateSeed,
+  purposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed,
   purposeTemplate: PurposeTemplate,
   fileManager: FileManager,
   logger: Logger
 ): Promise<void> {
   const annotationDocs = findRemovedAnswerWithAnnotationDocs(
-    purposetemplateSeed,
+    purposeTemplateSeed,
     purposeTemplate.purposeRiskAnalysisForm
   );
 
