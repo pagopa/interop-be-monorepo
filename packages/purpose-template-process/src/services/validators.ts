@@ -11,12 +11,14 @@ import {
   RiskAnalysisTemplateValidatedForm,
   RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
+  validateNoHyperlinks,
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
 } from "pagopa-interop-commons";
 import { riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer } from "../../../commons/src/risk-analysis-template/riskAnalysisFormTemplate.js";
-import { validateAnnotationText } from "../../../commons/src/risk-analysis-template/riskAnalysisTemplateValidation.js";
 import {
+  annotationTextLengthError,
+  hyperlinkDetectionError,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInValidState,
@@ -119,6 +121,15 @@ function validateRiskAnalysisAnswerOrThrow({
   riskAnalysisAnswer: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest;
   tenantKind: TenantKind;
 }): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {
+  if (riskAnalysisAnswer.answerData.annotation) {
+    const { text } = riskAnalysisAnswer.answerData.annotation;
+    if (text.length > 250) {
+      throw annotationTextLengthError(text, text.length, 250);
+    }
+
+    validateNoHyperlinks(text, hyperlinkDetectionError(text));
+  }
+
   const result = validateRiskAnalysisAnswer(
     riskAnalysisAnswer.answerKey,
     riskAnalysisAnswer.answerData,
@@ -127,10 +138,6 @@ function validateRiskAnalysisAnswerOrThrow({
 
   if (result.type === "invalid") {
     throw riskAnalysisTemplateValidationFailed(result.issues);
-  }
-
-  if (riskAnalysisAnswer.answerData.annotation) {
-    validateAnnotationText(riskAnalysisAnswer.answerData.annotation.text);
   }
 
   return result.value;

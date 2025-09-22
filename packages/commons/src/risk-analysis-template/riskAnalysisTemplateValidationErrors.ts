@@ -10,9 +10,7 @@ type RiskAnalysisTemplateValidationIssueCode =
   | "noRiskAnalysisTemplateRulesVersionFoundError"
   | "unexpectedRiskAnalysisTemplateRulesVersionError"
   | "unexpectedRiskAnalysisTemplateDependencyValueError"
-  | "missingExpectedRiskAnalysisTemplateFieldError"
-  | "annotationTextLengthError"
-  | "hyperlinkDetectionError";
+  | "missingExpectedRiskAnalysisTemplateFieldError";
 
 export class RiskAnalysisTemplateValidationIssue extends InternalError<RiskAnalysisTemplateValidationIssueCode> {
   constructor({
@@ -152,23 +150,4 @@ export function validTemplateResult<T>(
     type: "valid",
     value,
   };
-}
-
-export function annotationTextLengthError(
-  text: string,
-  length: number
-): RiskAnalysisTemplateValidationIssue {
-  return new RiskAnalysisTemplateValidationIssue({
-    code: "annotationTextLengthError",
-    detail: `Annotation text exceeds maximum length of 250 characters. Current length: ${length}. Text: ${text}`,
-  });
-}
-
-export function hyperlinkDetectionError(
-  text: string
-): RiskAnalysisTemplateValidationIssue {
-  return new RiskAnalysisTemplateValidationIssue({
-    code: "hyperlinkDetectionError",
-    detail: `Annotation text cannot contain hyperlinks or URLs. Text: ${text}`,
-  });
 }

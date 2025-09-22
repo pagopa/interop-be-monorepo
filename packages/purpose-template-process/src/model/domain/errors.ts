@@ -83,10 +83,11 @@ export function purposeTemplateNotInValidState(
 
 export function annotationTextLengthError(
   text: string,
-  length: number
+  length: number,
+  threshold: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Annotation text length error for text ${text} with length ${length}`,
+    detail: `Annotation text ${text} length ${length} is greater than ${threshold}`,
     code: "annotationTextLengthError",
     title: "Annotation text length error",
   });
