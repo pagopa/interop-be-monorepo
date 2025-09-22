@@ -22,9 +22,9 @@ import { config } from "../config/config.js";
 export function purposeTemplateConfigFeatureIsEnabled(
   ctx: WithLogger<BffAppContext>
 ): Problem | void {
-  if (!isFeatureFlagEnabled(config, "featureFlagNotificationConfig")) {
+  if (!isFeatureFlagEnabled(config, "featureFlagPurposeTemplate")) {
     return makeApiProblem(
-      featureFlagNotEnabled("featureFlagPurposeTemplateConfig"),
+      featureFlagNotEnabled("featureFlagPurposeTemplate"),
       () => constants.HTTP_STATUS_FORBIDDEN,
       ctx,
       "Purpose Template feature flag is disabled, operation not allowed"
