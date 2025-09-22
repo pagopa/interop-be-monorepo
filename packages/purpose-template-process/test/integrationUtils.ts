@@ -51,7 +51,6 @@ export const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
-  readModelDB,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
