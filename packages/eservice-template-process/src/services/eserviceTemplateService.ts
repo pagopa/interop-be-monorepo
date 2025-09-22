@@ -2007,20 +2007,23 @@ async function updateDraftEServiceTemplateVersion(
     dailyCallsTotal: updatedDailyCallsTotal,
   });
 
-  const parsedAttributes = await parseAndCheckAttributes(
-    {
-      declared:
-        seed.attributes?.declared ??
-        eserviceTemplateVersion.attributes?.declared,
-      certified:
-        seed.attributes?.certified ??
-        eserviceTemplateVersion.attributes?.certified,
-      verified:
-        seed.attributes?.verified ??
-        eserviceTemplateVersion.attributes?.verified,
-    },
-    readModelService
-  );
+  const parsedAttributes = seed.attributes
+    ? await parseAndCheckAttributes(
+        {
+          declared:
+            seed.attributes.declared ??
+            eserviceTemplateVersion.attributes.declared,
+          certified:
+            seed.attributes.certified ??
+            eserviceTemplateVersion.attributes.certified,
+          verified:
+            seed.attributes.verified ??
+            eserviceTemplateVersion.attributes.verified,
+        },
+        readModelService
+      )
+    : eserviceTemplateVersion.attributes;
+
   const updatedVersion: EServiceTemplateVersion = {
     ...eserviceTemplateVersion,
     agreementApprovalPolicy: resolveValue(
