@@ -15,10 +15,12 @@ import {
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
+  Tenant,
   TenantId,
   TenantNotificationConfigId,
   unsafeBrandId,
   NotificationType,
+  EService,
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
