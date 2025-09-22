@@ -1521,8 +1521,7 @@ components:
           maximum: 1000000000
           nullable: true
         agreementApprovalPolicy:
-          $ref: "#/components/schemas/AgreementApprovalPolicy"
-          nullable: true
+          $ref: "#/components/schemas/AgreementApprovalPolicyNullable"
         attributes:
           $ref: "#/components/schemas/PatchAttributesSeed"
     UpdateEServiceTemplateVersionQuotasSeed:
@@ -1654,6 +1653,13 @@ components:
       enum:
         - AUTOMATIC
         - MANUAL
+    AgreementApprovalPolicyNullable:
+      type: string
+      description: E-Service Descriptor policy for new Agreements approval
+      enum:
+        - AUTOMATIC
+        - MANUAL
+      nullable: true
     EServiceTemplateRiskAnalysisSeed:
       type: object
       additionalProperties: false

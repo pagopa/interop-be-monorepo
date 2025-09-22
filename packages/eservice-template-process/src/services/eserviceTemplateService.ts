@@ -114,6 +114,7 @@ import {
   assertEServiceTemplateNameAvailable,
   assertRiskAnalysisIsValidForPublication,
   assertEServiceTemplateVersionState,
+  assertConsistentDailyCallsPatch,
 } from "./validators.js";
 
 export const retrieveEServiceTemplate = async (
@@ -1990,7 +1991,10 @@ async function updateDraftEServiceTemplateVersion(
     eserviceTemplateVersion,
     [eserviceTemplateVersionState.draft]
   );
-  assertConsistentDailyCalls(seed);
+  assertConsistentDailyCallsPatch({
+    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+    dailyCallsTotal: seed.dailyCallsTotal,
+  });
 
   const parsedAttributes = await parseAndCheckAttributes(
     {
@@ -2006,15 +2010,17 @@ async function updateDraftEServiceTemplateVersion(
     },
     readModelService
   );
-
   const updatedVersion: EServiceTemplateVersion = {
     ...eserviceTemplateVersion,
-    agreementApprovalPolicy:
-      type === "patch" && seed.agreementApprovalPolicy === null
-        ? undefined
+    agreementApprovalPolicy: resolveValue(
+      type,
+      seed.agreementApprovalPolicy === null
+        ? null
         : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
             seed.agreementApprovalPolicy
           ),
+      eserviceTemplateVersion.agreementApprovalPolicy
+    ),
     dailyCallsPerConsumer: resolveValue(
       type,
       seed.dailyCallsPerConsumer,

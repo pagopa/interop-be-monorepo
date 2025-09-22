@@ -102,6 +102,24 @@ export function assertConsistentDailyCalls({
   }
 }
 
+export function assertConsistentDailyCallsPatch({
+  dailyCallsPerConsumer,
+  dailyCallsTotal,
+}: {
+  dailyCallsPerConsumer?: number | null;
+  dailyCallsTotal?: number | null;
+}): void {
+  if (
+    dailyCallsPerConsumer !== null &&
+    dailyCallsTotal !== null &&
+    dailyCallsPerConsumer !== undefined &&
+    dailyCallsTotal !== undefined &&
+    dailyCallsPerConsumer > dailyCallsTotal
+  ) {
+    throw inconsistentDailyCalls();
+  }
+}
+
 export function assertEServiceTemplateVersionState(
   eserviceTemplateVersionId: EServiceTemplateVersionId,
   eserviceTemplateVersion: EServiceTemplateVersion,
