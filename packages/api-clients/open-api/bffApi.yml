@@ -88,6 +88,11 @@ tags:
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
+  - name: emailDeeplink
+    description: Email Deeplink Module
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
   - name: health
     description: Verify service status
     externalDocs:
@@ -21410,6 +21415,67 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/emailDeeplink/{notificationType}/{entityId}":
+    get:
+      security: []
+      tags:
+        - emailDeeplink
+      summary: Redirect the user to the correct deeplink based on notification type and entity id
+      operationId: getNotificationDeeplink
+      parameters:
+        - name: notificationType
+          in: path
+          required: true
+          description: The type of the notification
+          schema:
+            type: string
+        - name: entityId
+          in: path
+          required: true
+          description: The id of the entity
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirection in case of success SAML validation or error
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
           content:
             application/problem+json:
               schema:
