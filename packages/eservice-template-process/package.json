@@ -6,8 +6,7 @@
   "type": "module",
   "scripts": {
     "test:api": "vitest --config vitest.api.config.ts",
-    "test:integration": "echo \"SQL readmodel\" && vitest --config vitest.integrationsql.config.ts",
-    "test:integration:old": "echo \"Old readmodel\" && vitest --config vitest.integration.config.ts ",
+    "test:integration": "vitest --config vitest.integration.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -31,7 +30,6 @@
     "pg-promise": "11.8.0",
     "prettier": "2.8.8",
     "supertest": "7.0.0",
-    "testcontainers": "10.9.0",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
     "vitest": "1.6.1"

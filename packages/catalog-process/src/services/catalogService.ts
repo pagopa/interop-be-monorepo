@@ -2597,6 +2597,7 @@ export function catalogServiceBuilder(
         toCreateEventEServiceNameUpdated(
           eservice.metadata.version,
           updatedEservice,
+          eservice.data.name,
           correlationId
         )
       );
@@ -2875,6 +2876,7 @@ export function catalogServiceBuilder(
         toCreateEventEServiceNameUpdatedByTemplateUpdate(
           eservice.metadata.version,
           updatedEservice,
+          eservice.data.name,
           correlationId
         )
       );

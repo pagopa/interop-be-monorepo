@@ -1,27 +1,80 @@
-import { EServiceEventEnvelopeV2, Notification } from "pagopa-interop-models";
+import {
+  NewNotification,
+  DescriptorId,
+  EServiceEventEnvelopeV2,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { handleNewEServiceVersionPublished } from "./handleNewEServiceVersionPublished.js";
+import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
+import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEserviceNewVersionApprovedRejectedToDelegate.js";
+import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNewVersionSubmittedToDelegator.js";
 
 export async function handleEServiceEvent(
   decodedMessage: EServiceEventEnvelopeV2,
   logger: Logger,
   readModelService: ReadModelServiceSQL
-): Promise<Notification[]> {
+): Promise<NewNotification[]> {
   return match(decodedMessage)
-    .with({ type: "EServiceDescriptorPublished" }, ({ data: { eservice } }) =>
-      handleNewEServiceVersionPublished(eservice, logger, readModelService)
+    .with(
+      {
+        type: P.union(
+          "EServiceNameUpdated",
+          "EServiceDescriptionUpdated",
+          "EServiceDescriptorPublished",
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorActivated",
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorAgreementApprovalPolicyUpdated",
+          "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceNameUpdatedByTemplateUpdate",
+          "EServiceDescriptionUpdatedByTemplateUpdate",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+        ),
+      },
+      (msg) =>
+        handleEserviceStateChangedToConsumer(msg, logger, readModelService)
+    )
+    .with(
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      ({ data: { eservice, descriptorId } }) =>
+        handleEserviceNewVersionSubmittedToDelegator(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId),
+          logger,
+          readModelService
+        )
     )
     .with(
       {
         type: P.union(
-          "EServiceDescriptorActivated",
           "EServiceDescriptorApprovedByDelegator",
-          "EServiceDescriptorSuspended",
+          "EServiceDescriptorRejectedByDelegator"
+        ),
+      },
+      ({ data: { eservice, descriptorId }, type }) =>
+        handleEserviceNewVersionApprovedRejectedToDelegate(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId),
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
+      {
+        type: P.union(
           "EServiceDescriptorArchived",
-          "EServiceDescriptorQuotasUpdated",
-          "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceAdded",
           "EServiceCloned",
           "EServiceDeleted",
@@ -29,31 +82,14 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAdded",
           "EServiceDraftDescriptorDeleted",
           "EServiceDraftDescriptorUpdated",
-          "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorDocumentUpdated",
-          "EServiceDescriptorDocumentDeleted",
-          "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorInterfaceDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
           "EServiceRiskAnalysisDeleted",
-          "EServiceDescriptorAttributesUpdated",
-          "EServiceDescriptionUpdated",
-          "EServiceNameUpdated",
-          "EServiceDescriptorSubmittedByDelegate",
-          "EServiceDescriptorRejectedByDelegator",
           "EServiceIsConsumerDelegableEnabled",
           "EServiceIsConsumerDelegableDisabled",
           "EServiceIsClientAccessDelegableEnabled",
           "EServiceIsClientAccessDelegableDisabled",
-          "EServiceNameUpdatedByTemplateUpdate",
-          "EServiceDescriptionUpdatedByTemplateUpdate",
-          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
-          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
-          "EServiceDescriptorDocumentAddedByTemplateUpdate",
-          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled"
         ),

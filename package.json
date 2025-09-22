@@ -1,6 +1,7 @@
 {
   "private": true,
   "name": "root",
+  "license": "EUPL-1.2",
   "engines": {
     "node": ">=20"
   },
@@ -21,6 +22,7 @@
     "start:auth-updater": "turbo start --filter pagopa-interop-authorization-updater",
     "start:notifier-seeder": "turbo start --filter pagopa-interop-notifier-seeder",
     "start:purpose": "turbo start --filter pagopa-interop-purpose-process",
+    "start:purpose-template": "turbo start --filter pagopa-interop-purpose-template-process",
     "start:purpose-readmodel-writer": "turbo start --filter pagopa-interop-purpose-readmodel-writer",
     "start:purpose-platformstate-writer": "turbo start --filter pagopa-interop-purpose-platformstate-writer",
     "start:authorization": "turbo start --filter pagopa-interop-authorization-process",
@@ -56,6 +58,7 @@
     "start:notification-config-readmodel-writer-sql": "turbo start --filter pagopa-interop-notification-config-readmodel-writer-sql",
     "start:notification-user-lifecycle": "turbo start --filter pagopa-interop-notification-user-lifecycle-consumer",
     "start:in-app-notification-dispatcher": "turbo start --filter pagopa-interop-in-app-notification-dispatcher",
+    "start:m2m-events": "turbo start --filter pagopa-interop-m2m-event-*",
     "test": "turbo test",
     "test:integration": "turbo test:integration",
     "test:api": "turbo test:api",
@@ -68,6 +71,7 @@
     "format:write": "turbo format:write",
     "generate-model": "turbo generate-model",
     "generate-protobuf": "turbo generate-protobuf",
+    "generate-db-models": "turbo generate-db-models",
     "infra:start": "./scripts/infra-start.sh",
     "infra:stop": "./scripts/infra-stop.sh",
     "infra:destroy": "./scripts/infra-destroy.sh",

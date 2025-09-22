@@ -110,6 +110,10 @@ import {
   TenantNotificationConfig,
   UserNotificationConfig,
   DelegationStamps,
+  PurposeTemplate,
+  tenantKind,
+  purposeTemplateState,
+  PurposeTemplateState,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -334,6 +338,21 @@ export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
   createdAt: new Date(),
   isFreeOfCharge: true,
   freeOfChargeReason: "test",
+});
+
+export const getMockPurposeTemplate = (
+  creatorId: TenantId = generateId<TenantId>(),
+  state: PurposeTemplateState = purposeTemplateState.draft
+): PurposeTemplate => ({
+  id: generateId(),
+  targetDescription: "Purpose template target description",
+  targetTenantKind: tenantKind.PA,
+  creatorId,
+  state,
+  createdAt: new Date(),
+  purposeTitle: "Purpose template title",
+  purposeDescription: "Purpose template description",
+  purposeIsFreeOfCharge: false,
 });
 
 export const getMockPurposeVersion = (
@@ -1275,15 +1294,18 @@ export function createDummyStub<T>(): T {
   return {} as T;
 }
 
-export const getMockNotificationConfig = (): NotificationConfig => ({
-  newEServiceVersionPublished: generateMock(z.boolean()),
-});
+export const getMockNotificationConfig = (): NotificationConfig =>
+  Object.keys(NotificationConfig.shape).reduce((acc, key) => {
+    // eslint-disable-next-line functional/immutable-data
+    acc[key as keyof NotificationConfig] = generateMock(z.boolean());
+    return acc;
+  }, {} as NotificationConfig);
 
 export const getMockTenantNotificationConfig =
   (): TenantNotificationConfig => ({
     id: generateId(),
     tenantId: generateId(),
-    config: getMockNotificationConfig(),
+    enabled: generateMock(z.boolean()),
     createdAt: generateMock(z.coerce.date()),
     updatedAt: generateMock(z.coerce.date().optional()),
   });
