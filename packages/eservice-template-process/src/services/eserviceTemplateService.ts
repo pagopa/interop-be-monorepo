@@ -1922,6 +1922,13 @@ async function updateDraftEServiceTemplate(
   };
 }
 
+function resolvePatchValue<T>(
+  value: T | null | undefined,
+  oldValue: T | undefined
+): T | undefined {
+  return value === null ? undefined : value === undefined ? oldValue : value;
+}
+
 // eslint-disable-next-line max-params
 async function updateDraftEServiceTemplateVersion(
   eserviceTemplateId: EServiceTemplateId,
@@ -1967,22 +1974,24 @@ async function updateDraftEServiceTemplateVersion(
       eserviceTemplateVersion.state
     );
   }
+
   const updatedDailyCallsPerConsumer = match(updateSeed)
     .with({ type: "post" }, ({ seed }) => seed.dailyCallsPerConsumer)
     .with({ type: "patch" }, ({ seed }) =>
-      seed.dailyCallsPerConsumer === null
-        ? undefined
-        : seed.dailyCallsPerConsumer ??
-          eserviceTemplateVersion.dailyCallsPerConsumer
+      resolvePatchValue(
+        seed.dailyCallsPerConsumer,
+        eserviceTemplateVersion.dailyCallsPerConsumer
+      )
     )
     .exhaustive();
 
   const updatedDailyCallsTotal = match(updateSeed)
     .with({ type: "post" }, ({ seed }) => seed.dailyCallsTotal)
     .with({ type: "patch" }, ({ seed }) =>
-      seed.dailyCallsTotal === null
-        ? undefined
-        : seed.dailyCallsTotal ?? eserviceTemplateVersion.dailyCallsTotal
+      resolvePatchValue(
+        seed.dailyCallsTotal,
+        eserviceTemplateVersion.dailyCallsTotal
+      )
     )
     .exhaustive();
 
@@ -1993,13 +2002,14 @@ async function updateDraftEServiceTemplateVersion(
       )
     )
     .with({ type: "patch" }, ({ seed }) =>
-      seed.agreementApprovalPolicy === null
-        ? undefined
-        : seed.agreementApprovalPolicy
-        ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.agreementApprovalPolicy
-          )
-        : eserviceTemplateVersion.agreementApprovalPolicy
+      resolvePatchValue(
+        seed.agreementApprovalPolicy === null
+          ? null
+          : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+              seed.agreementApprovalPolicy
+            ),
+        eserviceTemplateVersion.agreementApprovalPolicy
+      )
     )
     .exhaustive();
 
