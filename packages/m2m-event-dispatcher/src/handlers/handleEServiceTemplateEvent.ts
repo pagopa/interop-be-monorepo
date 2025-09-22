@@ -36,7 +36,8 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionInterfaceDeleted",
           "EServiceTemplateVersionInterfaceUpdated",
           "EServiceTemplateVersionPublished",
-          "EServiceTemplateVersionQuotasUpdated"
+          "EServiceTemplateVersionQuotasUpdated",
+          "EServiceTemplatePersonalDataUpdatedAfterPublish"
         ),
       },
       () => Promise.resolve(void 0)

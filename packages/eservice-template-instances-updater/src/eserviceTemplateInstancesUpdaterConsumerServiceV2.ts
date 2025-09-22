@@ -329,6 +329,14 @@ export async function handleMessageV2({
       );
     })
     .with(
+      {
+        type: "EServiceTemplatePersonalDataUpdatedAfterPublish",
+      },
+      () => {
+        // TODO
+      }
+    )
+    .with(
       { type: "EServiceTemplateAdded" },
       { type: "EServiceTemplateIntendedTargetUpdated" },
       { type: "EServiceTemplateDeleted" },
