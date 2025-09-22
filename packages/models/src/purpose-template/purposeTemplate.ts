@@ -5,7 +5,7 @@ import {
   PurposeTemplateId,
   TenantId,
 } from "../brandedIds.js";
-import { RiskAnalysisFormTemplate } from "../risk-analysis/riskAnalysisTemplate.js";
+import { RiskAnalysisFormTemplate } from "../risk-analysis-template/riskAnalysisTemplate.js";
 import { TenantKind } from "../tenant/tenant.js";
 
 export const purposeTemplateState = {

@@ -346,6 +346,9 @@ export async function setupTestContainersVitest(
       await postgresDB?.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
       await postgresDB?.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
       await postgresDB?.none(
+        "TRUNCATE TABLE purpose_template.events RESTART IDENTITY"
+      );
+      await postgresDB?.none(
         'TRUNCATE TABLE "authorization".events RESTART IDENTITY'
       );
       await postgresDB?.none(
