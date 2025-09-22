@@ -21,6 +21,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
+  eserviceInReadmodelCatalog,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
@@ -51,6 +52,12 @@ export type GetPurposeTemplatesFilters = {
   creatorIds: TenantId[];
   eserviceIds: EServiceId[];
   states: PurposeTemplateState[];
+};
+
+export type GetPurposeTemplateEServiceDescriptorsFilters = {
+  purposeTemplateId: PurposeTemplateId;
+  producerIds: TenantId[];
+  eserviceIds: EServiceId[];
 };
 
 const getPurposeTemplatesFilters = (
@@ -239,9 +246,11 @@ export function readModelServiceBuilderSQL({
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
     },
     async getPurposeTemplateEServiceDescriptors(
-      id: PurposeTemplateId,
+      filters: GetPurposeTemplateEServiceDescriptorsFilters,
       { limit, offset }: { limit: number; offset: number }
     ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
+      const { purposeTemplateId, producerIds, eserviceIds } = filters;
+
       const queryResult = await readModelDB
         .select(
           withTotalCount(
@@ -251,10 +260,28 @@ export function readModelServiceBuilderSQL({
           )
         )
         .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
-        .where(
+        .innerJoin(
+          eserviceInReadmodelCatalog,
           eq(
-            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
-            id
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+            eserviceInReadmodelCatalog.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            producerIds.length > 0
+              ? inArray(eserviceInReadmodelCatalog.producerId, producerIds)
+              : undefined,
+            eserviceIds.length > 0
+              ? inArray(
+                  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+                  eserviceIds
+                )
+              : undefined
           )
         )
         .orderBy(

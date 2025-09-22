@@ -11,6 +11,7 @@ import {
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
+  EService,
   EServiceDescriptorPurposeTemplate,
   ListResult,
   PurposeTemplate,
@@ -18,6 +19,7 @@ import {
   PurposeTemplateId,
 } from "pagopa-interop-models";
 import {
+  upsertEService,
   upsertPurposeTemplate,
   upsertPurposeTemplateEServiceDescriptor,
 } from "pagopa-interop-readmodel/testUtils";
@@ -95,4 +97,8 @@ export const addOnePurposeTemplateEServiceDescriptor = async (
     purposeTemplateEServiceDescriptor,
     0
   );
+};
+
+export const addOneEService = async (eservice: EService): Promise<void> => {
+  await upsertEService(readModelDB, eservice, 0);
 };

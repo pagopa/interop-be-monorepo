@@ -172,10 +172,14 @@ const purposeTemplateRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const { offset, limit } = req.query;
+        const { producerIds, eserviceIds, offset, limit } = req.query;
         const purposeTemplateEServicesDescriptors =
           await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
-            unsafeBrandId(req.params.id),
+            {
+              purposeTemplateId: unsafeBrandId(req.params.id),
+              producerIds: producerIds?.map(unsafeBrandId<TenantId>),
+              eserviceIds: eserviceIds?.map(unsafeBrandId<EServiceId>),
+            },
             { offset, limit },
             ctx
           );

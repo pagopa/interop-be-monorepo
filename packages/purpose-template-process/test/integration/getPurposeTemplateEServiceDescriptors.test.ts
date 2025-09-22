@@ -16,10 +16,13 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
+import { catalogReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
+  addOneEService,
   addOnePurposeTemplate,
   addOnePurposeTemplateEServiceDescriptor,
   purposeTemplateService,
+  readModelDB,
 } from "../integrationUtils.js";
 import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
 
@@ -70,7 +73,7 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       descriptorId: eservice2.descriptors[0].id,
       createdAt: new Date(),
     };
-  const purposeTemplateEServiceDescriptor4: EServiceDescriptorPurposeTemplate =
+  const purposeTemplateEServiceDescriptor3: EServiceDescriptorPurposeTemplate =
     {
       purposeTemplateId: purposeTemplate2.id,
       eserviceId: eservice1.id,
@@ -79,6 +82,9 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
     };
 
   beforeEach(async () => {
+    await addOneEService(eservice1);
+    await addOneEService(eservice2);
+
     await addOnePurposeTemplate(purposeTemplate1);
     await addOnePurposeTemplate(purposeTemplate2);
     await addOnePurposeTemplate(purposeTemplate3);
@@ -86,19 +92,22 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
     await addOnePurposeTemplateEServiceDescriptor(
       purposeTemplateEServiceDescriptor1
     );
-
     await addOnePurposeTemplateEServiceDescriptor(
       purposeTemplateEServiceDescriptor2
     );
     await addOnePurposeTemplateEServiceDescriptor(
-      purposeTemplateEServiceDescriptor4
+      purposeTemplateEServiceDescriptor3
     );
   });
 
   it("should get all the linked purpose template e-service descriptors if they exist", async () => {
     const allPurposeTemplateEServiceDescriptors =
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
-        purposeTemplate1.id,
+        {
+          purposeTemplateId: purposeTemplate1.id,
+          eserviceIds: [],
+          producerIds: [],
+        },
         { offset: 0, limit: 50 },
         getMockContext({ authData: getMockAuthData(creatorId) })
       );
@@ -115,7 +124,11 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
   it("should get the linked purpose template e-service descriptors (pagination: offset)", async () => {
     const result =
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
-        purposeTemplate1.id,
+        {
+          purposeTemplateId: purposeTemplate1.id,
+          eserviceIds: [],
+          producerIds: [],
+        },
         { offset: 1, limit: 50 },
         getMockContext({ authData: getMockAuthData(creatorId) })
       );
@@ -129,7 +142,11 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
   it("should get the linked purpose template e-service descriptors (pagination: limit)", async () => {
     const result =
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
-        purposeTemplate1.id,
+        {
+          purposeTemplateId: purposeTemplate1.id,
+          eserviceIds: [],
+          producerIds: [],
+        },
         { offset: 0, limit: 1 },
         getMockContext({ authData: getMockAuthData(creatorId) })
       );
@@ -140,10 +157,50 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
     });
   });
 
+  it("should get the linked purpose template e-service descriptors (filter: producerIds)", async () => {
+    const result =
+      await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
+        {
+          purposeTemplateId: purposeTemplate1.id,
+          eserviceIds: [],
+          producerIds: [eservice2.producerId],
+        },
+        { offset: 0, limit: 50 },
+        getMockContext({ authData: getMockAuthData(creatorId) })
+      );
+
+    expect(result).toEqual({
+      totalCount: 1,
+      results: [purposeTemplateEServiceDescriptor2],
+    });
+  });
+
+  it("should get the linked purpose template e-service descriptors (filter: eserviceIds)", async () => {
+    const result =
+      await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
+        {
+          purposeTemplateId: purposeTemplate1.id,
+          eserviceIds: [eservice2.id],
+          producerIds: [],
+        },
+        { offset: 0, limit: 50 },
+        getMockContext({ authData: getMockAuthData(creatorId) })
+      );
+
+    expect(result).toEqual({
+      totalCount: 1,
+      results: [purposeTemplateEServiceDescriptor2],
+    });
+  });
+
   it("should not get the linked purpose template e-service descriptors if they don't exist", async () => {
     const result =
       await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
-        purposeTemplate3.id,
+        {
+          purposeTemplateId: purposeTemplate3.id,
+          eserviceIds: [],
+          producerIds: [],
+        },
         { offset: 0, limit: 50 },
         getMockContext({ authData: getMockAuthData(creatorId) })
       );
@@ -159,7 +216,11 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
 
     await expect(
       purposeTemplateService.getPurposeTemplateEServiceDescriptors(
-        notExistingId,
+        {
+          purposeTemplateId: notExistingId,
+          eserviceIds: [],
+          producerIds: [],
+        },
         { offset: 0, limit: 50 },
         getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       )

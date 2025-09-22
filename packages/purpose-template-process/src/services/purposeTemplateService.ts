@@ -27,6 +27,7 @@ import {
 } from "../model/domain/errors.js";
 import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
 import {
+  GetPurposeTemplateEServiceDescriptorsFilters,
   GetPurposeTemplatesFilters,
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
@@ -155,22 +156,29 @@ export function purposeTemplateServiceBuilder(
       return retrievePurposeTemplate(id, readModelService);
     },
     async getPurposeTemplateEServiceDescriptors(
-      id: PurposeTemplateId,
+      filters: GetPurposeTemplateEServiceDescriptorsFilters,
       { offset, limit }: { offset: number; limit: number },
       {
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
+      const { purposeTemplateId } = filters;
+
       logger.info(
-        `Retrieving e-service descriptors associated to purpose template ${id}`
+        `Retrieving e-service descriptors associated to purpose template ${purposeTemplateId} with filters: ${JSON.stringify(
+          filters
+        )}`
       );
 
-      await retrievePurposeTemplate(id, readModelService);
+      await retrievePurposeTemplate(purposeTemplateId, readModelService);
 
-      return await readModelService.getPurposeTemplateEServiceDescriptors(id, {
-        offset,
-        limit,
-      });
+      return await readModelService.getPurposeTemplateEServiceDescriptors(
+        filters,
+        {
+          offset,
+          limit,
+        }
+      );
     },
   };
 }
