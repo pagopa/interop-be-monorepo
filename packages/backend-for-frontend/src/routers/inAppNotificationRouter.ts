@@ -56,7 +56,7 @@ const inAppNotificationRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          "Error creating eservice template"
+          "Error calculating in-app notifications count"
         );
         return res.status(errorRes.status).send(errorRes);
       }
