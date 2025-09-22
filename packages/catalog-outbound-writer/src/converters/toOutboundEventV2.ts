@@ -98,6 +98,7 @@ export function toOutboundEventV2(
       { type: "EServiceSignalHubEnabled" },
       { type: "EServiceSignalHubDisabled" },
       { type: "EServicePersonalDataUpdatedAfterPublish" },
+      { type: "EServicePersonalDataUpdatedByTemplateUpdate" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

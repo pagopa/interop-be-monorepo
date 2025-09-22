@@ -101,6 +101,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceSignalHubDisabled" }, // CatalogItemV1UpdatedV1
       { type: "EServiceNameUpdatedByTemplateUpdate" },
       { type: "EServicePersonalDataUpdatedAfterPublish" },
+      { type: "EServicePersonalDataUpdatedByTemplateUpdate" },
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
       })

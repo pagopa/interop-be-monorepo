@@ -304,6 +304,7 @@ export async function handleMessageV2(
       { type: "EServiceSignalHubEnabled" },
       { type: "EServiceSignalHubDisabled" },
       { type: "EServicePersonalDataUpdatedAfterPublish" },
+      { type: "EServicePersonalDataUpdatedByTemplateUpdate" },
       () => Promise.resolve()
     )
     .exhaustive();
