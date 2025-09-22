@@ -19,7 +19,8 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "drizzle-orm": "0.39.3"
+    "drizzle-orm": "0.39.3",
+    "pagopa-interop-commons": "workspace:*"
   },
   "files": [
     "dist"
