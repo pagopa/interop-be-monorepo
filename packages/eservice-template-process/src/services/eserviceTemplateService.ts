@@ -1955,6 +1955,23 @@ async function updateDraftEServiceTemplateVersion(
     `${type.toUpperCase()} update draft e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
   );
 
+  const {
+    description,
+    voucherLifespan,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dailyCallsPerConsumer,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dailyCallsTotal,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    agreementApprovalPolicy,
+    attributes,
+    ...rest
+  } = seed;
+  void (rest satisfies Record<string, never>);
+  // ^ To make sure we extract all the updated fields.
+  // The eslint disables are needed because those fields are extracted
+  // but then not used directly, since they are handled in a different way.
+
   const eserviceTemplate = await retrieveEServiceTemplate(
     eserviceTemplateId,
     readModelService
@@ -2018,18 +2035,16 @@ async function updateDraftEServiceTemplateVersion(
     dailyCallsTotal: updatedDailyCallsTotal,
   });
 
-  const parsedAttributes = seed.attributes
+  const parsedAttributes = attributes
     ? await parseAndCheckAttributes(
         {
           declared:
-            seed.attributes.declared ??
-            eserviceTemplateVersion.attributes.declared,
+            attributes.declared ?? eserviceTemplateVersion.attributes.declared,
           certified:
-            seed.attributes.certified ??
+            attributes.certified ??
             eserviceTemplateVersion.attributes.certified,
           verified:
-            seed.attributes.verified ??
-            eserviceTemplateVersion.attributes.verified,
+            attributes.verified ?? eserviceTemplateVersion.attributes.verified,
         },
         readModelService
       )
@@ -2040,9 +2055,8 @@ async function updateDraftEServiceTemplateVersion(
     agreementApprovalPolicy: updatedAgreementApprovalPolicy,
     dailyCallsPerConsumer: updatedDailyCallsPerConsumer,
     dailyCallsTotal: updatedDailyCallsTotal,
-    description: seed.description ?? eserviceTemplateVersion.description,
-    voucherLifespan:
-      seed.voucherLifespan ?? eserviceTemplateVersion.voucherLifespan,
+    description: description ?? eserviceTemplateVersion.description,
+    voucherLifespan: voucherLifespan ?? eserviceTemplateVersion.voucherLifespan,
     attributes: parsedAttributes,
   };
 
