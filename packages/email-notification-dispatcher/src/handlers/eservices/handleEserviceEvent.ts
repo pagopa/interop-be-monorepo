@@ -6,6 +6,8 @@ import { match, P } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleEserviceDescriptorPublished } from "./handleEserviceDescriptorPublished.js";
 import { handleEserviceDescriptorSubmittedByDelegate } from "./handleEserviceDescriptorSubmittedByDelegate.js";
+import { handleEserviceDescriptorApprovedByDelegator } from "./handleEserviceDescriptorApprovedByDelegator.js";
+import { handleEserviceDescriptorRejectedByDelegator } from "./handleEserviceDescriptorRejectedByDelegator.js";
 
 export async function handleEServiceEvent(
   params: HandlerParams<typeof EServiceEventV2>
@@ -42,10 +44,33 @@ export async function handleEServiceEvent(
         })
     )
     .with(
+      { type: "EServiceDescriptorApprovedByDelegator" },
+      ({ data: { eservice } }) =>
+        handleEserviceDescriptorApprovedByDelegator({
+          eserviceV2Msg: eservice,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })
+    )
+    .with(
+      { type: "EServiceDescriptorRejectedByDelegator" },
+      ({ data: { eservice } }) =>
+        handleEserviceDescriptorRejectedByDelegator({
+          eserviceV2Msg: eservice,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })
+    )
+    .with(
       {
         type: P.union(
           "EServiceDescriptorActivated",
-          "EServiceDescriptorApprovedByDelegator",
           "EServiceDescriptorSuspended",
           "EServiceDescriptorArchived",
           "EServiceDescriptorQuotasUpdated",
@@ -69,7 +94,6 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAttributesUpdated",
           "EServiceDescriptionUpdated",
           "EServiceNameUpdated",
-          "EServiceDescriptorRejectedByDelegator",
           "EServiceIsConsumerDelegableEnabled",
           "EServiceIsConsumerDelegableDisabled",
           "EServiceIsClientAccessDelegableEnabled",

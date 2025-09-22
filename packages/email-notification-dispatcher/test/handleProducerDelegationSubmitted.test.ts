@@ -23,7 +23,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handleConsumerDelegationApproved } from "../src/handlers/delegations/handleConsumerDelegationApproved.js";
+import { handleProducerDelegationSubmitted } from "../src/handlers/delegations/handleProducerDelegationSubmitted.js";
 import {
   addOneDelegation,
   addOneEService,
@@ -35,7 +35,7 @@ import {
   userService,
 } from "./utils.js";
 
-describe("handleConsumerDelegationApproved", async () => {
+describe("handleProducerDelegationSubmitted", async () => {
   const delegatorId = generateId<TenantId>();
   const delegateId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
@@ -51,7 +51,10 @@ describe("handleConsumerDelegationApproved", async () => {
     ...getMockTenant(delegatorId),
     mails: [getMockTenantMail()],
   };
-  const delegateTenant = getMockTenant(delegateId);
+  const delegateTenant: Tenant = {
+    ...getMockTenant(delegateId),
+    mails: [getMockTenantMail()],
+  };
   const users = [
     getMockUser(delegatorTenant.id),
     getMockUser(delegatorTenant.id),
@@ -89,7 +92,7 @@ describe("handleConsumerDelegationApproved", async () => {
 
   it("should throw missingKafkaMessageDataError when delegation is undefined", async () => {
     await expect(() =>
-      handleConsumerDelegationApproved({
+      handleProducerDelegationSubmitted({
         delegationV2Msg: undefined,
         logger,
         templateService,
@@ -98,7 +101,7 @@ describe("handleConsumerDelegationApproved", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("delegation", "ConsumerDelegationApproved")
+      missingKafkaMessageDataError("delegation", "ProducerDelegationSubmitted")
     );
   });
 
@@ -106,7 +109,7 @@ describe("handleConsumerDelegationApproved", async () => {
     const unknownConsumerDelegateId = generateId<TenantId>();
 
     const delegation = getMockDelegation({
-      kind: "DelegatedConsumer",
+      kind: "DelegatedProducer",
       delegatorId: delegatorTenant.id,
       delegateId: unknownConsumerDelegateId,
       eserviceId: eservice.id,
@@ -114,7 +117,7 @@ describe("handleConsumerDelegationApproved", async () => {
     await addOneDelegation(delegation);
 
     await expect(() =>
-      handleConsumerDelegationApproved({
+      handleProducerDelegationSubmitted({
         delegationV2Msg: toDelegationV2(delegation),
         logger,
         templateService,
@@ -129,7 +132,7 @@ describe("handleConsumerDelegationApproved", async () => {
     const unknownDelegatorId = generateId<TenantId>();
 
     const delegation = getMockDelegation({
-      kind: "DelegatedConsumer",
+      kind: "DelegatedProducer",
       delegatorId: unknownDelegatorId,
       delegateId: delegateTenant.id,
       eserviceId: eservice.id,
@@ -137,7 +140,7 @@ describe("handleConsumerDelegationApproved", async () => {
     await addOneDelegation(delegation);
 
     await expect(() =>
-      handleConsumerDelegationApproved({
+      handleProducerDelegationSubmitted({
         delegationV2Msg: toDelegationV2(delegation),
         logger,
         templateService,
@@ -151,7 +154,7 @@ describe("handleConsumerDelegationApproved", async () => {
   it("should throw eServiceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
     const delegation = getMockDelegation({
-      kind: "DelegatedConsumer",
+      kind: "DelegatedProducer",
       delegatorId: delegatorTenant.id,
       delegateId: delegateTenant.id,
       eserviceId: unknownEServiceId,
@@ -159,7 +162,7 @@ describe("handleConsumerDelegationApproved", async () => {
     await addOneDelegation(delegation);
 
     await expect(() =>
-      handleConsumerDelegationApproved({
+      handleProducerDelegationSubmitted({
         delegationV2Msg: toDelegationV2(delegation),
         logger,
         templateService,
@@ -170,49 +173,16 @@ describe("handleConsumerDelegationApproved", async () => {
     ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
   });
 
-  it("should generate one message per user of the delegator", async () => {
+  it("should generate one message per user of the delegate", async () => {
     const delegation = getMockDelegation({
-      kind: "DelegatedConsumer",
+      kind: "DelegatedProducer",
       delegatorId: delegatorTenant.id,
       delegateId: delegateTenant.id,
       eserviceId: eservice.id,
     });
     await addOneDelegation(delegation);
 
-    const messages = await handleConsumerDelegationApproved({
-      delegationV2Msg: toDelegationV2(delegation),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(3);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
-  });
-
-  it("should not generate a message if the user disabled this email notification", async () => {
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([
-        { userId: users[0].id, tenantId: users[0].tenantId },
-      ]);
-
-    const delegation = getMockDelegation({
-      kind: "DelegatedConsumer",
-      delegatorId: delegatorTenant.id,
-      delegateId: delegateTenant.id,
-      eserviceId: eservice.id,
-    });
-    await addOneDelegation(delegation);
-
-    const messages = await handleConsumerDelegationApproved({
+    const messages = await handleProducerDelegationSubmitted({
       delegationV2Msg: toDelegationV2(delegation),
       logger,
       templateService,
@@ -222,58 +192,30 @@ describe("handleConsumerDelegationApproved", async () => {
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
+    expect(messages.some((message) => message.address === users[2].email)).toBe(
       true
     );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
+    expect(messages.some((message) => message.address === users[3].email)).toBe(
+      true
     );
   });
 
-  it("should generate one message to the delegator", async () => {
+  it("should not generate a message if the user disabled this email notification", async () => {
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockResolvedValue([
+        { userId: users[2].id, tenantId: users[2].tenantId },
+      ]);
+
     const delegation = getMockDelegation({
-      kind: "DelegatedConsumer",
+      kind: "DelegatedProducer",
       delegatorId: delegatorTenant.id,
       delegateId: delegateTenant.id,
       eserviceId: eservice.id,
     });
     await addOneDelegation(delegation);
 
-    const messages = await handleConsumerDelegationApproved({
-      delegationV2Msg: toDelegationV2(delegation),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(3);
-    expect(
-      messages.some(
-        (message) => message.address === delegatorTenant.mails[0].address
-      )
-    ).toBe(true);
-  });
-
-  it("should generate a message using the latest tenant mail that was registered", async () => {
-    const oldMail = { ...getMockTenantMail(), createdAt: new Date(1999) };
-    const newMail = getMockTenantMail();
-    const delegatorTenantWithMultipleMails: Tenant = {
-      ...getMockTenant(),
-      mails: [oldMail, newMail],
-    };
-    await addOneTenant(delegatorTenantWithMultipleMails);
-
-    const delegation = getMockDelegation({
-      kind: "DelegatedConsumer",
-      delegatorId: delegatorTenantWithMultipleMails.id,
-      delegateId: delegateTenant.id,
-      eserviceId: eservice.id,
-    });
-    await addOneDelegation(delegation);
-
-    const messages = await handleConsumerDelegationApproved({
+    const messages = await handleProducerDelegationSubmitted({
       delegationV2Msg: toDelegationV2(delegation),
       logger,
       templateService,
@@ -283,56 +225,24 @@ describe("handleConsumerDelegationApproved", async () => {
     });
 
     expect(messages.length).toEqual(1);
-    expect(
-      messages.some((message) => message.address === newMail.address)
-    ).toBe(true);
-  });
-
-  it("should not generate a message to the delegator if they disabled email notification", async () => {
-    readModelService.getTenantNotificationConfigByTenantId = vi
-      .fn()
-      .mockResolvedValue({
-        id: generateId<TenantNotificationConfigId>(),
-        tenantId: delegatorTenant.id,
-        enabled: false,
-        createAt: new Date(),
-      });
-
-    const delegation = getMockDelegation({
-      kind: "DelegatedConsumer",
-      delegatorId: delegatorTenant.id,
-      delegateId: delegateTenant.id,
-      eserviceId: eservice.id,
-    });
-    await addOneDelegation(delegation);
-
-    const messages = await handleConsumerDelegationApproved({
-      delegationV2Msg: toDelegationV2(delegation),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(2);
-    expect(
-      messages.some(
-        (message) => message.address === delegatorTenant.mails[0].address
-      )
-    ).toBe(false);
+    expect(messages.some((message) => message.address === users[2].email)).toBe(
+      true
+    );
+    expect(messages.some((message) => message.address === users[3].email)).toBe(
+      false
+    );
   });
 
   it("should generate a complete and correct message", async () => {
     const delegation = getMockDelegation({
-      kind: "DelegatedConsumer",
+      kind: "DelegatedProducer",
       delegatorId: delegatorTenant.id,
       delegateId: delegateTenant.id,
       eserviceId: eservice.id,
     });
     await addOneDelegation(delegation);
 
-    const messages = await handleConsumerDelegationApproved({
+    const messages = await handleProducerDelegationSubmitted({
       delegationV2Msg: toDelegationV2(delegation),
       logger,
       templateService,
@@ -341,12 +251,12 @@ describe("handleConsumerDelegationApproved", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toBe(3);
+    expect(messages.length).toBe(2);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `La tua richiesta di delega è stata accettata`
+        `Hai ricevuto una richiesta di delega`
       );
       expect(message.email.body).toContain(delegatorTenant.name);
       expect(message.email.body).toContain(delegateTenant.name);

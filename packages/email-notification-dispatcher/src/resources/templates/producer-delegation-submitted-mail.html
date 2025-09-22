@@ -24,9 +24,7 @@
       "
     >
       <!-- H4 Desktop (from MUI Italia)-->
-      <h1 style="font-size: 32px; line-height: 40px; margin: 0">
-        Richiesta di fruizione accettata
-      </h1>
+      <h1 style="font-size: 32px; line-height: 40px; margin: 0">{{ title }}</h1>
     </div>
   </td>
 </tr>
@@ -56,7 +54,7 @@
     >
       <p style="margin-bottom: 0px">
         Gentile
-        <strong>{{ consumerName }}</strong>,
+        <strong>{{ delegateName }}</strong>,
       </p>
     </div>
   </td>
@@ -79,13 +77,9 @@
     >
       <!-- Body 1 Desktop (from MUI Italia)-->
       <p>
-        ti informiamo che per l’e-service
-        <strong>{{ eserviceName }}</strong>,
-      </p>
-      <p>
-        è stata accettata la richiesta di fruizione da parte di
-        <strong>{{ producerName }}</strong>, del giorno
-        <strong>{{ submissionDate }}</strong>.
+        Hai ricevuto una richiesta di delega alla fruizione dall'ente {{
+        delegatorName }} per l'e-service "{{ eserviceName }}". Accedi al portale
+        per accettare o rifiutare la richiesta.
       </p>
     </div>
   </td>

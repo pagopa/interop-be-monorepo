@@ -108,17 +108,17 @@ describe("handleProducerDelegationApproved", async () => {
   it("should throw tenantNotFound when delegate is not found", async () => {
     const unknownProducerDelegateId = generateId<TenantId>();
 
-    const delegationToProducer = getMockDelegation({
+    const delegation = getMockDelegation({
       kind: "DelegatedProducer",
       delegatorId: delegatorTenant.id,
       delegateId: unknownProducerDelegateId,
       eserviceId: eservice.id,
     });
-    await addOneDelegation(delegationToProducer);
+    await addOneDelegation(delegation);
 
     await expect(() =>
       handleProducerDelegationApproved({
-        delegationV2Msg: toDelegationV2(delegationToProducer),
+        delegationV2Msg: toDelegationV2(delegation),
         logger,
         templateService,
         userService,
