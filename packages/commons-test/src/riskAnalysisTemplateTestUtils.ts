@@ -300,7 +300,7 @@ export const getMockRiskAnalysisTemplateAnswerAnnotation = (
   docNumber: number = 0
 ): RiskAnalysisTemplateAnswerAnnotation => ({
   id,
-  text: "Do people have the right to be happy, or should they earn it?",
+  text: "Annotation text in answer",
   docs: Array.from({ length: docNumber }, () =>
     getMockRiskAnalysisTemplateAnswerAnnotationDocument()
   ),
@@ -311,6 +311,6 @@ export const getMockRiskAnalysisTemplateAnswerAnnotationWithDocs = (
   docs: RiskAnalysisTemplateAnswerAnnotationDocument[]
 ): RiskAnalysisTemplateAnswerAnnotation => ({
   id,
-  text: "Do people have the right to be happy, or should they earn it?",
+  text: "Annotation text in answer",
   docs,
 });
