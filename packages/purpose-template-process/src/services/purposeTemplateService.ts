@@ -5,6 +5,8 @@ import {
   purposeTemplateState,
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
+  RiskAnalysisTemplateSingleAnswer,
+  RiskAnalysisTemplateMultiAnswer,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -16,12 +18,20 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import { purposeTemplateNotFound } from "../model/domain/errors.js";
-import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
+import {
+  purposeTemplateNotFound,
+  purposeTemplateRiskAnalysisFormNotFound,
+} from "../model/domain/errors.js";
+import {
+  toCreateEventPurposeTemplateAdded,
+  toCreateEventPurposeTemplateDraftUpdated,
+} from "../model/domain/toEvent.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
+  assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
+  validateAndTransformRiskAnalysisAnswer,
   validateAndTransformRiskAnalysisTemplate,
 } from "./validators.js";
 
@@ -107,6 +117,75 @@ export function purposeTemplateServiceBuilder(
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Retrieving purpose template ${id}`);
       return retrievePurposeTemplate(id, readModelService);
+    },
+    async createRiskAnalysisAnswer(
+      purposeTemplateId: PurposeTemplateId,
+      riskAnalysisTemplateAnswerRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest,
+      {
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<
+        RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+      >
+    > {
+      logger.info(`Creating risk analysis answer`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      if (!purposeTemplate.data.purposeRiskAnalysisForm) {
+        throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId);
+      }
+
+      assertPurposeTemplateStateIsValid(purposeTemplate.data.state, [
+        purposeTemplateState.draft,
+      ]);
+
+      const validatedAnswer = validateAndTransformRiskAnalysisAnswer(
+        riskAnalysisTemplateAnswerRequest,
+        purposeTemplate.data.targetTenantKind
+      );
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        updatedAt: new Date(),
+        purposeRiskAnalysisForm: {
+          ...purposeTemplate.data.purposeRiskAnalysisForm,
+          singleAnswers:
+            "value" in validatedAnswer
+              ? [
+                  ...purposeTemplate.data.purposeRiskAnalysisForm.singleAnswers,
+                  validatedAnswer,
+                ]
+              : purposeTemplate.data.purposeRiskAnalysisForm.singleAnswers,
+          multiAnswers:
+            "values" in validatedAnswer
+              ? [
+                  ...purposeTemplate.data.purposeRiskAnalysisForm.multiAnswers,
+                  validatedAnswer,
+                ]
+              : purposeTemplate.data.purposeRiskAnalysisForm.multiAnswers,
+        },
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateDraftUpdated(
+          updatedPurposeTemplate,
+          correlationId,
+          purposeTemplate.metadata.version
+        )
+      );
+
+      return {
+        data: validatedAnswer,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
   };
 }
