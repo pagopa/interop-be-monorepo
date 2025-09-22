@@ -141,7 +141,7 @@ export function purposeTemplateServiceBuilder(
     },
     async updatePurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
-      purposetemplateSeed: purposeTemplateApi.PurposeTemplateSeed,
+      purposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed,
       {
         authData,
         logger,
@@ -158,36 +158,34 @@ export function purposeTemplateServiceBuilder(
       assertPurposeTemplateIsDraft(purposeTemplate.data);
       assertRequesterIsCreator(purposeTemplate.data, authData);
 
-      if (purposetemplateSeed.purposeTitle) {
+      if (purposeTemplateSeed.purposeTitle) {
         await assertPurposeTemplateTitleIsNotDuplicated({
           readModelService,
-          title: purposetemplateSeed.purposeTitle,
+          title: purposeTemplateSeed.purposeTitle,
         });
       }
 
-      if (purposetemplateSeed.purposeIsFreeOfCharge) {
-        assertConsistentFreeOfCharge(
-          purposetemplateSeed.purposeIsFreeOfCharge,
-          purposetemplateSeed.purposeFreeOfChargeReason
-        );
-      }
+      assertConsistentFreeOfCharge(
+        purposeTemplateSeed.purposeIsFreeOfCharge,
+        purposeTemplateSeed.purposeFreeOfChargeReason
+      );
 
       const purposeRiskAnalysisForm =
-        purposetemplateSeed.purposeRiskAnalysisForm
+        purposeTemplateSeed.purposeRiskAnalysisForm
           ? validateAndTransformRiskAnalysisTemplate(
-              purposetemplateSeed.purposeRiskAnalysisForm,
+              purposeTemplateSeed.purposeRiskAnalysisForm,
               purposeTemplate.data.targetTenantKind
             )
           : purposeTemplate.data.purposeRiskAnalysisForm;
 
       const updatedPurposeTemplate: PurposeTemplate = {
         ...purposeTemplate.data,
-        ...purposetemplateSeed,
+        ...purposeTemplateSeed,
         purposeRiskAnalysisForm,
       };
 
       await cleanupAnnotationDocsForRemovedAnswers(
-        purposetemplateSeed,
+        purposeTemplateSeed,
         purposeTemplate.data,
         fileManager,
         logger
