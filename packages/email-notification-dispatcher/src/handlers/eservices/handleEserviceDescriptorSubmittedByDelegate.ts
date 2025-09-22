@@ -40,21 +40,20 @@ export async function handleEserviceDescriptorSubmittedByDelegate(
 
   const eservice = fromEServiceV2(eserviceV2Msg);
 
-  const [htmlTemplate, producer, producerDelegation] = await Promise.all([
+  const [htmlTemplate, delegation] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.eserviceDescriptorSubmittedByDelegateMailTemplate
     ),
-    retrieveTenant(eservice.producerId, readModelService),
     retrieveProducerDelegation(eservice, readModelService),
   ]);
 
-  const delegate = await retrieveTenant(
-    producerDelegation.delegateId,
-    readModelService
-  );
+  const [delegator, delegate] = await Promise.all([
+    retrieveTenant(delegation.delegatorId, readModelService),
+    retrieveTenant(delegation.delegateId, readModelService),
+  ]);
 
   const targets = await getRecipientsForTenants({
-    tenants: [producer],
+    tenants: [delegator],
     notificationType,
     readModelService,
     userService,
@@ -64,7 +63,7 @@ export async function handleEserviceDescriptorSubmittedByDelegate(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Agreement ${eservice.id}, no emails to dispatch.`
+      `No targets found for tenant. EService ${eservice.id}, no emails to dispatch.`
     );
     return [];
   }
@@ -77,8 +76,10 @@ export async function handleEserviceDescriptorSubmittedByDelegate(
         title: `Richiesta di approvazione per una nuova versione`,
         notificationType,
         entityId: eservice.id,
+        delegatorName: delegator.name,
         delegateName: delegate.name,
         eserviceName: eservice.name,
+        ctaLabel: "Valuta la richiesta",
       }),
     },
     address,

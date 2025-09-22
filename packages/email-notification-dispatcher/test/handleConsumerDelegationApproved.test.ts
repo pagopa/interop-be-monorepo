@@ -10,7 +10,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   CorrelationId,
-  Delegation,
+  EService,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
@@ -36,25 +36,22 @@ import {
 } from "./utils.js";
 
 describe("handleConsumerDelegationApproved", async () => {
-  const producerId = generateId<TenantId>();
-  const consumerId = generateId<TenantId>();
+  const delegatorId = generateId<TenantId>();
+  const delegateId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
 
   const descriptor = getMockDescriptorPublished();
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
-    producerId,
+    producerId: delegatorId,
     descriptors: [descriptor],
   };
-  const delegatorTenant = {
-    ...getMockTenant(producerId),
+  const delegatorTenant: Tenant = {
+    ...getMockTenant(delegatorId),
     mails: [getMockTenantMail()],
   };
-  const delegateTenant = {
-    ...getMockTenant(consumerId),
-    mails: [getMockTenantMail()],
-  };
+  const delegateTenant = getMockTenant(delegateId);
   const users = [
     getMockUser(delegatorTenant.id),
     getMockUser(delegatorTenant.id),
@@ -75,7 +72,7 @@ describe("handleConsumerDelegationApproved", async () => {
       .fn()
       .mockResolvedValue({
         id: generateId<TenantNotificationConfigId>(),
-        tenantId: delegateTenant.id,
+        tenantId: delegatorTenant.id,
         enabled: true,
         createAt: new Date(),
       });
@@ -108,7 +105,7 @@ describe("handleConsumerDelegationApproved", async () => {
   it("should throw tenantNotFound when delegate is not found", async () => {
     const unknownConsumerDelegateId = generateId<TenantId>();
 
-    const delegationToConsumer: Delegation = getMockDelegation({
+    const delegationToConsumer = getMockDelegation({
       kind: "DelegatedConsumer",
       delegatorId: delegatorTenant.id,
       delegateId: unknownConsumerDelegateId,
@@ -131,7 +128,7 @@ describe("handleConsumerDelegationApproved", async () => {
   it("should throw tenantNotFound when delegator is not found", async () => {
     const unknownDelegatorId = generateId<TenantId>();
 
-    const delegation: Delegation = getMockDelegation({
+    const delegation = getMockDelegation({
       kind: "DelegatedConsumer",
       delegatorId: unknownDelegatorId,
       delegateId: delegateTenant.id,
@@ -173,7 +170,7 @@ describe("handleConsumerDelegationApproved", async () => {
     ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
   });
 
-  it("should generate one message per user of the delegate", async () => {
+  it("should generate one message per user of the delegator", async () => {
     const delegation = getMockDelegation({
       kind: "DelegatedConsumer",
       delegatorId: delegatorTenant.id,
@@ -326,7 +323,7 @@ describe("handleConsumerDelegationApproved", async () => {
     ).toBe(false);
   });
 
-  it("should generate a complete and correct message to a consumer delegate", async () => {
+  it("should generate a complete and correct message", async () => {
     const delegation = getMockDelegation({
       kind: "DelegatedConsumer",
       delegatorId: delegatorTenant.id,

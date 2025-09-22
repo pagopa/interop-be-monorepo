@@ -34,31 +34,29 @@ import {
 } from "./utils.js";
 
 describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
-  const producerId = generateId<TenantId>();
-  const consumerId = generateId<TenantId>();
+  const delegatorId = generateId<TenantId>();
   const delegateId = generateId<TenantId>();
 
   const descriptor = getMockDescriptorPublished();
-  const producerTenant = {
-    ...getMockTenant(producerId),
+  const delegatorTenant = {
+    ...getMockTenant(delegatorId),
     mails: [getMockTenantMail()],
   };
-  const consumerTenant = getMockTenant(consumerId);
   const delegateTenant = getMockTenant(delegateId);
   const users = [
-    getMockUser(producerTenant.id),
-    getMockUser(producerTenant.id),
+    getMockUser(delegatorTenant.id),
+    getMockUser(delegatorTenant.id),
   ];
   const eservice = {
     ...getMockEService(),
     id: generateId<EServiceId>(),
-    producerId,
+    producerId: delegatorId,
     descriptors: [descriptor],
   };
   const delegation: Delegation = getMockDelegation({
     kind: "DelegatedProducer",
     eserviceId: eservice.id,
-    delegatorId: producerId,
+    delegatorId,
     delegateId,
     state: delegationState.active,
   });
@@ -68,8 +66,7 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
   beforeEach(async () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
-    await addOneTenant(producerTenant);
-    await addOneTenant(consumerTenant);
+    await addOneTenant(delegatorTenant);
     await addOneTenant(delegateTenant);
     for (const user of users) {
       await addOneUser(user);
@@ -78,7 +75,7 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
       .fn()
       .mockResolvedValue({
         id: generateId<TenantNotificationConfigId>(),
-        tenantId: producerTenant.id,
+        tenantId: delegatorTenant.id,
         enabled: true,
         createAt: new Date(),
       });
@@ -89,7 +86,7 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
       );
   });
 
-  it("should throw missingKafkaMessageDataError when agreement is undefined", async () => {
+  it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
     await expect(() =>
       handleEserviceDescriptorSubmittedByDelegate({
         eserviceV2Msg: undefined,
@@ -107,27 +104,36 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     );
   });
 
-  it("should throw tenantNotFound when producer is not found", async () => {
-    const unkonwnProducerId = generateId<TenantId>();
+  it("should throw tenantNotFound when delegator is not found", async () => {
+    const unkonwnDelegatorId = generateId<TenantId>();
 
-    const eserviceWithUnknownProducer = {
+    const eserviceWithUnknownDelegator = {
       ...getMockEService(),
       id: generateId<EServiceId>(),
-      producerId: unkonwnProducerId,
+      producerId: unkonwnDelegatorId,
       descriptors: [getMockDescriptorPublished()],
     };
-    await addOneEService(eserviceWithUnknownProducer);
+    await addOneEService(eserviceWithUnknownDelegator);
+
+    const delegationWithUnknownDelegate: Delegation = getMockDelegation({
+      kind: "DelegatedProducer",
+      eserviceId: eserviceWithUnknownDelegator.id,
+      delegatorId: unkonwnDelegatorId,
+      delegateId,
+      state: delegationState.active,
+    });
+    await addOneDelegation(delegationWithUnknownDelegate);
 
     await expect(() =>
       handleEserviceDescriptorSubmittedByDelegate({
-        eserviceV2Msg: toEServiceV2(eserviceWithUnknownProducer),
+        eserviceV2Msg: toEServiceV2(eserviceWithUnknownDelegator),
         logger,
         templateService,
         userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(tenantNotFound(unkonwnProducerId));
+    ).rejects.toThrow(tenantNotFound(unkonwnDelegatorId));
   });
 
   it("should throw tenantNotFound when delegate is not found", async () => {
@@ -136,7 +142,7 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     const eserviceWithUnknownDelegate = {
       ...getMockEService(),
       id: generateId<EServiceId>(),
-      producerId,
+      producerId: delegatorId,
       descriptors: [getMockDescriptorPublished()],
     };
     await addOneEService(eserviceWithUnknownDelegate);
@@ -144,7 +150,7 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     const delegationWithUnknownDelegate: Delegation = getMockDelegation({
       kind: "DelegatedProducer",
       eserviceId: eserviceWithUnknownDelegate.id,
-      delegatorId: producerId,
+      delegatorId,
       delegateId: unkonwnDelegateId,
       state: delegationState.active,
     });
@@ -162,7 +168,7 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     ).rejects.toThrow(tenantNotFound(unkonwnDelegateId));
   });
 
-  it("should generate one message per user of the tenant that consumed the eservice", async () => {
+  it("should generate one message per user of the delegator", async () => {
     const messages = await handleEserviceDescriptorSubmittedByDelegate({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
@@ -219,24 +225,24 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     expect(messages.length).toEqual(3);
     expect(
       messages.some(
-        (message) => message.address === producerTenant.mails[0].address
+        (message) => message.address === delegatorTenant.mails[0].address
       )
     ).toBe(true);
   });
 
-  it("should generate a message using the latest consumer mail that was registered", async () => {
+  it("should generate a message using the latest tenant mail that was registered", async () => {
     const oldMail = { ...getMockTenantMail(), createdAt: new Date(1999) };
     const newMail = getMockTenantMail();
-    const producerTenantWithMultipleMails = {
+    const delegatorTenantWithMultipleMails = {
       ...getMockTenant(),
       mails: [oldMail, newMail],
     };
-    await addOneTenant(producerTenantWithMultipleMails);
+    await addOneTenant(delegatorTenantWithMultipleMails);
 
     const eserviceMultipleMails = {
       ...getMockEService(),
       id: generateId<EServiceId>(),
-      producerId: producerTenantWithMultipleMails.id,
+      producerId: delegatorTenantWithMultipleMails.id,
       descriptors: [getMockDescriptorPublished()],
     };
     await addOneEService(eserviceMultipleMails);
@@ -244,7 +250,7 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     const delegationMultipleMails = getMockDelegation({
       kind: "DelegatedProducer",
       eserviceId: eserviceMultipleMails.id,
-      delegatorId: producerTenantWithMultipleMails.id,
+      delegatorId: delegatorTenantWithMultipleMails.id,
       delegateId,
       state: delegationState.active,
     });
@@ -265,12 +271,12 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     ).toBe(true);
   });
 
-  it("should not generate a message to the consumer if they disabled email notification", async () => {
+  it("should not generate a message to the delegator if they disabled email notification", async () => {
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
         id: generateId<TenantNotificationConfigId>(),
-        tenantId: producerTenant.id,
+        tenantId: delegatorTenant.id,
         enabled: false,
         createAt: new Date(),
       });
@@ -287,7 +293,7 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     expect(messages.length).toEqual(2);
     expect(
       messages.some(
-        (message) => message.address === producerTenant.mails[0].address
+        (message) => message.address === delegatorTenant.mails[0].address
       )
     ).toBe(false);
   });
@@ -308,7 +314,8 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
       expect(message.email.body).toContain(
         `Richiesta di approvazione per una nuova versione`
       );
-      // expect(message.email.body).toContain(delegateTenant.name);
+      expect(message.email.body).toContain(delegatorTenant.name);
+      expect(message.email.body).toContain(delegateTenant.name);
       expect(message.email.body).toContain(eservice.name);
     });
   });

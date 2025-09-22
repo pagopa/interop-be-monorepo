@@ -10,11 +10,12 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   CorrelationId,
-  Delegation,
+  EService,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
   NotificationType,
+  Tenant,
   TenantId,
   TenantNotificationConfigId,
   toDelegationV2,
@@ -35,23 +36,23 @@ import {
 } from "./utils.js";
 
 describe("handleProducerDelegationApproved", async () => {
-  const producerId = generateId<TenantId>();
-  const consumerId = generateId<TenantId>();
+  const delegatorId = generateId<TenantId>();
+  const delegateId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
 
   const descriptor = getMockDescriptorPublished();
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
-    producerId,
+    producerId: delegatorId,
     descriptors: [descriptor],
   };
-  const delegatorTenant = {
-    ...getMockTenant(producerId),
+  const delegatorTenant: Tenant = {
+    ...getMockTenant(delegatorId),
     mails: [getMockTenantMail()],
   };
-  const delegateTenant = {
-    ...getMockTenant(consumerId),
+  const delegateTenant: Tenant = {
+    ...getMockTenant(delegateId),
     mails: [getMockTenantMail()],
   };
   const users = [
@@ -130,7 +131,7 @@ describe("handleProducerDelegationApproved", async () => {
   it("should throw tenantNotFound when delegator is not found", async () => {
     const unknownDelegatorId = generateId<TenantId>();
 
-    const delegation: Delegation = getMockDelegation({
+    const delegation = getMockDelegation({
       kind: "DelegatedProducer",
       delegatorId: unknownDelegatorId,
       delegateId: delegateTenant.id,
@@ -172,7 +173,7 @@ describe("handleProducerDelegationApproved", async () => {
     ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
   });
 
-  it("should generate one message per user of the delegate", async () => {
+  it("should generate one message per user of the delegator", async () => {
     const delegation = getMockDelegation({
       kind: "DelegatedProducer",
       delegatorId: delegatorTenant.id,
