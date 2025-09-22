@@ -51,12 +51,23 @@ export function purposeTemplateServiceBuilder(
 
       return { id: result.id };
     },
-    async getCreatorPurposeTemplates(
-      purposeTitle: string | undefined,
-      offset: number,
-      limit: number,
-      { headers, authData, logger }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatorPurposeTemplates> {
+    async getCreatorPurposeTemplates({
+      purposeTitle,
+      states,
+      eserviceIds,
+      offset,
+      limit,
+      ctx,
+    }: {
+      purposeTitle: string | undefined;
+      states: bffApi.PurposeTemplateState[];
+      eserviceIds: string[];
+      offset: number;
+      limit: number;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<bffApi.CreatorPurposeTemplates> {
+      const { headers, authData, logger } = ctx;
+
       logger.info(
         `Retrieving creator's purpose templates with title ${purposeTitle}, offset ${offset}, limit ${limit}`
       );
@@ -67,6 +78,8 @@ export function purposeTemplateServiceBuilder(
           queries: {
             purposeTitle,
             creatorIds: [authData.organizationId],
+            states,
+            eserviceIds,
             limit,
             offset,
           },
@@ -86,6 +99,7 @@ export function purposeTemplateServiceBuilder(
     async getCatalogPurposeTemplates({
       purposeTitle,
       targetTenantKind,
+      creatorIds,
       eserviceIds,
       offset,
       limit,
@@ -93,6 +107,7 @@ export function purposeTemplateServiceBuilder(
     }: {
       purposeTitle: string | undefined;
       targetTenantKind: TenantKind | undefined;
+      creatorIds: string[];
       eserviceIds: string[];
       offset: number;
       limit: number;
@@ -110,6 +125,7 @@ export function purposeTemplateServiceBuilder(
           queries: {
             purposeTitle,
             targetTenantKind,
+            creatorIds,
             eserviceIds,
             states: [purposeTemplateApi.PurposeTemplateState.Enum.ACTIVE],
             limit,
