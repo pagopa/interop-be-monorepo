@@ -12,7 +12,7 @@ export const { cleanup, m2mEventDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  inject("m2mEventSQLDbConfig")
+  inject("m2mEventDbConfig")
 );
 
 afterEach(cleanup);
