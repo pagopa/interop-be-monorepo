@@ -1,5 +1,6 @@
 import { bffApi } from "pagopa-interop-api-clients";
 import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
+import { PurposeTemplateId } from "pagopa-interop-models";
 import { PurposeTemplateProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { config } from "../config/config.js";
@@ -22,7 +23,7 @@ export function purposeTemplateServiceBuilder(
       return { id: result.id };
     },
     async updatePurposeTemplate(
-      id: string,
+      id: PurposeTemplateId,
       seed: bffApi.PurposeTemplateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeTemplateSeed> {

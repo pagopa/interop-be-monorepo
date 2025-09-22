@@ -44,7 +44,7 @@ const purposeTemplateRouter = (
       const purposeTemplateId = unsafeBrandId(req.params.purposeTemplateId);
       try {
         const result = await purposeTemplateService.updatePurposeTemplate(
-          purposeTemplateId,
+          unsafeBrandId(purposeTemplateId),
           req.body,
           ctx
         );
