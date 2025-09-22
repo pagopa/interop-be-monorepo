@@ -153,7 +153,7 @@ describe("updatePurposeTemplate", () => {
       await addOnePurposeTemplate(existingPurposeTemplate);
       await addOneTenant(creator);
 
-      const createPurposeTemplateResponse =
+      const updatedPurposeTemplateResponse =
         await purposeTemplateService.updatePurposeTemplate(
           existingPurposeTemplate.id,
           validPurposeTemplateSeed,
@@ -163,7 +163,7 @@ describe("updatePurposeTemplate", () => {
         );
 
       const expectedPurposeTemplate: PurposeTemplate = {
-        id: unsafeBrandId(createPurposeTemplateResponse.data.id),
+        id: unsafeBrandId(updatedPurposeTemplateResponse.data.id),
         createdAt: mockDate,
         targetDescription: validPurposeTemplateSeed.targetDescription,
         targetTenantKind: validPurposeTemplateSeed.targetTenantKind,
@@ -212,7 +212,7 @@ describe("updatePurposeTemplate", () => {
       };
 
       const writtenEvent = await readLastPurposeTemplateEvent(
-        createPurposeTemplateResponse.data.id
+        updatedPurposeTemplateResponse.data.id
       );
 
       if (!writtenEvent) {
@@ -220,7 +220,7 @@ describe("updatePurposeTemplate", () => {
       }
 
       expect(writtenEvent).toMatchObject({
-        stream_id: createPurposeTemplateResponse.data.id,
+        stream_id: updatedPurposeTemplateResponse.data.id,
         version: "1",
         type: "PurposeTemplateDraftUpdated",
         event_version: 2,
@@ -235,7 +235,7 @@ describe("updatePurposeTemplate", () => {
         purposeTemplate: toPurposeTemplateV2(expectedPurposeTemplate),
       });
 
-      expect(createPurposeTemplateResponse).toEqual({
+      expect(updatedPurposeTemplateResponse).toEqual({
         data: expectedPurposeTemplate,
         metadata: { version: 1 },
       });
