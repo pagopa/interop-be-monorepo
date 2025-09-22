@@ -16,13 +16,11 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
-import { catalogReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   addOneEService,
   addOnePurposeTemplate,
   addOnePurposeTemplateEServiceDescriptor,
   purposeTemplateService,
-  readModelDB,
 } from "../integrationUtils.js";
 import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
 
