@@ -1,10 +1,10 @@
+import { CreateEvent } from "pagopa-interop-commons";
 import {
   CorrelationId,
   PurposeTemplate,
   PurposeTemplateEventV2,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
-import { CreateEvent } from "pagopa-interop-commons";
 
 export function toCreateEventPurposeTemplateAdded(
   purposeTemplate: PurposeTemplate,
@@ -22,7 +22,7 @@ export function toCreateEventPurposeTemplateAdded(
   };
 }
 
-export function toCreateEventPurposeTemplateUpdated({
+export function toCreateEventPurposeTemplateDraftUpdated({
   purposeTemplate,
   correlationId,
   version,

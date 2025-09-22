@@ -26,7 +26,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
-  toCreateEventPurposeTemplateUpdated,
+  toCreateEventPurposeTemplateDraftUpdated,
 } from "../model/domain/toEvent.js";
 import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisDocUtils.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -194,7 +194,7 @@ export function purposeTemplateServiceBuilder(
       );
 
       const event = await repository.createEvent(
-        toCreateEventPurposeTemplateUpdated({
+        toCreateEventPurposeTemplateDraftUpdated({
           purposeTemplate: updatedPurposeTemplate,
           correlationId,
           version: purposeTemplate.metadata.version,
