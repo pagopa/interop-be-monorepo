@@ -13169,7 +13169,6 @@ components:
           format: int32
           minimum: 60
           maximum: 86400
-          nullable: true
         dailyCallsPerConsumer:
           description: Maximum number of daily calls that this descriptor can afford
           type: integer
@@ -13186,6 +13185,8 @@ components:
           nullable: true
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+          nullable: true
+          
     EServiceSeed:
       type: object
       additionalProperties: false
