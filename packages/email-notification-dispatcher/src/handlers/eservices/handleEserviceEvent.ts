@@ -75,7 +75,7 @@ export async function handleEServiceEvent(
       },
       () => {
         logger.info(
-          `No need to send an email-app notification for ${decodedMessage.type} message`
+          `No need to send an email notification for ${decodedMessage.type} message`
         );
         return [];
       }
