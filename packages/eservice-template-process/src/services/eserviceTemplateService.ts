@@ -1927,11 +1927,10 @@ const isNull = (x: unknown): x is null => x === null;
 function resolveValue<T>(
   type: "post" | "patch",
   value: T | null | undefined,
-  oldValue: T,
-  cannotBeNull: boolean = false
+  oldValue: T
 ): T | undefined {
   return match(type)
-    .with("post" || ("patch" && cannotBeNull), () =>
+    .with("post", () =>
       match(value)
         .with(P.nullish, () => undefined)
         .otherwise((v) => v)
@@ -2037,12 +2036,7 @@ async function updateDraftEServiceTemplateVersion(
     ),
     dailyCallsPerConsumer: updatedDailyCallsPerConsumer,
     dailyCallsTotal: updatedDailyCallsTotal,
-    description: resolveValue(
-      type,
-      seed.description,
-      eserviceTemplateVersion.description,
-      true
-    ),
+    description: seed.description ?? eserviceTemplateVersion.description,
     voucherLifespan:
       seed.voucherLifespan ?? eserviceTemplateVersion.voucherLifespan,
     attributes: parsedAttributes,
