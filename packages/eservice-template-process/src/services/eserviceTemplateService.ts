@@ -42,7 +42,7 @@ import {
   Tenant,
   EServiceTemplateEvent,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
+import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
@@ -1922,36 +1922,11 @@ async function updateDraftEServiceTemplate(
   };
 }
 
-const isNull = (x: unknown): x is null => x === null;
-
-function resolveValue<T>(
-  type: "post" | "patch",
-  value: T | null | undefined,
-  oldValue: T
-): T | undefined {
-  return match(type)
-    .with("post", () =>
-      match(value)
-        .with(P.nullish, () => undefined)
-        .otherwise((v) => v)
-    )
-    .with("patch", () =>
-      match(value)
-        .with(undefined, () => oldValue)
-        .with(P.when(isNull), () => undefined)
-        .otherwise((v) => v)
-    )
-    .exhaustive();
-}
-
 // eslint-disable-next-line max-params
 async function updateDraftEServiceTemplateVersion(
   eserviceTemplateId: EServiceTemplateId,
   eserviceTemplateVersionId: EServiceTemplateVersionId,
-  {
-    type,
-    seed,
-  }:
+  updateSeed:
     | {
         type: "post";
         seed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed;
@@ -1968,6 +1943,7 @@ async function updateDraftEServiceTemplateVersion(
     logger,
   }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
 ): Promise<WithMetadata<EServiceTemplate>> {
+  const { seed, type } = updateSeed;
   logger.info(
     `${type.toUpperCase()} update draft e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
   );
@@ -1991,17 +1967,41 @@ async function updateDraftEServiceTemplateVersion(
       eserviceTemplateVersion.state
     );
   }
+  const updatedDailyCallsPerConsumer = match(updateSeed)
+    .with({ type: "post" }, ({ seed }) => seed.dailyCallsPerConsumer)
+    .with({ type: "patch" }, ({ seed }) =>
+      seed.dailyCallsPerConsumer === null
+        ? undefined
+        : seed.dailyCallsPerConsumer ??
+          eserviceTemplateVersion.dailyCallsPerConsumer
+    )
+    .exhaustive();
 
-  const updatedDailyCallsPerConsumer = resolveValue(
-    type,
-    seed.dailyCallsPerConsumer,
-    eserviceTemplateVersion.dailyCallsPerConsumer
-  );
-  const updatedDailyCallsTotal = resolveValue(
-    type,
-    seed.dailyCallsTotal,
-    eserviceTemplateVersion.dailyCallsTotal
-  );
+  const updatedDailyCallsTotal = match(updateSeed)
+    .with({ type: "post" }, ({ seed }) => seed.dailyCallsTotal)
+    .with({ type: "patch" }, ({ seed }) =>
+      seed.dailyCallsTotal === null
+        ? undefined
+        : seed.dailyCallsTotal ?? eserviceTemplateVersion.dailyCallsTotal
+    )
+    .exhaustive();
+
+  const updatedAgreementApprovalPolicy = match(updateSeed)
+    .with({ type: "post" }, ({ seed }) =>
+      apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+        seed.agreementApprovalPolicy
+      )
+    )
+    .with({ type: "patch" }, ({ seed }) =>
+      seed.agreementApprovalPolicy === null
+        ? undefined
+        : seed.agreementApprovalPolicy
+        ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          )
+        : eserviceTemplateVersion.agreementApprovalPolicy
+    )
+    .exhaustive();
 
   assertConsistentDailyCalls({
     dailyCallsPerConsumer: updatedDailyCallsPerConsumer,
@@ -2027,15 +2027,7 @@ async function updateDraftEServiceTemplateVersion(
 
   const updatedVersion: EServiceTemplateVersion = {
     ...eserviceTemplateVersion,
-    agreementApprovalPolicy: resolveValue(
-      type,
-      seed.agreementApprovalPolicy === null
-        ? null
-        : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.agreementApprovalPolicy
-          ),
-      eserviceTemplateVersion.agreementApprovalPolicy
-    ),
+    agreementApprovalPolicy: updatedAgreementApprovalPolicy,
     dailyCallsPerConsumer: updatedDailyCallsPerConsumer,
     dailyCallsTotal: updatedDailyCallsTotal,
     description: seed.description ?? eserviceTemplateVersion.description,
