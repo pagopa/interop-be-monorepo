@@ -332,8 +332,37 @@ export async function handleMessageV2({
       {
         type: "EServiceTemplatePersonalDataUpdatedAfterPublish",
       },
-      () => {
-        // TODO
+      async (msg) => {
+        const personalData = getTemplateFromEvent(msg).personalData;
+
+        if (personalData === undefined) {
+          throw missingKafkaMessageDataError(
+            "eserviceTemplate.personalData",
+            "EServiceTemplatePersonalDataUpdatedAfterPublish"
+          );
+        }
+        const updateTemplateInstancePersonalData = async (
+          instance: EService,
+          headers: InteropHeaders
+        ): Promise<void> => {
+          await catalogProcess.client.setTemplateInstancePersonalData(
+            { personalData },
+            {
+              params: {
+                eServiceId: instance.id,
+              },
+              headers,
+            }
+          );
+        };
+
+        await commitUpdateToTemplateInstances(
+          msg,
+          refreshableToken,
+          correlationId,
+          readModelService,
+          updateTemplateInstancePersonalData
+        );
       }
     )
     .with(
