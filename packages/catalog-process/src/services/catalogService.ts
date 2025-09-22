@@ -147,6 +147,7 @@ import {
   toCreateEventEServiceSignalhubFlagEnabled,
   toCreateEventEServiceSignalhubFlagDisabled,
   toCreateEventEServicePersonalDataUpdatedAfterPublish,
+  toCreateEventEServicePersonalDataUpdatedByTemplateUpdate,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -2912,6 +2913,30 @@ export function catalogServiceBuilder(
       };
       await repository.createEvent(
         toCreateEventEServiceDescriptionUpdatedByTemplateUpdate(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+    },
+    async internalUpdateTemplateInstancePersonalData(
+      eserviceId: EServiceId,
+      personalData: boolean,
+      { correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(`Internal updating EService ${eserviceId} personalData`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      if (eservice.data.personalData !== undefined) {
+        throw eservicePersonalDataCanOnlyBeSetOnce(eserviceId);
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        personalData,
+      };
+      await repository.createEvent(
+        toCreateEventEServicePersonalDataUpdatedByTemplateUpdate(
           eservice.metadata.version,
           updatedEservice,
           correlationId

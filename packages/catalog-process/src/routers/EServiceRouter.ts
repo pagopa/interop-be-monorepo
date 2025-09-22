@@ -75,6 +75,7 @@ import {
   updateEServiceSignalhubFlagErrorMapper,
   documentListErrorMapper,
   updateEServicePersonalDataErrorMapper,
+  updateTemplateInstancePersonalDataErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 import { config } from "../config/config.js";
@@ -1228,6 +1229,30 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceDescriptionErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/templates/eservices/:eServiceId/personalData/set",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          await catalogService.internalUpdateTemplateInstancePersonalData(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.personalData,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTemplateInstancePersonalDataErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
