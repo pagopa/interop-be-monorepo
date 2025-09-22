@@ -11,7 +11,7 @@ import { config } from "../config/config.js";
  * Finds answer IDs in the RiskAnalysisFormTemplate that are not present
  * in the provided seed of answers in the PurposeTemplateSeed.
  *
- * This function identify document's annotations linked to answers
+ * This function identifies document's annotations linked to answers
  * that have been removed in the update operation.
  */
 
@@ -53,7 +53,7 @@ export async function cleanupAnnotationDocsForRemovedAnswers(
     )
   );
 
-  // S3 file deletion errors aren't critical logs failed deletions
+  // Non-critical operation: Log S3 file deletion errors but continue execution
   results.forEach((result) => {
     if (result.status === "rejected") {
       logger.warn(`Error deleting annotation files: ${result.reason}`);
