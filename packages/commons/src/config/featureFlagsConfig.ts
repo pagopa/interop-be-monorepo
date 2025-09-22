@@ -112,13 +112,30 @@ export type FeatureFlagNotificationConfig = z.infer<
   typeof FeatureFlagNotificationConfig
 >;
 
+export const FeatureFlagPurposeTemplateConfig = z
+  .object({
+    FEATURE_FLAG_PURPOSE_TEMPLATE_CONFIG: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagPurposeTemplateConfig:
+      c.FEATURE_FLAG_PURPOSE_TEMPLATE_CONFIG ?? false,
+  }));
+export type FeatureFlagPurposeTemplateConfig = z.infer<
+  typeof FeatureFlagPurposeTemplateConfig
+>;
+
 type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
   FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagSQLConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
-  FeatureFlagNotificationConfig;
+  FeatureFlagNotificationConfig &
+  FeatureFlagPurposeTemplateConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
