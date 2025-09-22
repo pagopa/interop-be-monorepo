@@ -1,36 +1,15 @@
-import { constants } from "http2";
 import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
-  isFeatureFlagEnabled,
-  WithLogger,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import {
-  emptyErrorMapper,
-  featureFlagNotEnabled,
-  Problem,
-} from "pagopa-interop-models";
+import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
-import { BffAppContext, fromBffAppContext } from "../utilities/context.js";
-import { config } from "../config/config.js";
-
-export function purposeTemplateConfigFeatureIsEnabled(
-  ctx: WithLogger<BffAppContext>
-): Problem | void {
-  if (!isFeatureFlagEnabled(config, "featureFlagPurposeTemplate")) {
-    return makeApiProblem(
-      featureFlagNotEnabled("featureFlagPurposeTemplate"),
-      () => constants.HTTP_STATUS_FORBIDDEN,
-      ctx,
-      "Purpose Template feature flag is disabled, operation not allowed"
-    );
-  }
-}
+import { fromBffAppContext } from "../utilities/context.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -42,13 +21,6 @@ const purposeTemplateRouter = (
 
   purposeTemplateRouter.post("/purposeTemplates", async (req, res) => {
     const ctx = fromBffAppContext(req.ctx, req.headers);
-
-    // This is temporary, it verifies feature flag only for a specific route,
-    // instead of the entire router with middleware
-    const featureFlagError = purposeTemplateConfigFeatureIsEnabled(ctx);
-    if (featureFlagError) {
-      return res.status(featureFlagError.status).send(featureFlagError);
-    }
 
     try {
       const result = await purposeTemplateService.createPurposeTemplate(
