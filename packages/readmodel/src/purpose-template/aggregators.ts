@@ -1,5 +1,4 @@
 import {
-  EServiceDescriptorPurposeTemplate,
   PurposeTemplate,
   PurposeTemplateId,
   PurposeTemplateState,
@@ -24,7 +23,6 @@ import {
   PurposeTemplateRiskAnalysisFormSQL,
   PurposeTemplateItemsSQL,
   PurposeTemplateSQL,
-  PurposeTemplateEServiceDescriptorSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 import { throwIfMultiple } from "../utils.js";
@@ -243,9 +241,8 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
               suggestedValues: answerSQL.suggestedValues || [],
             } satisfies RiskAnalysisTemplateSingleAnswer,
           ],
-          riskAnalysisTemplateMultiAnswers: [
-            ...acc.riskAnalysisTemplateMultiAnswers,
-          ],
+          riskAnalysisTemplateMultiAnswers:
+            acc.riskAnalysisTemplateMultiAnswers,
         }))
         .with(riskAnalysisAnswerKind.multi, () => ({
           riskAnalysisTemplateSingleAnswers:
@@ -410,28 +407,5 @@ export const toPurposeTemplateAggregatorArray = (
     riskAnalysisTemplateAnswersSQL,
     riskAnalysisTemplateAnswersAnnotationsSQL,
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
-  };
-};
-
-export const aggregatePurposeTemplateEServiceDescriptor = ({
-  purposeTemplateId,
-  eserviceId,
-  descriptorId,
-  createdAt,
-  metadataVersion,
-  ...rest
-}: PurposeTemplateEServiceDescriptorSQL): WithMetadata<EServiceDescriptorPurposeTemplate> => {
-  void (rest satisfies Record<string, never>);
-
-  return {
-    data: {
-      purposeTemplateId: unsafeBrandId(purposeTemplateId),
-      eserviceId: unsafeBrandId(eserviceId),
-      descriptorId: unsafeBrandId(descriptorId),
-      createdAt: stringToDate(createdAt),
-    },
-    metadata: {
-      version: metadataVersion,
-    },
   };
 };
