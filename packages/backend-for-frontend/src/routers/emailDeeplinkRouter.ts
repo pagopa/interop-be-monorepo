@@ -15,11 +15,11 @@ import { config } from "../config/config.js";
 const emailDeeplinkRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const emailDeeplinkRouter = ctx.router(bffApi.emailDeeplinkApi.api, {
+  const emailDeeplinkRouter = ctx.router(bffApi.emailDeepLinkApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
   emailDeeplinkRouter.get(
-    "/emailDeeplink/:notificationType/:entityId",
+    "/emailDeepLink/:notificationType/:entityId",
     async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -35,7 +35,7 @@ const emailDeeplinkRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          "Error generating email deeplink"
+          "Error generating email deepLink"
         );
         return res.status(errorRes.status).send(errorRes);
       }

@@ -88,8 +88,8 @@ tags:
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
-  - name: emailDeeplink
-    description: Email Deeplink Module
+  - name: emailDeepLink
+    description: Email DeepLink Module
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
@@ -21435,12 +21435,12 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/emailDeeplink/{notificationType}/{entityId}":
+  "/emailDeepLink/{notificationType}/{entityId}":
     get:
       security: []
       tags:
-        - emailDeeplink
-      summary: Redirect the user to the correct deeplink based on notification type and entity id
+        - emailDeepLink
+      summary: Redirect the user to the correct deepLink based on notification type and entity id
       operationId: getNotificationDeeplink
       parameters:
         - name: notificationType
@@ -21457,7 +21457,7 @@ paths:
             type: string
       responses:
         "302":
-          description: Redirection in case of success SAML validation or error
+          description: Redirect to the correct deepLink based on notification type and entity id
           headers:
             "X-Rate-Limit-Limit":
               schema:
