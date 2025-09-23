@@ -136,3 +136,6 @@ export * from "./gen/v2/notification-config/events.js";
 
 // Selfcare User model
 export * from "./user/user.js";
+
+// M2M Event model
+export * from "./m2m-event/attributeM2MEvent.js";

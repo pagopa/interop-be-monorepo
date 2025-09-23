@@ -15,7 +15,6 @@ import {
   StoredEvent,
   readLastEventByStreamId,
   writeInEventstore,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   attributeReadModelServiceBuilder,
@@ -81,12 +80,10 @@ export const writeAttributeInEventstore = async (
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeAttributeInEventstore(attribute);
-  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
   await upsertAttribute(readModelDB, attribute, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(toReadModelTenant(tenant), tenants);
   await upsertTenant(readModelDB, tenant, 0);
 };
 

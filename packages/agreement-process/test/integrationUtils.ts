@@ -5,7 +5,6 @@ import {
   readLastEventByStreamId,
   setupTestContainersVitest,
   writeInEventstore,
-  writeInReadmodel,
   ReadEvent,
   readEventByStreamIdAndVersion,
   sortAgreements,
@@ -21,10 +20,8 @@ import {
   toAgreementV2,
   toReadModelEService,
   toReadModelTenant,
-  toReadModelAgreement,
   AgreementDocumentId,
   Attribute,
-  toReadModelAttribute,
   Delegation,
   ListResult,
   AgreementV2,
@@ -143,18 +140,15 @@ export const writeAgreementInEventstore = async (
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeAgreementInEventstore(agreement);
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
   await upsertAgreement(readModelDB, agreement, 0);
 };
 export const writeOnlyOneAgreement = async (
   agreement: Agreement
 ): Promise<void> => {
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
   await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
   await upsertEService(readModelDB, eservice, 0);
 };
 export const updateOneEService = async (eservice: EService): Promise<void> => {
@@ -194,19 +188,16 @@ export const updateOneTenant = async (tenant: Tenant): Promise<void> => {
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(toReadModelTenant(tenant), tenants);
   await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
-  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
   await upsertAttribute(readModelDB, attribute, 0);
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
-  await writeInReadmodel(delegation, delegations);
   await upsertDelegation(readModelDB, delegation, 0);
 };
 
@@ -328,7 +319,6 @@ export const sortAgreementAttributes = <T extends AgreementV2 | undefined>(
 export async function updateAgreementInReadModel(
   agreement: Agreement
 ): Promise<void> {
-  await updateOneAgreementDocumentDB(agreement);
   await updateOneAgreementRelationalDB(agreement);
 }
 
@@ -345,32 +335,3 @@ const updateOneAgreementRelationalDB = async (
 
   await upsertAgreement(readModelDB, agreement, currentVersion + 1);
 };
-
-async function updateOneAgreementDocumentDB(
-  agreement: Agreement
-): Promise<void> {
-  const currentVersion = (
-    await agreements.findOne({
-      "data.id": agreement.id,
-    })
-  )?.metadata.version;
-
-  if (currentVersion === undefined) {
-    throw new Error("Agreement not found in read model. Cannot update.");
-  }
-
-  await agreements.updateOne(
-    {
-      "data.id": agreement.id,
-      "metadata.version": currentVersion,
-    },
-    {
-      $set: {
-        data: toReadModelAgreement(agreement),
-        metadata: {
-          version: currentVersion + 1,
-        },
-      },
-    }
-  );
-}

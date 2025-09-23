@@ -3,7 +3,6 @@ import {
   StoredEvent,
   setupTestContainersVitest,
   writeInEventstore,
-  writeInReadmodel,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
@@ -133,39 +132,27 @@ export const writeClientInEventstore = async (
 };
 
 export const addOneKey = async (key: ClientJWKKey): Promise<void> => {
-  await writeInReadmodel(key, keys);
-
   await upsertClientJWKKey(readModelDB, key, 0);
 };
 
 export const addOneProducerKey = async (key: ProducerJWKKey): Promise<void> => {
-  await writeInReadmodel(key, producerKeys);
-
   await upsertProducerJWKKey(readModelDB, key, 0);
 };
 
 export const addOneClient = async (client: Client): Promise<void> => {
   await writeClientInEventstore(client);
-  await writeInReadmodel(toReadModelClient(client), clients);
-
   await upsertClient(readModelDB, client, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
-  await writeInReadmodel(toReadModelPurpose(purpose), purposes);
-
   await upsertPurpose(readModelDB, purpose, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
-
   await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
   await upsertAgreement(readModelDB, agreement, 0);
 };
 
@@ -191,19 +178,12 @@ export const addOneProducerKeychain = async (
   producerKeychain: ProducerKeychain
 ): Promise<void> => {
   await writeProducerKeychainInEventstore(producerKeychain);
-  await writeInReadmodel(
-    toReadModelProducerKeychain(producerKeychain),
-    producerKeychains
-  );
-
   await upsertProducerKeychain(readModelDB, producerKeychain, 0);
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
-  await writeInReadmodel(delegation, delegations);
-
   await upsertDelegation(readModelDB, delegation, 0);
 };
 

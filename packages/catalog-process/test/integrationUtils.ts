@@ -4,7 +4,6 @@ import {
   readLastEventByStreamId,
   setupTestContainersVitest,
   writeInEventstore,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
 import {
@@ -19,13 +18,9 @@ import {
   EServiceTemplate,
   EServiceTemplateEvent,
   toEServiceTemplateV2,
-  toReadModelEService,
   Attribute,
-  toReadModelAttribute,
   Tenant,
-  toReadModelTenant,
   Agreement,
-  toReadModelAgreement,
   Delegation,
   EServiceId,
 } from "pagopa-interop-models";
@@ -130,29 +125,24 @@ export const writeEServiceTemplateInEventstore = async (
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeEServiceInEventstore(eservice);
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
   await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
-  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
   await upsertAttribute(readModelDB, attribute, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(toReadModelTenant(tenant), tenants);
   await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
   await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
-  await writeInReadmodel(delegation, delegations);
   await upsertDelegation(readModelDB, delegation, 0);
 };
 
@@ -165,6 +155,5 @@ export const addOneEServiceTemplate = async (
   eServiceTemplate: EServiceTemplate
 ): Promise<void> => {
   await writeEServiceTemplateInEventstore(eServiceTemplate);
-  await writeInReadmodel(eServiceTemplate, eserviceTemplates);
   await upsertEServiceTemplate(readModelDB, eServiceTemplate, 0);
 };

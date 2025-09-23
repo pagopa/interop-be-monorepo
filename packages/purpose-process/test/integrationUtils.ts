@@ -10,18 +10,13 @@ import {
   setupTestContainersVitest,
   sortPurpose,
   writeInEventstore,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   EService,
   Purpose,
   PurposeEvent,
   toPurposeV2,
-  toReadModelPurpose,
-  toReadModelEService,
   Tenant,
-  toReadModelTenant,
-  toReadModelAgreement,
   Agreement,
   Delegation,
   PurposeId,
@@ -125,34 +120,24 @@ export const purposeService = purposeServiceBuilder(
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await writePurposeInEventstore(purpose);
-  await writeInReadmodel(toReadModelPurpose(purpose), purposes);
-
   await upsertPurpose(readModelDB, purpose, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
-
   await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(toReadModelTenant(tenant), tenants);
-
   await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
   await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
-  await writeInReadmodel(delegation, delegations);
-
   await upsertDelegation(readModelDB, delegation, 0);
 };
 

@@ -1,7 +1,4 @@
-import {
-  setupTestContainersVitest,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
 import { EService, toReadModelEService } from "pagopa-interop-models";
 import { upsertEService } from "pagopa-interop-readmodel/testUtils";
@@ -24,16 +21,8 @@ afterEach(cleanup);
 
 export const { agreements, clients, eservices, purposes } = readModelRepository;
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-export const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
+export const readModelService = readModelServiceBuilderSQL(readModelDB);
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
   await upsertEService(readModelDB, eservice, 1);
 };

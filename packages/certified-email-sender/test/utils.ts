@@ -1,17 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
-import {
-  setupTestContainersVitest,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
-import {
-  Agreement,
-  EService,
-  Tenant,
-  toReadModelAgreement,
-  toReadModelEService,
-  toReadModelTenant,
-} from "pagopa-interop-models";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { Agreement, EService, Tenant } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
   catalogReadModelServiceBuilder,
@@ -73,29 +63,14 @@ export const certifiedEmailSenderService = certifiedEmailSenderServiceBuilder(
 export const agreements = readModelRepository.agreements;
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelTenant(tenant),
-    readModelRepository.tenants
-  );
-
   await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelAgreement(agreement),
-    readModelRepository.agreements
-  );
-
   await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelEService(eservice),
-    readModelRepository.eservices
-  );
-
   await upsertEService(readModelDB, eservice, 0);
 };
 
