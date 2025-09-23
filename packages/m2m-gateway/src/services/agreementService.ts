@@ -56,19 +56,27 @@ export function agreementServiceBuilder(
     agreement: agreementApi.Agreement,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<delegationApi.Delegation["id"] | undefined> =>
-    (
-      await clients.delegationProcessClient.delegation.getDelegations({
-        headers,
-        queries: {
-          eserviceIds: [agreement.eserviceId],
-          delegatorIds: [agreement.consumerId],
-          kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-          delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
-          limit: 1,
-          offset: 0,
-        },
-      })
-    ).data.results.at(0)?.id;
+    agreement.stamps.submission
+      ? agreement.stamps.submission.delegationId
+      : (
+          await clients.delegationProcessClient.delegation.getDelegations({
+            headers,
+            queries: {
+              eserviceIds: [agreement.eserviceId],
+              delegatorIds: [agreement.consumerId],
+              kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+              delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
+              limit: 1,
+              offset: 0,
+            },
+          })
+        ).data.results.at(0)?.id;
+  /* ^ For an unsubmitted Agreement (no submission stamp yet), retrieve the
+    Delegation ID from the Active Delegation. The Delegation, if present, can only
+    be active here, since on Delegation revocation:
+    - Active / Suspended agreements are archived
+    - Unsubmitted agreements are deleted (Draft, Pending, MissingCertifiedAttributes)
+    */
 
   const toM2MGatewayApiAgreementWithDelegationId = async (
     agreement: agreementApi.Agreement,
