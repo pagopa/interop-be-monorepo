@@ -12,7 +12,6 @@ import {
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
-  inject("readModelConfig"),
   undefined,
   undefined,
   undefined,
