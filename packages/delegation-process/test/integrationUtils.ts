@@ -6,7 +6,6 @@ import {
   setupTestContainersVitest,
   StoredEvent,
   writeInEventstore,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -16,9 +15,6 @@ import {
   EService,
   Tenant,
   toDelegationV2,
-  toReadModelAgreement,
-  toReadModelEService,
-  toReadModelTenant,
 } from "pagopa-interop-models";
 import { afterAll, afterEach, inject, vi } from "vitest";
 import {
@@ -150,24 +146,16 @@ export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeSubmitDelegationInEventstore(delegation);
-  await writeInReadmodel(delegation, delegations);
-
   await upsertDelegation(readModelDB, delegation, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(toReadModelTenant(tenant), tenants);
-
   await upsertTenant(readModelDB, tenant, 0);
 };
 export const addOneEservice = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
-
   await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
   await upsertAgreement(readModelDB, agreement, 0);
 };

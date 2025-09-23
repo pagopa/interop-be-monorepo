@@ -1,18 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  setupTestContainersVitest,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
-import {
-  Agreement,
-  Client,
-  EService,
-  Purpose,
-  toReadModelAgreement,
-  toReadModelClient,
-  toReadModelEService,
-  toReadModelPurpose,
-} from "pagopa-interop-models";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { Agreement, Client, EService, Purpose } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
   upsertAgreement,
@@ -57,37 +45,17 @@ export const dynamoDBClient = new DynamoDBClient({
 });
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelEService(eservice),
-    readModelRepository.eservices
-  );
-
   await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelPurpose(purpose),
-    readModelRepository.purposes
-  );
-
   await upsertPurpose(readModelDB, purpose, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelAgreement(agreement),
-    readModelRepository.agreements
-  );
-
   await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneClient = async (client: Client): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelClient(client),
-    readModelRepository.clients
-  );
-
   await upsertClient(readModelDB, client, 0);
 };

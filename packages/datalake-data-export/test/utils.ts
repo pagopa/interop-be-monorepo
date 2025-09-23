@@ -1,15 +1,11 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {
-  setupTestContainersVitest,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
 import {
   AgreementCollection,
   AttributeCollection,
   EServiceCollection,
-  GenericCollection,
   PurposeCollection,
   TenantCollection,
   DelegationCollection,
@@ -72,14 +68,6 @@ export const readModelService =
     ? readModelServiceSQL
     : oldReadModelService;
 
-export async function seedCollection<T>(
-  data: T[],
-  collection: GenericCollection<T>
-): Promise<void> {
-  for (const d of data) {
-    await writeInReadmodel(d, collection);
-  }
-}
 export const seedTenants = async (tenants: Tenant[]): Promise<void> => {
   for (const t of tenants) {
     await upsertTenant(readModelDB, t, 0);

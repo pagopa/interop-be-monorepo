@@ -9,10 +9,7 @@ import {
   toReadModelTenant,
   UserId,
 } from "pagopa-interop-models";
-import {
-  setupTestContainersVitest,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
 import { clientReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { upsertClient, upsertTenant } from "pagopa-interop-readmodel/testUtils";
@@ -105,12 +102,9 @@ export const readModelService = config.featureFlagSQL
   : oldReadModelService;
 
 export const addOneClient = async (client: Client): Promise<void> => {
-  await writeInReadmodel(toReadModelClient(client), clients);
-
   await upsertClient(readModelDB, client, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(toReadModelTenant(tenant), tenants);
   await upsertTenant(readModelDB, tenant, 0);
 };
