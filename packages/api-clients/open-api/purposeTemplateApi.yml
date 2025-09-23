@@ -599,13 +599,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: Risk Analysis Template Answer Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
+          description: Purpose Template Not Found
           content:
             application/problem+json:
               schema:

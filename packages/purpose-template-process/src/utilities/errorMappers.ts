@@ -35,6 +35,7 @@ export const createRiskAnalysisAnswerErrorMapper = (
       "hyperlinkDetectionError",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "purposeTemplateRiskAnalysisFormNotFound",
       () => HTTP_STATUS_INTERNAL_SERVER_ERROR

@@ -22,6 +22,7 @@ import {
 import {
   annotationTextLengthError,
   hyperlinkDetectionError,
+  purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateValidationFailed,
 } from "../../src/model/domain/errors.js";
@@ -281,6 +282,33 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
         ),
       ])
     );
+
+    vi.useRealTimers();
+  });
+
+  it("should throw purposeTemplateNotFound if purpose template is not found", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const validRiskAnalysisAnswerRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest =
+      {
+        answerKey: "purpose",
+        answerData: {
+          values: ["INSTITUTIONAL"],
+          editable: true,
+          suggestedValues: [],
+        },
+      };
+
+    await expect(
+      purposeTemplateService.createRiskAnalysisAnswer(
+        mockPurposeTemplate.id,
+        validRiskAnalysisAnswerRequest,
+        getMockContext({
+          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(purposeTemplateNotFound(mockPurposeTemplate.id));
 
     vi.useRealTimers();
   });
