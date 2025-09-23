@@ -240,10 +240,6 @@ describe("read-model-queries.service", () => {
         ),
       ];
 
-      await seedCollection(
-        agreementsData.map(toReadModelAgreement),
-        agreements
-      );
       await seedAgreements(agreementsData);
 
       const result = await readModelService.getAgreements();
@@ -268,7 +264,6 @@ describe("read-model-queries.service", () => {
         ]),
       ];
 
-      await seedCollection(purposesData.map(toReadModelPurpose), purposes);
       await seedPurposes(purposesData);
 
       const result = await readModelService.getPurposes();
@@ -305,7 +300,6 @@ describe("read-model-queries.service", () => {
         getMockPurpose(),
       ];
 
-      await seedCollection(purposesData.map(toReadModelPurpose), purposes);
       await seedPurposes(purposesData);
 
       const result = await readModelService.getPurposes();
@@ -334,7 +328,6 @@ describe("read-model-queries.service", () => {
         }),
       ];
 
-      await seedCollection(delegationsData, delegations);
       await seedDelegations(delegationsData);
 
       const result = await readModelService.getDelegations();
@@ -360,7 +353,6 @@ describe("read-model-queries.service", () => {
         }),
       ];
 
-      await seedCollection(delegationsData, delegations);
       await seedDelegations(delegationsData);
 
       const result = await readModelService.getDelegations();
@@ -393,7 +385,6 @@ describe("read-model-queries.service", () => {
           [eserviceTemplateVersion]
         ),
       ];
-      await seedCollection(eserviceTemplatesData, eserviceTemplates);
       await seedEServiceTemplates(eserviceTemplatesData);
 
       const result = await readModelService.getEServiceTemplates();
@@ -419,7 +410,6 @@ describe("read-model-queries.service", () => {
         ),
       ];
 
-      await seedCollection(eserviceTemplatesData, eserviceTemplates);
       await seedEServiceTemplates(eserviceTemplatesData);
 
       const result = await readModelService.getEServiceTemplates();
@@ -452,7 +442,6 @@ describe("read-model-queries.service", () => {
         ),
       ];
 
-      await seedCollection(eserviceTemplatesData, eserviceTemplates);
       await seedEServiceTemplates(eserviceTemplatesData);
 
       const result = await readModelService.getEServiceTemplates();
