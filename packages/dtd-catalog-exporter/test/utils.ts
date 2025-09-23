@@ -20,7 +20,7 @@ import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.
 export const { cleanup, fileManager, readModelDB } =
   await setupTestContainersVitest(
     undefined,
-    undefined,
+    inject("fileManagerConfig"),
     undefined,
     undefined,
     undefined,

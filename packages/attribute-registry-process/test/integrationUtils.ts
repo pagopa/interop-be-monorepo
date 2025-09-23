@@ -41,7 +41,7 @@ const attributeReadModelServiceSQL =
   attributeReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
-const readModelService = readModelServiceBuilderSQL({
+export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   attributeReadModelServiceSQL,
   tenantReadModelServiceSQL,
