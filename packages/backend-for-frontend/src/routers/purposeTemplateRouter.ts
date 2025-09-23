@@ -10,7 +10,10 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { getCatalogPurposeTemplatesErrorMapper } from "../utilities/errorMappers.js";
+import {
+  getCatalogPurposeTemplatesErrorMapper,
+  getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -94,7 +97,35 @@ const purposeTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .get(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result =
+            await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
+              {
+                purposeTemplateId: req.params.purposeTemplateId,
+                answerId: req.params.answerId,
+                documentId: req.params.documentId,
+                ctx,
+              }
+            );
+
+          return res.status(200).send(result);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+            ctx,
+            `Error downloading risk analysis template answer annotation document ${req.params.documentId} for purpose template ${req.params.purposeTemplateId} and answer ${req.params.answerId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return purposeTemplateRouter;
 };

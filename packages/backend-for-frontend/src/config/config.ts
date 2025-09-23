@@ -83,9 +83,11 @@ export type PurposeProcessServerConfig = z.infer<
 export const PurposeTemplateProcessServerConfig = z
   .object({
     PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
+    PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
     purposeTemplateUrl: c.PURPOSE_TEMPLATE_PROCESS_URL,
+    purposeTemplateDocumentsContainer: c.PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER,
   }));
 export type PurposeTemplateProcessServerConfig = z.infer<
   typeof PurposeTemplateProcessServerConfig
