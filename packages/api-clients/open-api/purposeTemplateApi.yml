@@ -323,6 +323,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceDescriptorsPurposeTemplate"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Template Not Found
           content:
