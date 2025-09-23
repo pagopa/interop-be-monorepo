@@ -14,10 +14,6 @@ import {
   purposeVersionState,
   Tenant,
   TenantId,
-  toReadModelAgreement,
-  toReadModelEService,
-  toReadModelPurpose,
-  toReadModelTenant,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
@@ -36,19 +32,11 @@ import {
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
-  agreements,
-  eservices,
-  purposes,
-  readModelService,
   seedAgreements,
-  seedCollection,
   seedEServices,
   seedPurposes,
   seedTenants,
-  tenants,
-  delegations,
   seedDelegations,
-  eserviceTemplates,
   seedEServiceTemplates,
 } from "./utils.js";
 
@@ -56,7 +44,6 @@ describe("read-model-queries.service", () => {
   describe("getTenants", async () => {
     it("should return all tenants", async () => {
       const tenantsData: Tenant[] = [getMockTenant(), getMockTenant()];
-      await seedCollection(tenantsData.map(toReadModelTenant), tenants);
       await seedTenants(tenantsData);
 
       const result = await readModelService.getTenants();
@@ -71,7 +58,6 @@ describe("read-model-queries.service", () => {
     it("should not return tenants without 'selfcareId'", async () => {
       const tenantsData: Tenant[] = [getMockTenant(), getMockTenant()];
       delete tenantsData[1].selfcareId;
-      await seedCollection(tenantsData.map(toReadModelTenant), tenants);
       await seedTenants(tenantsData);
 
       const result = await readModelService.getTenants();
@@ -105,7 +91,6 @@ describe("read-model-queries.service", () => {
           }))
         ),
       ];
-      await seedCollection(eservicesData.map(toReadModelEService), eservices);
       await seedEServices(eservicesData);
 
       const result = await readModelService.getEServices();
@@ -135,7 +120,6 @@ describe("read-model-queries.service", () => {
         ]),
       ];
 
-      await seedCollection(eservicesData.map(toReadModelEService), eservices);
       await seedEServices(eservicesData);
 
       const result = await readModelService.getEServices();
@@ -167,7 +151,6 @@ describe("read-model-queries.service", () => {
         ]),
       ];
 
-      await seedCollection(eservicesData.map(toReadModelEService), eservices);
       await seedEServices(eservicesData);
 
       const result = await readModelService.getEServices();
@@ -191,7 +174,6 @@ describe("read-model-queries.service", () => {
         ]),
       ];
 
-      await seedCollection(eservicesData.map(toReadModelEService), eservices);
       await seedEServices(eservicesData);
 
       const result = await readModelService.getEServices();
@@ -207,7 +189,6 @@ describe("read-model-queries.service", () => {
         getMockEService(generateId<EServiceId>(), generateId<TenantId>(), []),
       ];
 
-      await seedCollection(eservicesData.map(toReadModelEService), eservices);
       await seedEServices(eservicesData);
 
       const result = await readModelService.getEServices();
@@ -234,10 +215,6 @@ describe("read-model-queries.service", () => {
           randomArrayItem(validAgreementStates)
         ),
       ];
-      await seedCollection(
-        agreementsData.map(toReadModelAgreement),
-        agreements
-      );
       await seedAgreements(agreementsData);
 
       const result = await readModelService.getAgreements();
@@ -314,7 +291,6 @@ describe("read-model-queries.service", () => {
         getMockPurpose([getMockPurposeVersion(purposeVersionState.draft)]),
       ];
 
-      await seedCollection(purposesData.map(toReadModelPurpose), purposes);
       await seedPurposes(purposesData);
 
       const result = await readModelService.getPurposes();
