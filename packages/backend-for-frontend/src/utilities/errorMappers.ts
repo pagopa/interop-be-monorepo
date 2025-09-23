@@ -266,3 +266,20 @@ export const getEServiceTemplateInstancesErrorMapper = (
   match(error.code)
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createPurposeTemplateRiskAnalysisAnswerErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "riskAnalysisTemplateValidationFailed",
+      "annotationTextLengthError",
+      "hyperlinkDetectionError",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "purposeTemplateRiskAnalysisFormNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

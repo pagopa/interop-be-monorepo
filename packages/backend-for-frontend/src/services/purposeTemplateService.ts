@@ -1,5 +1,6 @@
 import { bffApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
+import { PurposeTemplateId } from "pagopa-interop-models";
 import { PurposeTemplateProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 
@@ -18,6 +19,24 @@ export function purposeTemplateServiceBuilder(
       });
 
       return { id: result.id };
+    },
+    async createRiskAnalysisAnswer(
+      purposeTemplateId: PurposeTemplateId,
+      seed: bffApi.RiskAnalysisTemplateAnswerRequest,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisTemplateAnswer> {
+      logger.info(
+        `Creating risk analysis answer for purpose template ${purposeTemplateId}`
+      );
+      return await purposeTemplateClient.createRiskAnalysisAnswerForPurposeTemplate(
+        seed,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
     },
   };
 }

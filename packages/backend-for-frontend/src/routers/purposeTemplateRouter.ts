@@ -6,10 +6,11 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
+import { createPurposeTemplateRiskAnalysisAnswerErrorMapper } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -39,6 +40,31 @@ const purposeTemplateRouter = (
     }
   });
 
+  purposeTemplateRouter.post(
+    "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers",
+    async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await purposeTemplateService.createRiskAnalysisAnswer(
+          unsafeBrandId(req.params.purposeTemplateId),
+          req.body,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(bffApi.RiskAnalysisTemplateAnswer.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createPurposeTemplateRiskAnalysisAnswerErrorMapper,
+          ctx,
+          "Error creating risk analysis answer for purpose template"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    }
+  );
   return purposeTemplateRouter;
 };
 
