@@ -165,7 +165,7 @@ export function purposeTemplateServiceBuilder(
       const { purposeTemplateId } = filters;
 
       logger.info(
-        `Retrieving e-service descriptors associated to purpose template ${purposeTemplateId} with filters: ${JSON.stringify(
+        `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with filters: ${JSON.stringify(
           filters
         )}`
       );

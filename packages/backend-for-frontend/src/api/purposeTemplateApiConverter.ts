@@ -28,3 +28,16 @@ export function toBffCatalogPurposeTemplate(
     creator: toBffCompactOrganization(creator),
   };
 }
+
+export function toBffEServiceDescriptorsPurposeTemplate(
+  eserviceDescriptorPurposeTemplate: purposeTemplateApi.EServiceDescriptorPurposeTemplate,
+  eservice: bffApi.CompactEService,
+  descriptor: bffApi.CompactDescriptor
+): bffApi.EServiceDescriptorPurposeTemplate {
+  return {
+    purposeTemplateId: eserviceDescriptorPurposeTemplate.purposeTemplateId,
+    eservice,
+    descriptor,
+    createdAt: eserviceDescriptorPurposeTemplate.createdAt,
+  };
+}
