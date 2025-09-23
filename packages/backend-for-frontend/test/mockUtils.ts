@@ -148,6 +148,7 @@ export const getMockBffApiCatalogEService = (): bffApi.CatalogEService => ({
   agreement: generateMock(bffApi.CompactAgreement.optional()),
   isMine: generateMock(z.boolean()),
   activeDescriptor: generateMock(bffApi.CompactDescriptor.optional()),
+  mode: generateMock(bffApi.EServiceMode),
 });
 
 export const getMockBffApiCompactEServiceLight = (
@@ -615,6 +616,7 @@ export const getMockBffApiCompactEService = (): bffApi.CompactEService => ({
   id: generateId(),
   name: generateMock(z.string()),
   producer: generateMock(bffApi.CompactOrganization),
+  mode: generateMock(bffApi.EServiceMode),
 });
 
 export const getMockBffApiEServiceTemplateSeed =

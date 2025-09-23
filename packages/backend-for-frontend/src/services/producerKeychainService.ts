@@ -390,5 +390,6 @@ async function enhanceEService(
       name: producer.name,
       kind: producer.kind,
     },
+    mode: eservice.mode,
   };
 }
