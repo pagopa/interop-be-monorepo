@@ -40,6 +40,7 @@ import {
   updateDocumentErrorMapper,
   deleteDocumentErrorMapper,
   getEServiceTemplatesErrorMapper,
+  updateEServiceTemplatePersonalDataErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   eserviceTemplateToApiEServiceTemplate,
@@ -47,6 +48,7 @@ import {
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
   documentToApiDocument,
 } from "../model/domain/apiConverter.js";
+import { config } from "../config/config.js";
 
 const eserviceTemplatesRouter = (
   ctx: ZodiosContext,
@@ -696,6 +698,39 @@ const eserviceTemplatesRouter = (
         }
       }
     )
+    .post("/templates/:templateId/personalData", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        if (config.featureFlagEservicePersonalData === false) {
+          return res.status(501).send();
+        }
+
+        const updatedEServiceTemplate =
+          await eserviceTemplateService.updateEServiceTemplatePersonalDataAfterPublish(
+            unsafeBrandId(req.params.templateId),
+            req.body.personalData,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            eserviceTemplateApi.EServiceTemplate.parse(
+              eserviceTemplateToApiEServiceTemplate(updatedEServiceTemplate)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateEServiceTemplatePersonalDataErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/creators", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 

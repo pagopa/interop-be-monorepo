@@ -170,4 +170,5 @@ export const eserviceTemplateToApiEServiceTemplate = (
     eserviceTemplateVersionToApiEServiceTemplateVersion
   ),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
+  personalData: eserviceTemplate.personalData,
 });

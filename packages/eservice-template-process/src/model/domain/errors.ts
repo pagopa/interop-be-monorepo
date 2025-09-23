@@ -35,6 +35,7 @@ export const errorCodes = {
   riskAnalysisNotFound: "0026",
   attributeDuplicatedInGroup: "0027",
   eserviceTemplatePersonalDataMustBeSet: "0028",
+  eserviceTemplatePersonalDataCanOnlyBeSetOnce: "0029",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -308,5 +309,15 @@ export function eserviceTemplatePersonalDataMustBeSet(
     detail: `Template version ${eserviceTemplateVersionId} in eserviceTemplate ${eserviceTemplateId} can't be published because personalData flag must be set`,
     code: "eserviceTemplatePersonalDataMustBeSet",
     title: "EService Template personalData must be set before publication",
+  });
+}
+
+export function eserviceTemplatePersonalDataCanOnlyBeSetOnce(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `PersonalData flag has already been set for eService Template ${eserviceTemplateId}`,
+    code: "eserviceTemplatePersonalDataCanOnlyBeSetOnce",
+    title: "EService Template personalData can only be set once",
   });
 }
