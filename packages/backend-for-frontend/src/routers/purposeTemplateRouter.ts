@@ -13,6 +13,7 @@ import { fromBffAppContext } from "../utilities/context.js";
 import {
   unlinkEServicesFromPurposeTemplateErrorMapper,
   linkEServiceToPurposeTemplateErrorMapper,
+  getCatalogPurposeTemplatesErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
@@ -48,12 +49,14 @@ const purposeTemplateRouter = (
 
       try {
         const response =
-          await purposeTemplateService.getCreatorPurposeTemplates(
-            req.query.q,
-            req.query.offset,
-            req.query.limit,
-            ctx
-          );
+          await purposeTemplateService.getCreatorPurposeTemplates({
+            purposeTitle: req.query.q,
+            states: req.query.states,
+            eserviceIds: req.query.eserviceIds,
+            offset: req.query.offset,
+            limit: req.query.limit,
+            ctx,
+          });
 
         return res
           .status(200)
@@ -76,6 +79,7 @@ const purposeTemplateRouter = (
           await purposeTemplateService.getCatalogPurposeTemplates({
             purposeTitle: req.query.q,
             targetTenantKind: req.query.targetTenantKind,
+            creatorIds: req.query.creatorIds,
             eserviceIds: req.query.eserviceIds,
             offset: req.query.offset,
             limit: req.query.limit,
@@ -88,7 +92,7 @@ const purposeTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getCatalogPurposeTemplatesErrorMapper,
           ctx,
           "Error retrieving catalog purpose templates"
         );

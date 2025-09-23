@@ -5,6 +5,7 @@ import {
   makeApiProblemBuilder,
   PurposeTemplateId,
   PurposeTemplateState,
+  TenantKind,
 } from "pagopa-interop-models";
 import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
 
@@ -19,6 +20,7 @@ export const errorCodes = {
   purposeTemplateNotInValidState: "0008",
   disassociationEServicesFromPurposeTemplateFailed: "0009",
   associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0010",
+  ruleSetNotFoundError: "0005",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -131,5 +133,15 @@ export function purposeTemplateNotInValidState(
     detail: `Purpose template state is: ${state} but valid states are: ${validStates}`,
     code: "purposeTemplateNotInValidState",
     title: "Purpose template not in valid state",
+  });
+}
+
+export function ruleSetNotFoundError(
+  tenantKind: TenantKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No risk analysis rule set found for target tenant kind ${tenantKind}`,
+    code: "ruleSetNotFoundError",
+    title: "No risk analysis rule set found for target tenant kind",
   });
 }

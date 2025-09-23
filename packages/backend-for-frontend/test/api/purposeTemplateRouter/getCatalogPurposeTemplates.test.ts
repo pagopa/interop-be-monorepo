@@ -8,6 +8,7 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiCatalogPurposeTemplate } from "../../mockUtils.js";
+import { tenantNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /catalog/purposeTemplates", () => {
   const defaultQuery = {
@@ -48,6 +49,15 @@ describe("API GET /catalog/purposeTemplates", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockCatalogPurposeTemplates);
+  });
+
+  it("Should return 404 for tenantNotFound", async () => {
+    services.purposeTemplateService.getCatalogPurposeTemplates = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(generateId()));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
   });
 
   it.each([

@@ -3,7 +3,7 @@ import {
   purposeTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
 import { TenantKind } from "pagopa-interop-models";
 import { PurposeTemplateId } from "pagopa-interop-models";
 import {
@@ -11,6 +11,7 @@ import {
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
+import { config } from "../config/config.js";
 import {
   toBffCatalogPurposeTemplate,
   toBffCreatorPurposeTemplate,
@@ -45,6 +46,7 @@ export function purposeTemplateServiceBuilder(
       seed: bffApi.PurposeTemplateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       logger.info(`Creating purpose template`);
       const result = await purposeTemplateClient.createPurposeTemplate(seed, {
         headers,
@@ -95,12 +97,22 @@ export function purposeTemplateServiceBuilder(
         }
       );
     },
-    async getCreatorPurposeTemplates(
-      purposeTitle: string | undefined,
-      offset: number,
-      limit: number,
-      { headers, authData, logger }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatorPurposeTemplates> {
+    async getCreatorPurposeTemplates({
+      purposeTitle,
+      states,
+      eserviceIds,
+      offset,
+      limit,
+      ctx,
+    }: {
+      purposeTitle: string | undefined;
+      states: bffApi.PurposeTemplateState[];
+      eserviceIds: string[];
+      offset: number;
+      limit: number;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<bffApi.CreatorPurposeTemplates> {
+      const { headers, authData, logger } = ctx;
       logger.info(
         `Retrieving creator's purpose templates with title ${purposeTitle}, offset ${offset}, limit ${limit}`
       );
@@ -111,6 +123,8 @@ export function purposeTemplateServiceBuilder(
           queries: {
             purposeTitle,
             creatorIds: [authData.organizationId],
+            states,
+            eserviceIds,
             limit,
             offset,
           },
@@ -130,6 +144,7 @@ export function purposeTemplateServiceBuilder(
     async getCatalogPurposeTemplates({
       purposeTitle,
       targetTenantKind,
+      creatorIds,
       eserviceIds,
       offset,
       limit,
@@ -137,6 +152,7 @@ export function purposeTemplateServiceBuilder(
     }: {
       purposeTitle: string | undefined;
       targetTenantKind: TenantKind | undefined;
+      creatorIds: string[];
       eserviceIds: string[];
       offset: number;
       limit: number;
@@ -154,6 +170,7 @@ export function purposeTemplateServiceBuilder(
           queries: {
             purposeTitle,
             targetTenantKind,
+            creatorIds,
             eserviceIds,
             states: [purposeTemplateApi.PurposeTemplateState.Enum.ACTIVE],
             limit,
