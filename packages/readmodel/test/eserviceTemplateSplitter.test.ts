@@ -40,6 +40,7 @@ describe("E-service template splitter", () => {
     const suspendedAt = new Date();
     const deprecatedAt = new Date();
     const isSignalHubEnabled = true;
+    const personalData = true;
 
     const version: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
@@ -87,6 +88,7 @@ describe("E-service template splitter", () => {
       technology: eserviceTemplate.technology,
       mode: eserviceTemplate.mode,
       isSignalHubEnabled,
+      personalData,
     };
 
     const expectedRiskAnalysisSQL1: EServiceTemplateRiskAnalysisSQL = {
@@ -235,6 +237,7 @@ describe("E-service template splitter", () => {
       technology: eserviceTemplate.technology,
       mode: eserviceTemplate.mode,
       isSignalHubEnabled: null,
+      personalData: null,
     };
 
     const expectedRiskAnalysisSQL1: EServiceTemplateRiskAnalysisSQL = {
