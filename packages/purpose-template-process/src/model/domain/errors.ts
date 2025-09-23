@@ -11,7 +11,7 @@ export const errorCodes = {
   purposeTemplateNameConflict: "0002",
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
-  invalidTargetTenantKind: "0005",
+  ruleSetNotFoundError: "0005",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -62,7 +62,7 @@ export function ruleSetNotFoundError(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `No risk analysis rule set found for target tenant kind ${tenantKind}`,
-    code: "invalidTargetTenantKind",
+    code: "ruleSetNotFoundError",
     title: "No risk analysis rule set found for target tenant kind",
   });
 }

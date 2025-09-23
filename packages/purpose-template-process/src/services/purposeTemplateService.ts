@@ -46,7 +46,7 @@ async function retrievePurposeTemplate(
   return purposeTemplate;
 }
 
-function getDefautltRiskAnalysisFormTemplate(
+function getDefaultRiskAnalysisFormTemplate(
   tenantKind: TenantKind
 ): RiskAnalysisFormTemplate | undefined {
   const versionedRules = getLatestVersionFormRules(tenantKind);
@@ -98,7 +98,7 @@ export function purposeTemplateServiceBuilder(
             seed.purposeRiskAnalysisForm,
             seed.targetTenantKind
           )
-        : getDefautltRiskAnalysisFormTemplate(seed.targetTenantKind);
+        : getDefaultRiskAnalysisFormTemplate(seed.targetTenantKind);
 
       const purposeTemplate: PurposeTemplate = {
         id: generateId(),

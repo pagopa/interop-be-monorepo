@@ -45,7 +45,7 @@ export function purposeTemplateServiceBuilder(
       seed: bffApi.PurposeTemplateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplateConfig");
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       logger.info(`Creating purpose template`);
       const result = await purposeTemplateClient.createPurposeTemplate(seed, {
         headers,

@@ -19,7 +19,7 @@ export const createPurposeTemplateErrorMapper = (
     .with(
       "missingFreeOfChargeReason",
       "riskAnalysisTemplateValidationFailed",
-      "invalidTargetTenantKind",
+      "ruleSetNotFoundError",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
