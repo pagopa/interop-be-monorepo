@@ -1,7 +1,6 @@
 import {
   EServiceEventEnvelopeV2,
   fromEServiceV2,
-  m2mEventVisibility,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
@@ -28,44 +27,32 @@ export async function handleEServiceEvent(
   return match(decodedMessage)
     .with(
       {
-        type: P.union("DraftEServiceUpdated"),
+        type: P.union(
+          "EServiceAdded",
+          "DraftEServiceUpdated",
+          "EServiceCloned",
+          "EServiceDeleted",
+          "EServiceNameUpdated",
+          "EServiceDescriptionUpdated",
+          "EServiceIsConsumerDelegableEnabled",
+          "EServiceIsConsumerDelegableDisabled",
+          "EServiceIsClientAccessDelegableEnabled",
+          "EServiceIsClientAccessDelegableDisabled",
+          "EServiceNameUpdatedByTemplateUpdate",
+          "EServiceDescriptionUpdatedByTemplateUpdate",
+          "EServiceSignalHubEnabled",
+          "EServiceSignalHubDisabled"
+        ),
       },
       async (event) => {
         logger.info(
           `Creating EService M2M Event - type ${event.type}, eserviceId ${eservice.id}`
         );
-        const m2mEvent = createEServiceM2MEvent(
+        const m2mEvent = await createEServiceM2MEvent(
           eservice,
           event.type,
           eventTimestamp,
-          {
-            visibility: m2mEventVisibility.restricted,
-            producerDelegation:
-              await readModelService.getActiveProducerDelegationForEService(
-                event.data.eservice
-              ),
-          }
-        );
-
-        await m2mEventWriterService.insertEServiceM2MEvent(
-          toEServiceM2MEventSQL(m2mEvent)
-        );
-      }
-    )
-    .with(
-      {
-        type: P.union("EServiceDescriptorPublished"),
-      },
-      async (event) => {
-        logger.info(
-          `Creating EService M2M Event - type ${event.type}, eserviceId ${eservice.id}, descriptorId ${event.data.descriptorId}`
-        );
-        const m2mEvent = createEServiceDescriptorM2MEvent(
-          eservice,
-          unsafeBrandId(event.data.descriptorId),
-          event.type,
-          eventTimestamp,
-          { visibility: m2mEventVisibility.public }
+          readModelService
         );
 
         await m2mEventWriterService.insertEServiceM2MEvent(
@@ -76,45 +63,55 @@ export async function handleEServiceEvent(
     .with(
       {
         type: P.union(
+          "EServiceDescriptorPublished",
           "EServiceDescriptorActivated",
           "EServiceDescriptorApprovedByDelegator",
           "EServiceDescriptorSuspended",
           "EServiceDescriptorArchived",
           "EServiceDescriptorQuotasUpdated",
           "EServiceDescriptorAgreementApprovalPolicyUpdated",
-          "EServiceAdded",
-          "EServiceCloned",
-          "EServiceDeleted",
           "EServiceDescriptorAdded",
           "EServiceDraftDescriptorDeleted",
           "EServiceDraftDescriptorUpdated",
+          "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorSubmittedByDelegate",
+          "EServiceDescriptorRejectedByDelegator",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
+        ),
+      },
+      async (event) => {
+        logger.info(
+          `Creating EService M2M Event - type ${event.type}, eserviceId ${eservice.id}, descriptorId ${event.data.descriptorId}`
+        );
+        const m2mEvent = await createEServiceDescriptorM2MEvent(
+          eservice,
+          unsafeBrandId(event.data.descriptorId),
+          event.type,
+          eventTimestamp,
+          readModelService
+        );
+
+        await m2mEventWriterService.insertEServiceM2MEvent(
+          toEServiceM2MEventSQL(m2mEvent)
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
           "EServiceDescriptorDocumentAdded",
           "EServiceDescriptorDocumentUpdated",
           "EServiceDescriptorDocumentDeleted",
-          "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorInterfaceUpdated",
-          "EServiceDescriptorInterfaceDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
           "EServiceRiskAnalysisDeleted",
-          "EServiceDescriptorAttributesUpdated",
-          "EServiceDescriptionUpdated",
-          "EServiceNameUpdated",
-          "EServiceDescriptorSubmittedByDelegate",
-          "EServiceDescriptorRejectedByDelegator",
-          "EServiceIsConsumerDelegableEnabled",
-          "EServiceIsConsumerDelegableDisabled",
-          "EServiceIsClientAccessDelegableEnabled",
-          "EServiceIsClientAccessDelegableDisabled",
-          "EServiceNameUpdatedByTemplateUpdate",
-          "EServiceDescriptionUpdatedByTemplateUpdate",
-          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
-          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
           "EServiceDescriptorDocumentAddedByTemplateUpdate",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
-          "EServiceSignalHubEnabled",
-          "EServiceSignalHubDisabled"
+          "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorInterfaceDeleted"
         ),
       },
       () => Promise.resolve(void 0)

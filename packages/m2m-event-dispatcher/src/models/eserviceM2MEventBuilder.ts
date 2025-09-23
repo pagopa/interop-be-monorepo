@@ -1,15 +1,25 @@
 import {
   Delegation,
+  Descriptor,
   DescriptorId,
+  DescriptorState,
   EService,
   EServiceM2MEvent,
   M2MEventVisibility,
+  descriptorState,
   m2mEventVisibility,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { generateM2MEventId } from "../utils/uuidv7.js";
+import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
+import { descriptorNotFoundInEService } from "./errors.js";
 
-type DataForVisibilityComputation =
+const restrictedVisibilityStates: DescriptorState[] = [
+  descriptorState.draft,
+  descriptorState.waitingForApproval,
+];
+
+type DataForVisibility =
   | {
       visibility: Extract<M2MEventVisibility, "Public">;
     }
@@ -18,37 +28,90 @@ type DataForVisibilityComputation =
       producerDelegation: Delegation | undefined;
     };
 
-export function createEServiceM2MEvent(
+async function getEServiceDataForVisibility(
   eservice: EService,
-  eventType: Extract<EServiceM2MEvent["eventType"], "DraftEServiceUpdated">,
+  readModelService: ReadModelServiceSQL
+): Promise<DataForVisibility> {
+  if (
+    eservice.descriptors.every((d) =>
+      restrictedVisibilityStates.includes(d.state)
+    )
+  ) {
+    return {
+      visibility: m2mEventVisibility.restricted,
+      producerDelegation:
+        await readModelService.getActiveProducerDelegationForEService(eservice),
+    };
+  } else {
+    return { visibility: m2mEventVisibility.public };
+  }
+}
+
+const retrieveDescriptorFromEService = (
+  descriptorId: DescriptorId,
+  eservice: EService
+): Descriptor => {
+  const descriptor = eservice.descriptors.find(
+    (d: Descriptor) => d.id === descriptorId
+  );
+
+  if (descriptor === undefined) {
+    throw descriptorNotFoundInEService(descriptorId, eservice.id);
+  }
+
+  return descriptor;
+};
+
+async function getEServiceDescriptorDataForVisibility(
+  descriptorId: DescriptorId,
+  eservice: EService,
+  readModelService: ReadModelServiceSQL
+): Promise<DataForVisibility> {
+  const descriptor = retrieveDescriptorFromEService(descriptorId, eservice);
+
+  if (restrictedVisibilityStates.includes(descriptor.state)) {
+    return {
+      visibility: m2mEventVisibility.restricted,
+      producerDelegation:
+        await readModelService.getActiveProducerDelegationForEService(eservice),
+    };
+  } else {
+    return { visibility: m2mEventVisibility.public };
+  }
+}
+
+export async function createEServiceM2MEvent(
+  eservice: EService,
+  eventType: EServiceM2MEvent["eventType"],
   eventTimestamp: Date,
-  visibility: DataForVisibilityComputation
-): EServiceM2MEvent {
+  readModelService: ReadModelServiceSQL
+): Promise<EServiceM2MEvent> {
   return createEServiceM2MEventHelper(
     eservice,
     undefined,
     eventType,
     eventTimestamp,
-    visibility
+    await getEServiceDataForVisibility(eservice, readModelService)
   );
 }
 
-export function createEServiceDescriptorM2MEvent(
+export async function createEServiceDescriptorM2MEvent(
   eservice: EService,
   descriptorId: DescriptorId,
-  eventType: Extract<
-    EServiceM2MEvent["eventType"],
-    "EServiceDescriptorPublished"
-  >,
+  eventType: EServiceM2MEvent["eventType"],
   eventTimestamp: Date,
-  visibility: DataForVisibilityComputation
-): EServiceM2MEvent {
+  readModelService: ReadModelServiceSQL
+): Promise<EServiceM2MEvent> {
   return createEServiceM2MEventHelper(
     eservice,
     descriptorId,
     eventType,
     eventTimestamp,
-    visibility
+    await getEServiceDescriptorDataForVisibility(
+      descriptorId,
+      eservice,
+      readModelService
+    )
   );
 }
 
@@ -61,7 +124,7 @@ function createEServiceM2MEventHelper(
   descriptorId: DescriptorId | undefined,
   eventType: EServiceM2MEvent["eventType"],
   eventTimestamp: Date,
-  visibility: DataForVisibilityComputation
+  visibility: DataForVisibility
 ): EServiceM2MEvent {
   const visibilityFields = match(visibility)
     .with({ visibility: m2mEventVisibility.public }, () => ({

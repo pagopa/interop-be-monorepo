@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import {
   Delegation,
-  EServiceV2,
+  EService,
   delegationKind,
   delegationState,
 } from "pagopa-interop-models";
@@ -16,7 +16,7 @@ export function readModelServiceBuilderSQL({
 }) {
   return {
     async getActiveProducerDelegationForEService(
-      eservice: EServiceV2
+      eservice: EService
     ): Promise<Delegation | undefined> {
       const delegation =
         await delegationReadModelServiceSQL.getDelegationByFilter(
