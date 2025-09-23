@@ -372,71 +372,33 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       seed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData>>
     ): Promise<EServiceTemplate> {
-      logger.info(
-        `Update draft e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
-      );
-
-      const eserviceTemplate = await retrieveEServiceTemplate(
+      const result = await updateDraftEServiceTemplateVersion(
         eserviceTemplateId,
-        readModelService
-      );
-
-      assertRequesterEServiceTemplateCreator(
-        eserviceTemplate.data.creatorId,
-        authData
-      );
-
-      const eserviceTemplateVersion = retrieveEServiceTemplateVersion(
         eserviceTemplateVersionId,
-        eserviceTemplate.data
+        { type: "post", seed },
+        readModelService,
+        repository,
+        ctx
       );
 
-      if (
-        eserviceTemplateVersion.state !== eserviceTemplateVersionState.draft
-      ) {
-        throw notValidEServiceTemplateVersionState(
-          eserviceTemplateVersionId,
-          eserviceTemplateVersion.state
-        );
-      }
-
-      assertConsistentDailyCalls(seed);
-
-      const parsedAttributes = await parseAndCheckAttributes(
-        seed.attributes,
-        readModelService
-      );
-
-      const updatedVersion: EServiceTemplateVersion = {
-        ...eserviceTemplateVersion,
-        agreementApprovalPolicy:
-          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.agreementApprovalPolicy
-          ),
-        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-        dailyCallsTotal: seed.dailyCallsTotal,
-        description: seed.description,
-        voucherLifespan: seed.voucherLifespan,
-        attributes: parsedAttributes,
-      };
-
-      const updatedEServiceTemplate = replaceEServiceTemplateVersion(
-        eserviceTemplate.data,
-        updatedVersion
-      );
-
-      const event = toCreateEventEServiceTemplateDraftVersionUpdated(
+      return result.data;
+    },
+    async patchUpdateDraftTemplateVersion(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      seed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed,
+      ctx: WithLogger<AppContext<M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
+      return await updateDraftEServiceTemplateVersion(
         eserviceTemplateId,
-        eserviceTemplate.metadata.version,
         eserviceTemplateVersionId,
-        updatedEServiceTemplate,
-        correlationId
+        { type: "patch", seed },
+        readModelService,
+        repository,
+        ctx
       );
-      await repository.createEvent(event);
-
-      return updatedEServiceTemplate;
     },
     async suspendEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
@@ -1986,6 +1948,164 @@ async function updateDraftEServiceTemplate(
       correlationId
     )
   );
+  return {
+    data: updatedEServiceTemplate,
+    metadata: { version: event.newVersion },
+  };
+}
+
+function resolvePatchValue<T>(
+  value: T | null | undefined,
+  oldValue: T | undefined
+): T | undefined {
+  return value === null ? undefined : value === undefined ? oldValue : value;
+}
+
+// eslint-disable-next-line max-params
+async function updateDraftEServiceTemplateVersion(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId,
+  updateSeed:
+    | {
+        type: "post";
+        seed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed;
+      }
+    | {
+        type: "patch";
+        seed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed;
+      },
+  readModelService: ReadModelService,
+  repository: ReturnType<typeof eventRepository<EServiceTemplateEvent>>,
+  {
+    authData,
+    correlationId,
+    logger,
+  }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+): Promise<WithMetadata<EServiceTemplate>> {
+  const { seed, type } = updateSeed;
+  logger.info(
+    `${type.toUpperCase()} update draft e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
+  );
+
+  const {
+    description,
+    voucherLifespan,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dailyCallsPerConsumer,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dailyCallsTotal,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    agreementApprovalPolicy,
+    attributes,
+    ...rest
+  } = seed;
+  void (rest satisfies Record<string, never>);
+  // ^ To make sure we extract all the updated fields.
+  // The eslint disables are needed because those fields are extracted
+  // but then not used directly, since they are handled in a different way.
+
+  const eserviceTemplate = await retrieveEServiceTemplate(
+    eserviceTemplateId,
+    readModelService
+  );
+  assertRequesterEServiceTemplateCreator(
+    eserviceTemplate.data.creatorId,
+    authData
+  );
+  const eserviceTemplateVersion = retrieveEServiceTemplateVersion(
+    eserviceTemplateVersionId,
+    eserviceTemplate.data
+  );
+
+  if (eserviceTemplateVersion.state !== eserviceTemplateVersionState.draft) {
+    throw notValidEServiceTemplateVersionState(
+      eserviceTemplateVersionId,
+      eserviceTemplateVersion.state
+    );
+  }
+
+  const updatedDailyCallsPerConsumer = match(updateSeed)
+    .with({ type: "post" }, ({ seed }) => seed.dailyCallsPerConsumer)
+    .with({ type: "patch" }, ({ seed }) =>
+      resolvePatchValue(
+        seed.dailyCallsPerConsumer,
+        eserviceTemplateVersion.dailyCallsPerConsumer
+      )
+    )
+    .exhaustive();
+
+  const updatedDailyCallsTotal = match(updateSeed)
+    .with({ type: "post" }, ({ seed }) => seed.dailyCallsTotal)
+    .with({ type: "patch" }, ({ seed }) =>
+      resolvePatchValue(
+        seed.dailyCallsTotal,
+        eserviceTemplateVersion.dailyCallsTotal
+      )
+    )
+    .exhaustive();
+
+  const updatedAgreementApprovalPolicy = match(updateSeed)
+    .with({ type: "post" }, ({ seed }) =>
+      apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+        seed.agreementApprovalPolicy
+      )
+    )
+    .with({ type: "patch" }, ({ seed }) =>
+      resolvePatchValue(
+        seed.agreementApprovalPolicy === null
+          ? null
+          : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+              seed.agreementApprovalPolicy
+            ),
+        eserviceTemplateVersion.agreementApprovalPolicy
+      )
+    )
+    .exhaustive();
+
+  assertConsistentDailyCalls({
+    dailyCallsPerConsumer: updatedDailyCallsPerConsumer,
+    dailyCallsTotal: updatedDailyCallsTotal,
+  });
+
+  const parsedAttributes = attributes
+    ? await parseAndCheckAttributes(
+        {
+          declared:
+            attributes.declared ?? eserviceTemplateVersion.attributes.declared,
+          certified:
+            attributes.certified ??
+            eserviceTemplateVersion.attributes.certified,
+          verified:
+            attributes.verified ?? eserviceTemplateVersion.attributes.verified,
+        },
+        readModelService
+      )
+    : eserviceTemplateVersion.attributes;
+
+  const updatedVersion: EServiceTemplateVersion = {
+    ...eserviceTemplateVersion,
+    agreementApprovalPolicy: updatedAgreementApprovalPolicy,
+    dailyCallsPerConsumer: updatedDailyCallsPerConsumer,
+    dailyCallsTotal: updatedDailyCallsTotal,
+    description: description ?? eserviceTemplateVersion.description,
+    voucherLifespan: voucherLifespan ?? eserviceTemplateVersion.voucherLifespan,
+    attributes: parsedAttributes,
+  };
+
+  const updatedEServiceTemplate = replaceEServiceTemplateVersion(
+    eserviceTemplate.data,
+    updatedVersion
+  );
+
+  const eventToCreate = toCreateEventEServiceTemplateDraftVersionUpdated(
+    eserviceTemplateId,
+    eserviceTemplate.metadata.version,
+    eserviceTemplateVersionId,
+    updatedEServiceTemplate,
+    correlationId
+  );
+  const event = await repository.createEvent(eventToCreate);
+
   return {
     data: updatedEServiceTemplate,
     metadata: { version: event.newVersion },
