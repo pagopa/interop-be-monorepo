@@ -15,7 +15,7 @@ import {
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
-import { seedPurposes, seedTenants } from "./utils.js";
+import { readModelService, seedPurposes, seedTenants } from "./utils.js";
 
 describe("MetricsManager", () => {
   const PN_ESERVICE_ID_MOCK = generateId<EServiceId>();
