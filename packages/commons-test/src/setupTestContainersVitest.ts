@@ -45,7 +45,7 @@ import { PecEmailManagerConfigTest } from "./testConfig.js";
  * import { setupTestContainersVitest } from "pagopa-interop-commons-test";
  * import { inject, afterEach } from "vitest";
  *
- * export const { readModelRepository, postgresDB, fileManager, cleanup } =
+ * export const { postgresDB, fileManager, cleanup } =
  *   setupTestContainersVitest(inject("config"));
  *
  * afterEach(cleanup);
