@@ -34,15 +34,11 @@ import {
   upsertEService,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
-import { config } from "../src/config/config.js";
 
-export const { cleanup, readModelRepository, postgresDB, readModelDB } =
+export const { cleanup, postgresDB, readModelDB } =
   await setupTestContainersVitest(
-    inject("readModelConfig"),
     inject("eventStoreConfig"),
     undefined,
     undefined,
@@ -76,8 +72,7 @@ const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL(
+export const readModelService = readModelServiceBuilderSQL(
   readModelDB,
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
@@ -85,13 +80,6 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   catalogReadModelServiceSQL,
   delegationReadModelServiceSQL
 );
-
-export const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 export const tenantService = tenantServiceBuilder(postgresDB, readModelService);
 

@@ -10,7 +10,6 @@ import {
   FileManager,
   FileManagerConfig,
   RateLimiter,
-  ReadModelDbConfig,
   ReadModelRepository,
   RedisRateLimiterConfig,
   S3Config,
@@ -53,14 +52,7 @@ import { PecEmailManagerConfigTest } from "./testConfig.js";
  * afterEach(cleanup);
  * ```
  */
-export async function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig
-): Promise<{
-  readModelRepository: ReadModelRepository;
-  cleanup: () => Promise<void>;
-}>;
 export function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig
 ): Promise<{
   readModelRepository: ReadModelRepository;
@@ -68,7 +60,6 @@ export function setupTestContainersVitest(
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config
 ): Promise<{
@@ -78,26 +69,22 @@ export function setupTestContainersVitest(
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   pecEmailManager: EmailManagerPEC;
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
   RedisRateLimiterConfig?: RedisRateLimiterConfig,
   awsSESConfig?: AWSSesConfig
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   pecEmailManager: EmailManagerPEC;
@@ -106,7 +93,6 @@ export function setupTestContainersVitest(
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
@@ -114,7 +100,6 @@ export function setupTestContainersVitest(
   awsSESConfig?: AWSSesConfig,
   readModelSQLDbConfig?: ReadModelSQLDbConfig
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   pecEmailManager: EmailManagerPEC;
@@ -124,7 +109,6 @@ export function setupTestContainersVitest(
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
@@ -144,7 +128,6 @@ export function setupTestContainersVitest(
   cleanup: () => Promise<void>;
 }>;
 export async function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
@@ -154,7 +137,6 @@ export async function setupTestContainersVitest(
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
   inAppNotificationDbConfig?: InAppNotificationDBConfig
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   pecEmailManager: EmailManagerPEC;
@@ -166,7 +148,6 @@ export async function setupTestContainersVitest(
   cleanup: () => Promise<void>;
 }>;
 export async function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
@@ -177,7 +158,6 @@ export async function setupTestContainersVitest(
   inAppNotificationDbConfig?: InAppNotificationDBConfig,
   m2mEventDbConfig?: M2MEventSQLDbConfig
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   pecEmailManager: EmailManagerPEC;
@@ -191,7 +171,6 @@ export async function setupTestContainersVitest(
 }>;
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export async function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
@@ -225,9 +204,6 @@ export async function setupTestContainersVitest(
   let analyticsPostgresDB: DB | undefined;
   let inAppNotificationDB: DrizzleReturnType | undefined;
   let m2mEventDB: DrizzleReturnType | undefined;
-  if (readModelDbConfig) {
-    readModelRepository = ReadModelRepository.init(readModelDbConfig);
-  }
 
   if (eventStoreConfig) {
     postgresDB = initDB({

@@ -92,14 +92,10 @@ export const { clients, tenants } = readModelRepository;
 
 const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL({
+export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   clientReadModelServiceSQL,
 });
-export const readModelService = config.featureFlagSQL
-  ? readModelServiceSQL
-  : oldReadModelService;
 
 export const addOneClient = async (client: Client): Promise<void> => {
   await upsertClient(readModelDB, client, 0);

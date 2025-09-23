@@ -38,38 +38,23 @@ import {
   upsertPurpose,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import {
   UpdatePurposeReturn,
   purposeServiceBuilder,
 } from "../src/services/purposeService.js";
-import { config } from "../src/config/config.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const {
-  cleanup,
-  readModelRepository,
-  postgresDB,
-  fileManager,
-  readModelDB,
-} = await setupTestContainersVitest(
-  inject("readModelConfig"),
-  inject("eventStoreConfig"),
-  inject("fileManagerConfig"),
-  undefined,
-  undefined,
-  undefined,
-  inject("readModelSQLConfig")
-);
+export const { cleanup, postgresDB, fileManager, readModelDB } =
+  await setupTestContainersVitest(
+    inject("eventStoreConfig"),
+    inject("fileManagerConfig"),
+    undefined,
+    undefined,
+    undefined,
+    inject("readModelSQLConfig")
+  );
 
 afterEach(cleanup);
-
-export const agreements = readModelRepository.agreements;
-export const eservices = readModelRepository.eservices;
-export const tenants = readModelRepository.tenants;
-export const attributes = readModelRepository.attributes;
-export const purposes = readModelRepository.purposes;
-export const delegations = readModelRepository.delegations;
 
 export const purposeReadModelServiceSQL =
   purposeReadModelServiceBuilder(readModelDB);
@@ -82,8 +67,7 @@ export const agreementReadModelServiceSQL =
 export const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL({
+export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   purposeReadModelServiceSQL,
   catalogReadModelServiceSQL,
@@ -91,12 +75,6 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
 });
-export const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 const testBrowserInstance: Browser = await launchPuppeteerBrowser({
   pipe: true,

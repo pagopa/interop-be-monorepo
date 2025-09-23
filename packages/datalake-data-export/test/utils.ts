@@ -28,21 +28,16 @@ import {
   upsertPurpose,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-import { config } from "../src/config/config.js";
-
-export const { cleanup, readModelRepository, readModelDB } =
-  await setupTestContainersVitest(
-    inject("readModelConfig"),
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    inject("readModelSQLConfig")
-  );
+export const { cleanup, readModelDB } = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
 
 afterEach(cleanup);
 
@@ -56,17 +51,8 @@ export const delegations: DelegationCollection =
 export const eserviceTemplates: EServiceTemplateCollection =
   readModelRepository.eserviceTemplates;
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-
 eserviceTemplateReadModelServiceBuilder(readModelDB);
-const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-
-export const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
+export const readModelService = readModelServiceBuilderSQL(readModelDB);
 
 export const seedTenants = async (tenants: Tenant[]): Promise<void> => {
   for (const t of tenants) {
