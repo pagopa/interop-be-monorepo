@@ -1,6 +1,7 @@
 import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
+  EServiceDocumentId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   RiskAnalysisId,
@@ -13,6 +14,7 @@ import {
   toM2MGatewayEServiceTemplate,
   toM2MGatewayEServiceTemplateVersion,
   toGetEServiceTemplatesQueryParams,
+  toM2MGatewayApiDocument,
 } from "../api/eserviceTemplateApiConverter.js";
 import {
   eserviceTemplateRiskAnalysisNotFound,
@@ -22,7 +24,11 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   pollResourceWithMetadata,
   isPolledVersionAtLeastResponseVersion,
+  isPolledVersionAtLeastMetadataTargetVersion,
 } from "../utils/polling.js";
+import { uploadEServiceTemplateDocument } from "../utils/fileUpload.js";
+import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
+import { config } from "../config/config.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
@@ -30,7 +36,8 @@ export type EserviceTemplateService = ReturnType<
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eserviceTemplateServiceBuilder(
-  clients: PagoPAInteropBeClients
+  clients: PagoPAInteropBeClients,
+  fileManager: FileManager
 ) {
   const retrieveEServiceTemplateRiskAnalysisById = (
     eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
@@ -86,6 +93,17 @@ export function eserviceTemplateServiceBuilder(
       retrieveEServiceTemplateById(headers, unsafeBrandId(response.data.id))
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
+    });
+
+  const pollEServiceTemplateById = (
+    templateId: EServiceTemplateId,
+    metadata: { version: number } | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>> =>
+    pollResourceWithMetadata(() =>
+      retrieveEServiceTemplateById(headers, templateId)
+    )({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
     });
 
   return {
@@ -274,7 +292,7 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Updating draft version ${versionId} of eservice template with id ${templateId}`
       );
-
+        
       const response =
         await clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
           {
@@ -294,6 +312,43 @@ export function eserviceTemplateServiceBuilder(
           unsafeBrandId(versionId)
         )
       );
+   },
+    async getEServiceTemplateRiskAnalysis(
+      templateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateRiskAnalysis> {
+      logger.info(
+        `Retrieving Risk Analysis ${riskAnalysisId} for E-Service Template ${templateId}`
+      );
+
+      const riskAnalysis = retrieveEServiceTemplateRiskAnalysisById(
+        await retrieveEServiceTemplateById(headers, templateId),
+        unsafeBrandId(riskAnalysisId)
+      );
+
+      return toM2MGatewayApiEServiceTemplateRiskAnalysis(riskAnalysis);
+    },
+
+    async deleteEServiceTemplateRiskAnalysis(
+      templateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting Risk Analysis ${riskAnalysisId} for E-Service Template ${templateId}`
+      );
+
+      const { metadata } =
+        await clients.eserviceTemplateProcessClient.deleteEServiceTemplateRiskAnalysis(
+          undefined,
+          {
+            params: { templateId, riskAnalysisId },
+            headers,
+          }
+        );
+
+      await pollEServiceTemplateById(templateId, metadata, headers);
     },
     async updatePublishedEServiceTemplateVersionQuotas(
       templateId: EServiceTemplateId,
@@ -349,6 +404,131 @@ export function eserviceTemplateServiceBuilder(
         );
       const polledResource = await pollEServiceTemplate(response, headers);
       return toM2MGatewayEServiceTemplate(polledResource.data);
+    },
+
+    async getEServiceTemplateVersionDocuments(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      {
+        offset,
+        limit,
+      }: m2mGatewayApi.GetEServiceTemplateVersionDocumentsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Documents> {
+      logger.info(
+        `Retrieving documents for eservice template version with id ${versionId} for eservice with id ${templateId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplateById(
+        headers,
+        templateId
+      );
+
+      const documents = retrieveEServiceTemplateVersionById(
+        eserviceTemplate,
+        versionId
+      ).docs;
+
+      const paginatedDocs = documents.slice(offset, offset + limit);
+
+      return {
+        results: paginatedDocs.map(toM2MGatewayApiDocument),
+        pagination: {
+          limit,
+          offset,
+          totalCount: documents.length,
+        },
+      };
+    },
+
+    async uploadEServiceTemplateVersionDocument(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      fileUpload: m2mGatewayApi.FileUploadMultipart,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Document> {
+      logger.info(
+        `Adding document ${fileUpload.file.name} to version with id ${versionId} for eservice template with id ${templateId}`
+      );
+
+      const { data: eserviceTemplate } = await retrieveEServiceTemplateById(
+        headers,
+        templateId
+      );
+
+      const { data: document, metadata } = await uploadEServiceTemplateDocument(
+        {
+          eserviceTemplate,
+          versionId,
+          documentKind:
+            eserviceTemplateApi.EServiceDocumentKind.Values.DOCUMENT,
+          fileUpload,
+          fileManager,
+          eserviceTemplateProcessClient: clients.eserviceTemplateProcessClient,
+          headers,
+          logger,
+        }
+      );
+
+      await pollEServiceTemplateById(templateId, metadata, headers);
+
+      return toM2MGatewayApiDocument(document);
+    },
+
+    async downloadEServiceTemplateVersionDocument(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      documentId: EServiceDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving document with id ${documentId} for eservice template version with id ${versionId} for eservice template with id ${templateId}`
+      );
+
+      const { data: document } =
+        await clients.eserviceTemplateProcessClient.getEServiceTemplateDocumentById(
+          {
+            params: {
+              templateId,
+              templateVersionId: versionId,
+              documentId,
+            },
+            headers,
+          }
+        );
+
+      return downloadDocument(
+        document,
+        fileManager,
+        config.eserviceTemplateDocumentsContainer,
+        logger
+      );
+    },
+
+    async deleteEServiceTemplateVersionDocument(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      documentId: EServiceDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting document with id ${documentId} from eservice template version with id ${versionId} for eservice template with id ${templateId}`
+      );
+
+      const response =
+        await clients.eserviceTemplateProcessClient.deleteEServiceTemplateDocumentById(
+          undefined,
+          {
+            params: {
+              templateId,
+              templateVersionId: versionId,
+              documentId,
+            },
+            headers,
+          }
+        );
+
+      await pollEServiceTemplate(response, headers);
     },
   };
 }

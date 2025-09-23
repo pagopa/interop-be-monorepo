@@ -936,8 +936,12 @@ export function eserviceTemplateServiceBuilder(
     async deleteRiskAnalysis(
       templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Deleting risk analysis with id: ${riskAnalysisId} from eServiceTemplate with id: ${templateId}`
       );
@@ -957,15 +961,20 @@ export function eserviceTemplateServiceBuilder(
         ),
       };
 
-      const event = toCreateEventEServiceTemplateRiskAnalysisDeleted(
-        template.data.id,
-        template.metadata.version,
-        riskAnalysisId,
-        newTemplate,
-        correlationId
+      const event = await repository.createEvent(
+        toCreateEventEServiceTemplateRiskAnalysisDeleted(
+          template.data.id,
+          template.metadata.version,
+          riskAnalysisId,
+          newTemplate,
+          correlationId
+        )
       );
 
-      await repository.createEvent(event);
+      return {
+        data: newTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateRiskAnalysis(
       templateId: EServiceTemplateId,
@@ -1427,8 +1436,12 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       document: eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Document>> {
       logger.info(
         `Creating EService Document ${document.documentId.toString()} of kind ${
           document.kind
@@ -1517,9 +1530,14 @@ export function eserviceTemplateServiceBuilder(
               correlationId
             );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return updatedEServiceTemplate;
+      return {
+        data: newDocument,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
 
     async getEServiceTemplateDocument(
@@ -1532,7 +1550,10 @@ export function eserviceTemplateServiceBuilder(
         eServiceTemplateVersionId: EServiceTemplateVersionId;
         documentId: EServiceDocumentId;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData | M2MAuthData>>
     ): Promise<Document> {
       logger.info(
         `Getting EService Document ${documentId.toString()} for EService Template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId}`
@@ -1663,8 +1684,12 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       documentId: EServiceDocumentId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Deleting Document ${documentId} of Version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
       );
@@ -1734,7 +1759,14 @@ export function eserviceTemplateServiceBuilder(
             correlationId
           );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: updatedEServiceTemplate,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
   };
 }
