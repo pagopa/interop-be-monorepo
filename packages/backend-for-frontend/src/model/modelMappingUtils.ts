@@ -1,5 +1,6 @@
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
+import { NotificationType } from "pagopa-interop-models";
 import {
   fromApiTenantMail,
   toBffTenantMail,
@@ -21,49 +22,6 @@ const invalidDescriptorState: catalogApi.EServiceDescriptorState[] = [
   catalogApiDescriptorState.DRAFT,
   catalogApiDescriptorState.WAITING_FOR_APPROVAL,
 ];
-
-export const uiSectionToNotificationTypes = {
-  erogazione: {
-    richieste: [
-      "agreementManagementToProducer",
-      "agreementSuspendedUnsuspendedToProducer",
-    ],
-    finalita: [
-      "clientAddedRemovedToProducer",
-      "purposeStatusChangedToProducer",
-    ],
-    "template-eservice": ["templateStatusChangedToProducer"],
-    "e-service": [
-      "newEserviceTemplateVersionToInstantiator",
-      "eserviceTemplateNameChangedToInstantiator",
-      "eserviceTemplateStatusChangedToInstantiator",
-    ],
-    portachiavi: ["clientKeyAddedDeletedToClientUsers"],
-  },
-  fruizione: {
-    richieste: [
-      "agreementActivatedRejectedToConsumer",
-      "agreementSuspendedUnsuspendedToConsumer",
-    ],
-    finalita: [
-      "purposeActivatedRejectedToConsumer",
-      "purposeSuspendedUnsuspendedToConsumer",
-    ],
-  },
-  "catalogo-e-service": ["eserviceStateChangedToConsumer"],
-  aderente: {
-    deleghe: [
-      "delegationApprovedRejectedToDelegator",
-      "eserviceNewVersionSubmittedToDelegator",
-      "eserviceNewVersionApprovedRejectedToDelegate",
-      "delegationSubmittedRevokedToDelegate",
-    ],
-    anagrafica: ["certifiedVerifiedAttributeAssignedRevokedToAssignee"],
-  },
-  "gestione-client": {
-    "api-e-service": ["clientKeyAddedDeletedToClientUsers"],
-  },
-} as const;
 
 export function getLatestActiveDescriptor(
   eservice: catalogApi.EService
@@ -92,3 +50,28 @@ export function getLatestTenantContactEmail(
 
   return mail ? toBffTenantMail(mail) : undefined;
 }
+
+export const notificationTypeToUiSection: Record<NotificationType, string[]> = {
+  agreementManagementToProducer: ["erogazione.richieste"],
+  agreementSuspendedUnsuspendedToProducer: [
+    "erogazione.richieste",
+    "fruizione.richieste",
+  ],
+  agreementSuspendedUnsuspendedToConsumer: ["fruizione.richieste"],
+  clientAddedRemovedToProducer: ["erogazione.finalita"],
+  purposeStatusChangedToProducer: ["erogazione.finalita"],
+  templateStatusChangedToProducer: ["erogazione.template-eservice"],
+  newEserviceTemplateVersionToInstantiator: ["erogazione.e-service"],
+  eserviceTemplateNameChangedToInstantiator: ["erogazione.e-service"],
+  eserviceTemplateStatusChangedToInstantiator: ["erogazione.e-service"],
+  clientKeyAddedDeletedToClientUsers: ["erogazione.portachiavi"],
+  agreementActivatedRejectedToConsumer: ["fruizione.richieste"],
+  purposeActivatedRejectedToConsumer: ["fruizione.finalita"],
+  purposeSuspendedUnsuspendedToConsumer: ["fruizione.finalita"],
+  eserviceStateChangedToConsumer: ["catalogo-e-service"],
+  delegationApprovedRejectedToDelegator: ["aderente.deleghe"],
+  eserviceNewVersionSubmittedToDelegator: ["aderente.deleghe"],
+  eserviceNewVersionApprovedRejectedToDelegate: ["aderente.deleghe"],
+  delegationSubmittedRevokedToDelegate: ["aderente.deleghe"],
+  certifiedVerifiedAttributeAssignedRevokedToAssignee: ["aderente.anagrafica"],
+} as const;

@@ -20970,7 +20970,6 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          
 
   "/tenantNotificationConfigs":
     get:
@@ -25198,10 +25197,9 @@ components:
         - fruizione
         - "catalogo-e-service"
         - aderente
-        - "gestione-client"
         - totalCount
       properties:
-        erogazione: 
+        erogazione:
           type: object
           additionalProperties: false
           properties:
@@ -25272,19 +25270,6 @@ components:
           required:
             - deleghe
             - anagrafica
-            - totalCount
-        gestione-client:
-          type: object
-          additionalProperties: false
-          properties:
-            api-e-service:
-              type: integer
-              format: int32
-            totalCount:
-              type: integer
-              format: int32
-          required:
-            - api-e-service
             - totalCount
         totalCount:
           type: integer

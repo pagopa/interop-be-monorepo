@@ -64,10 +64,6 @@ describe("toBffApiNotificationsCountBySection", () => {
         anagrafica: 6,
         totalCount: 16, // 10 + 6
       },
-      "gestione-client": {
-        "api-e-service": 7, // same as clientKeyAddedDeletedToClientUsers
-        totalCount: 7,
-      },
       totalCount: 100,
     };
 
@@ -104,10 +100,6 @@ describe("toBffApiNotificationsCountBySection", () => {
         anagrafica: 0,
         totalCount: 0,
       },
-      "gestione-client": {
-        "api-e-service": 0,
-        totalCount: 0,
-      },
       totalCount: 0,
     };
 
@@ -142,10 +134,6 @@ describe("toBffApiNotificationsCountBySection", () => {
       aderente: {
         deleghe: 0,
         anagrafica: 0,
-        totalCount: 0,
-      },
-      "gestione-client": {
-        "api-e-service": 0,
         totalCount: 0,
       },
       totalCount: 0,
@@ -190,10 +178,6 @@ describe("toBffApiNotificationsCountBySection", () => {
         anagrafica: 0,
         totalCount: 7,
       },
-      "gestione-client": {
-        "api-e-service": 0,
-        totalCount: 0,
-      },
       totalCount: 25,
     };
 
@@ -236,10 +220,6 @@ describe("toBffApiNotificationsCountBySection", () => {
         anagrafica: 0,
         totalCount: 0,
       },
-      "gestione-client": {
-        "api-e-service": 0,
-        totalCount: 0,
-      },
       totalCount: 15,
     };
 
@@ -247,7 +227,7 @@ describe("toBffApiNotificationsCountBySection", () => {
   });
 
   it("should handle shared notification types correctly", () => {
-    // clientKeyAddedDeletedToClientUsers appears in both erogazione.portachiavi and gestione-client.api-e-service
+    // clientKeyAddedDeletedToClientUsers appears in both erogazione.portachiavi
     const input: inAppNotificationApi.NotificationsByType = {
       totalCount: 20,
       results: {
@@ -278,10 +258,6 @@ describe("toBffApiNotificationsCountBySection", () => {
         deleghe: 0,
         anagrafica: 0,
         totalCount: 0,
-      },
-      "gestione-client": {
-        "api-e-service": 20, // same notification type used here too
-        totalCount: 20,
       },
       totalCount: 20,
     };
