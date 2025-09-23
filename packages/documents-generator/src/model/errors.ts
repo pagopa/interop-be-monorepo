@@ -5,6 +5,7 @@ import {
   InternalError,
   PurposeId,
   TenantId,
+  TenantKind,
 } from "pagopa-interop-models";
 
 type DocumentsGeneratorErrorCode =
@@ -13,7 +14,9 @@ type DocumentsGeneratorErrorCode =
   | "tenantKindNotFound"
   | "purposeDelegationNotFound"
   | "eServiceNotFound"
-  | "descriptorNotFound";
+  | "descriptorNotFound"
+  | "riskAnalysisConfigVersionNotFound"
+  | "missingRiskAnalysis";
 
 export class DocumentsGeneratorError extends InternalError<DocumentsGeneratorErrorCode> {
   constructor({
@@ -69,5 +72,24 @@ export function tenantKindNotFound(
   return new InternalError({
     detail: `Tenant kind for tenant ${tenantId} not found`,
     code: "tenantKindNotFound",
+  });
+}
+
+export function riskAnalysisConfigVersionNotFound(
+  version: string,
+  tenantKind: TenantKind
+): DocumentsGeneratorError {
+  return new InternalError({
+    detail: `Risk Analysis Configuration version ${version} for tenant kind ${tenantKind} not found`,
+    code: "riskAnalysisConfigVersionNotFound",
+  });
+}
+
+export function missingRiskAnalysis(
+  purposeId: PurposeId
+): DocumentsGeneratorError {
+  return new InternalError({
+    detail: `Purpose ${purposeId} must contain a valid risk analysis`,
+    code: "missingRiskAnalysis",
   });
 }

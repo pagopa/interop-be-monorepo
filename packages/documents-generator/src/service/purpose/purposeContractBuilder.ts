@@ -26,7 +26,6 @@ import {
   eserviceMode,
   RiskAnalysisSingleAnswer,
   RiskAnalysisMultiAnswer,
-  genericInternalError,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -35,6 +34,10 @@ import {
   PurposeDocumentEServiceInfo,
   RiskAnalysisDocumentPDFPayload,
 } from "../../model/purposeModels.js";
+import {
+  missingRiskAnalysis,
+  riskAnalysisConfigVersionNotFound,
+} from "../../model/errors.js";
 
 const YES = "Sì";
 const NO = "No";
@@ -67,12 +70,12 @@ export const riskAnalysisDocumentBuilder = (
       const templateFilePath = path.resolve(
         dirname,
         "..",
-        "resources/templates/documents",
+        "resources/purpose",
         "riskAnalysisTemplate.html"
       );
 
       if (!purpose.riskAnalysisForm) {
-        throw genericInternalError(purpose.id); // todo handle right error
+        throw missingRiskAnalysis(purpose.id);
       }
 
       const riskAnalysisVersion = purpose.riskAnalysisForm.version;
@@ -83,9 +86,10 @@ export const riskAnalysisDocumentBuilder = (
       );
 
       if (!riskAnalysisFormConfig) {
-        throw genericInternalError(`
-          ${riskAnalysisVersion},
-          ${tenantKind},`); // todo handle right error
+        throw riskAnalysisConfigVersionNotFound(
+          riskAnalysisVersion,
+          tenantKind
+        );
       }
 
       const pdfPayload = getPdfPayload({

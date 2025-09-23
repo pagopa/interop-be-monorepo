@@ -258,7 +258,7 @@ export const agreementContractBuilder = (
   const templateFilePath = path.resolve(
     dirname,
     "..",
-    "resources/templates/documents",
+    "resources/agreement",
     "agreementContractTemplate.html"
   );
 
