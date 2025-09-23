@@ -4,6 +4,7 @@ import { generateMock } from "@anatine/zod-mock";
 import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import {
   getMockedApiAgreement,
+  getMockedApiDelegation,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
@@ -40,6 +41,15 @@ describe("createAgreement", () => {
     mockPollingResponse(mockAgreementProcessResponse, 2)
   );
 
+  const mockDelegation = getMockedApiDelegation();
+  mockInteropBeClients.delegationProcessClient = {
+    delegation: {
+      getDelegations: vi
+        .fn()
+        .mockResolvedValue(getMockWithMetadata({ results: [mockDelegation] })),
+    },
+  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
+
   mockInteropBeClients.agreementProcessClient = {
     createAgreement: mockCreateAgreement,
     getAgreementById: mockGetAgreement,
@@ -60,6 +70,7 @@ describe("createAgreement", () => {
       consumerId: mockAgreementProcessResponse.data.consumerId,
       state: mockAgreementProcessResponse.data.state,
       createdAt: mockAgreementProcessResponse.data.createdAt,
+      delegationId: mockDelegation.id,
     };
 
     const result = await agreementService.createAgreement(
