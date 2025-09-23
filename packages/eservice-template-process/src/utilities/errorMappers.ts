@@ -60,6 +60,7 @@ export const publishEServiceTemplateVersionErrorMapper = (
     .with(
       "notValidEServiceTemplateVersionState",
       "riskAnalysisValidationFailed",
+      "eserviceTemplatePersonalDataMustBeSet",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)

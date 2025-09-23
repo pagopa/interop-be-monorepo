@@ -28,6 +28,7 @@ import {
 import { expect, describe, it, afterAll, vi, beforeAll } from "vitest";
 import {
   eserviceTemplateNotFound,
+  eserviceTemplatePersonalDataMustBeSet,
   eserviceTemplateVersionNotFound,
   missingRiskAnalysis,
   missingTemplateVersionInterface,
@@ -80,6 +81,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplateVersion,
         newerEServiceTemplateVersion,
       ],
+      personalData: false,
     };
 
     await addOneTenant({
@@ -360,6 +362,7 @@ describe("publishEServiceTemplateVersion", () => {
       riskAnalysis: [],
       creatorId: tenant.id,
       mode: eserviceMode.deliver,
+      personalData: false,
     };
 
     await addOneTenant(tenant);
@@ -405,6 +408,7 @@ describe("publishEServiceTemplateVersion", () => {
       riskAnalysis: [invalidRiskAnalysis],
       creatorId: tenant.id,
       mode: eserviceMode.deliver,
+      personalData: false,
     };
 
     await addOneTenant(tenant);
@@ -419,5 +423,36 @@ describe("publishEServiceTemplateVersion", () => {
         })
       )
     ).equal(undefined);
+  });
+
+  it("should throw eserviceTemplatePersonalDataMustBeSet if the template has personalData undefined", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: descriptorState.draft,
+      interface: getMockDocument(),
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+      personalData: undefined,
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      eserviceTemplateService.publishEServiceTemplateVersion(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      eserviceTemplatePersonalDataMustBeSet(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id
+      )
+    );
   });
 });

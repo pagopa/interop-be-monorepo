@@ -49,6 +49,7 @@ import {
   instanceNameConflict,
   notValidEServiceTemplateVersionState,
   attributeDuplicatedInGroup,
+  eserviceTemplatePersonalDataMustBeSet,
 } from "../model/domain/errors.js";
 import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
@@ -524,6 +525,16 @@ export function eserviceTemplateServiceBuilder(
 
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
         assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
+      }
+
+      if (
+        config.featureFlagEservicePersonalData &&
+        eserviceTemplate.data.personalData === undefined
+      ) {
+        throw eserviceTemplatePersonalDataMustBeSet(
+          eserviceTemplateId,
+          eserviceTemplateVersionId
+        );
       }
 
       const publishedTemplate: EServiceTemplate = {
