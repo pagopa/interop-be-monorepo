@@ -28,6 +28,7 @@ describe("createAgreement", () => {
       state: agreementApi.AgreementState.Values.DRAFT,
       eserviceId: mockAgreementSeed.eserviceId,
       descriptorId: mockAgreementSeed.descriptorId,
+      stamps: {},
     })
   );
 

@@ -79,6 +79,7 @@ describe("getAgreements", () => {
       createdAt: mockApiAgreement1.createdAt,
       updatedAt: mockApiAgreement1.updatedAt,
       suspendedAt: mockApiAgreement1.suspendedAt,
+      delegationId: mockApiAgreement1.stamps.submission?.delegationId,
     };
 
     const m2mAgreementResponse2: m2mGatewayApi.Agreement = {
@@ -96,6 +97,7 @@ describe("getAgreements", () => {
       createdAt: mockApiAgreement2.createdAt,
       updatedAt: mockApiAgreement2.updatedAt,
       suspendedAt: mockApiAgreement2.suspendedAt,
+      delegationId: mockApiAgreement2.stamps.submission?.delegationId,
     };
 
     const m2mAgreementsResponse: m2mGatewayApi.Agreements = {
