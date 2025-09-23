@@ -96,7 +96,7 @@ const readModelService = readModelServiceBuilderSQL(
 export const pdfGenerator = await initPDFGenerator();
 
 export const agreementContractBuilder = contractBuilder(
-  readModelServiceSQL,
+  readModelService,
   pdfGenerator,
   fileManager,
   config,
@@ -105,7 +105,7 @@ export const agreementContractBuilder = contractBuilder(
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,
-  readModelServiceSQL,
+  readModelService,
   fileManager,
   pdfGenerator
 );

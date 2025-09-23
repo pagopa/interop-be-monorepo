@@ -49,7 +49,7 @@ export const readModelService = readModelServiceBuilderSQL({
 
 export const attributeRegistryService = attributeRegistryServiceBuilder(
   postgresDB,
-  readModelServiceSQL
+  readModelService
 );
 
 export const writeAttributeInEventstore = async (

@@ -91,7 +91,7 @@ export const selfcareV2Client: SelfcareV2InstitutionClient =
 
 export const authorizationService = authorizationServiceBuilder(
   postgresDB,
-  readModelServiceSQL,
+  readModelService,
   selfcareV2Client
 );
 
