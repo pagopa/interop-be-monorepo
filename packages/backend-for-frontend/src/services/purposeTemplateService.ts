@@ -28,6 +28,7 @@ export function purposeTemplateServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeTemplateSeed> {
       logger.info(`Updating purpose template ${id}`);
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       return await purposeTemplateClient.updatePurposeTemplate(seed, {
         headers,
         params: { id },
