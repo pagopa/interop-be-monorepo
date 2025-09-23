@@ -45,14 +45,6 @@ describe("suspendAgreement", () => {
     getAgreementById: mockGetAgreement,
   } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
 
-  mockInteropBeClients.delegationProcessClient = {
-    delegation: {
-      getDelegations: vi
-        .fn()
-        .mockResolvedValue(getMockWithMetadata({ results: [] })),
-    },
-  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
-
   beforeEach(() => {
     // Clear mock counters and call information before each test
     mockSuspendAgreement.mockClear();

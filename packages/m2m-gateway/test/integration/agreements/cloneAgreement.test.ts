@@ -40,14 +40,6 @@ describe("cloneAgreement", () => {
     cloneAgreement: mockCloneAgreement,
   } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
 
-  mockInteropBeClients.delegationProcessClient = {
-    delegation: {
-      getDelegations: vi
-        .fn()
-        .mockResolvedValue(getMockWithMetadata({ results: [] })),
-    },
-  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
-
   beforeEach(() => {
     mockCloneAgreement.mockClear();
     mockGetAgreement.mockClear();

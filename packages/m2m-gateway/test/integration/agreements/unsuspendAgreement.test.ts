@@ -45,14 +45,6 @@ describe("unsuspendAgreement", () => {
     activateAgreement: mockActivateAgreement,
   } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
 
-  mockInteropBeClients.delegationProcessClient = {
-    delegation: {
-      getDelegations: vi
-        .fn()
-        .mockResolvedValue(getMockWithMetadata({ results: [] })),
-    },
-  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
-
   beforeEach(() => {
     mockActivateAgreement.mockClear();
     mockGetAgreement.mockClear();

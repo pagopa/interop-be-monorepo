@@ -40,14 +40,6 @@ describe("createAgreement", () => {
     mockPollingResponse(mockAgreementProcessResponse, 2)
   );
 
-  mockInteropBeClients.delegationProcessClient = {
-    delegation: {
-      getDelegations: vi
-        .fn()
-        .mockResolvedValue(getMockWithMetadata({ results: [] })),
-    },
-  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
-
   mockInteropBeClients.agreementProcessClient = {
     createAgreement: mockCreateAgreement,
     getAgreementById: mockGetAgreement,

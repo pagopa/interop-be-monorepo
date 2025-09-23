@@ -3,6 +3,7 @@ import { m2mGatewayApi, agreementApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiAgreement,
+  getMockedApiDelegation,
 } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import {
@@ -28,7 +29,7 @@ describe("getAgreements", () => {
     limit: 10,
   };
 
-  const mockApiAgreement1 = getMockedApiAgreement();
+  const mockApiAgreement1 = { ...getMockedApiAgreement(), stamps: {} };
   const mockApiAgreement2 = getMockedApiAgreement();
 
   const mockApiAgreements = [mockApiAgreement1, mockApiAgreement2];
@@ -46,11 +47,12 @@ describe("getAgreements", () => {
     .fn()
     .mockResolvedValue(mockAgreementProcessResponse);
 
+  const mockDelegation = getMockedApiDelegation();
   mockInteropBeClients.delegationProcessClient = {
     delegation: {
       getDelegations: vi
         .fn()
-        .mockResolvedValue(getMockWithMetadata({ results: [] })),
+        .mockResolvedValue(getMockWithMetadata({ results: [mockDelegation] })),
     },
   } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
 
@@ -79,7 +81,7 @@ describe("getAgreements", () => {
       createdAt: mockApiAgreement1.createdAt,
       updatedAt: mockApiAgreement1.updatedAt,
       suspendedAt: mockApiAgreement1.suspendedAt,
-      delegationId: mockApiAgreement1.stamps.submission?.delegationId,
+      delegationId: mockDelegation.id,
     };
 
     const m2mAgreementResponse2: m2mGatewayApi.Agreement = {

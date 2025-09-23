@@ -42,14 +42,6 @@ describe("rejectAgreement", () => {
     )
   );
 
-  mockInteropBeClients.delegationProcessClient = {
-    delegation: {
-      getDelegations: vi
-        .fn()
-        .mockResolvedValue(getMockWithMetadata({ results: [] })),
-    },
-  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
-
   mockInteropBeClients.agreementProcessClient = {
     rejectAgreement: mockRejectAgreement,
     getAgreementById: mockGetAgreement,
