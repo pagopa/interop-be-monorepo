@@ -15,6 +15,7 @@ import {
   emptyErrorMapper,
   EServiceId,
   TenantId,
+  TenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
@@ -63,27 +64,20 @@ const purposeTemplateRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const {
-          purposeTitle,
-          creatorIds,
-          eserviceIds,
-          states,
-          offset,
-          limit,
-          sort,
-          direction,
-        } = req.query;
+        const { purposeTitle, creatorIds, eserviceIds, states, offset, limit } =
+          req.query;
         const purposeTemplates =
           await purposeTemplateService.getPurposeTemplates(
             {
               purposeTitle,
+              targetTenantKind: TenantKind.parse(req.query.targetTenantKind),
               creatorIds: creatorIds?.map(unsafeBrandId<TenantId>),
               eserviceIds: eserviceIds?.map(unsafeBrandId<EServiceId>),
               states: states?.map(
                 apiPurposeTemplateStateToPurposeTemplateState
               ),
             },
-            { offset, limit, sortColumns: sort, directions: direction },
+            { offset, limit },
             ctx
           );
         return res.status(200).send(
@@ -113,7 +107,7 @@ const purposeTemplateRouter = (
 
         setMetadataVersionHeader(res, metadata);
         return res
-          .status(200)
+          .status(201)
           .send(purposeTemplateToApiPurposeTemplate(purposeTemplate));
       } catch (error) {
         const errorRes = makeApiProblem(

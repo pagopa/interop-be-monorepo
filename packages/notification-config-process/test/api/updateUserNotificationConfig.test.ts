@@ -101,6 +101,15 @@ describe("API POST /userNotificationConfigs test", () => {
         ...notificationConfigSeed,
         inAppConfig: {
           ...notificationConfigSeed.inAppConfig,
+          agreementSuspendedUnsuspendedToProducer: undefined,
+        },
+      },
+    },
+    {
+      body: {
+        ...notificationConfigSeed,
+        inAppConfig: {
+          ...notificationConfigSeed.inAppConfig,
           agreementSuspendedUnsuspendedToProducer: "invalid",
         },
       },

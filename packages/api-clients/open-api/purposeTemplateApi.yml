@@ -87,6 +87,11 @@ paths:
             default: []
           explode: false
         - in: query
+          name: targetTenantKind
+          description: filter by target tenant kind
+          schema:
+            $ref: "#/components/schemas/TenantKind"
+        - in: query
           name: offset
           required: true
           schema:
@@ -101,18 +106,6 @@ paths:
             format: int32
             minimum: 1
             maximum: 50
-        - in: query
-          description: Comma separated sequence of sort fields
-          required: false
-          name: sort
-          schema:
-            type: string
-        - in: query
-          description: Comma separated sequence of sort directions
-          required: false
-          name: direction
-          schema:
-            type: string
       responses:
         "200":
           description: Purpose Templates retrieved

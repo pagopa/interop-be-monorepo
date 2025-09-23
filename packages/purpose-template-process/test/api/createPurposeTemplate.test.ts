@@ -5,7 +5,12 @@ import {
   getMockPurposeTemplate,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { PurposeTemplate, generateId, tenantKind } from "pagopa-interop-models";
+import {
+  PurposeTemplate,
+  TenantKind,
+  generateId,
+  tenantKind,
+} from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
@@ -46,11 +51,11 @@ describe("API POST /purposeTemplates", () => {
       .send(purposeTemplateSeed);
 
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 201 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, validPurposeTemplateSeed);
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body).toEqual(
         purposeTemplateToApiPurposeTemplate(mockPurposeTemplate)
       );
@@ -122,6 +127,11 @@ describe("API POST /purposeTemplates", () => {
     {
       ...validPurposeTemplateSeed,
       purposeIsFreeOfCharge: undefined,
+    },
+    {
+      ...validPurposeTemplateSeed,
+      riskAnalysisForm: undefined,
+      targetTenantKind: "INVALID" as TenantKind,
     },
   ])("Should return 400 if passed invalid data: %s", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);

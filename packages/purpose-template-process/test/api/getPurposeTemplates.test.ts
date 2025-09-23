@@ -3,7 +3,12 @@ import {
   generateToken,
   getMockPurposeTemplate,
 } from "pagopa-interop-commons-test";
-import { generateId, ListResult, PurposeTemplate } from "pagopa-interop-models";
+import {
+  generateId,
+  ListResult,
+  PurposeTemplate,
+  tenantKind,
+} from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import request from "supertest";
@@ -32,8 +37,7 @@ describe("API GET /purposeTemplates", () => {
     eserviceIds: generateId(),
     creatorIds: `${generateId()},${generateId()}`,
     states: "ACTIVE,DRAFT",
-    sort: "targetTenantKind",
-    order: "desc",
+    targetTenantKind: tenantKind.PA,
   };
 
   const purposeTemplates: ListResult<PurposeTemplate> = {
@@ -100,11 +104,10 @@ describe("API GET /purposeTemplates", () => {
     { query: { offset: 0, limit: 55 } },
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
-    { query: { sort: "invalid" } },
-    { query: { direction: "invalid" } },
     { query: { ...defaultQuery, eserviceIds: `${generateId()},invalid` } },
     { query: { ...defaultQuery, creatorIds: `${generateId()},invalid` } },
     { query: { ...defaultQuery, states: "ACTIVE,invalid" } },
+    { query: { ...defaultQuery, targetTenantKind: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof defaultQuery);

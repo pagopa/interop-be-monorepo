@@ -157,7 +157,7 @@ export const createEServiceDocumentErrorMapper = (
   match(error.code)
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "invalidInterfaceContentTypeDetected",
+      "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
       () => HTTP_STATUS_BAD_REQUEST
@@ -170,7 +170,7 @@ export const createEServiceTemplateDocumentErrorMapper = (
   match(error.code)
     .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "invalidInterfaceContentTypeDetected",
+      "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
       () => HTTP_STATUS_BAD_REQUEST
@@ -242,7 +242,7 @@ export const addEServiceInterfaceByTemplateErrorMapper = (
       "eserviceTemplateNotFound",
       "eserviceTemplateInterfaceNotFound",
       "eserviceTemplateInterfaceDataNotValid",
-      "invalidInterfaceContentTypeDetected",
+      "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "interfaceExtractingInfoError",
       "templateDataNotFound",
@@ -265,4 +265,11 @@ export const getEServiceTemplateInstancesErrorMapper = (
 ): number =>
   match(error.code)
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getCatalogPurposeTemplatesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

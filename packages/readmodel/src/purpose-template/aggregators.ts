@@ -242,14 +242,12 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
               suggestedValues: answerSQL.suggestedValues || [],
             } satisfies RiskAnalysisTemplateSingleAnswer,
           ],
-          riskAnalysisTemplateMultiAnswers: [
-            ...acc.riskAnalysisTemplateMultiAnswers,
-          ],
+          riskAnalysisTemplateMultiAnswers:
+            acc.riskAnalysisTemplateMultiAnswers,
         }))
         .with(riskAnalysisAnswerKind.multi, () => ({
-          riskAnalysisTemplateSingleAnswers: [
-            ...acc.riskAnalysisTemplateSingleAnswers,
-          ],
+          riskAnalysisTemplateSingleAnswers:
+            acc.riskAnalysisTemplateSingleAnswers,
           riskAnalysisTemplateMultiAnswers: [
             ...acc.riskAnalysisTemplateMultiAnswers,
             {
