@@ -52,7 +52,7 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const eserviceTemplateReadModelServiceSQL =
   eserviceTemplateReadModelServiceBuilder(readModelDB);
 
-const readModelService = readModelServiceBuilderSQL(
+export const readModelService = readModelServiceBuilderSQL(
   readModelDB,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
