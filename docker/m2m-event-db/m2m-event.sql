@@ -157,9 +157,6 @@ CREATE TABLE IF NOT EXISTS m2m_event.key_m2m_event (
   -- Reference to the resource involved in the event
   kid UUID NOT NULL,
 
-  -- Visibility columns, used to filter events based on tenant
-  visibility VARCHAR NOT NULL,
-  consumer_id UUID,
   PRIMARY KEY (id)
 );
 
@@ -171,8 +168,5 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_key_m2m_event (
   -- Reference to the resource involved in the event
   kid UUID NOT NULL,
 
-  -- Visibility columns, used to filter events based on tenant
-  visibility VARCHAR NOT NULL,
-  producer_id UUID,
   PRIMARY KEY (id)
 );

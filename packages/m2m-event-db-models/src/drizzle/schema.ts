@@ -154,8 +154,6 @@ export const keyM2MEventInM2MEvent = m2mEvent.table("key_m2m_event", {
     mode: "string",
   }).notNull(),
   kid: uuid().notNull(),
-  visibility: varchar().notNull(),
-  consumerId: uuid("consumer_id"),
 });
 
 export const producerKeyM2MEventInM2MEvent = m2mEvent.table(
@@ -168,7 +166,5 @@ export const producerKeyM2MEventInM2MEvent = m2mEvent.table(
       mode: "string",
     }).notNull(),
     kid: uuid().notNull(),
-    visibility: varchar().notNull(),
-    producerId: uuid("producer_id"),
   }
 );
