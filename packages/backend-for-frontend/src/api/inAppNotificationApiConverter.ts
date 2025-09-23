@@ -1,18 +1,19 @@
 import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import { bffApi } from "pagopa-interop-api-clients";
+import { NotificationType } from "pagopa-interop-models";
 import { uiSectionToNotificationTypes } from "../model/modelMappingUtils.js";
 
 function sumNotificationTypesCount(
-  results: Record<string, number>,
-  notificationTypes: ReadonlyArray<string>
+  results: Partial<Record<NotificationType, number>>,
+  notificationTypes: ReadonlyArray<NotificationType>
 ): number {
-  return notificationTypes.reduce((sum, type) => sum + (results[type] || 0), 0);
+  return notificationTypes.reduce((sum, type) => sum + (results[type] ?? 0), 0);
 }
 
 export function toBffApiNotificationsCountBySection(
   notificationsCountBySection: inAppNotificationApi.NotificationsByType
 ): bffApi.NotificationsCountBySection {
-  const results = notificationsCountBySection.results || {};
+  const results = notificationsCountBySection.results;
 
   const erogazioneRichieste = sumNotificationTypesCount(
     results,

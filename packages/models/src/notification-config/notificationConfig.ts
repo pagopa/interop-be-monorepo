@@ -7,9 +7,6 @@ import {
 } from "../brandedIds.js";
 import { NotificationType } from "../notification/notification.js";
 
-// Shared notification config keys definition
-
-// Dynamically create NotificationConfig with boolean values for each key
 const notificationConfigShape = Object.fromEntries(
   NotificationType.options.map((key) => [key, z.boolean()])
 ) as { [K in (typeof NotificationType.options)[number]]: z.ZodBoolean };
@@ -36,15 +33,3 @@ export const UserNotificationConfig = z.object({
   updatedAt: z.coerce.date().optional(),
 });
 export type UserNotificationConfig = z.infer<typeof UserNotificationConfig>;
-
-const notificationsByTypeResults = Object.fromEntries(
-  NotificationType.options.map((key) => [key, z.number()])
-) as {
-  [K in (typeof NotificationType.options)[number]]: z.ZodNumber;
-};
-
-export const NotificationsByType = z.object({
-  results: z.object(notificationsByTypeResults),
-  totalCount: z.number(),
-});
-export type NotificationsByType = z.infer<typeof NotificationsByType>;

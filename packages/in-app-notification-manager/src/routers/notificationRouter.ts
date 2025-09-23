@@ -196,7 +196,7 @@ export const notificationRouter = (
     .get("/notifications/byType", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
 
         const notificationsByType = await service.getNotificationsByType(ctx);
         return res

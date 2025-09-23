@@ -25194,6 +25194,11 @@ components:
       type: object
       additionalProperties: false
       required:
+        - erogazione
+        - fruizione
+        - "catalogo-e-service"
+        - aderente
+        - "gestione-client"
         - totalCount
       properties:
         erogazione: 
@@ -25218,6 +25223,13 @@ components:
             totalCount:
               type: integer
               format: int32
+          required:
+            - richieste
+            - finalita
+            - "template-eservice"
+            - "e-service"
+            - portachiavi
+            - totalCount
         fruizione:
           type: object
           additionalProperties: false
@@ -25231,6 +25243,10 @@ components:
             totalCount:
               type: integer
               format: int32
+          required:
+            - richieste
+            - finalita
+            - totalCount
         catalogo-e-service:
           type: object
           additionalProperties: false
@@ -25238,6 +25254,8 @@ components:
             totalCount:
               type: integer
               format: int32
+          required:
+            - totalCount
         aderente:
           type: object
           additionalProperties: false
@@ -25251,6 +25269,10 @@ components:
             totalCount:
               type: integer
               format: int32
+          required:
+            - deleghe
+            - anagrafica
+            - totalCount
         gestione-client:
           type: object
           additionalProperties: false
@@ -25261,6 +25283,9 @@ components:
             totalCount:
               type: integer
               format: int32
+          required:
+            - api-e-service
+            - totalCount
         totalCount:
           type: integer
           format: int32

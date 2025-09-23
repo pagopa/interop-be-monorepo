@@ -251,6 +251,10 @@ export function inAppNotificationServiceBuilder(
               ...acc,
               [notificationType]: row.typeCount,
             };
+          } else {
+            logger.warn(
+              `Skipping notification type ${notificationType} because it is not a valid notification type`
+            );
           }
           return acc;
         },

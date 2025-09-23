@@ -115,9 +115,10 @@ describe("toBffApiNotificationsCountBySection", () => {
   });
 
   it("should handle missing results property", () => {
-    const input = {
+    const input: inAppNotificationApi.NotificationsByType = {
+      results: {},
       totalCount: 0,
-    } as unknown as inAppNotificationApi.NotificationsByType;
+    };
 
     const result = toBffApiNotificationsCountBySection(input);
 
