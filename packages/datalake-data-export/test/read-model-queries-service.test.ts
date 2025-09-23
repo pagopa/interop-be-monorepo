@@ -38,6 +38,7 @@ import {
   seedTenants,
   seedDelegations,
   seedEServiceTemplates,
+  readModelService,
 } from "./utils.js";
 
 describe("read-model-queries.service", () => {
