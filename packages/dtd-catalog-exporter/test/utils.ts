@@ -8,14 +8,17 @@ import {
   upsertEService,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import {
+  attributeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { PublicEService } from "../src/models/models.js";
 import { dtdCatalogExporterServiceBuilder } from "../src/services/dtdCatalogExporterService.js";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/config/config.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, readModelRepository, fileManager, readModelDB } =
+export const { cleanup, fileManager, readModelDB } =
   await setupTestContainersVitest(
-    inject("readModelConfig"),
     undefined,
     undefined,
     undefined,
@@ -26,7 +29,13 @@ export const { cleanup, readModelRepository, fileManager, readModelDB } =
 
 afterEach(cleanup);
 
-const readModelService = readModelServiceBuilder(readModelRepository);
+const attributeReadModelService = attributeReadModelServiceBuilder(readModelDB);
+const tenantReadModelService = tenantReadModelServiceBuilder(readModelDB);
+const readModelService = readModelServiceBuilderSQL(
+  readModelDB,
+  attributeReadModelService,
+  tenantReadModelService
+);
 
 export const dtdCatalogExporterService = dtdCatalogExporterServiceBuilder({
   readModelService,

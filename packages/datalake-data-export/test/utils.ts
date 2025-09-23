@@ -2,15 +2,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
-import {
-  AgreementCollection,
-  AttributeCollection,
-  EServiceCollection,
-  PurposeCollection,
-  TenantCollection,
-  DelegationCollection,
-  EServiceTemplateCollection,
-} from "pagopa-interop-commons";
 import { eserviceTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   Agreement,
@@ -40,16 +31,6 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
 );
 
 afterEach(cleanup);
-
-export const agreements: AgreementCollection = readModelRepository.agreements;
-export const eservices: EServiceCollection = readModelRepository.eservices;
-export const tenants: TenantCollection = readModelRepository.tenants;
-export const attributes: AttributeCollection = readModelRepository.attributes;
-export const purposes: PurposeCollection = readModelRepository.purposes;
-export const delegations: DelegationCollection =
-  readModelRepository.delegations;
-export const eserviceTemplates: EServiceTemplateCollection =
-  readModelRepository.eserviceTemplates;
 
 eserviceTemplateReadModelServiceBuilder(readModelDB);
 export const readModelService = readModelServiceBuilderSQL(readModelDB);

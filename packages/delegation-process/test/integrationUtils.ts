@@ -49,9 +49,6 @@ export const { cleanup, postgresDB, fileManager, readModelDB } =
 
 afterEach(cleanup);
 
-export const { delegations, agreements, eservices, tenants } =
-  readModelRepository;
-
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);

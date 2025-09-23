@@ -54,15 +54,6 @@ afterEach(async () => {
   await cleanup();
 });
 
-export const {
-  agreements,
-  clients,
-  eservices,
-  attributes,
-  tenants,
-  delegations,
-} = readModelRepository;
-
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);

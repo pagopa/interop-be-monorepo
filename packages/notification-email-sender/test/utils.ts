@@ -76,8 +76,6 @@ export const notificationEmailSenderServiceFailure =
     interopFeBaseUrl
   );
 
-export const agreements = readModelRepository.agreements;
-
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await upsertTenant(readModelDB, tenant, 0);
 };

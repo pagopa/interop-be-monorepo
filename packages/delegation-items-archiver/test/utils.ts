@@ -12,19 +12,15 @@ import {
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/readModelServiceSQL.js";
 
-export const { cleanup, readModelRepository, readModelDB } =
-  await setupTestContainersVitest(
-    inject("readModelConfig"),
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    inject("readModelSQLConfig")
-  );
+export const { cleanup, readModelDB } = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
 afterEach(cleanup);
-
-export const { purposes, agreements } = readModelRepository;
 
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
