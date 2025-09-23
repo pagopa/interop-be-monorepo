@@ -1,14 +1,28 @@
 import { createHash } from "crypto";
+import { match, P } from "ts-pattern";
+import { ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER } from "pagopa-interop-models";
 import {
   Category,
   Institution,
   getAllCategories,
   getAllInstitutions,
 } from "./openDataExtractor.js";
+import { ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY } from "./ipaCertifiedAttributesImporterService.js";
 
-export const kindsToInclude: Set<string> = new Set([
-  "Pubbliche Amministrazioni",
-]);
+export const shouldKindBeIncluded = (i: {
+  kind: string;
+  category: string;
+}): boolean =>
+  match(i)
+    .with({ kind: P.union("Pubbliche Amministrazioni") }, () => true)
+    .with(
+      {
+        kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+        category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+      },
+      () => true
+    )
+    .otherwise(() => false);
 
 export type OpenData = {
   institutions: Institution[];
@@ -69,7 +83,9 @@ async function loadCertifiedAttributes(
   const attributeSeedsCategoriesKinds = [
     ...new Map(data.categories.map((c) => [c.kind, c])),
   ]
-    .filter(([kind, _]) => kindsToInclude.has(kind))
+    .filter(([kind, category]) =>
+      shouldKindBeIncluded({ kind, category: category.code })
+    )
     .map(([_, c]) => ({
       code: createHash("sha256").update(c.kind).digest("hex"),
       description: c.kind,

@@ -8,13 +8,14 @@ import {
   tenantAttributeType,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   PUBLIC_SERVICES_MANAGERS,
+  ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
 import {
   RegistryData,
-  kindsToInclude,
   InternalCertifiedAttribute,
+  shouldKindBeIncluded,
 } from "./openDataService.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -91,8 +92,16 @@ export function getTenantUpsertData(
 
   // get a set with the attributes that should be created
   return institutionsAlreadyPresent.map((i) => {
-    const attributesWithoutKind = match(i.classification)
-      .with(AGENCY_CLASSIFICATION, () => [
+    const attributesWithoutKind = match(i)
+      // TODO: Add comment
+      .with(
+        {
+          kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+          category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+        },
+        () => []
+      )
+      .with({ classification: AGENCY_CLASSIFICATION }, () => [
         {
           origin: i.origin,
           code: i.category,
@@ -109,17 +118,20 @@ export function getTenantUpsertData(
         },
       ]);
 
-    const forcedGPSCategory = match(i.kind)
-      .with(PUBLIC_SERVICES_MANAGERS_TYPOLOGY, () => [
-        {
-          origin: i.origin,
-          code: PUBLIC_SERVICES_MANAGERS,
-        },
-      ])
+    const forcedGPSCategory = match(i)
       .with(
-        ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
-        () => config.economicAccountCompaniesAllowlist.includes(i.originId),
-        // eslint-disable-next-line sonarjs/no-identical-functions
+        { kind: PUBLIC_SERVICES_MANAGERS_TYPOLOGY },
+        // TODO: To be removed (see: https://pagopa.atlassian.net/browse/PIN-7573)
+        {
+          kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+          originId: P.when((originId) =>
+            config.economicAccountCompaniesAllowlist.includes(originId)
+          ),
+        },
+        {
+          kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+          category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+        },
         () => [
           {
             origin: i.origin,
@@ -129,10 +141,10 @@ export function getTenantUpsertData(
       )
       .otherwise(() => []);
 
-    const shouldKindBeIncluded = kindsToInclude.has(i.kind);
-
+    // Prefisso "Tipologia" (o suffisso "- Tipologia IPA" (Rugg)) per nuovo attributo certificato SCEC? Sentire Stefano/Rugg
+    // - è possibile diversificare i due campi?
     const attributes = [
-      ...(shouldKindBeIncluded
+      ...(shouldKindBeIncluded(i)
         ? [
             {
               origin: i.origin,
