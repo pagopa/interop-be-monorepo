@@ -28,6 +28,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   associationEServicesForPurposeTemplateFailed,
+  associationBetweenEServiceAndPurposeTemplateAlreadyExists,
   purposeTemplateNotFound,
   tooManyEServicesForPurposeTemplate,
   purposeTemplateNotInValidState,
@@ -35,6 +36,7 @@ import {
 import {
   addOneEService,
   addOnePurposeTemplate,
+  addOnePurposeTemplateEServiceDescriptor,
   addOneTenant,
   purposeTemplateService,
   readLastPurposeTemplateEvent,
@@ -44,6 +46,7 @@ import {
   eserviceNotFound,
   invalidDescriptorStateError,
   missingDescriptorError,
+  eserviceAlreadyAssociatedError,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
 
 describe("linkEservicesToPurposeTemplate", () => {
@@ -214,7 +217,7 @@ describe("linkEservicesToPurposeTemplate", () => {
   it("should throw tooManyEServicesForPurposeTemplate if too many eservices are provided", async () => {
     // Create many eservices to exceed the limit
     const manyEServices: EServiceId[] = Array.from(
-      { length: config.maxEServicesPerLinkRequest + 1 },
+      { length: Number(config.maxEServicesPerLinkRequest) + 1 },
       () => generateId<EServiceId>()
     );
 
@@ -407,5 +410,49 @@ describe("linkEservicesToPurposeTemplate", () => {
         })
       )
     ).rejects.toThrowError(operationForbidden);
+  });
+
+  it("should throw eserviceAlreadyAssociatedError when linking the same eservice twice", async () => {
+    await addOneEService(eService1);
+    await addOnePurposeTemplate(purposeTemplate);
+
+    const firstLinkResponse =
+      await purposeTemplateService.linkEservicesToPurposeTemplate(
+        purposeTemplate.id,
+        [eService1.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      );
+
+    expect(firstLinkResponse).toHaveLength(1);
+    expect(firstLinkResponse[0]).toMatchObject({
+      purposeTemplateId: purposeTemplate.id,
+      eserviceId: eService1.id,
+      descriptorId: descriptor1.id,
+    });
+
+    await addOnePurposeTemplateEServiceDescriptor({
+      purposeTemplateId: purposeTemplate.id,
+      eserviceId: eService1.id,
+      descriptorId: descriptor1.id,
+      createdAt: firstLinkResponse[0].createdAt,
+    });
+
+    await expect(
+      purposeTemplateService.linkEservicesToPurposeTemplate(
+        purposeTemplate.id,
+        [eService1.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      )
+    ).rejects.toThrowError(
+      associationBetweenEServiceAndPurposeTemplateAlreadyExists(
+        [eserviceAlreadyAssociatedError(eService1.id, purposeTemplate.id)],
+        [eService1.id],
+        purposeTemplate.id
+      )
+    );
   });
 });
