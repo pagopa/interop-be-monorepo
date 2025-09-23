@@ -4,6 +4,7 @@ import {
   makeApiProblemBuilder,
   PurposeTemplateId,
   PurposeTemplateState,
+  TenantKind,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -11,10 +12,11 @@ export const errorCodes = {
   purposeTemplateNameConflict: "0002",
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
-  annotationTextLengthError: "0005",
-  hyperlinkDetectionError: "0006",
-  purposeTemplateNotInValidState: "0007",
-  purposeTemplateRiskAnalysisFormNotFound: "0008",
+  ruleSetNotFoundError: "0005",
+  annotationTextLengthError: "0006",
+  hyperlinkDetectionError: "0007",
+  purposeTemplateNotInValidState: "0008",
+  purposeTemplateRiskAnalysisFormNotFound: "0009",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -57,6 +59,16 @@ export function riskAnalysisTemplateValidationFailed(
     detail: `Risk analysis template validation failed. Reasons: ${reasons}`,
     code: "riskAnalysisTemplateValidationFailed",
     title: "Risk analysis template validation failed",
+  });
+}
+
+export function ruleSetNotFoundError(
+  tenantKind: TenantKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No risk analysis rule set found for target tenant kind ${tenantKind}`,
+    code: "ruleSetNotFoundError",
+    title: "No risk analysis rule set found for target tenant kind",
   });
 }
 

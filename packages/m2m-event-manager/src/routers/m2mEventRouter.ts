@@ -8,10 +8,15 @@ import {
 } from "pagopa-interop-commons";
 import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import {
+  AttributeM2MEventId,
+  emptyErrorMapper,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { m2mEventApi } from "pagopa-interop-api-clients";
 import { M2MEventService } from "../services/m2mEventService.js";
 import { makeApiProblem } from "../model/errors.js";
+import { toApiAttributeM2MEvents } from "../model/attributeM2MEventApiConverter.js";
 
 export const m2mEventRouter = (
   zodiosCtx: ZodiosContext,
@@ -117,13 +122,19 @@ export const m2mEventRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
         const { lastEventId, limit } = req.query;
         const events = await service.getAttributeM2MEvents(
-          lastEventId,
+          lastEventId
+            ? unsafeBrandId<AttributeM2MEventId>(lastEventId)
+            : undefined,
           limit,
           ctx
         );
         return res
           .status(200)
-          .send(m2mEventApi.AttributeM2MEvents.parse(events));
+          .send(
+            m2mEventApi.AttributeM2MEvents.parse(
+              toApiAttributeM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

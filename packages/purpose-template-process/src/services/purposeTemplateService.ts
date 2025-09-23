@@ -5,6 +5,8 @@ import {
   purposeTemplateState,
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
+  RiskAnalysisFormTemplate,
+  TenantKind,
   RiskAnalysisTemplateSingleAnswer,
   RiskAnalysisTemplateMultiAnswer,
 } from "pagopa-interop-models";
@@ -13,6 +15,7 @@ import {
   AppContext,
   DB,
   eventRepository,
+  getLatestVersionFormRules,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -20,6 +23,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   purposeTemplateNotFound,
+  ruleSetNotFoundError,
   purposeTemplateRiskAnalysisFormNotFound,
 } from "../model/domain/errors.js";
 import {
@@ -44,6 +48,22 @@ async function retrievePurposeTemplate(
     throw purposeTemplateNotFound(id);
   }
   return purposeTemplate;
+}
+
+function getDefaultRiskAnalysisFormTemplate(
+  tenantKind: TenantKind
+): RiskAnalysisFormTemplate | undefined {
+  const versionedRules = getLatestVersionFormRules(tenantKind);
+  if (!versionedRules) {
+    throw ruleSetNotFoundError(tenantKind);
+  }
+
+  return {
+    id: generateId(),
+    version: versionedRules.version,
+    singleAnswers: [],
+    multiAnswers: [],
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -77,11 +97,12 @@ export function purposeTemplateServiceBuilder(
         title: seed.purposeTitle,
       });
 
-      const validatedPurposeRiskAnalysisFormSeed =
-        validateAndTransformRiskAnalysisTemplate(
-          seed.purposeRiskAnalysisForm,
-          seed.targetTenantKind
-        );
+      const validatedPurposeRiskAnalysisFormSeed = seed.purposeRiskAnalysisForm
+        ? validateAndTransformRiskAnalysisTemplate(
+            seed.purposeRiskAnalysisForm,
+            seed.targetTenantKind
+          )
+        : getDefaultRiskAnalysisFormTemplate(seed.targetTenantKind);
 
       const purposeTemplate: PurposeTemplate = {
         id: generateId(),
