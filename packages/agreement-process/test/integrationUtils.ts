@@ -18,8 +18,6 @@ import {
   EService,
   Tenant,
   toAgreementV2,
-  toReadModelEService,
-  toReadModelTenant,
   AgreementDocumentId,
   Attribute,
   Delegation,
@@ -54,21 +52,15 @@ import { config } from "../src/config/config.js";
 import { contractBuilder } from "../src/services/agreementContractBuilder.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const {
-  cleanup,
-  readModelRepository,
-  postgresDB,
-  fileManager,
-  readModelDB,
-} = await setupTestContainersVitest(
-  inject("readModelConfig"),
-  inject("eventStoreConfig"),
-  inject("fileManagerConfig"),
-  undefined,
-  undefined,
-  undefined,
-  inject("readModelSQLConfig")
-);
+export const { cleanup, postgresDB, fileManager, readModelDB } =
+  await setupTestContainersVitest(
+    inject("eventStoreConfig"),
+    inject("fileManagerConfig"),
+    undefined,
+    undefined,
+    undefined,
+    inject("readModelSQLConfig")
+  );
 
 afterEach(cleanup);
 
@@ -84,9 +76,6 @@ vi.spyOn(puppeteer, "launch").mockImplementation(
   async () => testBrowserInstance
 );
 
-export const { agreements, attributes, eservices, tenants, delegations } =
-  readModelRepository;
-
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
@@ -95,7 +84,7 @@ const attributeReadModelServiceSQL =
   attributeReadModelServiceBuilder(readModelDB);
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
-const readModelServiceSQL = readModelServiceBuilderSQL(
+const readModelService = readModelServiceBuilderSQL(
   readModelDB,
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
@@ -152,38 +141,10 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
   await upsertEService(readModelDB, eservice, 0);
 };
 export const updateOneEService = async (eservice: EService): Promise<void> => {
-  await eservices.updateOne(
-    {
-      "data.id": eservice.id,
-      "metadata.version": 0,
-    },
-    {
-      $set: {
-        data: toReadModelEService(eservice),
-        metadata: {
-          version: 1,
-        },
-      },
-    }
-  );
   await upsertEService(readModelDB, eservice, 1);
 };
 
 export const updateOneTenant = async (tenant: Tenant): Promise<void> => {
-  await tenants.updateOne(
-    {
-      "data.id": tenant.id,
-      "metadata.version": 0,
-    },
-    {
-      $set: {
-        data: toReadModelTenant(tenant),
-        metadata: {
-          version: 1,
-        },
-      },
-    }
-  );
   await upsertTenant(readModelDB, tenant, 1);
 };
 

@@ -18,47 +18,31 @@ import {
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { notificationEmailSenderServiceBuilder } from "../src/services/notificationEmailSenderService.js";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import { config } from "../src/config/config.js";
 
 export const emailManagerConfig = inject("emailManagerConfig");
 export const sesEmailManagerConfig = inject("sesEmailManagerConfig");
 
-export const {
-  cleanup,
-  readModelRepository,
-  pecEmailManager,
-  sesEmailManager,
-  readModelDB,
-} = await setupTestContainersVitest(
-  inject("readModelConfig"),
-  undefined,
-  undefined,
-  emailManagerConfig,
-  undefined,
-  sesEmailManagerConfig,
-  inject("readModelSQLConfig")
-);
+export const { cleanup, pecEmailManager, sesEmailManager, readModelDB } =
+  await setupTestContainersVitest(
+    undefined,
+    undefined,
+    emailManagerConfig,
+    undefined,
+    sesEmailManagerConfig,
+    inject("readModelSQLConfig")
+  );
 
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-
-const readModelServiceSQL = readModelServiceBuilderSQL({
+export const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
 });
-export const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 export const templateService = buildHTMLTemplateService();
 
@@ -91,8 +75,6 @@ export const notificationEmailSenderServiceFailure =
     templateService,
     interopFeBaseUrl
   );
-
-export const agreements = readModelRepository.agreements;
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await upsertTenant(readModelDB, tenant, 0);

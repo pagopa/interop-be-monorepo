@@ -7,9 +7,8 @@ import {
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, readModelRepository, postgresDB, readModelDB } =
+export const { cleanup, postgresDB, readModelDB } =
   await setupTestContainersVitest(
-    inject("readModelConfig"),
     inject("eventStoreConfig"),
     undefined,
     undefined,
@@ -19,8 +18,6 @@ export const { cleanup, readModelRepository, postgresDB, readModelDB } =
   );
 
 afterEach(cleanup);
-
-export const { purposes, tenants } = readModelRepository;
 
 export const readModelService = readModelServiceBuilderSQL(readModelDB);
 

@@ -35,30 +35,19 @@ import {
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import { config } from "../src/config/config.js";
 
-export const {
-  cleanup,
-  readModelRepository,
-  postgresDB,
-  fileManager,
-  readModelDB,
-} = await setupTestContainersVitest(
-  inject("readModelConfig"),
-  inject("eventStoreConfig"),
-  inject("fileManagerConfig"),
-  undefined,
-  undefined,
-  undefined,
-  inject("readModelSQLConfig")
-);
+export const { cleanup, postgresDB, fileManager, readModelDB } =
+  await setupTestContainersVitest(
+    inject("eventStoreConfig"),
+    inject("fileManagerConfig"),
+    undefined,
+    undefined,
+    undefined,
+    inject("readModelSQLConfig")
+  );
 
 afterEach(cleanup);
-
-export const { delegations, agreements, eservices, tenants } =
-  readModelRepository;
 
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
@@ -67,20 +56,13 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL({
+export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   delegationReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
 });
-export const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 const testBrowserInstance: Browser = await launchPuppeteerBrowser({
   pipe: true,

@@ -20,11 +20,6 @@ import {
   Purpose,
   toClientV2,
   toProducerKeychainV2,
-  toReadModelAgreement,
-  toReadModelClient,
-  toReadModelEService,
-  toReadModelProducerKeychain,
-  toReadModelPurpose,
 } from "pagopa-interop-models";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
@@ -50,9 +45,8 @@ import {
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, readModelRepository, postgresDB, readModelDB } =
+export const { cleanup, postgresDB, readModelDB } =
   await setupTestContainersVitest(
-    inject("readModelConfig"),
     inject("eventStoreConfig"),
     undefined,
     undefined,
@@ -62,18 +56,6 @@ export const { cleanup, readModelRepository, postgresDB, readModelDB } =
   );
 
 afterEach(cleanup);
-
-export const {
-  agreements,
-  clients,
-  eservices,
-  keys,
-  purposes,
-  tenants,
-  producerKeychains,
-  delegations,
-  producerKeys,
-} = readModelRepository;
 
 export const clientReadModelServiceSQL =
   clientReadModelServiceBuilder(readModelDB);
@@ -92,7 +74,7 @@ export const clientJWKKeyReadModelServiceSQL =
 export const producerJWKKeyReadModelServiceSQL =
   producerJWKKeyReadModelServiceBuilder(readModelDB);
 
-const readModelServiceSQL = readModelServiceBuilderSQL({
+const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   clientReadModelServiceSQL,
   catalogReadModelServiceSQL,

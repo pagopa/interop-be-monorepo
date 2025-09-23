@@ -7,8 +7,6 @@ import {
   AttributeId,
   Tenant,
   toAttributeV1,
-  toReadModelAttribute,
-  toReadModelTenant,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -27,9 +25,8 @@ import {
 import { attributeRegistryServiceBuilder } from "../src/services/attributeRegistryService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, readModelRepository, postgresDB, readModelDB } =
+export const { cleanup, postgresDB, readModelDB } =
   await setupTestContainersVitest(
-    inject("readModelConfig"),
     inject("eventStoreConfig"),
     undefined,
     undefined,
@@ -40,16 +37,11 @@ export const { cleanup, readModelRepository, postgresDB, readModelDB } =
 
 afterEach(cleanup);
 
-export const agreements = readModelRepository.agreements;
-export const eservices = readModelRepository.eservices;
-export const tenants = readModelRepository.tenants;
-export const attributes = readModelRepository.attributes;
-
 const attributeReadModelServiceSQL =
   attributeReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
-const readModelServiceSQL = readModelServiceBuilderSQL({
+const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   attributeReadModelServiceSQL,
   tenantReadModelServiceSQL,

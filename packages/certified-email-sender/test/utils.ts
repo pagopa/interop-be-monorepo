@@ -12,16 +12,13 @@ import {
   upsertEService,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { certifiedEmailSenderServiceBuilder } from "../src/services/certifiedEmailSenderService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import { config } from "../src/config/config.js";
 
 export const emailManagerConfig = inject("emailManagerConfig");
 
-export const { cleanup, readModelRepository, pecEmailManager, readModelDB } =
+export const { cleanup, pecEmailManager, readModelDB } =
   await setupTestContainersVitest(
-    inject("readModelConfig"),
     undefined,
     undefined,
     emailManagerConfig,
@@ -33,17 +30,10 @@ export const { cleanup, readModelRepository, pecEmailManager, readModelDB } =
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL({
+const readModelService = readModelServiceBuilderSQL({
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
 });
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 export const templateService = buildHTMLTemplateService();
 
@@ -59,8 +49,6 @@ export const certifiedEmailSenderService = certifiedEmailSenderServiceBuilder(
   readModelService,
   templateService
 );
-
-export const agreements = readModelRepository.agreements;
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await upsertTenant(readModelDB, tenant, 0);
