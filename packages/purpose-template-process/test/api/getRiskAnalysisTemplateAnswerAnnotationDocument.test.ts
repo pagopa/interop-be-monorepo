@@ -91,26 +91,20 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{an
     expect(res.status).toBe(403);
   });
 
-  // TODO: add errors
-  it.each([
-    {
-      error: riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
-        purposeTemplateId,
-        answerId,
-        documentId: riskAnalysisTemplateAnswerAnnotationDocument.id,
-      }),
-      expectedStatus: 404,
-    },
-  ])(
-    "Should return $expectedStatus for $error.code",
-    async ({ error, expectedStatus }) => {
-      purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument =
-        vi.fn().mockRejectedValue(error);
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token);
-      expect(res.status).toBe(expectedStatus);
-    }
-  );
+  it("Should return 404 for riskAnalysisTemplateAnswerAnnotationDocumentNotFound error", async () => {
+    purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument = vi
+      .fn()
+      .mockRejectedValue(
+        riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
+          purposeTemplateId,
+          answerId,
+          documentId: riskAnalysisTemplateAnswerAnnotationDocument.id,
+        })
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+  });
 
   it("Should return 400 if passed an invalid purpose template id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

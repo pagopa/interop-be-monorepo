@@ -176,24 +176,6 @@ export function purposeTemplateServiceBuilder(
         `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
       );
 
-      // TODO: worth it doing all these checks to throw the specific errors?
-      // await retrievePurposeTemplate(purposeTemplateId, readModelService);
-      // await retrieveRiskAnalysisTemplate(
-      //   riskAnalysisTemplateId,
-      //   readModelService
-      // );
-      // await retrieveRiskAnalysisTemplateAnswer(
-      //   riskAnalysisTemplateId,
-      //   answerId,
-      //   readModelService
-      // );
-      // await retrieveRiskAnalysisTemplateAnswerAnnotation(
-      //   riskAnalysisTemplateId,
-      //   answerId,
-      //   annotationId,
-      //   readModelService
-      // );
-
       const annotationDocument =
         await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocument(
           purposeTemplateId,
