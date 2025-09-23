@@ -8369,60 +8369,96 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"           
     patch:
-      security:
-        - bearerAuth: []
       tags:
-        - process
-      summary: Partially updates a draft template version
-      operationId: patchUpdateDraftTemplateVersion
-      description: Partially updates a draft version of the specified E-Service template
-      parameters:
-        - name: templateId
-          in: path
-          description: The E-Service template id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: templateVersionId
-          in: path
-          description: The E-Service template version Id
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - eserviceTemplates
+      summary: Update a Draft E-Service Template Version
+      description: Update an E-Service Template Version in Draft state
+      operationId: updateDraftEServiceTemplateVersion
       requestBody:
-        description: A partial E-Service template version seed
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchUpdateEServiceTemplateVersionSeed"
-        required: true
+              $ref: "#/components/schemas/EServiceTemplateVersionDraftUpdateSeed"
       responses:
         "200":
-          description: Template draft version patched.
+          description: Draft E-Service Template Version updated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceTemplate"
+                $ref: "#/components/schemas/EServiceTemplateVersion"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "400":
-          description: Invalid input
+          description: Bad Request
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "404":
-          description: Not found
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
           description: Forbidden
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /eserviceTemplates/{templateId}/versions/{versionId}/documents:
     parameters:
       - name: templateId
@@ -13671,7 +13707,7 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
-    PatchUpdateEServiceTemplateVersionSeed:
+    EServiceTemplateVersionDraftUpdateSeed:
       type: object
       additionalProperties: false
       properties:

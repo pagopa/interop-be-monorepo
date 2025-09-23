@@ -292,7 +292,6 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Updating draft version ${versionId} of eservice template with id ${templateId}`
       );
-        
       const response =
         await clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
           {
@@ -312,7 +311,7 @@ export function eserviceTemplateServiceBuilder(
           unsafeBrandId(versionId)
         )
       );
-   },
+    },
     async getEServiceTemplateRiskAnalysis(
       templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
