@@ -106,7 +106,7 @@ export async function uploadDocument(
   documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
   name: string
 ): Promise<void> {
-  const documentDestinationPath = `${config.purposeTemplateAnnotationsPath}/${purposeTemplateId}`;
+  const documentDestinationPath = `${config.purposeTemplateDocumentsPath}/${purposeTemplateId}`;
   await fileManager.storeBytes(
     {
       bucket: config.s3Bucket,

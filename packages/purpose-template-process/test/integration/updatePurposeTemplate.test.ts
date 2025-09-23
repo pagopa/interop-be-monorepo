@@ -333,7 +333,7 @@ describe("updatePurposeTemplate", () => {
       getMockRiskAnalysisTemplateAnswerAnnotationDocument(
         generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
         existingPurposeTemplate.id,
-        config.purposeTemplateAnnotationsPath,
+        config.purposeTemplateDocumentsPath,
         `Document-Annotation-${i}`
       )
     );
@@ -353,7 +353,7 @@ describe("updatePurposeTemplate", () => {
       getMockRiskAnalysisTemplateAnswerAnnotationDocument(
         generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
         existingPurposeTemplate.id,
-        config.purposeTemplateAnnotationsPath,
+        config.purposeTemplateDocumentsPath,
         `Document-Annotation-${i}`
       )
     );
