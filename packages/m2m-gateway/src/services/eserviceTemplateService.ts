@@ -268,7 +268,7 @@ export function eserviceTemplateServiceBuilder(
     async updateDraftEServiceTemplateVersion(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      seed: eserviceTemplateApi.PatchUpdateDraftEServiceTemplateVersionSeed,
+      seed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
       logger.info(
