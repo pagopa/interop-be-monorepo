@@ -9,7 +9,7 @@ function getNotificationTypesCount(
 ): number {
   return (Object.keys(notificationTypeToUiSection) as NotificationType[])
     .filter((notificationType) =>
-      notificationTypeToUiSection[notificationType].includes(sectionPath)
+      notificationTypeToUiSection[notificationType].startsWith(sectionPath)
     )
     .reduce((sum, type) => sum + (results[type] ?? 0), 0);
 }
@@ -20,28 +20,31 @@ export function toBffApiNotificationsCountBySection({
 }: inAppNotificationApi.NotificationsByType): bffApi.NotificationsCountBySection {
   return {
     erogazione: {
-      richieste: getNotificationTypesCount(results, "erogazione.richieste"),
-      finalita: getNotificationTypesCount(results, "erogazione.finalita"),
+      richieste: getNotificationTypesCount(results, "/erogazione/richieste"),
+      finalita: getNotificationTypesCount(results, "/erogazione/finalita"),
       "template-eservice": getNotificationTypesCount(
         results,
-        "erogazione.template-eservice"
+        "/erogazione/template-eservice"
       ),
-      "e-service": getNotificationTypesCount(results, "erogazione.e-service"),
-      portachiavi: getNotificationTypesCount(results, "erogazione.portachiavi"),
-      totalCount: getNotificationTypesCount(results, "erogazione"),
+      "e-service": getNotificationTypesCount(results, "/erogazione/e-service"),
+      portachiavi: getNotificationTypesCount(
+        results,
+        "/erogazione/portachiavi"
+      ),
+      totalCount: getNotificationTypesCount(results, "/erogazione"),
     },
     fruizione: {
-      richieste: getNotificationTypesCount(results, "fruizione.richieste"),
-      finalita: getNotificationTypesCount(results, "fruizione.finalita"),
-      totalCount: getNotificationTypesCount(results, "fruizione"),
+      richieste: getNotificationTypesCount(results, "/fruizione/richieste"),
+      finalita: getNotificationTypesCount(results, "/fruizione/finalita"),
+      totalCount: getNotificationTypesCount(results, "/fruizione"),
     },
     "catalogo-e-service": {
-      totalCount: getNotificationTypesCount(results, "catalogo-e-service"),
+      totalCount: getNotificationTypesCount(results, "/catalogo-e-service"),
     },
     aderente: {
-      deleghe: getNotificationTypesCount(results, "aderente.deleghe"),
-      anagrafica: getNotificationTypesCount(results, "aderente.anagrafica"),
-      totalCount: getNotificationTypesCount(results, "aderente"),
+      deleghe: getNotificationTypesCount(results, "/aderente/deleghe"),
+      anagrafica: getNotificationTypesCount(results, "/aderente/anagrafica"),
+      totalCount: getNotificationTypesCount(results, "/aderente"),
     },
     totalCount,
   };

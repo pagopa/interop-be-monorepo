@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect } from "vitest";
 import { inAppNotificationApi, bffApi } from "pagopa-interop-api-clients";
-import { toBffApiNotificationsCountBySection } from "../../src/api/inAppNotificationApiConverter.js";
+import { toBffApiNotificationsCountBySection } from "../src/api/inAppNotificationApiConverter.js";
 
 describe("toBffApiNotificationsCountBySection", () => {
   it("should correctly transform notification counts with all sections having data", () => {
