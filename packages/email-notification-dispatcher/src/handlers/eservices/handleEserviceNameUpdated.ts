@@ -8,8 +8,6 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
-  retrieveTenant,
 } from "../../services/utils.js";
 import {
   EServiceHandlerParams,
@@ -18,7 +16,7 @@ import {
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
-export async function handleEserviceDescriptorPublished(
+export async function handleEserviceNameUpdated(
   data: EServiceHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -31,21 +29,14 @@ export async function handleEserviceDescriptorPublished(
   } = data;
 
   if (!eserviceV2Msg) {
-    throw missingKafkaMessageDataError(
-      "eservice",
-      "EServiceDescriptorPublished"
-    );
+    throw missingKafkaMessageDataError("eservice", "EServiceNameUpdated");
   }
 
   const eservice = fromEServiceV2(eserviceV2Msg);
 
-  const [htmlTemplate, agreements, descriptor, producer] = await Promise.all([
-    retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceDescriptorPublishedMailTemplate
-    ),
+  const [htmlTemplate, agreements] = await Promise.all([
+    retrieveHTMLTemplate(eventMailTemplateType.eserviceNameUpdatedMailTemplate),
     readModelService.getAgreementsByEserviceId(eservice.id),
-    retrieveLatestPublishedDescriptor(eservice),
-    retrieveTenant(eservice.producerId, readModelService),
   ]);
 
   if (!agreements || agreements.length === 0) {
@@ -78,16 +69,14 @@ export async function handleEserviceDescriptorPublished(
   return targets.map(({ tenantName, address }) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Nuova versione disponibile per "${eservice.name}"`,
+      subject: `L'e-service <Vecchio Nome E-service> è stato rinominato`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: `Nuova versione disponibile per "${eservice.name}"`,
+        title: `L'e-service <Vecchio Nome E-service> è stato rinominato`,
         notificationType,
-        entityId: descriptor.id,
+        entityId: eservice.id,
         consumerName: tenantName,
-        eserviceName: eservice.name,
-        eserviceVersion: descriptor.version,
-        producerName: producer.name,
-        ctaLabel: `Visualizza e-service`,
+        oldEserviceName: "<Vecchio Nome EService>",
+        newEserviceName: eservice.name,
       }),
     },
     address,
