@@ -1,11 +1,14 @@
 import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import { bffApi } from "pagopa-interop-api-clients";
 import { NotificationType } from "pagopa-interop-models";
-import { notificationTypeToUiSection } from "../model/modelMappingUtils.js";
+import {
+  notificationTypeToUiSection,
+  UiSection,
+} from "../model/modelMappingUtils.js";
 
 function getNotificationTypesCount(
   results: Partial<Record<NotificationType, number>>,
-  sectionPath: string
+  sectionPath: UiSection
 ): number {
   return (Object.keys(notificationTypeToUiSection) as NotificationType[])
     .filter((notificationType) =>
