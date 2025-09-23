@@ -6,11 +6,11 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, NotificationType } from "pagopa-interop-models";
 import { fromBffAppContext } from "../utilities/context.js";
 import { makeApiProblem } from "../model/errors.js";
-import { calculateDeepLink } from "../api/inAppNotificationApiConverter.js";
 import { config } from "../config/config.js";
+import { notificationTypeToUiSection } from "../model/modelMappingUtils.js";
 
 const emailDeeplinkRouter = (
   ctx: ZodiosContext
@@ -23,12 +23,11 @@ const emailDeeplinkRouter = (
     async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
+      const notificationType = NotificationType.parse(
+        req.params.notificationType
+      );
       try {
-        const deepLink = calculateDeepLink(
-          req.params.notificationType,
-          req.params.entityId
-        );
-        const url = `${config.frontendBaseUrl}${deepLink}`;
+        const url = `${config.frontendBaseUrl}${notificationTypeToUiSection[notificationType]}/${req.params.entityId}`;
         return res.redirect(url);
       } catch (error) {
         const errorRes = makeApiProblem(
