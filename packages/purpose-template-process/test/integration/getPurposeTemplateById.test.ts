@@ -27,11 +27,8 @@ describe("getPurposeTemplateById", () => {
   it.each(Object.values(purposeTemplateState))(
     "should get the purpose template if the requester is the creator and the purpose template is in state %s",
     async (purposeTemplateState) => {
-      const requesterId = generateId<TenantId>();
-
       const purposeTemplate: PurposeTemplate = {
         ...getMockPurposeTemplate(),
-        creatorId: requesterId,
         state: purposeTemplateState,
         purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
           tenantKind.PA
@@ -42,7 +39,9 @@ describe("getPurposeTemplateById", () => {
       const purposeTemplateResponse =
         await purposeTemplateService.getPurposeTemplateById(
           purposeTemplate.id,
-          getMockContext({ authData: getMockAuthData(requesterId) })
+          getMockContext({
+            authData: getMockAuthData(purposeTemplate.creatorId),
+          })
         );
       expect({
         ...purposeTemplateResponse,
