@@ -30,7 +30,7 @@ export const toUserNotificationConfigV2 = (
   updatedAt: dateToBigInt(userNotificationConfig.updatedAt),
 });
 
-const toEmailNotificationPreferenceV2 = (
+export const toEmailNotificationPreferenceV2 = (
   input: EmailNotificationPreference
 ): EmailNotificationPreferenceV2 => {
   switch (input) {
