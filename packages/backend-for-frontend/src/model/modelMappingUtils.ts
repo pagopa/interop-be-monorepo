@@ -64,8 +64,6 @@ export type UiSection =
   | "/catalogo-e-service"
   | "/aderente"
   | "/aderente/deleghe"
-  | "/aderente/anagrafica"
-  | "/aderente/deleghe"
   | "/aderente/anagrafica";
 
 export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
