@@ -382,6 +382,7 @@ export async function handleMessageV2({
       { type: "EServiceTemplateVersionInterfaceUpdated" },
       { type: "EServiceTemplateVersionPublished" },
       { type: "EServiceTemplateVersionSuspended" },
+      { type: "EServiceTemplatePersonalDataUpdatedAfterPublish" },
       () => Promise.resolve
     )
     .exhaustive();

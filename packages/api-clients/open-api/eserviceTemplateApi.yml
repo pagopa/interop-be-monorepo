@@ -1170,6 +1170,62 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /templates/{templateId}/personalData:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Set personalData flag for published e-service templates
+      operationId: updateEServiceTemplatePersonalDataAfterPublish
+      parameters:
+        - name: templateId
+          in: path
+          description: the eservice template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: EService template personalData flag updated
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceTemplatePersonalDataUpdateSeed"
+      responses:
+        "200":
+          description: EService template personalData flag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplate"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/creators":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1424,6 +1480,14 @@ components:
           type: string
           minLength: 5
           maxLength: 60
+    EServiceTemplatePersonalDataUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        personalData:
+          type: boolean
+      required:
+        - personalData
     AttributesSeed:
       additionalProperties: false
       properties:

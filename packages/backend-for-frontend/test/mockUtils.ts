@@ -452,6 +452,11 @@ export const getMockBffApiEServiceNameUpdateSeed =
     name: generateMock(z.string()),
   });
 
+export const getMockBffApiEServiceTemplatePersonalDataUpdateSeed =
+  (): bffApi.EServiceTemplatePersonalDataUpdateSeed => ({
+    personalData: generateMock(z.boolean()),
+  });
+
 export const getMockBffApiUpdateEServiceTemplateInstanceSeed =
   // eslint-disable-next-line sonarjs/no-identical-functions
   (): bffApi.UpdateEServiceTemplateInstanceSeed => ({

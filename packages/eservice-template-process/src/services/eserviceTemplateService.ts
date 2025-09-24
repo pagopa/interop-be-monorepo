@@ -49,6 +49,8 @@ import {
   instanceNameConflict,
   notValidEServiceTemplateVersionState,
   attributeDuplicatedInGroup,
+  eserviceTemplatePersonalDataMustBeSet,
+  eserviceTemplatePersonalDataCanOnlyBeSetOnce,
 } from "../model/domain/errors.js";
 import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
@@ -86,6 +88,7 @@ import {
   toCreateEventEServiceTemplateVersionDocumentUpdated,
   toCreateEventEServiceTemplateVersionDocumentDeleted,
   toCreateEventEServiceTemplateVersionInterfaceDeleted,
+  toCreateEventEServiceTemplatePersonalDataUpdatedAfterPublish,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -524,6 +527,16 @@ export function eserviceTemplateServiceBuilder(
 
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
         assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
+      }
+
+      if (
+        config.featureFlagEservicePersonalData &&
+        eserviceTemplate.data.personalData === undefined
+      ) {
+        throw eserviceTemplatePersonalDataMustBeSet(
+          eserviceTemplateId,
+          eserviceTemplateVersionId
+        );
       }
 
       const publishedTemplate: EServiceTemplate = {
@@ -1780,6 +1793,47 @@ export function eserviceTemplateServiceBuilder(
           );
 
       await repository.createEvent(event);
+    },
+    async updateEServiceTemplatePersonalDataAfterPublish(
+      eserviceTemplateId: EServiceTemplateId,
+      personalData: boolean,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EServiceTemplate> {
+      logger.info(
+        `Setting personalData flag for EServiceTemplate ${eserviceTemplateId} to ${personalData}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      assertPublishedEServiceTemplate(eserviceTemplate.data);
+
+      if (eserviceTemplate.data.personalData !== undefined) {
+        throw eserviceTemplatePersonalDataCanOnlyBeSetOnce(eserviceTemplateId);
+      }
+
+      const updatedEServiceTemplate: EServiceTemplate = {
+        ...eserviceTemplate.data,
+        personalData,
+      };
+
+      const event =
+        toCreateEventEServiceTemplatePersonalDataUpdatedAfterPublish(
+          eserviceTemplate.metadata.version,
+          updatedEServiceTemplate,
+          correlationId
+        );
+
+      await repository.createEvent(event);
+
+      return updatedEServiceTemplate;
     },
   };
 }
