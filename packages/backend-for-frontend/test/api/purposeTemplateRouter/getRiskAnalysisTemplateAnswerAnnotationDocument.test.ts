@@ -2,7 +2,6 @@
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import {
-  ApiError,
   generateId,
   PurposeTemplateId,
   RiskAnalysisMultiAnswerId,
