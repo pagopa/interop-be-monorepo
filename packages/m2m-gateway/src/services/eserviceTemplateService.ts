@@ -529,5 +529,105 @@ export function eserviceTemplateServiceBuilder(
 
       await pollEServiceTemplate(response, headers);
     },
+    async suspendEServiceTemplateVersion(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
+      logger.info(
+        `Suspending version ${versionId} for eservice template with id ${templateId}`
+      );
+
+      const response =
+        await clients.eserviceTemplateProcessClient.suspendTemplateVersion(
+          undefined,
+          {
+            params: { templateId, templateVersionId: versionId },
+            headers,
+          }
+        );
+
+      const polledTemplate = await pollEServiceTemplate(
+        {
+          ...(await retrieveEServiceTemplateById(headers, templateId)),
+          metadata: response.metadata,
+        },
+        headers
+      );
+      const version = polledTemplate.data.versions.find(
+        (v) => v.id === versionId
+      );
+      if (!version) {
+        throw eserviceTemplateVersionNotFound(templateId, versionId);
+      }
+      return toM2MGatewayEServiceTemplateVersion(version);
+    },
+    async unsuspendEServiceTemplateVersion(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
+      logger.info(
+        `Unsuspending version ${versionId} for eservice template with id ${templateId}`
+      );
+
+      const response =
+        await clients.eserviceTemplateProcessClient.activateTemplateVersion(
+          undefined,
+          {
+            params: { templateId, templateVersionId: versionId },
+            headers,
+          }
+        );
+
+      const polledTemplate = await pollEServiceTemplate(
+        {
+          ...(await retrieveEServiceTemplateById(headers, templateId)),
+          metadata: response.metadata,
+        },
+        headers
+      );
+      const version = polledTemplate.data.versions.find(
+        (v) => v.id === versionId
+      );
+      if (!version) {
+        throw eserviceTemplateVersionNotFound(templateId, versionId);
+      }
+      return toM2MGatewayEServiceTemplateVersion(version);
+    },
+    async publishEServiceTemplateVersion(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
+      logger.info(
+        `Publishing version ${versionId} for eservice template with id ${templateId}`
+      );
+
+      const response =
+        await clients.eserviceTemplateProcessClient.publishTemplateVersion(
+          undefined,
+          {
+            params: { templateId, templateVersionId: versionId },
+            headers,
+          }
+        );
+
+      // Poll the template to ensure the version was published
+      const polledTemplate = await pollEServiceTemplate(
+        {
+          ...(await retrieveEServiceTemplateById(headers, templateId)),
+          metadata: response.metadata,
+        },
+        headers
+      );
+      const version = polledTemplate.data.versions.find(
+        (v) => v.id === versionId
+      );
+      if (!version) {
+        throw eserviceTemplateVersionNotFound(templateId, versionId);
+      }
+      return toM2MGatewayEServiceTemplateVersion(version);
+    },
   };
 }
