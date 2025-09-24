@@ -6,7 +6,11 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import {
+  emptyErrorMapper,
+  PurposeTemplateId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -41,7 +45,9 @@ const purposeTemplateRouter = (
     })
     .put("/purposeTemplates/:purposeTemplateId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
-      const purposeTemplateId = unsafeBrandId(req.params.purposeTemplateId);
+      const purposeTemplateId = unsafeBrandId<PurposeTemplateId>(
+        req.params.purposeTemplateId
+      );
       try {
         const result = await purposeTemplateService.updatePurposeTemplate(
           unsafeBrandId(purposeTemplateId),

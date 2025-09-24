@@ -1,4 +1,3 @@
-/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { bffApi, purposeTemplateApi } from "pagopa-interop-api-clients";
