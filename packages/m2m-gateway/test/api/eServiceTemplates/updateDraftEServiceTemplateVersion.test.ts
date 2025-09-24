@@ -80,6 +80,13 @@ describe("PATCH /templates/{templateId}/versions/{versionId} router test", () =>
       dailyCallsPerConsumer: 30,
       dailyCallsTotal: 30,
     },
+    {
+      description: "Yet Another Updated Description",
+      voucherLifespan: 300,
+      dailyCallsPerConsumer: null,
+      dailyCallsTotal: null,
+      agreementApprovalPolicy: null,
+    },
   ] as m2mGatewayApi.EServiceTemplateVersionDraftUpdateSeed[])(
     "Should return 200 with partial seed (seed #%#)",
     async (seed) => {
@@ -102,6 +109,11 @@ describe("PATCH /templates/{templateId}/versions/{versionId} router test", () =>
     {
       ...templateVersionSeed,
       voucherLifespan: -1,
+    },
+    {
+      ...templateVersionSeed,
+      dailyCallsTotal: 100,
+      dailyCallsPerConsumer: 300,
     },
   ])(
     "Should return 400 if passed an invalid Template Version seed (seed #%#)",
