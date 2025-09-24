@@ -211,6 +211,93 @@ const eserviceTemplateRouter = (
         }
       }
     )
+    .post(
+      "/eserviceTemplates/:templateId/versions/:versionId/suspend",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const version =
+            await eserviceTemplateService.suspendEServiceTemplateVersion(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.versionId),
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceTemplateVersion.parse(version));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error suspending eservice template ${req.params.templateId} version ${req.params.versionId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eserviceTemplates/:templateId/versions/:versionId/unsuspend",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const version =
+            await eserviceTemplateService.unsuspendEServiceTemplateVersion(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.versionId),
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceTemplateVersion.parse(version));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error unsuspending eservice template ${req.params.templateId} version ${req.params.versionId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eserviceTemplates/:templateId/versions/:versionId/publish",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const version =
+            await eserviceTemplateService.publishEServiceTemplateVersion(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.versionId),
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceTemplateVersion.parse(version));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error publishing eservice template ${req.params.templateId} version ${req.params.versionId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .patch(
       "/eserviceTemplates/:templateId/versions/:versionId/quotas",
       async (req, res) => {
