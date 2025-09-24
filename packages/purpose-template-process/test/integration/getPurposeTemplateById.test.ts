@@ -24,64 +24,7 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("getPurposeTemplateById", () => {
-  it("should get the purpose template if it's active", async () => {
-    const requesterId = generateId<TenantId>();
-
-    const purposeTemplate: PurposeTemplate = {
-      ...getMockPurposeTemplate(),
-      state: purposeTemplateState.active,
-      purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
-        tenantKind.PA
-      ),
-    };
-    await addOnePurposeTemplate(purposeTemplate);
-
-    const purposeTemplateResponse =
-      await purposeTemplateService.getPurposeTemplateById(
-        purposeTemplate.id,
-        getMockContext({ authData: getMockAuthData(requesterId) })
-      );
-    expect({
-      ...purposeTemplateResponse,
-      data: sortPurposeTemplate(purposeTemplateResponse.data),
-    } satisfies typeof purposeTemplateResponse).toMatchObject({
-      data: sortPurposeTemplate(purposeTemplate),
-      metadata: { version: 0 },
-    });
-  });
-
-  it.each(
-    Object.values(purposeTemplateState).filter(
-      (s) => s !== purposeTemplateState.active
-    )
-  )(
-    "should throw tenantNotAllowed if the requester is not the creator and the purpose template is in state %s",
-    async (purposeTemplateState) => {
-      const requesterId = generateId<TenantId>();
-
-      const purposeTemplate: PurposeTemplate = {
-        ...getMockPurposeTemplate(),
-        state: purposeTemplateState,
-        purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
-          tenantKind.PA
-        ),
-      };
-      await addOnePurposeTemplate(purposeTemplate);
-
-      await expect(
-        purposeTemplateService.getPurposeTemplateById(
-          purposeTemplate.id,
-          getMockContext({ authData: getMockAuthData(requesterId) })
-        )
-      ).rejects.toThrowError(tenantNotAllowed(requesterId));
-    }
-  );
-
-  it.each(
-    Object.values(purposeTemplateState).filter(
-      (s) => s !== purposeTemplateState.active
-    )
-  )(
+  it.each(Object.values(purposeTemplateState))(
     "should get the purpose template if the requester is the creator and the purpose template is in state %s",
     async (purposeTemplateState) => {
       const requesterId = generateId<TenantId>();
@@ -108,6 +51,33 @@ describe("getPurposeTemplateById", () => {
         data: sortPurposeTemplate(purposeTemplate),
         metadata: { version: 0 },
       });
+    }
+  );
+
+  it.each(
+    Object.values(purposeTemplateState).filter(
+      (s) => s !== purposeTemplateState.active
+    )
+  )(
+    "should throw tenantNotAllowed if the requester is not the creator and the purpose template is in state %s",
+    async (purposeTemplateState) => {
+      const requesterId = generateId<TenantId>();
+
+      const purposeTemplate: PurposeTemplate = {
+        ...getMockPurposeTemplate(),
+        state: purposeTemplateState,
+        purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
+          tenantKind.PA
+        ),
+      };
+      await addOnePurposeTemplate(purposeTemplate);
+
+      await expect(
+        purposeTemplateService.getPurposeTemplateById(
+          purposeTemplate.id,
+          getMockContext({ authData: getMockAuthData(requesterId) })
+        )
+      ).rejects.toThrowError(tenantNotAllowed(requesterId));
     }
   );
 
