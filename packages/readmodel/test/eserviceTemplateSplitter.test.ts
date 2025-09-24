@@ -65,6 +65,7 @@ describe("E-service template splitter", () => {
       versions: [version],
       riskAnalysis: [riskAnalysisPA, riskAnalysisPrivate],
       isSignalHubEnabled,
+      personalData,
     };
 
     const {
