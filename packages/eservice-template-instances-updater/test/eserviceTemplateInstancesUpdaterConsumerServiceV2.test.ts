@@ -906,11 +906,12 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
   });
 
   it("The consumer should call the updateTemplateInstanceDPersonalFlag route on EServiceTemplatePersonalDataUpdatedAfterPublish event", async () => {
+    const mockTemplate: EServiceTemplate = {
+      ...eserviceTemplate,
+      personalData: true,
+    };
     const payload: EServiceTemplatePersonalDataUpdatedAfterPublishV2 = {
-      eserviceTemplate: toEServiceTemplateV2({
-        ...eserviceTemplate,
-        personalData: true,
-      }),
+      eserviceTemplate: toEServiceTemplateV2(mockTemplate),
     };
 
     const decodedKafkaMessage: EServiceTemplateEventEnvelope = {
@@ -943,7 +944,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
 
     expect(setTemplateInstancePersonalDataFn).toHaveBeenCalledTimes(3);
     expect(setTemplateInstancePersonalDataFn).toHaveBeenCalledWith(
-      { personalData: eserviceTemplate.personalData },
+      { personalData: mockTemplate.personalData },
       {
         params: {
           eServiceId: instanceToUpdate1.id,
@@ -952,7 +953,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       }
     );
     expect(setTemplateInstancePersonalDataFn).toHaveBeenCalledWith(
-      { personalData: eserviceTemplate.personalData },
+      { personalData: mockTemplate.personalData },
       {
         params: {
           eServiceId: instanceToUpdate2.id,
@@ -961,7 +962,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       }
     );
     expect(setTemplateInstancePersonalDataFn).toHaveBeenCalledWith(
-      { personalData: eserviceTemplate.personalData },
+      { personalData: mockTemplate.personalData },
       {
         params: {
           eServiceId: instanceToUpdate3.id,
