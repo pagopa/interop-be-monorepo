@@ -20,6 +20,7 @@ import {
   EServiceTemplateDescriptionUpdatedV2,
   EServiceTemplateEventEnvelope,
   EServiceTemplateNameUpdatedV2,
+  EServiceTemplatePersonalDataUpdatedAfterPublishV2,
   EServiceTemplateVersion,
   EServiceTemplateVersionAttributesUpdatedV2,
   EServiceTemplateVersionDocumentAddedV2,
@@ -41,6 +42,7 @@ const updateTemplateInstanceDescriptorVoucherLifespanFn = vi.fn();
 const createTemplateInstanceDescriptorDocumentFn = vi.fn();
 const updateTemplateInstanceDescriptorDocumentFn = vi.fn();
 const deleteTemplateInstanceDescriptorDocumentFn = vi.fn();
+const setTemplateInstancePersonalDataFn = vi.fn();
 
 const copyDocumentFn = vi.fn();
 
@@ -64,6 +66,7 @@ vi.doMock("pagopa-interop-api-clients", () => ({
         updateTemplateInstanceDescriptorDocumentFn,
       deleteTemplateInstanceDescriptorDocument:
         deleteTemplateInstanceDescriptorDocumentFn,
+      setTemplateInstancePersonalData: setTemplateInstancePersonalDataFn,
     }),
   },
 }));
@@ -902,6 +905,72 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     });
   });
 
+  it("The consumer should call the updateTemplateInstanceDPersonalFlag route on EServiceTemplatePersonalDataUpdatedAfterPublish event", async () => {
+    const payload: EServiceTemplatePersonalDataUpdatedAfterPublishV2 = {
+      eserviceTemplate: toEServiceTemplateV2({
+        ...eserviceTemplate,
+        personalData: true,
+      }),
+    };
+
+    const decodedKafkaMessage: EServiceTemplateEventEnvelope = {
+      sequence_num: 1,
+      stream_id: eserviceTemplate.id,
+      version: 2,
+      type: "EServiceTemplatePersonalDataUpdatedAfterPublish",
+      event_version: 2,
+      data: payload,
+      log_date: new Date(),
+      correlation_id: correlationId,
+    };
+
+    await addOneEService(instanceToUpdate1);
+    await addOneEService(instanceToUpdate2);
+    await addOneEService(instanceToUpdate3);
+
+    const { handleMessageV2 } = await import(
+      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
+    );
+
+    await handleMessageV2({
+      decodedKafkaMessage,
+      refreshableToken: mockRefreshableToken,
+      partition: Math.random(),
+      offset: "10",
+      readModelService,
+      fileManager,
+    });
+
+    expect(setTemplateInstancePersonalDataFn).toHaveBeenCalledTimes(3);
+    expect(setTemplateInstancePersonalDataFn).toHaveBeenCalledWith(
+      { personalData: eserviceTemplate.personalData },
+      {
+        params: {
+          eServiceId: instanceToUpdate1.id,
+        },
+        headers: testHeaders,
+      }
+    );
+    expect(setTemplateInstancePersonalDataFn).toHaveBeenCalledWith(
+      { personalData: eserviceTemplate.personalData },
+      {
+        params: {
+          eServiceId: instanceToUpdate2.id,
+        },
+        headers: testHeaders,
+      }
+    );
+    expect(setTemplateInstancePersonalDataFn).toHaveBeenCalledWith(
+      { personalData: eserviceTemplate.personalData },
+      {
+        params: {
+          eServiceId: instanceToUpdate3.id,
+        },
+        headers: testHeaders,
+      }
+    );
+  });
+
   it.each([
     "EServiceTemplateAdded",
     "EServiceTemplateIntendedTargetUpdated",
@@ -919,7 +988,6 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     "EServiceTemplateVersionInterfaceUpdated",
     "EServiceTemplateVersionPublished",
     "EServiceTemplateVersionSuspended",
-    "EServiceTemplatePersonalDataUpdatedAfterPublish",
   ] as const)("Should ignore %s event", async (eventType) => {
     const decodedKafkaMessage: EServiceTemplateEventEnvelope = {
       sequence_num: 1,
