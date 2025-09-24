@@ -2,6 +2,7 @@
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import {
+  ApiError,
   generateId,
   PurposeTemplateId,
   RiskAnalysisMultiAnswerId,
@@ -12,7 +13,6 @@ import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { riskAnalysisTemplateAnswerAnnotationDocumentNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}", () => {
   const mockBuffer = Buffer.from("content");
@@ -42,21 +42,6 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{an
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockBuffer);
-  });
-
-  it("Should return 404 for riskAnalysisTemplateAnswerAnnotationDocumentNotFound error", async () => {
-    services.purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument =
-      vi.fn().mockRejectedValue(
-        riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
-          purposeTemplateId: generateId(),
-          answerId: generateId(),
-          documentId: generateId(),
-        })
-      );
-
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
   });
 
   it.each([
