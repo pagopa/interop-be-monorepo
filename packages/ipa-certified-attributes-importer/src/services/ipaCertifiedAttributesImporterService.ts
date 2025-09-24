@@ -75,13 +75,15 @@ export function getTenantUpsertData(
   registryData: RegistryData,
   platformTenants: Tenant[]
 ): TenantSeed[] {
-  // get a set with the external id of all tenants
+  // Create a set of all existing tenant external IDs for quick lookup.
+  // This is used to filter out institutions from the registry that don't
+  // have a corresponding tenant in the platform.
   const platformTenantsIndex = new Set(
     platformTenants.map((t) => toTenantKey(t.externalId))
   );
 
-  // filter the institutions open data retrieving only the tenants
-  // that are already present in the platform
+  // Filter the full list of institutions from the registry to only include those
+  // that are already present as tenants on the platform.
   const institutionsAlreadyPresent = registryData.institutions.filter(
     (i) =>
       i.id.length > 0 &&
@@ -90,10 +92,10 @@ export function getTenantUpsertData(
       )
   );
 
-  // get a set with the attributes that should be created
+  // Map each institution to a "TenantSeed" object, which contains all the attributes
+  // that should be assigned to the corresponding tenant in the platform.
   return institutionsAlreadyPresent.map((i) => {
     const attributesWithoutKind = match(i)
-      // TODO: Add comment
       .with(
         {
           kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
@@ -118,16 +120,19 @@ export function getTenantUpsertData(
         },
       ]);
 
+    // This block handles the assignment of the "Gestore di Pubblico Servizio" (GPS) attribute (L37).
     const forcedGPSCategory = match(i)
       .with(
+        // 1. If the institution is a traditional Public Services Manager.
         { kind: PUBLIC_SERVICES_MANAGERS_TYPOLOGY },
-        // TODO: To be removed (see: https://pagopa.atlassian.net/browse/PIN-7573)
+        // 2. If the institution is a Società in Conto Economico Consolidato (SCEC) from the legacy allowlist (to be removed).
         {
           kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
           originId: P.when((originId) =>
             config.economicAccountCompaniesAllowlist.includes(originId)
           ),
         },
+        // 3. If the institution is a new SCEC with the S01G category from IPA.
         {
           kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
           category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
@@ -141,9 +146,8 @@ export function getTenantUpsertData(
       )
       .otherwise(() => []);
 
-    // Prefisso "Tipologia" (o suffisso "- Tipologia IPA" (Rugg)) per nuovo attributo certificato SCEC? Sentire Stefano/Rugg
-    // - è possibile diversificare i due campi?
     const attributes = [
+      // Some kinds (Tipologia) are mapped to specific certified attributes
       ...(shouldKindBeIncluded(i)
         ? [
             {

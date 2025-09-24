@@ -9,6 +9,10 @@ import {
 } from "./openDataExtractor.js";
 import { ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY } from "./ipaCertifiedAttributesImporterService.js";
 
+/**
+ * Determine if an institution's "kind" and "category" should lead to the inclusion
+ * of a certified attribute.
+ */
 export const shouldKindBeIncluded = (i: {
   kind: string;
   category: string;
