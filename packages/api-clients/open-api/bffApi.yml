@@ -25046,9 +25046,19 @@ components:
       type: object
       additionalProperties: false
       required:
+        - inAppNotificationPreference
+        - emailNotificationPreference
         - inAppConfig
         - emailConfig
       properties:
+        inAppNotificationPreference:
+          type: boolean
+        emailNotificationPreference:
+          type: string
+          enum:
+            - ENABLED
+            - DISABLED
+            - DIGEST
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
@@ -25065,9 +25075,19 @@ components:
       type: object
       additionalProperties: false
       required:
+        - inAppNotificationPreference
+        - emailNotificationPreference
         - inAppConfig
         - emailConfig
       properties:
+        inAppNotificationPreference:
+          type: boolean
+        emailNotificationPreference:
+          type: string
+          enum:
+            - ENABLED
+            - DISABLED
+            - DIGEST
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:

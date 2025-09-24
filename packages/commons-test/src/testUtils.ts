@@ -114,6 +114,7 @@ import {
   tenantKind,
   purposeTemplateState,
   PurposeTemplateState,
+  EmailNotificationPreference,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -1314,6 +1315,8 @@ export const getMockUserNotificationConfig = (): UserNotificationConfig => ({
   id: generateId(),
   userId: generateId(),
   tenantId: generateId(),
+  inAppNotificationPreference: generateMock(z.boolean()),
+  emailNotificationPreference: generateMock(EmailNotificationPreference),
   inAppConfig: getMockNotificationConfig(),
   emailConfig: getMockNotificationConfig(),
   createdAt: generateMock(z.coerce.date()),
