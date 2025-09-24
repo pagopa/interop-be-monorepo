@@ -20,8 +20,6 @@ import {
   PurposeTemplateAddedV2,
   purposeTemplateState,
   RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateAnswerAnnotation,
-  RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateSingleAnswer,
@@ -331,6 +329,12 @@ describe("updatePurposeTemplate", () => {
     const purposeTemplateRiskAnalysisForm: RiskAnalysisFormTemplate =
       existingPurposeTemplate.purposeRiskAnalysisForm!;
 
+    // Answer to be removed from risk analysis form
+    const removedAnswerKey = "ruleOfLawText";
+
+    // Answer that will contain an annotation with documents
+    const answerKeyWithAnnotationDoc = "administrativeActText";
+
     // Annotation and their documents for an answer to be deleted
     const annotationDocsToDeleteNum = 2;
     const annotationDocsToDelete = Array.from({
@@ -350,10 +354,9 @@ describe("updatePurposeTemplate", () => {
       );
 
     // Annotation and their documents for an answer not affected by update
-    const answerKeyWithAnnotationDoc = "administrativeActText";
-    const notAffectedAnnotationDocsNum = 3;
-    const notAffectedAnnotationDocs = Array.from({
-      length: notAffectedAnnotationDocsNum,
+    const annotationDocsNotAffectedNum = 3;
+    const annotationDocsNotAffected = Array.from({
+      length: annotationDocsNotAffectedNum,
     }).map((_, i) =>
       getMockRiskAnalysisTemplateAnswerAnnotationDocument(
         generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
@@ -365,30 +368,30 @@ describe("updatePurposeTemplate", () => {
     const notAffectedAnnotation =
       getMockRiskAnalysisTemplateAnswerAnnotationWithDocs(
         generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
-        notAffectedAnnotationDocs
+        annotationDocsNotAffected
       );
 
-    // Answer to be deleted that previously contained an annotation with documents
-    const removedAnswerKey = "ruleOfLawText";
-    const singleAnswersWithAnnotation: RiskAnalysisTemplateSingleAnswer[] = [
-      ...purposeTemplateRiskAnalysisForm.singleAnswers.filter(
-        (a) => a.key !== removedAnswerKey
-      ),
-      {
-        id: generateId(),
-        key: removedAnswerKey,
-        editable: true,
-        suggestedValues: [],
-        annotation: annotationToDelete,
-      },
-    ];
+    // Existing answer contains answer "removedAnswerKey" that has an annotation with documents
+    const existingSingleAnswersWithAnnotation: RiskAnalysisTemplateSingleAnswer[] =
+      [
+        ...purposeTemplateRiskAnalysisForm.singleAnswers.filter(
+          (a) => a.key !== removedAnswerKey
+        ),
+        {
+          id: generateId(),
+          key: removedAnswerKey,
+          editable: true,
+          suggestedValues: [],
+          annotation: annotationToDelete,
+        },
+      ];
 
     // Existing Risk Analysis Form contains answers with annotation and documents
     const existingPurposeTemplateWithAnnotations: PurposeTemplate = {
       ...existingPurposeTemplate,
       purposeRiskAnalysisForm: {
         ...purposeTemplateRiskAnalysisForm,
-        singleAnswers: singleAnswersWithAnnotation,
+        singleAnswers: existingSingleAnswersWithAnnotation,
       },
     };
 
@@ -431,7 +434,7 @@ describe("updatePurposeTemplate", () => {
     );
 
     // Expect that remains only valid annotation documents in S3
-    expect(filePaths.length).toBe(notAffectedAnnotationDocsNum);
+    expect(filePaths.length).toBe(annotationDocsNotAffectedNum);
 
     // Expect that documents are deleted from S3 and current files not contains their paths
     annotationToDelete.docs.forEach((d) => {
