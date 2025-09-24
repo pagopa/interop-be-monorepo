@@ -114,15 +114,14 @@ export type FeatureFlagNotificationConfig = z.infer<
 
 export const FeatureFlagPurposeTemplateConfig = z
   .object({
-    FEATURE_FLAG_PURPOSE_TEMPLATE_CONFIG: z
+    FEATURE_FLAG_PURPOSE_TEMPLATE: z
       .enum(["true", "false"])
       .default("false")
       .transform((value) => value === "true")
       .optional(),
   })
   .transform((c) => ({
-    featureFlagPurposeTemplateConfig:
-      c.FEATURE_FLAG_PURPOSE_TEMPLATE_CONFIG ?? false,
+    featureFlagPurposeTemplate: c.FEATURE_FLAG_PURPOSE_TEMPLATE ?? false,
   }));
 export type FeatureFlagPurposeTemplateConfig = z.infer<
   typeof FeatureFlagPurposeTemplateConfig
