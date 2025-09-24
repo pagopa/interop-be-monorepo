@@ -4,10 +4,9 @@
   "type": "module",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability ipa certified attributes importer",
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "scripts": {
     "test": "vitest",
     "lint": "eslint . --ext .ts,.tsx",
