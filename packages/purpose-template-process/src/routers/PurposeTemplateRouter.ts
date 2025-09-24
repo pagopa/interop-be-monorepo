@@ -238,8 +238,8 @@ const purposeTemplateRouter = (
           validateAuthorization(ctx, [
             ADMIN_ROLE,
             API_ROLE,
-            M2M_ROLE,
             M2M_ADMIN_ROLE,
+            M2M_ROLE,
             SECURITY_ROLE,
             SUPPORT_ROLE,
           ]);
