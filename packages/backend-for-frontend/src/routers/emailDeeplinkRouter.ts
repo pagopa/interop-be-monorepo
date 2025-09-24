@@ -27,7 +27,10 @@ const emailDeeplinkRouter = (
         req.params.notificationType
       );
       try {
-        const url = `${config.frontendBaseUrl}${notificationTypeToUiSection[notificationType]}/${req.params.entityId}`;
+        const url = new URL(
+          `${notificationTypeToUiSection[notificationType]}/${req.params.entityId}`,
+          config.frontendBaseUrl
+        ).href;
         return res.redirect(url);
       } catch (error) {
         const errorRes = makeApiProblem(
