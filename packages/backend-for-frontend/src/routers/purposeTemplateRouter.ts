@@ -10,10 +10,7 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import {
-  getCatalogPurposeTemplatesErrorMapper,
-  getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
-} from "../utilities/errorMappers.js";
+import { getCatalogPurposeTemplatesErrorMapper } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -118,7 +115,7 @@ const purposeTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+            emptyErrorMapper,
             ctx,
             `Error downloading risk analysis template answer annotation document ${req.params.documentId} for purpose template ${req.params.purposeTemplateId} and answer ${req.params.answerId}`
           );

@@ -59,7 +59,6 @@ export const errorCodes = {
   noVersionInEServiceTemplate: "0055",
   templateInstanceNotAllowed: "0056",
   tenantBySelfcareIdNotFound: "0057",
-  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0058",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -457,21 +456,5 @@ export function templateInstanceNotAllowed(
     detail: `Operation not allowed on EService ${eserviceId} instance of template ${eServiceTemplateId}`,
     code: "templateInstanceNotAllowed",
     title: "TemplateId must be undefined",
-  });
-}
-
-export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
-  purposeTemplateId,
-  answerId,
-  documentId,
-}: {
-  purposeTemplateId: string;
-  answerId: string;
-  documentId: string;
-}): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId} and answer ${answerId}`,
-    code: "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
-    title: "`Risk analysis template answer annotation document not found",
   });
 }

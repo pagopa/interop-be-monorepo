@@ -19,10 +19,7 @@ import {
   toBffCatalogPurposeTemplate,
   toBffCreatorPurposeTemplate,
 } from "../api/purposeTemplateApiConverter.js";
-import {
-  riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
-  tenantNotFound,
-} from "../model/errors.js";
+import { tenantNotFound } from "../model/errors.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
@@ -194,14 +191,6 @@ export function purposeTemplateServiceBuilder(
             headers,
           }
         );
-
-      if (!riskAnalysisTemplateAnswerAnnotationDocument) {
-        throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
-          purposeTemplateId,
-          answerId,
-          documentId,
-        });
-      }
 
       const documentBytes = await fileManager.get(
         config.purposeTemplateDocumentsContainer,
