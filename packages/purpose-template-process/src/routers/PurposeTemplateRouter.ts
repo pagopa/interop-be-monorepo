@@ -12,7 +12,6 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import {
-  emptyErrorMapper,
   EServiceId,
   TenantId,
   TenantKind,
@@ -151,30 +150,6 @@ const purposeTemplateRouter = (
           getPurposeTemplateErrorMapper,
           ctx
         );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
-    .get("/purposeTemplates/:id", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-
-      try {
-        validateAuthorization(ctx, [
-          ADMIN_ROLE,
-          API_ROLE,
-          M2M_ADMIN_ROLE,
-          M2M_ROLE,
-          SECURITY_ROLE,
-          SUPPORT_ROLE,
-        ]);
-
-        await purposeTemplateService.getPurposeTemplateById(
-          unsafeBrandId(req.params.id),
-          ctx
-        );
-
-        return res.status(501).send(); // Not implemented
-      } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
