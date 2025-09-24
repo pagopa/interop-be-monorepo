@@ -1,3 +1,5 @@
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   ReadEvent,
   readLastEventByStreamId,
@@ -5,28 +7,28 @@ import {
   StoredEvent,
   writeInEventstore,
 } from "pagopa-interop-commons-test";
-import { afterEach, expect, inject } from "vitest";
+import {
+  PurposeTemplate,
+  PurposeTemplateEvent,
+  PurposeTemplateId,
+  RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  Tenant,
+  toPurposeTemplateV2,
+} from "pagopa-interop-models";
 import {
   catalogReadModelServiceBuilder,
   purposeTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
-  PurposeTemplate,
-  PurposeTemplateEvent,
-  PurposeTemplateId,
-  RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  Tenant,
-  toPurposeTemplateV2,
-} from "pagopa-interop-models";
-import {
   upsertPurposeTemplate,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { genericLogger } from "pagopa-interop-commons";
-import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
+import { afterEach, expect, inject } from "vitest";
 import { config } from "../src/config/config.js";
+import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, postgresDB, readModelDB, fileManager } =
   await setupTestContainersVitest(
@@ -121,4 +123,73 @@ export async function uploadDocument(
   expect(
     await fileManager.listFiles(config.s3Bucket, genericLogger)
   ).toContainEqual(`${documentDestinationPath}/${documentId}/${name}`);
+}
+
+/**
+ * Builder class for creating and manipulating PurposeTemplateSeed API objects.
+ * This utility helps with constructing and modifying PurposeTemplateSeed objects in a fluent style,
+ * especially useful for testing scenarios where specific modifications to template seeds are needed, 
+ * its usages make tests more readable and maintainable.
+ * The builder provides methods to:
+ * - Remove specific answers from the purpose risk analysis form
+ * - Add annotations to specific answers
+ * - Build the final PurposeTemplateSeed object
+ */
+export class PurposeTemplateSeedApiBuilder {
+  private seed: purposeTemplateApi.PurposeTemplateSeed;
+
+  constructor(seed: purposeTemplateApi.PurposeTemplateSeed) {
+    this.seed = { ...seed };
+  }
+
+  public removeAnswer(
+    answerKeyToRemove: string | undefined
+  ): PurposeTemplateSeedApiBuilder {
+    if (!answerKeyToRemove) {
+      return this;
+    }
+
+    const answers = this.seed.purposeRiskAnalysisForm?.answers || {};
+    const filteredEntries = Object.entries(answers).filter(
+      ([answerKey]) => answerKey !== answerKeyToRemove
+    );
+
+    // eslint-disable-next-line functional/immutable-data
+    this.seed = {
+      ...this.seed,
+      purposeRiskAnalysisForm: {
+        ...this.seed.purposeRiskAnalysisForm,
+        version: String(this.seed.purposeRiskAnalysisForm?.version),
+        answers: Object.fromEntries(filteredEntries),
+      },
+    };
+
+    return this;
+  }
+
+  public addAnnotationToAnswer(
+    answerKey: string,
+    annotation: RiskAnalysisTemplateAnswerAnnotation // accept domain model
+  ): PurposeTemplateSeedApiBuilder {
+    const answers = this.seed.purposeRiskAnalysisForm?.answers || {};
+    const updatedEntries = Object.entries(answers).map(([key, answer]) =>
+      key === answerKey ? [key, { ...answer, annotation }] : [key, answer]
+    );
+
+    // eslint-disable-next-line functional/immutable-data
+    this.seed = {
+      ...this.seed,
+      purposeRiskAnalysisForm: {
+        ...this.seed.purposeRiskAnalysisForm,
+        version: String(this.seed.purposeRiskAnalysisForm?.version),
+        answers: Object.fromEntries(updatedEntries),
+      },
+    };
+
+    return this;
+  }
+
+  public build(): purposeTemplateApi.PurposeTemplateSeed {
+    return this.seed;
+  }
 }

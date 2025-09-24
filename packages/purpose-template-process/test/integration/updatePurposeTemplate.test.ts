@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
@@ -19,6 +20,8 @@ import {
   PurposeTemplateAddedV2,
   purposeTemplateState,
   RiskAnalysisFormTemplate,
+  RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateSingleAnswer,
@@ -41,6 +44,7 @@ import {
   addOnePurposeTemplate,
   addOneTenant,
   fileManager,
+  PurposeTemplateSeedApiBuilder,
   purposeTemplateService,
   readLastPurposeTemplateEvent,
   uploadDocument,
@@ -320,15 +324,17 @@ describe("updatePurposeTemplate", () => {
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
 
-  it("Should remove annotations documents for each request deleted in update", async () => {
+  it("Should remove annotations documents for each answer deleted in purpose template seed, all annotation documents of answers not affected by update still remains in S3", async () => {
     vi.spyOn(fileManager, "delete");
+
+    // Risk Analysis Form must be defined in existing purpose template for this test
     const purposeTemplateRiskAnalysisForm: RiskAnalysisFormTemplate =
       existingPurposeTemplate.purposeRiskAnalysisForm!;
 
-    const annotationDocToDeleteNum = 2;
-    const validAnnotationDocsNum = 2;
+    // Annotation and their documents for an answer to be deleted
+    const annotationDocsToDeleteNum = 2;
     const annotationDocsToDelete = Array.from({
-      length: annotationDocToDeleteNum,
+      length: annotationDocsToDeleteNum,
     }).map((_, i) =>
       getMockRiskAnalysisTemplateAnswerAnnotationDocument(
         generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
@@ -337,18 +343,17 @@ describe("updatePurposeTemplate", () => {
         `Document-Annotation-${i}`
       )
     );
-
     const annotationToDelete =
       getMockRiskAnalysisTemplateAnswerAnnotationWithDocs(
         generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
         annotationDocsToDelete
       );
 
+    // Annotation and their documents for an answer not affected by update
     const answerKeyWithAnnotationDoc = "administrativeActText";
-
-    const validAnnotationDocs = Array.from({
-      length: validAnnotationDocsNum,
-      // eslint-disable-next-line sonarjs/no-identical-functions
+    const notAffectedAnnotationDocsNum = 3;
+    const notAffectedAnnotationDocs = Array.from({
+      length: notAffectedAnnotationDocsNum,
     }).map((_, i) =>
       getMockRiskAnalysisTemplateAnswerAnnotationDocument(
         generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
@@ -357,12 +362,13 @@ describe("updatePurposeTemplate", () => {
         `Document-Annotation-${i}`
       )
     );
-    const annotationWithDocs =
+    const notAffectedAnnotation =
       getMockRiskAnalysisTemplateAnswerAnnotationWithDocs(
         generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
-        validAnnotationDocs
+        notAffectedAnnotationDocs
       );
 
+    // Answer to be deleted that previously contained an annotation with documents
     const removedAnswerKey = "ruleOfLawText";
     const singleAnswersWithAnnotation: RiskAnalysisTemplateSingleAnswer[] = [
       ...purposeTemplateRiskAnalysisForm.singleAnswers.filter(
@@ -377,7 +383,8 @@ describe("updatePurposeTemplate", () => {
       },
     ];
 
-    const purposeTemplateWithAnnotations: PurposeTemplate = {
+    // Existing Risk Analysis Form contains answers with annotation and documents
+    const existingPurposeTemplateWithAnnotations: PurposeTemplate = {
       ...existingPurposeTemplate,
       purposeRiskAnalysisForm: {
         ...purposeTemplateRiskAnalysisForm,
@@ -385,49 +392,35 @@ describe("updatePurposeTemplate", () => {
       },
     };
 
+    // Seeding DB and File storage for the tests
     await addOneTenant(creator);
-    await addOnePurposeTemplate(purposeTemplateWithAnnotations);
-
-    [...annotationToDelete.docs, ...annotationWithDocs.docs].forEach((d) => {
+    await addOnePurposeTemplate(existingPurposeTemplateWithAnnotations);
+    [...annotationToDelete.docs, ...notAffectedAnnotation.docs].forEach((d) => {
       uploadDocument(existingPurposeTemplate.id, d.id, d.name);
     });
 
-    const updatedPurposeTemplate =
+    // Prepare test seed input
+    const purposeTemplateSeedUpdated: purposeTemplateApi.PurposeTemplateSeed =
+      new PurposeTemplateSeedApiBuilder(purposeTemplateSeed)
+        .removeAnswer(removedAnswerKey)
+        .addAnnotationToAnswer(
+          answerKeyWithAnnotationDoc,
+          notAffectedAnnotation
+        )
+        .build();
+
+    const actualPurposeTemplate =
       await purposeTemplateService.updatePurposeTemplate(
-        purposeTemplateWithAnnotations.id,
-        {
-          ...purposeTemplateSeed,
-          purposeRiskAnalysisForm: {
-            ...purposeTemplateSeed.purposeRiskAnalysisForm,
-            answers: {
-              ...Object.fromEntries(
-                Object.entries(
-                  purposeTemplateSeed.purposeRiskAnalysisForm?.answers || {}
-                )
-                  .filter(([answerKey]) => answerKey !== removedAnswerKey)
-                  .map(([answerKey, answer]) => {
-                    if (answerKey === answerKeyWithAnnotationDoc) {
-                      return [
-                        answerKey,
-                        {
-                          ...answer,
-                          annotation: annotationWithDocs,
-                        },
-                      ];
-                    }
-                    return [answerKey, answer];
-                  })
-              ),
-            },
-          } as purposeTemplateApi.RiskAnalysisFormTemplateSeed,
-        },
+        existingPurposeTemplateWithAnnotations.id,
+        purposeTemplateSeedUpdated,
         getMockContext({
           authData: getMockAuthData(creatorId),
         })
       );
 
+    // Expect that removed answer is not present in updated purpose template returned
     expect(
-      updatedPurposeTemplate.data.purposeRiskAnalysisForm?.singleAnswers.find(
+      actualPurposeTemplate.data.purposeRiskAnalysisForm?.singleAnswers.find(
         (a) => a.key === removedAnswerKey
       )
     ).toBeUndefined();
@@ -437,15 +430,16 @@ describe("updatePurposeTemplate", () => {
       genericLogger
     );
 
-    expect(filePaths.length).toBe(validAnnotationDocsNum);
+    // Expect that remains only valid annotation documents in S3
+    expect(filePaths.length).toBe(notAffectedAnnotationDocsNum);
 
+    // Expect that documents are deleted from S3 and current files not contains their paths
     annotationToDelete.docs.forEach((d) => {
       expect(fileManager.delete).toHaveBeenCalledWith(
         config.s3Bucket,
         d.path,
         genericLogger
       );
-
       expect(filePaths).not.toContain(d.path);
     });
   });
