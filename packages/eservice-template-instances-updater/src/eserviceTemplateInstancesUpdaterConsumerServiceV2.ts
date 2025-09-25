@@ -330,7 +330,7 @@ export async function handleMessageV2({
     })
     .with(
       {
-        type: "EServiceTemplatePersonalDataUpdatedAfterPublish",
+        type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
       },
       async (msg) => {
         const personalData = getTemplateFromEvent(msg).personalData;

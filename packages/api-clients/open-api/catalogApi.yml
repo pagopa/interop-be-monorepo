@@ -3229,6 +3229,9 @@ components:
         templateId:
           type: string
           format: uuid
+        personalData:
+          type: boolean
+
     CreatedEServiceRiskAnalysis:
       type: object
       additionalProperties: false

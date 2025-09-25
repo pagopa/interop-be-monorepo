@@ -2,12 +2,13 @@ import { EServiceEventEnvelopeV2 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { M2MEventServiceSQL } from "../services/m2mEventServiceSQL.js";
+import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
 
 export async function handleEServiceEvent(
   decodedMessage: EServiceEventEnvelopeV2,
+  _eventTimestamp: Date,
   _logger: Logger,
-  _m2mEventService: M2MEventServiceSQL,
+  _m2mEventWriterService: M2MEventWriterServiceSQL,
   _readModelService: ReadModelServiceSQL
 ): Promise<void> {
   return match(decodedMessage)
@@ -55,8 +56,8 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
-          "EServicePersonalDataUpdatedAfterPublish",
-          "EServicePersonalDataUpdatedByTemplateUpdate"
+          "EServicePersonalDataFlagUpdatedAfterPublication"
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate"
         ),
       },
       () => Promise.resolve(void 0)

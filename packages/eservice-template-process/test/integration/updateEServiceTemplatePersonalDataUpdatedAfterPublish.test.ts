@@ -10,7 +10,7 @@ import {
 import {
   EServiceTemplate,
   toEServiceTemplateV2,
-  EServiceTemplatePersonalDataUpdatedAfterPublishV2,
+  EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2,
   operationForbidden,
   eserviceTemplateVersionState,
   EServiceTemplateVersion,
@@ -63,12 +63,12 @@ describe("update EService Template personalData flag for an already created ESer
     expect(writtenEvent).toMatchObject({
       stream_id: eserviceTemplate.id,
       version: "1",
-      type: "EServiceTemplatePersonalDataUpdatedAfterPublish",
+      type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
       event_version: 2,
     });
 
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceTemplatePersonalDataUpdatedAfterPublishV2,
+      messageType: EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2,
       payload: writtenEvent.data,
     });
 

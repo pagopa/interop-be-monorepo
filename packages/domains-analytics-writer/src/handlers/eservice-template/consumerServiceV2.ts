@@ -53,7 +53,7 @@ export async function handleEserviceTemplateMessageV2(
             "EServiceTemplateVersionInterfaceDeleted",
             "EServiceTemplateVersionDocumentDeleted",
             "EServiceTemplateRiskAnalysisDeleted",
-            "EServiceTemplatePersonalDataUpdatedAfterPublish"
+            "EServiceTemplatePersonalDataFlagUpdatedAfterPublication"
           ),
         },
         (msg) => {

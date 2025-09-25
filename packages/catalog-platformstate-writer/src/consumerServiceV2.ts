@@ -303,8 +303,8 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
       { type: "EServiceSignalHubEnabled" },
       { type: "EServiceSignalHubDisabled" },
-      { type: "EServicePersonalDataUpdatedAfterPublish" },
-      { type: "EServicePersonalDataUpdatedByTemplateUpdate" },
+      { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
+      { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       () => Promise.resolve()
     )
     .exhaustive();

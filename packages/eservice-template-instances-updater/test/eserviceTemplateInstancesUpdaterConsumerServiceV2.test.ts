@@ -905,7 +905,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     });
   });
 
-  it("The consumer should call the updateTemplateInstancePersonalDataFlag route on EServiceTemplatePersonalDataUpdatedAfterPublish event", async () => {
+  it("The consumer should call the updateTemplateInstancePersonalDataFlag route on EServiceTemplatePersonalDataFlagUpdatedAfterPublication event", async () => {
     const mockTemplate: EServiceTemplate = {
       ...eserviceTemplate,
       personalData: true,

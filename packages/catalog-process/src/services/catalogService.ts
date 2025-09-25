@@ -101,7 +101,7 @@ import {
   checksumDuplicate,
   attributeDuplicatedInGroup,
   eservicePersonalDataCanOnlyBeSetOnce,
-  eservicePersonalDataMustBeSet,
+  missingPersonalDataFlag,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -146,7 +146,7 @@ import {
   toCreateEventEServiceUpdated,
   toCreateEventEServiceSignalhubFlagEnabled,
   toCreateEventEServiceSignalhubFlagDisabled,
-  toCreateEventEServicePersonalDataUpdatedAfterPublish,
+  toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
 } from "../model/domain/toEvent.js";
 import {
@@ -1636,7 +1636,7 @@ export function catalogServiceBuilder(
         config.featureFlagEservicePersonalData &&
         eservice.data.personalData === undefined
       ) {
-        throw eservicePersonalDataMustBeSet(eserviceId, descriptorId);
+        throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
       if (producerDelegation) {
@@ -2807,7 +2807,11 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.AttributesSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<EService> {
       logger.info(
         `Updating attributes of Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -3600,11 +3604,12 @@ export function catalogServiceBuilder(
         personalData,
       };
 
-      const event = toCreateEventEServicePersonalDataUpdatedAfterPublish(
-        eservice.metadata.version,
-        updatedEservice,
-        correlationId
-      );
+      const event =
+        toCreateEventEServicePersonalDataFlagUpdatedAfterPublication(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        );
 
       await repository.createEvent(event);
 
