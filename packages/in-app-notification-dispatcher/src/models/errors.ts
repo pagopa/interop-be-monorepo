@@ -6,6 +6,7 @@ type InAppNotificationDispatcherErrorCode =
   | "eserviceNotFound"
   | "activeProducerDelegationNotFound"
   | "purposeNotFound"
+  | "descriptorNotFound"
   | "attributeNotFound"
   | "certifierTenantNotFound"
   | "attributeOriginUndefined"
@@ -56,6 +57,15 @@ export function activeProducerDelegationNotFound(
   return new InternalError({
     detail: `Active producer delegation not found for EService ${eServiceId}`,
     code: "activeProducerDelegationNotFound",
+  });
+}
+
+export function descriptorNotFound(
+  descriptorId: string
+): InAppNotificationDispatcherError {
+  return new InternalError({
+    detail: `Descriptor ${descriptorId} not found`,
+    code: "descriptorNotFound",
   });
 }
 

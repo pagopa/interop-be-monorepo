@@ -12,13 +12,13 @@ import {
 import {
   RiskAnalysisValidationIssue,
   dependencyNotFoundError,
+  expiredRulesVersionError,
   missingExpectedFieldError,
-  noRulesVersionFoundError,
+  rulesVersionNotFoundError,
   unexpectedDependencyValueError,
   unexpectedFieldError,
   unexpectedFieldFormatError,
   unexpectedFieldValueError,
-  unexpectedRulesVersionError,
 } from "./riskAnalysisValidationErrors.js";
 import {
   FormQuestionRules,
@@ -30,21 +30,30 @@ import { riskAnalysisFormRules } from "./rules/riskAnalysisFormRulesProvider.js"
 export function validateRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  dateForExpirationValidation: Date
 ): RiskAnalysisValidationResult<RiskAnalysisValidatedForm> {
-  const latestVersionFormRules = getLatestVersionFormRules(tenantKind);
+  const formRulesForValidation = getFormRulesByVersion(
+    tenantKind,
+    riskAnalysisForm.version
+  );
 
-  if (latestVersionFormRules === undefined) {
-    return invalidResult([noRulesVersionFoundError(tenantKind)]);
-  }
-
-  if (latestVersionFormRules.version !== riskAnalysisForm.version) {
+  if (formRulesForValidation === undefined) {
     return invalidResult([
-      unexpectedRulesVersionError(riskAnalysisForm.version),
+      rulesVersionNotFoundError(tenantKind, riskAnalysisForm.version),
     ]);
   }
 
-  const validationRules = buildValidationRules(latestVersionFormRules);
+  if (
+    formRulesForValidation.expiration &&
+    formRulesForValidation.expiration < dateForExpirationValidation
+  ) {
+    return invalidResult([
+      expiredRulesVersionError(riskAnalysisForm.version, tenantKind),
+    ]);
+  }
+
+  const validationRules = buildValidationRules(formRulesForValidation);
 
   const sanitizedAnswers = getSanitizedAnswers(riskAnalysisForm);
 
@@ -84,7 +93,7 @@ export function validateRiskAnalysis(
     );
 
     return validResult({
-      version: latestVersionFormRules.version,
+      version: formRulesForValidation.version,
       singleAnswers,
       multiAnswers,
     });
@@ -134,7 +143,7 @@ function questionRulesDepsToValidationRuleDeps(
   }));
 }
 
-function buildValidationRules(
+export function buildValidationRules(
   formRules: RiskAnalysisFormRules
 ): ValidationRule[] {
   return formRules.questions.map(buildValidationRule);
@@ -334,7 +343,7 @@ function answerToValidatedSingleOrMultiAnswer(
     .exhaustive();
 }
 
-function invalidResult(
+export function invalidResult(
   issues: RiskAnalysisValidationIssue[]
 ): RiskAnalysisValidationInvalid {
   return {
@@ -343,7 +352,7 @@ function invalidResult(
   };
 }
 
-function validResult<T>(value: T): RiskAnalysisValidationResult<T> {
+export function validResult<T>(value: T): RiskAnalysisValidationResult<T> {
   return {
     type: "valid",
     value,

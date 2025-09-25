@@ -10,6 +10,7 @@ import {
   FileManager,
   fromFilesToBodyMiddleware,
   multerMiddleware,
+  errorsToApiProblemsMiddleware,
 } from "pagopa-interop-commons";
 import express from "express";
 import {
@@ -91,6 +92,11 @@ import {
   PrivacyNoticeService,
   privacyNoticeServiceBuilder,
 } from "./services/privacyNoticeService.js";
+import {
+  NotificationConfigService,
+  notificationConfigServiceBuilder,
+} from "./services/notificationConfigService.js";
+import notificationConfigRouter from "./routers/notificationConfigRouter.js";
 
 export type BFFServices = {
   agreementService: AgreementService;
@@ -100,6 +106,7 @@ export type BFFServices = {
   catalogService: CatalogService;
   clientService: ClientService;
   delegationService: DelegationService;
+  notificationConfigService: NotificationConfigService;
   eServiceTemplateService: EServiceTemplateService;
   privacyNoticeService: PrivacyNoticeService;
   producerKeychainService: ProducerKeychainService;
@@ -172,6 +179,9 @@ export async function createServices(
       clients.catalogProcessClient,
       fileManager
     ),
+    notificationConfigService: notificationConfigServiceBuilder(
+      clients.notificationConfigProcessClient
+    ),
     privacyNoticeService: privacyNoticeServiceBuilder(
       privacyNoticeStorage,
       fileManager,
@@ -234,6 +244,7 @@ export async function createApp(
     consumerDelegationRouter(zodiosCtx, services.delegationService),
     delegationRouter(zodiosCtx, services.delegationService),
     eserviceTemplateRouter(zodiosCtx, services.eServiceTemplateService),
+    notificationConfigRouter(zodiosCtx, services.notificationConfigService),
     privacyNoticeRouter(zodiosCtx, services.privacyNoticeService),
     producerDelegationRouter(zodiosCtx, services.delegationService),
     producerKeychainRouter(zodiosCtx, services.producerKeychainService),
@@ -243,6 +254,8 @@ export async function createApp(
     tenantRouter(zodiosCtx, services.tenantService),
     toolRouter(zodiosCtx, services.toolsService)
   );
+
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }
