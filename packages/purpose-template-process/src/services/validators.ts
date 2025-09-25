@@ -1,4 +1,5 @@
 import {
+  PurposeTemplate,
   PurposeTemplateState,
   RiskAnalysisFormTemplate,
   TenantKind,
@@ -25,6 +26,7 @@ import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInValidState,
+  purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateValidationFailed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -139,6 +141,16 @@ function validateRiskAnalysisAnswerOrThrow({
   }
 
   return result.value;
+}
+
+export function assertPurposeTemplateHasRiskAnalysisForm(
+  purposeTemplate: PurposeTemplate
+): asserts purposeTemplate is PurposeTemplate & {
+  purposeRiskAnalysisForm: RiskAnalysisFormTemplate;
+} {
+  if (!purposeTemplate.purposeRiskAnalysisForm) {
+    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
+  }
 }
 
 export function assertRequesterPurposeTemplateCreator(

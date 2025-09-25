@@ -24,7 +24,6 @@ import {
 import {
   purposeTemplateNotFound,
   ruleSetNotFoundError,
-  purposeTemplateRiskAnalysisFormNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
@@ -35,6 +34,7 @@ import {
   assertConsistentFreeOfCharge,
   assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
+  assertPurposeTemplateHasRiskAnalysisForm,
   validateAndTransformRiskAnalysisAnswer,
   validateAndTransformRiskAnalysisTemplate,
   assertRequesterPurposeTemplateCreator,
@@ -160,9 +160,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      if (!purposeTemplate.data.purposeRiskAnalysisForm) {
-        throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId);
-      }
+      assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
 
       assertPurposeTemplateStateIsValid(purposeTemplate.data.state, [
         purposeTemplateState.draft,
