@@ -285,9 +285,7 @@ export function purposeTemplateServiceBuilder(
         answerId
       );
 
-      validateRiskAnalysisAnswerAnnotationOrThrow(
-        riskAnalysisTemplateAnswerAnnotationRequest.text
-      );
+      validateRiskAnalysisAnswerAnnotationOrThrow();
 
       const newAnnotation: RiskAnalysisTemplateAnswerAnnotation =
         answerAndAnnotation.annotation

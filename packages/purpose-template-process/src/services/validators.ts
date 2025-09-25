@@ -99,6 +99,10 @@ export function validateAndTransformRiskAnalysisAnswer(
   return riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer(validatedAnswer);
 }
 
+export function validateRiskAnalysisAnswerAnnotationOrThrow(): void {
+  // validateNoHyperlinks(text, hyperlinkDetectionError(text)); // todo disabled until hyperlinks validation rules are defined
+}
+
 export function assertRequesterPurposeTemplateCreator(
   creatorId: TenantId,
   authData: UIAuthData | M2MAdminAuthData
@@ -136,7 +140,7 @@ function validateRiskAnalysisAnswerOrThrow({
   tenantKind: TenantKind;
 }): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {
   if (riskAnalysisAnswer.answerData.annotation) {
-    // validateNoHyperlinks(text, hyperlinkDetectionError(text)); // todo disabled until hyperlinks validation rules are defined
+    validateRiskAnalysisAnswerAnnotationOrThrow();
   }
 
   const result = validateRiskAnalysisAnswer(
@@ -159,14 +163,5 @@ export function assertPurposeTemplateHasRiskAnalysisForm(
 } {
   if (!purposeTemplate.purposeRiskAnalysisForm) {
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
-  }
-}
-
-export function assertRequesterPurposeTemplateCreator(
-  creatorId: TenantId,
-  authData: UIAuthData | M2MAdminAuthData
-): void {
-  if (authData.organizationId !== creatorId) {
-    throw operationForbidden;
   }
 }
