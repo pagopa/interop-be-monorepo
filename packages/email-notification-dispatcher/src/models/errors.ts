@@ -16,6 +16,7 @@ type EmailNotificationDispatcherErrorCode =
   | "activeProducerDelegationNotFound"
   | "eserviceAgreementsNotFound"
   | "descriptorPublishedNotFound"
+  | "purposeNotFound"
   | "certifierTenantNotFound";
 
 export class EmailNotificationDispatcherError extends InternalError<EmailNotificationDispatcherErrorCode> {
@@ -119,5 +120,14 @@ export function attributeNotFound(
   return new InternalError({
     detail: `Attribute ${attributeId} not found`,
     code: "attributeNotFound",
+  });
+}
+
+export function purposeNotFound(
+  purposeId: string
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Purpose ${purposeId} not found`,
+    code: "purposeNotFound",
   });
 }
