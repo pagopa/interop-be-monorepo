@@ -46,7 +46,7 @@ describe("API /eservices/{eServiceId}/personalData authorization test", () => {
     personalData,
   };
 
-  catalogService.updateEServicePersonalDataAfterPublish = vi
+  catalogService.updateEServicePersonalDataFlagAfterPublication = vi
     .fn()
     .mockResolvedValue(serviceResponse);
 
@@ -98,7 +98,7 @@ describe("API /eservices/{eServiceId}/personalData authorization test", () => {
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      catalogService.updateEServicePersonalDataAfterPublish = vi
+      catalogService.updateEServicePersonalDataFlagAfterPublication = vi
         .fn()
         .mockRejectedValue(error);
 

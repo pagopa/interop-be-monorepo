@@ -5945,7 +5945,7 @@ paths:
       tags:
         - eservices
       summary: Set personalData flag for published eservices
-      operationId: updateEServicePersonalDataAfterPublish
+      operationId: updateEServicePersonalDataFlagAfterPublication
       parameters:
         - name: eServiceId
           in: path
