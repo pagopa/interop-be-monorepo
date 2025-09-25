@@ -622,9 +622,9 @@ paths:
     put:
       tags:
         - purposeTemplate
-      summary: Create a risk analysis answer annotation
-      operationId: createRiskAnalysisAnswerAnnotation
-      description: Updates a risk analysis answer annotation. Only the text is updated, the docs are not updated.
+      summary: Add a risk analysis answer annotation
+      operationId: addRiskAnalysisAnswerAnnotationForPurposeTemplate
+      description: Add a risk analysis answer annotation. Only the text is impacted, the docs are not impacted.
       requestBody:
         content:
           application/json:
@@ -633,7 +633,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Risk Analysis Template Answer Annotation created.
+          description: Risk Analysis Template Answer Annotation added.
           content:
             application/json:
               schema:
@@ -651,7 +651,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: Purpose Template Not Found
+          description: Purpose Template or Answer Not Found
           content:
             application/problem+json:
               schema:

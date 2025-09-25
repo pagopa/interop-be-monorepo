@@ -15,8 +15,8 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
+  addRiskAnalysisAnswerAnnotationErrorMapper,
   createPurposeTemplateErrorMapper,
-  createRiskAnalysisAnswerAnnotationErrorMapper,
   createRiskAnalysisAnswerErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
@@ -248,7 +248,7 @@ const purposeTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createRiskAnalysisAnswerAnnotationErrorMapper,
+            addRiskAnalysisAnswerAnnotationErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

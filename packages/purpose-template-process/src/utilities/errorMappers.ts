@@ -42,7 +42,7 @@ export const createRiskAnalysisAnswerErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const createRiskAnalysisAnswerAnnotationErrorMapper = (
+export const addRiskAnalysisAnswerAnnotationErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
