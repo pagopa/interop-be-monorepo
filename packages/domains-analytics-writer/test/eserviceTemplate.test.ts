@@ -15,6 +15,8 @@ import {
   EServiceTemplateVersion,
   EServiceTemplate,
   tenantKind,
+  EServiceTemplateVersionPublishedV2,
+  EServiceTemplatePersonalDataUpdatedAfterPublishV2,
 } from "pagopa-interop-models";
 import {
   getMockEServiceTemplate,
@@ -618,60 +620,88 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     expect(retrievedRiskAnalysisAnswers).toHaveLength(0);
   });
 
-  it("EServiceTemplatePersonalDataUpdatedAfterPublish: updates eserviceTemplate personalData flag", async () => {
-    const eserviceTemplateVersion: EServiceTemplateVersion = {
+  it("EServiceTemplatePersonalDataUpdatedAfterPublish: updates eServiceTemplate personalData flag", async () => {
+    const eServiceTemplateDraftVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.published,
       interface: getMockDocument(),
+      state: eserviceTemplateVersionState.draft,
     };
 
-    const eserviceTemplate: EServiceTemplate = {
+    const eServiceTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
-      versions: [eserviceTemplateVersion],
+      versions: [eServiceTemplateDraftVersion],
     };
 
-    const updatedEServiceTemplate: EServiceTemplate = {
-      ...eserviceTemplate,
-      personalData: true,
+    const eServiceTemplateAddPayload: EServiceTemplateAddedV2 = {
+      eserviceTemplate: toEServiceTemplateV2(eServiceTemplate),
     };
-
-    const addPayload: EServiceTemplateAddedV2 = {
-      eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
-    };
-    const updatePayload = {
-      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
-    };
-
-    const addMsg: EServiceTemplateEventEnvelope = {
+    const eServiceTemplateAddMsg: EServiceTemplateEventEnvelope = {
       sequence_num: 1,
-      stream_id: eserviceTemplate.id,
+      stream_id: eServiceTemplate.id,
       version: 1,
       type: "EServiceTemplateAdded",
       event_version: 2,
-      data: addPayload,
+      data: eServiceTemplateAddPayload,
       log_date: new Date(),
     };
-    const updateMsg: EServiceTemplateEventEnvelope = {
+
+    const eServiceTemplatePublishedVersion: EServiceTemplateVersion = {
+      ...eServiceTemplateDraftVersion,
+      publishedAt: new Date(),
+      state: eserviceTemplateVersionState.published,
+    };
+    const eServiceTemplatePublished: EServiceTemplate = {
+      ...eServiceTemplate,
+      versions: [eServiceTemplatePublishedVersion],
+    };
+    const eServiceTemplatePublishPayload: EServiceTemplateVersionPublishedV2 = {
+      eserviceTemplateVersionId: eServiceTemplatePublishedVersion.id,
+      eserviceTemplate: toEServiceTemplateV2(eServiceTemplatePublished),
+    };
+    const eServiceTemplatePublishMsg: EServiceTemplateEventEnvelope = {
       sequence_num: 2,
-      stream_id: eserviceTemplate.id,
+      stream_id: eServiceTemplate.id,
       version: 2,
+      type: "EServiceTemplateVersionPublished",
+      event_version: 2,
+      data: eServiceTemplatePublishPayload,
+      log_date: new Date(),
+    };
+
+    const eServiceTemplateUpdated: EServiceTemplate = {
+      ...eServiceTemplatePublished,
+      personalData: true,
+    };
+    const eServiceTemplateUpdatePayload: EServiceTemplatePersonalDataUpdatedAfterPublishV2 =
+      {
+        eserviceTemplate: toEServiceTemplateV2(eServiceTemplateUpdated),
+      };
+    const eServiceTemplateUpdateMsg: EServiceTemplateEventEnvelope = {
+      sequence_num: 3,
+      stream_id: eServiceTemplate.id,
+      version: 3,
       type: "EServiceTemplatePersonalDataUpdatedAfterPublish",
       event_version: 2,
-      data: updatePayload,
+      data: eServiceTemplateUpdatePayload,
       log_date: new Date(),
     };
 
-    await handleEserviceTemplateMessageV2([addMsg, updateMsg], dbContext);
+    await handleEserviceTemplateMessageV2(
+      [
+        eServiceTemplateAddMsg,
+        eServiceTemplatePublishMsg,
+        eServiceTemplateUpdateMsg,
+      ],
+      dbContext
+    );
 
-    const retrievedEserviceTemplate = await getOneFromDb(
+    const retrievedEServiceTemplate = await getOneFromDb(
       dbContext,
       EserviceTemplateDbTable.eservice_template,
-      { id: eserviceTemplate.id }
+      { id: eServiceTemplate.id }
     );
 
-    expect(retrievedEserviceTemplate?.personalData).toBe(
-      updatedEServiceTemplate.personalData
-    );
-    expect(retrievedEserviceTemplate?.metadataVersion).toBe(2);
+    expect(retrievedEServiceTemplate?.personalData).toBe(true);
+    expect(retrievedEServiceTemplate?.metadataVersion).toBe(3);
   });
 });
