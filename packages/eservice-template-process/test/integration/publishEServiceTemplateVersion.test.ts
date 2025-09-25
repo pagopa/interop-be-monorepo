@@ -364,13 +364,15 @@ describe("publishEServiceTemplateVersion", () => {
     await addOneEServiceTemplate(eserviceTemplate);
 
     expect(
-      await eserviceTemplateService.publishEServiceTemplateVersion(
-        eserviceTemplate.id,
-        eserviceTemplateVersion.id,
-        getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-        })
-      )
+      (
+        await eserviceTemplateService.publishEServiceTemplateVersion(
+          eserviceTemplate.id,
+          eserviceTemplateVersion.id,
+          getMockContext({
+            authData: getMockAuthData(eserviceTemplate.creatorId),
+          })
+        )
+      ).data
     ).equal(undefined);
   });
 
