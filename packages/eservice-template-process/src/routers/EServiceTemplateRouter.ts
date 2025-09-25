@@ -698,7 +698,7 @@ const eserviceTemplatesRouter = (
         }
       }
     )
-    .post("/templates/:templateId/personalData", async (req, res) => {
+    .post("/templates/:templateId/personalDataFlag", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
@@ -709,7 +709,7 @@ const eserviceTemplatesRouter = (
         }
 
         const updatedEServiceTemplate =
-          await eserviceTemplateService.updateEServiceTemplatePersonalDataAfterPublish(
+          await eserviceTemplateService.updateEServiceTemplatePersonalDataFlagAfterPublication(
             unsafeBrandId(req.params.templateId),
             req.body.personalData,
             ctx

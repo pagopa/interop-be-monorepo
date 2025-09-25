@@ -1170,7 +1170,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /templates/{templateId}/personalData:
+  /templates/{templateId}/personalDataFlag:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1179,7 +1179,7 @@ paths:
       tags:
         - process
       summary: Set personalData flag for published e-service templates
-      operationId: updateEServiceTemplatePersonalDataAfterPublish
+      operationId: updateEServiceTemplatePersonalDataFlagAfterPublication
       parameters:
         - name: templateId
           in: path
@@ -1194,7 +1194,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceTemplatePersonalDataUpdateSeed"
+              $ref: "#/components/schemas/EServiceTemplatePersonalDataFlagUpdateSeed"
       responses:
         "200":
           description: EService template personalData flag updated
@@ -1480,7 +1480,7 @@ components:
           type: string
           minLength: 5
           maxLength: 60
-    EServiceTemplatePersonalDataUpdateSeed:
+    EServiceTemplatePersonalDataFlagUpdateSeed:
       type: object
       additionalProperties: false
       properties:

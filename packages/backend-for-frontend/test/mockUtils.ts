@@ -368,8 +368,8 @@ export const getMockBffApiInstanceEServiceSeed =
     isConsumerDelegable: generateMock(z.boolean().optional()),
   });
 
-export const getMockBffApiEServicePersonalDataUpdateSeed =
-  (): bffApi.EServicePersonalDataUpdateSeed => ({
+export const getMockBffApiEServicePersonalDataFlagUpdateSeed =
+  (): bffApi.EServicePersonalDataFlagUpdateSeed => ({
     personalData: generateMock(z.boolean()),
   });
 
@@ -460,8 +460,8 @@ export const getMockBffApiEServiceNameUpdateSeed =
     name: generateMock(z.string()),
   });
 
-export const getMockBffApiEServiceTemplatePersonalDataUpdateSeed =
-  (): bffApi.EServiceTemplatePersonalDataUpdateSeed => ({
+export const getMockBffApiEServiceTemplatePersonalDataFlagUpdateSeed =
+  (): bffApi.EServiceTemplatePersonalDataFlagUpdateSeed => ({
     personalData: generateMock(z.boolean()),
   });
 

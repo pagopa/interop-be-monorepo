@@ -3573,7 +3573,7 @@ export function catalogServiceBuilder(
 
       return updatedDescriptor;
     },
-    async updateEServicePersonalDataAfterPublish(
+    async updateEServicePersonalDataFlagAfterPublication(
       eserviceId: EServiceId,
       personalData: boolean,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>

@@ -24,7 +24,7 @@ import {
   eserviceWithoutValidDescriptors,
 } from "../../src/model/domain/errors.js";
 
-describe("API /eservices/{eServiceId}/personalData authorization test", () => {
+describe("API /eservices/{eServiceId}/personalDataFlag authorization test", () => {
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.published,
@@ -42,21 +42,21 @@ describe("API /eservices/{eServiceId}/personalData authorization test", () => {
 
   const personalData = randomArrayItem([false, true]);
 
-  const eserviceSeed: catalogApi.EServicePersonalDataUpdateSeed = {
+  const eserviceSeed: catalogApi.EServicePersonalDataFlagUpdateSeed = {
     personalData,
   };
 
-  catalogService.updateEServicePersonalDataAfterPublish = vi
+  catalogService.updateEServicePersonalDataFlagAfterPublication = vi
     .fn()
     .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId,
-    body: catalogApi.EServicePersonalDataUpdateSeed = eserviceSeed
+    body: catalogApi.EServicePersonalDataFlagUpdateSeed = eserviceSeed
   ) =>
     request(api)
-      .post(`/eservices/${eServiceId}/personalData`)
+      .post(`/eservices/${eServiceId}/personalDataFlag`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
@@ -98,7 +98,7 @@ describe("API /eservices/{eServiceId}/personalData authorization test", () => {
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      catalogService.updateEServicePersonalDataAfterPublish = vi
+      catalogService.updateEServicePersonalDataFlagAfterPublication = vi
         .fn()
         .mockRejectedValue(error);
 
@@ -120,7 +120,7 @@ describe("API /eservices/{eServiceId}/personalData authorization test", () => {
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,
-        body as catalogApi.EServicePersonalDataUpdateSeed
+        body as catalogApi.EServicePersonalDataFlagUpdateSeed
       );
 
       expect(res.status).toBe(400);
