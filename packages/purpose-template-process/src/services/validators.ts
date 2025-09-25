@@ -14,8 +14,8 @@ import {
   // validateNoHyperlinks,
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
+  riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer,
 } from "pagopa-interop-commons";
-import { riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer } from "../../../commons/src/risk-analysis-template/riskAnalysisFormTemplate.js";
 import {
   annotationTextLengthError,
   // hyperlinkDetectionError,
