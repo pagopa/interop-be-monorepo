@@ -17,6 +17,7 @@ COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
 COPY ./packages/readmodel-models/package.json /app/packages/readmodel-models/package.json
+COPY ./packages/selfcare-user-db-models/package.json /app/packages/selfcare-user-db-models/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
