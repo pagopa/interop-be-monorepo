@@ -172,6 +172,8 @@ export function purposeTemplateServiceBuilder(
       id: PurposeTemplateId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
       logger.info(`Retrieving Purpose Template ${id}`);
 
       const result = await purposeTemplateClient.getPurposeTemplate({
