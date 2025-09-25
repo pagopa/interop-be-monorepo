@@ -5938,14 +5938,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/personalData:
+  /eservices/{eServiceId}/personalDataFlag:
     post:
       security:
         - bearerAuth: []
       tags:
         - eservices
       summary: Set personalData flag for published eservices
-      operationId: updateEServicePersonalDataAfterPublish
+      operationId: updateEServicePersonalDataFlagAfterPublication
       parameters:
         - name: eServiceId
           in: path
@@ -5960,7 +5960,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServicePersonalDataUpdateSeed"
+              $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
       responses:
         "204":
           description: EService personalData flag updated
@@ -22015,7 +22015,7 @@ components:
           type: boolean
       required:
         - isSignalHubEnabled
-    EServicePersonalDataUpdateSeed:
+    EServicePersonalDataFlagUpdateSeed:
       type: object
       additionalProperties: false
       properties:

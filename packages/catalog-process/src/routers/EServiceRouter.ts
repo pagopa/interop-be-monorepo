@@ -1471,7 +1471,7 @@ const eservicesRouter = (
         }
       }
     )
-    .post("/eservices/:eServiceId/personalData", async (req, res) => {
+    .post("/eservices/:eServiceId/personalDataFlag", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
@@ -1481,7 +1481,7 @@ const eservicesRouter = (
         }
 
         const updatedEService =
-          await catalogService.updateEServicePersonalDataAfterPublish(
+          await catalogService.updateEServicePersonalDataFlagAfterPublication(
             unsafeBrandId(req.params.eServiceId),
             req.body.personalData,
             ctx

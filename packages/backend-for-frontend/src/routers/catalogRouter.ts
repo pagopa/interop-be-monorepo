@@ -734,7 +734,7 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/eservices/:eServiceId/personalData", async (req, res) => {
+    .post("/eservices/:eServiceId/personalDataFlag", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         await catalogService.updateEServicePersonalDataFlag(
