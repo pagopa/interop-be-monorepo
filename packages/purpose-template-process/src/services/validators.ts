@@ -21,7 +21,6 @@ import {
   M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
-  annotationTextLengthError,
   // hyperlinkDetectionError,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
@@ -126,11 +125,6 @@ function validateRiskAnalysisAnswerOrThrow({
   tenantKind: TenantKind;
 }): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {
   if (riskAnalysisAnswer.answerData.annotation) {
-    const { text } = riskAnalysisAnswer.answerData.annotation;
-    if (text.length > 250) {
-      throw annotationTextLengthError(text, text.length, 250);
-    }
-
     // validateNoHyperlinks(text, hyperlinkDetectionError(text)); // todo disabled until hyperlinks validation rules are defined
   }
 

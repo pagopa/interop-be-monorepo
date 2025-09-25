@@ -32,7 +32,6 @@ export const createRiskAnalysisAnswerErrorMapper = (
   match(error.code)
     .with(
       "riskAnalysisTemplateValidationFailed",
-      "annotationTextLengthError",
       "hyperlinkDetectionError",
       () => HTTP_STATUS_BAD_REQUEST
     )

@@ -23,7 +23,6 @@ import {
   unexpectedRiskAnalysisTemplateFieldValueError,
 } from "pagopa-interop-commons";
 import {
-  annotationTextLengthError,
   // hyperlinkDetectionError,
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
@@ -105,42 +104,6 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
     expect(
       writtenPayload.purposeTemplate!.purposeRiskAnalysisForm
     ).toBeDefined();
-
-    vi.useRealTimers();
-  });
-
-  it("should throw annotationTextLengthError if annotation text is longer than 250 characters", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-
-    await addOnePurposeTemplate(mockPurposeTemplate);
-
-    const OVER_250_CHAR = "Over".repeat(251);
-    const requestWithLongAnnotation: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest =
-      {
-        answerKey: "purpose",
-        answerData: {
-          values: ["INSTITUTIONAL"],
-          editable: true,
-          suggestedValues: [],
-          annotation: {
-            text: OVER_250_CHAR,
-            docs: [],
-          },
-        },
-      };
-
-    await expect(
-      purposeTemplateService.createRiskAnalysisAnswer(
-        mockPurposeTemplate.id,
-        requestWithLongAnnotation,
-        getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
-        })
-      )
-    ).rejects.toThrowError(
-      annotationTextLengthError(OVER_250_CHAR, OVER_250_CHAR.length, 250)
-    );
 
     vi.useRealTimers();
   });
