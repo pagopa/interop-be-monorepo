@@ -1,12 +1,63 @@
 import { match } from "ts-pattern";
 import { EServiceTemplate } from "pagopa-interop-models";
+import { EService } from "pagopa-interop-models";
 import { DelegationApprovedRejectedToDelegatorEventType } from "../handlers/delegations/handleDelegationApprovedRejectedToDelegator.js";
 import { DelegationSubmittedRevokedToDelegateEventType } from "../handlers/delegations/handleDelegationSubmittedRevokedToDelegate.js";
 import { EserviceNewVersionApprovedRejectedToDelegateEventType } from "../handlers/eservices/handleEserviceNewVersionApprovedRejectedToDelegate.js";
 
 export const inAppTemplates = {
-  eserviceStateChangedToConsumer: (eserviceName: string): string =>
-    `Gentile aderente, ti informiamo che per l'e-service <strong>${eserviceName}</strong>, è stata pubblicata una nuova versione. Pertanto, ti consigliamo di procedere all'aggiornamento dell'e-service alla versione più recente.`,
+  eserviceNameUpdatedToConsumer: (
+    eservice: EService,
+    oldName: string | undefined
+  ): string =>
+    `Ti informiamo che l'e-service ${
+      oldName ?? eservice.id
+    } è stato rinominato in ${
+      eservice.name
+    } dall'ente erogatore. La tua richiesta di fruizione rimane attiva e non sono richieste azioni da parte tua.`,
+  eserviceDescriptionUpdatedToConsumer: (eserviceName: string): string =>
+    `La descrizione dell'e-service <strong>${eserviceName}</strong> è stata aggiornata.`,
+  eserviceDescriptorAttributesUpdatedToConsumer: (
+    eserviceName: string
+  ): string =>
+    `Gli attributi dell'e-service <strong>${eserviceName}</strong> sono stati aggiornati.`,
+  eserviceDescriptorPublishedToConsumer: (eserviceName: string): string =>
+    `L'e-service <strong>${eserviceName}</strong> è stata pubblicata una nuova versione. Pertanto, ti consigliamo di procedere all'aggiornamento dell'e-service alla versione più recente.`,
+  eserviceDescriptorSuspendedToConsumer: (eserviceName: string): string =>
+    `L'e-service <strong>${eserviceName}</strong> è stata sospeso.`,
+  eserviceDescriptorActivatedToConsumer: (eserviceName: string): string =>
+    `L'e-service <strong>${eserviceName}</strong> è stato riattivato.`,
+  eserviceDescriptorQuotasUpdatedToConsumer: (eserviceName: string): string =>
+    `Le quote dell'e-service <strong>${eserviceName}</strong> sono state aggiornate.`,
+  eserviceDescriptorAgreementApprovalPolicyUpdatedToConsumer: (
+    eserviceName: string
+  ): string =>
+    `La politica di approvazione dell'e-service <strong>${eserviceName}</strong> è stata aggiornata.`,
+  eserviceDescriptorInterfaceAddedToConsumer: (
+    eserviceName: string,
+    interfaceName = ""
+  ): string =>
+    `L'interfaccia <strong>${interfaceName}</strong> dell'e-service <strong>${eserviceName}</strong> è stata aggiunta.`,
+  eserviceDescriptorDocumentAddedToConsumer: (
+    eserviceName: string,
+    documentName = ""
+  ): string =>
+    `Il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong> è stato aggiunto.`,
+  eserviceDescriptorInterfaceUpdatedToConsumer: (
+    eserviceName: string,
+    interfaceName = ""
+  ): string =>
+    `L'interfaccia <strong>${interfaceName}</strong> dell'e-service <strong>${eserviceName}</strong> è stata aggiornata.`,
+  eserviceDescriptorDocumentUpdatedToConsumer: (
+    eserviceName: string,
+    documentName = ""
+  ): string =>
+    `Il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong> è stato aggiornato.`,
+  eserviceDescriptorDocumentDeletedToConsumer: (
+    eserviceName: string,
+    documentName = ""
+  ): string =>
+    `Il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong> è stato rimosso.`,
   agreementSuspendedUnsuspended: (
     action: "sospeso" | "riattivato" | "archiviato",
     subjectName: string,
