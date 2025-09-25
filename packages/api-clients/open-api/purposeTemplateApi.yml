@@ -92,6 +92,12 @@ paths:
           schema:
             $ref: "#/components/schemas/TenantKind"
         - in: query
+          name: excludeExpiredRiskAnalysis
+          description: exclude purpose templates with expired risk analysis
+          schema:
+            type: boolean
+            default: false
+        - in: query
           name: offset
           required: true
           schema:

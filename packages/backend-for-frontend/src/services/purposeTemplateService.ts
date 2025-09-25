@@ -63,6 +63,8 @@ export function purposeTemplateServiceBuilder(
         `Linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
       );
 
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
       const result = await purposeTemplateClient.linkEServicesToPurposeTemplate(
         {
           eserviceIds: [eserviceId],
@@ -112,6 +114,7 @@ export function purposeTemplateServiceBuilder(
       limit: number;
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.CreatorPurposeTemplates> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       const { headers, authData, logger } = ctx;
       logger.info(
         `Retrieving creator's purpose templates with title ${purposeTitle}, offset ${offset}, limit ${limit}`
@@ -146,6 +149,7 @@ export function purposeTemplateServiceBuilder(
       targetTenantKind,
       creatorIds,
       eserviceIds,
+      excludeExpiredRiskAnalysis,
       offset,
       limit,
       ctx,
@@ -154,10 +158,12 @@ export function purposeTemplateServiceBuilder(
       targetTenantKind: TenantKind | undefined;
       creatorIds: string[];
       eserviceIds: string[];
+      excludeExpiredRiskAnalysis: boolean;
       offset: number;
       limit: number;
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.CatalogPurposeTemplates> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       const { headers, logger } = ctx;
 
       logger.info(
@@ -173,6 +179,7 @@ export function purposeTemplateServiceBuilder(
             creatorIds,
             eserviceIds,
             states: [purposeTemplateApi.PurposeTemplateState.Enum.ACTIVE],
+            excludeExpiredRiskAnalysis,
             limit,
             offset,
           },
