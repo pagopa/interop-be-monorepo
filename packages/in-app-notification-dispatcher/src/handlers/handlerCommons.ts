@@ -14,6 +14,7 @@ import {
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import {
   attributeNotFound,
+  certifierTenantNotFound,
   descriptorPublishedNotFound,
   eserviceNotFound,
   purposeNotFound,
@@ -75,4 +76,15 @@ export async function retrieveAttribute(
     throw attributeNotFound(attributeId);
   }
   return attribute;
+}
+
+export async function retrieveTenantByCertifierId(
+  certifierId: string,
+  readModelService: ReadModelServiceSQL
+): Promise<Tenant> {
+  const tenant = await readModelService.getTenantByCertifierId(certifierId);
+  if (!tenant) {
+    throw certifierTenantNotFound(certifierId);
+  }
+  return tenant;
 }

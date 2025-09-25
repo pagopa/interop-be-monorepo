@@ -6,7 +6,12 @@ type InAppNotificationDispatcherErrorCode =
   | "eserviceNotFound"
   | "activeProducerDelegationNotFound"
   | "purposeNotFound"
-  | "attributeNotFound";
+  | "attributeNotFound"
+  | "certifierTenantNotFound"
+  | "attributeOriginUndefined"
+  | "attributeNotFoundInTenant"
+  | "attributeNotVerified"
+  | "attributeNotRevoked";
 
 export class InAppNotificationDispatcherError extends InternalError<InAppNotificationDispatcherErrorCode> {
   constructor({
@@ -71,5 +76,33 @@ export function attributeNotFound(
   return new InternalError({
     detail: `Attribute ${attributeId} not found`,
     code: "attributeNotFound",
+  });
+}
+
+export function certifierTenantNotFound(
+  certifierId: string
+): InAppNotificationDispatcherError {
+  return new InternalError({
+    detail: `Certifier tenant ${certifierId} not found`,
+    code: "certifierTenantNotFound",
+  });
+}
+
+export function attributeOriginUndefined(
+  attributeId: string
+): InAppNotificationDispatcherError {
+  return new InternalError({
+    detail: `Attribute ${attributeId} has undefined origin`,
+    code: "attributeOriginUndefined",
+  });
+}
+
+export function verifiedAttributeNotFoundInTenant(
+  tenantId: string,
+  attributeId: string
+): InAppNotificationDispatcherError {
+  return new InternalError({
+    detail: `Verified attribute ${attributeId} not found in tenant ${tenantId}`,
+    code: "attributeNotFoundInTenant",
   });
 }

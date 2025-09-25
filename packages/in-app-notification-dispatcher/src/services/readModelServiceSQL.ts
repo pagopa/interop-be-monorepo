@@ -113,6 +113,13 @@ export function readModelServiceBuilderSQL({
       }
       return attributeWithMetadata.data;
     },
+    async getTenantByCertifierId(
+      certifierId: string
+    ): Promise<Tenant | undefined> {
+      return (
+        await tenantReadModelServiceSQL.getTenantByCertifierId(certifierId)
+      )?.data;
+    },
   };
 }
 export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;
