@@ -29,7 +29,6 @@ import {
 import { uploadEServiceTemplateDocument } from "../utils/fileUpload.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
-import { assertEServiceTemplateVersionIsSuspended } from "../utils/validators/eserviceTemplateValidators.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
@@ -555,7 +554,7 @@ export function eserviceTemplateServiceBuilder(
       );
       const version = retrieveEServiceTemplateVersionById(
         polledTemplate,
-        unsafeBrandId(versionId)
+        versionId
       );
       return toM2MGatewayEServiceTemplateVersion(version);
     },
@@ -567,16 +566,6 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Unsuspending version ${versionId} for eservice template with id ${templateId}`
       );
-      const eserviceTemplate = await retrieveEServiceTemplateById(
-        headers,
-        templateId
-      );
-      const versionBefore = retrieveEServiceTemplateVersionById(
-        eserviceTemplate,
-        versionId
-      );
-      assertEServiceTemplateVersionIsSuspended(versionBefore);
-
       const response =
         await clients.eserviceTemplateProcessClient.activateTemplateVersion(
           undefined,
@@ -586,16 +575,14 @@ export function eserviceTemplateServiceBuilder(
           }
         );
 
-      const polledTemplate = await pollEServiceTemplate(
-        {
-          ...eserviceTemplate,
-          metadata: response.metadata,
-        },
+      const polledTemplate = await pollEServiceTemplateById(
+        templateId,
+        response.metadata,
         headers
       );
       const version = retrieveEServiceTemplateVersionById(
         polledTemplate,
-        unsafeBrandId(versionId)
+        versionId
       );
       return toM2MGatewayEServiceTemplateVersion(version);
     },
@@ -624,7 +611,7 @@ export function eserviceTemplateServiceBuilder(
       );
       const version = retrieveEServiceTemplateVersionById(
         polledTemplate,
-        unsafeBrandId(versionId)
+        versionId
       );
       return toM2MGatewayEServiceTemplateVersion(version);
     },
