@@ -9,8 +9,6 @@ import {
   ApiError,
   DescriptorId,
   EServiceId,
-  EServiceTemplateId,
-  EServiceTemplateVersionId,
   makeApiProblemBuilder,
   PurposeId,
   PurposeVersionId,
@@ -116,8 +114,8 @@ export function clientAdminIdNotFound(
 }
 
 export function eserviceTemplateVersionNotFound(
-  templateId: EServiceTemplateId,
-  versionId: EServiceTemplateVersionId
+  templateId: string,
+  versionId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Version ${versionId} not found in eservice template ${templateId}`,

@@ -135,7 +135,7 @@ const eserviceTemplateRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
         const template =
-          await eserviceTemplateService.updateEServiceTemplateDescription(
+          await eserviceTemplateService.updatePublishedEServiceTemplateDescription(
             unsafeBrandId(req.params.templateId),
             req.body,
             ctx
@@ -163,7 +163,7 @@ const eserviceTemplateRouter = (
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
           const template =
-            await eserviceTemplateService.updateEServiceTemplateIntendedTarget(
+            await eserviceTemplateService.updatePublishedEServiceTemplateIntendedTarget(
               unsafeBrandId(req.params.templateId),
               req.body,
               ctx
@@ -190,7 +190,7 @@ const eserviceTemplateRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
         const template =
-          await eserviceTemplateService.updateEServiceTemplateName(
+          await eserviceTemplateService.updatePublishedEServiceTemplateName(
             unsafeBrandId(req.params.templateId),
             req.body,
             ctx

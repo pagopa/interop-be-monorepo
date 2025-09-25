@@ -89,6 +89,24 @@ export function eserviceTemplateServiceBuilder(
       condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
     });
 
+  const retrieveEServiceTemplateVersionById = (
+    eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
+    versionId: EServiceTemplateVersionId
+  ): eserviceTemplateApi.EServiceTemplateVersion => {
+    const version = eserviceTemplate.data.versions.find(
+      (v) => v.id === versionId
+    );
+
+    if (!version) {
+      throw eserviceTemplateVersionNotFound(
+        eserviceTemplate.data.id,
+        versionId
+      );
+    }
+
+    return version;
+  };
+
   return {
     async getEServiceTemplateById(
       templateId: EServiceTemplateId,
@@ -504,7 +522,7 @@ export function eserviceTemplateServiceBuilder(
 
       await pollEServiceTemplate(response, headers);
     },
-    async updateEServiceTemplateDescription(
+    async updatePublishedEServiceTemplateDescription(
       templateId: EServiceTemplateId,
       seed: m2mGatewayApi.EServiceTemplateDescriptionUpdateSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -524,7 +542,7 @@ export function eserviceTemplateServiceBuilder(
       const polledResource = await pollEServiceTemplate(response, headers);
       return toM2MGatewayEServiceTemplate(polledResource.data);
     },
-    async updateEServiceTemplateIntendedTarget(
+    async updatePublishedEServiceTemplateIntendedTarget(
       templateId: EServiceTemplateId,
       seed: m2mGatewayApi.EServiceTemplateIntendedTargetUpdateSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -544,7 +562,7 @@ export function eserviceTemplateServiceBuilder(
       const polledResource = await pollEServiceTemplate(response, headers);
       return toM2MGatewayEServiceTemplate(polledResource.data);
     },
-    async updateEServiceTemplateName(
+    async updatePublishedEServiceTemplateName(
       templateId: EServiceTemplateId,
       seed: m2mGatewayApi.EServiceTemplateNameUpdateSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
