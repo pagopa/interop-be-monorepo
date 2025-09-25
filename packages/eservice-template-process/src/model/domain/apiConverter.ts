@@ -73,15 +73,14 @@ export function agreementApprovalPolicyToApiAgreementApprovalPolicy(
 }
 
 export function apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-  input: eserviceTemplateApi.AgreementApprovalPolicy | undefined
+  input: eserviceTemplateApi.AgreementApprovalPolicy
 ): AgreementApprovalPolicy {
   return match<
-    eserviceTemplateApi.AgreementApprovalPolicy | undefined,
+    eserviceTemplateApi.AgreementApprovalPolicy,
     AgreementApprovalPolicy
   >(input)
     .with("AUTOMATIC", () => agreementApprovalPolicy.automatic)
     .with("MANUAL", () => agreementApprovalPolicy.manual)
-    .with(undefined, () => agreementApprovalPolicy.automatic)
     .exhaustive();
 }
 
