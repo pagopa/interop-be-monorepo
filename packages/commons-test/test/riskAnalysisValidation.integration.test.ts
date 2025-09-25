@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   RiskAnalysisFormToValidate,
@@ -20,6 +20,7 @@ import {
   validRiskAnalysis3_0_Pa,
   validSchemaOnlyRiskAnalysis2_0_Private,
   validSchemaOnlyRiskAnalysis3_0_Pa,
+  validatedRiskAnalysis2_0_Pa_Expired,
   validatedRiskAnalysis2_0_Private,
   validatedRiskAnalysis3_0_Pa,
 } from "../src/riskAnalysisTestUtils.js";
@@ -43,6 +44,31 @@ describe("Risk Analysis Validation", () => {
       value: validatedRiskAnalysis3_0_Pa,
     });
     expect(result).toEqual(resultSchemaOnly);
+  });
+
+  it("should succeed on correct form 2.0 (when it wasn't expired) on tenant kind PA", () => {
+    const mockDate = new Date("2023-01-01");
+    vi.useFakeTimers();
+    vi.setSystemTime(mockDate);
+
+    const result = validateRiskAnalysis(
+      expiredRiskAnalysis2_0_Pa,
+      false,
+      "PA",
+      new Date()
+    );
+    const resultSchemaOnly = validateRiskAnalysis(
+      expiredRiskAnalysis2_0_Pa,
+      true,
+      "PA",
+      new Date()
+    );
+    expect(result).toEqual({
+      type: "valid",
+      value: validatedRiskAnalysis2_0_Pa_Expired,
+    });
+    expect(result).toEqual(resultSchemaOnly);
+    vi.useRealTimers();
   });
 
   it("should succeed on correct form 3.0 (not expired) schema only on tenant kind PA", () => {
