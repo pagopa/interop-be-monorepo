@@ -11,14 +11,14 @@ import {
   RiskAnalysisTemplateValidatedForm,
   RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
-  validateNoHyperlinks,
+  // validateNoHyperlinks,
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
 } from "pagopa-interop-commons";
 import { riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer } from "../../../commons/src/risk-analysis-template/riskAnalysisFormTemplate.js";
 import {
   annotationTextLengthError,
-  hyperlinkDetectionError,
+  // hyperlinkDetectionError,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInValidState,
