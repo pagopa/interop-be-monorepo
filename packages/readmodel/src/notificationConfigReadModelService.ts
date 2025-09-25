@@ -136,11 +136,10 @@ export function notificationConfigReadModelServiceBuilder(
             ),
             eq(enabledNotificationTable.notificationType, notificationType),
             match(notificationChannel)
-              .with("inApp", () =>
-                eq(
-                  userNotificationConfigInReadmodelNotificationConfig.inAppNotificationPreference,
-                  true
-                )
+              .with(
+                "inApp",
+                () =>
+                  userNotificationConfigInReadmodelNotificationConfig.inAppNotificationPreference
               )
               .with("email", () =>
                 eq(

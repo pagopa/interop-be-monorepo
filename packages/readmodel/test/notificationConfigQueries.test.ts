@@ -12,6 +12,7 @@ import {
 import {
   getMockTenantNotificationConfig,
   getMockUserNotificationConfig,
+  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
   insertTenantNotificationConfig,
@@ -280,7 +281,10 @@ describe("Notification config queries", () => {
           }))
           .with("email", () => ({
             ...enabledConfig,
-            emailNotificationPreference: emailNotificationPreference.disabled,
+            emailNotificationPreference: randomArrayItem([
+              emailNotificationPreference.disabled,
+              emailNotificationPreference.digest,
+            ]),
           }))
           .exhaustive();
 
