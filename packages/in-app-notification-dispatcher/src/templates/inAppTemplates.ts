@@ -179,4 +179,9 @@ export const inAppTemplates = {
     action: "associato" | "disassociato"
   ): string =>
     `L'ente ${consumerName} ha ${action} un proprio client alla finalità ${purposeName} per il tuo e-service ${eserviceName}`,
+  producerKeychainEServiceAddedToConsumer: (
+    producerName: string,
+    eserviceName: string
+  ): string =>
+    `Ti informiamo che l'ente erogatore <strong>${producerName}</strong> ha aggiunto un nuovo livello di sicurezza (portachiavi) all'e-service <strong>${eserviceName}</strong>.`,
 };
