@@ -100,7 +100,7 @@ async function loadCertifiedAttributes(
       name: match(c.kind)
         .with(
           ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
-          () => `${c.name} - Tipologia`
+          () => `${c.name} - Tipologia IPA`
         )
         .otherwise(() => c.name),
       origin: c.origin,
