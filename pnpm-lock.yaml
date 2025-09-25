@@ -2979,6 +2979,9 @@ importers:
       drizzle-orm:
         specifier: 0.39.3
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
     devDependencies:
       '@types/node':
         specifier: 20.19.9
@@ -5071,6 +5074,9 @@ importers:
       drizzle-orm:
         specifier: 0.39.3
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
     devDependencies:
       '@types/node':
         specifier: 20.14.6

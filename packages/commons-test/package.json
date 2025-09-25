@@ -2,6 +2,7 @@
   "name": "pagopa-interop-commons-test",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "common test utilities",
   "main": "dist",
   "type": "module",
@@ -15,8 +16,6 @@
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@anatine/zod-mock": "3.14.0",
     "@aws-sdk/client-dynamodb": "3.840.0",
