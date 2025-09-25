@@ -13,6 +13,9 @@ import {
   PurposeTemplate,
   PurposeTemplateDraftUpdatedV2,
   tenantKind,
+  operationForbidden,
+  generateId,
+  TenantId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -310,6 +313,37 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(mockPurposeTemplate.id));
+
+    vi.useRealTimers();
+  });
+
+  it("should throw operationForbidden if the requester is not the creator", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    await addOnePurposeTemplate(mockPurposeTemplate);
+
+    const validRiskAnalysisAnswerRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest =
+      {
+        answerKey: "purpose",
+        answerData: {
+          values: ["INSTITUTIONAL"],
+          editable: true,
+          suggestedValues: [],
+        },
+      };
+
+    const differentCreatorId = generateId<TenantId>();
+
+    await expect(
+      purposeTemplateService.createRiskAnalysisAnswer(
+        mockPurposeTemplate.id,
+        validRiskAnalysisAnswerRequest,
+        getMockContext({
+          authData: getMockAuthData(differentCreatorId),
+        })
+      )
+    ).rejects.toThrowError(operationForbidden);
 
     vi.useRealTimers();
   });

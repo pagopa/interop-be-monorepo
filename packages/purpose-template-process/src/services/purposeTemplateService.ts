@@ -37,6 +37,7 @@ import {
   assertPurposeTemplateTitleIsNotDuplicated,
   validateAndTransformRiskAnalysisAnswer,
   validateAndTransformRiskAnalysisTemplate,
+  assertRequesterPurposeTemplateCreator,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -143,6 +144,7 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       riskAnalysisTemplateAnswerRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest,
       {
+        authData,
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
@@ -165,6 +167,12 @@ export function purposeTemplateServiceBuilder(
       assertPurposeTemplateStateIsValid(purposeTemplate.data.state, [
         purposeTemplateState.draft,
       ]);
+
+      // Check if the requester is the creator of the purpose template
+      assertRequesterPurposeTemplateCreator(
+        purposeTemplate.data.creatorId,
+        authData
+      );
 
       const validatedAnswer = validateAndTransformRiskAnalysisAnswer(
         riskAnalysisTemplateAnswerRequest,

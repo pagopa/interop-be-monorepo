@@ -4,6 +4,8 @@ import {
   TenantKind,
   RiskAnalysisTemplateSingleAnswer,
   RiskAnalysisTemplateMultiAnswer,
+  TenantId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -15,6 +17,8 @@ import {
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
   riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer,
+  UIAuthData,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   annotationTextLengthError,
@@ -141,4 +145,13 @@ function validateRiskAnalysisAnswerOrThrow({
   }
 
   return result.value;
+}
+
+export function assertRequesterPurposeTemplateCreator(
+  creatorId: TenantId,
+  authData: UIAuthData | M2MAdminAuthData
+): void {
+  if (authData.organizationId !== creatorId) {
+    throw operationForbidden;
+  }
 }
