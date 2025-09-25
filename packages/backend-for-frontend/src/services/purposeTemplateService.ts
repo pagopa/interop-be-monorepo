@@ -87,6 +87,9 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Unlinking e-service ${eserviceId} from purpose template ${purposeTemplateId}`
       );
+
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
       await purposeTemplateClient.unlinkEServicesFromPurposeTemplate(
         {
           eserviceIds: [eserviceId],
