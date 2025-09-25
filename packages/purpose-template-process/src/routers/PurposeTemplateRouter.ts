@@ -62,8 +62,16 @@ const purposeTemplateRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const { purposeTitle, creatorIds, eserviceIds, states, offset, limit } =
-          req.query;
+        const {
+          purposeTitle,
+          creatorIds,
+          eserviceIds,
+          states,
+          excludeExpiredRiskAnalysis,
+          offset,
+          limit,
+        } = req.query;
+
         const purposeTemplates =
           await purposeTemplateService.getPurposeTemplates(
             {
@@ -74,6 +82,7 @@ const purposeTemplateRouter = (
               states: states?.map(
                 apiPurposeTemplateStateToPurposeTemplateState
               ),
+              excludeExpiredRiskAnalysis,
             },
             { offset, limit },
             ctx

@@ -37,6 +37,7 @@ describe("API GET /purposeTemplates", () => {
     eserviceIds: generateId(),
     creatorIds: `${generateId()},${generateId()}`,
     states: "ACTIVE,DRAFT",
+    excludeExpiredRiskAnalysis: false,
     targetTenantKind: tenantKind.PA,
   };
 
@@ -108,6 +109,7 @@ describe("API GET /purposeTemplates", () => {
     { query: { ...defaultQuery, creatorIds: `${generateId()},invalid` } },
     { query: { ...defaultQuery, states: "ACTIVE,invalid" } },
     { query: { ...defaultQuery, targetTenantKind: "invalid" } },
+    { query: { ...defaultQuery, excludeExpiredRiskAnalysis: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof defaultQuery);
