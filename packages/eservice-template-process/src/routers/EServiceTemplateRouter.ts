@@ -311,11 +311,15 @@ const eserviceTemplatesRouter = (
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE, ADMIN_ROLE, API_ROLE]);
 
-          await eserviceTemplateService.deleteEServiceTemplateVersion(
-            unsafeBrandId(req.params.templateId),
-            unsafeBrandId(req.params.templateVersionId),
-            ctx
-          );
+          const result =
+            await eserviceTemplateService.deleteEServiceTemplateVersion(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.templateVersionId),
+              ctx
+            );
+          if (result) {
+            setMetadataVersionHeader(res, result.metadata);
+          }
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
