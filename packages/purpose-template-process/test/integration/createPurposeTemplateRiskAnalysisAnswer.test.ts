@@ -21,7 +21,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   annotationTextLengthError,
-  hyperlinkDetectionError,
+  // hyperlinkDetectionError,
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateValidationFailed,
@@ -142,7 +142,8 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
     vi.useRealTimers();
   });
 
-  it("should throw hyperlinkDetectionError if annotation text contains hyperlinks", async () => {
+  // todo disabled until hyperlinks validation rules are defined
+  /* it("should throw hyperlinkDetectionError if annotation text contains hyperlinks", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -175,7 +176,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
     ).rejects.toThrowError(hyperlinkDetectionError(textWithHyperlink));
 
     vi.useRealTimers();
-  });
+  }); */
 
   it("should throw purposeTemplateRiskAnalysisFormNotFound if purpose template has no risk analysis form", async () => {
     vi.useFakeTimers();

@@ -127,7 +127,7 @@ function validateRiskAnalysisAnswerOrThrow({
       throw annotationTextLengthError(text, text.length, 250);
     }
 
-    validateNoHyperlinks(text, hyperlinkDetectionError(text));
+    // validateNoHyperlinks(text, hyperlinkDetectionError(text)); // todo disabled until hyperlinks validation rules are defined
   }
 
   const result = validateRiskAnalysisAnswer(
