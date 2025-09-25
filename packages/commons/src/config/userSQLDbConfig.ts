@@ -11,6 +11,7 @@ export const UserSQLDbConfig = z
       .enum(["true", "false"])
       .transform((value) => value === "true")
       .default("false"),
+    USER_SQL_DB_SCHEMA: z.string().default("user"),
   })
   .transform((c) => ({
     userSQLDbHost: c.USER_SQL_DB_HOST,
@@ -19,6 +20,7 @@ export const UserSQLDbConfig = z
     userSQLDbPassword: c.USER_SQL_DB_PASSWORD,
     userSQLDbPort: c.USER_SQL_DB_PORT,
     userSQLDbUseSSL: c.USER_SQL_DB_USE_SSL,
+    userSQLDbSchema: c.USER_SQL_DB_SCHEMA,
   }));
 
 export type UserSQLDbConfig = z.infer<typeof UserSQLDbConfig>;

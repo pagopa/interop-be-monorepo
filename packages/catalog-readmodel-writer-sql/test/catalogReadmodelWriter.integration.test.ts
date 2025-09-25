@@ -39,7 +39,7 @@ import {
   EServiceDraftDescriptorUpdatedV2,
   EServiceEventEnvelope,
   EServiceNameUpdatedV2,
-  EServicePersonalDataUpdatedAfterPublishV2,
+  EServicePersonalDataFlagUpdatedAfterPublicationV2,
   EServiceRiskAnalysisAddedV1,
   EServiceRiskAnalysisAddedV2,
   EServiceRiskAnalysisDeletedV1,
@@ -1615,7 +1615,7 @@ describe("database test", async () => {
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
-    it("EServicePersonalDataUpdatedAfterPublish", async () => {
+    it("EServicePersonalDataFlagUpdatedAfterPublication", async () => {
       const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(),
         interface: getMockDocument(),
@@ -1631,14 +1631,14 @@ describe("database test", async () => {
         ...eservice,
         personalData: true,
       };
-      const payload: EServicePersonalDataUpdatedAfterPublishV2 = {
+      const payload: EServicePersonalDataFlagUpdatedAfterPublicationV2 = {
         eservice: toEServiceV2(updatedEService),
       };
       const message: EServiceEventEnvelope = {
         sequence_num: 1,
         stream_id: mockEService.id,
         version: 2,
-        type: "EServicePersonalDataUpdatedAfterPublish",
+        type: "EServicePersonalDataFlagUpdatedAfterPublication",
         event_version: 2,
         data: payload,
         log_date: new Date(),

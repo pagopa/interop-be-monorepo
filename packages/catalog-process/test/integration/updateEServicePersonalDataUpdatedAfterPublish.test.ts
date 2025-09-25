@@ -12,7 +12,7 @@ import {
   descriptorState,
   EService,
   toEServiceV2,
-  EServicePersonalDataUpdatedAfterPublishV2,
+  EServicePersonalDataFlagUpdatedAfterPublicationV2,
   operationForbidden,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -58,12 +58,12 @@ describe("update E-service personalData flag for an already created E-service", 
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServicePersonalDataUpdatedAfterPublish",
+      type: "EServicePersonalDataFlagUpdatedAfterPublication",
       event_version: 2,
     });
 
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServicePersonalDataUpdatedAfterPublishV2,
+      messageType: EServicePersonalDataFlagUpdatedAfterPublicationV2,
       payload: writtenEvent.data,
     });
 

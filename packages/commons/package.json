@@ -2,6 +2,7 @@
   "name": "pagopa-interop-commons",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability common utilities",
   "main": "dist",
   "type": "module",
@@ -17,7 +18,6 @@
     "check": "tsc --project tsconfig.check.json",
     "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql"
   },
-  "license": "Apache-2.0",
   "dependencies": {
     "@apidevtools/swagger-parser": "10.1.1",
     "@aws-sdk/client-kms": "3.840.0",
