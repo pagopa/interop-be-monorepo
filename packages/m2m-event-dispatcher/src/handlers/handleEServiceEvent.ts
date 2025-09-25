@@ -55,7 +55,7 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
-          "EServicePersonalDataUpdatedAfterPublish"
+          "EServicePersonalDataFlagUpdatedAfterPublication"
         ),
       },
       () => Promise.resolve(void 0)
