@@ -94,6 +94,12 @@ describe("suspendEServiceTemplateVersion", () => {
       data: templateWithoutVersion,
       metadata: { version: 0 },
     });
+
+    mockGetEServiceTemplateById.mockResolvedValue({
+      data: templateWithoutVersion,
+      metadata: { version: 0 },
+    });
+
     await expect(
       eserviceTemplateService.suspendEServiceTemplateVersion(
         unsafeBrandId(mockApiTemplate.data.id),

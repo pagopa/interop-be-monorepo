@@ -15,6 +15,7 @@ import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getEServiceTemplateRiskAnalysisErrorMapper,
   getEServiceTemplateVersionErrorMapper,
+  unsuspendEServiceTemplateVersionErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -261,7 +262,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            unsuspendEServiceTemplateVersionErrorMapper,
             ctx,
             `Error unsuspending eservice template ${req.params.templateId} version ${req.params.versionId}`
           );

@@ -364,16 +364,14 @@ describe("publishEServiceTemplateVersion", () => {
     await addOneEServiceTemplate(eserviceTemplate);
 
     expect(
-      (
-        await eserviceTemplateService.publishEServiceTemplateVersion(
-          eserviceTemplate.id,
-          eserviceTemplateVersion.id,
-          getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
-          })
-        )
-      ).data
-    ).equal(null);
+      eserviceTemplateService.publishEServiceTemplateVersion(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).resolves.not.toThrowError();
   });
 
   it("shouldn't throw riskAnalysisValidationFailed if the eservice template mode isn't receive even if doesn't have a valid risk analysis", async () => {
@@ -411,15 +409,13 @@ describe("publishEServiceTemplateVersion", () => {
     await addOneEServiceTemplate(eserviceTemplate);
 
     expect(
-      (
-        await eserviceTemplateService.publishEServiceTemplateVersion(
-          eserviceTemplate.id,
-          eserviceTemplateVersion.id,
-          getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
-          })
-        )
-      ).data
-    ).equal(null);
+      eserviceTemplateService.publishEServiceTemplateVersion(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).resolves.not.toThrowError();
   });
 });

@@ -94,6 +94,12 @@ describe("publishEServiceTemplateVersion", () => {
       data: templateWithoutVersion,
       metadata: { version: 0 },
     });
+
+    mockGetEServiceTemplateById.mockResolvedValue({
+      data: templateWithoutVersion,
+      metadata: { version: 0 },
+    });
+
     await expect(
       eserviceTemplateService.publishEServiceTemplateVersion(
         unsafeBrandId(mockApiTemplate.data.id),

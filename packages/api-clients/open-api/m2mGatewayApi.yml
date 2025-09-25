@@ -8478,8 +8478,8 @@ paths:
     post:
       tags:
         - eserviceTemplates
-      summary: Suspend the selected E-Service Template Version
-      description: Suspend the selected E-Service Template Version transitioning it to Suspended state from Published state
+      summary: Suspend an E-Service Template Version in Published state
+      description: Suspend an E-Service Template Version that is in Published state, transitioning it to Suspended state
       operationId: suspendEServiceTemplateVersion
       responses:
         "200":
@@ -8579,8 +8579,8 @@ paths:
     post:
       tags:
         - eserviceTemplates
-      summary: Unsuspend an E-Service Template Version
-      description: Unsuspend an E-Service Template Version transitioning it from Suspended state
+      summary: Unsuspend an E-Service Template Version in Suspended state
+      description: Unsuspend an E-Service Template Version that is in Suspended state, transitioning it to Published state
       operationId: unsuspendEServiceTemplateVersion
       responses:
         "200":
@@ -8680,8 +8680,8 @@ paths:
     post:
       tags:
         - eserviceTemplates
-      summary: Publish an E-Service Template Version
-      description: Publish an E-Service Template Version that is in Draft state
+      summary: Publish an E-Service Template Version in Draft state
+      description: Publish an E-Service Template Version that is in Draft state, transitioning it to Published state
       operationId: publishEServiceTemplateVersion
       responses:
         "200":

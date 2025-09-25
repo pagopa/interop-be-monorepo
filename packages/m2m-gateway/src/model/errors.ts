@@ -48,6 +48,7 @@ export const errorCodes = {
   eserviceRiskAnalysisNotFound: "0030",
   eserviceTemplateRiskAnalysisNotFound: "0031",
   delegationEServiceMismatch: "0032",
+  eserviceTemplateVersionNotInSuspendedState: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -347,5 +348,15 @@ export function eserviceTemplateRiskAnalysisNotFound(
     detail: `Risk analysis ${riskAnalysisId} not found for e-service template ${templateId}`,
     code: "eserviceTemplateRiskAnalysisNotFound",
     title: "E-Service Template risk analysis not found",
+  });
+}
+
+export function eserviceTemplateVersionNotInSuspendedState(
+  versionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-Service Template Version ${versionId} is not in suspended state`,
+    code: "eserviceTemplateVersionNotInSuspendedState",
+    title: "E-Service Template Version not in suspended state",
   });
 }
