@@ -93,7 +93,16 @@ async function loadCertifiedAttributes(
     .map(([_, c]) => ({
       code: createHash("sha256").update(c.kind).digest("hex"),
       description: c.kind,
-      name: c.name,
+      /**
+       * Società in Conto Economico Consolidato exists both as a category and as a type.
+       * To avoid duplicates, we add the suffix ' - Tipologia' to the name of the type.
+       */
+      name: match(c.kind)
+        .with(
+          ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+          () => `${c.name} - Tipologia`
+        )
+        .otherwise(() => c.name),
       origin: c.origin,
     }));
 
