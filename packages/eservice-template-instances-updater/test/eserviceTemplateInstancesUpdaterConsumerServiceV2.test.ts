@@ -20,7 +20,7 @@ import {
   EServiceTemplateDescriptionUpdatedV2,
   EServiceTemplateEventEnvelope,
   EServiceTemplateNameUpdatedV2,
-  EServiceTemplatePersonalDataUpdatedAfterPublishV2,
+  EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2,
   EServiceTemplateVersion,
   EServiceTemplateVersionAttributesUpdatedV2,
   EServiceTemplateVersionDocumentAddedV2,
@@ -910,7 +910,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       ...eserviceTemplate,
       personalData: true,
     };
-    const payload: EServiceTemplatePersonalDataUpdatedAfterPublishV2 = {
+    const payload: EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2 = {
       eserviceTemplate: toEServiceTemplateV2(mockTemplate),
     };
 
@@ -918,7 +918,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       sequence_num: 1,
       stream_id: eserviceTemplate.id,
       version: 2,
-      type: "EServiceTemplatePersonalDataUpdatedAfterPublish",
+      type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
       event_version: 2,
       data: payload,
       log_date: new Date(),
