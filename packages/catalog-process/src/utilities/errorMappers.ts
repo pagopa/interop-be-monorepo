@@ -297,7 +297,7 @@ export const publishDescriptorErrorMapper = (
       "riskAnalysisNotValid",
       "notValidDescriptor",
       "audienceCannotBeEmpty",
-      "eservicePersonalDataMustBeSet",
+      "missingPersonalDataFlag",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)

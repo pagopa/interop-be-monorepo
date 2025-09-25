@@ -21,7 +21,7 @@ export const expiredRiskAnalysis2_0_Pa: RiskAnalysisFormToValidate = {
     purpose: ["INSTITUTIONAL"],
     institutionalPurpose: ["MyPurpose"],
     personalDataTypes: ["WITH_NON_IDENTIFYING_DATA"],
-    legalBasis: ["LEGAL_OBLIGATION"],
+    legalBasis: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
     legalObligationReference: ["somethingLegal"],
     legalBasisPublicInterest: ["RULE_OF_LAW"],
     ruleOfLawText: ["TheLaw"],
@@ -31,7 +31,6 @@ export const expiredRiskAnalysis2_0_Pa: RiskAnalysisFormToValidate = {
     reasonPolicyNotProvided: ["Test"],
     confirmPricipleIntegrityAndDiscretion: ["true"],
     doneDpia: ["NO"],
-    dataDownload: ["YES"],
     dataRetentionPeriod: ["true"],
     purposePursuit: ["MERE_CORRECTNESS"],
     checkedExistenceMereCorrectnessInteropCatalogue: ["true"],
@@ -72,8 +71,6 @@ export const validatedRiskAnalysis2_0_Pa_Expired: RiskAnalysisValidatedForm = {
   singleAnswers: [
     { key: "purpose", value: "INSTITUTIONAL" },
     { key: "institutionalPurpose", value: "MyPurpose" },
-    { key: "personalDataTypes", value: "WITH_NON_IDENTIFYING_DATA" },
-    { key: "legalBasis", value: "LEGAL_OBLIGATION" },
     { key: "legalObligationReference", value: "somethingLegal" },
     { key: "legalBasisPublicInterest", value: "RULE_OF_LAW" },
     { key: "ruleOfLawText", value: "TheLaw" },
@@ -83,7 +80,6 @@ export const validatedRiskAnalysis2_0_Pa_Expired: RiskAnalysisValidatedForm = {
     { key: "reasonPolicyNotProvided", value: "Test" },
     { key: "confirmPricipleIntegrityAndDiscretion", value: "true" },
     { key: "doneDpia", value: "NO" },
-    { key: "dataDownload", value: "YES" },
     { key: "dataRetentionPeriod", value: "true" },
     { key: "purposePursuit", value: "MERE_CORRECTNESS" },
     {
@@ -93,7 +89,10 @@ export const validatedRiskAnalysis2_0_Pa_Expired: RiskAnalysisValidatedForm = {
     { key: "usesThirdPartyData", value: "NO" },
     { key: "declarationConfirmGDPR", value: "true" },
   ],
-  multiAnswers: [],
+  multiAnswers: [
+    { key: "personalDataTypes", values: ["WITH_NON_IDENTIFYING_DATA"] },
+    { key: "legalBasis", values: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"] },
+  ],
 };
 
 export const validatedRiskAnalysis3_0_Pa: RiskAnalysisValidatedForm = {
