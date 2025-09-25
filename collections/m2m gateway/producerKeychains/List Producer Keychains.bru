@@ -5,16 +5,16 @@ meta {
 }
 
 get {
-  url: {{host-m2m-gw}}/producerKeychains?producerId={{tenantId}}&offset=0&limit=10
+  url: {{host-m2m-gw}}/producerKeychains?offset=0&limit=10
   body: none
   auth: none
 }
 
 params:query {
-  ~name: 
-  producerId: {{tenantId}}
   offset: 0
   limit: 10
+  ~name: test
+  ~producerId: {{tenantId2}}
 }
 
 headers {

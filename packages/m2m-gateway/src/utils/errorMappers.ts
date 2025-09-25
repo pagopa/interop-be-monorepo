@@ -52,13 +52,6 @@ export const getEserviceDescriptorErrorMapper = (
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getEServiceDescriptorAttributesErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const downloadEServiceDescriptorInterfaceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -140,7 +133,11 @@ export function downloadAgreementConsumerContractErrorMapper(
 
 export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("notAnActiveConsumerDelegation", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "delegationEServiceMismatch",
+      "requesterIsNotTheDelegateConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const uploadEServiceDescriptorInterfaceErrorMapper = (
@@ -189,4 +186,11 @@ export const getEServiceRiskAnalysisErrorMapper = (
 ): number =>
   match(error.code)
     .with("eserviceRiskAnalysisNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getEServiceTemplateRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateRiskAnalysisNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

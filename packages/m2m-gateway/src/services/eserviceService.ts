@@ -11,14 +11,12 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   toGetEServicesQueryParams,
-  toM2MGatewayApiDocument,
   toM2MGatewayApiEService,
   toM2MGatewayApiEServiceDescriptor,
   toCatalogApiEServiceDescriptorSeed,
   toM2MGatewayApiEServiceRiskAnalysis,
-  toM2MGatewayApiEServiceDescriptorAttributes,
-  toCatalogApiAttributesSeed,
   toCatalogApiPatchUpdateEServiceDescriptorSeed,
+  toM2MGatewayApiDocument,
 } from "../api/eserviceApiConverter.js";
 import {
   cannotDeleteLastEServiceDescriptor,
@@ -44,37 +42,6 @@ export function eserviceServiceBuilder(
   clients: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
-  async function replaceEServiceDescriptorAttributes(
-    eserviceId: EServiceId,
-    descriptorId: DescriptorId,
-    attributeKind: keyof catalogApi.PatchAttributesSeed,
-    seed: m2mGatewayApi.EServiceDescriptorAttributes,
-    headers: M2MGatewayAppContext["headers"]
-  ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
-    const response =
-      await clients.catalogProcessClient.patchUpdateDraftDescriptor(
-        {
-          attributes: {
-            [attributeKind]: toCatalogApiAttributesSeed(seed.attributes),
-          },
-        },
-        {
-          params: { eServiceId: eserviceId, descriptorId },
-          headers,
-        }
-      );
-    await pollEService(response, headers);
-
-    const updatedDescriptor = retrieveEServiceDescriptorById(
-      response,
-      unsafeBrandId(descriptorId)
-    );
-
-    return toM2MGatewayApiEServiceDescriptorAttributes(
-      updatedDescriptor.attributes[attributeKind]
-    );
-  }
-
   const retrieveEServiceById = async (
     headers: M2MGatewayAppContext["headers"],
     eserviceId: EServiceId
@@ -482,7 +449,7 @@ export function eserviceServiceBuilder(
       logger.info(`Updating draft EService with id ${eserviceId}`);
 
       const response =
-        await clients.catalogProcessClient.patchUpdateEServiceById(seed, {
+        await clients.catalogProcessClient.patchUpdateDraftEServiceById(seed, {
           params: { eServiceId: eserviceId },
           headers,
         });
@@ -570,6 +537,25 @@ export function eserviceServiceBuilder(
           headers,
         }
       );
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async updatePublishedEServiceSignalHub(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceSignalHubUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating Signal Hub flag for published E-Service with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateEServiceSignalHubFlag(seed, {
+          params: { eServiceId: eserviceId },
+          headers,
+        });
 
       const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
@@ -799,67 +785,47 @@ export function eserviceServiceBuilder(
         unsafeBrandId(createdRiskAnalysisId)
       );
 
-      if (!createdRiskAnalysis) {
-        throw eserviceRiskAnalysisNotFound(eservice.id, createdRiskAnalysisId);
-      }
-
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
     },
 
-    async updateEServiceDescriptorCertifiedAttributes(
+    async updatePublishedEServiceDescriptorQuotas(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: m2mGatewayApi.EServiceDescriptorAttributes,
+      seed: m2mGatewayApi.EServiceDescriptorQuotasUpdateSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
       logger.info(
-        `Updating Certified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+        `Updating Descriptor Quotas for published E-Service with id ${eserviceId}`
       );
 
-      return await replaceEServiceDescriptorAttributes(
-        eserviceId,
-        descriptorId,
-        "certified",
-        seed,
-        headers
-      );
-    },
-    async updateEServiceDescriptorDeclaredAttributes(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      seed: m2mGatewayApi.EServiceDescriptorAttributes,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
-      logger.info(
-        `Updating Declared Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId
       );
 
-      return await replaceEServiceDescriptorAttributes(
-        eserviceId,
-        descriptorId,
-        "declared",
-        seed,
-        headers
-      );
-    },
-    async updateEServiceDescriptorVerifiedAttributes(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      seed: m2mGatewayApi.EServiceDescriptorAttributes,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
-      logger.info(
-        `Updating Verified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      const response = await clients.catalogProcessClient.updateDescriptor(
+        {
+          voucherLifespan: seed.voucherLifespan ?? descriptor.voucherLifespan,
+          dailyCallsPerConsumer:
+            seed.dailyCallsPerConsumer ?? descriptor.dailyCallsPerConsumer,
+          dailyCallsTotal: seed.dailyCallsTotal ?? descriptor.dailyCallsTotal,
+        },
+        {
+          params: { eServiceId: eserviceId, descriptorId },
+          headers,
+        }
       );
 
-      return await replaceEServiceDescriptorAttributes(
-        eserviceId,
-        descriptorId,
-        "verified",
-        seed,
-        headers
+      const polledResource = await pollEService(response, headers);
+
+      return toM2MGatewayApiEServiceDescriptor(
+        retrieveEServiceDescriptorById(
+          polledResource,
+          unsafeBrandId(descriptorId)
+        )
       );
     },
+
     async getEServiceRiskAnalyses(
       eserviceId: EServiceId,
       { limit, offset }: m2mGatewayApi.GetEServiceRiskAnalysesQueryParams,

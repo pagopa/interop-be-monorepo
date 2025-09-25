@@ -1,4 +1,5 @@
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { toM2MGatewayApiRiskAnalysisForm } from "./riskAnalysisFormApiConverter.js";
 
 export function toGetEServicesQueryParams(
   params: m2mGatewayApi.GetEServicesQueryParams
@@ -61,35 +62,6 @@ export function toM2MGatewayApiEServiceDescriptor(
   };
 }
 
-export function toM2MGatewayApiDocument(
-  document: catalogApi.EServiceDoc
-): m2mGatewayApi.Document {
-  return {
-    id: document.id,
-    name: document.name,
-    prettyName: document.prettyName,
-    createdAt: document.uploadDate,
-    contentType: document.contentType,
-  };
-}
-
-function toCatalogApiAttributeSeed(
-  attribute: m2mGatewayApi.EServiceDescriptorAttribute
-): catalogApi.AttributeSeed {
-  return {
-    id: attribute.id,
-    explicitAttributeVerification: false,
-  };
-}
-
-export function toCatalogApiAttributesSeed(
-  attributeGroups: m2mGatewayApi.EServiceDescriptorAttribute[][]
-): catalogApi.AttributeSeed[][] {
-  return attributeGroups.map((group) =>
-    group.map((attribute) => toCatalogApiAttributeSeed(attribute))
-  );
-}
-
 export function toCatalogApiEServiceDescriptorSeed(
   descriptor: m2mGatewayApi.EServiceDescriptorSeed
 ): catalogApi.EServiceDescriptorSeed {
@@ -123,53 +95,6 @@ export function toCatalogApiPatchUpdateEServiceDescriptorSeed(
   };
 }
 
-export function toM2MGatewayApiRiskAnalysisAnswers(
-  singleAnswers: catalogApi.EServiceRiskAnalysisSingleAnswer[],
-  multiAnswers: catalogApi.EServiceRiskAnalysisMultiAnswer[]
-): Record<string, string[]> {
-  const singleAnswersMap = singleAnswers.reduce<Record<string, string[]>>(
-    (map, { key, value }) => {
-      if (!value) {
-        return map;
-      }
-      // eslint-disable-next-line functional/immutable-data
-      map[key] = [value];
-      return map;
-    },
-    {}
-  );
-
-  const multiAnswersMap = multiAnswers.reduce<Record<string, string[]>>(
-    (map, { key, values }) => {
-      if (values.length === 0) {
-        return map;
-      }
-      // eslint-disable-next-line functional/immutable-data
-      map[key] = values;
-      return map;
-    },
-    {}
-  );
-
-  return {
-    ...singleAnswersMap,
-    ...multiAnswersMap,
-  };
-}
-
-export function toM2MGatewayApiRiskAnalysisForm(
-  riskAnalysisForm: catalogApi.EServiceRiskAnalysisForm
-): m2mGatewayApi.RiskAnalysisForm {
-  return {
-    id: riskAnalysisForm.id,
-    version: riskAnalysisForm.version,
-    answers: toM2MGatewayApiRiskAnalysisAnswers(
-      riskAnalysisForm.singleAnswers,
-      riskAnalysisForm.multiAnswers
-    ),
-  };
-}
-
 export function toM2MGatewayApiEServiceRiskAnalysis(
   riskAnalysis: catalogApi.EServiceRiskAnalysis
 ): m2mGatewayApi.EServiceRiskAnalysis {
@@ -183,22 +108,14 @@ export function toM2MGatewayApiEServiceRiskAnalysis(
   };
 }
 
-function toM2MGatewayApiEServiceDescriptorAttribute(
-  attribute: catalogApi.Attribute
-): m2mGatewayApi.EServiceDescriptorAttribute {
+export function toM2MGatewayApiDocument(
+  document: catalogApi.EServiceDoc
+): m2mGatewayApi.Document {
   return {
-    id: attribute.id,
-  };
-}
-
-export function toM2MGatewayApiEServiceDescriptorAttributes(
-  attributeGroups: catalogApi.Attributes["certified" | "declared" | "verified"]
-): m2mGatewayApi.EServiceDescriptorAttributes {
-  return {
-    attributes: attributeGroups.map((group) =>
-      group.map((attribute) =>
-        toM2MGatewayApiEServiceDescriptorAttribute(attribute)
-      )
-    ),
+    id: document.id,
+    name: document.name,
+    prettyName: document.prettyName,
+    createdAt: document.uploadDate,
+    contentType: document.contentType,
   };
 }

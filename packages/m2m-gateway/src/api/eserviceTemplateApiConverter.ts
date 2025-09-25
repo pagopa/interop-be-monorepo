@@ -1,4 +1,5 @@
 import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { toM2MGatewayApiRiskAnalysisForm } from "./riskAnalysisFormApiConverter.js";
 
 export function toM2MGatewayEServiceTemplate(
   template: eserviceTemplateApi.EServiceTemplate
@@ -33,6 +34,20 @@ export function toM2MGatewayEServiceTemplateVersion(
   };
 }
 
+export function toM2MGatewayApiEServiceTemplateRiskAnalysis(
+  riskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis
+): m2mGatewayApi.EServiceTemplateRiskAnalysis {
+  return {
+    id: riskAnalysis.id,
+    name: riskAnalysis.name,
+    createdAt: riskAnalysis.createdAt,
+    riskAnalysisForm: toM2MGatewayApiRiskAnalysisForm(
+      riskAnalysis.riskAnalysisForm
+    ),
+    tenantKind: riskAnalysis.tenantKind,
+  };
+}
+
 export function toGetEServiceTemplatesQueryParams(
   params: m2mGatewayApi.GetEServiceTemplatesQueryParams
 ): eserviceTemplateApi.GetEServiceTemplatesQueryParams {
@@ -42,5 +57,17 @@ export function toGetEServiceTemplatesQueryParams(
     states: [],
     offset: params.offset,
     limit: params.limit,
+  };
+}
+
+export function toM2MGatewayApiDocument(
+  document: eserviceTemplateApi.EServiceDoc
+): m2mGatewayApi.Document {
+  return {
+    id: document.id,
+    name: document.name,
+    prettyName: document.prettyName,
+    createdAt: document.uploadDate,
+    contentType: document.contentType,
   };
 }

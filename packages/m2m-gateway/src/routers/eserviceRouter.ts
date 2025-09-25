@@ -18,7 +18,6 @@ import {
   uploadEServiceDescriptorInterfaceErrorMapper,
   deleteEServiceDescriptorInterfaceErrorMapper,
   deleteDraftEServiceDescriptorErrorMapper,
-  getEServiceDescriptorAttributesErrorMapper,
   getEServiceRiskAnalysisErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
@@ -61,7 +60,7 @@ const eserviceRouter = (
 
         const eservice = await eserviceService.createEService(req.body, ctx);
 
-        return res.status(200).send(m2mGatewayApi.EService.parse(eservice));
+        return res.status(201).send(m2mGatewayApi.EService.parse(eservice));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -208,6 +207,29 @@ const eserviceRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .patch("/eservices/:eserviceId/signalHub", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const eservice = await eserviceService.updatePublishedEServiceSignalHub(
+          unsafeBrandId(req.params.eserviceId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.EService.parse(eservice));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating Signal Hub flag for eservice with id ${req.params.eserviceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/eservices/:eserviceId/descriptors", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
@@ -335,6 +357,36 @@ const eserviceRouter = (
             deleteDraftEServiceDescriptorErrorMapper,
             ctx,
             `Error deleting descriptor with id ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .patch(
+      "/eservices/:eserviceId/descriptors/:descriptorId/quotas",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const eservice =
+            await eserviceService.updatePublishedEServiceDescriptorQuotas(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceDescriptor.parse(eservice));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating quotas for eservice descriptor with id ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -758,105 +810,6 @@ const eserviceRouter = (
             emptyErrorMapper,
             ctx,
             `Error deleting risk analysis ${req.params.riskAnalysisId} for eservice with id ${req.params.eserviceId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .put(
-      "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes",
-      async (req, res) => {
-        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-
-        try {
-          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-
-          const updatedAttributes =
-            await eserviceService.updateEServiceDescriptorCertifiedAttributes(
-              unsafeBrandId(req.params.eserviceId),
-              unsafeBrandId(req.params.descriptorId),
-              req.body,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              m2mGatewayApi.EServiceDescriptorAttributes.parse(
-                updatedAttributes
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getEServiceDescriptorAttributesErrorMapper,
-            ctx,
-            `Error updating certified attributes for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .put(
-      "/eservices/:eserviceId/descriptors/:descriptorId/declaredAttributes",
-      async (req, res) => {
-        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-
-        try {
-          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-
-          const updatedAttributes =
-            await eserviceService.updateEServiceDescriptorDeclaredAttributes(
-              unsafeBrandId(req.params.eserviceId),
-              unsafeBrandId(req.params.descriptorId),
-              req.body,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              m2mGatewayApi.EServiceDescriptorAttributes.parse(
-                updatedAttributes
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getEServiceDescriptorAttributesErrorMapper,
-            ctx,
-            `Error updating declared attributes for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .put(
-      "/eservices/:eserviceId/descriptors/:descriptorId/verifiedAttributes",
-      async (req, res) => {
-        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-
-        try {
-          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-
-          const updatedAttributes =
-            await eserviceService.updateEServiceDescriptorVerifiedAttributes(
-              unsafeBrandId(req.params.eserviceId),
-              unsafeBrandId(req.params.descriptorId),
-              req.body,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              m2mGatewayApi.EServiceDescriptorAttributes.parse(
-                updatedAttributes
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getEServiceDescriptorAttributesErrorMapper,
-            ctx,
-            `Error updating verified attributes for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
