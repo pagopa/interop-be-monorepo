@@ -78,6 +78,7 @@ const purposeTemplateRouter = (
             targetTenantKind: req.query.targetTenantKind,
             creatorIds: req.query.creatorIds,
             eserviceIds: req.query.eserviceIds,
+            excludeExpiredRiskAnalysis: req.query.excludeExpiredRiskAnalysis,
             offset: req.query.offset,
             limit: req.query.limit,
             ctx,
