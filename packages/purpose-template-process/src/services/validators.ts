@@ -11,14 +11,14 @@ import {
   RiskAnalysisTemplateValidatedForm,
   RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
-  validateNoHyperlinks,
+  // validateNoHyperlinks,
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
 } from "pagopa-interop-commons";
 import { riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer } from "../../../commons/src/risk-analysis-template/riskAnalysisFormTemplate.js";
 import {
   annotationTextLengthError,
-  hyperlinkDetectionError,
+  // hyperlinkDetectionError,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInValidState,
@@ -101,7 +101,7 @@ export function validateRiskAnalysisAnswerAnnotationOrThrow(
     throw annotationTextLengthError(text, text.length, 250);
   }
 
-  validateNoHyperlinks(text, hyperlinkDetectionError(text));
+  // validateNoHyperlinks(text, hyperlinkDetectionError(text));
 }
 
 function validateRiskAnalysisTemplateOrThrow({
