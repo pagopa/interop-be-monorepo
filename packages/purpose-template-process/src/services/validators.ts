@@ -4,6 +4,8 @@ import {
   TenantKind,
   RiskAnalysisTemplateSingleAnswer,
   RiskAnalysisTemplateMultiAnswer,
+  operationForbidden,
+  TenantId,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -11,6 +13,8 @@ import {
   RiskAnalysisTemplateValidatedForm,
   RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
+  UIAuthData,
+  M2MAdminAuthData,
   // validateNoHyperlinks,
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
@@ -102,6 +106,15 @@ export function validateRiskAnalysisAnswerAnnotationOrThrow(
   }
 
   // validateNoHyperlinks(text, hyperlinkDetectionError(text));
+}
+
+export function assertRequesterPurposeTemplateCreator(
+  creatorId: TenantId,
+  authData: UIAuthData | M2MAdminAuthData
+): void {
+  if (authData.organizationId !== creatorId) {
+    throw operationForbidden;
+  }
 }
 
 function validateRiskAnalysisTemplateOrThrow({

@@ -40,6 +40,7 @@ import {
   assertConsistentFreeOfCharge,
   assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
+  assertRequesterPurposeTemplateCreator,
   validateAndTransformRiskAnalysisAnswer,
   validateAndTransformRiskAnalysisTemplate,
   validateRiskAnalysisAnswerAnnotationOrThrow,
@@ -249,6 +250,7 @@ export function purposeTemplateServiceBuilder(
       {
         logger,
         correlationId,
+        authData,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotation>> {
       logger.info(`Creating risk analysis answer annotation`);
@@ -256,6 +258,11 @@ export function purposeTemplateServiceBuilder(
       const purposeTemplate = await retrievePurposeTemplate(
         purposeTemplateId,
         readModelService
+      );
+
+      assertRequesterPurposeTemplateCreator(
+        purposeTemplate.data.creatorId,
+        authData
       );
 
       const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
