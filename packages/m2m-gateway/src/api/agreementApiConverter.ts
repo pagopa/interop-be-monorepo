@@ -1,11 +1,13 @@
 import {
   agreementApi,
+  delegationApi,
   m2mGatewayApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
 
 export function toM2MGatewayApiAgreement(
-  agreement: agreementApi.Agreement
+  agreement: agreementApi.Agreement,
+  delegationId: delegationApi.Delegation["id"] | undefined
 ): m2mGatewayApi.Agreement {
   return {
     id: agreement.id,
@@ -13,6 +15,7 @@ export function toM2MGatewayApiAgreement(
     descriptorId: agreement.descriptorId,
     producerId: agreement.producerId,
     consumerId: agreement.consumerId,
+    delegationId,
     state: agreement.state,
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
