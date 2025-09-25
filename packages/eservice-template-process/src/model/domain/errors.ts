@@ -34,7 +34,7 @@ export const errorCodes = {
   eserviceTemplateDocumentNotFound: "0025",
   riskAnalysisNotFound: "0026",
   attributeDuplicatedInGroup: "0027",
-  eserviceTemplatePersonalDataMustBeSet: "0028",
+  missingPersonalDataFlag: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -300,13 +300,13 @@ export function attributeDuplicatedInGroup(
   });
 }
 
-export function eserviceTemplatePersonalDataMustBeSet(
+export function missingPersonalDataFlag(
   eserviceTemplateId: EServiceTemplateId,
   eserviceTemplateVersionId: EServiceTemplateVersionId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Template version ${eserviceTemplateVersionId} in eserviceTemplate ${eserviceTemplateId} can't be published because personalData flag must be set`,
-    code: "eserviceTemplatePersonalDataMustBeSet",
-    title: "EService Template personalData must be set before publication",
+    code: "missingPersonalDataFlag",
+    title: "EService Template personalData flag must be set before publication",
   });
 }

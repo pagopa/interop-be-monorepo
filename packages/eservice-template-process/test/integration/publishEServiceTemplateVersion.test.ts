@@ -28,7 +28,7 @@ import {
 import { expect, describe, it, afterAll, vi, beforeAll } from "vitest";
 import {
   eserviceTemplateNotFound,
-  eserviceTemplatePersonalDataMustBeSet,
+  missingPersonalDataFlag,
   eserviceTemplateVersionNotFound,
   missingRiskAnalysis,
   missingTemplateVersionInterface,
@@ -425,7 +425,7 @@ describe("publishEServiceTemplateVersion", () => {
     ).equal(undefined);
   });
 
-  it("should throw eserviceTemplatePersonalDataMustBeSet if the template has personalData undefined", async () => {
+  it("should throw missingPersonalDataFlag if the template has personalData undefined", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: descriptorState.draft,
@@ -449,10 +449,7 @@ describe("publishEServiceTemplateVersion", () => {
         })
       )
     ).rejects.toThrowError(
-      eserviceTemplatePersonalDataMustBeSet(
-        eserviceTemplate.id,
-        eserviceTemplateVersion.id
-      )
+      missingPersonalDataFlag(eserviceTemplate.id, eserviceTemplateVersion.id)
     );
   });
 });

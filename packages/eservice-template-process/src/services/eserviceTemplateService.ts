@@ -49,7 +49,7 @@ import {
   instanceNameConflict,
   notValidEServiceTemplateVersionState,
   attributeDuplicatedInGroup,
-  eserviceTemplatePersonalDataMustBeSet,
+  missingPersonalDataFlag,
 } from "../model/domain/errors.js";
 import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
@@ -531,7 +531,7 @@ export function eserviceTemplateServiceBuilder(
         config.featureFlagEservicePersonalData &&
         eserviceTemplate.data.personalData === undefined
       ) {
-        throw eserviceTemplatePersonalDataMustBeSet(
+        throw missingPersonalDataFlag(
           eserviceTemplateId,
           eserviceTemplateVersionId
         );
