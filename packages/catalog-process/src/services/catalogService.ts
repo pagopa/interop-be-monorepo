@@ -101,7 +101,7 @@ import {
   checksumDuplicate,
   attributeDuplicatedInGroup,
   eservicePersonalDataCanOnlyBeSetOnce,
-  eservicePersonalDataMustBeSet,
+  missingPersonalDataFlag,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -1635,7 +1635,7 @@ export function catalogServiceBuilder(
         config.featureFlagEservicePersonalData &&
         eservice.data.personalData === undefined
       ) {
-        throw eservicePersonalDataMustBeSet(eserviceId, descriptorId);
+        throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
       if (producerDelegation) {
