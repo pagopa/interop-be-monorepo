@@ -321,7 +321,7 @@ const eserviceTemplateRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/personalData",
+      "/eservices/templates/:eServiceTemplateId/personalDataFlag",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
