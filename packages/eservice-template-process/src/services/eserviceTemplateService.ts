@@ -88,7 +88,7 @@ import {
   toCreateEventEServiceTemplateVersionDocumentUpdated,
   toCreateEventEServiceTemplateVersionDocumentDeleted,
   toCreateEventEServiceTemplateVersionInterfaceDeleted,
-  toCreateEventEServiceTemplatePersonalDataUpdatedAfterPublish,
+  toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -1825,7 +1825,7 @@ export function eserviceTemplateServiceBuilder(
       };
 
       const event =
-        toCreateEventEServiceTemplatePersonalDataUpdatedAfterPublish(
+        toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication(
           eserviceTemplate.metadata.version,
           updatedEServiceTemplate,
           correlationId
