@@ -31,7 +31,7 @@ export function purposeTemplateServiceBuilder(
         `Creating risk analysis answer for purpose template ${purposeTemplateId}`
       );
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-      return await purposeTemplateClient.createRiskAnalysisAnswerForPurposeTemplate(
+      return await purposeTemplateClient.addRiskAnalysisAnswerForPurposeTemplate(
         seed,
         {
           params: {

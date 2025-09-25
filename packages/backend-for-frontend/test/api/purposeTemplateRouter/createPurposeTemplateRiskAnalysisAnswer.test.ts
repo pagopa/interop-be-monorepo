@@ -40,7 +40,7 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers", () => {
   };
 
   beforeEach(() => {
-    clients.purposeTemplateProcessClient.createRiskAnalysisAnswerForPurposeTemplate =
+    clients.purposeTemplateProcessClient.addRiskAnalysisAnswerForPurposeTemplate =
       vi.fn().mockResolvedValue(mockCreatedRiskAnalysisAnswer);
   });
 

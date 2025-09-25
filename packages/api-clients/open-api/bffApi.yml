@@ -10210,7 +10210,7 @@ paths:
         - purposeTemplates
       summary: Add Risk Analysis Answer for a Purpose Template Risk Analysis
       description: Add valid new risk analysis answer for the specified purpose template risk analysis.
-      operationId: createPurposeTemplateRiskAnalysisAnswer
+      operationId: addPurposeTemplateRiskAnalysisAnswer
       requestBody:
         required: true
         content:
@@ -10219,7 +10219,7 @@ paths:
               $ref: "#/components/schemas/RiskAnalysisTemplateAnswerRequest"
       responses:
         "200":
-          description: Purpose Template Risk Analysis Answer created
+          description: Purpose Template Risk Analysis Answer added
           content:
             application/json:
               schema:
