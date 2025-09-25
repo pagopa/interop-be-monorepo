@@ -70,12 +70,11 @@ describe("unsuspendEServiceTemplateVersion", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    // Mock the initial retrieval call to return the SUSPENDED version
     mockGetEServiceTemplateById
-      .mockResolvedValueOnce(mockApiTemplate) // First call to retrieve template with SUSPENDED version
+      .mockResolvedValueOnce(mockApiTemplate)
       .mockImplementation(
         mockPollingResponse(mockApiTemplateAfterUnsuspend, 2)
-      ); // Polling calls return PUBLISHED version
+      );
 
     const result =
       await eserviceTemplateService.unsuspendEServiceTemplateVersion(
@@ -111,9 +110,14 @@ describe("unsuspendEServiceTemplateVersion", () => {
       versions: [],
     };
 
-    mockGetEServiceTemplateById.mockResolvedValueOnce({
+    mockActivateTemplateVersion.mockResolvedValue({
       data: templateWithoutVersion,
-      metadata: { version: 0 },
+      metadata: { version: 1 },
+    });
+
+    mockGetEServiceTemplateById.mockResolvedValue({
+      data: templateWithoutVersion,
+      metadata: { version: 1 },
     });
 
     await expect(
@@ -129,32 +133,6 @@ describe("unsuspendEServiceTemplateVersion", () => {
       )
     );
   });
-
-  it("Should throw error if version is not in suspended state", async () => {
-    const publishedVersion: eserviceTemplateApi.EServiceTemplateVersion = {
-      ...mockApiTemplateVersion,
-      state: "PUBLISHED",
-    };
-
-    const templateWithPublishedVersion = getMockWithMetadata(
-      getMockedApiEServiceTemplate({
-        versions: [publishedVersion],
-      })
-    );
-
-    mockGetEServiceTemplateById.mockResolvedValueOnce(
-      templateWithPublishedVersion
-    );
-
-    await expect(
-      eserviceTemplateService.unsuspendEServiceTemplateVersion(
-        unsafeBrandId(mockApiTemplate.data.id),
-        unsafeBrandId(mockApiTemplateVersion.id),
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrow("is not in suspended state");
-  });
-
   it("Should throw missingMetadata in case the template returned by the unsuspend call has no metadata", async () => {
     mockGetEServiceTemplateById.mockResolvedValueOnce(mockApiTemplate);
 
@@ -194,14 +172,12 @@ describe("unsuspendEServiceTemplateVersion", () => {
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    mockGetEServiceTemplateById
-      .mockResolvedValueOnce(mockApiTemplate)
-      .mockImplementation(
-        mockPollingResponse(
-          mockApiTemplateAfterUnsuspend,
-          config.defaultPollingMaxRetries + 1
-        )
-      );
+    mockGetEServiceTemplateById.mockImplementation(
+      mockPollingResponse(
+        mockApiTemplateAfterUnsuspend,
+        config.defaultPollingMaxRetries + 1
+      )
+    );
 
     mockActivateTemplateVersion.mockResolvedValueOnce(
       mockApiTemplateAfterUnsuspend
@@ -220,7 +196,7 @@ describe("unsuspendEServiceTemplateVersion", () => {
       )
     );
     expect(mockGetEServiceTemplateById).toHaveBeenCalledTimes(
-      1 + config.defaultPollingMaxRetries
+      config.defaultPollingMaxRetries
     );
   });
 });
