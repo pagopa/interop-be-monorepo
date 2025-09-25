@@ -1968,7 +1968,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/personalData:
+  /eservices/{eServiceId}/personalDataFlag:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:

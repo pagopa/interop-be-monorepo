@@ -5938,7 +5938,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/personalData:
+  /eservices/{eServiceId}/personalDataFlag:
     post:
       security:
         - bearerAuth: []

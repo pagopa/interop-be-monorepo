@@ -24,7 +24,7 @@ import {
   eserviceWithoutValidDescriptors,
 } from "../../src/model/domain/errors.js";
 
-describe("API /eservices/{eServiceId}/personalData authorization test", () => {
+describe("API /eservices/{eServiceId}/personalDataFlag authorization test", () => {
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.published,
@@ -56,7 +56,7 @@ describe("API /eservices/{eServiceId}/personalData authorization test", () => {
     body: catalogApi.EServicePersonalDataFlagUpdateSeed = eserviceSeed
   ) =>
     request(api)
-      .post(`/eservices/${eServiceId}/personalData`)
+      .post(`/eservices/${eServiceId}/personalDataFlag`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);

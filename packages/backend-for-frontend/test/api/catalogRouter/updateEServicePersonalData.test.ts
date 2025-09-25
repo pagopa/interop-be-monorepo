@@ -12,7 +12,7 @@ import {
 } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
-describe("API POST /eservices/:eServiceId/personalData", () => {
+describe("API POST /eservices/:eServiceId/personalDataFlag", () => {
   const mockEServicePersonalDataFlagUpdateSeed =
     getMockBffApiEServicePersonalDataFlagUpdateSeed();
   const mockEService = getMockBffApiEServicePersonaData();
@@ -23,7 +23,7 @@ describe("API POST /eservices/:eServiceId/personalData", () => {
     body: bffApi.EServicePersonalDataFlagUpdateSeed = mockEServicePersonalDataFlagUpdateSeed
   ) =>
     request(api)
-      .post(`${appBasePath}/eservices/${eServiceId}/personalData`)
+      .post(`${appBasePath}/eservices/${eServiceId}/personalDataFlag`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
