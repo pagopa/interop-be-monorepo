@@ -710,7 +710,7 @@ export const toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate = (
   streamId: eservice.id,
   version,
   event: {
-    type: "EServicePersonalDataUpdatedByTemplateUpdate",
+    type: "EServicePersonalDataFlagUpdatedByTemplateUpdate",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),

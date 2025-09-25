@@ -260,8 +260,10 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
       ({ data }) =>
         EServicePersonalDataFlagUpdatedAfterPublicationV2.toBinary(data)
     )
-    .with({ type: "EServicePersonalDataUpdatedByTemplateUpdate" }, ({ data }) =>
-      EServicePersonalDataFlagUpdatedByTemplateUpdateV2.toBinary(data)
+    .with(
+      { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
+      ({ data }) =>
+        EServicePersonalDataFlagUpdatedByTemplateUpdateV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -555,7 +557,7 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServicePersonalDataUpdatedByTemplateUpdate"),
+    type: z.literal("EServicePersonalDataFlagUpdatedByTemplateUpdate"),
     data: protobufDecoder(EServicePersonalDataFlagUpdatedByTemplateUpdateV2),
   }),
 ]);
