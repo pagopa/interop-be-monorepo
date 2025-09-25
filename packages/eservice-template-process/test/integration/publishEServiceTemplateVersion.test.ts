@@ -373,7 +373,7 @@ describe("publishEServiceTemplateVersion", () => {
           })
         )
       ).data
-    ).equal(undefined);
+    ).equal(null);
   });
 
   it("shouldn't throw riskAnalysisValidationFailed if the eservice template mode isn't receive even if doesn't have a valid risk analysis", async () => {
@@ -420,6 +420,6 @@ describe("publishEServiceTemplateVersion", () => {
           })
         )
       ).data
-    ).equal(undefined);
+    ).equal(null);
   });
 });
