@@ -919,7 +919,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     "EServiceTemplateVersionInterfaceUpdated",
     "EServiceTemplateVersionPublished",
     "EServiceTemplateVersionSuspended",
-    "EServiceTemplatePersonalDataUpdatedAfterPublish",
+    "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
   ] as const)("Should ignore %s event", async (eventType) => {
     const decodedKafkaMessage: EServiceTemplateEventEnvelope = {
       sequence_num: 1,

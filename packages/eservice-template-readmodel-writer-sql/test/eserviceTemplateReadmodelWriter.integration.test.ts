@@ -934,7 +934,7 @@ describe("database test", async () => {
       expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
-    it("EServiceTemplatePersonalDataUpdatedAfterPublish", async () => {
+    it("EServiceTemplatePersonalDataFlagUpdatedAfterPublication", async () => {
       const publishedVersion: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(),
         interface: getMockDocument(),
@@ -960,7 +960,7 @@ describe("database test", async () => {
         sequence_num: 1,
         stream_id: mockEServiceTemplate.id,
         version: 2,
-        type: "EServiceTemplatePersonalDataUpdatedAfterPublish",
+        type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
         event_version: 2,
         data: payload,
         log_date: new Date(),
