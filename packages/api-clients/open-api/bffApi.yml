@@ -10208,7 +10208,7 @@ paths:
     post:
       tags:
         - purposeTemplates
-      summary: Create a Risk Analysis Answer for a Purpose Template
+      summary: Add Risk Analysis Answer for a Purpose Template Risk Analysis
       description: Add valid new risk analysis answer for the specified purpose template risk analysis.
       operationId: createPurposeTemplateRiskAnalysisAnswer
       requestBody:
