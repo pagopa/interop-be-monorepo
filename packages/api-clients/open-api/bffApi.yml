@@ -10209,7 +10209,7 @@ paths:
       tags:
         - purposeTemplates
       summary: Create a Risk Analysis Answer for a Purpose Template
-      description: Valid and create new risk analysis answer for a purpose template
+      description: Add valid new risk analysis answer for the specified purpose template risk analysis.
       operationId: createPurposeTemplateRiskAnalysisAnswer
       requestBody:
         required: true
@@ -23270,7 +23270,7 @@ components:
         - answerKey
         - answerData
       additionalProperties: false
-      description: A single risk analysis answer with explicit key and data structure
+      description: A single risk analysis answer with explicit key and data
     RiskAnalysisTemplateAnswerSeed:
       type: object
       additionalProperties: false
