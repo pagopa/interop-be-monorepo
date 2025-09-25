@@ -63,6 +63,8 @@ export function purposeTemplateServiceBuilder(
         `Linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
       );
 
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
       const result = await purposeTemplateClient.linkEServicesToPurposeTemplate(
         {
           eserviceIds: [eserviceId],
