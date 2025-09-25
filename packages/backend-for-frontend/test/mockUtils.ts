@@ -641,8 +641,10 @@ export const getMockBffApiEServiceTemplateSeed =
     isSignalHubEnabled: generateMock(z.boolean().optional()),
   });
 
-export const getMockBffApiEServiceTemplateApiEServiceTemplate =
-  (): eserviceTemplateApi.EServiceTemplate => ({
+export const getMockBffApiEServiceTemplate =
+  (): eserviceTemplateApi.EServiceTemplate & {
+    id: EServiceTemplateId;
+  } => ({
     id: generateId(),
     creatorId: generateId(),
     name: generateMock(z.string()),
@@ -657,6 +659,14 @@ export const getMockBffApiEServiceTemplateApiEServiceTemplate =
     ),
     mode: generateMock(eserviceTemplateApi.EServiceMode),
     isSignalHubEnabled: generateMock(z.boolean().optional()),
+  });
+
+export const getMockBffApiEServiceTemplatePersonaData =
+  (): eserviceTemplateApi.EServiceTemplate & {
+    id: EServiceTemplateId;
+  } => ({
+    ...getMockBffApiEServiceTemplate(),
+    personalData: generateMock(z.boolean().optional()),
   });
 
 export const getMockBffApiEServiceTemplateDetails =

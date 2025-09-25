@@ -1,27 +1,43 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { EServiceTemplateId, generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  EServiceTemplate,
+  EServiceTemplateId,
+  EServiceTemplateVersion,
+  eserviceTemplateVersionState,
+  generateId,
+} from "pagopa-interop-models";
+import {
+  generateToken,
+  getMockDocument,
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
+} from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockBffApiEServiceTemplatePersonalDataUpdateSeed } from "../../mockUtils.js";
+import {
+  getMockBffApiEServiceTemplatePersonaData,
+  getMockBffApiEServiceTemplatePersonalDataUpdateSeed,
+} from "../../mockUtils.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/personalData", () => {
-  const mockEServiceTemplateId = generateId<EServiceTemplateId>();
+  const mockEServiceTemplate = {
+    ...getMockBffApiEServiceTemplatePersonaData(),
+  };
   const mockEServiceTemplatePersonalDataUpdateSeed =
     getMockBffApiEServiceTemplatePersonalDataUpdateSeed();
 
   beforeEach(() => {
     clients.eserviceTemplateProcessClient.updateEServiceTemplatePersonalDataAfterPublish =
-      vi.fn().mockResolvedValue(undefined);
+      vi.fn().mockResolvedValue(mockEServiceTemplate);
   });
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: EServiceTemplateId = mockEServiceTemplateId,
+    eServiceTemplateId: EServiceTemplateId = mockEServiceTemplate.id,
     body: bffApi.EServiceTemplatePersonalDataUpdateSeed = mockEServiceTemplatePersonalDataUpdateSeed
   ) =>
     request(api)
