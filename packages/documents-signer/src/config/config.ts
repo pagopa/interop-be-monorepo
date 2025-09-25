@@ -18,10 +18,12 @@ export const DocumentsSignerConfig = S3Config.and(LoggerConfig)
       .object({
         SERVICE_NAME: z.string(),
         DB_TABLE_NAME: z.string(),
+        AWS_REGION: z.string(),
       })
       .transform((c) => ({
         serviceName: c.SERVICE_NAME,
         dbTableName: c.DB_TABLE_NAME,
+        awsRegion: c.AWS_REGION,
       }))
   );
 
