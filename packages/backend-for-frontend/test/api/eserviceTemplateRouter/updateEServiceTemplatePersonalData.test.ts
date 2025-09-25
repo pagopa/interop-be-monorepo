@@ -1,18 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  EServiceTemplate,
-  EServiceTemplateId,
-  EServiceTemplateVersion,
-  eserviceTemplateVersionState,
-  generateId,
-} from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockDocument,
-  getMockEServiceTemplate,
-  getMockEServiceTemplateVersion,
-} from "pagopa-interop-commons-test";
+import { EServiceTemplateId, generateId } from "pagopa-interop-models";
+import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
@@ -21,26 +10,18 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiEServiceTemplatePersonalDataUpdateSeed } from "../../mockUtils.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/personalData", () => {
-  const eserviceTemplateVersion: EServiceTemplateVersion = {
-    ...getMockEServiceTemplateVersion(),
-    state: eserviceTemplateVersionState.published,
-    interface: getMockDocument(),
-  };
-  const mockEServiceTemplate: EServiceTemplate = {
-    ...getMockEServiceTemplate(),
-    versions: [eserviceTemplateVersion],
-  };
+  const mockEServiceTemplateId = generateId<EServiceTemplateId>();
   const mockEServiceTemplatePersonalDataUpdateSeed =
     getMockBffApiEServiceTemplatePersonalDataUpdateSeed();
 
   beforeEach(() => {
     clients.eserviceTemplateProcessClient.updateEServiceTemplatePersonalDataAfterPublish =
-      vi.fn().mockResolvedValue(mockEServiceTemplate);
+      vi.fn().mockResolvedValue(undefined);
   });
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: EServiceTemplateId = mockEServiceTemplate.id,
+    eServiceTemplateId: EServiceTemplateId = mockEServiceTemplateId,
     body: bffApi.EServiceTemplatePersonalDataUpdateSeed = mockEServiceTemplatePersonalDataUpdateSeed
   ) =>
     request(api)
