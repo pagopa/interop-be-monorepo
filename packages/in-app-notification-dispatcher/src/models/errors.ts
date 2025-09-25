@@ -9,9 +9,7 @@ type InAppNotificationDispatcherErrorCode =
   | "attributeNotFound"
   | "certifierTenantNotFound"
   | "attributeOriginUndefined"
-  | "attributeNotFoundInTenant"
-  | "attributeNotVerified"
-  | "attributeNotRevoked";
+  | "attributeNotFoundInTenant";
 
 export class InAppNotificationDispatcherError extends InternalError<InAppNotificationDispatcherErrorCode> {
   constructor({
