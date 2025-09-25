@@ -1,6 +1,7 @@
 {
   "name": "pagopa-interop-purpose-template-process",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability service for purpose template",
   "main": "dist",
   "type": "module",
@@ -16,8 +17,6 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/express": "4.17.21",
