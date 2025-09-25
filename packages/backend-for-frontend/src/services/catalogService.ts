@@ -601,7 +601,7 @@ export function catalogServiceBuilder(
     updateEServicePersonalDataFlag: async (
       { headers, logger }: WithLogger<BffAppContext>,
       eServiceId: EServiceId,
-      personalDataSeed: bffApi.EServicePersonalDataUpdateSeed
+      personalDataSeed: bffApi.EServicePersonalDataFlagUpdateSeed
     ): Promise<void> => {
       logger.info(
         `Set personal flag for E-Service with id = ${eServiceId} to ${personalDataSeed.personalData}`

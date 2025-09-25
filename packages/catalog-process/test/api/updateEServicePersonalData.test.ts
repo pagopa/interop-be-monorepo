@@ -42,7 +42,7 @@ describe("API /eservices/{eServiceId}/personalData authorization test", () => {
 
   const personalData = randomArrayItem([false, true]);
 
-  const eserviceSeed: catalogApi.EServicePersonalDataUpdateSeed = {
+  const eserviceSeed: catalogApi.EServicePersonalDataFlagUpdateSeed = {
     personalData,
   };
 
@@ -53,7 +53,7 @@ describe("API /eservices/{eServiceId}/personalData authorization test", () => {
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId,
-    body: catalogApi.EServicePersonalDataUpdateSeed = eserviceSeed
+    body: catalogApi.EServicePersonalDataFlagUpdateSeed = eserviceSeed
   ) =>
     request(api)
       .post(`/eservices/${eServiceId}/personalData`)
@@ -120,7 +120,7 @@ describe("API /eservices/{eServiceId}/personalData authorization test", () => {
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,
-        body as catalogApi.EServicePersonalDataUpdateSeed
+        body as catalogApi.EServicePersonalDataFlagUpdateSeed
       );
 
       expect(res.status).toBe(400);
