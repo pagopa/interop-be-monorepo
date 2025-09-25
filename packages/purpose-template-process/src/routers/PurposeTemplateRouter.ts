@@ -229,7 +229,7 @@ const purposeTemplateRouter = (
           validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
           const { data: riskAnalysisAnswerAnnotation, metadata } =
-            await purposeTemplateService.createRiskAnalysisAnswerAnnotation(
+            await purposeTemplateService.addRiskAnalysisAnswerAnnotation(
               unsafeBrandId(req.params.purposeTemplateId),
               unsafeBrandId(req.params.answerId),
               req.body,

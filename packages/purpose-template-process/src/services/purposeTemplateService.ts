@@ -243,7 +243,7 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
-    async createRiskAnalysisAnswerAnnotation(
+    async addRiskAnalysisAnswerAnnotation(
       purposeTemplateId: PurposeTemplateId,
       answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
       riskAnalysisTemplateAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText,
