@@ -26,7 +26,7 @@ import {
   eserviceTemplatePersonalDataCanOnlyBeSetOnce,
 } from "../../src/model/domain/errors.js";
 
-describe("API /templates/{templateId}/personalData", () => {
+describe("API /templates/{templateId}/personalDataFlag", () => {
   const eserviceTemplateVersion: EServiceTemplateVersion = {
     ...getMockEServiceTemplateVersion(),
     state: eserviceTemplateVersionState.published,
@@ -57,7 +57,7 @@ describe("API /templates/{templateId}/personalData", () => {
     body: eserviceTemplateApi.EServiceTemplatePersonalDataFlagUpdateSeed = eserviceTemplateSeed
   ) =>
     request(api)
-      .post(`/templates/${templateId}/personalData`)
+      .post(`/templates/${templateId}/personalDataFlag`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
