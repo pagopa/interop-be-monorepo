@@ -570,9 +570,9 @@ paths:
     post:
       tags:
         - purposeTemplate
-      summary: Create a risk analysis answer for a purpose template
-      operationId: createRiskAnalysisAnswerForPurposeTemplate
-      description: Creates a new risk analysis answer for a purpose template
+      summary: Add a risk analysis answer for a purpose template
+      operationId: addRiskAnalysisAnswerForPurposeTemplate
+      description: Add a new risk analysis answer for the specified purpose template risk analysis.
       requestBody:
         content:
           application/json:
@@ -581,7 +581,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Risk Analysis Template Answer created.
+          description: Risk Analysis Template Answer added.
           content:
             application/json:
               schema:
@@ -876,6 +876,7 @@ components:
       properties:
         text:
           type: string
+          maxLength: 250
         docs:
           type: array
           items:

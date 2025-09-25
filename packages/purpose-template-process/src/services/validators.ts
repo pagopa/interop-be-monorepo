@@ -1,11 +1,12 @@
 import {
+  PurposeTemplate,
   PurposeTemplateState,
   RiskAnalysisFormTemplate,
   TenantKind,
   RiskAnalysisTemplateSingleAnswer,
   RiskAnalysisTemplateMultiAnswer,
-  operationForbidden,
   TenantId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -13,19 +14,19 @@ import {
   RiskAnalysisTemplateValidatedForm,
   RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
-  UIAuthData,
-  M2MAdminAuthData,
   // validateNoHyperlinks,
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
+  riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer,
+  UIAuthData,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
-import { riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer } from "../../../commons/src/risk-analysis-template/riskAnalysisFormTemplate.js";
 import {
-  annotationTextLengthError,
   // hyperlinkDetectionError,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInValidState,
+  purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateValidationFailed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -98,16 +99,6 @@ export function validateAndTransformRiskAnalysisAnswer(
   return riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer(validatedAnswer);
 }
 
-export function validateRiskAnalysisAnswerAnnotationOrThrow(
-  text: string
-): void {
-  if (text.length > 250) {
-    throw annotationTextLengthError(text, text.length, 250);
-  }
-
-  // validateNoHyperlinks(text, hyperlinkDetectionError(text));
-}
-
 export function assertRequesterPurposeTemplateCreator(
   creatorId: TenantId,
   authData: UIAuthData | M2MAdminAuthData
@@ -145,9 +136,7 @@ function validateRiskAnalysisAnswerOrThrow({
   tenantKind: TenantKind;
 }): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {
   if (riskAnalysisAnswer.answerData.annotation) {
-    validateRiskAnalysisAnswerAnnotationOrThrow(
-      riskAnalysisAnswer.answerData.annotation.text
-    );
+    // validateNoHyperlinks(text, hyperlinkDetectionError(text)); // todo disabled until hyperlinks validation rules are defined
   }
 
   const result = validateRiskAnalysisAnswer(
@@ -161,4 +150,23 @@ function validateRiskAnalysisAnswerOrThrow({
   }
 
   return result.value;
+}
+
+export function assertPurposeTemplateHasRiskAnalysisForm(
+  purposeTemplate: PurposeTemplate
+): asserts purposeTemplate is PurposeTemplate & {
+  purposeRiskAnalysisForm: RiskAnalysisFormTemplate;
+} {
+  if (!purposeTemplate.purposeRiskAnalysisForm) {
+    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
+  }
+}
+
+export function assertRequesterPurposeTemplateCreator(
+  creatorId: TenantId,
+  authData: UIAuthData | M2MAdminAuthData
+): void {
+  if (authData.organizationId !== creatorId) {
+    throw operationForbidden;
+  }
 }

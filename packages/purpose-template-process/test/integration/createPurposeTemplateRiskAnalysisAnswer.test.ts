@@ -13,6 +13,9 @@ import {
   PurposeTemplate,
   PurposeTemplateDraftUpdatedV2,
   tenantKind,
+  operationForbidden,
+  generateId,
+  TenantId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -20,8 +23,7 @@ import {
   unexpectedRiskAnalysisTemplateFieldValueError,
 } from "pagopa-interop-commons";
 import {
-  annotationTextLengthError,
-  hyperlinkDetectionError,
+  // hyperlinkDetectionError,
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateValidationFailed,
@@ -106,43 +108,8 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
     vi.useRealTimers();
   });
 
-  it("should throw annotationTextLengthError if annotation text is longer than 250 characters", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-
-    await addOnePurposeTemplate(mockPurposeTemplate);
-
-    const OVER_250_CHAR = "Over".repeat(251);
-    const requestWithLongAnnotation: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest =
-      {
-        answerKey: "purpose",
-        answerData: {
-          values: ["INSTITUTIONAL"],
-          editable: true,
-          suggestedValues: [],
-          annotation: {
-            text: OVER_250_CHAR,
-            docs: [],
-          },
-        },
-      };
-
-    await expect(
-      purposeTemplateService.createRiskAnalysisAnswer(
-        mockPurposeTemplate.id,
-        requestWithLongAnnotation,
-        getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
-        })
-      )
-    ).rejects.toThrowError(
-      annotationTextLengthError(OVER_250_CHAR, OVER_250_CHAR.length, 250)
-    );
-
-    vi.useRealTimers();
-  });
-
-  it("should throw hyperlinkDetectionError if annotation text contains hyperlinks", async () => {
+  // todo disabled until hyperlinks validation rules are defined
+  /* it("should throw hyperlinkDetectionError if annotation text contains hyperlinks", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -175,7 +142,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
     ).rejects.toThrowError(hyperlinkDetectionError(textWithHyperlink));
 
     vi.useRealTimers();
-  });
+  }); */
 
   it("should throw purposeTemplateRiskAnalysisFormNotFound if purpose template has no risk analysis form", async () => {
     vi.useFakeTimers();
@@ -309,6 +276,37 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(mockPurposeTemplate.id));
+
+    vi.useRealTimers();
+  });
+
+  it("should throw operationForbidden if the requester is not the creator", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    await addOnePurposeTemplate(mockPurposeTemplate);
+
+    const validRiskAnalysisAnswerRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest =
+      {
+        answerKey: "purpose",
+        answerData: {
+          values: ["INSTITUTIONAL"],
+          editable: true,
+          suggestedValues: [],
+        },
+      };
+
+    const differentCreatorId = generateId<TenantId>();
+
+    await expect(
+      purposeTemplateService.createRiskAnalysisAnswer(
+        mockPurposeTemplate.id,
+        validRiskAnalysisAnswerRequest,
+        getMockContext({
+          authData: getMockAuthData(differentCreatorId),
+        })
+      )
+    ).rejects.toThrowError(operationForbidden);
 
     vi.useRealTimers();
   });

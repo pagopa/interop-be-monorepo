@@ -40,6 +40,7 @@ import {
   assertConsistentFreeOfCharge,
   assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
+  assertPurposeTemplateHasRiskAnalysisForm,
   assertRequesterPurposeTemplateCreator,
   validateAndTransformRiskAnalysisAnswer,
   validateAndTransformRiskAnalysisTemplate,
@@ -178,6 +179,7 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       riskAnalysisTemplateAnswerRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest,
       {
+        authData,
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
@@ -193,13 +195,16 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      if (!purposeTemplate.data.purposeRiskAnalysisForm) {
-        throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId);
-      }
+      assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
 
       assertPurposeTemplateStateIsValid(purposeTemplate.data.state, [
         purposeTemplateState.draft,
       ]);
+
+      assertRequesterPurposeTemplateCreator(
+        purposeTemplate.data.creatorId,
+        authData
+      );
 
       const validatedAnswer = validateAndTransformRiskAnalysisAnswer(
         riskAnalysisTemplateAnswerRequest,

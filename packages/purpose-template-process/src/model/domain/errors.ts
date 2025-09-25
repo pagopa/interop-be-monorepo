@@ -15,11 +15,10 @@ export const errorCodes = {
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
   ruleSetNotFoundError: "0005",
-  annotationTextLengthError: "0006",
-  hyperlinkDetectionError: "0007",
-  purposeTemplateNotInValidState: "0008",
-  purposeTemplateRiskAnalysisFormNotFound: "0009",
-  riskAnalysisAnswerNotFound: "0010",
+  hyperlinkDetectionError: "0006",
+  purposeTemplateNotInValidState: "0007",
+  purposeTemplateRiskAnalysisFormNotFound: "0008",
+  riskAnalysisAnswerNotFound: "0009",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -93,18 +92,6 @@ export function purposeTemplateNotInValidState(
     detail: `Purpose template state is: ${state} but valid states are: ${validStates}`,
     code: "purposeTemplateNotInValidState",
     title: "Purpose template not in valid state",
-  });
-}
-
-export function annotationTextLengthError(
-  text: string,
-  length: number,
-  threshold: number
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Annotation text ${text} length ${length} is greater than ${threshold}`,
-    code: "annotationTextLengthError",
-    title: "Annotation text length error",
   });
 }
 

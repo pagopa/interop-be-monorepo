@@ -12,10 +12,8 @@ import {
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import {
-  annotationTextLengthError,
-  hyperlinkDetectionError,
-} from "../../src/model/domain/errors.js";
+import // hyperlinkDetectionError,
+"../../src/model/domain/errors.js";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import { riskAnalysisAnswerToApiRiskAnalysisAnswer } from "../../src/model/domain/apiConverter.js";
 
@@ -132,32 +130,8 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should return 400 if annotation text is longer than 250 characters", async () => {
-    const OVER_250_CHAR = "Over".repeat(251);
-    const requestWithLongAnnotation: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest =
-      {
-        ...validRiskAnalysisAnswerRequest,
-        answerData: {
-          ...validRiskAnalysisAnswerRequest.answerData,
-          annotation: {
-            text: OVER_250_CHAR,
-            docs: [],
-          },
-        },
-      };
-
-    purposeTemplateService.createRiskAnalysisAnswer = vi
-      .fn()
-      .mockRejectedValue(
-        annotationTextLengthError(OVER_250_CHAR, OVER_250_CHAR.length, 250)
-      );
-
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, requestWithLongAnnotation);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if annotation text contains hyperlinks", async () => {
+  // todo disabled until hyperlinks validation rules are defined
+  /* it("Should return 400 if annotation text contains hyperlinks", async () => {
     const textWithHyperlink =
       "This text contains a hyperlink: https://example.com";
     const requestWithHyperlink: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest =
@@ -179,5 +153,5 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, requestWithHyperlink);
     expect(res.status).toBe(400);
-  });
+  }); */
 });

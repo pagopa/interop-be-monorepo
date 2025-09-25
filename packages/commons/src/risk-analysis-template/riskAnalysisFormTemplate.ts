@@ -130,25 +130,22 @@ export function riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer(
   validatedAnswer: RiskAnalysisTemplateValidatedSingleOrMultiAnswer
 ): RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer {
   return match(validatedAnswer)
-    .with({ type: "single" }, (a) => ({
-      id: generateId<RiskAnalysisSingleAnswerId>(),
-      key: a.answer.key,
-      ...(a.answer.value ? { value: a.answer.value } : {}),
-      editable: a.answer.editable,
-      suggestedValues: a.answer.suggestedValues,
-      ...(a.answer.annotation
-        ? { annotation: mapAnnotation(a.answer.annotation) }
-        : {}),
-    }))
-    .with({ type: "multi" }, (a) => ({
-      id: generateId<RiskAnalysisMultiAnswerId>(),
-      key: a.answer.key,
-      values: a.answer.values,
-      editable: a.answer.editable,
-      ...(a.answer.annotation
-        ? { annotation: mapAnnotation(a.answer.annotation) }
-        : {}),
-    }))
+    .with({ type: "single" }, (a) => {
+      const { annotation, ...rest } = a.answer;
+      return {
+        ...rest,
+        id: generateId<RiskAnalysisSingleAnswerId>(),
+        ...(annotation ? { annotation: mapAnnotation(annotation) } : {}),
+      };
+    })
+    .with({ type: "multi" }, (a) => {
+      const { annotation, ...rest } = a.answer;
+      return {
+        ...rest,
+        id: generateId<RiskAnalysisMultiAnswerId>(),
+        ...(annotation ? { annotation: mapAnnotation(annotation) } : {}),
+      };
+    })
     .exhaustive();
 }
 
