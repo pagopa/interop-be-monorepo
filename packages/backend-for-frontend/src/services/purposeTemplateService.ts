@@ -151,6 +151,7 @@ export function purposeTemplateServiceBuilder(
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.CreatorPurposeTemplates> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
       const { headers, authData, logger } = ctx;
 
       logger.info(
@@ -201,6 +202,7 @@ export function purposeTemplateServiceBuilder(
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.CatalogPurposeTemplates> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
       const { headers, logger } = ctx;
 
       logger.info(
@@ -264,6 +266,8 @@ export function purposeTemplateServiceBuilder(
       limit: number;
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.EServiceDescriptorsPurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
       const { headers, logger } = ctx;
 
       logger.info(
