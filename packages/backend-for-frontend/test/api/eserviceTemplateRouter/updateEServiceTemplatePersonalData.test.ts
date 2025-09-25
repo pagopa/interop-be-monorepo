@@ -1,18 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  EServiceTemplate,
-  EServiceTemplateId,
-  EServiceTemplateVersion,
-  eserviceTemplateVersionState,
-  generateId,
-} from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockDocument,
-  getMockEServiceTemplate,
-  getMockEServiceTemplateVersion,
-} from "pagopa-interop-commons-test";
+import { EServiceTemplateId, generateId } from "pagopa-interop-models";
+import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
