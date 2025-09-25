@@ -177,7 +177,7 @@ const eserviceTemplateRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error updating eservice template ${req.params.templateId} description`
+            `Error updating eservice template ${req.params.templateId} intended target`
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -204,7 +204,7 @@ const eserviceTemplateRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error updating eservice template ${req.params.templateId} description`
+          `Error updating eservice template ${req.params.templateId} name`
         );
         return res.status(errorRes.status).send(errorRes);
       }
