@@ -35,7 +35,7 @@ import {
   delegationState,
   TenantId,
 } from "pagopa-interop-models";
-import { unexpectedRulesVersionError } from "pagopa-interop-commons";
+import { rulesVersionNotFoundError } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
   agreementNotFound,
@@ -831,7 +831,10 @@ describe("createReversePurpose", () => {
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([
-        unexpectedRulesVersionError(mockRiskAnalysis.riskAnalysisForm.version),
+        rulesVersionNotFoundError(
+          tenantKind.PA,
+          mockRiskAnalysis.riskAnalysisForm.version
+        ),
       ])
     );
   });
