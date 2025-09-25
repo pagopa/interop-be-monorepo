@@ -12,7 +12,15 @@ export function toBffApiUserNotificationConfig(
   userNotificationConfig: notificationConfigApi.UserNotificationConfig
 ): bffApi.UserNotificationConfig {
   return {
-    inAppConfig: userNotificationConfig.inAppConfig,
-    emailConfig: userNotificationConfig.emailConfig,
+    inAppConfig: {
+      ...userNotificationConfig.inAppConfig,
+      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+        userNotificationConfig.inAppConfig.clientKeyAddedDeletedToClientUsers,
+    },
+    emailConfig: {
+      ...userNotificationConfig.emailConfig,
+      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+        userNotificationConfig.emailConfig.clientKeyAddedDeletedToClientUsers,
+    },
   };
 }
