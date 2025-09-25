@@ -800,7 +800,11 @@ export function eserviceTemplateServiceBuilder(
     async deleteEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(
         `Deleting EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`

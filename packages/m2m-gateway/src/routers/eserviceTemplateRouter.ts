@@ -13,6 +13,7 @@ import { makeApiProblem } from "../model/errors.js";
 import { EserviceTemplateService } from "../services/eserviceTemplateService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
+  deleteEServiceTemplateVersionErrorMapper,
   getEServiceTemplateRiskAnalysisErrorMapper,
   getEServiceTemplateVersionErrorMapper,
 } from "../utils/errorMappers.js";
@@ -153,6 +154,32 @@ const eserviceTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .delete(
+      "/eserviceTemplates/:templateId/versions/:versionId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await eserviceTemplateService.deleteEServiceTemplateVersion(
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.versionId),
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteEServiceTemplateVersionErrorMapper,
+            ctx,
+            `Error deleting eservice template ${req.params.templateId} version ${req.params.versionId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .patch(
       "/eserviceTemplates/:templateId/versions/:versionId",
       async (req, res) => {
