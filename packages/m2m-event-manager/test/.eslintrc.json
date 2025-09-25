@@ -1,0 +1,9 @@
+{
+  "extends": [
+    "../../../.eslintrc.cjs"
+  ],
+  "rules": {
+    "functional/immutable-data": "off",
+    "@typescript-eslint/explicit-function-return-type": "off"
+  }
+}
