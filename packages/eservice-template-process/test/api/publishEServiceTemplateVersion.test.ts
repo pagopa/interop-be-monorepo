@@ -20,7 +20,7 @@ import request from "supertest";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
   eserviceTemplateNotFound,
-  eserviceTemplatePersonalDataMustBeSet,
+  missingPersonalDataFlag,
   eserviceTemplateVersionNotFound,
   missingTemplateVersionInterface,
   notValidEServiceTemplateVersionState,
@@ -100,7 +100,7 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
       expectedStatus: 400,
     },
     {
-      error: eserviceTemplatePersonalDataMustBeSet(
+      error: missingPersonalDataFlag(
         mockEserviceTemplate.id,
         mockEserviceTemplate.versions[0].id
       ),
