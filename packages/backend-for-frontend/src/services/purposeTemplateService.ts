@@ -103,6 +103,7 @@ export function purposeTemplateServiceBuilder(
       targetTenantKind,
       creatorIds,
       eserviceIds,
+      excludeExpiredRiskAnalysis,
       offset,
       limit,
       ctx,
@@ -111,6 +112,7 @@ export function purposeTemplateServiceBuilder(
       targetTenantKind: TenantKind | undefined;
       creatorIds: string[];
       eserviceIds: string[];
+      excludeExpiredRiskAnalysis: boolean;
       offset: number;
       limit: number;
       ctx: WithLogger<BffAppContext>;
@@ -130,6 +132,7 @@ export function purposeTemplateServiceBuilder(
             creatorIds,
             eserviceIds,
             states: [purposeTemplateApi.PurposeTemplateState.Enum.ACTIVE],
+            excludeExpiredRiskAnalysis,
             limit,
             offset,
           },
