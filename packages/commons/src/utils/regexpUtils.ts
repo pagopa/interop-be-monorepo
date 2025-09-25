@@ -1,3 +1,5 @@
+import { hyperlinkDetectionError } from "pagopa-interop-models";
+
 export function escapeRegExp(str: string): string {
   return str.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&");
 }
@@ -18,6 +20,6 @@ export function validateNoHyperlinks(text: string, customError?: Error): void {
     /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
 
   if (urlPattern.test(text)) {
-    throw customError || new Error("Text cannot contain hyperlinks or URLs");
+    throw customError || hyperlinkDetectionError(text);
   }
 }
