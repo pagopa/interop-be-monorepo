@@ -1481,7 +1481,7 @@ const eservicesRouter = (
         }
 
         const updatedEService =
-          await catalogService.updateEServicePersonalDataAfterPublish(
+          await catalogService.updateEServicePersonalDataFlagAfterPublication(
             unsafeBrandId(req.params.eServiceId),
             req.body.personalData,
             ctx

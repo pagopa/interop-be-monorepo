@@ -29,9 +29,8 @@ describe("API POST /eservices/:eServiceId/personalData", () => {
       .send(body);
 
   beforeEach(() => {
-    clients.catalogProcessClient.updateEServicePersonalDataAfterPublish = vi
-      .fn()
-      .mockResolvedValue(mockEService);
+    clients.catalogProcessClient.updateEServicePersonalDataFlagAfterPublication =
+      vi.fn().mockResolvedValue(mockEService);
   });
 
   it("Should return 204 if no error is thrown", async () => {

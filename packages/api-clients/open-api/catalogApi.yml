@@ -1977,7 +1977,7 @@ paths:
       tags:
         - process
       summary: Set personalData flag for published eservices
-      operationId: updateEServicePersonalDataAfterPublish
+      operationId: updateEServicePersonalDataFlagAfterPublication
       parameters:
         - name: eServiceId
           in: path

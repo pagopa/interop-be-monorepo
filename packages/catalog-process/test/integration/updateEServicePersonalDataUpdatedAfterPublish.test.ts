@@ -43,7 +43,7 @@ describe("update E-service personalData flag for an already created E-service", 
     const newPersonalDataValue = true;
 
     const returnedEService =
-      await catalogService.updateEServicePersonalDataAfterPublish(
+      await catalogService.updateEServicePersonalDataFlagAfterPublication(
         eservice.id,
         newPersonalDataValue,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -91,7 +91,7 @@ describe("update E-service personalData flag for an already created E-service", 
       await addOneEService(eservice);
 
       await expect(
-        catalogService.updateEServicePersonalDataAfterPublish(
+        catalogService.updateEServicePersonalDataFlagAfterPublication(
           eservice.id,
           newPersonalDataValue,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -105,7 +105,7 @@ describe("update E-service personalData flag for an already created E-service", 
     async (personalDataFlag) => {
       const eservice = getMockEService();
       expect(
-        catalogService.updateEServicePersonalDataAfterPublish(
+        catalogService.updateEServicePersonalDataFlagAfterPublication(
           eservice.id,
           personalDataFlag,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -120,7 +120,7 @@ describe("update E-service personalData flag for an already created E-service", 
       const eservice = getMockEService();
       await addOneEService(eservice);
       expect(
-        catalogService.updateEServicePersonalDataAfterPublish(
+        catalogService.updateEServicePersonalDataFlagAfterPublication(
           eservice.id,
           personalDataFlag,
           getMockContext({})
@@ -139,7 +139,7 @@ describe("update E-service personalData flag for an already created E-service", 
 
       await addOneEService(eservice);
       expect(
-        catalogService.updateEServicePersonalDataAfterPublish(
+        catalogService.updateEServicePersonalDataFlagAfterPublication(
           eservice.id,
           personalDataFlag,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })

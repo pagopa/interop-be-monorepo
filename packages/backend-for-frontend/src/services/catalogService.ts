@@ -606,7 +606,7 @@ export function catalogServiceBuilder(
       logger.info(
         `Set personal flag for E-Service with id = ${eServiceId} to ${personalDataSeed.personalData}`
       );
-      await catalogProcessClient.updateEServicePersonalDataAfterPublish(
+      await catalogProcessClient.updateEServicePersonalDataFlagAfterPublication(
         personalDataSeed,
         {
           headers,
