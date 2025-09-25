@@ -13,6 +13,8 @@ import {
   EService,
   EServiceId,
   NotificationConfig,
+  Purpose,
+  PurposeId,
   Tenant,
   TenantId,
   UserId,
@@ -24,6 +26,7 @@ import {
   CatalogReadModelService,
   DelegationReadModelService,
   NotificationConfigReadModelService,
+  PurposeReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
 import {
@@ -41,6 +44,7 @@ export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
+  purposeReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   agreementReadModelServiceSQL: AgreementReadModelService;
@@ -49,6 +53,7 @@ export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL: DelegationReadModelService;
   tenantReadModelServiceSQL: TenantReadModelService;
   notificationConfigReadModelServiceSQL: NotificationConfigReadModelService;
+  purposeReadModelServiceSQL: PurposeReadModelService;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -106,6 +111,9 @@ export function readModelServiceBuilderSQL({
         );
 
       return notificationConfig?.data;
+    },
+    async getPurposeById(purposeId: PurposeId): Promise<Purpose | undefined> {
+      return (await purposeReadModelServiceSQL.getPurposeById(purposeId))?.data;
     },
     async getActiveProducerDelegation(
       eserviceId: EServiceId,

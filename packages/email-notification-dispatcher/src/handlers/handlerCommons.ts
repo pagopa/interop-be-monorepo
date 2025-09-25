@@ -9,6 +9,8 @@ import {
   NotificationConfig,
   NotificationType,
   PurposeV2,
+  Purpose,
+  PurposeId,
   Tenant,
   TenantId,
   tenantMailKind,
@@ -19,6 +21,7 @@ import { getLatestTenantMailOfKind, Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { UserServiceSQL } from "../services/userServiceSQL.js";
 import { HandlerCommonParams } from "../models/handlerParams.js";
+import { eServiceNotFound, purposeNotFound } from "../models/errors.js";
 import {
   attributeNotFound,
   certifierTenantNotFound,
@@ -31,6 +34,10 @@ export type AgreementHandlerParams = HandlerCommonParams & {
 
 export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
+};
+
+export type ClientPurposeHandlerParams = HandlerCommonParams & {
+  purposeId: PurposeId;
 };
 
 export type PurposeHandlerParams = HandlerCommonParams & {
@@ -92,6 +99,17 @@ export async function retrieveAgreementEservice(
   }
 
   return eservice;
+}
+
+export async function retrievePurpose(
+  purposeId: PurposeId,
+  readModelService: ReadModelServiceSQL
+): Promise<Purpose> {
+  const purpose = await readModelService.getPurposeById(purposeId);
+  if (!purpose) {
+    throw purposeNotFound(purposeId);
+  }
+  return purpose;
 }
 
 export async function retrieveAttribute(
