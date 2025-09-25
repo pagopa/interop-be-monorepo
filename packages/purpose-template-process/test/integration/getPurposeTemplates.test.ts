@@ -378,8 +378,6 @@ describe("getPurposeTemplates", async () => {
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
       draftPurposeTemplateByCreator2,
-      purposeTemplateWithExpiredRiskAnalysis1,
-      purposeTemplateWithExpiredRiskAnalysis2,
       suspendedPurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
     ]);
