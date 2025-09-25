@@ -44,7 +44,7 @@ describe("update EService Template personalData flag for an already created ESer
     const newPersonalDataValue = true;
 
     const returnedEServiceTemplate =
-      await eserviceTemplateService.updateEServiceTemplatePersonalDataAfterPublish(
+      await eserviceTemplateService.updateEServiceTemplatePersonalDataFlagAfterPublication(
         eserviceTemplate.id,
         newPersonalDataValue,
         getMockContext({
@@ -101,7 +101,7 @@ describe("update EService Template personalData flag for an already created ESer
       await addOneEServiceTemplate(eserviceTemplate);
 
       await expect(
-        eserviceTemplateService.updateEServiceTemplatePersonalDataAfterPublish(
+        eserviceTemplateService.updateEServiceTemplatePersonalDataFlagAfterPublication(
           eserviceTemplate.id,
           newValue,
           getMockContext({
@@ -120,7 +120,7 @@ describe("update EService Template personalData flag for an already created ESer
       const eserviceTemplate = getMockEServiceTemplate();
 
       await expect(
-        eserviceTemplateService.updateEServiceTemplatePersonalDataAfterPublish(
+        eserviceTemplateService.updateEServiceTemplatePersonalDataFlagAfterPublication(
           eserviceTemplate.id,
           personalDataFlag,
           getMockContext({
@@ -138,7 +138,7 @@ describe("update EService Template personalData flag for an already created ESer
       await addOneEServiceTemplate(eserviceTemplate);
 
       await expect(
-        eserviceTemplateService.updateEServiceTemplatePersonalDataAfterPublish(
+        eserviceTemplateService.updateEServiceTemplatePersonalDataFlagAfterPublication(
           eserviceTemplate.id,
           personalDataFlag,
           getMockContext({})
@@ -158,7 +158,7 @@ describe("update EService Template personalData flag for an already created ESer
       await addOneEServiceTemplate(eserviceTemplate);
 
       await expect(
-        eserviceTemplateService.updateEServiceTemplatePersonalDataAfterPublish(
+        eserviceTemplateService.updateEServiceTemplatePersonalDataFlagAfterPublication(
           eserviceTemplate.id,
           personalDataFlag,
           getMockContext({
