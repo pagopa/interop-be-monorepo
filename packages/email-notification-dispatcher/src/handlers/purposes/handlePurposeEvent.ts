@@ -4,8 +4,8 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
-
-// const interopFeBaseUrl = config.interopFeBaseUrl;
+import { handlePurposeVersionActivated } from "./handlePurposeVersionActivated.js";
+import { handlePurposeVersionRejected } from "./handlePurposeVersionRejected.js";
 
 export async function handlePurposeEvent(
   params: HandlerParams<typeof PurposeEventV2>
@@ -13,19 +13,37 @@ export async function handlePurposeEvent(
   const {
     decodedMessage,
     logger,
-    // readModelService,
-    // templateService,
-    // userService,
-    // correlationId,
+    readModelService,
+    templateService,
+    userService,
+    correlationId,
   } = params;
   return match(decodedMessage)
+    .with({ type: "PurposeVersionActivated" }, ({ data: { purpose } }) =>
+      handlePurposeVersionActivated({
+        purposeV2Msg: purpose,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
+    .with({ type: "PurposeVersionRejected" }, ({ data: { purpose } }) =>
+      handlePurposeVersionRejected({
+        purposeV2Msg: purpose,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
     .with(
       {
         type: P.union(
           "NewPurposeVersionWaitingForApproval",
           "PurposeWaitingForApproval",
-          "PurposeVersionRejected",
-          "PurposeVersionActivated",
           "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
