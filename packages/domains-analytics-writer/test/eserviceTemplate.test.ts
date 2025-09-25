@@ -617,4 +617,61 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     );
     expect(retrievedRiskAnalysisAnswers).toHaveLength(0);
   });
+
+  it("EServiceTemplatePersonalDataUpdatedAfterPublish: updates eserviceTemplate personalData flag", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      interface: getMockDocument(),
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+    };
+
+    const updatedEServiceTemplate: EServiceTemplate = {
+      ...eserviceTemplate,
+      personalData: true,
+    };
+
+    const addPayload: EServiceTemplateAddedV2 = {
+      eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+    };
+    const updatePayload = {
+      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+    };
+
+    const addMsg: EServiceTemplateEventEnvelope = {
+      sequence_num: 1,
+      stream_id: eserviceTemplate.id,
+      version: 1,
+      type: "EServiceTemplateAdded",
+      event_version: 2,
+      data: addPayload,
+      log_date: new Date(),
+    };
+    const updateMsg: EServiceTemplateEventEnvelope = {
+      sequence_num: 2,
+      stream_id: eserviceTemplate.id,
+      version: 2,
+      type: "EServiceTemplatePersonalDataUpdatedAfterPublish",
+      event_version: 2,
+      data: updatePayload,
+      log_date: new Date(),
+    };
+
+    await handleEserviceTemplateMessageV2([addMsg, updateMsg], dbContext);
+
+    const retrievedEserviceTemplate = await getOneFromDb(
+      dbContext,
+      EserviceTemplateDbTable.eservice_template,
+      { id: eserviceTemplate.id }
+    );
+
+    expect(retrievedEserviceTemplate?.personalData).toBe(
+      updatedEServiceTemplate.personalData
+    );
+    expect(retrievedEserviceTemplate?.metadataVersion).toBe(2);
+  });
 });
