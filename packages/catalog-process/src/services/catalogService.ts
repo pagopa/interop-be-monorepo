@@ -146,7 +146,7 @@ import {
   toCreateEventEServiceUpdated,
   toCreateEventEServiceSignalhubFlagEnabled,
   toCreateEventEServiceSignalhubFlagDisabled,
-  toCreateEventEServicePersonalDataUpdatedAfterPublish,
+  toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -2806,7 +2806,11 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.AttributesSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<EService> {
       logger.info(
         `Updating attributes of Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -3575,11 +3579,12 @@ export function catalogServiceBuilder(
         personalData,
       };
 
-      const event = toCreateEventEServicePersonalDataUpdatedAfterPublish(
-        eservice.metadata.version,
-        updatedEservice,
-        correlationId
-      );
+      const event =
+        toCreateEventEServicePersonalDataFlagUpdatedAfterPublication(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        );
 
       await repository.createEvent(event);
 

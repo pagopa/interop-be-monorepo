@@ -8,14 +8,14 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import {
   getMockBffApiEServicePersonalDataUpdateSeed,
-  getMockCatalogApiEService,
+  getMockBffApiEServicePersonaData,
 } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /eservices/:eServiceId/personalData", () => {
   const mockEServicePersonalDataUpdateSeed =
     getMockBffApiEServicePersonalDataUpdateSeed();
-  const mockEService = getMockCatalogApiEService();
+  const mockEService = getMockBffApiEServicePersonaData();
 
   const makeRequest = async (
     token: string,
