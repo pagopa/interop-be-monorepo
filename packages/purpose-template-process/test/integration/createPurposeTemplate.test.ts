@@ -368,7 +368,7 @@ describe("createPurposeTemplate", () => {
     );
   });
 
-  it("should throw invalidTargetTenantKind if not exists rules for provided target tenant kind", async () => {
+  it("should throw ruleSetNotFoundError if not exists rules for provided target tenant kind", async () => {
     const invalidTenantKind = "INVALID" as TenantKind;
     const seedWithInvalidTargetTenantKind: purposeTemplateApi.PurposeTemplateSeed =
       {
