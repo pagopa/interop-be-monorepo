@@ -28,7 +28,6 @@ import {
 import {
   purposeTemplateNotFound,
   ruleSetNotFoundError,
-  purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisAnswerNotFound,
 } from "../model/domain/errors.js";
 import {
@@ -258,7 +257,7 @@ export function purposeTemplateServiceBuilder(
         authData,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotation>> {
-      logger.info(`Creating risk analysis answer annotation`);
+      logger.info(`Add risk analysis answer annotation`);
 
       const purposeTemplate = await retrievePurposeTemplate(
         purposeTemplateId,
@@ -270,15 +269,13 @@ export function purposeTemplateServiceBuilder(
         authData
       );
 
-      const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
-
-      if (!riskAnalysisForm) {
-        throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId);
-      }
+      assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
 
       assertPurposeTemplateStateIsValid(purposeTemplate.data.state, [
         purposeTemplateState.draft,
       ]);
+
+      const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
 
       const answerAndAnnotation = findAnswerAndAnnotation(
         riskAnalysisForm,
