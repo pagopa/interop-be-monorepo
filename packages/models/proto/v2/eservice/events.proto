@@ -215,6 +215,6 @@ message EServicePersonalDataUpdatedAfterPublishV2 {
     EServiceV2 eservice = 1;
 }
 
-message EServicePersonalDataUpdatedByTemplateUpdateV2 {
+message EServicePersonalDataFlagUpdatedByTemplateUpdateV2 {
   EServiceV2 eservice = 1;
 }

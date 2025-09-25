@@ -147,7 +147,7 @@ import {
   toCreateEventEServiceSignalhubFlagEnabled,
   toCreateEventEServiceSignalhubFlagDisabled,
   toCreateEventEServicePersonalDataUpdatedAfterPublish,
-  toCreateEventEServicePersonalDataUpdatedByTemplateUpdate,
+  toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -2936,7 +2936,7 @@ export function catalogServiceBuilder(
         personalData,
       };
       await repository.createEvent(
-        toCreateEventEServicePersonalDataUpdatedByTemplateUpdate(
+        toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate(
           eservice.metadata.version,
           updatedEservice,
           correlationId
