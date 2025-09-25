@@ -658,7 +658,7 @@ export function eserviceTemplateServiceBuilder(
     updateEServiceTemplatePersonalDataFlag: async (
       { logger, headers }: WithLogger<BffAppContext>,
       templateId: EServiceTemplateId,
-      personalDataSeed: bffApi.EServiceTemplatePersonalDataUpdateSeed
+      personalDataSeed: bffApi.EServiceTemplatePersonalDataFlagUpdateSeed
     ): Promise<void> => {
       logger.info(
         `Set personal flag for E-Service Template with id = ${templateId} to ${personalDataSeed.personalData}`

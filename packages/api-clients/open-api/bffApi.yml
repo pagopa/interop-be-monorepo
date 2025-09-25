@@ -19968,7 +19968,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/personalData:
+  /eservices/templates/{eServiceTemplateId}/personalDataFlag:
     post:
       security:
         - bearerAuth: []
@@ -19990,7 +19990,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceTemplatePersonalDataUpdateSeed"
+              $ref: "#/components/schemas/EServiceTemplatePersonalDataFlagUpdateSeed"
       responses:
         "204":
           description: EService template personalData flag updated
@@ -25177,7 +25177,7 @@ components:
       required:
         - id
         - explicitAttributeVerification
-    EServiceTemplatePersonalDataUpdateSeed:
+    EServiceTemplatePersonalDataFlagUpdateSeed:
       type: object
       additionalProperties: false
       properties:

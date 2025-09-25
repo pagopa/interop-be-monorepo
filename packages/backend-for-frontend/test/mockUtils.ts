@@ -460,8 +460,8 @@ export const getMockBffApiEServiceNameUpdateSeed =
     name: generateMock(z.string()),
   });
 
-export const getMockBffApiEServiceTemplatePersonalDataUpdateSeed =
-  (): bffApi.EServiceTemplatePersonalDataUpdateSeed => ({
+export const getMockBffApiEServiceTemplatePersonalDataFlagUpdateSeed =
+  (): bffApi.EServiceTemplatePersonalDataFlagUpdateSeed => ({
     personalData: generateMock(z.boolean()),
   });
 

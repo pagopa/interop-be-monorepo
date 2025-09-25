@@ -45,7 +45,7 @@ describe("API /templates/{templateId}/personalData", () => {
 
   const personalData = randomArrayItem([false, true]);
 
-  const eserviceTemplateSeed: eserviceTemplateApi.EServiceTemplatePersonalDataUpdateSeed =
+  const eserviceTemplateSeed: eserviceTemplateApi.EServiceTemplatePersonalDataFlagUpdateSeed =
     { personalData };
 
   eserviceTemplateService.updateEServiceTemplatePersonalDataAfterPublish = vi
@@ -55,7 +55,7 @@ describe("API /templates/{templateId}/personalData", () => {
   const makeRequest = async (
     token: string,
     templateId: EServiceTemplateId,
-    body: eserviceTemplateApi.EServiceTemplatePersonalDataUpdateSeed = eserviceTemplateSeed
+    body: eserviceTemplateApi.EServiceTemplatePersonalDataFlagUpdateSeed = eserviceTemplateSeed
   ) =>
     request(api)
       .post(`/templates/${templateId}/personalData`)
@@ -128,7 +128,7 @@ describe("API /templates/{templateId}/personalData", () => {
       const res = await makeRequest(
         token,
         templateId as EServiceTemplateId,
-        body as eserviceTemplateApi.EServiceTemplatePersonalDataUpdateSeed
+        body as eserviceTemplateApi.EServiceTemplatePersonalDataFlagUpdateSeed
       );
 
       expect(res.status).toBe(400);

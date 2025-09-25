@@ -9,15 +9,15 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   getMockBffApiEServiceTemplatePersonaData,
-  getMockBffApiEServiceTemplatePersonalDataUpdateSeed,
+  getMockBffApiEServiceTemplatePersonalDataFlagUpdateSeed,
 } from "../../mockUtils.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/personalData", () => {
   const mockEServiceTemplate = {
     ...getMockBffApiEServiceTemplatePersonaData(),
   };
-  const mockEServiceTemplatePersonalDataUpdateSeed =
-    getMockBffApiEServiceTemplatePersonalDataUpdateSeed();
+  const mockEServiceTemplatePersonalDataFlagUpdateSeed =
+    getMockBffApiEServiceTemplatePersonalDataFlagUpdateSeed();
 
   beforeEach(() => {
     clients.eserviceTemplateProcessClient.updateEServiceTemplatePersonalDataAfterPublish =
@@ -27,7 +27,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/personalData", () =>
   const makeRequest = async (
     token: string,
     eServiceTemplateId: EServiceTemplateId = mockEServiceTemplate.id,
-    body: bffApi.EServiceTemplatePersonalDataUpdateSeed = mockEServiceTemplatePersonalDataUpdateSeed
+    body: bffApi.EServiceTemplatePersonalDataFlagUpdateSeed = mockEServiceTemplatePersonalDataFlagUpdateSeed
   ) =>
     request(api)
       .post(
@@ -48,7 +48,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/personalData", () =>
     { body: {} },
     {
       body: {
-        ...mockEServiceTemplatePersonalDataUpdateSeed,
+        ...mockEServiceTemplatePersonalDataFlagUpdateSeed,
         extraField: 1,
       },
     },
@@ -64,7 +64,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/personalData", () =>
       const res = await makeRequest(
         token,
         eServiceTemplateId,
-        body as bffApi.EServiceTemplatePersonalDataUpdateSeed
+        body as bffApi.EServiceTemplatePersonalDataFlagUpdateSeed
       );
       expect(res.status).toBe(400);
     }
