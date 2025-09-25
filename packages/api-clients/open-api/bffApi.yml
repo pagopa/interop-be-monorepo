@@ -19975,7 +19975,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Set personalData flag for published EService templates
-      operationId: updateEServiceTemplatePersonalDataAfterPublish
+      operationId: updateEServiceTemplatePersonalDataFlagAfterPublication
       parameters:
         - name: eServiceTemplateId
           in: path

@@ -48,9 +48,8 @@ describe("API /templates/{templateId}/personalData", () => {
   const eserviceTemplateSeed: eserviceTemplateApi.EServiceTemplatePersonalDataFlagUpdateSeed =
     { personalData };
 
-  eserviceTemplateService.updateEServiceTemplatePersonalDataAfterPublish = vi
-    .fn()
-    .mockResolvedValue(serviceResponse);
+  eserviceTemplateService.updateEServiceTemplatePersonalDataFlagAfterPublication =
+    vi.fn().mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -107,7 +106,7 @@ describe("API /templates/{templateId}/personalData", () => {
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      eserviceTemplateService.updateEServiceTemplatePersonalDataAfterPublish =
+      eserviceTemplateService.updateEServiceTemplatePersonalDataFlagAfterPublication =
         vi.fn().mockRejectedValue(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);

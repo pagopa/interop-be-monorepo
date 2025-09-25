@@ -1794,7 +1794,7 @@ export function eserviceTemplateServiceBuilder(
 
       await repository.createEvent(event);
     },
-    async updateEServiceTemplatePersonalDataAfterPublish(
+    async updateEServiceTemplatePersonalDataFlagAfterPublication(
       eserviceTemplateId: EServiceTemplateId,
       personalData: boolean,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>

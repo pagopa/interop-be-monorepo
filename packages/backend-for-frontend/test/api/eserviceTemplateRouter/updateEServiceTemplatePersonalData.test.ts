@@ -20,7 +20,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/personalData", () =>
     getMockBffApiEServiceTemplatePersonalDataFlagUpdateSeed();
 
   beforeEach(() => {
-    clients.eserviceTemplateProcessClient.updateEServiceTemplatePersonalDataAfterPublish =
+    clients.eserviceTemplateProcessClient.updateEServiceTemplatePersonalDataFlagAfterPublication =
       vi.fn().mockResolvedValue(mockEServiceTemplate);
   });
 
