@@ -6,11 +6,14 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { getCatalogPurposeTemplatesErrorMapper } from "../utilities/errorMappers.js";
+import {
+  getPurposeTemplateErrorMapper,
+  getCatalogPurposeTemplatesErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -92,6 +95,26 @@ const purposeTemplateRouter = (
           getCatalogPurposeTemplatesErrorMapper,
           ctx,
           "Error retrieving catalog purpose templates"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/purposeTemplates/:purposeTemplateId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const response = await purposeTemplateService.getPurposeTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          ctx
+        );
+
+        return res.status(200).send(bffApi.PurposeTemplate.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateErrorMapper,
+          ctx,
+          `Error retrieving purpose template ${req.params.purposeTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
