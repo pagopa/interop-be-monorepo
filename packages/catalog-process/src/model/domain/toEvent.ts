@@ -702,7 +702,7 @@ export const toCreateEventEServiceDescriptionUpdatedByTemplateUpdate = (
   correlationId,
 });
 
-export const toCreateEventEServicePersonalDataUpdatedByTemplateUpdate = (
+export const toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate = (
   version: number,
   eservice: EService,
   correlationId: CorrelationId
