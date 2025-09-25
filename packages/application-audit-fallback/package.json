@@ -2,6 +2,7 @@
   "name": "pagopa-interop-application-audit-fallback",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "Pagopa Interop application audit fallback",
   "main": "dist",
   "type": "module",
@@ -20,8 +21,6 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.19.9",

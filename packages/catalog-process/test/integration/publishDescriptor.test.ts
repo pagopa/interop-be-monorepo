@@ -40,7 +40,7 @@ import {
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
   audienceCannotBeEmpty,
-  eservicePersonalDataMustBeSet,
+  missingPersonalDataFlag,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -730,7 +730,7 @@ describe("publish descriptor", () => {
     ).rejects.toThrowError(audienceCannotBeEmpty(descriptor.id));
   });
 
-  it("should throw eservicePersonalDataMustBeSet if the eservice has personalData undefined", async () => {
+  it("should throw missingPersonalDataFlag if the eservice has personalData undefined", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -751,8 +751,6 @@ describe("publish descriptor", () => {
         descriptor.id,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
-    ).rejects.toThrowError(
-      eservicePersonalDataMustBeSet(eservice.id, descriptor.id)
-    );
+    ).rejects.toThrowError(missingPersonalDataFlag(eservice.id, descriptor.id));
   });
 });
