@@ -2296,7 +2296,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceTemplatePersonalDataFlagUpdateSeed"
+              $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
       operationId: setTemplateInstancePersonalData
       description: Update the personalData flag of a template instance after a template update
       responses:
