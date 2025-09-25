@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { generateId, tenantKind } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -12,6 +12,11 @@ import { tenantNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /catalog/purposeTemplates", () => {
   const defaultQuery = {
+    q: "title",
+    eserviceIds: `${generateId()},${generateId()}`,
+    creatorIds: `${generateId()},${generateId()}`,
+    targetTenantKind: tenantKind.PA,
+    excludeExpiredRiskAnalysis: true,
     offset: 0,
     limit: 5,
   };
@@ -69,6 +74,10 @@ describe("API GET /catalog/purposeTemplates", () => {
     { query: { offset: 0, limit: 55 } },
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
+    { query: { ...defaultQuery, eserviceIds: `${generateId()},invalid` } },
+    { query: { ...defaultQuery, creatorIds: `${generateId()},invalid` } },
+    { query: { ...defaultQuery, targetTenantKind: "invalid" } },
+    { query: { ...defaultQuery, excludeExpiredRiskAnalysis: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof defaultQuery);

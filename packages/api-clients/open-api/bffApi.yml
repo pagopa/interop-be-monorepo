@@ -10210,6 +10210,25 @@ paths:
           schema:
             type: string
         - in: query
+          name: eserviceIds
+          description: comma separated sequence of e-service IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: states
+          description: comma separated sequence of purpose template states
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/PurposeTemplateState"
+            default: []
+          explode: false
+        - in: query
           name: offset
           required: true
           schema:
@@ -10305,6 +10324,16 @@ paths:
           schema:
             type: string
         - in: query
+          name: creatorIds
+          description: comma separated sequence of creators IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: eserviceIds
           description: comma separated sequence of e-service IDs
           schema:
@@ -10319,6 +10348,12 @@ paths:
           description: filter by target tenant kind
           schema:
             $ref: "#/components/schemas/TenantKind"
+        - in: query
+          name: excludeExpiredRiskAnalysis
+          description: exclude purpose templates with expired risk analysis
+          schema:
+            type: boolean
+            default: false
         - in: query
           name: offset
           required: true
