@@ -1,6 +1,7 @@
 {
   "name": "pagopa-interop-m2m-event-db-models",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "private": true,
   "description": "PagoPA Interoperability M2M Event DB Models",
   "type": "module",
@@ -17,8 +18,6 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "dependencies": {
     "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",

@@ -23,7 +23,7 @@ import {
   eServiceDescriptorNotFound,
   eServiceDescriptorWithoutInterface,
   eServiceNotFound,
-  eservicePersonalDataMustBeSet,
+  missingPersonalDataFlag,
   eServiceRiskAnalysisIsRequired,
   notValidDescriptorState,
   riskAnalysisNotValid,
@@ -122,7 +122,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/publish authori
       expectedStatus: 400,
     },
     {
-      error: eservicePersonalDataMustBeSet(mockEService.id, descriptor.id),
+      error: missingPersonalDataFlag(mockEService.id, descriptor.id),
       expectedStatus: 400,
     },
   ])(
