@@ -9,6 +9,10 @@ import {
   TenantKind,
   RiskAnalysisTemplateSingleAnswer,
   RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisTemplateAnswerAnnotationId,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -25,6 +29,7 @@ import {
   purposeTemplateNotFound,
   ruleSetNotFoundError,
   purposeTemplateRiskAnalysisFormNotFound,
+  riskAnalysisAnswerNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
@@ -37,6 +42,7 @@ import {
   assertPurposeTemplateTitleIsNotDuplicated,
   validateAndTransformRiskAnalysisAnswer,
   validateAndTransformRiskAnalysisTemplate,
+  validateRiskAnalysisAnswerAnnotationOrThrow,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -64,6 +70,34 @@ function getDefaultRiskAnalysisFormTemplate(
     singleAnswers: [],
     multiAnswers: [],
   };
+}
+
+function findAnswerAndAnnotation(
+  riskAnalysisForm: RiskAnalysisFormTemplate,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): {
+  answer: RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer;
+  annotation: RiskAnalysisTemplateAnswerAnnotation | undefined;
+} {
+  const { singleAnswers, multiAnswers } = riskAnalysisForm;
+
+  const singleAnswer = singleAnswers.find((answer) => answer.id === answerId);
+  if (singleAnswer) {
+    return {
+      answer: singleAnswer,
+      annotation: singleAnswer.annotation,
+    };
+  }
+
+  const multiAnswer = multiAnswers.find((answer) => answer.id === answerId);
+  if (multiAnswer) {
+    return {
+      answer: multiAnswer,
+      annotation: multiAnswer.annotation,
+    };
+  }
+
+  throw riskAnalysisAnswerNotFound(answerId);
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -203,6 +237,90 @@ export function purposeTemplateServiceBuilder(
 
       return {
         data: validatedAnswer,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async createRiskAnalysisAnswerAnnotation(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      riskAnalysisTemplateAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText,
+      {
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotation>> {
+      logger.info(`Creating risk analysis answer annotation`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
+
+      if (!riskAnalysisForm) {
+        throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId);
+      }
+
+      assertPurposeTemplateStateIsValid(purposeTemplate.data.state, [
+        purposeTemplateState.draft,
+      ]);
+
+      const answerAndAnnotation = findAnswerAndAnnotation(
+        riskAnalysisForm,
+        answerId
+      );
+
+      validateRiskAnalysisAnswerAnnotationOrThrow(
+        riskAnalysisTemplateAnswerAnnotationRequest.text
+      );
+
+      const newAnnotation: RiskAnalysisTemplateAnswerAnnotation =
+        answerAndAnnotation.annotation
+          ? {
+              id: answerAndAnnotation.annotation.id,
+              text: riskAnalysisTemplateAnswerAnnotationRequest.text,
+              docs: answerAndAnnotation.annotation.docs,
+            }
+          : {
+              id: generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
+              text: riskAnalysisTemplateAnswerAnnotationRequest.text,
+              docs: [],
+            };
+
+      const updateAnswerWithAnnotation = <T extends { id: string }>(
+        answer: T
+      ): (T & { annotation: RiskAnalysisTemplateAnswerAnnotation }) | T =>
+        answer.id === answerId
+          ? { ...answer, annotation: newAnnotation }
+          : answer;
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        updatedAt: new Date(),
+        purposeRiskAnalysisForm: {
+          ...riskAnalysisForm,
+          singleAnswers: riskAnalysisForm.singleAnswers.map(
+            updateAnswerWithAnnotation
+          ),
+          multiAnswers: riskAnalysisForm.multiAnswers.map(
+            updateAnswerWithAnnotation
+          ),
+        },
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateDraftUpdated(
+          updatedPurposeTemplate,
+          correlationId,
+          purposeTemplate.metadata.version
+        )
+      );
+
+      return {
+        data: newAnnotation,
         metadata: {
           version: event.newVersion,
         },

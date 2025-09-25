@@ -42,3 +42,21 @@ export const createRiskAnalysisAnswerErrorMapper = (
       () => HTTP_STATUS_INTERNAL_SERVER_ERROR
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createRiskAnalysisAnswerAnnotationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "riskAnalysisTemplateValidationFailed",
+      "annotationTextLengthError",
+      "hyperlinkDetectionError",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "purposeTemplateNotFound",
+      "purposeTemplateRiskAnalysisFormNotFound",
+      "riskAnalysisAnswerNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

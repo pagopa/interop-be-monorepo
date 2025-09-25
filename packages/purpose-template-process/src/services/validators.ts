@@ -94,6 +94,16 @@ export function validateAndTransformRiskAnalysisAnswer(
   return riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer(validatedAnswer);
 }
 
+export function validateRiskAnalysisAnswerAnnotationOrThrow(
+  text: string
+): void {
+  if (text.length > 250) {
+    throw annotationTextLengthError(text, text.length, 250);
+  }
+
+  validateNoHyperlinks(text, hyperlinkDetectionError(text));
+}
+
 function validateRiskAnalysisTemplateOrThrow({
   riskAnalysisForm,
   tenantKind,
@@ -122,12 +132,9 @@ function validateRiskAnalysisAnswerOrThrow({
   tenantKind: TenantKind;
 }): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {
   if (riskAnalysisAnswer.answerData.annotation) {
-    const { text } = riskAnalysisAnswer.answerData.annotation;
-    if (text.length > 250) {
-      throw annotationTextLengthError(text, text.length, 250);
-    }
-
-    validateNoHyperlinks(text, hyperlinkDetectionError(text));
+    validateRiskAnalysisAnswerAnnotationOrThrow(
+      riskAnalysisAnswer.answerData.annotation.text
+    );
   }
 
   const result = validateRiskAnalysisAnswer(
