@@ -60,7 +60,7 @@ import {
   EServiceDescriptorAgreementApprovalPolicyUpdatedV2,
   EServiceSignalHubEnabledV2,
   EServiceSignalHubDisabledV2,
-  EServicePersonalDataUpdatedAfterPublishV2,
+  EServicePersonalDataFlagUpdatedAfterPublicationV2,
 } from "../gen/v2/eservice/events.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
@@ -254,8 +254,10 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     .with({ type: "EServiceSignalHubDisabled" }, ({ data }) =>
       EServiceSignalHubDisabledV2.toBinary(data)
     )
-    .with({ type: "EServicePersonalDataUpdatedAfterPublish" }, ({ data }) =>
-      EServicePersonalDataUpdatedAfterPublishV2.toBinary(data)
+    .with(
+      { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
+      ({ data }) =>
+        EServicePersonalDataFlagUpdatedAfterPublicationV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -544,8 +546,8 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServicePersonalDataUpdatedAfterPublish"),
-    data: protobufDecoder(EServicePersonalDataUpdatedAfterPublishV2),
+    type: z.literal("EServicePersonalDataFlagUpdatedAfterPublication"),
+    data: protobufDecoder(EServicePersonalDataFlagUpdatedAfterPublicationV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;
