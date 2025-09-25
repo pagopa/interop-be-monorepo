@@ -183,6 +183,8 @@ export function purposeTemplateServiceBuilder(
       documentId: string;
       ctx: WithLogger<BffAppContext>;
     }): Promise<Buffer> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
       const { headers, logger } = ctx;
 
       logger.info(
