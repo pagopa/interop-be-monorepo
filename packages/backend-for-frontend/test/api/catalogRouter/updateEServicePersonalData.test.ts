@@ -7,31 +7,30 @@ import { authRole } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import {
-  getMockBffApiEServicePersonalDataUpdateSeed,
+  getMockBffApiEServicePersonalDataFlagUpdateSeed,
   getMockBffApiEServicePersonaData,
 } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
-describe("API POST /eservices/:eServiceId/personalData", () => {
-  const mockEServicePersonalDataUpdateSeed =
-    getMockBffApiEServicePersonalDataUpdateSeed();
+describe("API POST /eservices/:eServiceId/personalDataFlag", () => {
+  const mockEServicePersonalDataFlagUpdateSeed =
+    getMockBffApiEServicePersonalDataFlagUpdateSeed();
   const mockEService = getMockBffApiEServicePersonaData();
 
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId = mockEService.id,
-    body: bffApi.EServicePersonalDataUpdateSeed = mockEServicePersonalDataUpdateSeed
+    body: bffApi.EServicePersonalDataFlagUpdateSeed = mockEServicePersonalDataFlagUpdateSeed
   ) =>
     request(api)
-      .post(`${appBasePath}/eservices/${eServiceId}/personalData`)
+      .post(`${appBasePath}/eservices/${eServiceId}/personalDataFlag`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
 
   beforeEach(() => {
-    clients.catalogProcessClient.updateEServicePersonalDataAfterPublish = vi
-      .fn()
-      .mockResolvedValue(mockEService);
+    clients.catalogProcessClient.updateEServicePersonalDataFlagAfterPublication =
+      vi.fn().mockResolvedValue(mockEService);
   });
 
   it("Should return 204 if no error is thrown", async () => {
@@ -45,13 +44,13 @@ describe("API POST /eservices/:eServiceId/personalData", () => {
     { body: {} },
     {
       body: {
-        ...mockEServicePersonalDataUpdateSeed,
+        ...mockEServicePersonalDataFlagUpdateSeed,
         extraField: 1,
       },
     },
     {
       body: {
-        ...mockEServicePersonalDataUpdateSeed,
+        ...mockEServicePersonalDataFlagUpdateSeed,
         personalData: "invalid",
       },
     },
@@ -62,7 +61,7 @@ describe("API POST /eservices/:eServiceId/personalData", () => {
       const res = await makeRequest(
         token,
         eServiceId,
-        body as bffApi.EServicePersonalDataUpdateSeed
+        body as bffApi.EServicePersonalDataFlagUpdateSeed
       );
       expect(res.status).toBe(400);
     }
