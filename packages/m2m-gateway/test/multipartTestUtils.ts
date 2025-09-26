@@ -1,5 +1,6 @@
 import request from "supertest";
 import { expect } from "vitest";
+import supertest from "supertest";
 import { DownloadedDocument } from "../src/utils/fileDownload.js";
 
 export function testMultipartResponseParser(
@@ -61,4 +62,36 @@ export async function testExpectedMultipartResponse(
   expect(res.headers["content-length"]).toBe(
     Buffer.byteLength(expectedMultipart, "utf8").toString()
   );
+}
+
+export type TestMultipartFileUpload = {
+  fileContent: Buffer;
+  filename: string;
+  contentType?: string;
+  prettyName?: string;
+};
+export function addMultipartFileToSupertestRequest(
+  req: supertest.Request,
+  file: TestMultipartFileUpload
+): supertest.Request {
+  if (file.fileContent) {
+    void req.attach("file", file.fileContent, {
+      filename: file.filename,
+      contentType: file.contentType,
+    });
+  }
+
+  if (file.prettyName) {
+    void req.field("prettyName", file.prettyName);
+  }
+
+  return req;
+}
+
+export function fileFromTestMultipartFileUpload(
+  file: TestMultipartFileUpload
+): File {
+  return new File([file.fileContent], file.filename, {
+    type: file.contentType,
+  });
 }

@@ -21,6 +21,7 @@ export * from "./delegation/protobufConverterFromV2.js";
 export * from "./delegation/protobufConverterToV2.js";
 
 export * from "./email/email.js";
+export * from "./email/emailNotificationMessagePayload.js";
 
 export * from "./eservice/eservice.js";
 export * from "./eservice/eserviceEvents.js";
@@ -32,7 +33,7 @@ export * from "./eservice/protobufConverterToV2.js";
 export * from "./institution/institution.js";
 
 export * from "./risk-analysis/riskAnalysis.js";
-export * from "./risk-analysis/riskAnalysisTemplate.js";
+export * from "./risk-analysis-template/riskAnalysisTemplate.js";
 
 export * from "./tenant/tenant.js";
 export * from "./tenant/tenantEvents.js";
@@ -150,3 +151,6 @@ export * from "./gen/v2/notification-config/events.js";
 
 // Selfcare User model
 export * from "./user/user.js";
+
+// M2M Event model
+export * from "./m2m-event/attributeM2MEvent.js";

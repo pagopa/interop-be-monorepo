@@ -20,7 +20,7 @@ const pool = new pg.Pool({
   user: config.userSQLDbUsername,
   password: config.userSQLDbPassword,
   port: config.userSQLDbPort,
-  ssl: config.userSQLDbUseSSL,
+  ssl: config.userSQLDbUseSSL ? { rejectUnauthorized: false } : undefined,
 });
 const userDB = drizzle(pool);
 

@@ -3,6 +3,7 @@
 import {
   unexpectedFieldValueError,
   unexpectedFieldError,
+  expiredRulesVersionError,
 } from "pagopa-interop-commons";
 import {
   randomArrayItem,
@@ -14,6 +15,7 @@ import {
   getMockAuthData,
   getMockDescriptor,
   getMockEService,
+  getMockExpiredRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   TenantKind,
@@ -83,7 +85,7 @@ describe("create risk analysis", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    await catalogService.createRiskAnalysis(
+    const creationResponse = await catalogService.createRiskAnalysis(
       eservice.id,
       riskAnalysisSeed,
       getMockContext({ authData: getMockAuthData(producer.id) })
@@ -100,7 +102,7 @@ describe("create risk analysis", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice: EService = {
       ...eservice,
       riskAnalysis: [
         {
@@ -139,12 +141,19 @@ describe("create risk analysis", () => {
           },
         },
       ],
-    });
+    };
 
-    expect(writtenPayload.riskAnalysisId).toEqual(
-      expectedEservice.riskAnalysis[0].id
-    );
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEservice),
+      riskAnalysisId: expectedEservice.riskAnalysis[0].id,
+    });
+    expect(creationResponse).toEqual({
+      data: {
+        eservice: expectedEservice,
+        createdRiskAnalysisId: writtenPayload.riskAnalysisId,
+      },
+      metadata: { version: 1 },
+    });
   });
   it("should write on event-store for the creation of a risk analysis (delegate)", async () => {
     const producerTenantKind: TenantKind = randomArrayItem(
@@ -180,7 +189,7 @@ describe("create risk analysis", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    await catalogService.createRiskAnalysis(
+    const creationResponse = await catalogService.createRiskAnalysis(
       eservice.id,
       riskAnalysisSeed,
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
@@ -197,7 +206,7 @@ describe("create risk analysis", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice: EService = {
       ...eservice,
       riskAnalysis: [
         {
@@ -236,12 +245,19 @@ describe("create risk analysis", () => {
           },
         },
       ],
-    });
+    };
 
-    expect(writtenPayload.riskAnalysisId).toEqual(
-      expectedEservice.riskAnalysis[0].id
-    );
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEservice),
+      riskAnalysisId: expectedEservice.riskAnalysis[0].id,
+    });
+    expect(creationResponse).toEqual({
+      data: {
+        eservice: expectedEservice,
+        createdRiskAnalysisId: writtenPayload.riskAnalysisId,
+      },
+      metadata: { version: 1 },
+    });
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     expect(
@@ -477,6 +493,52 @@ describe("create risk analysis", () => {
           new Set(["INSTITUTIONAL", "OTHER"])
         ),
         unexpectedFieldError("unexpectedField"),
+      ])
+    );
+  });
+  it("should throw riskAnalysisValidationFailed if the risk analysis rules version has expired", async () => {
+    const producerTenantKind: TenantKind = randomArrayItem(
+      Object.values(tenantKind)
+    );
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: producerTenantKind,
+    };
+
+    const mockValidRiskAnalysis =
+      getMockExpiredRiskAnalysis(producerTenantKind);
+
+    const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed = {
+      ...buildRiskAnalysisSeed(mockValidRiskAnalysis),
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      mode: eserviceMode.receive,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        },
+      ],
+    };
+
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.createRiskAnalysis(
+        eservice.id,
+        riskAnalysisSeed,
+        getMockContext({ authData: getMockAuthData(producer.id) })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisValidationFailed([
+        expiredRulesVersionError(
+          riskAnalysisSeed.riskAnalysisForm.version,
+          producerTenantKind
+        ),
       ])
     );
   });

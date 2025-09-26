@@ -16,6 +16,9 @@ import {
   S3Config,
   TokenGenerationReadModelDbConfig,
   InAppNotificationDBConfig,
+  UserSQLDbConfig,
+  M2MEventSQLDbConfig,
+  EventsSignerConfig,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
 import type {} from "vitest";
@@ -40,11 +43,15 @@ import {
   postgreSQLAnalyticsContainer,
   inAppNotificationDBContainer,
   TEST_IN_APP_NOTIFICATION_DB_PORT,
+  postgreSQLUserContainer,
+  m2mEventDBContainer,
+  TEST_M2M_EVENT_DB_PORT,
 } from "./containerTestUtils.js";
 import {
   EnhancedDPoPConfig,
   EnhancedTokenGenerationReadModelDbConfig,
   PecEmailManagerConfigTest,
+  EnhancedEventsSignerConfig,
 } from "./testConfig.js";
 
 declare module "vitest" {
@@ -60,6 +67,9 @@ declare module "vitest" {
     analyticsSQLConfig?: AnalyticsSQLDbConfig;
     dpopConfig?: EnhancedDPoPConfig;
     inAppNotificationDbConfig?: InAppNotificationDBConfig;
+    m2mEventDbConfig?: M2MEventSQLDbConfig;
+    userSQLConfig?: UserSQLDbConfig;
+    eventsSignerConfig?: EnhancedEventsSignerConfig;
   }
 }
 
@@ -87,6 +97,9 @@ export function setupTestContainersVitestGlobal() {
   const inAppNotificationDbConfig = InAppNotificationDBConfig.safeParse(
     process.env
   );
+  const userSQLConfig = UserSQLDbConfig.safeParse(process.env);
+  const eventsSignerConfig = EventsSignerConfig.safeParse(process.env);
+  const m2mEventDbConfig = M2MEventSQLDbConfig.safeParse(process.env);
 
   return async function ({
     provide,
@@ -101,6 +114,8 @@ export function setupTestContainersVitestGlobal() {
     let startedDynamoDbContainer: StartedTestContainer | undefined;
     let startedAWSSesContainer: StartedTestContainer | undefined;
     let startedInAppNotificationContainer: StartedTestContainer | undefined;
+    let startedPostgreSqlUserContainer: StartedTestContainer | undefined;
+    let startedM2MEventSQLDbContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -248,6 +263,39 @@ export function setupTestContainersVitestGlobal() {
       });
     }
 
+    if (userSQLConfig.success) {
+      startedPostgreSqlUserContainer = await postgreSQLUserContainer(
+        userSQLConfig.data
+      ).start();
+
+      userSQLConfig.data.userSQLDbPort =
+        startedPostgreSqlUserContainer.getMappedPort(TEST_POSTGRES_DB_PORT);
+
+      provide("userSQLConfig", userSQLConfig.data);
+    }
+
+    if (eventsSignerConfig.success) {
+      startedDynamoDbContainer = await dynamoDBContainer().start();
+
+      provide("eventsSignerConfig", {
+        ...eventsSignerConfig.data,
+        safeStoragePort:
+          startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT),
+      });
+    }
+
+    if (m2mEventDbConfig.success) {
+      startedInAppNotificationContainer = await m2mEventDBContainer(
+        m2mEventDbConfig.data
+      ).start();
+      provide("m2mEventDbConfig", {
+        ...m2mEventDbConfig.data,
+        m2mEventSQLDbPort: startedInAppNotificationContainer.getMappedPort(
+          TEST_M2M_EVENT_DB_PORT
+        ),
+      });
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedPostgreSqlReadModelContainer?.stop();
@@ -259,6 +307,8 @@ export function setupTestContainersVitestGlobal() {
       await startedRedisContainer?.stop();
       await startedAWSSesContainer?.stop();
       await startedInAppNotificationContainer?.stop();
+      await startedM2MEventSQLDbContainer?.stop();
+      await startedPostgreSqlUserContainer?.stop();
     };
   };
 }

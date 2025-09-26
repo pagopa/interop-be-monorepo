@@ -46,16 +46,16 @@ export const aggregatePurposeTemplateArray = ({
     createPurposeTemplateSQLPropertyMap(riskAnalysisTemplateAnswersSQL);
   const riskAnalysisTemplateAnswerAnnotationsByPurposeTemplateId =
     createPurposeTemplateSQLPropertyMap(
-      riskAnalysisTemplateAnswersAnnotationsSQL
+      riskAnalysisTemplateAnswersAnnotationsSQL,
     );
   const riskAnalysisTemplateAnswerAnnotationDocumentsByPurposeTemplateId =
     createPurposeTemplateSQLPropertyMap(
-      riskAnalysisTemplateAnswersAnnotationsDocumentsSQL
+      riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
     );
 
   return purposeTemplatesSQL.map((purposeTemplateSQL) => {
     const purposeTemplateId = unsafeBrandId<PurposeTemplateId>(
-      purposeTemplateSQL.id
+      purposeTemplateSQL.id,
     );
     return aggregatePurposeTemplate({
       purposeTemplateSQL,
@@ -66,11 +66,11 @@ export const aggregatePurposeTemplateArray = ({
         [],
       riskAnalysisTemplateAnswersAnnotationsSQL:
         riskAnalysisTemplateAnswerAnnotationsByPurposeTemplateId.get(
-          purposeTemplateId
+          purposeTemplateId,
         ) || [],
       riskAnalysisTemplateAnswersAnnotationsDocumentsSQL:
         riskAnalysisTemplateAnswerAnnotationDocumentsByPurposeTemplateId.get(
-          purposeTemplateId
+          purposeTemplateId,
         ) || [],
     });
   });
@@ -81,13 +81,13 @@ const createPurposeTemplateSQLPropertyMap = <
     | PurposeTemplateRiskAnalysisFormSQL
     | PurposeTemplateRiskAnalysisAnswerSQL
     | PurposeTemplateRiskAnalysisAnswerAnnotationSQL
-    | PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL
+    | PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL,
 >(
-  items: T[]
+  items: T[],
 ): Map<PurposeTemplateId, T[]> =>
   items.reduce((acc, item) => {
     const purposeTemplateId = unsafeBrandId<PurposeTemplateId>(
-      item.purposeTemplateId
+      item.purposeTemplateId,
     );
     const values = acc.get(purposeTemplateId) || [];
     // eslint-disable-next-line functional/immutable-data
@@ -178,7 +178,7 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
       (acc, documentSQL) => {
         const annotationId =
           unsafeBrandId<RiskAnalysisTemplateAnswerAnnotationId>(
-            documentSQL.annotationId
+            documentSQL.annotationId,
           );
         const documentsSQL = acc.get(annotationId) || [];
         // eslint-disable-next-line functional/immutable-data
@@ -190,7 +190,7 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
       new Map<
         RiskAnalysisTemplateAnswerAnnotationId,
         PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[]
-      >()
+      >(),
     );
 
   const {
@@ -206,7 +206,7 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
 
       const annotationDocumentSQL = annotationSQL
         ? riskAnalysisTemplateAnswersAnnotationsDocumentsByAnnotationId.get(
-            unsafeBrandId(annotationSQL.id)
+            unsafeBrandId(annotationSQL.id),
           )
         : undefined;
 
@@ -241,14 +241,12 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
               suggestedValues: answerSQL.suggestedValues || [],
             } satisfies RiskAnalysisTemplateSingleAnswer,
           ],
-          riskAnalysisTemplateMultiAnswers: [
-            ...acc.riskAnalysisTemplateMultiAnswers,
-          ],
+          riskAnalysisTemplateMultiAnswers:
+            acc.riskAnalysisTemplateMultiAnswers,
         }))
         .with(riskAnalysisAnswerKind.multi, () => ({
-          riskAnalysisTemplateSingleAnswers: [
-            ...acc.riskAnalysisTemplateSingleAnswers,
-          ],
+          riskAnalysisTemplateSingleAnswers:
+            acc.riskAnalysisTemplateSingleAnswers,
           riskAnalysisTemplateMultiAnswers: [
             ...acc.riskAnalysisTemplateMultiAnswers,
             {
@@ -267,7 +265,7 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
         new Array<RiskAnalysisTemplateSingleAnswer>(),
       riskAnalysisTemplateMultiAnswers:
         new Array<RiskAnalysisTemplateMultiAnswer>(),
-    }
+    },
   );
 
   return {
@@ -285,7 +283,7 @@ export const toPurposeTemplateAggregator = (
     purposeRiskAnalysisTemplateAnswer: PurposeTemplateRiskAnalysisAnswerSQL | null;
     purposeRiskAnalysisTemplateAnswerAnnotation: PurposeTemplateRiskAnalysisAnswerAnnotationSQL | null;
     purposeRiskAnalysisTemplateAnswerAnnotationDocument: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL | null;
-  }>
+  }>,
 ): PurposeTemplateItemsSQL => {
   const {
     purposeTemplatesSQL,
@@ -313,7 +311,7 @@ export const toPurposeTemplateAggregatorArray = (
     purposeRiskAnalysisTemplateAnswer: PurposeTemplateRiskAnalysisAnswerSQL | null;
     purposeRiskAnalysisTemplateAnswerAnnotation: PurposeTemplateRiskAnalysisAnswerAnnotationSQL | null;
     purposeRiskAnalysisTemplateAnswerAnnotationDocument: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL | null;
-  }>
+  }>,
 ): {
   purposeTemplatesSQL: PurposeTemplateSQL[];
   riskAnalysisFormTemplatesSQL: PurposeTemplateRiskAnalysisFormSQL[];
@@ -373,15 +371,15 @@ export const toPurposeTemplateAggregatorArray = (
     if (
       riskAnalysisTemplateAnswerAnnotationSQL &&
       !riskAnalysisTemplateAnswerAnnotationsIdsSet.has(
-        riskAnalysisTemplateAnswerAnnotationSQL.id
+        riskAnalysisTemplateAnswerAnnotationSQL.id,
       )
     ) {
       riskAnalysisTemplateAnswerAnnotationsIdsSet.add(
-        riskAnalysisTemplateAnswerAnnotationSQL.id
+        riskAnalysisTemplateAnswerAnnotationSQL.id,
       );
       // eslint-disable-next-line functional/immutable-data
       riskAnalysisTemplateAnswersAnnotationsSQL.push(
-        riskAnalysisTemplateAnswerAnnotationSQL
+        riskAnalysisTemplateAnswerAnnotationSQL,
       );
     }
 
@@ -390,15 +388,15 @@ export const toPurposeTemplateAggregatorArray = (
     if (
       riskAnalysisTemplateAnswerAnnotationDocumentSQL &&
       !riskAnalysisTemplateAnswerAnnotationsDocumentsIdsSet.has(
-        riskAnalysisTemplateAnswerAnnotationDocumentSQL.id
+        riskAnalysisTemplateAnswerAnnotationDocumentSQL.id,
       )
     ) {
       riskAnalysisTemplateAnswerAnnotationsDocumentsIdsSet.add(
-        riskAnalysisTemplateAnswerAnnotationDocumentSQL.id
+        riskAnalysisTemplateAnswerAnnotationDocumentSQL.id,
       );
       // eslint-disable-next-line functional/immutable-data
       riskAnalysisTemplateAnswersAnnotationsDocumentsSQL.push(
-        riskAnalysisTemplateAnswerAnnotationDocumentSQL
+        riskAnalysisTemplateAnswerAnnotationDocumentSQL,
       );
     }
   });

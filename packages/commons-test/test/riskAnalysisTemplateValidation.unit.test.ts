@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { TenantKind, tenantKind } from "pagopa-interop-models";
 import {
-  malformedTemplateFieldValueOrSuggestionError,
-  missingExpectedTemplateFieldError,
-  noRulesVersionTemplateFoundError,
+  malformedRiskAnalysisTemplateFieldValueOrSuggestionError,
+  missingExpectedRiskAnalysisTemplateFieldError,
+  noRiskAnalysisTemplateRulesVersionFoundError,
   riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
-  unexpectedTemplateDependencyValueError,
-  unexpectedTemplateFieldError,
-  unexpectedTemplateFieldValueError,
-  unexpectedTemplateFieldValueOrSuggestionError,
-  unexpectedTemplateRulesVersionError,
+  unexpectedRiskAnalysisTemplateDependencyValueError,
+  unexpectedRiskAnalysisTemplateFieldError,
+  unexpectedRiskAnalysisTemplateFieldValueError,
+  unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError,
+  unexpectedRiskAnalysisTemplateRulesVersionError,
   validatePurposeTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -34,13 +34,13 @@ describe("Risk Analysis Template Validation", () => {
   const PURPOSE_ALLOWED_VALUES = new Set(Object.values(PURPOSE_VALUES));
 
   function createValidTemplate(
-    tenantKind: TenantKind
+    tenantKind: TenantKind,
   ): ReturnType<
     typeof riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate
   > {
     const mockForm = getMockValidRiskAnalysisFormTemplate(tenantKind);
     return riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
-      mockForm
+      mockForm,
     );
   }
 
@@ -51,7 +51,7 @@ describe("Risk Analysis Template Validation", () => {
       editable: boolean;
       values: string[];
       suggestedValues: string[];
-    }>
+    }>,
   ): ReturnType<typeof createValidTemplate> {
     const { answers } = template;
     const field = answers[fieldName];
@@ -76,7 +76,7 @@ describe("Risk Analysis Template Validation", () => {
 
   function createTemplateWithoutField(
     template: ReturnType<typeof createValidTemplate>,
-    fieldName: string
+    fieldName: string,
   ): ReturnType<typeof createValidTemplate> {
     const { answers } = template;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -91,7 +91,7 @@ describe("Risk Analysis Template Validation", () => {
   function createTemplateWithUnexpectedField(
     template: ReturnType<typeof createValidTemplate>,
     fieldName: string,
-    fieldValue: string
+    fieldValue: string,
   ): ReturnType<typeof createValidTemplate> {
     const unexpectedField = {
       values: [fieldValue],
@@ -122,7 +122,7 @@ describe("Risk Analysis Template Validation", () => {
     const template = createValidTemplate(tenantKind.PRIVATE);
     const result = validatePurposeTemplateRiskAnalysis(
       template,
-      tenantKind.PRIVATE
+      tenantKind.PRIVATE,
     );
 
     expect(result).toEqual({
@@ -137,12 +137,12 @@ describe("Risk Analysis Template Validation", () => {
 
     const result = validatePurposeTemplateRiskAnalysis(
       emptyTemplate,
-      invalidTenantKind
+      invalidTenantKind,
     );
 
     expect(result).toEqual({
       type: "invalid",
-      issues: [noRulesVersionTemplateFoundError(invalidTenantKind)],
+      issues: [noRiskAnalysisTemplateRulesVersionFoundError(invalidTenantKind)],
     });
   });
 
@@ -151,12 +151,14 @@ describe("Risk Analysis Template Validation", () => {
 
     const result = validatePurposeTemplateRiskAnalysis(
       emptyTemplate,
-      tenantKind.PA
+      tenantKind.PA,
     );
 
     expect(result).toEqual({
       type: "invalid",
-      issues: [unexpectedTemplateRulesVersionError(emptyTemplate.version)],
+      issues: [
+        unexpectedRiskAnalysisTemplateRulesVersionError(emptyTemplate.version),
+      ],
     });
   });
 
@@ -164,18 +166,20 @@ describe("Risk Analysis Template Validation", () => {
     const template = createValidTemplate(tenantKind.PA);
     const templateWithoutField = createTemplateWithoutField(
       template,
-      TEST_FIELDS.INSTITUTIONAL_PURPOSE
+      TEST_FIELDS.INSTITUTIONAL_PURPOSE,
     );
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithoutField,
-      tenantKind.PA
+      tenantKind.PA,
     );
 
     expect(result).toEqual({
       type: "invalid",
       issues: [
-        missingExpectedTemplateFieldError(TEST_FIELDS.INSTITUTIONAL_PURPOSE),
+        missingExpectedRiskAnalysisTemplateFieldError(
+          TEST_FIELDS.INSTITUTIONAL_PURPOSE,
+        ),
       ],
     });
   });
@@ -185,19 +189,19 @@ describe("Risk Analysis Template Validation", () => {
     const templateWithEditableField = createTemplateWithModifiedField(
       template,
       TEST_FIELDS.INSTITUTIONAL_PURPOSE,
-      { editable: true }
+      { editable: true },
     );
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithEditableField,
-      tenantKind.PA
+      tenantKind.PA,
     );
 
     expect(result).toEqual({
       type: "invalid",
       issues: [
-        malformedTemplateFieldValueOrSuggestionError(
-          TEST_FIELDS.INSTITUTIONAL_PURPOSE
+        malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          TEST_FIELDS.INSTITUTIONAL_PURPOSE,
         ),
       ],
     });
@@ -208,19 +212,19 @@ describe("Risk Analysis Template Validation", () => {
     const templateWithInvalidFreeText = createTemplateWithModifiedField(
       template,
       TEST_FIELDS.INSTITUTIONAL_PURPOSE,
-      { values: [], suggestedValues: [] }
+      { values: [], suggestedValues: [] },
     );
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithInvalidFreeText,
-      tenantKind.PA
+      tenantKind.PA,
     );
 
     expect(result).toEqual({
       type: "invalid",
       issues: [
-        malformedTemplateFieldValueOrSuggestionError(
-          TEST_FIELDS.INSTITUTIONAL_PURPOSE
+        malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          TEST_FIELDS.INSTITUTIONAL_PURPOSE,
         ),
       ],
     });
@@ -231,19 +235,19 @@ describe("Risk Analysis Template Validation", () => {
     const templateWithInvalidFreeText = createTemplateWithModifiedField(
       template,
       TEST_FIELDS.INSTITUTIONAL_PURPOSE,
-      { suggestedValues: ["suggestion"] }
+      { suggestedValues: ["suggestion"] },
     );
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithInvalidFreeText,
-      tenantKind.PA
+      tenantKind.PA,
     );
 
     expect(result).toEqual({
       type: "invalid",
       issues: [
-        malformedTemplateFieldValueOrSuggestionError(
-          TEST_FIELDS.INSTITUTIONAL_PURPOSE
+        malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          TEST_FIELDS.INSTITUTIONAL_PURPOSE,
         ),
       ],
     });
@@ -254,19 +258,19 @@ describe("Risk Analysis Template Validation", () => {
     const templateWithInvalidField = createTemplateWithModifiedField(
       template,
       TEST_FIELDS.DELIVERY_METHOD,
-      { values: [], suggestedValues: ["suggestion"] }
+      { values: [], suggestedValues: ["suggestion"] },
     );
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithInvalidField,
-      tenantKind.PA
+      tenantKind.PA,
     );
 
     expect(result).toEqual({
       type: "invalid",
       issues: [
-        unexpectedTemplateFieldValueOrSuggestionError(
-          TEST_FIELDS.DELIVERY_METHOD
+        unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          TEST_FIELDS.DELIVERY_METHOD,
         ),
       ],
     });
@@ -277,19 +281,19 @@ describe("Risk Analysis Template Validation", () => {
     const templateWithInvalidField = createTemplateWithModifiedField(
       template,
       TEST_FIELDS.DELIVERY_METHOD,
-      { values: [], suggestedValues: [] }
+      { values: [], suggestedValues: [] },
     );
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithInvalidField,
-      tenantKind.PA
+      tenantKind.PA,
     );
 
     expect(result).toEqual({
       type: "invalid",
       issues: [
-        unexpectedTemplateFieldValueOrSuggestionError(
-          TEST_FIELDS.DELIVERY_METHOD
+        unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
+          TEST_FIELDS.DELIVERY_METHOD,
         ),
       ],
     });
@@ -300,17 +304,17 @@ describe("Risk Analysis Template Validation", () => {
     const templateWithUnexpectedField = createTemplateWithUnexpectedField(
       template,
       "unexpectedField",
-      "unexpectedValue"
+      "unexpectedValue",
     );
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithUnexpectedField,
-      tenantKind.PA
+      tenantKind.PA,
     );
 
     expect(result).toEqual({
       type: "invalid",
-      issues: [unexpectedTemplateFieldError("unexpectedField")],
+      issues: [unexpectedRiskAnalysisTemplateFieldError("unexpectedField")],
     });
   });
 
@@ -319,27 +323,27 @@ describe("Risk Analysis Template Validation", () => {
     const templateWithWrongDependencyValue = createTemplateWithModifiedField(
       template,
       TEST_FIELDS.PURPOSE,
-      { values: ["wrongValue"] }
+      { values: ["wrongValue"] },
     );
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithWrongDependencyValue,
-      tenantKind.PA
+      tenantKind.PA,
     );
 
     expect(result).toEqual({
       type: "invalid",
       issues: [
         // wrongValue not in allowed values for purpose field
-        unexpectedTemplateFieldValueError(
+        unexpectedRiskAnalysisTemplateFieldValueError(
           TEST_FIELDS.PURPOSE,
-          PURPOSE_ALLOWED_VALUES
+          PURPOSE_ALLOWED_VALUES,
         ),
         // wrongValue not the expected value for institutional purpose field
-        unexpectedTemplateDependencyValueError(
+        unexpectedRiskAnalysisTemplateDependencyValueError(
           TEST_FIELDS.INSTITUTIONAL_PURPOSE,
           TEST_FIELDS.PURPOSE,
-          PURPOSE_VALUES.INSTITUTIONAL
+          PURPOSE_VALUES.INSTITUTIONAL,
         ),
       ],
     });
@@ -350,18 +354,18 @@ describe("Risk Analysis Template Validation", () => {
     const templateWithWrongDependencyValue = createTemplateWithModifiedField(
       template,
       TEST_FIELDS.PURPOSE,
-      { values: ["OTHER"] }
+      { values: ["OTHER"] },
     );
 
     const result = validatePurposeTemplateRiskAnalysis(
       templateWithWrongDependencyValue,
-      tenantKind.PA
+      tenantKind.PA,
     );
 
     // otherPurpose is a missing field that is required if purpose is OTHER
     expect(result).toEqual({
       type: "invalid",
-      issues: [missingExpectedTemplateFieldError("otherPurpose")],
+      issues: [missingExpectedRiskAnalysisTemplateFieldError("otherPurpose")],
     });
   });
 });

@@ -1,16 +1,16 @@
 import { InternalError, TenantKind } from "pagopa-interop-models";
 
 type RiskAnalysisTemplateValidationIssueCode =
-  | "templateFieldValueNotAllowed"
-  | "malformedTemplateFieldValueOrSuggestion"
-  | "templateDependencyNotFound"
-  | "templateDependencyNotBeingEditable"
-  | "unexpectedTemplateFieldValueError"
-  | "unexpectedTemplateFieldError"
-  | "noRulesVersionTemplateFoundError"
-  | "unexpectedTemplateRulesVersionError"
-  | "unexpectedTemplateDependencyValueError"
-  | "missingExpectedFieldError";
+  | "unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError"
+  | "malformedRiskAnalysisTemplateFieldValueOrSuggestionError"
+  | "riskAnalysisTemplateDependencyNotFoundError"
+  | "unexpectedRiskAnalysisTemplateDependencyEditableError"
+  | "unexpectedRiskAnalysisTemplateFieldValueError"
+  | "unexpectedRiskAnalysisTemplateFieldError"
+  | "noRiskAnalysisTemplateRulesVersionFoundError"
+  | "unexpectedRiskAnalysisTemplateRulesVersionError"
+  | "unexpectedRiskAnalysisTemplateDependencyValueError"
+  | "missingExpectedRiskAnalysisTemplateFieldError";
 
 export class RiskAnalysisTemplateValidationIssue extends InternalError<RiskAnalysisTemplateValidationIssueCode> {
   constructor({
@@ -38,104 +38,104 @@ export type RiskAnalysisTemplateValidationResult<T> =
   | RiskAnalysisTemplateValidationValid<T>
   | RiskAnalysisTemplateValidationInvalid;
 
-export function unexpectedTemplateFieldValueOrSuggestionError(
-  fieldName: string
+export function unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
+  fieldName: string,
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "templateFieldValueNotAllowed",
+    code: "unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError",
     detail: `Field ${fieldName} value or suggestion not allowed`,
   });
 }
 
-export function unexpectedTemplateFieldValueError(
+export function unexpectedRiskAnalysisTemplateFieldValueError(
   fieldName: string,
-  allowedValues: Set<string>
+  allowedValues: Set<string>,
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "unexpectedTemplateFieldValueError",
+    code: "unexpectedRiskAnalysisTemplateFieldValueError",
     detail: `Field ${fieldName} should be one of [${Array.from(
-      allowedValues
+      allowedValues,
     ).join(",")}]`,
   });
 }
 
-export function unexpectedTemplateFieldError(
-  fieldName: string
+export function unexpectedRiskAnalysisTemplateFieldError(
+  fieldName: string,
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "unexpectedTemplateFieldError",
+    code: "unexpectedRiskAnalysisTemplateFieldError",
     detail: `Unexpected field ${fieldName}`,
   });
 }
 
-export function malformedTemplateFieldValueOrSuggestionError(
-  fieldName: string
+export function malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
+  fieldName: string,
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "malformedTemplateFieldValueOrSuggestion",
+    code: "malformedRiskAnalysisTemplateFieldValueOrSuggestionError",
     detail: `Field ${fieldName} has conflicting or invalid value and suggestion configuration`,
   });
 }
 
-export function templateDependencyNotFoundError(
+export function riskAnalysisTemplateDependencyNotFoundError(
   dependentField: string,
-  dependencyField: string
+  dependencyField: string,
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "templateDependencyNotFound",
+    code: "riskAnalysisTemplateDependencyNotFoundError",
     detail: `Field ${dependentField} depends on ${dependencyField} which is missing`,
   });
 }
 
-export function unexpectedTemplateDependencyEditableError(
+export function unexpectedRiskAnalysisTemplateDependencyEditableError(
   dependentField: string,
-  dependencyField: string
+  dependencyField: string,
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "templateDependencyNotBeingEditable",
+    code: "unexpectedRiskAnalysisTemplateDependencyEditableError",
     detail: `Field ${dependentField} depends on ${dependencyField} which is editable`,
   });
 }
 
-export function noRulesVersionTemplateFoundError(
-  kind: TenantKind
+export function noRiskAnalysisTemplateRulesVersionFoundError(
+  kind: TenantKind,
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "noRulesVersionTemplateFoundError",
+    code: "noRiskAnalysisTemplateRulesVersionFoundError",
     detail: `Ruleset version for tenant kind ${kind} not found`,
   });
 }
 
-export function unexpectedTemplateRulesVersionError(
-  version: string
+export function unexpectedRiskAnalysisTemplateRulesVersionError(
+  version: string,
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "unexpectedTemplateRulesVersionError",
+    code: "unexpectedRiskAnalysisTemplateRulesVersionError",
     detail: `Unexpected ruleset version ${version}`,
   });
 }
-export function unexpectedTemplateDependencyValueError(
+export function unexpectedRiskAnalysisTemplateDependencyValueError(
   dependentField: string,
   dependencyField: string,
-  expectedValue: string
+  expectedValue: string,
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "unexpectedTemplateDependencyValueError",
+    code: "unexpectedRiskAnalysisTemplateDependencyValueError",
     detail: `Field ${dependentField} requires field ${dependencyField} value to be ${expectedValue}`,
   });
 }
 
-export function missingExpectedTemplateFieldError(
-  fieldName: string
+export function missingExpectedRiskAnalysisTemplateFieldError(
+  fieldName: string,
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
-    code: "missingExpectedFieldError",
+    code: "missingExpectedRiskAnalysisTemplateFieldError",
     detail: `Expected field ${fieldName} not found in form`,
   });
 }
 
 export function invalidTemplateResult(
-  issues: RiskAnalysisTemplateValidationIssue[]
+  issues: RiskAnalysisTemplateValidationIssue[],
 ): RiskAnalysisTemplateValidationInvalid {
   return {
     type: "invalid",
@@ -144,7 +144,7 @@ export function invalidTemplateResult(
 }
 
 export function validTemplateResult<T>(
-  value: T
+  value: T,
 ): RiskAnalysisTemplateValidationResult<T> {
   return {
     type: "valid",

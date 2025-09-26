@@ -86,7 +86,7 @@ describe("API POST /tenantNotificationConfigs test", () => {
 
   it.each([
     { body: {} },
-    { body: { agreementSuspendedUnsuspendedToProducer: "invalid" } },
+    { body: { enabled: "invalid" } },
     { body: { ...notificationConfigSeed, extraField: 1 } },
   ])("Should return 400 if passed invalid params: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);

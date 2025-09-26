@@ -1,6 +1,7 @@
 {
   "name": "pagopa-interop-m2m-gateway",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interop M2M Gateway",
   "main": "dist",
   "type": "module",
@@ -16,8 +17,6 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@anatine/zod-mock": "3.14.0",
     "@pagopa/eslint-config": "3.0.0",

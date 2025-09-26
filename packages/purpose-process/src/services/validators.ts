@@ -25,6 +25,7 @@ import {
   ownership,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
@@ -48,7 +49,8 @@ import {
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  dateForExpirationValidation: Date
 ): boolean => {
   if (riskAnalysisForm === undefined) {
     return false;
@@ -57,7 +59,8 @@ export const isRiskAnalysisFormValid = (
       validateRiskAnalysis(
         riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
         schemaOnlyValidation,
-        tenantKind
+        tenantKind,
+        dateForExpirationValidation
       ).type === "valid"
     );
   }
@@ -113,27 +116,32 @@ export function validateRiskAnalysisOrThrow({
   riskAnalysisForm,
   schemaOnlyValidation,
   tenantKind,
+  dateForExpirationValidation,
 }: {
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
   schemaOnlyValidation: boolean;
   tenantKind: TenantKind;
+  dateForExpirationValidation: Date;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind
+    tenantKind,
+    dateForExpirationValidation
   );
-  if (result.type === "invalid") {
-    throw riskAnalysisValidationFailed(result.issues);
-  } else {
-    return result.value;
-  }
+  return match(result)
+    .with({ type: "invalid" }, ({ issues }) => {
+      throw riskAnalysisValidationFailed(issues);
+    })
+    .with({ type: "valid" }, ({ value }) => value)
+    .exhaustive();
 }
 
 export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  dateForExpirationValidation: Date
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
@@ -142,6 +150,7 @@ export function validateAndTransformRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
     tenantKind,
+    dateForExpirationValidation,
   });
 
   return {
