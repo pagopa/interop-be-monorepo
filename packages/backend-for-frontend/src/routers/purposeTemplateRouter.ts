@@ -14,6 +14,7 @@ import {
   getCatalogPurposeTemplatesErrorMapper,
   getPurposeTemplateErrorMapper,
   linkEServiceToPurposeTemplateErrorMapper,
+  unlinkEServicesFromPurposeTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
