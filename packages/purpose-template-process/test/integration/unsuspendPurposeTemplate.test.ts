@@ -225,16 +225,16 @@ describe("unsuspendPurposeTemplate", () => {
     {
       error: purposeTemplateNotInExpectedState(
         purposeTemplate.id,
-        purposeTemplate.state,
-        purposeTemplateState.archived
+        purposeTemplateState.archived,
+        purposeTemplateState.suspended
       ),
       state: purposeTemplateState.archived,
     },
     {
       error: purposeTemplateNotInExpectedState(
         purposeTemplate.id,
-        purposeTemplate.state,
-        purposeTemplateState.draft
+        purposeTemplateState.draft,
+        purposeTemplateState.suspended
       ),
       state: purposeTemplateState.draft,
     },
