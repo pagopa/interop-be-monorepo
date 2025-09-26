@@ -10496,6 +10496,131 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/publish:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Publish Purpose Template
+      description: Publishes a purpose template by id (from Draft State to Active State)
+      operationId: publishPurposeTemplate
+      tags:
+        - purposeTemplates
+      responses:
+        "200":
+          description: Purpose Template Published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Organization not allowed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/tenants/{tenantId}/attributes/declared":
     get:
       tags:
@@ -23453,6 +23578,54 @@ components:
         - targetDescription
         - targetTenantKind
         - creator
+        - state
+        - createdAt
+        - purposeTitle
+        - purposeDescription
+        - purposeIsFreeOfCharge
+    PurposeTemplate:
+      type: object
+      description: Business representation of a purpose template
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        targetDescription:
+          type: string
+        targetTenantKind:
+          $ref: "#/components/schemas/TenantKind"
+        creatorId:
+          type: string
+          format: uuid
+        state:
+          $ref: "#/components/schemas/PurposeTemplateState"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        purposeTitle:
+          type: string
+        purposeDescription:
+          type: string
+        purposeRiskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+        purposeIsFreeOfCharge:
+          type: boolean
+        purposeFreeOfChargeReason:
+          type: string
+        purposeDailyCalls:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - targetDescription
+        - targetTenantKind
+        - creatorId
         - state
         - createdAt
         - purposeTitle

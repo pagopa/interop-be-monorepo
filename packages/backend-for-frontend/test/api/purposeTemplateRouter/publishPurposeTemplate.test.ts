@@ -6,13 +6,12 @@ import { authRole } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, clients } from "../../vitest.api.setup.js";
-import { getMockBffApiPurposeTemplateWithCompactCreator } from "../../mockUtils.js";
+import { getMockBffApiPurposeTemplate } from "../../mockUtils.js";
 
 describe("API POST /purposeTemplates/{purposeTemplateId}/publish", () => {
-  const mockActivePurposeTemplate =
-    getMockBffApiPurposeTemplateWithCompactCreator(
-      bffApi.PurposeTemplateState.Enum.ACTIVE
-    );
+  const mockActivePurposeTemplate = getMockBffApiPurposeTemplate(
+    bffApi.PurposeTemplateState.Enum.ACTIVE
+  );
 
   beforeEach(() => {
     clients.purposeTemplateProcessClient.publishPurposeTemplate = vi
