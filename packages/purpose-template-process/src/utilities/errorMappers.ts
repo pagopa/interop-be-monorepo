@@ -58,6 +58,7 @@ export const suspendPurposeTemplateErrorMapper = (
 ): number =>
   match(error.code)
     .with("purposeTemplateNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("purposeTemplateStateConflict", () => HTTP_STATUS_CONFLICT)
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

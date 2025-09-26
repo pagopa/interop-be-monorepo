@@ -18,6 +18,7 @@ import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedState,
+  purposeTemplateStateConflict,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -83,6 +84,13 @@ describe("API POST /purposeTemplates/{id}/suspend", () => {
     {
       error: purposeTemplateNotFound(generateId()),
       expectedStatus: 404,
+    },
+    {
+      error: purposeTemplateStateConflict(
+        generateId(),
+        purposeTemplateState.suspended
+      ),
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",
