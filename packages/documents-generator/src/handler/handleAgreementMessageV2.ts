@@ -9,11 +9,12 @@ import { FileManager, Logger, PDFGenerator } from "pagopa-interop-commons";
 import { ReadModelService } from "../service/readModelService.js";
 import { agreementContractBuilder } from "../service/agreement/agreementContractBuilder.js";
 import { config } from "../config/config.js";
+
 import {
-  retrieveEserviceById,
-  retrieveTenantById,
-} from "../service/delegation/delegationService.js";
-import { getActiveConsumerAndProducerDelegations } from "../service/agreement/agreementService.js";
+  getActiveConsumerAndProducerDelegations,
+  retrieveEservice,
+  retrieveTenant,
+} from "../service/agreement/agreementService.js";
 
 export async function handleAgreementMessageV2(
   decodedMessage: AgreementEventEnvelopeV2,
@@ -32,15 +33,15 @@ export async function handleAgreementMessageV2(
           throw missingKafkaMessageDataError("agreement", msg.type);
         }
         const agreement = fromAgreementV2(msg.data.agreement);
-        const eservice = await retrieveEserviceById(
+        const eservice = await retrieveEservice(
           readModelService,
           agreement.eserviceId
         );
-        const consumer = await retrieveTenantById(
+        const consumer = await retrieveTenant(
           readModelService,
           agreement.consumerId
         );
-        const producer = await retrieveTenantById(
+        const producer = await retrieveTenant(
           readModelService,
           agreement.producerId
         );

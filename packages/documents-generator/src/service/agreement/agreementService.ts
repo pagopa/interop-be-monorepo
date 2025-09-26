@@ -5,14 +5,19 @@ import {
   EService,
   Descriptor,
   Agreement,
+  EServiceId,
 } from "pagopa-interop-models";
 import { ReadModelService } from "../readModelService.js";
 import { ActiveDelegations } from "../../model/agreementModels.js";
-import { descriptorNotFound, tenantNotFound } from "../../model/errors.js";
+import {
+  descriptorNotFound,
+  eServiceNotFound,
+  tenantNotFound,
+} from "../../model/errors.js";
 
 export const retrieveTenant = async (
-  tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  tenantId: TenantId
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
@@ -36,17 +41,25 @@ export const retrieveDescriptor = (
   return descriptor;
 };
 
+export const retrieveEservice = async (
+  readModelService: ReadModelService,
+  id: EServiceId
+): Promise<EService> => {
+  const eservice = await readModelService.getEServiceById(id);
+  if (!eservice) {
+    throw eServiceNotFound(id);
+  }
+  return eservice.data;
+};
+
 export const getActiveConsumerAndProducerDelegations = async (
   agreement: Agreement,
-  readModelService: ReadModelService,
-  cachedActiveDelegations?: ActiveDelegations
+  readModelService: ReadModelService
 ): Promise<ActiveDelegations> => ({
   producerDelegation:
-    cachedActiveDelegations?.producerDelegation ??
-    (await readModelService.getActiveProducerDelegationByEserviceId(
+    await readModelService.getActiveProducerDelegationByEserviceId(
       agreement.eserviceId
-    )),
+    ),
   consumerDelegation:
-    cachedActiveDelegations?.consumerDelegation ??
-    (await readModelService.getActiveConsumerDelegationByAgreement(agreement)),
+    await readModelService.getActiveConsumerDelegationByAgreement(agreement),
 });

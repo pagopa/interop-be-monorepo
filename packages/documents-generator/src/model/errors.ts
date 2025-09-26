@@ -1,4 +1,5 @@
 import {
+  Agreement,
   DelegationId,
   DescriptorId,
   EServiceId,
@@ -16,7 +17,8 @@ type DocumentsGeneratorErrorCode =
   | "eServiceNotFound"
   | "descriptorNotFound"
   | "riskAnalysisConfigVersionNotFound"
-  | "missingRiskAnalysis";
+  | "missingRiskAnalysis"
+  | "stampNotFound";
 
 export class DocumentsGeneratorError extends InternalError<DocumentsGeneratorErrorCode> {
   constructor({
@@ -91,5 +93,14 @@ export function missingRiskAnalysis(
   return new InternalError({
     detail: `Purpose ${purposeId} must contain a valid risk analysis`,
     code: "missingRiskAnalysis",
+  });
+}
+
+export function agreementStampNotFound(
+  stamp: keyof Agreement["stamps"]
+): DocumentsGeneratorError {
+  return new InternalError({
+    detail: `Agreement ${stamp} stamp not found`,
+    code: "stampNotFound",
   });
 }

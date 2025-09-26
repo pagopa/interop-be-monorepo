@@ -41,6 +41,7 @@ import {
 } from "../../model/agreementModels.js";
 import { ReadModelService } from "../readModelService.js";
 import { DocumentsGeneratorConfig } from "../../config/config.js";
+import { agreementStampNotFound } from "../../model/errors.js";
 import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
@@ -106,7 +107,6 @@ const getAttributesData = async (
       )
       .exhaustive()
       .map((attribute) => attribute.id);
-
     const tenantAttributes = consumer.attributes.filter(
       (a) => a.type === type && seedAttributes.includes(a.id)
     );
@@ -156,7 +156,6 @@ const getPdfPayload = async (
   readModelService: ReadModelService
 ): Promise<AgreementContractPDFPayload> => {
   const today = new Date();
-
   const { certified, declared, verified } = await getAttributesData(
     consumer,
     agreement,
@@ -235,8 +234,8 @@ const buildDelegationData = async (
   readModelService: ReadModelService
 ): Promise<DelegationData> => {
   const delegate = await retrieveTenant(
-    delegation.delegateId,
-    readModelService
+    readModelService,
+    delegation.delegateId
   );
 
   return {
@@ -257,7 +256,7 @@ export const agreementContractBuilder = (
   const dirname = path.dirname(filename);
   const templateFilePath = path.resolve(
     dirname,
-    "..",
+    "../..",
     "resources/agreement",
     "agreementContractTemplate.html"
   );
@@ -331,7 +330,7 @@ export function assertStampExists<S extends keyof AgreementStamps>(
   [key in S]: AgreementStamp;
 } {
   if (!stamps[stamp]) {
-    throw genericInternalError(stamp); // todo throw right error
+    throw agreementStampNotFound(stamp);
   }
 }
 
