@@ -1260,8 +1260,8 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
   });
 
   it.each([
-    "EServicePersonalDataUpdatedAfterPublish",
-    "EServicePersonalDataUpdatedByTemplateUpdate",
+    "EServicePersonalDataFlagUpdatedAfterPublication",
+    "EServicePersonalDataFlagUpdatedByTemplateUpdate",
   ] as const)("%s: updates eService personalData flag", async (eventType) => {
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptor(),
