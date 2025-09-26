@@ -123,7 +123,6 @@ export const assertActivatableState = (
       throw purposeTemplateNotInExpectedState(
         purposeTemplate.id,
         purposeTemplate.state,
-        allowedInitialState
         [allowedInitialState]
       );
     });
@@ -150,11 +149,7 @@ export const assertSuspendableState = (
     throw purposeTemplateNotInExpectedState(
       purposeTemplate.id,
       purposeTemplate.state,
-      expectedState
       [expectedState]
-    );
-  }
-};
     );
   }
 };
