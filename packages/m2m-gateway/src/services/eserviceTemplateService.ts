@@ -330,7 +330,7 @@ export function eserviceTemplateServiceBuilder(
       return toM2MGatewayApiEServiceTemplateRiskAnalysis(riskAnalysis);
     },
 
-    async deleteEServiceTemplateVersion(
+    async deleteDraftEServiceTemplateVersion(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>

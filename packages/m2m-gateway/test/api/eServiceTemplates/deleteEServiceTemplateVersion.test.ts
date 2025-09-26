@@ -27,7 +27,7 @@ describe("DELETE /eserviceTemplates/:templateId/version/:versionId router test",
   it.each(authorizedRoles)(
     "Should return 204 and perform service calls for user with role %s, generateId()",
     async (role) => {
-      mockEServiceTemplateService.deleteEServiceTemplateVersion = vi.fn();
+      mockEServiceTemplateService.deleteDraftEServiceTemplateVersion = vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(token, generateId(), generateId());
@@ -57,7 +57,7 @@ describe("DELETE /eserviceTemplates/:templateId/version/:versionId router test",
   });
 
   it("Should return 409 in case of cannotDeleteLastEServiceTemplateVersion error", async () => {
-    mockEServiceTemplateService.deleteEServiceTemplateVersion = vi
+    mockEServiceTemplateService.deleteDraftEServiceTemplateVersion = vi
       .fn()
       .mockRejectedValue(
         cannotDeleteLastEServiceTemplateVersion(generateId(), generateId())
@@ -74,7 +74,7 @@ describe("DELETE /eserviceTemplates/:templateId/version/:versionId router test",
       config.defaultPollingRetryDelay
     ),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockEServiceTemplateService.deleteEServiceTemplateVersion = vi
+    mockEServiceTemplateService.deleteDraftEServiceTemplateVersion = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);

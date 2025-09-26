@@ -23,7 +23,7 @@ import {
   missingMetadata,
 } from "../../../src/model/errors.js";
 
-describe("deleteEServiceTemplateVersion", () => {
+describe("deleteDraftEServiceTemplateVersion", () => {
   const mockApiEserviceTemplateVersion1 = getMockedApiEserviceTemplateVersion();
   const mockApiEserviceTemplateVersion2 = getMockedApiEserviceTemplateVersion();
   const mockApiEServiceTemplate = getMockWithMetadata(
@@ -55,7 +55,7 @@ describe("deleteEServiceTemplateVersion", () => {
   it("Should succeed and perform API clients calls", async () => {
     mockGetEServiceTemplate.mockResolvedValueOnce(mockApiEServiceTemplate);
 
-    await eserviceTemplateService.deleteEServiceTemplateVersion(
+    await eserviceTemplateService.deleteDraftEServiceTemplateVersion(
       unsafeBrandId(mockApiEServiceTemplate.data.id),
       unsafeBrandId(mockApiEserviceTemplateVersion1.id),
       getMockM2MAdminAppContext()
@@ -95,7 +95,7 @@ describe("deleteEServiceTemplateVersion", () => {
     );
 
     await expect(
-      eserviceTemplateService.deleteEServiceTemplateVersion(
+      eserviceTemplateService.deleteDraftEServiceTemplateVersion(
         unsafeBrandId(mockApiEServiceTemplateWithOneVersion.data.id),
         unsafeBrandId(mockApiEserviceTemplateVersion1.id),
         getMockM2MAdminAppContext()
@@ -115,7 +115,7 @@ describe("deleteEServiceTemplateVersion", () => {
     });
 
     await expect(
-      eserviceTemplateService.deleteEServiceTemplateVersion(
+      eserviceTemplateService.deleteDraftEServiceTemplateVersion(
         unsafeBrandId(mockApiEServiceTemplate.data.id),
         unsafeBrandId(mockApiEserviceTemplateVersion1.id),
         getMockM2MAdminAppContext()
@@ -132,7 +132,7 @@ describe("deleteEServiceTemplateVersion", () => {
       });
 
     await expect(
-      eserviceTemplateService.deleteEServiceTemplateVersion(
+      eserviceTemplateService.deleteDraftEServiceTemplateVersion(
         unsafeBrandId(mockApiEServiceTemplate.data.id),
         unsafeBrandId(mockApiEserviceTemplateVersion1.id),
         getMockM2MAdminAppContext()
@@ -151,7 +151,7 @@ describe("deleteEServiceTemplateVersion", () => {
       );
 
     await expect(
-      eserviceTemplateService.deleteEServiceTemplateVersion(
+      eserviceTemplateService.deleteDraftEServiceTemplateVersion(
         unsafeBrandId(mockApiEServiceTemplate.data.id),
         unsafeBrandId(mockApiEserviceTemplateVersion1.id),
         getMockM2MAdminAppContext()

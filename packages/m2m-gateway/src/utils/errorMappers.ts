@@ -181,7 +181,7 @@ export const deleteDraftEServiceDescriptorErrorMapper = (
     .with("cannotDeleteLastEServiceDescriptor", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const deleteEServiceTemplateVersionErrorMapper = (
+export const deleteDraftEServiceTemplateVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
