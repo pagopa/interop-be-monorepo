@@ -4,9 +4,7 @@
 /* eslint-disable functional/immutable-data */
 import { describe, it, expect, beforeEach } from "vitest";
 import {
-  DescriptorId,
-  EServiceId,
-  generateId,
+  EService,
   missingKafkaMessageDataError,
   PurposeTemplate,
   PurposeTemplateAddedV2,
@@ -20,10 +18,14 @@ import {
   purposeTemplateState,
   PurposeTemplateSuspendedV2,
   PurposeTemplateUnsuspendedV2,
+  toEServiceV2,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
-import { getMockPurposeTemplate } from "pagopa-interop-commons-test";
-
+import {
+  getMockDescriptor,
+  getMockEService,
+  getMockPurposeTemplate,
+} from "pagopa-interop-commons-test";
 import { handlePurposeTemplateMessageV2 } from "../src/handlers/purpose-template/consumerServiceV2.js";
 import { PurposeTemplateDbTable } from "../src/model/db/index.js";
 import {
@@ -522,8 +524,10 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
 
   it("PurposeTemplateEServiceLinked: insert purpose template linked EService descriptor", async () => {
     const metadataVersionPurposeTemplateAdded = 0;
-    const eserviceId = generateId<EServiceId>();
-    const descriptorId = generateId<DescriptorId>();
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor()],
+    };
 
     const payloadPurposeTemplateAdded: PurposeTemplateAddedV2 = {
       purposeTemplate: toPurposeTemplateV2(purposeTemplate),
@@ -537,13 +541,14 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
       data: payloadPurposeTemplateAdded,
       log_date: new Date(),
     };
-    const metadataPurposeTemplateEServiceLinked = 1;
 
+    const metadataPurposeTemplateEServiceLinked = 1;
     const payloadPurposeTemplateEServiceLinked: PurposeTemplateEServiceLinkedV2 =
       {
-        purposeTemplateId: purposeTemplate.id,
-        eserviceId,
-        descriptorId,
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eservice: toEServiceV2(eservice),
+        descriptorId: eservice.descriptors[0].id,
+        createdAt: BigInt(Date.now()),
       };
     const messagePurposeTemplateEServiceLinked: PurposeTemplateEventEnvelope = {
       sequence_num: 1,
@@ -575,8 +580,10 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
 
   it("PurposeTemplateEServiceUnlinked:  marks a purpose template linked EService descriptor as deleted", async () => {
     const metadataVersionPurposeTemplateAdded = 0;
-    const eserviceId = generateId<EServiceId>();
-    const descriptorId = generateId<DescriptorId>();
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor()],
+    };
 
     const payloadPurposeTemplateAdded: PurposeTemplateAddedV2 = {
       purposeTemplate: toPurposeTemplateV2(purposeTemplate),
@@ -594,9 +601,10 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
     const metadataPurposeTemplateEServiceLinked = 1;
     const payloadPurposeTemplateEServiceLinked: PurposeTemplateEServiceLinkedV2 =
       {
-        purposeTemplateId: purposeTemplate.id,
-        eserviceId,
-        descriptorId,
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eservice: toEServiceV2(eservice),
+        descriptorId: eservice.descriptors[0].id,
+        createdAt: BigInt(Date.now()),
       };
     const messagePurposeTemplateEServiceLinked: PurposeTemplateEventEnvelope = {
       sequence_num: 1,
@@ -611,9 +619,9 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
     const metadataPurposeTemplateEServiceUnlinked = 2;
     const payloadPurposeTemplateEServiceUnlinked: PurposeTemplateEServiceUnlinkedV2 =
       {
-        purposeTemplateId: purposeTemplate.id,
-        eserviceId,
-        descriptorId,
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eservice: toEServiceV2(eservice),
+        descriptorId: eservice.descriptors[0].id,
       };
     const messagePurposeTemplateEServiceUnlinked: PurposeTemplateEventEnvelope =
       {
