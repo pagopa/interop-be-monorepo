@@ -346,6 +346,9 @@ paths:
             format: uuid
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: The E-Service template version deleted
         "400":
           description: Bad Request

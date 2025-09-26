@@ -845,8 +845,12 @@ export function eserviceTemplateServiceBuilder(
     async deleteEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate> | undefined> {
       logger.info(
         `Deleting EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`
       );
@@ -894,6 +898,7 @@ export function eserviceTemplateServiceBuilder(
             correlationId
           )
         );
+        return undefined;
       } else {
         const updatedEserviceTemplate: EServiceTemplate = {
           ...eserviceTemplate.data,
@@ -902,7 +907,7 @@ export function eserviceTemplateServiceBuilder(
           ),
         };
 
-        await repository.createEvent(
+        const event = await repository.createEvent(
           toCreateEventEServiceTemplateDraftVersionDeleted(
             eserviceTemplate.data.id,
             eserviceTemplate.metadata.version,
@@ -911,6 +916,10 @@ export function eserviceTemplateServiceBuilder(
             correlationId
           )
         );
+        return {
+          data: updatedEserviceTemplate,
+          metadata: { version: event.newVersion },
+        };
       }
     },
     async createRiskAnalysis(

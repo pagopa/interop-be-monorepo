@@ -17,6 +17,7 @@ import {
   toM2MGatewayApiDocument,
 } from "../api/eserviceTemplateApiConverter.js";
 import {
+  cannotDeleteLastEServiceTemplateVersion,
   eserviceTemplateRiskAnalysisNotFound,
   eserviceTemplateVersionNotFound,
 } from "../model/errors.js";
@@ -320,6 +321,36 @@ export function eserviceTemplateServiceBuilder(
       return toM2MGatewayApiEServiceTemplateRiskAnalysis(riskAnalysis);
     },
 
+    async deleteDraftEServiceTemplateVersion(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting version ${versionId} for eservice template with id ${templateId}`
+      );
+      const { data: eserviceTemplate } = await retrieveEServiceTemplateById(
+        headers,
+        templateId
+      );
+
+      if (
+        eserviceTemplate.versions.length === 1 &&
+        eserviceTemplate.versions[0].id === versionId
+      ) {
+        throw cannotDeleteLastEServiceTemplateVersion(templateId, versionId);
+      }
+
+      const response =
+        await clients.eserviceTemplateProcessClient.deleteDraftTemplateVersion(
+          undefined,
+          {
+            params: { templateId, templateVersionId: versionId },
+            headers,
+          }
+        );
+      await pollEServiceTemplateById(templateId, response.metadata, headers);
+    },
     async deleteEServiceTemplateRiskAnalysis(
       templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,

@@ -48,6 +48,7 @@ export const errorCodes = {
   eserviceRiskAnalysisNotFound: "0030",
   eserviceTemplateRiskAnalysisNotFound: "0031",
   delegationEServiceMismatch: "0032",
+  cannotDeleteLastEServiceTemplateVersion: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -336,6 +337,17 @@ export function cannotDeleteLastEServiceDescriptor(
     detail: `Cannot delete descriptor ${descriptorId} for e-service ${eserviceId} because it is the last remaining descriptor`,
     code: "cannotDeleteLastEServiceDescriptor",
     title: "Cannot delete last e-service descriptor",
+  });
+}
+
+export function cannotDeleteLastEServiceTemplateVersion(
+  templateId: EServiceTemplateId,
+  versionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot delete version ${versionId} for e-service template ${templateId} because it is the last remaining version`,
+    code: "cannotDeleteLastEServiceTemplateVersion",
+    title: "Cannot delete last e-service template version",
   });
 }
 
