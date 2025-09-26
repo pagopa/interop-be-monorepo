@@ -116,13 +116,8 @@ export function eserviceServiceBuilder(
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EService> {
       logger.info(`Retrieving eservice with id ${eserviceId}`);
-
-      const { data: eservice } = await retrieveEServiceById(
-        headers,
-        eserviceId
-      );
-
-      return toM2MGatewayApiEService(eservice);
+      const response = await retrieveEServiceById(headers, eserviceId);
+      return toM2MGatewayApiEService(response.data);
     },
     async getEServices(
       params: m2mGatewayApi.GetEServicesQueryParams,
