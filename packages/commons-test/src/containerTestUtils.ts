@@ -2,9 +2,11 @@ import {
   AnalyticsSQLDbConfig,
   EventStoreConfig,
   InAppNotificationDBConfig,
+  M2MEventSQLDbConfig,
   ReadModelDbConfig,
   ReadModelSQLDbConfig,
   S3Config,
+  UserSQLDbConfig,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
 
@@ -36,6 +38,9 @@ export const TEST_AWS_SES_PORT = 8021;
 
 export const TEST_IN_APP_NOTIFICATION_DB_PORT = 5432;
 export const TEST_IN_APP_NOTIFICATION_DB_IMAGE = "postgres:14";
+
+export const TEST_M2M_EVENT_DB_PORT = 5432;
+export const TEST_M2M_EVENT_DB_IMAGE = "postgres:14";
 
 /**
  * Starts a MongoDB container for testing purposes.
@@ -204,3 +209,43 @@ export const inAppNotificationDBContainer = (
       },
     ])
     .withExposedPorts(TEST_IN_APP_NOTIFICATION_DB_PORT);
+
+export const m2mEventDBContainer = (
+  config: M2MEventSQLDbConfig
+): GenericContainer =>
+  new GenericContainer(TEST_M2M_EVENT_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.m2mEventSQLDbName,
+      POSTGRES_USER: config.m2mEventSQLDbUsername,
+      POSTGRES_PASSWORD: config.m2mEventSQLDbPassword,
+    })
+    .withCopyDirectoriesToContainer([
+      {
+        source: "../../docker/m2m-event-db",
+        target: "/docker-entrypoint-initdb.d",
+      },
+    ])
+    .withExposedPorts(TEST_M2M_EVENT_DB_PORT);
+
+/**
+ * Starts a PostgreSQL container for testing purposes.
+ *
+ * @param config - The configuration for the User PostgreSQL DB container.
+ * @returns A promise that resolves to the started test container.
+ */
+export const postgreSQLUserContainer = (
+  config: UserSQLDbConfig
+): GenericContainer =>
+  new GenericContainer(TEST_POSTGRES_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.userSQLDbName,
+      POSTGRES_USER: config.userSQLDbUsername,
+      POSTGRES_PASSWORD: config.userSQLDbPassword,
+    })
+    .withCopyDirectoriesToContainer([
+      {
+        source: "../../docker/user-db",
+        target: "/docker-entrypoint-initdb.d",
+      },
+    ])
+    .withExposedPorts(TEST_POSTGRES_DB_PORT);

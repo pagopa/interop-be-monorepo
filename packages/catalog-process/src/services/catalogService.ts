@@ -2184,7 +2184,9 @@ export function catalogServiceBuilder(
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
-        tenant.kind
+        tenant.kind,
+        new Date() // [todo remove comment] risk analysis creation
+        // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
       );
 
       const newRiskAnalysis: RiskAnalysis =
@@ -2268,7 +2270,9 @@ export function catalogServiceBuilder(
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
-        tenant.kind
+        tenant.kind,
+        new Date() // [todo remove comment] risk analysis update
+        // drawback: the date of the risk analysis is replaced below in the function riskAnalysisValidatedFormToNewRiskAnalysis
       );
 
       const updatedRiskAnalysis: RiskAnalysis = {
@@ -2597,6 +2601,7 @@ export function catalogServiceBuilder(
         toCreateEventEServiceNameUpdated(
           eservice.metadata.version,
           updatedEservice,
+          eservice.data.name,
           correlationId
         )
       );
@@ -2788,7 +2793,11 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.AttributesSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<EService> {
       logger.info(
         `Updating attributes of Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -2871,6 +2880,7 @@ export function catalogServiceBuilder(
         toCreateEventEServiceNameUpdatedByTemplateUpdate(
           eservice.metadata.version,
           updatedEservice,
+          eservice.data.name,
           correlationId
         )
       );

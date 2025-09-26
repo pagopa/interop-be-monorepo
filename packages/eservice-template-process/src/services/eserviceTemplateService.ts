@@ -242,9 +242,15 @@ const replaceEServiceTemplateVersion = (
 
 export function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed["riskAnalysisForm"],
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  dateForExpirationValidation: Date
 ): RiskAnalysisValidatedForm {
-  const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
+  const result = validateRiskAnalysis(
+    riskAnalysisForm,
+    true,
+    tenantKind,
+    dateForExpirationValidation
+  );
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
   } else {
@@ -646,6 +652,7 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
           updatedEserviceTemplate,
+          eserviceTemplate.data.name,
           correlationId
         )
       );
@@ -900,7 +907,8 @@ export function eserviceTemplateServiceBuilder(
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         createRiskAnalysis.riskAnalysisForm,
-        createRiskAnalysis.tenantKind
+        createRiskAnalysis.tenantKind,
+        new Date()
       );
 
       const newRiskAnalysis: EServiceTemplateRiskAnalysis =
@@ -985,7 +993,8 @@ export function eserviceTemplateServiceBuilder(
 
       const validatedForm = validateRiskAnalysisSchemaOrThrow(
         updateRiskAnalysisSeed.riskAnalysisForm,
-        updateRiskAnalysisSeed.tenantKind
+        updateRiskAnalysisSeed.tenantKind,
+        new Date()
       );
 
       const updatedRiskAnalysisForm: RiskAnalysisForm = {

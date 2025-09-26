@@ -1,5 +1,5 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { inject, afterEach } from "vitest";
+import { inject, afterEach, expect } from "vitest";
 import {
   AppContext,
   FileManager,
@@ -14,6 +14,8 @@ import {
   EService,
   EServiceTemplate,
   EServiceTemplateVersion,
+  TenantId,
+  UserId,
 } from "pagopa-interop-models";
 import {
   EServiceTemplateService,
@@ -27,9 +29,8 @@ import {
 } from "../src/clients/clientsProvider.js";
 import { BffAppContext } from "../src/utilities/context.js";
 
-export const { cleanup, readModelRepository, postgresDB, fileManager } =
+export const { cleanup, postgresDB, fileManager } =
   await setupTestContainersVitest(
-    inject("readModelConfig"),
     inject("eventStoreConfig"),
     inject("fileManagerConfig")
   );
@@ -155,3 +156,23 @@ export function eserviceInterfaceDataNotValid(): ApiError<CatalogErrorCodes> {
     title: "EService template interface data not valid",
   });
 }
+
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+export const expectedOrganizationId = (organizationId: TenantId) =>
+  expect.objectContaining({
+    authData: expect.objectContaining({
+      organizationId,
+    }),
+  });
+
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+export const expectedUserIdAndOrganizationId = (
+  userId: UserId,
+  organizationId: TenantId
+) =>
+  expect.objectContaining({
+    authData: expect.objectContaining({
+      userId,
+      organizationId,
+    }),
+  });
