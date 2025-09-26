@@ -8868,7 +8868,6 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-
   /eserviceTemplates/{templateId}/versions/{versionId}/suspend:
     parameters:
       - name: templateId
