@@ -14,6 +14,41 @@ import { generateM2MEventId } from "../utils/uuidv7.js";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { descriptorNotFoundInEService } from "./errors.js";
 
+export async function createEServiceM2MEvent(
+  eservice: EService,
+  eventType: EServiceM2MEvent["eventType"],
+  eventTimestamp: Date,
+  readModelService: ReadModelServiceSQL
+): Promise<EServiceM2MEvent> {
+  return createEServiceM2MEventHelper(
+    eservice,
+    undefined,
+    eventType,
+    eventTimestamp,
+    await getEServiceDataForVisibility(eservice, readModelService)
+  );
+}
+
+export async function createEServiceDescriptorM2MEvent(
+  eservice: EService,
+  descriptorId: DescriptorId,
+  eventType: EServiceM2MEvent["eventType"],
+  eventTimestamp: Date,
+  readModelService: ReadModelServiceSQL
+): Promise<EServiceM2MEvent> {
+  return createEServiceM2MEventHelper(
+    eservice,
+    descriptorId,
+    eventType,
+    eventTimestamp,
+    await getEServiceDescriptorDataForVisibility(
+      descriptorId,
+      eservice,
+      readModelService
+    )
+  );
+}
+
 const restrictedVisibilityStates: DescriptorState[] = [
   descriptorState.draft,
   descriptorState.waitingForApproval,
@@ -78,41 +113,6 @@ async function getEServiceDescriptorDataForVisibility(
   } else {
     return { visibility: m2mEventVisibility.public };
   }
-}
-
-export async function createEServiceM2MEvent(
-  eservice: EService,
-  eventType: EServiceM2MEvent["eventType"],
-  eventTimestamp: Date,
-  readModelService: ReadModelServiceSQL
-): Promise<EServiceM2MEvent> {
-  return createEServiceM2MEventHelper(
-    eservice,
-    undefined,
-    eventType,
-    eventTimestamp,
-    await getEServiceDataForVisibility(eservice, readModelService)
-  );
-}
-
-export async function createEServiceDescriptorM2MEvent(
-  eservice: EService,
-  descriptorId: DescriptorId,
-  eventType: EServiceM2MEvent["eventType"],
-  eventTimestamp: Date,
-  readModelService: ReadModelServiceSQL
-): Promise<EServiceM2MEvent> {
-  return createEServiceM2MEventHelper(
-    eservice,
-    descriptorId,
-    eventType,
-    eventTimestamp,
-    await getEServiceDescriptorDataForVisibility(
-      descriptorId,
-      eservice,
-      readModelService
-    )
-  );
 }
 
 /**
