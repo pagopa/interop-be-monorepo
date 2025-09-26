@@ -17,13 +17,10 @@ params:query {
   ~eserviceIds: ["{{eserviceId}}"]
   ~creatorIds: ["{{tenantId}}"]
   ~purposeTitle: title
+  ~targetTenantKind: PA
 }
 
 headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
-}
-
-vars:post-response {
-  purposeTemplateId: res.body.results.at(-1).id
 }

@@ -5,6 +5,7 @@ import {
   PurposeTemplateId,
   PurposeTemplateState,
   TenantId,
+  TenantKind,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -12,9 +13,11 @@ export const errorCodes = {
   purposeTemplateNameConflict: "0002",
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
-  tenantNotAllowed: "0005",
-  purposeTemplateNotInExpectedState: "0006",
-  missingRiskAnalysisFormTemplate: "0007",
+  ruleSetNotFoundError: "0005",
+  tenantNotAllowed: "0006",
+  purposeTemplateNotInExpectedState: "0007",
+  purposeTemplateStateConflict: "0008",
+  missingRiskAnalysisFormTemplate: "0009",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -60,6 +63,16 @@ export function riskAnalysisTemplateValidationFailed(
   });
 }
 
+export function ruleSetNotFoundError(
+  tenantKind: TenantKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No risk analysis rule set found for target tenant kind ${tenantKind}`,
+    code: "ruleSetNotFoundError",
+    title: "No risk analysis rule set found for target tenant kind",
+  });
+}
+
 export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} is not allowed to perform the operation because it's not the creator`,
@@ -77,6 +90,17 @@ export function purposeTemplateNotInExpectedState(
     detail: `Purpose Template ${purposeTemplateId} not in expected state (current state: ${currentState}, expected state: ${expectedState})`,
     code: "purposeTemplateNotInExpectedState",
     title: "Purpose Template not in expected state",
+  });
+}
+
+export function purposeTemplateStateConflict(
+  purposeTemplateId: PurposeTemplateId,
+  state: PurposeTemplateState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template ${purposeTemplateId} is already in state ${state}`,
+    code: "purposeTemplateStateConflict",
+    title: "Purpose Template state conflict",
   });
 }
 

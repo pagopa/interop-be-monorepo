@@ -8,6 +8,7 @@ import {
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   M2MAdminAuthData,
+  M2MAuthData,
   RiskAnalysisTemplateValidatedForm,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   UIAuthData,
@@ -18,6 +19,7 @@ import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInExpectedState,
+  purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../model/domain/errors.js";
@@ -101,14 +103,40 @@ export const assertRequesterIsCreator = (
 
 export const assertActivatableState = (
   purposeTemplate: PurposeTemplate,
-  allowedState: PurposeTemplateState
+  allowedInitialState: PurposeTemplateState
 ): void => {
-  if (purposeTemplate.state !== allowedState) {
-    throw purposeTemplateNotInExpectedState(
-      purposeTemplate.id,
-      purposeTemplate.state,
-      allowedState
-    );
+  match(purposeTemplate)
+    .when(
+      (p) => p.state === purposeTemplateState.active,
+      () => {
+        throw purposeTemplateStateConflict(
+          purposeTemplate.id,
+          purposeTemplate.state
+        );
+      }
+    )
+    .when(
+      (p) => p.state === allowedInitialState,
+      () => undefined
+    )
+    .otherwise(() => {
+      throw purposeTemplateNotInExpectedState(
+        purposeTemplate.id,
+        purposeTemplate.state,
+        allowedInitialState
+      );
+    });
+};
+
+export const assertRequesterCanRetrievePurposeTemplate = async (
+  purposeTemplate: PurposeTemplate,
+  authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
+): Promise<void> => {
+  if (
+    purposeTemplate.state !== purposeTemplateState.active &&
+    purposeTemplate.creatorId !== authData.organizationId
+  ) {
+    throw tenantNotAllowed(authData.organizationId);
   }
 };
 

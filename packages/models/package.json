@@ -1,6 +1,7 @@
 {
   "name": "pagopa-interop-models",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "private": true,
   "description": "PagoPA Interoperability models",
   "main": "dist",
@@ -18,8 +19,6 @@
     "generate-protobuf": "mkdirp ./src/gen && npx protoc --ts_opt=eslint_disable --ts_out ./src/gen --proto_path ./proto ./proto/**/**/*.proto && tsc-esm-fix --src='src/gen/' --ext='.js'"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "dependencies": {
     "@protobuf-ts/plugin": "2.9.4",
     "@protobuf-ts/protoc": "2.9.4",

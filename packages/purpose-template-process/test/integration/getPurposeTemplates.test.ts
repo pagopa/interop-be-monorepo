@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   getMockAuthData,
   getMockContext,
   getMockDescriptor,
   getMockEService,
   getMockPurposeTemplate,
+  getMockValidRiskAnalysisFormTemplate,
   sortPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
@@ -14,6 +16,7 @@ import {
   PurposeTemplate,
   purposeTemplateState,
   TenantId,
+  tenantKind,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -43,24 +46,28 @@ describe("getPurposeTemplates", async () => {
     purposeTitle: "Active Purpose Template 1 - test",
     state: purposeTemplateState.active,
     creatorId: creatorId1,
+    targetTenantKind: tenantKind.PA,
   };
   const draftPurposeTemplateByCreator1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeTitle: "Draft Purpose Template 1",
     state: purposeTemplateState.draft,
     creatorId: creatorId1,
+    targetTenantKind: tenantKind.PRIVATE,
   };
   const suspendedPurposeTemplateByCreator1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeTitle: "Suspended Purpose Template 1",
     state: purposeTemplateState.suspended,
     creatorId: creatorId1,
+    targetTenantKind: tenantKind.GSP,
   };
   const archivedPurposeTemplateByCreator1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeTitle: "Archived Purpose Template 1",
     state: purposeTemplateState.archived,
     creatorId: creatorId1,
+    targetTenantKind: tenantKind.SCP,
   };
 
   const activePurposeTemplateByCreator2: PurposeTemplate = {
@@ -68,24 +75,28 @@ describe("getPurposeTemplates", async () => {
     purposeTitle: "Active Purpose Template 2",
     state: purposeTemplateState.active,
     creatorId: creatorId2,
+    targetTenantKind: tenantKind.PA,
   };
   const draftPurposeTemplateByCreator2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeTitle: "Draft Purpose Template 2",
     state: purposeTemplateState.draft,
     creatorId: creatorId2,
+    targetTenantKind: tenantKind.PRIVATE,
   };
   const suspendedPurposeTemplateByCreator2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeTitle: "Suspended Purpose Template 2 - test",
     state: purposeTemplateState.suspended,
     creatorId: creatorId2,
+    targetTenantKind: tenantKind.GSP,
   };
   const archivedPurposeTemplateByCreator2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeTitle: "Archived Purpose Template 2",
     state: purposeTemplateState.archived,
     creatorId: creatorId2,
+    targetTenantKind: tenantKind.SCP,
   };
 
   const purposeTemplateEServiceDescriptor1: EServiceDescriptorPurposeTemplate =
@@ -136,7 +147,6 @@ describe("getPurposeTemplates", async () => {
     const allPurposeTemplates =
       await purposeTemplateService.getPurposeTemplates(
         {
-          purposeTitle: undefined,
           eserviceIds: [],
           creatorIds: [],
           states: [],
@@ -172,6 +182,24 @@ describe("getPurposeTemplates", async () => {
     expectSinglePageListResult(result, [
       activePurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
+    ]);
+  });
+
+  it("should get purpose templates with filters: targetTenantKind", async () => {
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        targetTenantKind: tenantKind.PA,
+        eserviceIds: [],
+        creatorIds: [],
+        states: [],
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(creatorId1) })
+    );
+
+    expectSinglePageListResult(result, [
+      activePurposeTemplateByCreator1,
+      activePurposeTemplateByCreator2,
     ]);
   });
 
@@ -261,6 +289,95 @@ describe("getPurposeTemplates", async () => {
       activePurposeTemplateByCreator2,
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
+      suspendedPurposeTemplateByCreator1,
+      suspendedPurposeTemplateByCreator2,
+    ]);
+  });
+
+  it("should get purpose templates with filters: excludeExpiredRiskAnalysis = false", async () => {
+    const purposeTemplateWithExpiredRiskAnalysis1: PurposeTemplate = {
+      ...getMockPurposeTemplate(),
+      purposeTitle: "Purpose Template with Expired Risk Analysis 1",
+      purposeRiskAnalysisForm: {
+        ...getMockValidRiskAnalysisFormTemplate(tenantKind.PA),
+        version: "1.0",
+      },
+    };
+    const purposeTemplateWithExpiredRiskAnalysis2: PurposeTemplate = {
+      ...getMockPurposeTemplate(),
+      purposeTitle: "Purpose Template with Expired Risk Analysis 2",
+      targetTenantKind: tenantKind.PRIVATE,
+      purposeRiskAnalysisForm: {
+        ...getMockValidRiskAnalysisFormTemplate(tenantKind.PRIVATE),
+        version: "1.0",
+      },
+    };
+    await addOnePurposeTemplate(purposeTemplateWithExpiredRiskAnalysis1);
+    await addOnePurposeTemplate(purposeTemplateWithExpiredRiskAnalysis2);
+
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        eserviceIds: [],
+        creatorIds: [],
+        states: [],
+        excludeExpiredRiskAnalysis: false,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(creatorId1) })
+    );
+    expectSinglePageListResult(result, [
+      activePurposeTemplateByCreator1,
+      activePurposeTemplateByCreator2,
+      archivedPurposeTemplateByCreator1,
+      archivedPurposeTemplateByCreator2,
+      draftPurposeTemplateByCreator1,
+      draftPurposeTemplateByCreator2,
+      purposeTemplateWithExpiredRiskAnalysis1,
+      purposeTemplateWithExpiredRiskAnalysis2,
+      suspendedPurposeTemplateByCreator1,
+      suspendedPurposeTemplateByCreator2,
+    ]);
+  });
+
+  it("should get purpose templates with filters: excludeExpiredRiskAnalysis = true", async () => {
+    const purposeTemplateWithExpiredRiskAnalysis1: PurposeTemplate = {
+      ...getMockPurposeTemplate(),
+      purposeTitle: "Purpose Template with Expired Risk Analysis 1",
+      purposeRiskAnalysisForm: {
+        ...getMockValidRiskAnalysisFormTemplate(tenantKind.PA),
+        version: "2.0",
+      },
+    };
+    const purposeTemplateWithExpiredRiskAnalysis2: PurposeTemplate = {
+      ...getMockPurposeTemplate(),
+      purposeTitle: "Purpose Template with Expired Risk Analysis 2",
+      targetTenantKind: tenantKind.PRIVATE,
+      purposeRiskAnalysisForm: {
+        ...getMockValidRiskAnalysisFormTemplate(tenantKind.PRIVATE),
+        version: "1.0",
+      },
+    };
+
+    await addOnePurposeTemplate(purposeTemplateWithExpiredRiskAnalysis1);
+    await addOnePurposeTemplate(purposeTemplateWithExpiredRiskAnalysis2);
+
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        eserviceIds: [],
+        creatorIds: [],
+        states: [],
+        excludeExpiredRiskAnalysis: true,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(creatorId1) })
+    );
+    expectSinglePageListResult(result, [
+      activePurposeTemplateByCreator1,
+      activePurposeTemplateByCreator2,
+      archivedPurposeTemplateByCreator1,
+      archivedPurposeTemplateByCreator2,
+      draftPurposeTemplateByCreator1,
+      draftPurposeTemplateByCreator2,
       suspendedPurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
     ]);

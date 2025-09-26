@@ -7,6 +7,7 @@ import {
   PurposeTemplateState,
   Tenant,
   TenantId,
+  TenantKind,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -25,26 +26,46 @@ import {
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, exists, ilike, inArray, isNotNull, SQL } from "drizzle-orm";
+import {
+  and,
+  eq,
+  exists,
+  ilike,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+  SQL,
+} from "drizzle-orm";
 import {
   ascLower,
   createListResult,
   escapeRegExp,
+  getValidFormRulesVersions,
   withTotalCount,
 } from "pagopa-interop-commons";
 
 export type GetPurposeTemplatesFilters = {
   purposeTitle?: string;
+  targetTenantKind?: TenantKind;
   creatorIds: TenantId[];
   eserviceIds: EServiceId[];
   states: PurposeTemplateState[];
+  excludeExpiredRiskAnalysis?: boolean;
 };
 
 const getPurposeTemplatesFilters = (
   readModelDB: DrizzleReturnType,
   filters: GetPurposeTemplatesFilters
 ): SQL | undefined => {
-  const { purposeTitle, creatorIds, eserviceIds, states } = filters;
+  const {
+    purposeTitle,
+    creatorIds,
+    eserviceIds,
+    states,
+    targetTenantKind,
+    excludeExpiredRiskAnalysis,
+  } = filters;
 
   const purposeTitleFilter = purposeTitle
     ? ilike(
@@ -83,11 +104,42 @@ const getPurposeTemplatesFilters = (
       ? inArray(purposeTemplateInReadmodelPurposeTemplate.state, states)
       : undefined;
 
+  const targetTenantKindFilter = targetTenantKind
+    ? eq(
+        purposeTemplateInReadmodelPurposeTemplate.targetTenantKind,
+        targetTenantKind
+      )
+    : undefined;
+
+  const validFormRulesByTenantKind = getValidFormRulesVersions();
+  const excludeExpiredRiskAnalysisFilters = excludeExpiredRiskAnalysis
+    ? or(
+        ...Array.from(validFormRulesByTenantKind.entries()).map(
+          ([tenantKind, versions]) =>
+            and(
+              eq(
+                purposeTemplateInReadmodelPurposeTemplate.targetTenantKind,
+                tenantKind
+              ),
+              inArray(
+                purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.version,
+                versions
+              )
+            )
+        ),
+        isNull(
+          purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.version
+        )
+      )
+    : undefined;
+
   return and(
     purposeTitleFilter,
     creatorIdsFilter,
     eserviceIdsFilter,
-    statesFilter
+    statesFilter,
+    targetTenantKindFilter,
+    excludeExpiredRiskAnalysisFilters
   );
 };
 
@@ -133,6 +185,13 @@ export function readModelServiceBuilderSQL({
           eq(
             purposeTemplateInReadmodelPurposeTemplate.id,
             purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
           )
         )
         .where(getPurposeTemplatesFilters(readModelDB, filters))

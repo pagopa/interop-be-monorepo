@@ -34,6 +34,7 @@ import {
 import {
   missingRiskAnalysisFormTemplate,
   purposeTemplateNotInExpectedState,
+  purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -208,34 +209,45 @@ describe("unsuspendPurposeTemplate", () => {
   });
 
   it.each([
-    purposeTemplateState.active,
-    purposeTemplateState.archived,
-    purposeTemplateState.draft,
+    {
+      error: purposeTemplateStateConflict(
+        purposeTemplate.id,
+        purposeTemplateState.active
+      ),
+      state: purposeTemplateState.active,
+    },
+    {
+      error: purposeTemplateNotInExpectedState(
+        purposeTemplate.id,
+        purposeTemplate.state,
+        purposeTemplateState.archived
+      ),
+      state: purposeTemplateState.archived,
+    },
+    {
+      error: purposeTemplateNotInExpectedState(
+        purposeTemplate.id,
+        purposeTemplate.state,
+        purposeTemplateState.draft
+      ),
+      state: purposeTemplateState.draft,
+    },
   ])(
-    `should throw purposeTemplateNotInExpectedState if the purpose template is in %s state`,
-    async (state) => {
+    `should throw $error.code if the purpose template is in $state state`,
+    async ({ error, state }) => {
       const purposeTemplateWithUnexpectedState: PurposeTemplate = {
         ...purposeTemplate,
         state,
       };
 
-      await addOnePurposeTemplate(
-        purposeTemplateWithUnexpectedState,
-        "PurposeTemplateSuspended"
-      );
+      await addOnePurposeTemplate(purposeTemplateWithUnexpectedState);
 
       await expect(async () => {
         await purposeTemplateService.unsuspendPurposeTemplate(
           purposeTemplateWithUnexpectedState.id,
           getMockContext({ authData: getMockAuthData(creatorId) })
         );
-      }).rejects.toThrowError(
-        purposeTemplateNotInExpectedState(
-          purposeTemplateWithUnexpectedState.id,
-          state,
-          purposeTemplateState.suspended
-        )
-      );
+      }).rejects.toThrowError(error);
     }
   );
 });

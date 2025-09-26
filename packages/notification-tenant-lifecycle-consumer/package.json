@@ -2,6 +2,7 @@
   "name": "pagopa-interop-notification-tenant-lifecycle-consumer",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability tenant consumer service that creates/deletes notification configs for onboarded/deleted tenants",
   "main": "dist",
   "type": "module",
@@ -16,8 +17,6 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.19.4",

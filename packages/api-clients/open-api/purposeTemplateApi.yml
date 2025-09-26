@@ -87,6 +87,17 @@ paths:
             default: []
           explode: false
         - in: query
+          name: targetTenantKind
+          description: filter by target tenant kind
+          schema:
+            $ref: "#/components/schemas/TenantKind"
+        - in: query
+          name: excludeExpiredRiskAnalysis
+          description: exclude purpose templates with expired risk analysis
+          schema:
+            type: boolean
+            default: false
+        - in: query
           name: offset
           required: true
           schema:
@@ -456,6 +467,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{id}/archive:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -544,6 +561,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:

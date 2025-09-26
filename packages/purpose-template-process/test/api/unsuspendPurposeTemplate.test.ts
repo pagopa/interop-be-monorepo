@@ -19,6 +19,7 @@ import {
   missingRiskAnalysisFormTemplate,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedState,
+  purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -91,6 +92,13 @@ describe("API POST /purposeTemplates/{id}/unsuspend", () => {
       error: purposeTemplateNotFound(generateId()),
       expectedStatus: 404,
     },
+    {
+      error: purposeTemplateStateConflict(
+        generateId(),
+        purposeTemplateState.active
+      ),
+      expectedStatus: 409,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -103,7 +111,7 @@ describe("API POST /purposeTemplates/{id}/unsuspend", () => {
     }
   );
 
-  it("Should return 400 if passed invalid data: %s", async () => {
+  it("Should return 400 if passed invalid data", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as PurposeTemplateId);
     expect(res.status).toBe(400);

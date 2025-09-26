@@ -19,6 +19,7 @@ import {
   missingRiskAnalysisFormTemplate,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedState,
+  purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -81,7 +82,7 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
     {
       error: purposeTemplateNotInExpectedState(
         generateId(),
-        purposeTemplateState.active,
+        purposeTemplate.state,
         purposeTemplateState.draft
       ),
       expectedStatus: 400,
@@ -90,6 +91,13 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
     {
       error: purposeTemplateNotFound(generateId()),
       expectedStatus: 404,
+    },
+    {
+      error: purposeTemplateStateConflict(
+        generateId(),
+        purposeTemplateState.active
+      ),
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",
@@ -103,7 +111,62 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
     }
   );
 
-  it("Should return 400 if passed invalid data: %s", async () => {
+  const OVER_251_CHAR = "Over".repeat(251);
+  it.each([
+    {},
+    {
+      ...purposeTemplate,
+      targetDescription: "",
+    },
+    {
+      ...purposeTemplate,
+      targetDescription: OVER_251_CHAR,
+    },
+    {
+      ...purposeTemplate,
+      targetDescription: undefined,
+    },
+    {
+      ...purposeTemplate,
+      targetTenantKind: "invalidTenantKind",
+    },
+    {
+      ...purposeTemplate,
+      targetTenantKind: undefined,
+    },
+    {
+      ...purposeTemplate,
+      purposeTitle: "",
+    },
+    {
+      ...purposeTemplate,
+      purposeTitle: "1234",
+    },
+    {
+      ...purposeTemplate,
+      purposeTitle: OVER_251_CHAR,
+    },
+    {
+      ...purposeTemplate,
+      purposeTitle: undefined,
+    },
+    {
+      ...purposeTemplate,
+      purposeDescription: "123456789",
+    },
+    {
+      ...purposeTemplate,
+      purposeDescription: undefined,
+    },
+    {
+      ...purposeTemplate,
+      purposeDescription: OVER_251_CHAR,
+    },
+    {
+      ...purposeTemplate,
+      purposeIsFreeOfCharge: undefined,
+    },
+  ])("Should return 400 if passed invalid data: %s", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as PurposeTemplateId);
     expect(res.status).toBe(400);
