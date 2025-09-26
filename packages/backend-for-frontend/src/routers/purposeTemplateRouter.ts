@@ -6,7 +6,7 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
