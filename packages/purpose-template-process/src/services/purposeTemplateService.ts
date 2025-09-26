@@ -190,7 +190,7 @@ export function purposeTemplateServiceBuilder(
 
       const updatedPurposeTemplate = await activatePurposeTemplate({
         id,
-        allowedInitialState: purposeTemplateState.draft,
+        expectedInitialState: purposeTemplateState.draft,
         authData,
         readModelService,
       });
@@ -220,7 +220,7 @@ export function purposeTemplateServiceBuilder(
 
       const updatedPurposeTemplate = await activatePurposeTemplate({
         id,
-        allowedInitialState: purposeTemplateState.suspended,
+        expectedInitialState: purposeTemplateState.suspended,
         authData,
         readModelService,
       });
@@ -283,12 +283,12 @@ export type PurposeTemplateService = ReturnType<
 
 async function activatePurposeTemplate({
   id,
-  allowedInitialState,
+  expectedInitialState,
   authData,
   readModelService,
 }: {
   id: PurposeTemplateId;
-  allowedInitialState: PurposeTemplateState;
+  expectedInitialState: PurposeTemplateState;
   authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">;
   readModelService: ReadModelServiceSQL;
 }): Promise<WithMetadata<PurposeTemplate>> {
@@ -301,7 +301,7 @@ async function activatePurposeTemplate({
   }
 
   assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
-  assertActivatableState(purposeTemplate.data, allowedInitialState);
+  assertActivatableState(purposeTemplate.data, expectedInitialState);
 
   validateRiskAnalysisTemplateOrThrow({
     riskAnalysisFormTemplate:

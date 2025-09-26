@@ -101,33 +101,6 @@ export const assertRequesterIsCreator = (
   }
 };
 
-export const assertActivatableState = (
-  purposeTemplate: PurposeTemplate,
-  allowedInitialState: PurposeTemplateState
-): void => {
-  match(purposeTemplate)
-    .when(
-      (p) => p.state === purposeTemplateState.active,
-      () => {
-        throw purposeTemplateStateConflict(
-          purposeTemplate.id,
-          purposeTemplate.state
-        );
-      }
-    )
-    .when(
-      (p) => p.state === allowedInitialState,
-      () => undefined
-    )
-    .otherwise(() => {
-      throw purposeTemplateNotInExpectedState(
-        purposeTemplate.id,
-        purposeTemplate.state,
-        [allowedInitialState]
-      );
-    });
-};
-
 export const assertRequesterCanRetrievePurposeTemplate = async (
   purposeTemplate: PurposeTemplate,
   authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
@@ -140,16 +113,47 @@ export const assertRequesterCanRetrievePurposeTemplate = async (
   }
 };
 
+function assertState(
+  purposeTemplate: PurposeTemplate,
+  conflictState: PurposeTemplateState,
+  expectedInitialStates: PurposeTemplateState[]
+): void {
+  match(purposeTemplate)
+    .when(
+      (p) => p.state === conflictState,
+      () => {
+        throw purposeTemplateStateConflict(
+          purposeTemplate.id,
+          purposeTemplate.state
+        );
+      }
+    )
+    .when(
+      (p) => expectedInitialStates.includes(p.state),
+      () => undefined
+    )
+    .otherwise(() => {
+      throw purposeTemplateNotInExpectedState(
+        purposeTemplate.id,
+        purposeTemplate.state,
+        expectedInitialStates
+      );
+    });
+}
+
+export const assertActivatableState = (
+  purposeTemplate: PurposeTemplate,
+  expectedInitialState: PurposeTemplateState
+): void => {
+  assertState(purposeTemplate, purposeTemplateState.active, [
+    expectedInitialState,
+  ]);
+};
+
 export const assertSuspendableState = (
   purposeTemplate: PurposeTemplate
 ): void => {
-  const expectedState = purposeTemplateState.active;
-
-  if (purposeTemplate.state !== expectedState) {
-    throw purposeTemplateNotInExpectedState(
-      purposeTemplate.id,
-      purposeTemplate.state,
-      [expectedState]
-    );
-  }
+  assertState(purposeTemplate, purposeTemplateState.suspended, [
+    purposeTemplateState.active,
+  ]);
 };
