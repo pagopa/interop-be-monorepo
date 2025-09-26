@@ -61,15 +61,15 @@ export function apiEServiceTemplateVersionStateToEServiceTemplateVersionState(
 }
 
 export function agreementApprovalPolicyToApiAgreementApprovalPolicy(
-  input: AgreementApprovalPolicy | undefined
+  input: AgreementApprovalPolicy
 ): eserviceTemplateApi.AgreementApprovalPolicy {
   return match<
-    AgreementApprovalPolicy | undefined,
+    AgreementApprovalPolicy,
     eserviceTemplateApi.AgreementApprovalPolicy
   >(input)
     .with(agreementApprovalPolicy.automatic, () => "AUTOMATIC")
     .with(agreementApprovalPolicy.manual, () => "MANUAL")
-    .otherwise(() => "AUTOMATIC");
+    .exhaustive();
 }
 
 export function apiAgreementApprovalPolicyToAgreementApprovalPolicy(
@@ -130,9 +130,11 @@ export const eserviceTemplateVersionToApiEServiceTemplateVersion = (
   state: eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
     eserviceTemplateVersion.state
   ),
-  agreementApprovalPolicy: agreementApprovalPolicyToApiAgreementApprovalPolicy(
-    eserviceTemplateVersion.agreementApprovalPolicy
-  ),
+  agreementApprovalPolicy: eserviceTemplateVersion.agreementApprovalPolicy
+    ? agreementApprovalPolicyToApiAgreementApprovalPolicy(
+        eserviceTemplateVersion.agreementApprovalPolicy
+      )
+    : undefined,
   publishedAt: eserviceTemplateVersion.publishedAt?.toJSON(),
   suspendedAt: eserviceTemplateVersion.suspendedAt?.toJSON(),
   deprecatedAt: eserviceTemplateVersion.deprecatedAt?.toJSON(),
