@@ -171,7 +171,7 @@ export function purposeTemplateServiceBuilder(
     async getPurposeTemplate(
       id: PurposeTemplateId,
       { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PurposeTemplate> {
+    ): Promise<bffApi.PurposeTemplateWithCompactCreator> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       logger.info(`Retrieving Purpose Template ${id}`);
@@ -199,7 +199,7 @@ export function purposeTemplateServiceBuilder(
           )
         : [];
 
-      return bffApi.PurposeTemplate.parse({
+      return bffApi.PurposeTemplateWithCompactCreator.parse({
         ...result,
         creator: toBffCompactOrganization(creator),
         annotationDocuments,

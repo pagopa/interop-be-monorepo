@@ -10457,7 +10457,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PurposeTemplate"
+                $ref: "#/components/schemas/PurposeTemplateWithCompactCreator"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -23407,9 +23407,9 @@ components:
         - DRAFT
         - SUSPENDED
         - ARCHIVED
-    PurposeTemplate:
+    PurposeTemplateWithCompactCreator:
       type: object
-      description: Business representation of a purpose template
+      description: a purpose template with its creator and a list for the answer annotation documents
       additionalProperties: false
       properties:
         id:

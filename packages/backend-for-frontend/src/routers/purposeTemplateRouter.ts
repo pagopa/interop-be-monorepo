@@ -108,7 +108,9 @@ const purposeTemplateRouter = (
           ctx
         );
 
-        return res.status(200).send(bffApi.PurposeTemplate.parse(response));
+        return res
+          .status(200)
+          .send(bffApi.PurposeTemplateWithCompactCreator.parse(response));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
