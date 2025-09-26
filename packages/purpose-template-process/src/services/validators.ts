@@ -103,7 +103,7 @@ export const assertRequesterIsCreator = (
 
 export const assertActivatableState = (
   purposeTemplate: PurposeTemplate,
-  allowedState: PurposeTemplateState
+  allowedInitialState: PurposeTemplateState
 ): void => {
   match(purposeTemplate)
     .when(
@@ -116,7 +116,7 @@ export const assertActivatableState = (
       }
     )
     .when(
-      (p) => p.state === allowedState,
+      (p) => p.state === allowedInitialState,
       () => undefined
     )
     .otherwise(() => {
