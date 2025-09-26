@@ -81,8 +81,8 @@ describe("API POST /purposeTemplates/{id}/unsuspend", () => {
     { error: riskAnalysisTemplateValidationFailed([]), expectedStatus: 400 },
     {
       error: purposeTemplateNotInExpectedState(
-        generateId(),
-        purposeTemplateState.active,
+        purposeTemplate.id,
+        purposeTemplate.state,
         purposeTemplateState.suspended
       ),
       expectedStatus: 400,

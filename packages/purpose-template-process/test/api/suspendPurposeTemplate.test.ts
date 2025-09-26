@@ -73,7 +73,7 @@ describe("API POST /purposeTemplates/{id}/suspend", () => {
   it.each([
     {
       error: purposeTemplateNotInExpectedState(
-        generateId(),
+        purposeTemplate.id,
         purposeTemplateState.archived,
         purposeTemplateState.active
       ),
