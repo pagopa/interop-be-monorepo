@@ -122,14 +122,30 @@ describe("getPurposeTemplates", async () => {
     };
 
   beforeEach(async () => {
-    await addOnePurposeTemplate(activePurposeTemplateByCreator1);
-    await addOnePurposeTemplate(draftPurposeTemplateByCreator1);
-    await addOnePurposeTemplate(suspendedPurposeTemplateByCreator1);
-    await addOnePurposeTemplate(archivedPurposeTemplateByCreator1);
-    await addOnePurposeTemplate(activePurposeTemplateByCreator2);
-    await addOnePurposeTemplate(draftPurposeTemplateByCreator2);
-    await addOnePurposeTemplate(suspendedPurposeTemplateByCreator2);
-    await addOnePurposeTemplate(archivedPurposeTemplateByCreator2);
+    await addOnePurposeTemplate({
+      purposeTemplate: activePurposeTemplateByCreator1,
+    });
+    await addOnePurposeTemplate({
+      purposeTemplate: draftPurposeTemplateByCreator1,
+    });
+    await addOnePurposeTemplate({
+      purposeTemplate: suspendedPurposeTemplateByCreator1,
+    });
+    await addOnePurposeTemplate({
+      purposeTemplate: archivedPurposeTemplateByCreator1,
+    });
+    await addOnePurposeTemplate({
+      purposeTemplate: activePurposeTemplateByCreator2,
+    });
+    await addOnePurposeTemplate({
+      purposeTemplate: draftPurposeTemplateByCreator2,
+    });
+    await addOnePurposeTemplate({
+      purposeTemplate: suspendedPurposeTemplateByCreator2,
+    });
+    await addOnePurposeTemplate({
+      purposeTemplate: archivedPurposeTemplateByCreator2,
+    });
 
     await addOnePurposeTemplateEServiceDescriptor(
       purposeTemplateEServiceDescriptor1
@@ -312,8 +328,12 @@ describe("getPurposeTemplates", async () => {
         version: "1.0",
       },
     };
-    await addOnePurposeTemplate(purposeTemplateWithExpiredRiskAnalysis1);
-    await addOnePurposeTemplate(purposeTemplateWithExpiredRiskAnalysis2);
+    await addOnePurposeTemplate({
+      purposeTemplate: purposeTemplateWithExpiredRiskAnalysis1,
+    });
+    await addOnePurposeTemplate({
+      purposeTemplate: purposeTemplateWithExpiredRiskAnalysis2,
+    });
 
     const result = await purposeTemplateService.getPurposeTemplates(
       {
@@ -358,8 +378,12 @@ describe("getPurposeTemplates", async () => {
       },
     };
 
-    await addOnePurposeTemplate(purposeTemplateWithExpiredRiskAnalysis1);
-    await addOnePurposeTemplate(purposeTemplateWithExpiredRiskAnalysis2);
+    await addOnePurposeTemplate({
+      purposeTemplate: purposeTemplateWithExpiredRiskAnalysis1,
+    });
+    await addOnePurposeTemplate({
+      purposeTemplate: purposeTemplateWithExpiredRiskAnalysis2,
+    });
 
     const result = await purposeTemplateService.getPurposeTemplates(
       {

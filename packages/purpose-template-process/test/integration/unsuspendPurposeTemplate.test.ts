@@ -87,11 +87,11 @@ describe("unsuspendPurposeTemplate", () => {
 
   it("should write on event-store for the unsuspending of a purpose template in suspended state", async () => {
     const metadataVersion = 2;
-    await addOnePurposeTemplate(
+    await addOnePurposeTemplate({
       purposeTemplate,
-      "PurposeTemplateSuspended",
-      metadataVersion
-    );
+      event: "PurposeTemplateSuspended",
+      metadataVersion,
+    });
 
     const unsuspendResponse =
       await purposeTemplateService.unsuspendPurposeTemplate(
@@ -133,7 +133,11 @@ describe("unsuspendPurposeTemplate", () => {
   });
 
   it("should throw tenantNotAllowed if the caller is not the creator of the purpose template", async () => {
-    await addOnePurposeTemplate(purposeTemplate, "PurposeTemplateSuspended");
+    await addOnePurposeTemplate({
+      purposeTemplate,
+      event: "PurposeTemplateSuspended",
+      metadataVersion: 2,
+    });
 
     const otherTenantId = generateId<TenantId>();
 
@@ -151,10 +155,11 @@ describe("unsuspendPurposeTemplate", () => {
       purposeRiskAnalysisForm: undefined,
     };
 
-    await addOnePurposeTemplate(
-      purposeTemplateWithoutRiskAnalysis,
-      "PurposeTemplateSuspended"
-    );
+    await addOnePurposeTemplate({
+      purposeTemplate: purposeTemplateWithoutRiskAnalysis,
+      event: "PurposeTemplateSuspended",
+      metadataVersion: 2,
+    });
 
     await expect(async () => {
       await purposeTemplateService.unsuspendPurposeTemplate(
@@ -184,10 +189,11 @@ describe("unsuspendPurposeTemplate", () => {
       },
     };
 
-    await addOnePurposeTemplate(
-      purposeTemplateWithInvalidRiskAnalysis,
-      "PurposeTemplateSuspended"
-    );
+    await addOnePurposeTemplate({
+      purposeTemplate: purposeTemplateWithInvalidRiskAnalysis,
+      event: "PurposeTemplateSuspended",
+      metadataVersion: 2,
+    });
 
     const result = validatePurposeTemplateRiskAnalysis(
       riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
@@ -240,7 +246,9 @@ describe("unsuspendPurposeTemplate", () => {
         state,
       };
 
-      await addOnePurposeTemplate(purposeTemplateWithUnexpectedState);
+      await addOnePurposeTemplate({
+        purposeTemplate: purposeTemplateWithUnexpectedState,
+      });
 
       await expect(async () => {
         await purposeTemplateService.unsuspendPurposeTemplate(

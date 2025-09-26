@@ -122,11 +122,15 @@ export const writePurposeTemplateSuspendedInEventstore = async (
   await writeInEventstore(eventToWrite, "purpose_template", postgresDB);
 };
 
-export const addOnePurposeTemplate = async (
-  purposeTemplate: PurposeTemplate,
-  event: PurposeTemplateEventEnvelopeV2["type"] = "PurposeTemplateAdded",
-  metadataVersion: number = 0
-): Promise<void> => {
+export const addOnePurposeTemplate = async ({
+  purposeTemplate,
+  event = "PurposeTemplateAdded",
+  metadataVersion = 0,
+}: {
+  purposeTemplate: PurposeTemplate;
+  event?: PurposeTemplateEventEnvelopeV2["type"];
+  metadataVersion?: number;
+}): Promise<void> => {
   await match(event)
     .with(
       "PurposeTemplateAdded",

@@ -86,7 +86,7 @@ describe("publishPurposeTemplate", () => {
   });
 
   it("should write on event-store for the publishing of a purpose template in draft state", async () => {
-    await addOnePurposeTemplate(purposeTemplate);
+    await addOnePurposeTemplate({ purposeTemplate });
 
     const publishResponse = await purposeTemplateService.publishPurposeTemplate(
       purposeTemplate.id,
@@ -125,7 +125,7 @@ describe("publishPurposeTemplate", () => {
   });
 
   it("should throw tenantNotAllowed if the caller is not the creator of the purpose template", async () => {
-    await addOnePurposeTemplate(purposeTemplate);
+    await addOnePurposeTemplate({ purposeTemplate });
 
     const otherTenantId = generateId<TenantId>();
 
@@ -143,7 +143,9 @@ describe("publishPurposeTemplate", () => {
       purposeRiskAnalysisForm: undefined,
     };
 
-    await addOnePurposeTemplate(purposeTemplateWithoutRiskAnalysis);
+    await addOnePurposeTemplate({
+      purposeTemplate: purposeTemplateWithoutRiskAnalysis,
+    });
 
     await expect(async () => {
       await purposeTemplateService.publishPurposeTemplate(
@@ -173,7 +175,9 @@ describe("publishPurposeTemplate", () => {
       },
     };
 
-    await addOnePurposeTemplate(purposeTemplateWithInvalidRiskAnalysis);
+    await addOnePurposeTemplate({
+      purposeTemplate: purposeTemplateWithInvalidRiskAnalysis,
+    });
 
     const result = validatePurposeTemplateRiskAnalysis(
       riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
@@ -226,7 +230,9 @@ describe("publishPurposeTemplate", () => {
         state,
       };
 
-      await addOnePurposeTemplate(purposeTemplateWithUnexpectedState);
+      await addOnePurposeTemplate({
+        purposeTemplate: purposeTemplateWithUnexpectedState,
+      });
 
       await expect(async () => {
         await purposeTemplateService.publishPurposeTemplate(

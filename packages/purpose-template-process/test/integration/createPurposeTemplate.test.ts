@@ -246,7 +246,7 @@ describe("createPurposeTemplate", () => {
       purposeTitle: purposeTemplateSeed.purposeTitle,
     };
 
-    await addOnePurposeTemplate(existingPurposeTemplate);
+    await addOnePurposeTemplate({ purposeTemplate: existingPurposeTemplate });
 
     expect(
       purposeTemplateService.createPurposeTemplate(
