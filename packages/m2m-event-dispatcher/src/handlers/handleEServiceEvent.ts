@@ -41,7 +41,10 @@ export async function handleEServiceEvent(
           "EServiceNameUpdatedByTemplateUpdate",
           "EServiceDescriptionUpdatedByTemplateUpdate",
           "EServiceSignalHubEnabled",
-          "EServiceSignalHubDisabled"
+          "EServiceSignalHubDisabled",
+          "EServiceRiskAnalysisAdded",
+          "EServiceRiskAnalysisUpdated",
+          "EServiceRiskAnalysisDeleted"
         ),
       },
       async (event) => {
@@ -77,7 +80,16 @@ export async function handleEServiceEvent(
           "EServiceDescriptorSubmittedByDelegate",
           "EServiceDescriptorRejectedByDelegator",
           "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
-          "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+          "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorInterfaceDeleted"
         ),
       },
       async (event) => {
@@ -96,25 +108,6 @@ export async function handleEServiceEvent(
           toEServiceM2MEventSQL(m2mEvent)
         );
       }
-    )
-    .with(
-      {
-        type: P.union(
-          "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorDocumentUpdated",
-          "EServiceDescriptorDocumentDeleted",
-          "EServiceRiskAnalysisAdded",
-          "EServiceRiskAnalysisUpdated",
-          "EServiceRiskAnalysisDeleted",
-          "EServiceDescriptorDocumentAddedByTemplateUpdate",
-          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
-          "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorInterfaceUpdated",
-          "EServiceDescriptorInterfaceDeleted"
-        ),
-      },
-      () => Promise.resolve(void 0)
     )
     .exhaustive();
 }

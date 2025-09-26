@@ -10,6 +10,7 @@ import {
 import { m2mEventVisibility } from "./m2mEventVisibility.js";
 
 export const EServiceM2MEventType = z.enum([
+  // EService events
   "EServiceAdded",
   "DraftEServiceUpdated",
   "EServiceCloned",
@@ -24,6 +25,11 @@ export const EServiceM2MEventType = z.enum([
   "EServiceDescriptionUpdatedByTemplateUpdate",
   "EServiceSignalHubEnabled",
   "EServiceSignalHubDisabled",
+  "EServiceRiskAnalysisAdded",
+  "EServiceRiskAnalysisUpdated",
+  "EServiceRiskAnalysisDeleted",
+
+  // EService Descriptor events
   "EServiceDescriptorPublished",
   "EServiceDescriptorActivated",
   "EServiceDescriptorApprovedByDelegator",
@@ -39,8 +45,15 @@ export const EServiceM2MEventType = z.enum([
   "EServiceDescriptorRejectedByDelegator",
   "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
   "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
-  // TODO risk analysis events and sub resource riskAnalysisId?
-  // TODO document events and sub resource documentId?
+  "EServiceDescriptorDocumentAdded",
+  "EServiceDescriptorDocumentUpdated",
+  "EServiceDescriptorDocumentDeleted",
+  "EServiceDescriptorDocumentAddedByTemplateUpdate",
+  "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+  "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+  "EServiceDescriptorInterfaceAdded",
+  "EServiceDescriptorInterfaceUpdated",
+  "EServiceDescriptorInterfaceDeleted",
 ]);
 export type EServiceM2MEventType = z.infer<typeof EServiceM2MEventType>;
 
