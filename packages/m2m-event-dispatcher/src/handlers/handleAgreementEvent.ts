@@ -2,12 +2,13 @@ import { AgreementEventEnvelopeV2 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { M2MEventServiceSQL } from "../services/m2mEventServiceSQL.js";
+import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
 
 export async function handleAgreementEvent(
   decodedMessage: AgreementEventEnvelopeV2,
+  _eventTimestamp: Date,
   _logger: Logger,
-  _m2mEventService: M2MEventServiceSQL,
+  _m2mEventWriterService: M2MEventWriterServiceSQL,
   _readModelService: ReadModelServiceSQL
 ): Promise<void> {
   return match(decodedMessage)

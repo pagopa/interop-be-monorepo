@@ -8,6 +8,7 @@ import {
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   M2MAdminAuthData,
+  M2MAuthData,
   RiskAnalysisTemplateValidatedForm,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   UIAuthData,
@@ -124,4 +125,16 @@ export const assertActivatableState = (
         purposeTemplate.state
       );
     });
+};
+
+export const assertRequesterCanRetrievePurposeTemplate = async (
+  purposeTemplate: PurposeTemplate,
+  authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
+): Promise<void> => {
+  if (
+    purposeTemplate.state !== purposeTemplateState.active &&
+    purposeTemplate.creatorId !== authData.organizationId
+  ) {
+    throw tenantNotAllowed(authData.organizationId);
+  }
 };

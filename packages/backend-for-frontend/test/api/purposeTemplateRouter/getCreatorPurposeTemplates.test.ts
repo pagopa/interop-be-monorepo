@@ -11,6 +11,9 @@ import { getMockBffApiCreatorPurposeTemplate } from "../../mockUtils.js";
 
 describe("API GET /creators/purposeTemplates", () => {
   const defaultQuery = {
+    q: "title",
+    eserviceIds: `${generateId()},${generateId()}`,
+    states: "ACTIVE,DRAFT",
     offset: 0,
     limit: 5,
   };
@@ -59,6 +62,8 @@ describe("API GET /creators/purposeTemplates", () => {
     { query: { offset: 0, limit: 55 } },
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
+    { query: { ...defaultQuery, eserviceIds: `${generateId()},invalid` } },
+    { query: { ...defaultQuery, states: "ACTIVE,invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof defaultQuery);

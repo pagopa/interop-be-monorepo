@@ -6,11 +6,14 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { getCatalogPurposeTemplatesErrorMapper } from "../utilities/errorMappers.js";
+import {
+  getPurposeTemplateErrorMapper,
+  getCatalogPurposeTemplatesErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -45,12 +48,14 @@ const purposeTemplateRouter = (
 
       try {
         const response =
-          await purposeTemplateService.getCreatorPurposeTemplates(
-            req.query.q,
-            req.query.offset,
-            req.query.limit,
-            ctx
-          );
+          await purposeTemplateService.getCreatorPurposeTemplates({
+            purposeTitle: req.query.q,
+            states: req.query.states,
+            eserviceIds: req.query.eserviceIds,
+            offset: req.query.offset,
+            limit: req.query.limit,
+            ctx,
+          });
 
         return res
           .status(200)
@@ -73,7 +78,9 @@ const purposeTemplateRouter = (
           await purposeTemplateService.getCatalogPurposeTemplates({
             purposeTitle: req.query.q,
             targetTenantKind: req.query.targetTenantKind,
+            creatorIds: req.query.creatorIds,
             eserviceIds: req.query.eserviceIds,
+            excludeExpiredRiskAnalysis: req.query.excludeExpiredRiskAnalysis,
             offset: req.query.offset,
             limit: req.query.limit,
             ctx,
@@ -88,6 +95,48 @@ const purposeTemplateRouter = (
           getCatalogPurposeTemplatesErrorMapper,
           ctx,
           "Error retrieving catalog purpose templates"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/purposeTemplates/:purposeTemplateId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const response = await purposeTemplateService.getPurposeTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(bffApi.PurposeTemplateWithCompactCreator.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateErrorMapper,
+          ctx,
+          `Error retrieving purpose template ${req.params.purposeTemplateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/purposeTemplates/:purposeTemplateId/publish", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const response = await purposeTemplateService.publishPurposeTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          ctx
+        );
+
+        return res.status(200).send(bffApi.PurposeTemplate.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error publishing purpose template ${req.params.purposeTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
