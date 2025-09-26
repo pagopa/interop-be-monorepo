@@ -1,4 +1,9 @@
-import { FileManager, logger, Logger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  logger,
+  Logger,
+  SafeStorageService,
+} from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
 import { format } from "date-fns";
 import {
@@ -7,7 +12,6 @@ import {
 } from "../models/sqsSafeStorageBody.js";
 import { config } from "../config/config.js";
 import { DbServiceBuilder } from "../services/dynamoService.js";
-import { SafeStorageService } from "../services/safeStorageClient.js";
 
 async function processMessage(
   fileManager: FileManager,

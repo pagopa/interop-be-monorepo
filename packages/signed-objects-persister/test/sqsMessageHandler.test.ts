@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
-import { FileManager } from "pagopa-interop-commons";
+import { FileManager, SafeStorageService } from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
-import { SafeStorageService } from "../src/services/safeStorageClient.js";
 import { DbServiceBuilder } from "../src/services/dynamoService.js";
 import { sqsMessageHandler } from "../src/handlers/sqsMessageHandler.js";
 
@@ -22,6 +21,8 @@ const mockDbService: DbServiceBuilder = {
 };
 
 const mockSafeStorageService: SafeStorageService = {
+  createFile: vi.fn(),
+  uploadFileContent: vi.fn(),
   getFile: vi.fn(),
   downloadFileContent: vi.fn(),
 };
