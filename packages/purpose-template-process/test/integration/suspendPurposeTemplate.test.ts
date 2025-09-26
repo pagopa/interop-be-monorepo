@@ -81,11 +81,7 @@ describe("suspendPurposeTemplate", () => {
 
   it("should write on event-store for the suspending of a purpose template in active state", async () => {
     const metadataVersion = 1;
-    await addOnePurposeTemplate({
-      purposeTemplate,
-      event: "PurposeTemplatePublished",
-      metadataVersion,
-    });
+    await addOnePurposeTemplate(purposeTemplate, metadataVersion);
 
     const suspendResponse = await purposeTemplateService.suspendPurposeTemplate(
       purposeTemplate.id,
@@ -126,11 +122,7 @@ describe("suspendPurposeTemplate", () => {
   });
 
   it("should throw tenantNotAllowed if the caller is not the creator of the purpose template", async () => {
-    await addOnePurposeTemplate({
-      purposeTemplate,
-      event: "PurposeTemplateSuspended",
-      metadataVersion: 2,
-    });
+    await addOnePurposeTemplate(purposeTemplate);
 
     const otherTenantId = generateId<TenantId>();
 
@@ -174,11 +166,7 @@ describe("suspendPurposeTemplate", () => {
         state,
       };
 
-      await addOnePurposeTemplate({
-        purposeTemplate: purposeTemplateWithUnexpectedState,
-        event: "PurposeTemplateSuspended",
-        metadataVersion: 2,
-      });
+      await addOnePurposeTemplate(purposeTemplateWithUnexpectedState);
 
       await expect(async () => {
         await purposeTemplateService.suspendPurposeTemplate(

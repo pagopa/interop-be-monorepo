@@ -34,7 +34,7 @@ describe("getPurposeTemplateById", () => {
           tenantKind.PA
         ),
       };
-      await addOnePurposeTemplate({ purposeTemplate });
+      await addOnePurposeTemplate(purposeTemplate);
 
       const purposeTemplateResponse =
         await purposeTemplateService.getPurposeTemplateById(
@@ -69,7 +69,7 @@ describe("getPurposeTemplateById", () => {
           tenantKind.PA
         ),
       };
-      await addOnePurposeTemplate({ purposeTemplate });
+      await addOnePurposeTemplate(purposeTemplate);
 
       await expect(
         purposeTemplateService.getPurposeTemplateById(
@@ -83,7 +83,7 @@ describe("getPurposeTemplateById", () => {
   it("should throw purposeTemplateNotFound if the purpose template doesn't exist", async () => {
     const notExistingId = generateId<PurposeTemplateId>();
     const purposeTemplate = getMockPurposeTemplate();
-    await addOnePurposeTemplate({ purposeTemplate });
+    await addOnePurposeTemplate(purposeTemplate);
 
     await expect(
       purposeTemplateService.getPurposeTemplateById(

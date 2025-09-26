@@ -129,11 +129,7 @@ describe("unsuspendPurposeTemplate", () => {
   });
 
   it("should throw tenantNotAllowed if the caller is not the creator of the purpose template", async () => {
-    await addOnePurposeTemplate({
-      purposeTemplate,
-      event: "PurposeTemplateSuspended",
-      metadataVersion: 2,
-    });
+    await addOnePurposeTemplate(purposeTemplate);
 
     const otherTenantId = generateId<TenantId>();
 
@@ -151,11 +147,7 @@ describe("unsuspendPurposeTemplate", () => {
       purposeRiskAnalysisForm: undefined,
     };
 
-    await addOnePurposeTemplate({
-      purposeTemplate: purposeTemplateWithoutRiskAnalysis,
-      event: "PurposeTemplateSuspended",
-      metadataVersion: 2,
-    });
+    await addOnePurposeTemplate(purposeTemplateWithoutRiskAnalysis);
 
     await expect(async () => {
       await purposeTemplateService.unsuspendPurposeTemplate(
@@ -185,11 +177,7 @@ describe("unsuspendPurposeTemplate", () => {
       },
     };
 
-    await addOnePurposeTemplate({
-      purposeTemplate: purposeTemplateWithInvalidRiskAnalysis,
-      event: "PurposeTemplateSuspended",
-      metadataVersion: 2,
-    });
+    await addOnePurposeTemplate(purposeTemplateWithInvalidRiskAnalysis);
 
     const result = validatePurposeTemplateRiskAnalysis(
       riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
@@ -242,9 +230,7 @@ describe("unsuspendPurposeTemplate", () => {
         state,
       };
 
-      await addOnePurposeTemplate({
-        purposeTemplate: purposeTemplateWithUnexpectedState,
-      });
+      await addOnePurposeTemplate(purposeTemplateWithUnexpectedState);
 
       await expect(async () => {
         await purposeTemplateService.unsuspendPurposeTemplate(
