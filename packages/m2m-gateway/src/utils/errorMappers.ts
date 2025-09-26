@@ -187,6 +187,7 @@ export const deleteDraftEServiceTemplateVersionErrorMapper = (
   match(error.code)
     .with("cannotDeleteLastEServiceTemplateVersion", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getEServiceRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
