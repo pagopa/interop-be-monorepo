@@ -38,7 +38,6 @@ export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  undefined,
   inject("analyticsSQLConfig")
 );
 const connection = await analyticsPostgresDB.connect();

@@ -1,41 +1,41 @@
-import {
-  setupTestContainersVitest,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
-import {
-  EService,
-  Tenant,
-  toReadModelEService,
-  toReadModelTenant,
-  Attribute,
-  toReadModelAttribute,
-} from "pagopa-interop-models";
+import { EService, Tenant, Attribute } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { z } from "zod";
+import {
+  upsertAttribute,
+  upsertEService,
+  upsertTenant,
+} from "pagopa-interop-readmodel/testUtils";
+import {
+  attributeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { PublicEService } from "../src/models/models.js";
 import { dtdCatalogExporterServiceBuilder } from "../src/services/dtdCatalogExporterService.js";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/config/config.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const {
-  cleanup,
-  readModelRepository,
-  postgresDB: _,
-  fileManager,
-} = await setupTestContainersVitest(
-  inject("readModelConfig"),
-  undefined,
-  inject("fileManagerConfig")
-);
+export const { cleanup, fileManager, readModelDB } =
+  await setupTestContainersVitest(
+    undefined,
+    inject("fileManagerConfig"),
+    undefined,
+    undefined,
+    undefined,
+    inject("readModelSQLConfig")
+  );
 
 afterEach(cleanup);
 
-const eservices = readModelRepository.eservices;
-const tenants = readModelRepository.tenants;
-const attributes = readModelRepository.attributes;
-
-const readModelService = readModelServiceBuilder(readModelRepository);
+const attributeReadModelService = attributeReadModelServiceBuilder(readModelDB);
+const tenantReadModelService = tenantReadModelServiceBuilder(readModelDB);
+const readModelService = readModelServiceBuilderSQL(
+  readModelDB,
+  attributeReadModelService,
+  tenantReadModelService
+);
 
 export const dtdCatalogExporterService = dtdCatalogExporterServiceBuilder({
   readModelService,
@@ -58,13 +58,13 @@ export const getExportedDtdPublicCatalogFromJson = async (): Promise<
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(toReadModelTenant(tenant), tenants);
+  await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
-  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+  await upsertAttribute(readModelDB, attribute, 0);
 };
