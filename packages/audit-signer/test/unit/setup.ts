@@ -36,6 +36,8 @@ export const mockDbService = { saveSignatureReference: vi.fn() };
 export const mockSafeStorageService = {
   createFile: vi.fn(),
   uploadFileContent: vi.fn(),
+  getFile: vi.fn(),
+  downloadFileContent: vi.fn(),
 };
 
 vi.mock("pagopa-interop-models", async (importOriginal) => {
