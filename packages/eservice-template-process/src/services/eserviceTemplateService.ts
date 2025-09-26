@@ -2070,21 +2070,21 @@ async function updateDraftEServiceTemplateVersion(
     .exhaustive();
 
   const updatedAgreementApprovalPolicy = match(updateSeed)
-    .with(
-      { type: "post" },
-      ({ seed }) =>
-        seed.agreementApprovalPolicy &&
-        apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-          seed.agreementApprovalPolicy
-        )
+    .with({ type: "post" }, ({ seed }) =>
+      seed.agreementApprovalPolicy
+        ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          )
+        : undefined
     )
     .with({ type: "patch" }, ({ seed }) =>
-      match(seed.agreementApprovalPolicy)
-        .with(undefined, () => eserviceTemplateVersion.agreementApprovalPolicy)
-        .with(null, () => undefined)
-        .otherwise((value) =>
-          apiAgreementApprovalPolicyToAgreementApprovalPolicy(value)
-        )
+      seed.agreementApprovalPolicy === null
+        ? undefined
+        : seed.agreementApprovalPolicy === undefined
+        ? eserviceTemplateVersion.agreementApprovalPolicy
+        : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          )
     )
     .exhaustive();
 
