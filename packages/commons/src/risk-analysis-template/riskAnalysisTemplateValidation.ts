@@ -48,7 +48,7 @@ validatePurposeTemplateRiskAnalysis
 */
 export function validatePurposeTemplateRiskAnalysis(
   riskAnalysisFormTemplate: RiskAnalysisFormTemplateToValidate,
-  tenantKind: TenantKind,
+  tenantKind: TenantKind
 ): RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedForm> {
   const latestVersionFormRules = getLatestVersionFormRules(tenantKind);
 
@@ -61,7 +61,7 @@ export function validatePurposeTemplateRiskAnalysis(
   if (latestVersionFormRules.version !== riskAnalysisFormTemplate.version) {
     return invalidTemplateResult([
       unexpectedRiskAnalysisTemplateRulesVersionError(
-        riskAnalysisFormTemplate.version,
+        riskAnalysisFormTemplate.version
       ),
     ]);
   }
@@ -70,18 +70,18 @@ export function validatePurposeTemplateRiskAnalysis(
 
   const results = validateTemplateFormAnswers(
     riskAnalysisFormTemplate.answers,
-    validationRules,
+    validationRules
   );
 
   const invalids = results.filter((r) => r.type === "invalid");
   if (invalids.length > 0) {
     return invalidTemplateResult(
-      results.flatMap((r) => (r.type === "invalid" ? r.issues : [])),
+      results.flatMap((r) => (r.type === "invalid" ? r.issues : []))
     );
   }
 
   const validatedAnswers = results.flatMap((r) =>
-    r.type === "valid" ? [r.value] : [],
+    r.type === "valid" ? [r.value] : []
   );
 
   const { singleAnswers, multiAnswers } = validatedAnswers.reduce<
@@ -101,7 +101,7 @@ export function validatePurposeTemplateRiskAnalysis(
     {
       singleAnswers: [],
       multiAnswers: [],
-    },
+    }
   );
 
   return validTemplateResult({
@@ -113,13 +113,13 @@ export function validatePurposeTemplateRiskAnalysis(
 
 function validateTemplateFormAnswers(
   answers: Record<string, RiskAnalysisTemplateAnswerToValidate>,
-  validationRules: ValidationRule[],
+  validationRules: ValidationRule[]
 ): Array<
   RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>
 > {
   const missingRequiredFieldIssues = findMissingRequiredFields(
     answers,
-    validationRules,
+    validationRules
   );
 
   if (missingRequiredFieldIssues.length > 0) {
@@ -131,7 +131,7 @@ function validateTemplateFormAnswers(
 
 function findMissingRequiredFields(
   answers: Record<string, RiskAnalysisTemplateAnswerToValidate>,
-  validationRules: ValidationRule[],
+  validationRules: ValidationRule[]
 ): RiskAnalysisTemplateValidationIssue[] {
   return validationRules
     .filter((r) => r.required)
@@ -140,7 +140,7 @@ function findMissingRequiredFields(
 
       if (templateAnswer === undefined) {
         const depsSatisfied = rule.dependencies.every((dependency) =>
-          formContainsDependency(answers, dependency),
+          formContainsDependency(answers, dependency)
         );
 
         return depsSatisfied
@@ -153,12 +153,12 @@ function findMissingRequiredFields(
 
 function validateAllAnswers(
   answers: Record<string, RiskAnalysisTemplateAnswerToValidate>,
-  validationRules: ValidationRule[],
+  validationRules: ValidationRule[]
 ): Array<
   RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>
 > {
   return Object.entries(answers).map(([answerKey, answerValue]) =>
-    validateAnswer(answerKey, answerValue, validationRules, answers),
+    validateAnswer(answerKey, answerValue, validationRules, answers)
   );
 }
 
@@ -166,10 +166,10 @@ function validateAnswer(
   answerKey: string,
   answerValue: RiskAnalysisTemplateAnswerToValidate,
   validationRules: ValidationRule[],
-  allAnswers: Record<string, RiskAnalysisTemplateAnswerToValidate>,
+  allAnswers: Record<string, RiskAnalysisTemplateAnswerToValidate>
 ): RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer> {
   const validationRule = validationRules.find(
-    (rule) => rule.fieldName === answerKey,
+    (rule) => rule.fieldName === answerKey
   );
   if (!validationRule) {
     return invalidTemplateResult([
@@ -179,7 +179,7 @@ function validateAnswer(
 
   const valueValidationErrors = validateAnswerValue(
     answerValue,
-    validationRule,
+    validationRule
   );
 
   const dependencyValidationErrors = validationRule.dependencies.flatMap(
@@ -187,8 +187,8 @@ function validateAnswer(
       validateAnswerDependency(
         allAnswers,
         dependencyRule,
-        validationRule.fieldName,
-      ),
+        validationRule.fieldName
+      )
   );
 
   const validationErrors = [
@@ -205,7 +205,7 @@ function validateAnswer(
 
 function validateAnswerValue(
   answer: RiskAnalysisTemplateAnswerToValidate,
-  rule: ValidationRule,
+  rule: ValidationRule
 ): RiskAnalysisTemplateValidationIssue[] {
   const hasSuggestions = answer.suggestedValues.length > 0;
   const hasValues = answer.values.length > 0;
@@ -215,7 +215,7 @@ function validateAnswerValue(
     return hasAnyContent
       ? [
           malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
-            rule.fieldName,
+            rule.fieldName
           ),
         ]
       : [];
@@ -225,7 +225,7 @@ function validateAnswerValue(
     .with(P.nullish, () => [])
 
     .with({ dataType: "freeText" }, (freeTextRule) =>
-      validateFreeTextAnswer(freeTextRule, hasValues, hasSuggestions),
+      validateFreeTextAnswer(freeTextRule, hasValues, hasSuggestions)
     )
 
     .with({ dataType: P.not("freeText") }, (nonFreeTextRule) =>
@@ -233,8 +233,8 @@ function validateAnswerValue(
         nonFreeTextRule,
         answer,
         hasValues,
-        hasSuggestions,
-      ),
+        hasSuggestions
+      )
     )
 
     .exhaustive();
@@ -243,7 +243,7 @@ function validateAnswerValue(
 function validateFreeTextAnswer(
   rule: ValidationRule,
   hasValues: boolean,
-  hasSuggestions: boolean,
+  hasSuggestions: boolean
 ): RiskAnalysisTemplateValidationIssue[] {
   if (!hasValues && !hasSuggestions) {
     return [
@@ -264,7 +264,7 @@ function validateNonFreeTextAnswer(
   rule: ValidationRule,
   answer: RiskAnalysisTemplateAnswerToValidate,
   hasValues: boolean,
-  hasSuggestions: boolean,
+  hasSuggestions: boolean
 ): RiskAnalysisTemplateValidationIssue[] {
   if (
     rule.allowedValues &&
@@ -273,7 +273,7 @@ function validateNonFreeTextAnswer(
     return [
       unexpectedRiskAnalysisTemplateFieldValueError(
         rule.fieldName,
-        rule.allowedValues,
+        rule.allowedValues
       ),
     ];
   }
@@ -290,26 +290,26 @@ function validateNonFreeTextAnswer(
 function validateAnswerDependency(
   answers: Record<string, RiskAnalysisTemplateAnswerToValidate>,
   dependency: ValidationRuleDependency,
-  dependentField: string,
+  dependentField: string
 ): RiskAnalysisTemplateValidationIssue[] {
   return match(answers[dependency.fieldName])
     .with(P.nullish, () => [
       riskAnalysisTemplateDependencyNotFoundError(
         dependentField,
-        dependency.fieldName,
+        dependency.fieldName
       ),
     ])
     .with({ editable: true }, () => [
       unexpectedRiskAnalysisTemplateDependencyEditableError(
         dependentField,
-        dependency.fieldName,
+        dependency.fieldName
       ),
     ])
     .with({ values: P.when((v) => !v.includes(dependency.fieldValue)) }, () => [
       unexpectedRiskAnalysisTemplateDependencyValueError(
         dependentField,
         dependency.fieldName,
-        dependency.fieldValue,
+        dependency.fieldValue
       ),
     ])
     .otherwise(() => []);
@@ -318,7 +318,7 @@ function validateAnswerDependency(
 function buildValidResultAnswer(
   answerKey: string,
   answerValue: RiskAnalysisTemplateAnswerToValidate,
-  validationRule: ValidationRule,
+  validationRule: ValidationRule
 ): RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer> {
   return match(validationRule.dataType)
     .with("single", "freeText", () =>
@@ -330,7 +330,7 @@ function buildValidResultAnswer(
           editable: answerValue.editable,
           suggestedValues: answerValue.suggestedValues,
         },
-      }),
+      })
     )
     .with("multi", () =>
       validTemplateResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>({
@@ -340,19 +340,19 @@ function buildValidResultAnswer(
           values: answerValue.values,
           editable: answerValue.editable,
         },
-      }),
+      })
     )
     .exhaustive();
 }
 
 function formContainsDependency(
   answers: Record<string, RiskAnalysisTemplateAnswerToValidate>,
-  dependency: ValidationRuleDependency,
+  dependency: ValidationRuleDependency
 ): boolean {
   const field = answers[dependency.fieldName];
   return match(field)
     .with(P.not(P.nullish), (answerToValidate) =>
-      answerToValidate.values.some((v) => v === dependency.fieldValue),
+      answerToValidate.values.some((v) => v === dependency.fieldValue)
     )
     .with(P.nullish, () => false)
     .exhaustive();

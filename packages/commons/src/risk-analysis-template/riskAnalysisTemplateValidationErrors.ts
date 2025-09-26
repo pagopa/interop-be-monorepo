@@ -39,7 +39,7 @@ export type RiskAnalysisTemplateValidationResult<T> =
   | RiskAnalysisTemplateValidationInvalid;
 
 export function unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
-  fieldName: string,
+  fieldName: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError",
@@ -49,18 +49,18 @@ export function unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError(
 
 export function unexpectedRiskAnalysisTemplateFieldValueError(
   fieldName: string,
-  allowedValues: Set<string>,
+  allowedValues: Set<string>
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "unexpectedRiskAnalysisTemplateFieldValueError",
     detail: `Field ${fieldName} should be one of [${Array.from(
-      allowedValues,
+      allowedValues
     ).join(",")}]`,
   });
 }
 
 export function unexpectedRiskAnalysisTemplateFieldError(
-  fieldName: string,
+  fieldName: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "unexpectedRiskAnalysisTemplateFieldError",
@@ -69,7 +69,7 @@ export function unexpectedRiskAnalysisTemplateFieldError(
 }
 
 export function malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
-  fieldName: string,
+  fieldName: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "malformedRiskAnalysisTemplateFieldValueOrSuggestionError",
@@ -79,7 +79,7 @@ export function malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
 
 export function riskAnalysisTemplateDependencyNotFoundError(
   dependentField: string,
-  dependencyField: string,
+  dependencyField: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "riskAnalysisTemplateDependencyNotFoundError",
@@ -89,7 +89,7 @@ export function riskAnalysisTemplateDependencyNotFoundError(
 
 export function unexpectedRiskAnalysisTemplateDependencyEditableError(
   dependentField: string,
-  dependencyField: string,
+  dependencyField: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "unexpectedRiskAnalysisTemplateDependencyEditableError",
@@ -98,7 +98,7 @@ export function unexpectedRiskAnalysisTemplateDependencyEditableError(
 }
 
 export function noRiskAnalysisTemplateRulesVersionFoundError(
-  kind: TenantKind,
+  kind: TenantKind
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "noRiskAnalysisTemplateRulesVersionFoundError",
@@ -107,7 +107,7 @@ export function noRiskAnalysisTemplateRulesVersionFoundError(
 }
 
 export function unexpectedRiskAnalysisTemplateRulesVersionError(
-  version: string,
+  version: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "unexpectedRiskAnalysisTemplateRulesVersionError",
@@ -117,7 +117,7 @@ export function unexpectedRiskAnalysisTemplateRulesVersionError(
 export function unexpectedRiskAnalysisTemplateDependencyValueError(
   dependentField: string,
   dependencyField: string,
-  expectedValue: string,
+  expectedValue: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "unexpectedRiskAnalysisTemplateDependencyValueError",
@@ -126,7 +126,7 @@ export function unexpectedRiskAnalysisTemplateDependencyValueError(
 }
 
 export function missingExpectedRiskAnalysisTemplateFieldError(
-  fieldName: string,
+  fieldName: string
 ): RiskAnalysisTemplateValidationIssue {
   return new RiskAnalysisTemplateValidationIssue({
     code: "missingExpectedRiskAnalysisTemplateFieldError",
@@ -135,7 +135,7 @@ export function missingExpectedRiskAnalysisTemplateFieldError(
 }
 
 export function invalidTemplateResult(
-  issues: RiskAnalysisTemplateValidationIssue[],
+  issues: RiskAnalysisTemplateValidationIssue[]
 ): RiskAnalysisTemplateValidationInvalid {
   return {
     type: "invalid",
@@ -144,7 +144,7 @@ export function invalidTemplateResult(
 }
 
 export function validTemplateResult<T>(
-  value: T,
+  value: T
 ): RiskAnalysisTemplateValidationResult<T> {
   return {
     type: "valid",
