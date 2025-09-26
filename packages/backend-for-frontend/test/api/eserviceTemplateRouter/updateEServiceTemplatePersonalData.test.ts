@@ -8,14 +8,12 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
-  getMockBffApiEServiceTemplatePersonaData,
+  getMockBffApiEServiceTemplate,
   getMockBffApiEServiceTemplatePersonalDataFlagUpdateSeed,
 } from "../../mockUtils.js";
 
-describe("API POST /eservices/templates/:eServiceTemplateId/personalData", () => {
-  const mockEServiceTemplate = {
-    ...getMockBffApiEServiceTemplatePersonaData(),
-  };
+describe("API POST /eservices/templates/:eServiceTemplateId/personalDataFlag", () => {
+  const mockEServiceTemplate = getMockBffApiEServiceTemplate();
   const mockEServiceTemplatePersonalDataFlagUpdateSeed =
     getMockBffApiEServiceTemplatePersonalDataFlagUpdateSeed();
 
