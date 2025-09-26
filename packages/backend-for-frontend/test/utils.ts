@@ -29,9 +29,8 @@ import {
 } from "../src/clients/clientsProvider.js";
 import { BffAppContext } from "../src/utilities/context.js";
 
-export const { cleanup, readModelRepository, postgresDB, fileManager } =
+export const { cleanup, postgresDB, fileManager } =
   await setupTestContainersVitest(
-    inject("readModelConfig"),
     inject("eventStoreConfig"),
     inject("fileManagerConfig")
   );
