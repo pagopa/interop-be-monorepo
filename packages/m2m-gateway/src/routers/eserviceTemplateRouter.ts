@@ -16,6 +16,7 @@ import {
   deleteDraftEServiceTemplateVersionErrorMapper,
   getEServiceTemplateRiskAnalysisErrorMapper,
   getEServiceTemplateVersionErrorMapper,
+  getEServiceTemplateVersionDocumentsErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -481,7 +482,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            getEServiceTemplateVersionDocumentsErrorMapper,
             ctx,
             `Error retrieving documents for eservice template ${req.params.templateId} version with id ${req.params.versionId}`
           );
