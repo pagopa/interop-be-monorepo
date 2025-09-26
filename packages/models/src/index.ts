@@ -21,6 +21,7 @@ export * from "./delegation/protobufConverterFromV2.js";
 export * from "./delegation/protobufConverterToV2.js";
 
 export * from "./email/email.js";
+export * from "./email/emailNotificationMessagePayload.js";
 
 export * from "./eservice/eservice.js";
 export * from "./eservice/eserviceEvents.js";
