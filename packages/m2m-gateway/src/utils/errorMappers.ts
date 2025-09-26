@@ -201,24 +201,3 @@ export const getEServiceTemplateVersionDocumentsErrorMapper = (
   match(error.code)
     .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const suspendEServiceTemplateVersionErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const unsuspendEServiceTemplateVersionErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const publishEServiceTemplateVersionErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
