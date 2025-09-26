@@ -84,7 +84,6 @@ export function eserviceTemplateServiceBuilder(
 
     return version;
   };
-
   const pollEServiceTemplate = (
     response: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
     headers: M2MGatewayAppContext["headers"]
@@ -113,11 +112,7 @@ export function eserviceTemplateServiceBuilder(
     ): Promise<m2mGatewayApi.EServiceTemplate> {
       logger.info(`Retrieving eservice template with id ${templateId}`);
 
-      const { data } =
-        await clients.eserviceTemplateProcessClient.getEServiceTemplateById({
-          headers,
-          params: { templateId },
-        });
+      const { data } = await retrieveEServiceTemplateById(headers, templateId);
 
       return toM2MGatewayEServiceTemplate(data);
     },
@@ -132,11 +127,7 @@ export function eserviceTemplateServiceBuilder(
         `Retrieving versions of eservice template with id ${templateId}, offset ${offset}, limit ${limit}, state ${state}`
       );
 
-      const { data } =
-        await clients.eserviceTemplateProcessClient.getEServiceTemplateById({
-          headers,
-          params: { templateId },
-        });
+      const { data } = await retrieveEServiceTemplateById(headers, templateId);
 
       const filteredVersions = state
         ? data.versions.filter((version) => version.state === state)
@@ -528,6 +519,66 @@ export function eserviceTemplateServiceBuilder(
         );
 
       await pollEServiceTemplate(response, headers);
+    },
+    async updatePublishedEServiceTemplateDescription(
+      templateId: EServiceTemplateId,
+      seed: m2mGatewayApi.EServiceTemplateDescriptionUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplate> {
+      logger.info(
+        `Updating description for published E-Service Template with id ${templateId}`
+      );
+
+      const response =
+        await clients.eserviceTemplateProcessClient.updateEServiceTemplateDescription(
+          seed,
+          {
+            params: { templateId },
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplate(response, headers);
+      return toM2MGatewayEServiceTemplate(polledResource.data);
+    },
+    async updatePublishedEServiceTemplateIntendedTarget(
+      templateId: EServiceTemplateId,
+      seed: m2mGatewayApi.EServiceTemplateIntendedTargetUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplate> {
+      logger.info(
+        `Updating intended target for published E-Service Template with id ${templateId}`
+      );
+
+      const response =
+        await clients.eserviceTemplateProcessClient.updateEServiceTemplateIntendedTarget(
+          seed,
+          {
+            params: { templateId },
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplate(response, headers);
+      return toM2MGatewayEServiceTemplate(polledResource.data);
+    },
+    async updatePublishedEServiceTemplateName(
+      templateId: EServiceTemplateId,
+      seed: m2mGatewayApi.EServiceTemplateNameUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplate> {
+      logger.info(
+        `Updating name for published E-Service Template with id ${templateId}`
+      );
+
+      const response =
+        await clients.eserviceTemplateProcessClient.updateEServiceTemplateName(
+          seed,
+          {
+            params: { templateId },
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplate(response, headers);
+      return toM2MGatewayEServiceTemplate(polledResource.data);
     },
     async suspendEServiceTemplateVersion(
       templateId: EServiceTemplateId,

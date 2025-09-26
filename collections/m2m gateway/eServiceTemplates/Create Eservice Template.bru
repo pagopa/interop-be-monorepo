@@ -1,7 +1,7 @@
 meta {
   name: Create EService Template
   type: http
-  seq: 7
+  seq: 5
 }
 
 post {
@@ -34,7 +34,6 @@ body:json {
 
 vars:post-response {
   eserviceTemplateId: res.body.id
-  eserviceTemplateVersionId: res.body.versions[0].id
 }
 
 script:pre-request {
