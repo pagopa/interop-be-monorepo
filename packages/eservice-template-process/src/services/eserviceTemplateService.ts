@@ -1262,10 +1262,11 @@ export function eserviceTemplateServiceBuilder(
         voucherLifespan: seed.version.voucherLifespan,
         dailyCallsPerConsumer: seed.version.dailyCallsPerConsumer,
         dailyCallsTotal: seed.version.dailyCallsTotal,
-        agreementApprovalPolicy:
-          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.version.agreementApprovalPolicy
-          ),
+        agreementApprovalPolicy: seed.version.agreementApprovalPolicy
+          ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+              seed.version.agreementApprovalPolicy
+            )
+          : undefined,
         publishedAt: undefined,
         suspendedAt: undefined,
         deprecatedAt: undefined,
@@ -2091,19 +2092,20 @@ async function updateDraftEServiceTemplateVersion(
 
   const updatedAgreementApprovalPolicy = match(updateSeed)
     .with({ type: "post" }, ({ seed }) =>
-      apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-        seed.agreementApprovalPolicy
-      )
+      seed.agreementApprovalPolicy
+        ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          )
+        : undefined
     )
     .with({ type: "patch" }, ({ seed }) =>
-      resolvePatchValue(
-        seed.agreementApprovalPolicy === null
-          ? null
-          : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-              seed.agreementApprovalPolicy
-            ),
-        eserviceTemplateVersion.agreementApprovalPolicy
-      )
+      seed.agreementApprovalPolicy === null
+        ? undefined
+        : seed.agreementApprovalPolicy === undefined
+        ? eserviceTemplateVersion.agreementApprovalPolicy
+        : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          )
     )
     .exhaustive();
 
