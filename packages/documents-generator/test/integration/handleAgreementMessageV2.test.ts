@@ -123,7 +123,7 @@ describe("handleAgreementMessageV2", () => {
       Buffer.from("mock pdf content")
     );
     vi.spyOn(fileManager, "storeBytes").mockResolvedValue(
-      `test-bucket/${config.agreementContractsPath}/${mockAgreementId}/mock-file.pdf`
+      `${config.s3Bucket}/${config.agreementContractsPath}/${mockAgreementId}/mock-file.pdf`
     );
 
     await handleAgreementMessageV2(

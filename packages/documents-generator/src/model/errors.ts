@@ -1,5 +1,6 @@
 import {
   Agreement,
+  Delegation,
   DelegationId,
   DescriptorId,
   EServiceId,
@@ -18,7 +19,8 @@ type DocumentsGeneratorErrorCode =
   | "descriptorNotFound"
   | "riskAnalysisConfigVersionNotFound"
   | "missingRiskAnalysis"
-  | "stampNotFound";
+  | "agreementStampNotFound"
+  | "delegationStampNotFound";
 
 export class DocumentsGeneratorError extends InternalError<DocumentsGeneratorErrorCode> {
   constructor({
@@ -101,6 +103,15 @@ export function agreementStampNotFound(
 ): DocumentsGeneratorError {
   return new InternalError({
     detail: `Agreement ${stamp} stamp not found`,
-    code: "stampNotFound",
+    code: "agreementStampNotFound",
+  });
+}
+
+export function delegationStampNotFound(
+  stamp: keyof Delegation["stamps"]
+): DocumentsGeneratorError {
+  return new InternalError({
+    detail: `Delegation ${stamp} stamp not found`,
+    code: "delegationStampNotFound",
   });
 }

@@ -16,7 +16,6 @@ import {
   DelegationStamp,
   EService,
   generateId,
-  genericInternalError,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
 } from "pagopa-interop-models";
@@ -26,6 +25,7 @@ import {
   DelegationActivationPDFPayload,
   DelegationRevocationPDFPayload,
 } from "../../model/delegationModels.js";
+import { delegationStampNotFound } from "../../model/errors.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 
@@ -95,7 +95,7 @@ export const contractBuilder = {
   }): Promise<DelegationContractDocument> => {
     const templateFilePath = path.resolve(
       dirname,
-      "..",
+      "../..",
       "resources/delegation",
       "delegationApprovedTemplate.html"
     );
@@ -109,7 +109,6 @@ export const contractBuilder = {
       documentCreatedAt,
       "activation"
     );
-
     assertStampExists(delegation.stamps, "activation");
 
     const submissionDate = dateAtRomeZone(delegation.stamps.submission.when);
@@ -184,7 +183,7 @@ export const contractBuilder = {
   }): Promise<DelegationContractDocument> => {
     const templateFilePath = path.resolve(
       dirname,
-      "..",
+      "../..",
       "resources/delegation",
       "delegationRevokedTemplate.html"
     );
@@ -256,6 +255,6 @@ export function assertStampExists<S extends keyof Delegation["stamps"]>(
   [key in S]: DelegationStamp;
 } {
   if (!stamps[stamp]) {
-    throw genericInternalError(stamp);
+    throw delegationStampNotFound(stamp);
   }
 }

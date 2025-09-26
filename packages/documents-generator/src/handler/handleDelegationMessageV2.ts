@@ -34,6 +34,7 @@ export async function handleDelegationMessageV2(
           throw missingKafkaMessageDataError("delegation", msg.type);
         }
         const delegation = fromDelegationV2(msg.data.delegation);
+
         const [delegator, delegate, eservice] = await Promise.all([
           retrieveTenantById(readModelService, delegation.delegatorId),
           retrieveTenantById(readModelService, delegation.delegateId),
