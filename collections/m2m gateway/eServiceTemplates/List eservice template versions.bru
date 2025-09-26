@@ -1,5 +1,5 @@
 meta {
-  name: Get eservice template versions
+  name: List eservice template versions
   type: http
   seq: 2
 }
@@ -21,4 +21,8 @@ params:path {
 
 headers {
   Authorization: {{JWT-M2M}}
+}
+
+vars:post-response {
+  versionId: res.body.results.at(-1).id
 }
