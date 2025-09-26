@@ -1,13 +1,10 @@
-/* eslint-disable functional/no-let */
-/* eslint-disable functional/immutable-data */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   AttributeEventEnvelope,
   toAttributeV1,
   AttributeEvent,
+  AttributeM2MEvent,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
@@ -54,12 +51,13 @@ describe("handleAttributeEvent test", async () => {
             testM2mEventWriterService.insertAttributeM2MEvent
           ).toHaveBeenCalledTimes(1);
           const attributeM2MEvent = await retrieveLastAttributeM2MEvent();
-          expect(attributeM2MEvent).toEqual({
+          const expectedAttributeM2MEvent: AttributeM2MEvent = {
             id: expect.any(String),
             eventType: m.type,
             eventTimestamp,
             attributeId: attribute.id,
-          });
+          };
+          expect(attributeM2MEvent).toEqual(expectedAttributeM2MEvent);
         })
         .with({ type: "MaintenanceAttributeDeleted" }, () => {
           expect(
