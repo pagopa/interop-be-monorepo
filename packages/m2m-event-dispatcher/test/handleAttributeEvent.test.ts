@@ -29,6 +29,7 @@ describe("handleAttributeEvent test", async () => {
   it.each(
     AttributeEvent.options.map((o) => ({
       ...getMockEventEnvelopeCommons(),
+      event_version: 1, // Force event_version to 1 for AttributeEvent
       stream_id: attribute.id,
       type: o.shape.type.value,
       data: {
@@ -36,7 +37,7 @@ describe("handleAttributeEvent test", async () => {
       },
     })) as AttributeEventEnvelope[]
   )(
-    "should write M2M event for AttributeAdded event",
+    "should correctly handle M2M event for $type event",
     async (message: AttributeEventEnvelope) => {
       const eventTimestamp = new Date();
 
