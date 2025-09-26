@@ -15,6 +15,10 @@ import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getEServiceTemplateRiskAnalysisErrorMapper,
   getEServiceTemplateVersionErrorMapper,
+  getEServiceTemplateVersionDocumentsErrorMapper,
+  suspendEServiceTemplateVersionErrorMapper,
+  unsuspendEServiceTemplateVersionErrorMapper,
+  publishEServiceTemplateVersionErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -232,7 +236,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            suspendEServiceTemplateVersionErrorMapper,
             ctx,
             `Error suspending eservice template ${req.params.templateId} version ${req.params.versionId}`
           );
@@ -261,7 +265,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            unsuspendEServiceTemplateVersionErrorMapper,
             ctx,
             `Error unsuspending eservice template ${req.params.templateId} version ${req.params.versionId}`
           );
@@ -290,7 +294,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            publishEServiceTemplateVersionErrorMapper,
             ctx,
             `Error publishing eservice template ${req.params.templateId} version ${req.params.versionId}`
           );
@@ -373,7 +377,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            getEServiceTemplateVersionDocumentsErrorMapper,
             ctx,
             `Error retrieving documents for eservice template ${req.params.templateId} version with id ${req.params.versionId}`
           );
