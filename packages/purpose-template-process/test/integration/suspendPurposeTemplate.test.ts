@@ -29,6 +29,7 @@ import {
 } from "../integrationUtils.js";
 import {
   purposeTemplateNotInExpectedState,
+  purposeTemplateStateConflict,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -142,12 +143,32 @@ describe("suspendPurposeTemplate", () => {
   });
 
   it.each([
-    purposeTemplateState.suspended,
-    purposeTemplateState.archived,
-    purposeTemplateState.draft,
+    {
+      error: purposeTemplateStateConflict(
+        purposeTemplate.id,
+        purposeTemplateState.suspended
+      ),
+      state: purposeTemplateState.suspended,
+    },
+    {
+      error: purposeTemplateNotInExpectedState(
+        purposeTemplate.id,
+        purposeTemplateState.archived,
+        [purposeTemplateState.active]
+      ),
+      state: purposeTemplateState.archived,
+    },
+    {
+      error: purposeTemplateNotInExpectedState(
+        purposeTemplate.id,
+        purposeTemplateState.draft,
+        [purposeTemplateState.active]
+      ),
+      state: purposeTemplateState.draft,
+    },
   ])(
     `should throw purposeTemplateNotInExpectedState if the purpose template is in %s state`,
-    async (state) => {
+    async ({ error, state }) => {
       const purposeTemplateWithUnexpectedState: PurposeTemplate = {
         ...purposeTemplate,
         state,
@@ -164,13 +185,7 @@ describe("suspendPurposeTemplate", () => {
           purposeTemplateWithUnexpectedState.id,
           getMockContext({ authData: getMockAuthData(creatorId) })
         );
-      }).rejects.toThrowError(
-        purposeTemplateNotInExpectedState(
-          purposeTemplateWithUnexpectedState.id,
-          state,
-          [purposeTemplateState.active]
-        )
-      );
+      }).rejects.toThrowError(error);
     }
   );
 });
