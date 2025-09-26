@@ -84,10 +84,10 @@ export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
 export function purposeTemplateNotInExpectedState(
   purposeTemplateId: PurposeTemplateId,
   currentState: PurposeTemplateState,
-  expectedState: PurposeTemplateState
+  expectedStates: PurposeTemplateState[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose Template ${purposeTemplateId} not in expected state (current state: ${currentState}, expected state: ${expectedState})`,
+    detail: `Purpose Template ${purposeTemplateId} not in expected state (current state: ${currentState}, expected states: ${expectedStates.toString()})`,
     code: "purposeTemplateNotInExpectedState",
     title: "Purpose Template not in expected state",
   });

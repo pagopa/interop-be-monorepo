@@ -168,7 +168,7 @@ describe("suspendPurposeTemplate", () => {
         purposeTemplateNotInExpectedState(
           purposeTemplateWithUnexpectedState.id,
           state,
-          purposeTemplateState.active
+          [purposeTemplateState.active]
         )
       );
     }

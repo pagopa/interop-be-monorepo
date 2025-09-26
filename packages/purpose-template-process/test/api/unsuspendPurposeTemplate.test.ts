@@ -83,7 +83,7 @@ describe("API POST /purposeTemplates/{id}/unsuspend", () => {
       error: purposeTemplateNotInExpectedState(
         purposeTemplate.id,
         purposeTemplate.state,
-        purposeTemplateState.suspended
+        [purposeTemplateState.suspended]
       ),
       expectedStatus: 400,
     },

@@ -83,7 +83,7 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
       error: purposeTemplateNotInExpectedState(
         generateId(),
         purposeTemplate.state,
-        purposeTemplateState.draft
+        [purposeTemplateState.draft]
       ),
       expectedStatus: 400,
     },

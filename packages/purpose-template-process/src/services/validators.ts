@@ -124,6 +124,7 @@ export const assertActivatableState = (
         purposeTemplate.id,
         purposeTemplate.state,
         allowedInitialState
+        [allowedInitialState]
       );
     });
 };
@@ -150,6 +151,10 @@ export const assertSuspendableState = (
       purposeTemplate.id,
       purposeTemplate.state,
       expectedState
+      [expectedState]
+    );
+  }
+};
     );
   }
 };
