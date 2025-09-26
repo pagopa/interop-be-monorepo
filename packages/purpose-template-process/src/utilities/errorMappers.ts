@@ -58,6 +58,6 @@ export const addRiskAnalysisAnswerAnnotationErrorMapper = (
     )
     .with(
       "purposeTemplateRiskAnalysisFormNotFound",
-      () => HTTP_STATUS_NOT_FOUND
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
