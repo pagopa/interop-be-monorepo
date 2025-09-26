@@ -69,7 +69,7 @@ export const riskAnalysisDocumentBuilder = (
     ): Promise<PurposeVersionDocument> => {
       const templateFilePath = path.resolve(
         dirname,
-        "..",
+        "../..",
         "resources/purpose",
         "riskAnalysisTemplate.html"
       );

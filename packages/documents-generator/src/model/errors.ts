@@ -1,5 +1,6 @@
 import {
   Agreement,
+  AttributeId,
   Delegation,
   DelegationId,
   DescriptorId,
@@ -17,6 +18,7 @@ type DocumentsGeneratorErrorCode =
   | "purposeDelegationNotFound"
   | "eServiceNotFound"
   | "descriptorNotFound"
+  | "attributeNotFound"
   | "riskAnalysisConfigVersionNotFound"
   | "missingRiskAnalysis"
   | "agreementStampNotFound"
@@ -113,5 +115,14 @@ export function delegationStampNotFound(
   return new InternalError({
     detail: `Delegation ${stamp} stamp not found`,
     code: "delegationStampNotFound",
+  });
+}
+
+export function attributeNotFound(
+  attributeId: AttributeId
+): DocumentsGeneratorError {
+  return new InternalError({
+    detail: `Attribute ${attributeId} not found`,
+    code: "attributeNotFound",
   });
 }

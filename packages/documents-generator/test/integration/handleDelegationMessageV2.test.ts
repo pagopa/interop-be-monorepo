@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable sonarjs/no-identical-functions */
+
 import path from "path";
 import { fileURLToPath } from "url";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -174,6 +176,70 @@ describe("handleDelegationMessageV2", () => {
     );
   });
 
+  it("should generate and store a contract for 'ProducerDelegationRevoked' and 'ConsumerDelegationRevoked' events", async () => {
+    const mockDelegation = {
+      ...getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegatorId: mockDelegatorId,
+        delegateId: mockDelegateId,
+        eserviceId: mockEServiceId,
+        state: delegationState.revoked,
+        stamps: {
+          submission: { who: generateId(), when: new Date() },
+          revocation: { who: generateId(), when: new Date() },
+        },
+      }),
+      id: mockDelegationId,
+      createdAt: new Date(),
+      revocationAt: new Date(),
+      revokedBy: generateId<UserId>(),
+    };
+
+    const mockDelegator = getMockTenant(mockDelegatorId);
+    const mockDelegate = getMockTenant(mockDelegateId);
+    const mockEService = getMockEService(mockEServiceId, mockDelegatorId, []);
+
+    await addOneDelegation(mockDelegation);
+    await addOneTenant(mockDelegator);
+    await addOneTenant(mockDelegate);
+    await addOneEService(mockEService);
+
+    const mockEvent: DelegationEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mockDelegationId,
+      version: 1,
+      event_version: 2,
+      type: "ProducerDelegationRevoked",
+      data: { delegation: toDelegationV2(mockDelegation) },
+      log_date: new Date(),
+    };
+
+    vi.spyOn(pdfGenerator, "generate").mockResolvedValue(
+      Buffer.from("mock pdf content")
+    );
+    vi.spyOn(fileManager, "storeBytes").mockResolvedValue(
+      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+    );
+
+    await handleDelegationMessageV2(
+      mockEvent,
+      pdfGenerator,
+      fileManager,
+      oldReadModelService,
+      genericLogger
+    );
+
+    expect(pdfGenerator.generate).toHaveBeenCalledOnce();
+    expect(fileManager.storeBytes).toHaveBeenCalledOnce();
+    expect(fileManager.storeBytes).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bucket: config.s3Bucket,
+        path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
+      }),
+      genericLogger
+    );
+  });
+
   it("should generate the correct activation contract payload for 'ProducerDelegationApproved'", async () => {
     const mockActivatorId = generateId<UserId>();
     const mockSubmissionWho = generateId<UserId>();
@@ -229,7 +295,6 @@ describe("handleDelegationMessageV2", () => {
       .spyOn(pdfGenerator, "generate")
       .mockResolvedValue(Buffer.from("mock pdf content"));
 
-    // L'esecuzione di handleDelegationMessageV2 provoca la generazione del payload
     await handleDelegationMessageV2(
       mockEvent,
       pdfGenerator,
@@ -238,7 +303,6 @@ describe("handleDelegationMessageV2", () => {
       genericLogger
     );
 
-    // Preparazione dei valori attesi
     const submissionDate = dateAtRomeZone(
       mockDelegation.stamps.submission.when
     );
@@ -246,7 +310,7 @@ describe("handleDelegationMessageV2", () => {
       mockDelegation.stamps.submission.when
     );
     const activationDate = dateAtRomeZone(
-      mockDelegation.stamps.activation?.when!
+      mockDelegation.stamps.activation!.when
     );
     const activationTime = timeAtRomeZone(
       mockDelegation.stamps.activation!.when

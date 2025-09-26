@@ -4,19 +4,19 @@ import {
   setupTestContainersVitest,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
-import { afterAll, afterEach, expect, inject, vi } from "vitest";
+import { afterAll, afterEach, inject, vi } from "vitest";
 import {
   Agreement,
-  AgreementId,
   EService,
   Tenant,
   toReadModelEService,
   toReadModelTenant,
   toReadModelAgreement,
-  AgreementDocumentId,
   Attribute,
   toReadModelAttribute,
   Delegation,
+  toReadModelPurpose,
+  Purpose,
 } from "pagopa-interop-models";
 import {
   genericLogger,
@@ -36,6 +36,7 @@ import {
   upsertAttribute,
   upsertDelegation,
   upsertEService,
+  upsertPurpose,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/service/readModelService.js";
@@ -73,8 +74,14 @@ vi.spyOn(puppeteer, "launch").mockImplementation(
   async () => testBrowserInstance
 );
 
-export const { agreements, attributes, eservices, tenants, delegations } =
-  readModelRepository;
+export const {
+  agreements,
+  attributes,
+  eservices,
+  tenants,
+  delegations,
+  purposes,
+} = readModelRepository;
 
 export const oldReadModelService = readModelServiceBuilder(readModelRepository);
 
@@ -180,97 +187,7 @@ export const addOneDelegation = async (
   await upsertDelegation(readModelDB, delegation, 0);
 };
 
-export async function uploadAgreementDocument(
-  agreementId: AgreementId,
-  documentId: AgreementDocumentId,
-  name: string
-): Promise<void> {
-  const documentDestinationPath = `${config.agreementContractsPath}/${agreementId}`;
-  await fileManager.storeBytes(
-    {
-      bucket: config.s3Bucket,
-      path: documentDestinationPath,
-      resourceId: documentId,
-      name,
-      content: Buffer.from("large-document-file"),
-    },
-    genericLogger
-  );
-  expect(
-    await fileManager.listFiles(config.s3Bucket, genericLogger)
-  ).toContainEqual(
-    `${config.agreementContractsPath}/${agreementId}/${documentId}/${name}`
-  );
-}
-
-export async function addDelegationsAndDelegates({
-  producerDelegation,
-  delegateProducer,
-  consumerDelegation,
-  delegateConsumer,
-}: {
-  producerDelegation: Delegation | undefined;
-  delegateProducer: Tenant | undefined;
-  consumerDelegation: Delegation | undefined;
-  delegateConsumer: Tenant | undefined;
-}): Promise<void> {
-  if (producerDelegation && delegateProducer) {
-    await addOneDelegation(producerDelegation);
-    await addOneTenant(delegateProducer);
-  }
-
-  if (consumerDelegation && delegateConsumer) {
-    await addOneDelegation(consumerDelegation);
-    await addOneTenant(delegateConsumer);
-  }
-}
-
-export async function updateAgreementInReadModel(
-  agreement: Agreement
-): Promise<void> {
-  await updateOneAgreementDocumentDB(agreement);
-  await updateOneAgreementRelationalDB(agreement);
-}
-
-const updateOneAgreementRelationalDB = async (
-  agreement: Agreement
-): Promise<void> => {
-  const agreementRetrieved =
-    await agreementReadModelServiceSQL.getAgreementById(agreement.id);
-  const currentVersion = agreementRetrieved?.metadata.version;
-
-  if (currentVersion === undefined) {
-    throw new Error("Agreement not found in read model. Cannot update.");
-  }
-
-  await upsertAgreement(readModelDB, agreement, currentVersion + 1);
+export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
+  await writeInReadmodel(toReadModelPurpose(purpose), purposes);
+  await upsertPurpose(readModelDB, purpose, 0);
 };
-
-async function updateOneAgreementDocumentDB(
-  agreement: Agreement
-): Promise<void> {
-  const currentVersion = (
-    await agreements.findOne({
-      "data.id": agreement.id,
-    })
-  )?.metadata.version;
-
-  if (currentVersion === undefined) {
-    throw new Error("Agreement not found in read model. Cannot update.");
-  }
-
-  await agreements.updateOne(
-    {
-      "data.id": agreement.id,
-      "metadata.version": currentVersion,
-    },
-    {
-      $set: {
-        data: toReadModelAgreement(agreement),
-        metadata: {
-          version: currentVersion + 1,
-        },
-      },
-    }
-  );
-}

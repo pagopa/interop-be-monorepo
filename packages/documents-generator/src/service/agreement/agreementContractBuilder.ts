@@ -25,7 +25,6 @@ import {
   tenantAttributeType,
   AgreementDocument,
   Delegation,
-  genericInternalError,
   AgreementStamp,
   AgreementStamps,
 } from "pagopa-interop-models";
@@ -41,7 +40,10 @@ import {
 } from "../../model/agreementModels.js";
 import { ReadModelService } from "../readModelService.js";
 import { DocumentsGeneratorConfig } from "../../config/config.js";
-import { agreementStampNotFound } from "../../model/errors.js";
+import {
+  agreementStampNotFound,
+  attributeNotFound,
+} from "../../model/errors.js";
 import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
@@ -117,9 +119,7 @@ const getAttributesData = async (
           tenantAttribute.id
         );
         if (!attribute) {
-          throw genericInternalError(
-            `Tenant attribute not found: ${tenantAttribute.id}`
-          ); // todo right internal error
+          throw attributeNotFound(tenantAttribute.id);
         }
         return {
           attribute,
