@@ -29,7 +29,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/personalDataFlag", (
   ) =>
     request(api)
       .post(
-        `${appBasePath}/eservices/templates/${eServiceTemplateId}/personalData`
+        `${appBasePath}/eservices/templates/${eServiceTemplateId}/personalDataFlag`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
