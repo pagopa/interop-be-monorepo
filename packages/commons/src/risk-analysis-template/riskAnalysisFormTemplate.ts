@@ -131,17 +131,17 @@ export function riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer(
 ): RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer {
   return match(validatedAnswer)
     .with({ type: "single" }, (a) => {
-      const { annotation, ...rest } = a.answer;
+      const { annotation, ...data } = a.answer;
       return {
-        ...rest,
+        ...data,
         id: generateId<RiskAnalysisSingleAnswerId>(),
         ...(annotation ? { annotation: mapAnnotation(annotation) } : {}),
       };
     })
     .with({ type: "multi" }, (a) => {
-      const { annotation, ...rest } = a.answer;
+      const { annotation, ...data } = a.answer;
       return {
-        ...rest,
+        ...data,
         id: generateId<RiskAnalysisMultiAnswerId>(),
         ...(annotation ? { annotation: mapAnnotation(annotation) } : {}),
       };
