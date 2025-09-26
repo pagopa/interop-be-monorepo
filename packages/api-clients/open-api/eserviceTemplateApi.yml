@@ -507,6 +507,9 @@ paths:
       responses:
         "204":
           description: E-Service Template version published
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "400":
           description: Invalid input
           content:
@@ -554,6 +557,9 @@ paths:
       responses:
         "204":
           description: E-Service Template version suspended
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "400":
           description: Invalid input
           content:
@@ -601,6 +607,9 @@ paths:
       responses:
         "204":
           description: Template version activated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "400":
           description: Invalid input
           content:
@@ -1110,6 +1119,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "403":
           description: Forbidden
           content:
@@ -1161,6 +1173,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "403":
           description: Forbidden
           content:
@@ -1212,6 +1227,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "403":
           description: Forbidden
           content:

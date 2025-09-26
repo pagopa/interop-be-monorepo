@@ -403,8 +403,12 @@ export function eserviceTemplateServiceBuilder(
     async suspendEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Suspending e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
       );
@@ -443,7 +447,7 @@ export function eserviceTemplateServiceBuilder(
         updatedEServiceTemplateVersion
       );
 
-      const event = toCreateEventEServiceTemplateVersionSuspended(
+      const eventCreation = toCreateEventEServiceTemplateVersionSuspended(
         eserviceTemplateId,
         eserviceTemplate.metadata.version,
         eserviceTemplateVersionId,
@@ -451,14 +455,22 @@ export function eserviceTemplateServiceBuilder(
         correlationId
       );
 
-      await repository.createEvent(event);
+      const event = await repository.createEvent(eventCreation);
+      return {
+        data: updatedEServiceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async publishEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Publishing e-service template version ${eserviceTemplateVersionId} for EService ${eserviceTemplateId}`
       );
@@ -517,7 +529,7 @@ export function eserviceTemplateServiceBuilder(
         ),
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateVersionPublished(
           eserviceTemplateId,
           eserviceTemplate.metadata.version,
@@ -526,13 +538,21 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         )
       );
+      return {
+        data: publishedTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async activateEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Activating e-service template version ${eserviceTemplateVersionId} for EService ${eserviceTemplateId}`
       );
@@ -571,7 +591,7 @@ export function eserviceTemplateServiceBuilder(
         updatedEServiceTemplateVersion
       );
 
-      const event = toCreateEventEServiceTemplateVersionActivated(
+      const eventCreation = toCreateEventEServiceTemplateVersionActivated(
         eserviceTemplateId,
         eserviceTemplate.metadata.version,
         eserviceTemplateVersionId,
@@ -579,14 +599,22 @@ export function eserviceTemplateServiceBuilder(
         correlationId
       );
 
-      await repository.createEvent(event);
+      const event = await repository.createEvent(eventCreation);
+      return {
+        data: updatedEServiceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async updateEServiceTemplateName(
       eserviceTemplateId: EServiceTemplateId,
       name: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(`Updating name of EService template ${eserviceTemplateId}`);
 
       const eserviceTemplate = await retrieveEServiceTemplate(
@@ -619,7 +647,7 @@ export function eserviceTemplateServiceBuilder(
         name,
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateNameUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
@@ -627,13 +655,20 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         )
       );
-      return updatedEserviceTemplate;
+      return {
+        data: updatedEserviceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateEServiceTemplateIntendedTarget(
       eserviceTemplateId: EServiceTemplateId,
       intendedTarget: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Updating intended target description of EService template ${eserviceTemplateId}`
       );
@@ -653,7 +688,7 @@ export function eserviceTemplateServiceBuilder(
         ...eserviceTemplate.data,
         intendedTarget,
       };
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateIntendedTargetUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
@@ -661,14 +696,21 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         )
       );
-      return updatedEserviceTemplate;
+      return {
+        data: updatedEserviceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async updateEServiceTemplateDescription(
       eserviceTemplateId: EServiceTemplateId,
       description: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Updating e-service description of EService template ${eserviceTemplateId}`
       );
@@ -688,7 +730,7 @@ export function eserviceTemplateServiceBuilder(
         ...eserviceTemplate.data,
         description,
       };
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateDescriptionUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
@@ -696,7 +738,10 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         )
       );
-      return updatedEserviceTemplate;
+      return {
+        data: updatedEserviceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async updateEServiceTemplateVersionQuotas(
