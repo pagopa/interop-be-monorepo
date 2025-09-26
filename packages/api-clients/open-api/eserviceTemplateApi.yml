@@ -1116,6 +1116,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "403":
           description: Forbidden
           content:
@@ -1167,6 +1170,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "403":
           description: Forbidden
           content:
@@ -1218,6 +1224,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "403":
           description: Forbidden
           content:

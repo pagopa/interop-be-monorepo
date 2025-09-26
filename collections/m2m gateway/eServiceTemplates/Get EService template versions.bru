@@ -16,9 +16,13 @@ params:query {
 }
 
 params:path {
-  templateId: {{templateId}}
+  templateId: {{eserviceTemplateId}}
 }
 
 headers {
   Authorization: {{JWT-M2M}}
+}
+
+vars:post-response {
+  eserviceTemplateVersionId: res.body.versions[0].id
 }
