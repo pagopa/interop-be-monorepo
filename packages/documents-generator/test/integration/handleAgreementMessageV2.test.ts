@@ -47,7 +47,7 @@ import {
 import { addDays } from "date-fns";
 import {
   cleanup,
-  oldReadModelService,
+  readModelService,
   pdfGenerator,
   fileManager,
   addOneEService,
@@ -130,7 +130,7 @@ describe("handleAgreementMessageV2", () => {
       mockEvent,
       pdfGenerator,
       fileManager,
-      oldReadModelService,
+      readModelService,
       genericLogger
     );
 
@@ -302,7 +302,7 @@ describe("handleAgreementMessageV2", () => {
       mockEvent,
       pdfGenerator,
       fileManager,
-      oldReadModelService,
+      readModelService,
       genericLogger
     );
     const expectedPayload = {
@@ -391,7 +391,7 @@ describe("handleAgreementMessageV2", () => {
       mockEvent,
       pdfGenerator,
       fileManager,
-      oldReadModelService,
+      readModelService,
       genericLogger
     );
 
@@ -427,7 +427,7 @@ describe("handleAgreementMessageV2", () => {
         mockEvent,
         pdfGenerator,
         fileManager,
-        oldReadModelService,
+        readModelService,
         genericLogger
       )
     ).rejects.toThrow(eServiceNotFound(mockEServiceId).message);
@@ -474,7 +474,7 @@ describe("handleAgreementMessageV2", () => {
         mockEvent,
         pdfGenerator,
         fileManager,
-        oldReadModelService,
+        readModelService,
         genericLogger
       )
     ).rejects.toThrow(tenantNotFound(mockConsumerId).message);

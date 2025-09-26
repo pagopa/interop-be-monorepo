@@ -28,7 +28,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   cleanup,
-  oldReadModelService,
+  readModelService,
   pdfGenerator,
   fileManager,
   addOneDelegation,
@@ -97,7 +97,7 @@ describe("handleDelegationMessageV2", () => {
       mockEvent,
       pdfGenerator,
       fileManager,
-      oldReadModelService,
+      readModelService,
       genericLogger
     );
 
@@ -161,7 +161,7 @@ describe("handleDelegationMessageV2", () => {
       mockEvent,
       pdfGenerator,
       fileManager,
-      oldReadModelService,
+      readModelService,
       genericLogger
     );
 
@@ -225,7 +225,7 @@ describe("handleDelegationMessageV2", () => {
       mockEvent,
       pdfGenerator,
       fileManager,
-      oldReadModelService,
+      readModelService,
       genericLogger
     );
 
@@ -299,7 +299,7 @@ describe("handleDelegationMessageV2", () => {
       mockEvent,
       pdfGenerator,
       fileManager,
-      oldReadModelService,
+      readModelService,
       genericLogger
     );
 
@@ -376,7 +376,7 @@ describe("handleDelegationMessageV2", () => {
       mockEvent,
       pdfGenerator,
       fileManager,
-      oldReadModelService,
+      readModelService,
       genericLogger
     );
 
@@ -418,7 +418,7 @@ describe("handleDelegationMessageV2", () => {
         mockEvent,
         pdfGenerator,
         fileManager,
-        oldReadModelService,
+        readModelService,
         genericLogger
       )
     ).rejects.toThrow(tenantNotFound(mockDelegateId).message);

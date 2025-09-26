@@ -29,7 +29,7 @@ import {
   addOneAgreement,
   addOneTenant,
   fileManager,
-  oldReadModelService,
+  readModelService,
 } from "../integrationUtils.js";
 
 import { handlePurposeMessageV2 } from "../../src/handler/handlePurposeMessageV2.js";
@@ -107,7 +107,7 @@ describe("handleDelegationMessageV2", () => {
       mockEvent,
       pdfGenerator,
       fileManager,
-      oldReadModelService,
+      readModelService,
       genericLogger
     );
     const expectedPdfPayload = {
@@ -167,7 +167,7 @@ describe("handleDelegationMessageV2", () => {
       mockEvent,
       pdfGenerator,
       fileManager,
-      oldReadModelService,
+      readModelService,
       genericLogger
     );
 
@@ -201,7 +201,7 @@ describe("handleDelegationMessageV2", () => {
         mockEvent,
         pdfGenerator,
         fileManager,
-        oldReadModelService,
+        readModelService,
         genericLogger
       )
     ).rejects.toThrow(eServiceNotFound(mockPurpose.eserviceId).message);
@@ -248,7 +248,7 @@ describe("handleDelegationMessageV2", () => {
         mockEvent,
         pdfGenerator,
         fileManager,
-        oldReadModelService,
+        readModelService,
         genericLogger
       )
     ).rejects.toThrow(tenantKindNotFound(mockConsumer.id).message);
