@@ -16,7 +16,7 @@ import {
   EServiceTemplate,
   tenantKind,
   EServiceTemplateVersionPublishedV2,
-  EServiceTemplatePersonalDataUpdatedAfterPublishV2,
+  EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2,
 } from "pagopa-interop-models";
 import {
   getMockEServiceTemplate,
@@ -620,7 +620,7 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     expect(retrievedRiskAnalysisAnswers).toHaveLength(0);
   });
 
-  it("EServiceTemplatePersonalDataUpdatedAfterPublish: updates eServiceTemplate personalData flag", async () => {
+  it("EServiceTemplatePersonalDataFlagUpdatedAfterPublication: updates eServiceTemplate personalData flag", async () => {
     const eServiceTemplateDraftVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       interface: getMockDocument(),
@@ -672,7 +672,7 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
       ...eServiceTemplatePublished,
       personalData: true,
     };
-    const eServiceTemplateUpdatePayload: EServiceTemplatePersonalDataUpdatedAfterPublishV2 =
+    const eServiceTemplateUpdatePayload: EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2 =
       {
         eserviceTemplate: toEServiceTemplateV2(eServiceTemplateUpdated),
       };
@@ -680,7 +680,7 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
       sequence_num: 3,
       stream_id: eServiceTemplate.id,
       version: 3,
-      type: "EServiceTemplatePersonalDataUpdatedAfterPublish",
+      type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
       event_version: 2,
       data: eServiceTemplateUpdatePayload,
       log_date: new Date(),
