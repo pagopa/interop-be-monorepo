@@ -667,13 +667,6 @@ export const getMockBffApiEServiceTemplate =
     ),
     mode: generateMock(eserviceTemplateApi.EServiceMode),
     isSignalHubEnabled: generateMock(z.boolean().optional()),
-  });
-
-export const getMockBffApiEServiceTemplatePersonaData =
-  (): eserviceTemplateApi.EServiceTemplate & {
-    id: EServiceTemplateId;
-  } => ({
-    ...getMockBffApiEServiceTemplate(),
     personalData: generateMock(z.boolean().optional()),
   });
 
