@@ -7,6 +7,7 @@ import {
   EServiceId,
   EServiceM2MEvent,
   EServiceM2MEventId,
+  M2MEventVisibility,
   TenantId,
   generateId,
   m2mEventVisibility,
@@ -32,18 +33,35 @@ export function getMockedAttributeM2MEvent(
   };
 }
 
-export function getMockedEServiceM2MEvent(
-  eventType: EServiceM2MEvent["eventType"]
-): EServiceM2MEvent {
+export function getMockedEServiceM2MEvent({
+  eventType,
+  visibility = m2mEventVisibility.public,
+  producerId,
+  producerDelegateId,
+}: {
+  eventType: EServiceM2MEvent["eventType"];
+  visibility?: M2MEventVisibility;
+  producerId?: TenantId;
+  producerDelegateId?: TenantId;
+}): EServiceM2MEvent {
   return {
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
     eserviceId: generateId<EServiceId>(),
     descriptorId: generateId<DescriptorId>(),
-    visibility: m2mEventVisibility.restricted,
-    producerId: generateId<TenantId>(),
-    producerDelegateId: generateId<TenantId>(),
-    producerDelegationId: generateId<DelegationId>(),
-  };
+    visibility,
+    producerId:
+      visibility === m2mEventVisibility.restricted
+        ? producerId ?? generateId<TenantId>()
+        : undefined,
+    producerDelegateId:
+      visibility === m2mEventVisibility.restricted
+        ? producerDelegateId ?? generateId<TenantId>()
+        : undefined,
+    producerDelegationId:
+      visibility === m2mEventVisibility.restricted && producerDelegateId
+        ? generateId<DelegationId>()
+        : undefined,
+  } as EServiceM2MEvent;
 }

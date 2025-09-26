@@ -1,7 +1,15 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
-import { AttributeM2MEvent, dateToString } from "pagopa-interop-models";
-import { attributeM2MEventInM2MEvent } from "pagopa-interop-m2m-event-db-models";
+import {
+  AttributeM2MEvent,
+  EServiceM2MEvent,
+  dateToString,
+  m2mEventVisibility,
+} from "pagopa-interop-models";
+import {
+  attributeM2MEventInM2MEvent,
+  eserviceM2MEventInM2MEvent,
+} from "pagopa-interop-m2m-event-db-models";
 import { m2mEventServiceBuilder } from "../src/services/m2mEventService.js";
 import { m2mEventReaderServiceSQLBuilder } from "../src/services/m2mEventReaderServiceSQL.js";
 
@@ -29,6 +37,28 @@ export async function writeAttributeM2MEvent(
     {
       ...event,
       eventTimestamp: dateToString(event.eventTimestamp),
+    },
+  ]);
+}
+
+export async function writeEServiceM2MEvent(event: EServiceM2MEvent) {
+  await m2mEventDB.insert(eserviceM2MEventInM2MEvent).values([
+    {
+      ...event,
+      eventTimestamp: dateToString(event.eventTimestamp),
+      descriptorId: event.descriptorId ?? null,
+      producerId:
+        event.visibility === m2mEventVisibility.restricted
+          ? event.producerId ?? null
+          : null,
+      producerDelegateId:
+        event.visibility === m2mEventVisibility.restricted
+          ? event.producerDelegateId ?? null
+          : null,
+      producerDelegationId:
+        event.visibility === m2mEventVisibility.restricted
+          ? event.producerDelegationId ?? null
+          : null,
     },
   ]);
 }

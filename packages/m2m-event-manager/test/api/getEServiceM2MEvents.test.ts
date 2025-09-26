@@ -3,15 +3,28 @@ import { m2mEventApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { EServiceM2MEventType, generateId } from "pagopa-interop-models";
+import {
+  EServiceM2MEventType,
+  generateId,
+  m2mEventVisibility,
+} from "pagopa-interop-models";
 import { generateM2MEventId, getMockedEServiceM2MEvent } from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
 import { testToUpperSnakeCase } from "../utils.js";
 
 describe("API /events/eservices test", () => {
-  const mockEServiceM2MEvents = EServiceM2MEventType.options.map((type) =>
-    getMockedEServiceM2MEvent(type)
-  );
+  const mockEServiceM2MEvents = EServiceM2MEventType.options
+    .map((eventType) => [
+      getMockedEServiceM2MEvent({
+        eventType,
+        visibility: m2mEventVisibility.public,
+      }),
+      getMockedEServiceM2MEvent({
+        eventType,
+        visibility: m2mEventVisibility.restricted,
+      }),
+    ])
+    .flat();
 
   const mockEServiceM2MEventsResponse: m2mEventApi.EServiceM2MEvents = {
     events: mockEServiceM2MEvents.map(
