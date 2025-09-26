@@ -5,6 +5,7 @@ import {
   NotificationType,
   fromTenantV2,
   VerifiedTenantAttribute,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -67,6 +68,7 @@ export async function handleTenantVerifiedAttributeAssigned(
 
   const tenantAttribute = tenant.attributes.find(
     (attribute): attribute is VerifiedTenantAttribute =>
+      attribute.type === tenantAttributeType.VERIFIED &&
       attribute.id === attributeId
   );
 
