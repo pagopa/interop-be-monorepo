@@ -3,8 +3,6 @@ import {
   PurposeTemplateState,
   RiskAnalysisFormTemplate,
   TenantKind,
-  RiskAnalysisTemplateSingleAnswer,
-  RiskAnalysisTemplateMultiAnswer,
   TenantId,
   operationForbidden,
 } from "pagopa-interop-models";
@@ -17,7 +15,6 @@ import {
   // validateNoHyperlinks,
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
-  riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer,
   UIAuthData,
   M2MAdminAuthData,
 } from "pagopa-interop-commons";
@@ -87,18 +84,6 @@ export function validateAndTransformRiskAnalysisTemplate(
   );
 }
 
-export function validateAndTransformRiskAnalysisAnswer(
-  riskAnalysisAnswer: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest,
-  tenantKind: TenantKind
-): RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer {
-  const validatedAnswer = validateRiskAnalysisAnswerOrThrow({
-    riskAnalysisAnswer,
-    tenantKind,
-  });
-
-  return riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer(validatedAnswer);
-}
-
 function validateRiskAnalysisTemplateOrThrow({
   riskAnalysisForm,
   tenantKind,
@@ -119,7 +104,7 @@ function validateRiskAnalysisTemplateOrThrow({
     .exhaustive();
 }
 
-function validateRiskAnalysisAnswerOrThrow({
+export function validateRiskAnalysisAnswerOrThrow({
   riskAnalysisAnswer,
   tenantKind,
 }: {

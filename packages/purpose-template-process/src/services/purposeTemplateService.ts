@@ -10,6 +10,8 @@ import {
   RiskAnalysisTemplateSingleAnswer,
   RiskAnalysisTemplateMultiAnswer,
 } from "pagopa-interop-models";
+import { riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
@@ -35,7 +37,7 @@ import {
   assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
   assertPurposeTemplateHasRiskAnalysisForm,
-  validateAndTransformRiskAnalysisAnswer,
+  validateRiskAnalysisAnswerOrThrow,
   validateAndTransformRiskAnalysisTemplate,
   assertRequesterPurposeTemplateCreator,
 } from "./validators.js";
@@ -172,31 +174,37 @@ export function purposeTemplateServiceBuilder(
         authData
       );
 
-      const validatedAnswer = validateAndTransformRiskAnalysisAnswer(
-        riskAnalysisTemplateAnswerRequest,
-        purposeTemplate.data.targetTenantKind
-      );
+      const validatedAnswer = validateRiskAnalysisAnswerOrThrow({
+        riskAnalysisAnswer: riskAnalysisTemplateAnswerRequest,
+        tenantKind: purposeTemplate.data.targetTenantKind,
+      });
+
+      const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
+
+      const transformedAnswer =
+        riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer(validatedAnswer);
+
+      const updatedPurposeRiskAnalysisForm = match(validatedAnswer)
+        .with({ type: "single" }, () => ({
+          ...riskAnalysisForm,
+          singleAnswers: [
+            ...riskAnalysisForm.singleAnswers,
+            transformedAnswer as RiskAnalysisTemplateSingleAnswer,
+          ],
+        }))
+        .with({ type: "multi" }, () => ({
+          ...riskAnalysisForm,
+          multiAnswers: [
+            ...riskAnalysisForm.multiAnswers,
+            transformedAnswer as RiskAnalysisTemplateMultiAnswer,
+          ],
+        }))
+        .exhaustive();
 
       const updatedPurposeTemplate: PurposeTemplate = {
         ...purposeTemplate.data,
         updatedAt: new Date(),
-        purposeRiskAnalysisForm: {
-          ...purposeTemplate.data.purposeRiskAnalysisForm,
-          singleAnswers:
-            "value" in validatedAnswer
-              ? [
-                  ...purposeTemplate.data.purposeRiskAnalysisForm.singleAnswers,
-                  validatedAnswer,
-                ]
-              : purposeTemplate.data.purposeRiskAnalysisForm.singleAnswers,
-          multiAnswers:
-            "values" in validatedAnswer
-              ? [
-                  ...purposeTemplate.data.purposeRiskAnalysisForm.multiAnswers,
-                  validatedAnswer,
-                ]
-              : purposeTemplate.data.purposeRiskAnalysisForm.multiAnswers,
-        },
+        purposeRiskAnalysisForm: updatedPurposeRiskAnalysisForm,
       };
 
       const event = await repository.createEvent(
@@ -208,7 +216,7 @@ export function purposeTemplateServiceBuilder(
       );
 
       return {
-        data: validatedAnswer,
+        data: transformedAnswer,
         metadata: {
           version: event.newVersion,
         },
