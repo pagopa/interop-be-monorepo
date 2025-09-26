@@ -205,6 +205,7 @@ describe("publishPurposeTemplate", () => {
     {
       error: purposeTemplateNotInExpectedState(
         purposeTemplate.id,
+        purposeTemplate.state,
         purposeTemplateState.archived
       ),
       state: purposeTemplateState.archived,
@@ -212,6 +213,7 @@ describe("publishPurposeTemplate", () => {
     {
       error: purposeTemplateNotInExpectedState(
         purposeTemplate.id,
+        purposeTemplate.state,
         purposeTemplateState.suspended
       ),
       state: purposeTemplateState.suspended,
