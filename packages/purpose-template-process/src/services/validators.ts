@@ -157,3 +157,16 @@ export const assertSuspendableState = (
     purposeTemplateState.active,
   ]);
 };
+
+export const archivableInitialStates = Object.values(
+  purposeTemplateState
+).filter((state) => state !== purposeTemplateState.archived);
+export const assertArchivableState = (
+  purposeTemplate: PurposeTemplate
+): void => {
+  assertState(
+    purposeTemplate,
+    purposeTemplateState.archived,
+    archivableInitialStates
+  );
+};

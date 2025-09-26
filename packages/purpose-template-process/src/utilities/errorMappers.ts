@@ -62,3 +62,12 @@ export const suspendPurposeTemplateErrorMapper = (
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const archivePurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeTemplateStateConflict", () => HTTP_STATUS_CONFLICT)
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
