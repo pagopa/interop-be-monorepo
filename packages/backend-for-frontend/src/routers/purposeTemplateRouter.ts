@@ -140,7 +140,31 @@ const purposeTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .post(
+      "/purposeTemplates/:purposeTemplateId/unsuspend",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const response =
+            await purposeTemplateService.unsuspendPurposeTemplate(
+              unsafeBrandId(req.params.purposeTemplateId),
+              ctx
+            );
+
+          return res.status(200).send(bffApi.PurposeTemplate.parse(response));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error unsuspending purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return purposeTemplateRouter;
 };

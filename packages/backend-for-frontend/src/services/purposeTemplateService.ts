@@ -224,6 +224,25 @@ export function purposeTemplateServiceBuilder(
 
       return bffApi.PurposeTemplate.parse(result);
     },
+    async unsuspendPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
+      const result = await purposeTemplateClient.unsuspendPurposeTemplate(
+        undefined,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+
+      return bffApi.PurposeTemplate.parse(result);
+    },
   };
 }
 export type PurposeTemplateService = ReturnType<
