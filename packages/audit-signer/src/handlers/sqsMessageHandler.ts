@@ -1,18 +1,22 @@
 import path from "path";
-import { FileManager, logger, Logger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  logger,
+  Logger,
+  SafeStorageService,
+  FileCreationRequest,
+} from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
 import {
   CorrelationId,
   generateId,
   genericInternalError,
 } from "pagopa-interop-models";
-import { config, safeStorageApiConfig } from "../config/config.js";
+import { config } from "../config/config.js";
 import { DbServiceBuilder } from "../services/dynamoService.js";
-import { SafeStorageService } from "../services/safeStorageClient.js";
 import { decodeSQSEventMessage } from "../utils/decodeSQSEventMessage.js";
 import { gzipBuffer } from "../utils/compression.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
-import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
 import { formatError } from "../utils/errorFormatter.js";
 
 // eslint-disable-next-line max-params
@@ -37,8 +41,8 @@ async function processMessage(
 
     const safeStorageRequest: FileCreationRequest = {
       contentType: "application/gzip",
-      documentType: safeStorageApiConfig.safeStorageDocType,
-      status: safeStorageApiConfig.safeStorageDocStatus,
+      documentType: config.safeStorageDocType,
+      status: config.safeStorageDocStatus,
       checksumValue: checksum,
     };
 
