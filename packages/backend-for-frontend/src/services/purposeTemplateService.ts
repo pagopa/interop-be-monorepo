@@ -1,6 +1,10 @@
 import { bffApi } from "pagopa-interop-api-clients";
 import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
-import { PurposeTemplateId } from "pagopa-interop-models";
+import {
+  PurposeTemplateId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+} from "pagopa-interop-models";
 import { PurposeTemplateProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { config } from "../config/config.js";
@@ -36,6 +40,27 @@ export function purposeTemplateServiceBuilder(
         {
           params: {
             id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+    },
+    async addRiskAnalysisAnswerAnnotation(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      seed: bffApi.RiskAnalysisTemplateAnswerAnnotationText,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotation> {
+      logger.info(
+        `Adding risk analysis answer annotation for purpose template ${purposeTemplateId}`
+      );
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+      return await purposeTemplateClient.addRiskAnalysisAnswerAnnotationForPurposeTemplate(
+        seed,
+        {
+          params: {
+            purposeTemplateId,
+            answerId,
           },
           headers,
         }
