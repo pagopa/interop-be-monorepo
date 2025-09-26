@@ -1,24 +1,21 @@
 /* eslint-disable functional/immutable-data */
 import { runBatchConsumer } from "kafka-iam-auth";
 import { EachBatchPayload, KafkaMessage } from "kafkajs";
-import { genericLogger, initFileManager } from "pagopa-interop-commons";
-
+import { genericLogger, initFileManager, createSafeStorageApiClient } from "pagopa-interop-commons";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   baseConsumerConfig,
   batchConsumerConfig,
-  config,
-  safeStorageApiConfig,
+  config
 } from "./config/config.js";
 
 import { dbServiceBuilder } from "./services/dbService.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
-import { createSafeStorageApiClient } from "./services/safeStorageService.js";
 
 const fileManager = initFileManager(config);
 const dynamoDBClient = new DynamoDBClient();
 const dbService = dbServiceBuilder(dynamoDBClient);
-const safeStorageService = createSafeStorageApiClient(safeStorageApiConfig);
+const safeStorageService = createSafeStorageApiClient(config);
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   const messages: KafkaMessage[] = batch.messages;

@@ -1,12 +1,14 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable max-params */
 
-import { Logger } from "pagopa-interop-commons";
+import {
+  Logger,
+  SafeStorageApiConfig,
+  SafeStorageService,
+  FileCreationRequest,
+} from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
-import { SafeStorageApiConfig } from "../config/config.js";
-import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
-import { SafeStorageService } from "../services/safeStorageService.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 
 export const archiveFileToSafeStorage = async (
@@ -50,7 +52,7 @@ export const archiveFileToSafeStorage = async (
 
     await dbService.saveSignatureReference({
       safeStorageId: key,
-      fileKind: "PLATFORM_EVENTS",
+      fileKind: "EVENT_JOURNAL",
       fileName,
       correlationId,
     });

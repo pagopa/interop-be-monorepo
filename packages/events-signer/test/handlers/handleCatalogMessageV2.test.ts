@@ -9,17 +9,19 @@ import {
   EServiceAddedV2,
   toEServiceV2,
 } from "pagopa-interop-models";
-import { FileManager, initFileManager } from "pagopa-interop-commons";
+import {
+  FileManager,
+  initFileManager,
+  SafeStorageService,
+  createSafeStorageApiClient,
+} from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   getMockDescriptorPublished,
   getMockEService,
 } from "pagopa-interop-commons-test";
-import {
-  config as appConfig,
-  safeStorageApiConfig,
-} from "../../src/config/config.js";
+import { config } from "../../src/config/config.js";
 import {
   DbServiceBuilder,
   dbServiceBuilder,
@@ -27,14 +29,10 @@ import {
 import { dynamoDBClient } from "../utils/utils.js";
 import { readSignatureReference } from "../utils/dbServiceUtils.js";
 import { handleCatalogMessageV2 } from "../../src/handlers/handleCatalogMessageV2.js";
-import {
-  SafeStorageService,
-  createSafeStorageApiClient,
-} from "../../src/services/safeStorageService.js";
 
-const fileManager: FileManager = initFileManager(appConfig);
+const fileManager: FileManager = initFileManager(config);
 const safeStorageService: SafeStorageService =
-  createSafeStorageApiClient(safeStorageApiConfig);
+  createSafeStorageApiClient(config);
 const dbService: DbServiceBuilder = dbServiceBuilder(dynamoDBClient);
 
 const mockSafeStorageId = generateId();
@@ -114,7 +112,7 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
     expect(retrievedReference).toEqual({
       PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
-      fileKind: "PLATFORM_EVENTS",
+      fileKind: "EVENT_JOURNAL",
       fileName: expect.stringMatching(/.ndjson.gz$/),
       correlationId: expect.any(String),
     });

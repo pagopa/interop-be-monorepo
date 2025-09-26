@@ -1,12 +1,15 @@
 /* eslint-disable max-params */
-import { FileManager, Logger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  Logger,
+  SafeStorageService,
+} from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
 import { uploadPreparedFileToS3 } from "../handlers/s3UploaderHandler.js";
 import { archiveFileToSafeStorage } from "../handlers/safeStorageArchivingHandler.js";
 import { AllEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
-import { SafeStorageService } from "../services/safeStorageService.js";
-import { config, safeStorageApiConfig } from "../config/config.js";
+import { config } from "../config/config.js";
 import { prepareNdjsonEventData } from "./ndjsonStore.js";
 
 /**
@@ -54,7 +57,7 @@ export async function processAndArchiveFiles<T extends AllEventData>(
         loggerInstance,
         dbService,
         safeStorage,
-        safeStorageApiConfig,
+        config,
         correlationId
       );
     }
