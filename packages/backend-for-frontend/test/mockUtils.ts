@@ -1038,22 +1038,23 @@ export const getMockBffApiCatalogPurposeTemplate =
     creator: generateMock(bffApi.CompactOrganization),
   });
 
-export const getMockBffApiPurposeTemplate = (): bffApi.PurposeTemplate & {
-  id: PurposeTemplateId;
-} => ({
-  id: generateId(),
-  targetDescription:
-    "This is a valid target description that meets the minimum length requirement",
-  targetTenantKind: "PA" as bffApi.TenantKind,
-  creator: generateMock(bffApi.CompactOrganization),
-  state: generateMock(bffApi.PurposeTemplateState),
-  createdAt: new Date().toISOString(),
-  purposeTitle: "Valid Purpose Title",
-  purposeDescription:
-    "This is a valid purpose description that meets the minimum length requirement",
-  purposeRiskAnalysisForm: generateMock(bffApi.RiskAnalysisFormTemplate),
-  purposeIsFreeOfCharge: false,
-  annotationDocuments: generateMock(
-    z.array(bffApi.RiskAnalysisTemplateAnswerAnnotationDocument)
-  ),
-});
+export const getMockBffApiPurposeTemplateWithCompactCreator =
+  (): bffApi.PurposeTemplateWithCompactCreator & {
+    id: PurposeTemplateId;
+  } => ({
+    id: generateId(),
+    targetDescription:
+      "This is a valid target description that meets the minimum length requirement",
+    targetTenantKind: "PA" as bffApi.TenantKind,
+    creator: generateMock(bffApi.CompactOrganization),
+    state: generateMock(bffApi.PurposeTemplateState),
+    createdAt: new Date().toISOString(),
+    purposeTitle: "Valid Purpose Title",
+    purposeDescription:
+      "This is a valid purpose description that meets the minimum length requirement",
+    purposeRiskAnalysisForm: generateMock(bffApi.RiskAnalysisFormTemplate),
+    purposeIsFreeOfCharge: false,
+    annotationDocuments: generateMock(
+      z.array(bffApi.RiskAnalysisTemplateAnswerAnnotationDocument)
+    ),
+  });

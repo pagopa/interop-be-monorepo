@@ -6,11 +6,11 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockBffApiPurposeTemplate } from "../../mockUtils.js";
+import { getMockBffApiPurposeTemplateWithCompactCreator } from "../../mockUtils.js";
 import { tenantNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /purposeTemplates/{purposeTemplateId}", () => {
-  const mockPurposeTemplate = getMockBffApiPurposeTemplate();
+  const mockPurposeTemplate = getMockBffApiPurposeTemplateWithCompactCreator();
 
   beforeEach(() => {
     services.purposeTemplateService.getPurposeTemplate = vi
