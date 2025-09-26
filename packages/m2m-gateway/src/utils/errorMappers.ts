@@ -194,3 +194,10 @@ export const getEServiceTemplateRiskAnalysisErrorMapper = (
   match(error.code)
     .with("eserviceTemplateRiskAnalysisNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getEServiceTemplateVersionDocumentsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
