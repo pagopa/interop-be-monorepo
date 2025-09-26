@@ -8,7 +8,7 @@ if (!config) {
 }
 export const dynamoDBClient = new DynamoDBClient({
   endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-  region: config.tokenGenerationReadModelDbRegion ?? "eu-central-1",
+  region: "eu-south-1",
   credentials: {
     accessKeyId: "dummy",
     secretAccessKey: "dummy",
