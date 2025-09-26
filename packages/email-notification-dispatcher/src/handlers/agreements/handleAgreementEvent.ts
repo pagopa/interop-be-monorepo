@@ -1,0 +1,103 @@
+import {
+  AgreementEventV2,
+  EmailNotificationMessagePayload,
+} from "pagopa-interop-models";
+import { P, match } from "ts-pattern";
+import { HandlerParams } from "../../models/handlerParams.js";
+import { handleAgreementActivatedToConsumer } from "./handleAgreementActivatedToConsumer.js";
+import { handleAgreementRejected } from "./handleAgreementRejected.js";
+import { handleAgreementSubmitted } from "./handleAgreementSubmitted.js";
+import { handleAgreementUpgraded } from "./handleAgreementUpgraded.js";
+import { handleAgreementActivatedToProducer } from "./handleAgreementActivatedToProducer.js";
+
+export async function handleAgreementEvent(
+  params: HandlerParams<typeof AgreementEventV2>
+): Promise<EmailNotificationMessagePayload[]> {
+  const {
+    decodedMessage,
+    logger,
+    readModelService,
+    templateService,
+    userService,
+    correlationId,
+  } = params;
+  return match(params.decodedMessage)
+    .with({ type: "AgreementActivated" }, async ({ data: { agreement } }) => [
+      ...(await handleAgreementActivatedToProducer({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })),
+      ...(await handleAgreementActivatedToConsumer({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })),
+    ])
+    .with({ type: "AgreementRejected" }, ({ data: { agreement } }) =>
+      handleAgreementRejected({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
+    .with({ type: "AgreementSubmitted" }, ({ data: { agreement } }) =>
+      handleAgreementSubmitted({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
+    .with({ type: "AgreementUpgraded" }, ({ data: { agreement } }) =>
+      handleAgreementUpgraded({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
+    .with(
+      {
+        type: P.union(
+          "AgreementAdded",
+          "AgreementDeleted",
+          "DraftAgreementUpdated",
+          "AgreementUnsuspendedByProducer",
+          "AgreementUnsuspendedByConsumer",
+          "AgreementUnsuspendedByPlatform",
+          "AgreementArchivedByConsumer",
+          "AgreementArchivedByUpgrade",
+          "AgreementSuspendedByProducer",
+          "AgreementSuspendedByConsumer",
+          "AgreementSuspendedByPlatform",
+          "AgreementConsumerDocumentAdded",
+          "AgreementConsumerDocumentRemoved",
+          "AgreementSetDraftByPlatform",
+          "AgreementSetMissingCertifiedAttributesByPlatform",
+          "AgreementDeletedByRevokedDelegation",
+          "AgreementArchivedByRevokedDelegation"
+        ),
+      },
+      () => {
+        logger.info(
+          `No need to send an email notification for ${decodedMessage.type} message`
+        );
+        return [];
+      }
+    )
+    .exhaustive();
+}

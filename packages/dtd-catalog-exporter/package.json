@@ -1,6 +1,7 @@
 {
   "name": "pagopa-interop-dtd-catalog-exporter-job",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "private": true,
   "description": "PagoPA Interoperability catalog exporter job",
   "main": "dist",
@@ -16,8 +17,6 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "dependencies": {
     "csv-stringify": "6.5.2",
     "dotenv-flow": "4.1.0",
