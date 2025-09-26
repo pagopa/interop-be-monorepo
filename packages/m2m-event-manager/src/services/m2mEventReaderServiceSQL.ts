@@ -1,8 +1,22 @@
-import { attributeM2MEventInM2MEvent } from "pagopa-interop-m2m-event-db-models";
+import {
+  attributeM2MEventInM2MEvent,
+  eserviceM2MEventInM2MEvent,
+} from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { AttributeM2MEvent, AttributeM2MEventId } from "pagopa-interop-models";
-import { asc } from "drizzle-orm";
-import { afterEventIdFilter } from "../utilities/m2mEventSQLUtils.js";
+import {
+  AttributeM2MEvent,
+  AttributeM2MEventId,
+  EServiceM2MEvent,
+  EServiceM2MEventId,
+  TenantId,
+} from "pagopa-interop-models";
+import { and, asc, eq, or } from "drizzle-orm";
+import {
+  afterEventIdFilter,
+  visibilityFilter,
+} from "../utilities/m2mEventSQLUtils.js";
+import { fromAttributeM2MEventSQL } from "../model/attributeM2MEventAdapterSQL.js";
+import { fromEServiceM2MEventSQL } from "../model/eserviceM2MEventAdapterSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function m2mEventReaderServiceSQLBuilder(
@@ -26,18 +40,39 @@ export function m2mEventReaderServiceSQLBuilder(
       limit: number
     ): Promise<AttributeM2MEvent[]> {
       const sqlEvents = await m2mEventDB
-        .select({
-          id: attributeM2MEventInM2MEvent.id,
-          eventType: attributeM2MEventInM2MEvent.eventType,
-          eventTimestamp: attributeM2MEventInM2MEvent.eventTimestamp,
-          attributeId: attributeM2MEventInM2MEvent.attributeId,
-        })
+        .select()
         .from(attributeM2MEventInM2MEvent)
-        .where(afterEventIdFilter(attributeM2MEventInM2MEvent.id, lastEventId))
+        .where(afterEventIdFilter(attributeM2MEventInM2MEvent, lastEventId))
         .orderBy(asc(attributeM2MEventInM2MEvent.id))
         .limit(limit);
 
-      return sqlEvents.map((event) => AttributeM2MEvent.parse(event));
+      return sqlEvents.map(fromAttributeM2MEventSQL);
+    },
+
+    async getEServiceM2MEvents(
+      lastEventId: EServiceM2MEventId | undefined,
+      limit: number,
+      requester: TenantId
+    ): Promise<EServiceM2MEvent[]> {
+      const sqlEvents = await m2mEventDB
+        .select()
+        .from(eserviceM2MEventInM2MEvent)
+        .where(
+          and(
+            afterEventIdFilter(eserviceM2MEventInM2MEvent, lastEventId),
+            visibilityFilter(
+              eserviceM2MEventInM2MEvent,
+              or(
+                eq(eserviceM2MEventInM2MEvent.producerId, requester),
+                eq(eserviceM2MEventInM2MEvent.producerDelegateId, requester)
+              )
+            )
+          )
+        )
+        .orderBy(asc(eserviceM2MEventInM2MEvent.id))
+        .limit(limit);
+
+      return sqlEvents.map(fromEServiceM2MEventSQL);
     },
   };
 }
