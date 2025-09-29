@@ -6,13 +6,13 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
+import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   getCatalogPurposeTemplatesErrorMapper,
   getPurposeTemplateEServiceDescriptorsErrorMapper,
-  purposeTemplateFeatureFlagErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
@@ -36,7 +36,7 @@ const purposeTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          purposeTemplateFeatureFlagErrorMapper,
+          emptyErrorMapper,
           ctx,
           "Error creating purpose template"
         );
@@ -63,7 +63,7 @@ const purposeTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          purposeTemplateFeatureFlagErrorMapper,
+          emptyErrorMapper,
           ctx,
           "Error retrieving creator's purpose templates"
         );
