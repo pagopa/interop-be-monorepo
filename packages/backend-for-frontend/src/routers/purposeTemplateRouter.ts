@@ -11,8 +11,8 @@ import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
-  getPurposeTemplateErrorMapper,
   getCatalogPurposeTemplatesErrorMapper,
+  getPurposeTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
