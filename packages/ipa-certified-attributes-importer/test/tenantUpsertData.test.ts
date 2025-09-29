@@ -1,6 +1,7 @@
 import { expect, describe, it } from "vitest";
 import { getMockTenant } from "pagopa-interop-commons-test";
 import {
+  ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
   PUBLIC_SERVICES_MANAGERS,
   Tenant,
   TenantId,
@@ -104,6 +105,107 @@ describe("TenantUpsertData", async () => {
       expect(
         upsertEntry?.attributes.find((a) => a.code === PUBLIC_SERVICES_MANAGERS)
       )?.toBeUndefined();
+    });
+  });
+
+  it("should assign the correct attribute to an SCEC with S01G category", async () => {
+    const mockInstitution: Institution = {
+      id: "mockId",
+      origin: "IPA",
+      originId: "test-SCEC-S01G",
+      description: "Test SCEC with S01G category",
+      kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+      classification: "Agency",
+      category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+    };
+
+    const platformTenant: Tenant[] = [
+      {
+        id: generateId<TenantId>(),
+        selfcareId: mockInstitution.description,
+        externalId: {
+          origin: mockInstitution.origin,
+          value: mockInstitution.originId,
+        },
+        features: [],
+        attributes: [],
+        createdAt: new Date(),
+        mails: [],
+        name: mockInstitution.description,
+      },
+    ];
+
+    const testRegistryData = {
+      institutions: [...registryData.institutions, mockInstitution],
+      attributes: registryData.attributes,
+    };
+
+    const upsertData = getTenantUpsertData(testRegistryData, platformTenant);
+
+    const upsertEntry = findUpsertDataEntryForInstitution(
+      upsertData,
+      mockInstitution
+    );
+
+    expect(upsertEntry?.attributes).toContainEqual({
+      origin: mockInstitution.origin,
+      code: PUBLIC_SERVICES_MANAGERS,
+    });
+
+    // It should also have the SCEC kind attribute
+    expect(upsertEntry?.attributes).toContainEqual({
+      origin: mockInstitution.origin,
+      code: expect.any(String),
+    });
+  });
+
+  // Test for a normal SCEC (not on allowlist and not S01G)
+  it("should not assign the GPS attribute to a normal SCEC", async () => {
+    const mockInstitution: Institution = {
+      id: "mockId2",
+      origin: "IPA",
+      originId: "test-normal-SCEC",
+      description: "Test normal SCEC",
+      kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+      classification: "Agency",
+      category: "other-category", // Not S01G
+    };
+
+    const platformTenant: Tenant[] = [
+      {
+        id: generateId<TenantId>(),
+        selfcareId: mockInstitution.description,
+        externalId: {
+          origin: mockInstitution.origin,
+          value: mockInstitution.originId,
+        },
+        features: [],
+        attributes: [],
+        createdAt: new Date(),
+        mails: [],
+        name: mockInstitution.description,
+      },
+    ];
+
+    const testRegistryData = {
+      institutions: [...registryData.institutions, mockInstitution],
+      attributes: registryData.attributes,
+    };
+
+    const upsertData = getTenantUpsertData(testRegistryData, platformTenant);
+
+    const upsertEntry = findUpsertDataEntryForInstitution(
+      upsertData,
+      mockInstitution
+    );
+
+    expect(
+      upsertEntry?.attributes.find((a) => a.code === PUBLIC_SERVICES_MANAGERS)
+    ).toBeUndefined();
+
+    expect(upsertEntry?.attributes).toContainEqual({
+      origin: mockInstitution.origin,
+      code: expect.any(String),
     });
   });
 });

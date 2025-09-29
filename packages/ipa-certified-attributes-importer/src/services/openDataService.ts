@@ -1,14 +1,32 @@
 import { createHash } from "crypto";
+import { match, P } from "ts-pattern";
+import { ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER } from "pagopa-interop-models";
 import {
   Category,
   Institution,
   getAllCategories,
   getAllInstitutions,
 } from "./openDataExtractor.js";
+import { ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY } from "./ipaCertifiedAttributesImporterService.js";
 
-export const kindsToInclude: Set<string> = new Set([
-  "Pubbliche Amministrazioni",
-]);
+/**
+ * Determine if an institution's "kind" and "category" should lead to the inclusion
+ * of a certified attribute.
+ */
+export const shouldKindBeIncluded = (i: {
+  kind: string;
+  category: string;
+}): boolean =>
+  match(i)
+    .with({ kind: P.union("Pubbliche Amministrazioni") }, () => true)
+    .with(
+      {
+        kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+        category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+      },
+      () => true
+    )
+    .otherwise(() => false);
 
 export type OpenData = {
   institutions: Institution[];
@@ -69,11 +87,22 @@ async function loadCertifiedAttributes(
   const attributeSeedsCategoriesKinds = [
     ...new Map(data.categories.map((c) => [c.kind, c])),
   ]
-    .filter(([kind, _]) => kindsToInclude.has(kind))
+    .filter(([kind, category]) =>
+      shouldKindBeIncluded({ kind, category: category.code })
+    )
     .map(([_, c]) => ({
       code: createHash("sha256").update(c.kind).digest("hex"),
       description: c.kind,
-      name: c.name,
+      /**
+       * Società in Conto Economico Consolidato exists both as a category and as a type.
+       * To avoid duplicates, we add the suffix ' - Tipologia' to the name of the type.
+       */
+      name: match(c.kind)
+        .with(
+          ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+          () => `${c.name} - Tipologia IPA`
+        )
+        .otherwise(() => c.name),
       origin: c.origin,
     }));
 
