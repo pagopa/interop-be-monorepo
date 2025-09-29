@@ -12,10 +12,9 @@ import {
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import // hyperlinkDetectionError,
-"../../src/model/domain/errors.js";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import { riskAnalysisAnswerToApiRiskAnalysisAnswer } from "../../src/model/domain/apiConverter.js";
+import { hyperlinkDetectionError } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposeTemplates/:id/riskAnalysis/answers", () => {
   const authorizedRoles: AuthRole[] = [
@@ -130,8 +129,7 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers", () => {
     expect(res.status).toBe(400);
   });
 
-  // todo disabled until hyperlinks validation rules are defined
-  /* it("Should return 400 if annotation text contains hyperlinks", async () => {
+  it("Should return 400 if annotation text contains hyperlinks", async () => {
     const textWithHyperlink =
       "This text contains a hyperlink: https://example.com";
     const requestWithHyperlink: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest =
@@ -153,5 +151,5 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, requestWithHyperlink);
     expect(res.status).toBe(400);
-  }); */
+  });
 });
