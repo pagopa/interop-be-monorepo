@@ -93,5 +93,6 @@ export function fileFromTestMultipartFileUpload(
 ): File {
   return new File([file.fileContent], file.filename, {
     type: file.contentType,
+    lastModified: 1577836800000, // Fixed timestamp (January 1, 2020)
   });
 }
