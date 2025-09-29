@@ -13,6 +13,7 @@ import {
   PurposeTemplate,
   PurposeTemplateAddedV2,
   RiskAnalysisFormTemplate,
+  TenantKind,
   purposeTemplateState,
   tenantKind,
   toPurposeTemplateV2,
@@ -29,6 +30,7 @@ import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   riskAnalysisTemplateValidationFailed,
+  ruleSetNotFoundError,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurposeTemplate,
@@ -364,5 +366,24 @@ describe("createPurposeTemplate", () => {
         ]).issues
       )
     );
+  });
+
+  it("should throw ruleSetNotFoundError if not exists rules for provided target tenant kind", async () => {
+    const invalidTenantKind = "INVALID" as TenantKind;
+    const seedWithInvalidTargetTenantKind: purposeTemplateApi.PurposeTemplateSeed =
+      {
+        ...purposeTemplateSeed,
+        purposeRiskAnalysisForm: undefined,
+        targetTenantKind: invalidTenantKind,
+      };
+
+    expect(
+      purposeTemplateService.createPurposeTemplate(
+        seedWithInvalidTargetTenantKind,
+        getMockContext({
+          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(ruleSetNotFoundError(invalidTenantKind));
   });
 });
