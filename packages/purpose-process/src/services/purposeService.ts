@@ -288,7 +288,8 @@ export function purposeServiceBuilder(
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
-            tenantKind
+            tenantKind,
+            purpose.data.createdAt
           )
         : true;
 
@@ -848,7 +849,8 @@ export function purposeServiceBuilder(
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
-            tenantKind
+            tenantKind,
+            new Date()
           )
         : true;
 
@@ -1001,6 +1003,7 @@ export function purposeServiceBuilder(
             riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
           schemaOnlyValidation: false,
           tenantKind,
+          dateForExpirationValidation: new Date(), // beware: if the purpose version was waiting for approval, a new RA might have been published
         });
       }
 
@@ -1232,10 +1235,13 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      const createdAt = new Date();
+
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         purposeSeed.riskAnalysisForm,
         false,
-        await retrieveTenantKind(authData.organizationId, readModelService)
+        await retrieveTenantKind(authData.organizationId, readModelService),
+        createdAt
       );
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
@@ -1251,7 +1257,7 @@ export function purposeServiceBuilder(
         id: generateId(),
         title: purposeSeed.title,
         description: purposeSeed.description,
-        createdAt: new Date(),
+        createdAt,
         eserviceId,
         consumerId,
         delegationId,
@@ -1326,17 +1332,20 @@ export function purposeServiceBuilder(
         title: seed.title,
       });
 
+      const createdAt = new Date();
+
       validateRiskAnalysisOrThrow({
         riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
           riskAnalysis.riskAnalysisForm
         ),
         schemaOnlyValidation: false,
         tenantKind: producerKind,
+        dateForExpirationValidation: createdAt,
       });
 
       const newVersion: PurposeVersion = {
         id: generateId(),
-        createdAt: new Date(),
+        createdAt,
         state: purposeVersionState.draft,
         dailyCalls: seed.dailyCalls,
       };
@@ -1471,7 +1480,8 @@ export function purposeServiceBuilder(
               clonedRiskAnalysisForm
             ),
             false,
-            tenantKind
+            tenantKind,
+            currentDate
           ).type === "valid"
         : false;
 
@@ -1666,7 +1676,12 @@ const performUpdatePurpose = async (
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
-      ? validateAndTransformRiskAnalysis(riskAnalysisForm, true, tenantKind)
+      ? validateAndTransformRiskAnalysis(
+          riskAnalysisForm,
+          true,
+          tenantKind,
+          new Date()
+        )
       : purpose.data.riskAnalysisForm;
 
   const updatedPurpose: Purpose = {
@@ -1708,7 +1723,8 @@ const performUpdatePurpose = async (
       isRiskAnalysisValid: isRiskAnalysisFormValid(
         updatedPurpose.riskAnalysisForm,
         false,
-        tenantKind
+        tenantKind,
+        new Date()
       ),
     },
     metadata: { version: createdEvent.newVersion },
