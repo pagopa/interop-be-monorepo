@@ -42,7 +42,7 @@ const updateTemplateInstanceDescriptorVoucherLifespanFn = vi.fn();
 const createTemplateInstanceDescriptorDocumentFn = vi.fn();
 const updateTemplateInstanceDescriptorDocumentFn = vi.fn();
 const deleteTemplateInstanceDescriptorDocumentFn = vi.fn();
-const setTemplateInstancePersonalDataFn = vi.fn();
+const setTemplateInstancePersonalDataFlagFn = vi.fn();
 
 const copyDocumentFn = vi.fn();
 
@@ -66,7 +66,8 @@ vi.doMock("pagopa-interop-api-clients", () => ({
         updateTemplateInstanceDescriptorDocumentFn,
       deleteTemplateInstanceDescriptorDocument:
         deleteTemplateInstanceDescriptorDocumentFn,
-      setTemplateInstancePersonalData: setTemplateInstancePersonalDataFn,
+      setTemplateInstancePersonalDataFlag:
+        setTemplateInstancePersonalDataFlagFn,
     }),
   },
 }));
@@ -942,8 +943,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       fileManager,
     });
 
-    expect(setTemplateInstancePersonalDataFn).toHaveBeenCalledTimes(3);
-    expect(setTemplateInstancePersonalDataFn).toHaveBeenCalledWith(
+    expect(setTemplateInstancePersonalDataFlagFn).toHaveBeenCalledTimes(3);
+    expect(setTemplateInstancePersonalDataFlagFn).toHaveBeenCalledWith(
       { personalData: mockTemplate.personalData },
       {
         params: {
@@ -952,7 +953,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(setTemplateInstancePersonalDataFn).toHaveBeenCalledWith(
+    expect(setTemplateInstancePersonalDataFlagFn).toHaveBeenCalledWith(
       { personalData: mockTemplate.personalData },
       {
         params: {
@@ -961,7 +962,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(setTemplateInstancePersonalDataFn).toHaveBeenCalledWith(
+    expect(setTemplateInstancePersonalDataFlagFn).toHaveBeenCalledWith(
       { personalData: mockTemplate.personalData },
       {
         params: {

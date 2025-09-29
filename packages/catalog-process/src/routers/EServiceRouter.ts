@@ -1236,7 +1236,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/internal/templates/eservices/:eServiceId/personalData/set",
+      "/internal/templates/eservices/:eServiceId/personalDataFlag/set",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 

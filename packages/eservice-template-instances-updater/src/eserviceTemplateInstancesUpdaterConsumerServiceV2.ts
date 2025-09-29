@@ -345,7 +345,7 @@ export async function handleMessageV2({
           instance: EService,
           headers: InteropHeaders
         ): Promise<void> => {
-          await catalogProcess.client.setTemplateInstancePersonalData(
+          await catalogProcess.client.setTemplateInstancePersonalDataFlag(
             { personalData },
             {
               params: {
