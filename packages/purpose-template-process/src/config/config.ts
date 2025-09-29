@@ -4,6 +4,7 @@ import {
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
   S3Config,
+  FeatureFlagPurposeTemplateConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -21,7 +22,8 @@ const PurposeTemplateProcessConfig = CommonHTTPServiceConfig.and(
       .transform((c) => ({
         purposeTemplateDocumentsPath: c.PURPOSE_TEMPLATE_DOCUMENTS_PATH,
       }))
-  );
+  )
+  .and(FeatureFlagPurposeTemplateConfig);
 
 export type PurposeTemplateProcessConfig = z.infer<
   typeof PurposeTemplateProcessConfig

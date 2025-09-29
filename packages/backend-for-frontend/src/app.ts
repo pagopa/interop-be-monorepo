@@ -29,6 +29,7 @@ import attributeRouter from "./routers/attributeRouter.js";
 import authorizationRouter from "./routers/authorizationRouter.js";
 import catalogRouter from "./routers/catalogRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
+import purposeTemplateRouter from "./routers/purposeTemplateRouter.js";
 import selfcareRouter from "./routers/selfcareRouter.js";
 import supportRouter from "./routers/supportRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
@@ -78,6 +79,10 @@ import {
   purposeServiceBuilder,
 } from "./services/purposeService.js";
 import {
+  PurposeTemplateService,
+  purposeTemplateServiceBuilder,
+} from "./services/purposeTemplateService.js";
+import {
   SelfcareService,
   selfcareServiceBuilder,
 } from "./services/selfcareService.js";
@@ -97,6 +102,11 @@ import {
   notificationConfigServiceBuilder,
 } from "./services/notificationConfigService.js";
 import notificationConfigRouter from "./routers/notificationConfigRouter.js";
+import {
+  InAppNotificationService,
+  inAppNotificationServiceBuilder,
+} from "./services/inAppNotificationManagerService.js";
+import inAppNotificationRouter from "./routers/inAppNotificationRouter.js";
 
 export type BFFServices = {
   agreementService: AgreementService;
@@ -107,10 +117,12 @@ export type BFFServices = {
   clientService: ClientService;
   delegationService: DelegationService;
   notificationConfigService: NotificationConfigService;
+  inAppNotificationService: InAppNotificationService;
   eServiceTemplateService: EServiceTemplateService;
   privacyNoticeService: PrivacyNoticeService;
   producerKeychainService: ProducerKeychainService;
   purposeService: PurposeService;
+  purposeTemplateService: PurposeTemplateService;
   selfcareService: SelfcareService;
   tenantService: TenantService;
   toolsService: ToolsService;
@@ -182,6 +194,9 @@ export async function createServices(
     notificationConfigService: notificationConfigServiceBuilder(
       clients.notificationConfigProcessClient
     ),
+    inAppNotificationService: inAppNotificationServiceBuilder(
+      clients.inAppNotificationManagerClient
+    ),
     privacyNoticeService: privacyNoticeServiceBuilder(
       privacyNoticeStorage,
       fileManager,
@@ -189,6 +204,9 @@ export async function createServices(
     ),
     producerKeychainService: producerKeychainServiceBuilder(clients),
     purposeService: purposeServiceBuilder(clients, fileManager),
+    purposeTemplateService: purposeTemplateServiceBuilder(
+      clients.purposeTemplateProcessClient
+    ),
     selfcareService: selfcareServiceBuilder(clients),
     tenantService: tenantServiceBuilder(
       clients.tenantProcessClient,
@@ -245,10 +263,12 @@ export async function createApp(
     delegationRouter(zodiosCtx, services.delegationService),
     eserviceTemplateRouter(zodiosCtx, services.eServiceTemplateService),
     notificationConfigRouter(zodiosCtx, services.notificationConfigService),
+    inAppNotificationRouter(zodiosCtx, services.inAppNotificationService),
     privacyNoticeRouter(zodiosCtx, services.privacyNoticeService),
     producerDelegationRouter(zodiosCtx, services.delegationService),
     producerKeychainRouter(zodiosCtx, services.producerKeychainService),
     purposeRouter(zodiosCtx, services.purposeService),
+    purposeTemplateRouter(zodiosCtx, services.purposeTemplateService),
     selfcareRouter(zodiosCtx, services.selfcareService),
     supportRouter(zodiosCtx, services.authorizationServiceForSupport),
     tenantRouter(zodiosCtx, services.tenantService),
