@@ -102,6 +102,11 @@ import {
   notificationConfigServiceBuilder,
 } from "./services/notificationConfigService.js";
 import notificationConfigRouter from "./routers/notificationConfigRouter.js";
+import {
+  InAppNotificationService,
+  inAppNotificationServiceBuilder,
+} from "./services/inAppNotificationManagerService.js";
+import inAppNotificationRouter from "./routers/inAppNotificationRouter.js";
 
 export type BFFServices = {
   agreementService: AgreementService;
@@ -112,6 +117,7 @@ export type BFFServices = {
   clientService: ClientService;
   delegationService: DelegationService;
   notificationConfigService: NotificationConfigService;
+  inAppNotificationService: InAppNotificationService;
   eServiceTemplateService: EServiceTemplateService;
   privacyNoticeService: PrivacyNoticeService;
   producerKeychainService: ProducerKeychainService;
@@ -188,6 +194,9 @@ export async function createServices(
     notificationConfigService: notificationConfigServiceBuilder(
       clients.notificationConfigProcessClient
     ),
+    inAppNotificationService: inAppNotificationServiceBuilder(
+      clients.inAppNotificationManagerClient
+    ),
     privacyNoticeService: privacyNoticeServiceBuilder(
       privacyNoticeStorage,
       fileManager,
@@ -254,6 +263,7 @@ export async function createApp(
     delegationRouter(zodiosCtx, services.delegationService),
     eserviceTemplateRouter(zodiosCtx, services.eServiceTemplateService),
     notificationConfigRouter(zodiosCtx, services.notificationConfigService),
+    inAppNotificationRouter(zodiosCtx, services.inAppNotificationService),
     privacyNoticeRouter(zodiosCtx, services.privacyNoticeService),
     producerDelegationRouter(zodiosCtx, services.delegationService),
     producerKeychainRouter(zodiosCtx, services.producerKeychainService),
