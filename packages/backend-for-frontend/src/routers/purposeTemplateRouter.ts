@@ -118,7 +118,7 @@ const purposeTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            purposeTemplateFeatureFlagErrorMapper,
             ctx,
             `Error downloading risk analysis template answer annotation document ${req.params.documentId} for purpose template ${req.params.purposeTemplateId} and answer ${req.params.answerId}`
           );
