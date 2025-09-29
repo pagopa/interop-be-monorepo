@@ -252,6 +252,17 @@ export type NotificationConfigProcessServerConfig = z.infer<
   typeof NotificationConfigProcessServerConfig
 >;
 
+export const InAppNotificationManagerServerConfig = z
+  .object({
+    IN_APP_NOTIFICATION_MANAGER_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    inAppNotificationManagerUrl: c.IN_APP_NOTIFICATION_MANAGER_URL,
+  }));
+export type InAppNotificationManagerServerConfig = z.infer<
+  typeof InAppNotificationManagerServerConfig
+>;
+
 export const SwaggerConfig = z
   .object({
     BFF_SWAGGER_UI_ENABLED: z.coerce.boolean().default(false),
@@ -283,6 +294,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(InterfaceVersion)
   .and(SelfcareProcessConfig)
   .and(NotificationConfigProcessServerConfig)
+  .and(InAppNotificationManagerServerConfig)
   .and(SwaggerConfig)
   .and(ClientAssertionValidationConfig)
   .and(EServiceTemplateS3Config)
