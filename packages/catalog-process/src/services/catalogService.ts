@@ -2923,7 +2923,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async internalUpdateTemplateInstancePersonalData(
+    async internalUpdateTemplateInstancePersonalDataFlag(
       eserviceId: EServiceId,
       personalData: boolean,
       { correlationId, logger }: WithLogger<AppContext>

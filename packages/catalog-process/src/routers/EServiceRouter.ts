@@ -1243,7 +1243,7 @@ const eservicesRouter = (
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
 
-          await catalogService.internalUpdateTemplateInstancePersonalData(
+          await catalogService.internalUpdateTemplateInstancePersonalDataFlag(
             unsafeBrandId(req.params.eServiceId),
             req.body.personalData,
             ctx
