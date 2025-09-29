@@ -14,7 +14,6 @@ import {
 import {
   EServiceId,
   TenantId,
-  TenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
@@ -76,7 +75,7 @@ const purposeTemplateRouter = (
           await purposeTemplateService.getPurposeTemplates(
             {
               purposeTitle,
-              targetTenantKind: TenantKind.parse(req.query.targetTenantKind),
+              targetTenantKind: req.query.targetTenantKind,
               creatorIds: creatorIds?.map(unsafeBrandId<TenantId>),
               eserviceIds: eserviceIds?.map(unsafeBrandId<EServiceId>),
               states: states?.map(
