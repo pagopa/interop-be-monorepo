@@ -18,8 +18,14 @@ describe("API POST /userNotificationConfigs", () => {
   const userId = mockTokenUserId;
   const tenantId = mockTokenOrganizationId;
   const notificationConfigSeed: bffApi.UserNotificationConfigUpdateSeed = {
-    inAppConfig: getMockNotificationConfig(),
-    emailConfig: getMockNotificationConfig(),
+    inAppConfig: {
+      ...getMockNotificationConfig(),
+      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers: false,
+    },
+    emailConfig: {
+      ...getMockNotificationConfig(),
+      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers: false,
+    },
   };
 
   beforeEach(() => {
