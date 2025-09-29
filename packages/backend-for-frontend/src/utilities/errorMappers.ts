@@ -268,17 +268,17 @@ export const getEServiceTemplateInstancesErrorMapper = (
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-const purposeTemplateErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-// TODO: replace with emptyErrorMapper when the feature flag is removed
+// TODO: replace with emptyErrorMapper when the feature flag will be removed
 export const purposeTemplateFeatureFlagErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+const purposeTemplateErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

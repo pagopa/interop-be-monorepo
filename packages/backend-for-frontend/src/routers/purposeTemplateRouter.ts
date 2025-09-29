@@ -12,6 +12,7 @@ import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   getCatalogPurposeTemplatesErrorMapper,
+  getPurposeTemplateErrorMapper,
   purposeTemplateFeatureFlagErrorMapper,
 } from "../utilities/errorMappers.js";
 
