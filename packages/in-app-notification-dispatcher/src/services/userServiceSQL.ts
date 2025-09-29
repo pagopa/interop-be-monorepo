@@ -8,14 +8,14 @@ export function userServiceBuilderSQL(userDB: ReturnType<typeof drizzle>) {
   return {
     readUsers: async (
       userIds: UserId[]
-    ): Promise<Array<{ userId: UserId; role: UserRole }>> => {
+    ): Promise<Array<{ userId: UserId; roles: UserRole[] }>> => {
       const result = await userDB
         .select()
         .from(user)
         .where(inArray(user.userId, userIds));
-      return result.map(({ userId, productRole }) => ({
+      return result.map(({ userId, productRoles }) => ({
         userId: unsafeBrandId(userId),
-        role: UserRole.parse(productRole),
+        roles: productRoles.map((r) => UserRole.parse(r)),
       }));
     },
   };

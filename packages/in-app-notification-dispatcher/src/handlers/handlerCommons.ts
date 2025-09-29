@@ -35,14 +35,13 @@ export async function getNotificationRecipients(
       tenantIds,
       notificationType
     );
-  const userRoles = await userServiceSQL.readUsers(
+  const usersWithRoles = await userServiceSQL.readUsers(
     usersWithNotifications.map(({ userId }) => userId)
   );
   return usersWithNotifications.filter(({ userId }) =>
-    userRoles.some(
-      ({ userId: id, role }) =>
-        id === userId && notificationAdmittedRoles[notificationType][role]
-    )
+    usersWithRoles
+      .find((u) => u.userId === userId)
+      ?.roles?.some((r) => notificationAdmittedRoles[notificationType][r])
   );
 }
 
