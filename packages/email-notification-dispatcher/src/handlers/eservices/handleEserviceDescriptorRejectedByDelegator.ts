@@ -42,7 +42,7 @@ export async function handleEserviceDescriptorRejectedByDelegator(
 
   const [htmlTemplate, delegation] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceDescriptorSubmittedByDelegateMailTemplate
+      eventMailTemplateType.eserviceDescriptorRejectedByDelegatorMailTemplate
     ),
     retrieveProducerDelegation(eservice, readModelService),
   ]);
