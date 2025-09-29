@@ -10492,7 +10492,7 @@ paths:
           description: exclude purpose templates with expired risk analysis
           schema:
             type: boolean
-            default: false
+            default: true
         - in: query
           name: offset
           required: true
