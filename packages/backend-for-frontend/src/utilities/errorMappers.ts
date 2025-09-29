@@ -293,4 +293,5 @@ export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
       "tenantNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
