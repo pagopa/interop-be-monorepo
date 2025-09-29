@@ -176,11 +176,7 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         });
 
-      const agreementsPromise = await enrichAgreementListEntry(
-        results,
-        clients,
-        ctx
-      );
+      const agreementsPromise = enrichAgreementListEntry(results, clients, ctx);
 
       const [agreements, notifications] = await Promise.all([
         agreementsPromise,
