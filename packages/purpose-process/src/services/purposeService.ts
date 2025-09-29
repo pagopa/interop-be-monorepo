@@ -49,6 +49,9 @@ import {
   CorrelationId,
   Delegation,
   DelegationId,
+  PurposeVersionStamp,
+  UserId,
+  PurposeVersionStamps,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -911,12 +914,18 @@ export function purposeServiceBuilder(
       const riskAnalysisDocument = await generateRiskAnalysisDocument({
         eservice,
         purpose: purpose.data,
+        userId: authData.userId,
         dailyCalls: seed.dailyCalls,
         readModelService,
         fileManager,
         pdfGenerator,
         logger,
       });
+
+      const stamp: PurposeVersionStamp = {
+        who: authData.userId,
+        when: new Date(),
+      };
 
       const newPurposeVersion: PurposeVersion = {
         id: generateId(),
@@ -925,6 +934,9 @@ export function purposeServiceBuilder(
         dailyCalls: seed.dailyCalls,
         firstActivationAt: new Date(),
         createdAt: new Date(),
+        stamps: {
+          creation: stamp,
+        },
       };
 
       const oldVersions = archiveActiveAndSuspendedPurposeVersions(
@@ -1051,6 +1063,7 @@ export function purposeServiceBuilder(
               fileManager,
               pdfGenerator,
               correlationId,
+              authData,
               logger,
             });
           }
@@ -1091,6 +1104,7 @@ export function purposeServiceBuilder(
               fileManager,
               pdfGenerator,
               correlationId,
+              authData,
               logger,
             })
         )
@@ -1734,6 +1748,7 @@ const performUpdatePurpose = async (
 async function generateRiskAnalysisDocument({
   eservice,
   purpose,
+  userId,
   dailyCalls,
   readModelService,
   fileManager,
@@ -1742,6 +1757,7 @@ async function generateRiskAnalysisDocument({
 }: {
   eservice: EService;
   purpose: Purpose;
+  userId?: UserId;
   dailyCalls: number;
   readModelService: ReadModelService;
   fileManager: FileManager;
@@ -1803,7 +1819,7 @@ async function generateRiskAnalysisDocument({
     eserviceInfo,
     tenantKind,
     "it",
-    selfcareId
+    userId
   );
 }
 
@@ -1898,6 +1914,7 @@ async function activatePurposeLogic({
   fileManager,
   pdfGenerator,
   correlationId,
+  authData,
   logger,
 }: {
   fromState:
@@ -1910,23 +1927,36 @@ async function activatePurposeLogic({
   fileManager: FileManager;
   pdfGenerator: PDFGenerator;
   correlationId: CorrelationId;
+  authData: UIAuthData | M2MAdminAuthData;
   logger: Logger;
 }): Promise<{
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
 }> {
+  // We generate the stamp in the transition draft -> active.
+  // Instead, the transition waiting_for_approval -> active is performed by the producer,
+  // so in this case the stamp doesn't have to be regenerated
+  const stamps: PurposeVersionStamps | undefined = match(fromState)
+    .with(purposeVersionState.draft, () => ({
+      creation: { who: authData.userId, when: new Date() },
+    }))
+    .with(purposeVersionState.waitingForApproval, () => purposeVersion.stamps)
+    .exhaustive();
+
   const updatedPurposeVersion: PurposeVersion = {
     ...purposeVersion,
     state: purposeVersionState.active,
     riskAnalysis: await generateRiskAnalysisDocument({
       eservice,
       purpose: purpose.data,
+      userId: stamps?.creation.who,
       dailyCalls: purposeVersion.dailyCalls,
       readModelService,
       fileManager,
       pdfGenerator,
       logger,
     }),
+    stamps,
     updatedAt: new Date(),
     firstActivationAt: new Date(),
   };

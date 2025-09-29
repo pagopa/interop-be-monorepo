@@ -1,4 +1,4 @@
-import { DelegationId, EServiceMode } from "pagopa-interop-models";
+import { DelegationId, EServiceMode, UserId } from "pagopa-interop-models";
 import { z } from "zod";
 
 export const PurposeDocumentEServiceInfo = z.object({
@@ -37,5 +37,5 @@ export type RiskAnalysisDocumentPDFPayload = {
   consumerDelegationId: DelegationId | undefined;
   consumerDelegateName: string | undefined;
   consumerDelegateIpaCode: string | undefined;
-  userId?: string | undefined;
+  userId: UserId | undefined;
 };
