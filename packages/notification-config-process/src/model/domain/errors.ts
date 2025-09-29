@@ -10,6 +10,7 @@ export const errorCodes = {
   userNotificationConfigNotFound: "0002",
   tenantNotificationConfigAlreadyExists: "0003",
   userNotificationConfigAlreadyExists: "0004",
+  notificationConfigNotAllowedForUserRoles: "0005",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -55,5 +56,16 @@ export function userNotificationConfigAlreadyExists(
     detail: `User notification config for user ${userId} in tenant ${tenantId} already exists`,
     code: "userNotificationConfigAlreadyExists",
     title: "User notification config already exists",
+  });
+}
+
+export function notificationConfigNotAllowedForUserRoles(
+  userId: UserId,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Notification config not allowed for user ${userId} in tenant ${tenantId} due to role restrictions`,
+    code: "notificationConfigNotAllowedForUserRoles",
+    title: "Notification config not allowed due to role restrictions",
   });
 }

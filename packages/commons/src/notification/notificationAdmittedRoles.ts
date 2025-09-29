@@ -125,6 +125,18 @@ export const notificationAdmittedRoles = {
 } as const satisfies Record<NotificationType, Record<UserRole, boolean>> &
   Record<NotificationType, Record<typeof SUPPORT_ROLE, false>>; // To ensure that SUPPORT_ROLE cannot receive any notification
 
+export const notificationConfigIsAllowedForUserRoles = (
+  notificationConfig: NotificationConfig,
+  userRoles: UserRole[]
+): boolean =>
+  (Object.keys(notificationConfig) as NotificationType[]).every(
+    (notificationType) =>
+      !notificationConfig[notificationType] ||
+      userRoles.some(
+        (role) => notificationAdmittedRoles[notificationType][role]
+      )
+  );
+
 export const overrideNotificationConfigByAdmittedRoles = (
   userRoles: UserRole[]
 ): ((c: NotificationConfig) => NotificationConfig) =>
