@@ -276,7 +276,8 @@ export const getCatalogPurposeTemplatesErrorMapper = (
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getPurposeTemplateErrorMapper = (
+// TODO: replace with emptyErrorMapper when the feature flag is removed
+export const purposeTemplateFeatureFlagErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
