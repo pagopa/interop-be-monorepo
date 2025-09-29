@@ -10,8 +10,8 @@ import {
   TenantId,
   ClientId,
   UserId,
-  toClientV2,
   AuthorizationEventEnvelopeV2,
+  toClientV2,
 } from "pagopa-interop-models";
 import { handleClientKeyAddedDeletedToClientUsers } from "../src/handlers/authorizations/handleClientKeyAddedDeletedToClientUsers.js";
 import { clientKeyNotFound } from "../src/models/errors.js";
