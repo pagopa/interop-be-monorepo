@@ -475,6 +475,7 @@ components:
         - delegationSubmittedRevokedToDelegate
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
         - clientKeyAddedDeletedToClientUsers
+        - producerKeychainKeyAddedDeletedToClientUsers
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -513,6 +514,8 @@ components:
         certifiedVerifiedAttributeAssignedRevokedToAssignee:
           type: boolean
         clientKeyAddedDeletedToClientUsers:
+          type: boolean
+        producerKeychainKeyAddedDeletedToClientUsers:
           type: boolean
     TenantNotificationConfigSeed:
       type: object

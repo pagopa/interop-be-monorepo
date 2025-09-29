@@ -20,8 +20,14 @@ describe("API GET /userNotificationConfigs", () => {
   const clientResponse: notificationConfigApi.UserNotificationConfig =
     generateMock(notificationConfigApi.UserNotificationConfig);
   const apiResponse: bffApi.UserNotificationConfig = {
-    inAppConfig: clientResponse.inAppConfig,
-    emailConfig: clientResponse.emailConfig,
+    inAppConfig: {
+      ...clientResponse.inAppConfig,
+      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers: false,
+    },
+    emailConfig: {
+      ...clientResponse.emailConfig,
+      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers: false,
+    },
   };
 
   beforeEach(() => {

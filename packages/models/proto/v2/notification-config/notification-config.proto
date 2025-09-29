@@ -26,6 +26,7 @@ message NotificationConfigV2 {
   bool certifiedVerifiedAttributeAssignedRevokedToAssignee = 19;
 
   bool clientKeyAddedDeletedToClientUsers = 20;
+  bool producerKeychainKeyAddedDeletedToClientUsers = 21;
 }
 
 message TenantNotificationConfigV2 {

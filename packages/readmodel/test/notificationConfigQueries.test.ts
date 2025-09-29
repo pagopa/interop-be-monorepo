@@ -93,6 +93,7 @@ describe("Notification config queries", () => {
           delegationSubmittedRevokedToDelegate: false,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
           clientKeyAddedDeletedToClientUsers: false,
+          producerKeychainKeyAddedDeletedToClientUsers: false,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer: false,
@@ -114,6 +115,7 @@ describe("Notification config queries", () => {
           delegationSubmittedRevokedToDelegate: false,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
           clientKeyAddedDeletedToClientUsers: false,
+          producerKeychainKeyAddedDeletedToClientUsers: false,
         },
       };
       await insertUserNotificationConfig(
