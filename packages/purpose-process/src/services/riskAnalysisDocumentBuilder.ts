@@ -101,7 +101,6 @@ export const riskAnalysisDocumentBuilder = (
         isFreeOfCharge: purpose.isFreeOfCharge,
         freeOfChargeReason: purpose.freeOfChargeReason,
         language,
-        consumerId: purpose.consumerId,
         userId: selfcareId,
       });
 
@@ -142,7 +141,6 @@ const getPdfPayload = ({
   isFreeOfCharge,
   freeOfChargeReason,
   language,
-  consumerId,
   userId,
 }: {
   riskAnalysisFormConfig: RiskAnalysisFormRules;
@@ -152,7 +150,6 @@ const getPdfPayload = ({
   isFreeOfCharge: boolean;
   freeOfChargeReason?: string;
   language: Language;
-  consumerId: string;
   userId?: string;
 }): RiskAnalysisDocumentPDFPayload => {
   const answers = formatAnswers(
@@ -189,7 +186,6 @@ const getPdfPayload = ({
     consumerDelegationId: eserviceInfo.consumerDelegationId,
     consumerDelegateName: eserviceInfo.consumerDelegateName,
     consumerDelegateIpaCode: eserviceInfo.consumerDelegateIpaCode,
-    consumerId,
     userId,
   };
 };
