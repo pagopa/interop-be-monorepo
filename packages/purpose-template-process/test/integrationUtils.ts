@@ -28,7 +28,6 @@ import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateSe
 
 export const { cleanup, postgresDB, readModelDB } =
   await setupTestContainersVitest(
-    undefined,
     inject("eventStoreConfig"),
     undefined,
     undefined,

@@ -261,6 +261,7 @@ export async function createApp(
     producerKeychainRouter(zodiosCtx, services.producerKeychainService),
     purposeRouter(zodiosCtx, services.purposeService),
     purposeTemplateRouter(zodiosCtx, services.purposeTemplateService),
+    purposeTemplateRouter(zodiosCtx, services.purposeTemplateService),
     selfcareRouter(zodiosCtx, services.selfcareService),
     supportRouter(zodiosCtx, services.authorizationServiceForSupport),
     tenantRouter(zodiosCtx, services.tenantService),
