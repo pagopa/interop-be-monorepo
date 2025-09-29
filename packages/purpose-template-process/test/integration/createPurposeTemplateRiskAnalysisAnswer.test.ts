@@ -23,7 +23,7 @@ import {
   unexpectedRiskAnalysisTemplateFieldValueError,
 } from "pagopa-interop-commons";
 import {
-  // hyperlinkDetectionError,
+  hyperlinkDetectionError,
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateValidationFailed,
@@ -108,8 +108,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
     vi.useRealTimers();
   });
 
-  // todo disabled until hyperlinks validation rules are defined
-  /* it("should throw hyperlinkDetectionError if annotation text contains hyperlinks", async () => {
+  it("should throw hyperlinkDetectionError if annotation text contains hyperlinks", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -142,7 +141,42 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
     ).rejects.toThrowError(hyperlinkDetectionError(textWithHyperlink));
 
     vi.useRealTimers();
-  }); */
+  });
+
+  it("should NOT throw hyperlinkDetectionError if annotation text contains simply a domain", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    await addOnePurposeTemplate(mockPurposeTemplate);
+
+    const textWithHyperlink =
+      "The company beta.com is authorized to process data.";
+    const requestWithHyperlink: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest =
+      {
+        answerKey: "purpose",
+        answerData: {
+          values: ["INSTITUTIONAL"],
+          editable: true,
+          suggestedValues: [],
+          annotation: {
+            text: textWithHyperlink,
+            docs: [],
+          },
+        },
+      };
+
+    await expect(
+      purposeTemplateService.createRiskAnalysisAnswer(
+        mockPurposeTemplate.id,
+        requestWithHyperlink,
+        getMockContext({
+          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+        })
+      )
+    ).not.rejects.toThrowError(hyperlinkDetectionError(textWithHyperlink));
+
+    vi.useRealTimers();
+  });
 
   it("should throw purposeTemplateRiskAnalysisFormNotFound if purpose template has no risk analysis form", async () => {
     vi.useFakeTimers();

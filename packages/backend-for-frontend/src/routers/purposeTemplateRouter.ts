@@ -65,7 +65,6 @@ const purposeTemplateRouter = (
       }
     }
   );
-
   purposeTemplateRouter.put(
     "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation",
     async (req, res) => {

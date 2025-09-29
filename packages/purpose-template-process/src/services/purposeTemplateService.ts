@@ -1,21 +1,3 @@
-import {
-  generateId,
-  PurposeTemplate,
-  PurposeTemplateId,
-  purposeTemplateState,
-  WithMetadata,
-  purposeTemplateEventToBinaryDataV2,
-  RiskAnalysisFormTemplate,
-  TenantKind,
-  RiskAnalysisTemplateSingleAnswer,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisSingleAnswerId,
-  RiskAnalysisTemplateAnswerAnnotation,
-  RiskAnalysisMultiAnswerId,
-  RiskAnalysisTemplateAnswerAnnotationId,
-} from "pagopa-interop-models";
-import { riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
@@ -24,9 +6,27 @@ import {
   getLatestVersionFormRules,
   M2MAdminAuthData,
   M2MAuthData,
+  riskAnalysisValidatedAnswerToRiskAnalysisAnswer,
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
+import {
+  generateId,
+  PurposeTemplate,
+  purposeTemplateEventToBinaryDataV2,
+  PurposeTemplateId,
+  purposeTemplateState,
+  RiskAnalysisFormTemplate,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswer,
+  TenantKind,
+  WithMetadata,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   purposeTemplateNotFound,
   ruleSetNotFoundError,
@@ -42,10 +42,10 @@ import {
   assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
   assertPurposeTemplateHasRiskAnalysisForm,
-  validateRiskAnalysisAnswerOrThrow,
+  validateRiskAnalysisAnswerAnnotationOrThrow,
   assertRequesterPurposeTemplateCreator,
   validateAndTransformRiskAnalysisTemplate,
-  validateRiskAnalysisAnswerAnnotationOrThrow,
+  validateRiskAnalysisAnswerOrThrow,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -214,30 +214,35 @@ export function purposeTemplateServiceBuilder(
 
       const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
 
-      const transformedAnswer =
-        riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer(validatedAnswer);
-
-      const updatedPurposeRiskAnalysisForm = match(validatedAnswer)
-        .with({ type: "single" }, () => ({
-          ...riskAnalysisForm,
-          singleAnswers: [
-            ...riskAnalysisForm.singleAnswers,
-            transformedAnswer as RiskAnalysisTemplateSingleAnswer,
-          ],
-        }))
-        .with({ type: "multi" }, () => ({
-          ...riskAnalysisForm,
-          multiAnswers: [
-            ...riskAnalysisForm.multiAnswers,
-            transformedAnswer as RiskAnalysisTemplateMultiAnswer,
-          ],
-        }))
+      const { purposeRiskAnalysisForm, answer } = match(validatedAnswer)
+        .with({ type: "single" }, (a) => {
+          const singleAnswer =
+            riskAnalysisValidatedAnswerToRiskAnalysisAnswer(a);
+          return {
+            purposeRiskAnalysisForm: {
+              ...riskAnalysisForm,
+              singleAnswers: [...riskAnalysisForm.singleAnswers, singleAnswer],
+            },
+            answer: singleAnswer,
+          };
+        })
+        .with({ type: "multi" }, (a) => {
+          const multiAnswer =
+            riskAnalysisValidatedAnswerToRiskAnalysisAnswer(a);
+          return {
+            purposeRiskAnalysisForm: {
+              ...riskAnalysisForm,
+              multiAnswers: [...riskAnalysisForm.multiAnswers, multiAnswer],
+            },
+            answer: multiAnswer,
+          };
+        })
         .exhaustive();
 
       const updatedPurposeTemplate: PurposeTemplate = {
         ...purposeTemplate.data,
         updatedAt: new Date(),
-        purposeRiskAnalysisForm: updatedPurposeRiskAnalysisForm,
+        purposeRiskAnalysisForm,
       };
 
       const event = await repository.createEvent(
@@ -249,7 +254,7 @@ export function purposeTemplateServiceBuilder(
       );
 
       return {
-        data: transformedAnswer,
+        data: answer,
         metadata: {
           version: event.newVersion,
         },
@@ -290,7 +295,11 @@ export function purposeTemplateServiceBuilder(
         answerId
       );
 
-      validateRiskAnalysisAnswerAnnotationOrThrow();
+      if (answerAndAnnotation.annotation) {
+        validateRiskAnalysisAnswerAnnotationOrThrow(
+          answerAndAnnotation.annotation.text
+        );
+      }
 
       const newAnnotation: RiskAnalysisTemplateAnswerAnnotation =
         answerAndAnnotation.annotation

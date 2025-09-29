@@ -1,11 +1,11 @@
 import {
-  RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateAnswerAnnotation,
-  RiskAnalysisTemplateSingleAnswer,
-  RiskAnalysisTemplateMultiAnswer,
   generateId,
-  RiskAnalysisSingleAnswerId,
+  RiskAnalysisFormTemplate,
   RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -126,10 +126,24 @@ export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
   };
 }
 
-export function riskAnalysisValidatedAnswerToNewRiskAnalysisAnswer(
+export function riskAnalysisValidatedAnswerToRiskAnalysisAnswer(
+  validatedAnswer: Extract<
+    RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
+    { type: "single" }
+  >
+): RiskAnalysisTemplateSingleAnswer;
+
+export function riskAnalysisValidatedAnswerToRiskAnalysisAnswer(
+  validatedAnswer: Extract<
+    RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
+    { type: "multi" }
+  >
+): RiskAnalysisTemplateMultiAnswer;
+
+export function riskAnalysisValidatedAnswerToRiskAnalysisAnswer(
   validatedAnswer: RiskAnalysisTemplateValidatedSingleOrMultiAnswer
 ): RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer {
-  return match(validatedAnswer)
+  return match(validatedAnswer) // This match help to distinguish properly brandedtype for Answer Id
     .with({ type: "single" }, (a) => {
       const { annotation, ...data } = a.answer;
       return {

@@ -12,14 +12,14 @@ import {
   RiskAnalysisTemplateValidatedForm,
   RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
-  // validateNoHyperlinks,
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
   UIAuthData,
   M2MAdminAuthData,
+  validateNoHyperlinks,
 } from "pagopa-interop-commons";
 import {
-  // hyperlinkDetectionError,
+  hyperlinkDetectionError,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInValidState,
@@ -84,8 +84,10 @@ export function validateAndTransformRiskAnalysisTemplate(
   );
 }
 
-export function validateRiskAnalysisAnswerAnnotationOrThrow(): void {
-  // validateNoHyperlinks(text, hyperlinkDetectionError(text)); // todo disabled until hyperlinks validation rules are defined
+export function validateRiskAnalysisAnswerAnnotationOrThrow(
+  text: string
+): void {
+  validateNoHyperlinks(text, hyperlinkDetectionError(text));
 }
 
 export function assertRequesterPurposeTemplateCreator(
@@ -125,7 +127,9 @@ export function validateRiskAnalysisAnswerOrThrow({
   tenantKind: TenantKind;
 }): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {
   if (riskAnalysisAnswer.answerData.annotation) {
-    validateRiskAnalysisAnswerAnnotationOrThrow();
+    validateRiskAnalysisAnswerAnnotationOrThrow(
+      riskAnalysisAnswer.answerData.annotation.text
+    );
   }
 
   const result = validateRiskAnalysisAnswer(
