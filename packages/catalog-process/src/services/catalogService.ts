@@ -2720,6 +2720,13 @@ export function catalogServiceBuilder(
         );
       }
 
+      if (
+        config.featureFlagEservicePersonalData &&
+        eservice.data.personalData === undefined
+      ) {
+        throw missingPersonalDataFlag(eserviceId, descriptorId);
+      }
+
       const updatedEService = await processDescriptorPublication(
         eservice.data,
         descriptor,
