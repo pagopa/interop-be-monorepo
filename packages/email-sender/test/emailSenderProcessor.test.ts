@@ -51,13 +51,22 @@ describe("emailSenderProcessor", () => {
       eventPayload: null,
     },
     {
-      eventPayload: { ...correctEventPayload, subject: undefined },
+      eventPayload: {
+        ...correctEventPayload,
+        email: { ...correctEventPayload.email, subject: undefined },
+      },
+    },
+    {
+      eventPayload: {
+        ...correctEventPayload,
+        email: { ...correctEventPayload.email, body: undefined },
+      },
     },
     {
       eventPayload: { ...correctEventPayload, address: undefined },
     },
     {
-      eventPayload: { ...correctEventPayload, body: undefined },
+      eventPayload: { ...correctEventPayload, correlationId: undefined },
     },
     {
       eventPayload: { ...correctEventPayload, correlationId: undefined },
@@ -67,6 +76,18 @@ describe("emailSenderProcessor", () => {
     },
     {
       eventPayload: { ...correctEventPayload, correlationId: "invalid" },
+    },
+    {
+      eventPayload: {
+        ...correctEventPayload,
+        email: { ...correctEventPayload.email, subject: "" },
+      },
+    },
+    {
+      eventPayload: {
+        ...correctEventPayload,
+        email: { ...correctEventPayload.email, body: "" },
+      },
     },
   ])("should skip if message is malformed: %s", async ({ eventPayload }) => {
     const message = kafkaMessagePayloadWithValue({ eventPayload });

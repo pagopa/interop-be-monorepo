@@ -12,6 +12,7 @@ import {
   eserviceTemplateApi,
   notificationConfigApi,
   inAppNotificationApi,
+  purposeTemplateApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
@@ -35,6 +36,10 @@ export type AgreementProcessClient = ReturnType<
 
 export type PurposeProcessClient = ReturnType<
   typeof purposeApi.createPurposeApiClient
+>;
+
+export type PurposeTemplateProcessClient = ReturnType<
+  typeof purposeTemplateApi.createPurposeTemplateApiClient
 >;
 
 export type DelegationProcessClient = {
@@ -80,6 +85,7 @@ export type PagoPAInteropBeClients = {
   catalogProcessClient: CatalogProcessClient;
   agreementProcessClient: AgreementProcessClient;
   purposeProcessClient: PurposeProcessClient;
+  purposeTemplateProcessClient: PurposeTemplateProcessClient;
   authorizationClient: AuthorizationProcessClient;
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   selfcareV2UserClient: SelfcareV2UserClient;
@@ -108,6 +114,10 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       config.attributeRegistryUrl
     ),
     purposeProcessClient: purposeApi.createPurposeApiClient(config.purposeUrl),
+    purposeTemplateProcessClient:
+      purposeTemplateApi.createPurposeTemplateApiClient(
+        config.purposeTemplateUrl
+      ),
     authorizationClient: {
       client: authorizationApi.createClientApiClient(config.authorizationUrl),
       producerKeychain: authorizationApi.createProducerKeychainApiClient(
