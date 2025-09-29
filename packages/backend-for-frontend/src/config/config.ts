@@ -5,6 +5,7 @@ import {
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
   FeatureFlagNotificationConfig,
+  FeatureFlagPurposeTemplateConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
   SelfCareClientConfig,
@@ -77,6 +78,17 @@ export const PurposeProcessServerConfig = z
   }));
 export type PurposeProcessServerConfig = z.infer<
   typeof PurposeProcessServerConfig
+>;
+
+export const PurposeTemplateProcessServerConfig = z
+  .object({
+    PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    purposeTemplateUrl: c.PURPOSE_TEMPLATE_PROCESS_URL,
+  }));
+export type PurposeTemplateProcessServerConfig = z.infer<
+  typeof PurposeTemplateProcessServerConfig
 >;
 
 export const AuthorizationProcessServerConfig = z
@@ -266,6 +278,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(SelfCareClientConfig)
   .and(PurposeProcessServerConfig)
+  .and(PurposeTemplateProcessServerConfig)
   .and(RedisRateLimiterConfig)
   .and(AuthorizationProcessServerConfig)
   .and(DelegationProcessServerConfig)
@@ -288,7 +301,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
-  .and(FeatureFlagNotificationConfig);
+  .and(FeatureFlagNotificationConfig)
+  .and(FeatureFlagPurposeTemplateConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
