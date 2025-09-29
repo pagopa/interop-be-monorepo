@@ -11,7 +11,7 @@ import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   getCatalogPurposeTemplatesErrorMapper,
-  getPurposeTemplateErrorMapper,
+  purposeTemplateFeatureFlagErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
@@ -35,7 +35,7 @@ const purposeTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getPurposeTemplateErrorMapper,
+          purposeTemplateFeatureFlagErrorMapper,
           ctx,
           "Error creating purpose template"
         );
@@ -62,7 +62,7 @@ const purposeTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getPurposeTemplateErrorMapper,
+          purposeTemplateFeatureFlagErrorMapper,
           ctx,
           "Error retrieving creator's purpose templates"
         );
