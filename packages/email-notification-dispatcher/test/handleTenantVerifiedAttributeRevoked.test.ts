@@ -172,7 +172,7 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
     expect(messages.length).toEqual(0);
   });
 
-  it("should generate one message per user of the tenant that is revoked the attribute", async () => {
+  it("should generate one message per user of the tenant whose attribute has been revoked", async () => {
     const messages = await handleTenantVerifiedAttributeRevoked({
       tenantV2Msg: toTenantV2(targetTenant),
       attributeId,
