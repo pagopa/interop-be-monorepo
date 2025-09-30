@@ -10,7 +10,6 @@ import request from "supertest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateId,
-  operationForbidden,
   PurposeTemplateId,
   purposeTemplateState,
 } from "pagopa-interop-models";
@@ -22,6 +21,7 @@ import {
   purposeTemplateNotInExpectedState,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposeTemplates/{id}/publish", () => {
@@ -86,7 +86,7 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
       ),
       expectedStatus: 400,
     },
-    { error: operationForbidden, expectedStatus: 403 },
+    { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
     {
       error: purposeTemplateNotFound(generateId()),
       expectedStatus: 404,
