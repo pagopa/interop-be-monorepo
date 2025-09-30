@@ -18,7 +18,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
 
 describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test", () => {
-  const versionSeed = {
+  const versionSeed:  m2mGatewayApi.EServiceTemplateVersionDraftUpdateSeed = {
     description: "Test Version Description",
     voucherLifespan: 100,
     dailyCallsPerConsumer: 10,
