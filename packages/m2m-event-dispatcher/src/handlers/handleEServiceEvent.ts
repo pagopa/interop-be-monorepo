@@ -10,9 +10,9 @@ import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.j
 import {
   createEServiceDescriptorM2MEvent,
   createEServiceM2MEvent,
-} from "../models/eserviceM2MEventBuilder.js";
+} from "../services/event-builders/eserviceM2MEventBuilder.js";
 import { toEServiceM2MEventSQL } from "../models/eserviceM2MEventAdapterSQL.js";
-import { assertEServiceExistsInEvent } from "./validators.js";
+import { assertEServiceExistsInEvent } from "../services/validators.js";
 
 export async function handleEServiceEvent(
   decodedMessage: EServiceEventEnvelopeV2,
