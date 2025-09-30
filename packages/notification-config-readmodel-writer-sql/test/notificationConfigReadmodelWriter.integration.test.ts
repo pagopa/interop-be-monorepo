@@ -11,6 +11,7 @@ import {
   UserNotificationConfigCreatedV2,
   UserNotificationConfigDeletedV2,
   UserNotificationConfigUpdatedV2,
+  emailNotificationPreference,
   generateId,
   toTenantNotificationConfigV2,
   toUserNotificationConfigV2,
@@ -136,6 +137,8 @@ describe("database test", async () => {
         id: generateId(),
         userId: generateId(),
         tenantId: generateId(),
+        inAppNotificationPreference: true,
+        emailNotificationPreference: emailNotificationPreference.enabled,
         inAppConfig: {
           agreementSuspendedUnsuspendedToProducer: false,
           agreementManagementToProducer: false,

@@ -8,6 +8,7 @@ import {
   CorrelationId,
   DelegationEventV2,
   EServiceEventV2,
+  EServiceTemplateEventV2,
   EventEnvelope,
   generateId,
   genericInternalError,
@@ -42,6 +43,7 @@ import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
 import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
 import { handleAuthorizationEvent } from "./handlers/authorizations/handleAuthorizationEvent.js";
 import { handleTenantEvent } from "./handlers/tenants/handleTenantEvent.js";
+import { handleEServiceTemplateEvent } from "./handlers/eserviceTemplates/handleEserviceTemplatesEvent.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -50,6 +52,7 @@ interface TopicNames {
   delegationTopic: string;
   authorizationTopic: string;
   tenantTopic: string;
+  eserviceTemplateTopic: string;
 }
 
 const readModelDB = makeDrizzleConnection(config);
@@ -100,6 +103,7 @@ function processMessage(topicNames: TopicNames) {
       delegationTopic,
       authorizationTopic,
       tenantTopic,
+      eserviceTemplateTopic,
     } = topicNames;
 
     const handleWith = <T extends z.ZodType>(
@@ -150,6 +154,9 @@ function processMessage(topicNames: TopicNames) {
       .with(tenantTopic, async () =>
         handleWith(TenantEventV2, handleTenantEvent)
       )
+      .with(eserviceTemplateTopic, async () =>
+        handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
+      )
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
@@ -167,6 +174,7 @@ await runConsumer(
     config.delegationTopic,
     config.authorizationTopic,
     config.tenantTopic,
+    config.eserviceTemplateTopic,
   ],
   processMessage({
     catalogTopic: config.catalogTopic,
@@ -175,6 +183,7 @@ await runConsumer(
     delegationTopic: config.delegationTopic,
     authorizationTopic: config.authorizationTopic,
     tenantTopic: config.tenantTopic,
+    eserviceTemplateTopic: config.eserviceTemplateTopic,
   }),
   "in-app-notification-dispatcher"
 );
