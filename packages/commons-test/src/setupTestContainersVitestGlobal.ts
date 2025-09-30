@@ -10,7 +10,6 @@ import {
   DPoPConfig,
   EventStoreConfig,
   FileManagerConfig,
-  ReadModelDbConfig,
   ReadModelSQLDbConfig,
   RedisRateLimiterConfig,
   S3Config,
@@ -29,14 +28,12 @@ import {
   TEST_MAILPIT_HTTP_PORT,
   TEST_MAILPIT_SMTP_PORT,
   TEST_MINIO_PORT,
-  TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   TEST_REDIS_PORT,
   awsSESContainer,
   dynamoDBContainer,
   mailpitContainer,
   minioContainer,
-  mongoDBContainer,
   postgreSQLReadModelContainer,
   postgreSQLContainer,
   redisContainer,
@@ -56,7 +53,6 @@ import {
 
 declare module "vitest" {
   export interface ProvidedContext {
-    readModelConfig?: ReadModelDbConfig;
     readModelSQLConfig?: ReadModelSQLDbConfig;
     tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
@@ -74,7 +70,7 @@ declare module "vitest" {
 }
 
 /**
- * This function is a global setup for vitest that starts and stops test containers for PostgreSQL, MongoDB and Minio.
+ * This function is a global setup for vitest that starts and stops test containers.
  * It must be called in a file that is used as a global setup in the vitest configuration.
  *
  * It provides the `config` object to the tests, via the `provide` function.
@@ -84,7 +80,6 @@ declare module "vitest" {
 export function setupTestContainersVitestGlobal() {
   dotenv();
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
-  const readModelConfig = ReadModelDbConfig.safeParse(process.env);
   const readModelSQLConfig = ReadModelSQLDbConfig.safeParse(process.env);
   const analyticsSQLConfig = AnalyticsSQLDbConfig.safeParse(process.env);
   const fileManagerConfig = FileManagerConfig.safeParse(process.env);
@@ -107,7 +102,6 @@ export function setupTestContainersVitestGlobal() {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
     let startedPostgreSqlReadModelContainer: StartedTestContainer | undefined;
     let startedPostgreSqlAnalyticsContainer: StartedTestContainer | undefined;
-    let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
     let startedRedisContainer: StartedTestContainer | undefined;
@@ -168,18 +162,6 @@ export function setupTestContainersVitestGlobal() {
         );
 
       provide("analyticsSQLConfig", analyticsSQLConfig.data);
-    }
-
-    // Setting up the MongoDB container if the config is provided
-    if (readModelConfig.success) {
-      startedMongodbContainer = await mongoDBContainer(
-        readModelConfig.data
-      ).start();
-
-      readModelConfig.data.readModelDbPort =
-        startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
-
-      provide("readModelConfig", readModelConfig.data);
     }
 
     // Setting up the Minio container if the config is provided
@@ -300,7 +282,6 @@ export function setupTestContainersVitestGlobal() {
       await startedPostgreSqlContainer?.stop();
       await startedPostgreSqlReadModelContainer?.stop();
       await startedPostgreSqlAnalyticsContainer?.stop();
-      await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
       await startedDynamoDbContainer?.stop();

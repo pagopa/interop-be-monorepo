@@ -210,6 +210,7 @@ export function purposeTemplateServiceBuilder(
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
       logger.info(`Deleting purpose template ${purposeTemplateId}`);
 
       await purposeTemplateClient.deletePurposeTemplate(undefined, {
