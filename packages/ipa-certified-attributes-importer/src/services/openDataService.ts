@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import { match, P } from "ts-pattern";
-import { ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER } from "pagopa-interop-models";
+import { PUBLIC_ADMINISTRATIONS_TYPOLOGY } from "pagopa-interop-models";
 import {
   Category,
   Institution,
@@ -18,11 +18,12 @@ export const shouldKindBeIncluded = (i: {
   category: string;
 }): boolean =>
   match(i)
-    .with({ kind: P.union("Pubbliche Amministrazioni") }, () => true)
     .with(
       {
-        kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
-        category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+        kind: P.union(
+          PUBLIC_ADMINISTRATIONS_TYPOLOGY,
+          ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY
+        ),
       },
       () => true
     )
