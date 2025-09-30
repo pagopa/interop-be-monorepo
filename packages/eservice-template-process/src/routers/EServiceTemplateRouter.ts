@@ -7,6 +7,7 @@ import {
   fromAppContext,
   authRole,
   validateAuthorization,
+  assertFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -704,9 +705,7 @@ const eserviceTemplatesRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-        if (config.featureFlagEservicePersonalData === false) {
-          return res.status(501).send();
-        }
+        assertFeatureFlagEnabled(config, "featureFlagEservicePersonalData");
 
         const updatedEServiceTemplate =
           await eserviceTemplateService.updateEServiceTemplatePersonalDataFlagAfterPublication(
