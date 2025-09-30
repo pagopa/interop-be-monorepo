@@ -2939,7 +2939,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       if (eservice.data.personalData !== undefined) {
-        throw eservicePersonalDataCanOnlyBeSetOnce(eserviceId);
+        throw eservicePersonalDataFlagCanOnlyBeSetOnce(eserviceId);
       }
 
       const updatedEservice: EService = {
