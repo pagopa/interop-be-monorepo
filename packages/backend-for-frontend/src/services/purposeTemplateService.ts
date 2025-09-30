@@ -205,6 +205,19 @@ export function purposeTemplateServiceBuilder(
         annotationDocuments,
       });
     },
+    async deletePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose template ${purposeTemplateId}`);
+
+      await purposeTemplateClient.deletePurposeTemplate(undefined, {
+        params: {
+          id: purposeTemplateId,
+        },
+        headers,
+      });
+    },
   };
 }
 export type PurposeTemplateService = ReturnType<
