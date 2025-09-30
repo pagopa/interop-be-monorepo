@@ -25,6 +25,8 @@ export const errorCodes = {
   riskAnalysisTemplateAnswerNotFound: "0010",
   riskAnalysisTemplateAnswerAnnotationNotFound: "0011",
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0012",
+  conflictDocumentPrettyNameDuplicate: "0013",
+  annotationDocumentLimitExceeded: "0014",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -157,5 +159,26 @@ export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
     detail: `No Risk Analysis Template Answer Annotation Document found for Purpose Template ${purposeTemplateId}, Answer ${answerId} and Document ${documentId}`,
     code: "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
     title: "Risk Analysis Template Answer Annotation Document Not Found",
+  });
+}
+
+export function conflictDocumentPrettyNameDuplicate(
+  answerId: string,
+  prettyName: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Conflict: annotation document with pretty name '${prettyName}' is duplicated for answer with id '${answerId}'`,
+    code: "conflictDocumentPrettyNameDuplicate",
+    title: "Annotation document with pretty name already exists",
+  });
+}
+
+export function annotationDocumentLimitExceeded(
+  answerId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Annotation document limit exceeded for answer with id '${answerId}'`,
+    code: "annotationDocumentLimitExceeded",
+    title: "Annotation document limit exceeded",
   });
 }

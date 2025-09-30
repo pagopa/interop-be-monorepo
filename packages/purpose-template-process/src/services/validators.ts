@@ -3,6 +3,9 @@ import {
   purposeTemplateState,
   PurposeTemplateState,
   RiskAnalysisFormTemplate,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
   TenantKind,
 } from "pagopa-interop-models";
@@ -17,6 +20,8 @@ import {
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
+  annotationDocumentLimitExceeded,
+  conflictDocumentPrettyNameDuplicate,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInExpectedStates,
@@ -26,6 +31,8 @@ import {
   tenantNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+
+const ANNOTATION_DOCUMENTS_LIMIT = 2;
 
 const isRequesterCreator = (
   creatorId: TenantId,
@@ -68,6 +75,41 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
       purposeTemplateWithSameName.data.id,
       purposeTemplateWithSameName.data.purposeTitle
     );
+  }
+};
+
+export const assertDocumentsLimitsNotReached = (
+  docs: RiskAnalysisTemplateAnswerAnnotationDocument[] | undefined,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): void => {
+  const totalDocs = docs?.length || 0;
+  if (totalDocs > ANNOTATION_DOCUMENTS_LIMIT) {
+    throw annotationDocumentLimitExceeded(answerId);
+  }
+};
+
+export const validateDocuments = (
+  purposeTemplate: PurposeTemplate,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+  prettyName: string
+): void => {
+  const singleAnswersAnnotationsDocs =
+    purposeTemplate.purposeRiskAnalysisForm?.singleAnswers.flatMap(
+      (a) => a.annotation?.docs
+    ) || [];
+
+  const multiAnswersAnnotationsDocs =
+    purposeTemplate.purposeRiskAnalysisForm?.multiAnswers.flatMap(
+      (a) => a.annotation?.docs
+    ) || [];
+
+  const existingDocWithPrettyName = [
+    ...singleAnswersAnnotationsDocs,
+    ...multiAnswersAnnotationsDocs,
+  ].find((d) => d?.prettyName === prettyName);
+
+  if (existingDocWithPrettyName) {
+    throw conflictDocumentPrettyNameDuplicate(answerId, prettyName);
   }
 };
 
