@@ -196,8 +196,17 @@ describe("patchUpdateDraftTemplateVersion", () => {
         ],
       },
     },
+    {
+      dailyCallsPerConsumer: null,
+    },
+    {
+      dailyCallsTotal: null,
+    },
+    {
+      agreementApprovalPolicy: null,
+    },
   ] as eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed[])(
-    `should write on event-store and update only the fields set in the seed (seed #%#)`,
+    `should write on event-store, update only the fields set in the seed and delete fields set to null (seed #%#)`,
     async (seed) => {
       const templateVersion: EServiceTemplateVersion = {
         ...mockTemplateVersion,

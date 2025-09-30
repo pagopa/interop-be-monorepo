@@ -126,11 +126,13 @@ describe("PATCH /templates/:templateId/versions/:templateVersionId router test",
       agreementApprovalPolicy: "AUTOMATIC",
     },
     {
-      description: "new description",
-      voucherLifespan: 1000,
-      dailyCallsPerConsumer: 100,
-      dailyCallsTotal: 200,
-      agreementApprovalPolicy: "AUTOMATIC",
+      dailyCallsPerConsumer: null,
+    },
+    {
+      dailyCallsTotal: null,
+    },
+    {
+      agreementApprovalPolicy: null,
     },
     {
       attributes: {
@@ -151,7 +153,7 @@ describe("PATCH /templates/:templateId/versions/:templateVersionId router test",
       },
     },
   ] as eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed[])(
-    "Should return 200 with partial seed (seed #%#)",
+    "Should return 200 with partial seed and nullable fields (seed #%#)",
     async (seed) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(

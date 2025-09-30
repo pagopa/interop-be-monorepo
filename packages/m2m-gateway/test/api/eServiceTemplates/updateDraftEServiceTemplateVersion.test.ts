@@ -18,7 +18,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
 
 describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test", () => {
-  const versionSeed:  m2mGatewayApi.EServiceTemplateVersionDraftUpdateSeed = {
+  const versionSeed: m2mGatewayApi.EServiceTemplateVersionDraftUpdateSeed = {
     description: "Test Version Description",
     voucherLifespan: 100,
     dailyCallsPerConsumer: 10,
@@ -81,16 +81,27 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test"
       dailyCallsPerConsumer: 30,
       dailyCallsTotal: 30,
     },
+    {
+      description: "Yet Another Updated Description",
+      voucherLifespan: 300,
+      dailyCallsPerConsumer: 30,
+      dailyCallsTotal: 30,
+      agreementApprovalPolicy: "AUTOMATIC",
+    },
+    {
+      dailyCallsPerConsumer: null,
+    },
+    {
+      dailyCallsTotal: null,
+    },
+    {
+      agreementApprovalPolicy: null,
+    },
   ] as m2mGatewayApi.EServiceTemplateVersionDraftUpdateSeed[])(
-    "Should return 200 with partial seed (seed #%#)",
+    "Should return 200 with partial seed and nullable fields (seed #%#)",
     async (seed) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        generateId(),
-        generateId(),
-        seed as m2mGatewayApi.EServiceTemplateVersionDraftUpdateSeed
-      );
+      const res = await makeRequest(token, generateId(), generateId(), seed);
       expect(res.status).toBe(200);
     }
   );
