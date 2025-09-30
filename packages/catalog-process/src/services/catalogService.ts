@@ -100,7 +100,7 @@ import {
   templateMissingRequiredRiskAnalysis,
   checksumDuplicate,
   attributeDuplicatedInGroup,
-  eservicePersonalDataCanOnlyBeSetOnce,
+  eservicePersonalDataFlagCanOnlyBeSetOnce,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -3563,7 +3563,7 @@ export function catalogServiceBuilder(
       assertEServiceUpdatableAfterPublish(eservice.data);
 
       if (eservice.data.personalData !== undefined) {
-        throw eservicePersonalDataCanOnlyBeSetOnce(eserviceId);
+        throw eservicePersonalDataFlagCanOnlyBeSetOnce(eserviceId);
       }
 
       const updatedEservice: EService = {

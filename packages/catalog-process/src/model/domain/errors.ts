@@ -55,7 +55,7 @@ export const errorCodes = {
   eserviceTemplateNameConflict: "0039",
   checksumDuplicate: "0040",
   attributeDuplicatedInGroup: "0041",
-  eservicePersonalDataCanOnlyBeSetOnce: "0042",
+  eservicePersonalDataFlagCanOnlyBeSetOnce: "0042",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -477,12 +477,12 @@ export function attributeDuplicatedInGroup(
   });
 }
 
-export function eservicePersonalDataCanOnlyBeSetOnce(
+export function eservicePersonalDataFlagCanOnlyBeSetOnce(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `PersonalData flag has already been set for eService ${eserviceId}`,
-    code: "eservicePersonalDataCanOnlyBeSetOnce",
+    code: "eservicePersonalDataFlagCanOnlyBeSetOnce",
     title: "EService personalData can only be set once",
   });
 }
