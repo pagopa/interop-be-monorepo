@@ -50,7 +50,7 @@ import {
   notValidEServiceTemplateVersionState,
   attributeDuplicatedInGroup,
   missingPersonalDataFlag,
-  eserviceTemplatePersonalDataCanOnlyBeSetOnce,
+  eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
 } from "../model/domain/errors.js";
 import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
@@ -1816,7 +1816,9 @@ export function eserviceTemplateServiceBuilder(
       assertPublishedEServiceTemplate(eserviceTemplate.data);
 
       if (eserviceTemplate.data.personalData !== undefined) {
-        throw eserviceTemplatePersonalDataCanOnlyBeSetOnce(eserviceTemplateId);
+        throw eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce(
+          eserviceTemplateId
+        );
       }
 
       const updatedEServiceTemplate: EServiceTemplate = {

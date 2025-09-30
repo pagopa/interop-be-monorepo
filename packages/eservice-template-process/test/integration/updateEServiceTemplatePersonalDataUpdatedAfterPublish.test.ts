@@ -23,7 +23,7 @@ import {
 } from "../integrationUtils.js";
 import {
   eserviceTemplateNotFound,
-  eserviceTemplatePersonalDataCanOnlyBeSetOnce,
+  eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
   eserviceTemplateWithoutPublishedVersion,
 } from "../../src/model/domain/errors.js";
 
@@ -109,7 +109,7 @@ describe("update EService Template personalData flag for an already created ESer
           })
         )
       ).rejects.toThrowError(
-        eserviceTemplatePersonalDataCanOnlyBeSetOnce(eserviceTemplate.id)
+        eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce(eserviceTemplate.id)
       );
     }
   );
