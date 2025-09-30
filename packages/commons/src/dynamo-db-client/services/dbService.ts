@@ -46,7 +46,7 @@ export function dbServiceBuilder(
 
     readSignatureReference: async (
       id: string
-    ): Promise<SignatureReference | null> => {
+    ): Promise<SignatureReference | undefined> => {
       const input: GetItemInput = {
         Key: {
           safeStorageId: { S: id },
@@ -61,7 +61,7 @@ export function dbServiceBuilder(
         const data = await dynamoDBClient.send(command);
 
         if (!data.Item) {
-          return null;
+          return undefined;
         }
         if (
           !data.Item.safeStorageId?.S ||

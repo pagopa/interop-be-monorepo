@@ -3,6 +3,7 @@ import {
   FileManager,
   logger,
   SafeStorageService,
+  DbServiceBuilder,
 } from "pagopa-interop-commons";
 import {
   AuthorizationEventV1,
@@ -10,7 +11,6 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { DbServiceBuilder } from "../services/dbService.js";
 import { config } from "../config/config.js";
 import { AuthorizationEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";

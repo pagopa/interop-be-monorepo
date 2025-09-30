@@ -11,10 +11,10 @@ import {
   FileManager,
   logger,
   SafeStorageService,
+  DbServiceBuilder,
 } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { CatalogEventData } from "../models/eventTypes.js";
-import { DbServiceBuilder } from "../services/dbService.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleCatalogMessageV2 = async (

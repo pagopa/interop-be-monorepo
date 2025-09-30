@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
 import {
   AgreementAddedV2,
   generateId,
@@ -10,28 +9,25 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { FileManager, initFileManager } from "pagopa-interop-commons";
-import {
-  buildDynamoDBTables,
-  deleteDynamoDBTables,
-  getMockAgreement,
-} from "pagopa-interop-commons-test";
+import { getMockAgreement } from "pagopa-interop-commons-test";
 import {
   SafeStorageService,
   createSafeStorageApiClient,
+  DbServiceBuilder,
+  dbServiceBuilder,
 } from "pagopa-interop-commons";
 import { config } from "../../src/config/config.js";
 import {
-  DbServiceBuilder,
-  dbServiceBuilder,
-} from "../../src/services/dbService.js";
-import { dynamoDBClient } from "../utils/utils.js";
-import { readSignatureReference } from "../utils/dbServiceUtils.js";
+  createTableIfNotExists,
+  dynamoDBClient,
+  waitForTable,
+} from "../utils/utils.js";
 import { handleAgreementMessageV2 } from "../../src/handlers/handleAgreementMessageV2.js";
 
 const fileManager: FileManager = initFileManager(config);
 const safeStorageService: SafeStorageService =
   createSafeStorageApiClient(config);
-const dbService: DbServiceBuilder = dbServiceBuilder(dynamoDBClient);
+const dbService: DbServiceBuilder = dbServiceBuilder(dynamoDBClient, config);
 
 const mockSafeStorageId = generateId();
 
@@ -40,15 +36,18 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     uploadPreparedFileToS3: vi.fn(() => ({
       fileContentBuffer: Buffer.from("test content"),
       fileName: "test-file.ndjson.gz",
+      correlationId: "correlation-id",
+      filename: "filename.gz",
     })),
   }));
-  beforeEach(async () => {
-    vi.clearAllMocks();
-    await buildDynamoDBTables(dynamoDBClient);
+
+  beforeAll(async () => {
+    await createTableIfNotExists(config.signatureReferencesTableName);
+    await waitForTable(config.signatureReferencesTableName);
   });
 
-  afterEach(async () => {
-    await deleteDynamoDBTables(dynamoDBClient);
+  beforeEach(async () => {
+    vi.clearAllMocks();
   });
 
   it("should process an AgreementActivated event and save a reference in DynamoDB", async () => {
@@ -85,13 +84,11 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
       safeStorageService
     );
 
-    const retrievedReference = await readSignatureReference(
-      mockSafeStorageId,
-      dynamoDBClient
+    const retrievedReference = await dbService.readSignatureReference(
+      mockSafeStorageId
     );
 
     expect(retrievedReference).toEqual({
-      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "EVENT_JOURNAL",
       fileName: expect.stringMatching(/.ndjson.gz$/),
@@ -133,9 +130,8 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     expect(safeStorageCreateFileSpy).not.toHaveBeenCalled();
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
-    const retrievedReference = await readSignatureReference(
-      mockSafeStorageId,
-      dynamoDBClient
+    const retrievedReference = await dbService.readSignatureReference(
+      generateId()
     );
     expect(retrievedReference).toBeUndefined();
   });

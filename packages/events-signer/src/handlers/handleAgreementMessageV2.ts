@@ -12,10 +12,10 @@ import {
   FileManager,
   logger,
   SafeStorageService,
+  DbServiceBuilder,
 } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { AgreementEventData } from "../models/eventTypes.js";
-import { DbServiceBuilder } from "../services/dbService.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleAgreementMessageV2 = async (

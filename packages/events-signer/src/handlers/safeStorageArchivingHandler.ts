@@ -6,10 +6,11 @@ import {
   SafeStorageApiConfig,
   SafeStorageService,
   FileCreationRequest,
+  DbServiceBuilder,
+  SignatureReference,
 } from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
 import { calculateSha256Base64 } from "../utils/checksum.js";
-import { DbServiceBuilder } from "../services/dbService.js";
 
 export const archiveFileToSafeStorage = async (
   storedFile: {
@@ -50,12 +51,14 @@ export const archiveFileToSafeStorage = async (
 
     logger.info(`File ${fileName} uploaded to Safe Storage successfully.`);
 
-    await dbService.saveSignatureReference({
+    const signatureReference = {
       safeStorageId: key,
       fileKind: "EVENT_JOURNAL",
       fileName,
       correlationId,
-    });
+    } as SignatureReference;
+
+    await dbService.saveSignatureReference(signatureReference);
     logger.info(`Safe Storage reference for ${fileName} saved in DynamoDB.`);
   } catch (error) {
     throw genericInternalError(

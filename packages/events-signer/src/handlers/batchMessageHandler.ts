@@ -18,8 +18,7 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { SafeStorageService } from "pagopa-interop-commons";
-import { DbServiceBuilder } from "../services/dbService.js";
+import { SafeStorageService, DbServiceBuilder } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { handleAgreementMessageV2 } from "./handleAgreementMessageV2.js";
 import { handleAuthorizationMessageV1 } from "./handleAuthorizationMessageV1.js";

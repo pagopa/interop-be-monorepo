@@ -11,6 +11,7 @@ import {
   KafkaBatchConsumerConfig,
   EventsSignerConfig,
   SafeStorageApiConfig,
+  DynamoDBClientConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -24,6 +25,7 @@ export const EventSignerConfig = CatalogTopicConfig.and(AgreementTopicConfig)
   .and(KafkaBatchConsumerConfig)
   .and(EventsSignerConfig)
   .and(SafeStorageApiConfig)
+  .and(DynamoDBClientConfig)
   .and(
     z
       .object({

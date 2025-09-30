@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
 import {
   AuthorizationEventEnvelopeV2,
   generateId,
@@ -16,26 +16,22 @@ import {
   initFileManager,
   SafeStorageService,
   createSafeStorageApiClient,
-} from "pagopa-interop-commons";
-import {
-  buildDynamoDBTables,
-  deleteDynamoDBTables,
-  getMockClient,
-  getMockKey,
-} from "pagopa-interop-commons-test";
-import { config } from "../../src/config/config.js";
-import {
   DbServiceBuilder,
   dbServiceBuilder,
-} from "../../src/services/dbService.js";
-import { dynamoDBClient } from "../utils/utils.js";
-import { readSignatureReference } from "../utils/dbServiceUtils.js";
+} from "pagopa-interop-commons";
+import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
+import { config } from "../../src/config/config.js";
+import {
+  createTableIfNotExists,
+  dynamoDBClient,
+  waitForTable,
+} from "../utils/utils.js";
 import { handleAuthorizationMessageV2 } from "../../src/handlers/handleAuthorizationMessageV2.js";
 
 const fileManager: FileManager = initFileManager(config);
 const safeStorageService: SafeStorageService =
   createSafeStorageApiClient(config);
-const dbService: DbServiceBuilder = dbServiceBuilder(dynamoDBClient);
+const dbService: DbServiceBuilder = dbServiceBuilder(dynamoDBClient, config);
 
 const mockSafeStorageId = generateId();
 
@@ -47,13 +43,13 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     })),
   }));
 
-  beforeEach(async () => {
-    vi.clearAllMocks();
-    await buildDynamoDBTables(dynamoDBClient);
+  beforeAll(async () => {
+    await createTableIfNotExists(config.signatureReferencesTableName);
+    await waitForTable(config.signatureReferencesTableName);
   });
 
-  afterEach(async () => {
-    await deleteDynamoDBTables(dynamoDBClient);
+  beforeEach(async () => {
+    vi.clearAllMocks();
   });
 
   it("should process a ClientKeyAdded event and save a reference in DynamoDB", async () => {
@@ -105,13 +101,11 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
       safeStorageService
     );
 
-    const retrievedReference = await readSignatureReference(
-      mockSafeStorageId,
-      dynamoDBClient
+    const retrievedReference = await dbService.readSignatureReference(
+      mockSafeStorageId
     );
 
     expect(retrievedReference).toEqual({
-      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "EVENT_JOURNAL",
       fileName: expect.stringMatching(/.ndjson.gz$/),
@@ -165,13 +159,11 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
       safeStorageService
     );
 
-    const retrievedReference = await readSignatureReference(
-      mockSafeStorageId,
-      dynamoDBClient
+    const retrievedReference = await dbService.readSignatureReference(
+      mockSafeStorageId
     );
 
     expect(retrievedReference).toEqual({
-      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "EVENT_JOURNAL",
       fileName: expect.stringMatching(/.ndjson.gz$/),
@@ -222,13 +214,11 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
       safeStorageService
     );
 
-    const retrievedReference = await readSignatureReference(
-      mockSafeStorageId,
-      dynamoDBClient
+    const retrievedReference = await dbService.readSignatureReference(
+      mockSafeStorageId
     );
 
     expect(retrievedReference).toEqual({
-      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
       fileKind: "EVENT_JOURNAL",
       fileName: expect.stringMatching(/.ndjson.gz$/),
@@ -279,9 +269,8 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     expect(safeStorageCreateFileSpy).not.toHaveBeenCalled();
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
-    const retrievedReference = await readSignatureReference(
-      mockSafeStorageId,
-      dynamoDBClient
+    const retrievedReference = await dbService.readSignatureReference(
+      generateId()
     );
     expect(retrievedReference).toBeUndefined();
   });

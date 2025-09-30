@@ -3,12 +3,12 @@ import {
   FileManager,
   Logger,
   SafeStorageService,
+  DbServiceBuilder,
 } from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
 import { uploadPreparedFileToS3 } from "../handlers/s3UploaderHandler.js";
 import { archiveFileToSafeStorage } from "../handlers/safeStorageArchivingHandler.js";
 import { AllEventData } from "../models/eventTypes.js";
-import { DbServiceBuilder } from "../services/dbService.js";
 import { config } from "../config/config.js";
 import { prepareNdjsonEventData } from "./ndjsonStore.js";
 

@@ -5,6 +5,7 @@ import {
   genericLogger,
   initFileManager,
   createSafeStorageApiClient,
+  dbServiceBuilder,
 } from "pagopa-interop-commons";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
@@ -13,12 +14,11 @@ import {
   config,
 } from "./config/config.js";
 
-import { dbServiceBuilder } from "./services/dbService.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 
 const fileManager = initFileManager(config);
 const dynamoDBClient = new DynamoDBClient();
-const dbService = dbServiceBuilder(dynamoDBClient);
+const dbService = dbServiceBuilder(dynamoDBClient, config);
 const safeStorageService = createSafeStorageApiClient(config);
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
