@@ -67,7 +67,7 @@ export async function handleTenantCertifiedAttributeAssigned(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Agreement ${tenant.id}, no emails to dispatch.`
+      `No targets found for tenant. Tenant ${tenant.id}, no emails to dispatch.`
     );
     return [];
   }
