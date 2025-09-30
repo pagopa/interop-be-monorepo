@@ -37,7 +37,7 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test"
     token: string,
     templateId: string = generateId(),
     versionId: string = generateId(),
-    body: typeof versionSeed = versionSeed
+    body: m2mGatewayApi.EServiceTemplateVersionDraftUpdateSeed = versionSeed
   ) =>
     request(api)
       .patch(
