@@ -7,6 +7,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
 import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEserviceNewVersionApprovedRejectedToDelegate.js";
 import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNewVersionSubmittedToDelegator.js";
@@ -14,7 +15,8 @@ import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNe
 export async function handleEServiceEvent(
   decodedMessage: EServiceEventEnvelopeV2,
   logger: Logger,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  userServiceSQL: UserServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
@@ -43,7 +45,12 @@ export async function handleEServiceEvent(
         ),
       },
       (msg) =>
-        handleEserviceStateChangedToConsumer(msg, logger, readModelService)
+        handleEserviceStateChangedToConsumer(
+          msg,
+          logger,
+          readModelService,
+          userServiceSQL
+        )
     )
     .with(
       { type: "EServiceDescriptorSubmittedByDelegate" },
@@ -52,7 +59,8 @@ export async function handleEServiceEvent(
           eservice,
           unsafeBrandId<DescriptorId>(descriptorId),
           logger,
-          readModelService
+          readModelService,
+          userServiceSQL
         )
     )
     .with(
@@ -68,6 +76,7 @@ export async function handleEServiceEvent(
           unsafeBrandId<DescriptorId>(descriptorId),
           logger,
           readModelService,
+          userServiceSQL,
           type
         )
     )

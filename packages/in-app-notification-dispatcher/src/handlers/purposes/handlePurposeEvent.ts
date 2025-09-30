@@ -2,6 +2,7 @@ import { PurposeEventEnvelopeV2, NewNotification } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
 import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivatedRejectedToConsumer.js";
@@ -9,7 +10,8 @@ import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivat
 export async function handlePurposeEvent(
   decodedMessage: PurposeEventEnvelopeV2,
   logger: Logger,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  userServiceSQL: UserServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
@@ -25,6 +27,7 @@ export async function handlePurposeEvent(
           purpose,
           logger,
           readModelService,
+          userServiceSQL,
           type
         )
     )
@@ -40,6 +43,7 @@ export async function handlePurposeEvent(
           purpose,
           logger,
           readModelService,
+          userServiceSQL,
           type
         )
     )
@@ -52,6 +56,7 @@ export async function handlePurposeEvent(
           purpose,
           logger,
           readModelService,
+          userServiceSQL,
           type
         )
     )

@@ -10,8 +10,10 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  getNotificationRecipients,
   retrieveLatestPublishedDescriptor,
   retrieveTenant,
 } from "../handlerCommons.js";
@@ -46,7 +48,8 @@ type EServiceStateChangedEvent = Extract<
 export async function handleEserviceStateChangedToConsumer(
   eserviceV2Msg: EServiceStateChangedEvent,
   logger: Logger,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  userServiceSQL: UserServiceSQL
 ): Promise<NewNotification[]> {
   if (!eserviceV2Msg.data.eservice) {
     throw missingKafkaMessageDataError("eservice", eserviceV2Msg.type);
@@ -70,18 +73,19 @@ export async function handleEserviceStateChangedToConsumer(
       retrieveTenant(consumer.consumerId, readModelService)
     )
   );
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      consumers.map((consumer) => consumer.id),
-      "eserviceStateChangedToConsumer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    consumers.map((consumer) => consumer.id),
+    "eserviceStateChangedToConsumer",
+    readModelService,
+    userServiceSQL
+  );
 
   const { body, descriptorId } = getBodyAndDescriptorId(
     eserviceV2Msg,
     eservice
   );
 
-  return userNotificationConfigs.map(({ userId, tenantId }) => ({
+  return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,

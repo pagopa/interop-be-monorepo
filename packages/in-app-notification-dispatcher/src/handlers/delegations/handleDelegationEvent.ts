@@ -48,6 +48,7 @@ export async function handleDelegationEvent(
           delegation,
           logger,
           readModelService,
+          userServiceSQL,
           type
         )
     )

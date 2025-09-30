@@ -5,13 +5,19 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { retrieveEservice, retrieveTenant } from "../handlerCommons.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
+import {
+  getNotificationRecipients,
+  retrieveEservice,
+  retrieveTenant,
+} from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
 export async function handleEserviceStateChangedToConsumer(
   eserviceId: string,
   logger: Logger,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  userServiceSQL: UserServiceSQL
 ): Promise<NewNotification[]> {
   logger.info(
     `Sending in-app notification for handleEserviceStateChangedToConsumer ${eserviceId}`
@@ -37,18 +43,19 @@ export async function handleEserviceStateChangedToConsumer(
       retrieveTenant(agreement.consumerId, readModelService)
     )
   );
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      consumers.map((consumer) => consumer.id),
-      "eserviceStateChangedToConsumer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    consumers.map((consumer) => consumer.id),
+    "eserviceStateChangedToConsumer",
+    readModelService,
+    userServiceSQL
+  );
 
   const body = inAppTemplates.producerKeychainEServiceAddedToConsumer(
     producer.name,
     eservice.name
   );
 
-  return userNotificationConfigs.map(({ userId, tenantId }) => ({
+  return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,

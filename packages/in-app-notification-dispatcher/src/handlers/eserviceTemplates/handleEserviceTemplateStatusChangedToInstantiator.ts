@@ -9,13 +9,18 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  retrieveTenant,
+} from "../handlerCommons.js";
 
 export async function handleEserviceTemplateStatusChangedToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
   logger: Logger,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  userServiceSQL: UserServiceSQL
 ): Promise<NewNotification[]> {
   if (!eserviceTemplateV2Msg) {
     throw missingKafkaMessageDataError(
@@ -45,14 +50,15 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
     return acc;
   }, {});
 
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      Object.keys(instantiatorEserviceMap).map((tenantId) =>
-        unsafeBrandId(tenantId)
-      ),
-      "eserviceTemplateStatusChangedToInstantiator"
-    );
-  if (!userNotificationConfigs) {
+  const usersWithNotifications = await getNotificationRecipients(
+    Object.keys(instantiatorEserviceMap).map((tenantId) =>
+      unsafeBrandId(tenantId)
+    ),
+    "eserviceTemplateStatusChangedToInstantiator",
+    readModelService,
+    userServiceSQL
+  );
+  if (!usersWithNotifications) {
     logger.info(
       `No user notification configs found for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplate.id}`
     );
@@ -64,7 +70,7 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
     readModelService
   );
 
-  return userNotificationConfigs.flatMap(({ userId, tenantId }) => {
+  return usersWithNotifications.flatMap(({ userId, tenantId }) => {
     const tenantEserviceIds = instantiatorEserviceMap[tenantId] || [];
     return tenantEserviceIds.map((eserviceId) => ({
       userId,

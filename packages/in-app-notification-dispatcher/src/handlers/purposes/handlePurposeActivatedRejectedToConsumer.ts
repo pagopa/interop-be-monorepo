@@ -7,13 +7,19 @@ import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { retrieveEservice, retrieveTenant } from "../handlerCommons.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
+import {
+  getNotificationRecipients,
+  retrieveEservice,
+  retrieveTenant,
+} from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
 export async function handlePurposeActivatedRejectedToConsumer(
   purposeV2Msg: PurposeV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
+  userServiceSQL: UserServiceSQL,
   type: "PurposeVersionActivated" | "PurposeVersionRejected"
 ): Promise<NewNotification[]> {
   if (!purposeV2Msg) {
@@ -24,11 +30,12 @@ export async function handlePurposeActivatedRejectedToConsumer(
   );
   const purpose = fromPurposeV2(purposeV2Msg);
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [purpose.consumerId],
-      "purposeActivatedRejectedToConsumer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [purpose.consumerId],
+    "purposeActivatedRejectedToConsumer",
+    readModelService,
+    userServiceSQL
+  );
   if (usersWithNotifications.length === 0) {
     logger.info(
       `No users with notifications enabled for ${type} purpose ${purpose.id}`

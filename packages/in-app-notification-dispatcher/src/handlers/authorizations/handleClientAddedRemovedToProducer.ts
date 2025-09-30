@@ -2,7 +2,9 @@ import { Logger } from "pagopa-interop-commons";
 import { NewNotification, unsafeBrandId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import {
+  getNotificationRecipients,
   retrieveEservice,
   retrievePurpose,
   retrieveTenant,
@@ -13,6 +15,7 @@ export async function handleClientAddedRemovedToProducer(
   purposeId: string,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
+  userServiceSQL: UserServiceSQL,
   type: "ClientPurposeAdded" | "ClientPurposeRemoved"
 ): Promise<NewNotification[]> {
   logger.info(
@@ -26,13 +29,14 @@ export async function handleClientAddedRemovedToProducer(
 
   const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
 
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [eservice.producerId],
-      "clientAddedRemovedToProducer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [eservice.producerId],
+    "clientAddedRemovedToProducer",
+    readModelService,
+    userServiceSQL
+  );
 
-  if (userNotificationConfigs.length === 0) {
+  if (usersWithNotifications.length === 0) {
     logger.info(
       `No users with notifications enabled for ${type} purpose ${purpose.id}`
     );
@@ -51,7 +55,7 @@ export async function handleClientAddedRemovedToProducer(
       .exhaustive()
   );
 
-  return userNotificationConfigs.map(({ userId, tenantId }) => ({
+  return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
