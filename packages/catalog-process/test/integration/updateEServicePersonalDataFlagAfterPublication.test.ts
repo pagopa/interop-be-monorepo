@@ -23,7 +23,7 @@ import {
 } from "../integrationUtils.js";
 import {
   eServiceNotFound,
-  eservicePersonalDataCanOnlyBeSetOnce,
+  eservicePersonalDataFlagCanOnlyBeSetOnce,
   eserviceWithoutValidDescriptors,
 } from "../../src/model/domain/errors.js";
 
@@ -96,7 +96,9 @@ describe("update E-service personalData flag for an already created E-service", 
           newPersonalDataValue,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
-      ).rejects.toThrowError(eservicePersonalDataCanOnlyBeSetOnce(eservice.id));
+      ).rejects.toThrowError(
+        eservicePersonalDataFlagCanOnlyBeSetOnce(eservice.id)
+      );
     }
   );
 
