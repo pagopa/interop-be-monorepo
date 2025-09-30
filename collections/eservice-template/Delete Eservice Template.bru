@@ -1,0 +1,35 @@
+meta {
+  name: Delete Eservice Template
+  type: http
+}
+
+delete {
+  url: {{host-template}}/templates/:eserviceTemplateId
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceTemplateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "name": "{{name}}",
+      "description": "this is a test again",
+      "technology": "REST",
+      "mode": "DELIVER",
+      "descriptor": {
+          "audience": [ "string" ],
+          "voucherLifespan": 86400,
+          "dailyCallsPerConsumer": 100,
+          "dailyCallsTotal": 100,
+          "agreementApprovalPolicy": "AUTOMATIC"
+      }
+  }
+}

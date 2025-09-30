@@ -1846,48 +1846,67 @@ export function eserviceTemplateServiceBuilder(
         },
       };
     },
-    async updateEServiceTemplatePersonalDataFlagAfterPublication(
-      eserviceTemplateId: EServiceTemplateId,
-      personalData: boolean,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
-      logger.info(
-        `Setting personalData flag for EServiceTemplate ${eserviceTemplateId} to ${personalData}`
-      );
+
+    async deleteEServiceTemplate(
+      templateId: EServiceTemplateId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<void> {
+      logger.info(`Deleting EService Template ${templateId}`);
 
       const eserviceTemplate = await retrieveEServiceTemplate(
-        eserviceTemplateId,
+        templateId,
         readModelService
       );
-
       assertRequesterEServiceTemplateCreator(
         eserviceTemplate.data.creatorId,
         authData
       );
+      assertIsDraftEServiceTemplate(eserviceTemplate.data);
 
-      assertPublishedEServiceTemplate(eserviceTemplate.data);
-
-      if (eserviceTemplate.data.personalData !== undefined) {
-        throw eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce(
-          eserviceTemplateId
+      if (eserviceTemplate.data.versions.length === 0) {
+        const eserviceTemplateDeletionEvent =
+          toCreateEventEServiceTemplateDeleted(
+            eserviceTemplate.data.id,
+            eserviceTemplate.metadata.version,
+            eserviceTemplate.data,
+            correlationId
+          );
+        await repository.createEvent(eserviceTemplateDeletionEvent);
+      } else {
+        await deleteVersionInterfaceAndDocs(
+          eserviceTemplate.data.versions[0],
+          fileManager,
+          logger
         );
+
+        const eserviceTemplateWithoutVersions: EServiceTemplate = {
+          ...eserviceTemplate.data,
+          versions: [],
+        };
+        const versionDeletionEvent =
+          toCreateEventEServiceTemplateDraftVersionDeleted(
+            eserviceTemplate.data.id,
+            eserviceTemplate.metadata.version,
+            eserviceTemplate.data.versions[0].id,
+            eserviceTemplateWithoutVersions,
+            correlationId
+          );
+        const eserviceTemplateDeletionEvent =
+          toCreateEventEServiceTemplateDeleted(
+            eserviceTemplate.data.id,
+            eserviceTemplate.metadata.version + 1,
+            eserviceTemplateWithoutVersions,
+            correlationId
+          );
+        await repository.createEvents([
+          versionDeletionEvent,
+          eserviceTemplateDeletionEvent,
+        ]);
       }
-
-      const updatedEServiceTemplate: EServiceTemplate = {
-        ...eserviceTemplate.data,
-        personalData,
-      };
-
-      const event =
-        toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication(
-          eserviceTemplate.metadata.version,
-          updatedEServiceTemplate,
-          correlationId
-        );
-
-      await repository.createEvent(event);
-
-      return updatedEServiceTemplate;
     },
   };
 }
@@ -2241,3 +2260,20 @@ async function updateDraftEServiceTemplateVersion(
     metadata: { version: event.newVersion },
   };
 }
+
+const deleteVersionInterfaceAndDocs = async (
+  version: EServiceTemplateVersion,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<void> => {
+  const versionInterface = version.interface;
+  if (versionInterface !== undefined) {
+    await fileManager.delete(config.s3Bucket, versionInterface.path, logger);
+  }
+
+  const deleteVersionDocs = version.docs.map((doc: Document) =>
+    fileManager.delete(config.s3Bucket, doc.path, logger)
+  );
+
+  await Promise.all(deleteVersionDocs);
+};
