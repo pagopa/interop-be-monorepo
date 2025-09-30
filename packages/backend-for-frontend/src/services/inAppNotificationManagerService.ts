@@ -9,6 +9,23 @@ export function inAppNotificationServiceBuilder(
   inAppNotificationManagerClient: InAppNotificationManagerClient
 ) {
   return {
+    getNotifications: (
+      q: string | undefined,
+      offset: number,
+      limit: number,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<inAppNotificationApi.Notifications> => {
+      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
+      logger.info("Getting notifications");
+      return inAppNotificationManagerClient.getNotifications({
+        headers,
+        queries: {
+          q,
+          offset,
+          limit,
+        },
+      });
+    },
     getNotificationsByType: ({
       headers,
       logger,

@@ -10,7 +10,7 @@ import {
   AgreementProcessClient,
   PurposeProcessClient,
 } from "./clients/clientsProvider.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const processPurposes = async ({
   readModelService,
@@ -18,7 +18,7 @@ export const processPurposes = async ({
   headers,
   delegationId,
 }: {
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   purposeProcessClient: PurposeProcessClient;
   headers: InteropHeaders;
   delegationId: DelegationId;
@@ -92,7 +92,7 @@ export const processAgreement = async ({
   headers,
   delegation,
 }: {
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   agreementProcessClient: AgreementProcessClient;
   headers: InteropHeaders;
   delegation: Delegation;
