@@ -334,11 +334,11 @@ export function readModelServiceBuilderSQL({
         .where(
           and(
             eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.purposeTemplateId,
               purposeTemplateId
             ),
             eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
               answerId
             )
           )
