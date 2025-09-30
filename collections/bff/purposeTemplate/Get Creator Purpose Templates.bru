@@ -1,5 +1,5 @@
 meta {
-  name: Get Purpose Templates
+  name: Get Creator Purpose Templates
   type: http
   seq: 3
 }
@@ -13,7 +13,9 @@ get {
 params:query {
   offset: 0
   limit: 10
-  ~q:
+  ~q: 
+  ~eserviceIds: 
+  ~states: 
 }
 
 headers {
