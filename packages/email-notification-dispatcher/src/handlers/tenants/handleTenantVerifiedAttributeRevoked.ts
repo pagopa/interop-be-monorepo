@@ -79,12 +79,12 @@ export async function handleTenantVerifiedAttributeRevoked(
     return [];
   }
 
-  if (tenantAttribute.verifiedBy.length === 0) {
+  if (tenantAttribute.revokedBy.length === 0) {
     logger.error(`Attribute ${attributeId} was never verified.`);
     return [];
   }
 
-  const verifierId = [...tenantAttribute.verifiedBy].sort(
+  const verifierId = [...tenantAttribute.revokedBy].sort(
     (a, b) => b.verificationDate.getTime() - a.verificationDate.getTime()
   )[0].id;
 
