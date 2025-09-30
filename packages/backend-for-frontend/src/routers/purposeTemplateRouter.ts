@@ -134,7 +134,6 @@ const purposeTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          // TODO: add feature flag error mapper if needed
           emptyErrorMapper,
           ctx,
           `Error deleting purpose template ${req.params.purposeTemplateId}`
