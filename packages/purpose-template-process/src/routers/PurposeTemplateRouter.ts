@@ -17,6 +17,7 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import {
   createPurposeTemplateErrorMapper,
   deletePurposeTemplateErrorMapper,
+  deleteRiskAnalysisTemplateAnswerAnnotationErrorMapper,
   getPurposeTemplateErrorMapper,
   getPurposeTemplatesErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -256,7 +257,33 @@ const purposeTemplateRouter = (
         return res.status(501);
       }
       return res.status(501);
-    });
+    })
+    .delete(
+      "/purposeTemplates/:id/riskAnalysis/answers/:answerId/annotation",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation(
+            {
+              purposeTemplateId: unsafeBrandId(req.params.id),
+              answerId: unsafeBrandId(req.params.answerId),
+              ctx,
+            }
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteRiskAnalysisTemplateAnswerAnnotationErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return purposeTemplateRouter;
 };

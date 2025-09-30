@@ -5,7 +5,11 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeTemplateState,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswer,
   Tenant,
   TenantId,
   TenantKind,
@@ -18,6 +22,8 @@ import {
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
   toRiskAnalysisTemplateAnswerAnnotationDocument,
+  aggregateRiskAnalysisTemplateAnswer,
+  toRiskAnalysisTemplateAnswerAggregator,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
@@ -292,6 +298,59 @@ export function readModelServiceBuilderSQL({
         );
 
       return queryResult.map(toRiskAnalysisTemplateAnswerAnnotationDocument);
+    },
+    async getRiskAnalysisTemplateAnswer(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+    ): Promise<
+      | RiskAnalysisTemplateSingleAnswer
+      | RiskAnalysisTemplateMultiAnswer
+      | undefined
+    > {
+      const queryResult = await readModelDB
+        .select({
+          purposeRiskAnalysisTemplateAnswer:
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswerAnnotation:
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswerAnnotationDocument:
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+        })
+        .from(purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate)
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+              answerId
+            )
+          )
+        );
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      return aggregateRiskAnalysisTemplateAnswer(
+        toRiskAnalysisTemplateAnswerAggregator(queryResult)
+      );
     },
   };
 }

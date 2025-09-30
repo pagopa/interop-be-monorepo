@@ -4,6 +4,9 @@ import {
   makeApiProblemBuilder,
   PurposeTemplateId,
   PurposeTemplateState,
+  RiskAnalysisFormTemplateId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
   TenantId,
   TenantKind,
 } from "pagopa-interop-models";
@@ -16,6 +19,8 @@ export const errorCodes = {
   ruleSetNotFoundError: "0005",
   tenantNotAllowed: "0006",
   purposeTemplateNotInExpectedState: "0007",
+  riskAnalysisTemplateNotFound: "0008",
+  riskAnalysisTemplateAnswerNotFound: "0009",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -88,5 +93,31 @@ export function purposeTemplateNotInExpectedState(
     detail: `Purpose Template ${purposeTemplateId} not in expected state (current state: ${currentState}, expected states: ${expectedStates.toString()})`,
     code: "purposeTemplateNotInExpectedState",
     title: "Purpose Template not in expected state",
+  });
+}
+
+export function riskAnalysisTemplateNotFound(
+  purposeTemplateId: PurposeTemplateId,
+  riskAnalysisTemplateId?: RiskAnalysisFormTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Risk Analysis Template found for Purpose Template ID ${purposeTemplateId}${
+      riskAnalysisTemplateId
+        ? ` and Risk Analysis Template ID ${riskAnalysisTemplateId}`
+        : ""
+    }`,
+    code: "riskAnalysisTemplateNotFound",
+    title: "Risk Analysis Template Not Found",
+  });
+}
+
+export function riskAnalysisTemplateAnswerNotFound(
+  purposeTemplateId: PurposeTemplateId,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Risk Analysis Template Answer found for Purpose Template ID ${purposeTemplateId} and Answer ID ${answerId}`,
+    code: "riskAnalysisTemplateAnswerNotFound",
+    title: "Risk Analysis Template Answer Not Found",
   });
 }
