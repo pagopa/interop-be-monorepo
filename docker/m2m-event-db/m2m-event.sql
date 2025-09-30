@@ -9,11 +9,12 @@ CREATE TABLE IF NOT EXISTS m2m_event.eservice_m2m_event (
   eservice_id UUID NOT NULL,
   descriptor_id UUID,
 
-  -- Visibility columns, used to filter events based on tenant
-  visibility VARCHAR NOT NULL,
-  producer_id UUID,
+  -- Columns to filter events based on tenant or delegation
+  producer_id UUID NOT NULL,
   producer_delegate_id UUID,
   producer_delegation_id UUID,
+
+  visibility VARCHAR NOT NULL,
 
   PRIMARY KEY (id)
 );
@@ -27,9 +28,10 @@ CREATE TABLE IF NOT EXISTS m2m_event.eservice_template_m2m_event (
   eservice_template_id UUID NOT NULL,
   eservice_template_version_id UUID,
 
-  -- Visibility columns, used to filter events based on tenant
+  -- Columns to filter events based on tenant
+  creator_id UUID NOT NULL,
+
   visibility VARCHAR NOT NULL,
-  creator_id UUID,
 
   PRIMARY KEY (id)
 );
@@ -42,14 +44,15 @@ CREATE TABLE IF NOT EXISTS m2m_event.agreement_m2m_event (
   -- Reference to the resource involved in the event
   agreement_id UUID NOT NULL,
 
-  -- Visibility columns, used to filter events based on tenant
-  visibility VARCHAR NOT NULL,
-  consumer_id UUID,
-  producer_id UUID,
+  -- Columns to filter events based on tenant or delegation
+  consumer_id UUID NOT NULL,
+  producer_id UUID NOT NULL,
   consumer_delegate_id UUID,
   consumer_delegation_id UUID,
   producer_delegate_id UUID,
   producer_delegation_id UUID,
+
+  visibility VARCHAR NOT NULL,
 
   PRIMARY KEY (id)
 );
@@ -63,14 +66,15 @@ CREATE TABLE IF NOT EXISTS m2m_event.purpose_m2m_event (
   purpose_id UUID NOT NULL,
   purpose_version_id UUID,
 
-  -- Visibility columns, used to filter events based on tenant
-  visibility VARCHAR NOT NULL,
-  consumer_id UUID,
-  producer_id UUID,
+  -- Columns to filter events based on tenant or delegation
+  consumer_id UUID NOT NULL,
+  producer_id UUID NOT NULL,
   consumer_delegate_id UUID,
   consumer_delegation_id UUID,
   producer_delegate_id UUID,
   producer_delegation_id UUID,
+
+  visibility VARCHAR NOT NULL,
 
   PRIMARY KEY (id)
 );
@@ -127,9 +131,10 @@ CREATE TABLE IF NOT EXISTS m2m_event.client_m2m_event (
   -- Reference to the resource involved in the event
   client_id UUID NOT NULL,
 
-  -- Visibility columns, used to filter events based on tenant
+  -- Columns to filter events based on tenant
+  consumer_id UUID NOT NULL,
+
   visibility VARCHAR NOT NULL,
-  consumer_id UUID,
 
   PRIMARY KEY (id)
 );
@@ -142,9 +147,10 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_keychain_m2m_event (
   -- Reference to the resource involved in the event
   producer_keychain_id UUID NOT NULL,
 
-  -- Visibility columns, used to filter events based on tenant
+  -- Columns to filter events based on tenant
+  producer_id UUID NOT NULL,
+
   visibility VARCHAR NOT NULL,
-  producer_id UUID,
 
   PRIMARY KEY (id)
 );
@@ -155,7 +161,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.key_m2m_event (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
-  kid UUID NOT NULL,
+  kid VARCHAR NOT NULL,
 
   PRIMARY KEY (id)
 );
@@ -166,7 +172,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_key_m2m_event (
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- Reference to the resource involved in the event
-  kid UUID NOT NULL,
+  kid VARCHAR NOT NULL,
 
   PRIMARY KEY (id)
 );
