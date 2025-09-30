@@ -1,9 +1,7 @@
 import {
   APIEndpoint,
-  FeatureFlagSQLConfig,
   FileManagerConfig,
   LoggerConfig,
-  ReadModelDbConfig,
   ReadModelSQLDbConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
@@ -12,7 +10,7 @@ import { z } from "zod";
 const IvassCertifiedAttributesImporterConfig = LoggerConfig.and(
   FileManagerConfig
 )
-  .and(ReadModelDbConfig)
+  .and(ReadModelSQLDbConfig)
   .and(TokenGenerationConfig)
   .and(
     z
@@ -30,9 +28,7 @@ const IvassCertifiedAttributesImporterConfig = LoggerConfig.and(
         recordsProcessBatchSize: c.RECORDS_PROCESS_BATCH_SIZE,
         ivassTenantId: c.IVASS_TENANT_ID,
       }))
-  )
-  .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig);
+  );
 
 export type IvassCertifiedAttributesImporterConfig = z.infer<
   typeof IvassCertifiedAttributesImporterConfig
