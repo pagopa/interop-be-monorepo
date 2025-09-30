@@ -1,4 +1,14 @@
-import { and, desc, eq, getTableColumns, ilike, inArray } from "drizzle-orm";
+import {
+  and,
+  count,
+  countDistinct,
+  desc,
+  eq,
+  getTableColumns,
+  ilike,
+  inArray,
+  isNull,
+} from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
   AppContext,
@@ -14,6 +24,8 @@ import {
   ListResult,
   Notification,
   NotificationId,
+  NotificationsByType,
+  NotificationType,
 } from "pagopa-interop-models";
 import { notificationNotFound } from "../model/errors.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -194,6 +206,67 @@ export function inAppNotificationServiceBuilder(
       if (!deleted.length) {
         throw notificationNotFound(notificationId);
       }
+    },
+    getNotificationsByType: async ({
+      logger,
+      authData: { userId, organizationId },
+    }: WithLogger<AppContext<UIAuthData>>): Promise<NotificationsByType> => {
+      logger.info("Getting notifications by type");
+
+      const [groupedResult, totalCountResult] = await Promise.all([
+        db
+          .select({
+            notificationType: notification.notificationType,
+            typeCount: countDistinct(notification.entityId),
+          })
+          .from(notification)
+          .where(
+            and(
+              eq(notification.userId, userId),
+              eq(notification.tenantId, organizationId),
+              isNull(notification.readAt)
+            )
+          )
+          .groupBy(notification.notificationType),
+
+        db
+          .select({
+            totalCount: count(notification.id),
+          })
+          .from(notification)
+          .where(
+            and(
+              eq(notification.userId, userId),
+              eq(notification.tenantId, organizationId),
+              isNull(notification.readAt)
+            )
+          ),
+      ]);
+
+      const results = groupedResult.reduce<Record<NotificationType, number>>(
+        (acc, row) => {
+          const notificationType = row.notificationType;
+          if (NotificationType.safeParse(notificationType).success) {
+            return {
+              ...acc,
+              [notificationType]: row.typeCount,
+            };
+          } else {
+            logger.warn(
+              `Skipping notification type ${notificationType} because it is not a valid notification type`
+            );
+          }
+          return acc;
+        },
+        {} as Record<NotificationType, number>
+      );
+
+      const totalCount = totalCountResult[0]?.totalCount || 0;
+
+      return {
+        results,
+        totalCount,
+      };
     },
   };
 }

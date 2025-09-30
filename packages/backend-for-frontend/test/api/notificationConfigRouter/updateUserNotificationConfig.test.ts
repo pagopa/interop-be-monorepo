@@ -18,6 +18,8 @@ describe("API POST /userNotificationConfigs", () => {
   const userId = mockTokenUserId;
   const tenantId = mockTokenOrganizationId;
   const notificationConfigSeed: bffApi.UserNotificationConfigUpdateSeed = {
+    inAppNotificationPreference: true,
+    emailNotificationPreference: "ENABLED",
     inAppConfig: getMockNotificationConfig(),
     emailConfig: getMockNotificationConfig(),
   };
