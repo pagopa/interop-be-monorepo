@@ -74,7 +74,7 @@ import {
   updateAgreementApprovalPolicyErrorMapper,
   updateEServiceSignalhubFlagErrorMapper,
   documentListErrorMapper,
-  updateEServicePersonalDataErrorMapper,
+  updateEServicePersonalDataFlagErrorMapper,
   updateTemplateInstancePersonalDataErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
@@ -1520,7 +1520,7 @@ const eservicesRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          updateEServicePersonalDataErrorMapper,
+          updateEServicePersonalDataFlagErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

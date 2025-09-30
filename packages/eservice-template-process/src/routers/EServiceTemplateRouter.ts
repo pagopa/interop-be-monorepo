@@ -40,7 +40,7 @@ import {
   updateDocumentErrorMapper,
   deleteDocumentErrorMapper,
   getEServiceTemplatesErrorMapper,
-  updateEServiceTemplatePersonalDataErrorMapper,
+  updateEServiceTemplatePersonalDataFlagErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   eserviceTemplateToApiEServiceTemplate,
@@ -725,7 +725,7 @@ const eserviceTemplatesRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          updateEServiceTemplatePersonalDataErrorMapper,
+          updateEServiceTemplatePersonalDataFlagErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

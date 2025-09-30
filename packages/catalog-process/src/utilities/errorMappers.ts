@@ -699,7 +699,7 @@ export const updateTemplateInstanceDescriptorErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const updateEServicePersonalDataErrorMapper = (
+export const updateEServicePersonalDataFlagErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
