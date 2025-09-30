@@ -7,7 +7,7 @@ import {
   EServiceM2MEventId,
   TenantId,
 } from "../brandedIds.js";
-import { m2mEventVisibility } from "./m2mEventVisibility.js";
+import { M2MEventVisibility } from "./m2mEventVisibility.js";
 
 export const EServiceM2MEventType = z.enum([
   // EService events
@@ -63,28 +63,16 @@ const _: EServiceEventV2["type"] = {} as EServiceM2MEventType;
 
 void _; // avoid unused variable TS error, cannot use ts-ignore for a type check
 
-const EServiceM2MEventFields = z.object({
+export const EServiceM2MEvent = z.object({
   id: EServiceM2MEventId,
   eventType: EServiceM2MEventType,
   eventTimestamp: z.coerce.date(),
   eserviceId: EServiceId,
   descriptorId: DescriptorId.optional(),
-});
-
-const EServiceM2MEventPublic = EServiceM2MEventFields.extend({
-  visibility: z.literal(m2mEventVisibility.public),
-});
-
-const EServiceM2MEventRestricted = EServiceM2MEventFields.extend({
-  visibility: z.literal(m2mEventVisibility.restricted),
   producerId: TenantId,
   producerDelegateId: TenantId.optional(),
   producerDelegationId: DelegationId.optional(),
+  visibility: M2MEventVisibility,
 });
-
-export const EServiceM2MEvent = z.discriminatedUnion("visibility", [
-  EServiceM2MEventPublic,
-  EServiceM2MEventRestricted,
-]);
 
 export type EServiceM2MEvent = z.infer<typeof EServiceM2MEvent>;

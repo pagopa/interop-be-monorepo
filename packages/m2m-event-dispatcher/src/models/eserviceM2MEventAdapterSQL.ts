@@ -1,35 +1,18 @@
-import {
-  EServiceM2MEvent,
-  dateToString,
-  m2mEventVisibility,
-} from "pagopa-interop-models";
+import { EServiceM2MEvent, dateToString } from "pagopa-interop-models";
 import { EServiceM2MEventSQL } from "pagopa-interop-m2m-event-db-models";
-import { match } from "ts-pattern";
 
 export function toEServiceM2MEventSQL(
   event: EServiceM2MEvent
 ): EServiceM2MEventSQL {
-  const visibilityFields = match(event)
-    .with({ visibility: m2mEventVisibility.public }, (e) => ({
-      visibility: e.visibility,
-      producerId: null,
-      producerDelegateId: null,
-      producerDelegationId: null,
-    }))
-    .with({ visibility: m2mEventVisibility.restricted }, (e) => ({
-      visibility: e.visibility,
-      producerId: e.producerId,
-      producerDelegateId: e.producerDelegateId ?? null,
-      producerDelegationId: e.producerDelegationId ?? null,
-    }))
-    .exhaustive();
-
   return {
     id: event.id,
     eventType: event.eventType,
     eventTimestamp: dateToString(event.eventTimestamp),
     eserviceId: event.eserviceId,
     descriptorId: event.descriptorId ?? null,
-    ...visibilityFields,
+    producerId: event.producerId,
+    producerDelegateId: event.producerDelegateId ?? null,
+    producerDelegationId: event.producerDelegationId ?? null,
+    visibility: event.visibility,
   };
 }
