@@ -17,14 +17,24 @@ import { expectedUserIdAndOrganizationId } from "../../utils.js";
 describe("API POST /userNotificationConfigs", () => {
   const userId = mockTokenUserId;
   const tenantId = mockTokenOrganizationId;
+
+  const {
+    clientKeyAddedDeletedToClientUsers: mockClientKeyAddedDeletedToClientUsers,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    producerKeychainKeyAddedDeletedToClientUsers: _,
+    ...restConfigMock
+  } = getMockNotificationConfig();
+
   const notificationConfigSeed: bffApi.UserNotificationConfigUpdateSeed = {
     inAppConfig: {
-      ...getMockNotificationConfig(),
-      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers: false,
+      ...restConfigMock,
+      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+        mockClientKeyAddedDeletedToClientUsers,
     },
     emailConfig: {
-      ...getMockNotificationConfig(),
-      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers: false,
+      ...restConfigMock,
+      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+        mockClientKeyAddedDeletedToClientUsers,
     },
   };
 
@@ -51,6 +61,7 @@ describe("API POST /userNotificationConfigs", () => {
     );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
+
     expect(res.status).toBe(204);
     expect(serviceSpy).toHaveBeenCalledWith(
       notificationConfigSeed,
@@ -58,7 +69,25 @@ describe("API POST /userNotificationConfigs", () => {
     );
     expect(
       clients.notificationConfigProcessClient.updateUserNotificationConfig
-    ).toHaveBeenCalledWith(notificationConfigSeed, expect.any(Object));
+    ).toHaveBeenCalledWith(
+      {
+        inAppConfig: {
+          ...restConfigMock,
+          clientKeyAddedDeletedToClientUsers:
+            mockClientKeyAddedDeletedToClientUsers,
+          producerKeychainKeyAddedDeletedToClientUsers:
+            mockClientKeyAddedDeletedToClientUsers,
+        },
+        emailConfig: {
+          ...restConfigMock,
+          clientKeyAddedDeletedToClientUsers:
+            mockClientKeyAddedDeletedToClientUsers,
+          producerKeychainKeyAddedDeletedToClientUsers:
+            mockClientKeyAddedDeletedToClientUsers,
+        },
+      },
+      expect.any(Object)
+    );
   });
 
   it.each([

@@ -11,16 +11,25 @@ export function toBffApiTenantNotificationConfig(
 export function toBffApiUserNotificationConfig(
   userNotificationConfig: notificationConfigApi.UserNotificationConfig
 ): bffApi.UserNotificationConfig {
+  const mapNotificationConfig = (
+    config: notificationConfigApi.NotificationConfig
+  ): bffApi.NotificationConfig => {
+    const {
+      clientKeyAddedDeletedToClientUsers,
+      producerKeychainKeyAddedDeletedToClientUsers,
+      ...rest
+    } = config;
+
+    return {
+      ...rest,
+      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+        clientKeyAddedDeletedToClientUsers ||
+        producerKeychainKeyAddedDeletedToClientUsers,
+    };
+  };
+
   return {
-    inAppConfig: {
-      ...userNotificationConfig.inAppConfig,
-      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
-        userNotificationConfig.inAppConfig.clientKeyAddedDeletedToClientUsers,
-    },
-    emailConfig: {
-      ...userNotificationConfig.emailConfig,
-      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
-        userNotificationConfig.emailConfig.clientKeyAddedDeletedToClientUsers,
-    },
+    inAppConfig: mapNotificationConfig(userNotificationConfig.inAppConfig),
+    emailConfig: mapNotificationConfig(userNotificationConfig.emailConfig),
   };
 }

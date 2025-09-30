@@ -72,26 +72,35 @@ export function notificationConfigServiceBuilder(
       logger.info(
         `Updating notification configuration for user ${userId} in tenant ${organizationId}`
       );
+      const {
+        inAppConfig: {
+          clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+            inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+          ...restInAppConfig
+        },
+        emailConfig: {
+          clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+            emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+          ...restEmailConfig
+        },
+        ...restSeed
+      } = seed;
       await notificationConfigClient.updateUserNotificationConfig(
         {
-          ...seed,
+          ...restSeed,
           inAppConfig: {
-            ...seed.inAppConfig,
+            ...restInAppConfig,
             clientKeyAddedDeletedToClientUsers:
-              seed.inAppConfig
-                .clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+              inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
             producerKeychainKeyAddedDeletedToClientUsers:
-              seed.inAppConfig
-                .clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+              inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
           },
           emailConfig: {
-            ...seed.emailConfig,
+            ...restEmailConfig,
             clientKeyAddedDeletedToClientUsers:
-              seed.emailConfig
-                .clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+              emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
             producerKeychainKeyAddedDeletedToClientUsers:
-              seed.emailConfig
-                .clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+              emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
           },
         },
         {
