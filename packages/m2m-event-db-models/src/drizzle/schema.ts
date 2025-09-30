@@ -10,10 +10,10 @@ export const eserviceM2MEventInM2MEvent = m2mEvent.table("eservice_m2m_event", {
   }).notNull(),
   eserviceId: uuid("eservice_id").notNull(),
   descriptorId: uuid("descriptor_id"),
-  visibility: varchar().notNull(),
-  producerId: uuid("producer_id"),
+  producerId: uuid("producer_id").notNull(),
   producerDelegateId: uuid("producer_delegate_id"),
   producerDelegationId: uuid("producer_delegation_id"),
+  visibility: varchar().notNull(),
 });
 
 export const eserviceTemplateM2MEventInM2MEvent = m2mEvent.table(
@@ -27,8 +27,8 @@ export const eserviceTemplateM2MEventInM2MEvent = m2mEvent.table(
     }).notNull(),
     eserviceTemplateId: uuid("eservice_template_id").notNull(),
     eserviceTemplateVersionId: uuid("eservice_template_version_id"),
+    creatorId: uuid("creator_id").notNull(),
     visibility: varchar().notNull(),
-    creatorId: uuid("creator_id"),
   }
 );
 
@@ -42,13 +42,13 @@ export const agreementM2MEventInM2MEvent = m2mEvent.table(
       mode: "string",
     }).notNull(),
     agreementId: uuid("agreement_id").notNull(),
-    visibility: varchar().notNull(),
-    consumerId: uuid("consumer_id"),
-    producerId: uuid("producer_id"),
+    consumerId: uuid("consumer_id").notNull(),
+    producerId: uuid("producer_id").notNull(),
     consumerDelegateId: uuid("consumer_delegate_id"),
     consumerDelegationId: uuid("consumer_delegation_id"),
     producerDelegateId: uuid("producer_delegate_id"),
     producerDelegationId: uuid("producer_delegation_id"),
+    visibility: varchar().notNull(),
   }
 );
 
@@ -61,13 +61,13 @@ export const purposeM2MEventInM2MEvent = m2mEvent.table("purpose_m2m_event", {
   }).notNull(),
   purposeId: uuid("purpose_id").notNull(),
   purposeVersionId: uuid("purpose_version_id"),
-  visibility: varchar().notNull(),
-  consumerId: uuid("consumer_id"),
-  producerId: uuid("producer_id"),
+  consumerId: uuid("consumer_id").notNull(),
+  producerId: uuid("producer_id").notNull(),
   consumerDelegateId: uuid("consumer_delegate_id"),
   consumerDelegationId: uuid("consumer_delegation_id"),
   producerDelegateId: uuid("producer_delegate_id"),
   producerDelegationId: uuid("producer_delegation_id"),
+  visibility: varchar().notNull(),
 });
 
 export const tenantM2MEventInM2MEvent = m2mEvent.table("tenant_m2m_event", {
@@ -127,8 +127,8 @@ export const clientM2MEventInM2MEvent = m2mEvent.table("client_m2m_event", {
     mode: "string",
   }).notNull(),
   clientId: uuid("client_id").notNull(),
+  consumerId: uuid("consumer_id").notNull(),
   visibility: varchar().notNull(),
-  consumerId: uuid("consumer_id"),
 });
 
 export const producerKeychainM2MEventInM2MEvent = m2mEvent.table(
@@ -141,8 +141,8 @@ export const producerKeychainM2MEventInM2MEvent = m2mEvent.table(
       mode: "string",
     }).notNull(),
     producerKeychainId: uuid("producer_keychain_id").notNull(),
+    producerId: uuid("producer_id").notNull(),
     visibility: varchar().notNull(),
-    producerId: uuid("producer_id"),
   }
 );
 
@@ -153,7 +153,7 @@ export const keyM2MEventInM2MEvent = m2mEvent.table("key_m2m_event", {
     withTimezone: true,
     mode: "string",
   }).notNull(),
-  kid: uuid().notNull(),
+  kid: varchar().notNull(),
 });
 
 export const producerKeyM2MEventInM2MEvent = m2mEvent.table(
@@ -165,6 +165,6 @@ export const producerKeyM2MEventInM2MEvent = m2mEvent.table(
       withTimezone: true,
       mode: "string",
     }).notNull(),
-    kid: uuid().notNull(),
+    kid: varchar().notNull(),
   }
 );
