@@ -81,7 +81,7 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test"
       dailyCallsPerConsumer: 30,
       dailyCallsTotal: 30,
     },
-  ] as Array<Partial<typeof versionSeed>>)(
+  ] as m2mGatewayApi.EServiceTemplateVersionDraftUpdateSeed[])(
     "Should return 200 with partial seed (seed #%#)",
     async (seed) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
