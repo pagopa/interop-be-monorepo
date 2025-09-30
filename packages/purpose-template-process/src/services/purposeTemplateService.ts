@@ -28,6 +28,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   purposeTemplateNotFound,
+  riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
   riskAnalysisTemplateNotFound,
   ruleSetNotFoundError,
@@ -132,6 +133,13 @@ async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
   );
   if (!answer) {
     throw riskAnalysisTemplateAnswerNotFound(purposeTemplateId, answerId);
+  }
+
+  if (!answer.annotation) {
+    throw riskAnalysisTemplateAnswerAnnotationNotFound(
+      purposeTemplateId,
+      answerId
+    );
   }
 
   await Promise.all(

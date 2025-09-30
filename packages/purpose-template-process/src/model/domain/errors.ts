@@ -21,6 +21,7 @@ export const errorCodes = {
   purposeTemplateNotInExpectedState: "0007",
   riskAnalysisTemplateNotFound: "0008",
   riskAnalysisTemplateAnswerNotFound: "0009",
+  riskAnalysisTemplateAnswerAnnotationNotFound: "0010",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -119,5 +120,16 @@ export function riskAnalysisTemplateAnswerNotFound(
     detail: `No Risk Analysis Template Answer found for Purpose Template ID ${purposeTemplateId} and Answer ID ${answerId}`,
     code: "riskAnalysisTemplateAnswerNotFound",
     title: "Risk Analysis Template Answer Not Found",
+  });
+}
+
+export function riskAnalysisTemplateAnswerAnnotationNotFound(
+  purposeTemplateId: PurposeTemplateId,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Risk Analysis Template Answer Annotation found for Purpose Template ID ${purposeTemplateId} and Answer ID ${answerId}`,
+    code: "riskAnalysisTemplateAnswerAnnotationNotFound",
+    title: "Risk Analysis Template Answer Annotation Not Found",
   });
 }
