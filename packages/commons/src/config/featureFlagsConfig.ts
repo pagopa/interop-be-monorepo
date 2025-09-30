@@ -22,19 +22,6 @@ export type FeatureFlagSignalhubWhitelistConfig = z.infer<
   typeof FeatureFlagSignalhubWhitelistConfig
 >;
 
-export const FeatureFlagSQLConfig = z
-  .object({
-    FEATURE_FLAG_SQL: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true")
-      .optional(),
-  })
-  .transform((c) => ({
-    featureFlagSQL: c.FEATURE_FLAG_SQL ?? false,
-  }));
-export type FeatureFlagSQLConfig = z.infer<typeof FeatureFlagSQLConfig>;
-
 export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
   .object({
     FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE: z
@@ -112,13 +99,28 @@ export type FeatureFlagNotificationConfig = z.infer<
   typeof FeatureFlagNotificationConfig
 >;
 
+export const FeatureFlagPurposeTemplateConfig = z
+  .object({
+    FEATURE_FLAG_PURPOSE_TEMPLATE: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagPurposeTemplate: c.FEATURE_FLAG_PURPOSE_TEMPLATE ?? false,
+  }));
+export type FeatureFlagPurposeTemplateConfig = z.infer<
+  typeof FeatureFlagPurposeTemplateConfig
+>;
+
 type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
   FeatureFlagAgreementApprovalPolicyUpdateConfig &
-  FeatureFlagSQLConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
-  FeatureFlagNotificationConfig;
+  FeatureFlagNotificationConfig &
+  FeatureFlagPurposeTemplateConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 

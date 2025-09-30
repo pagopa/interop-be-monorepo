@@ -103,7 +103,7 @@ import {
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import { PurposeDocumentEServiceInfo } from "../model/domain/models.js";
-import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
+import { GetPurposesFilters } from "./readModelService.js";
 import {
   assertEserviceMode,
   assertConsistentFreeOfCharge,
@@ -128,10 +128,11 @@ import {
   getOrganizationRole,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrievePurpose = async (
   purposeId: PurposeId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Purpose>> => {
   const purpose = await readModelService.getPurposeById(purposeId);
   if (purpose === undefined) {
@@ -175,7 +176,7 @@ const retrievePurposeVersionDocument = (
 
 const retrieveEService = async (
   eserviceId: EServiceId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (eservice === undefined) {
@@ -186,7 +187,7 @@ const retrieveEService = async (
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
@@ -198,7 +199,7 @@ const retrieveTenant = async (
 export const retrieveActiveAgreement = async (
   eserviceId: EServiceId,
   consumerId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Agreement> => {
   const activeAgreement = await readModelService.getActiveAgreement(
     eserviceId,
@@ -227,7 +228,7 @@ const retrieveRiskAnalysis = (
 
 async function retrieveTenantKind(
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<TenantKind> {
   const tenant = await retrieveTenant(tenantId, readModelService);
   if (!tenant.kind) {
@@ -238,7 +239,7 @@ async function retrieveTenantKind(
 
 export const retrievePurposeDelegation = async (
   purpose: Purpose,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Delegation | undefined> => {
   if (!purpose.delegationId) {
     return undefined;
@@ -256,7 +257,7 @@ export const retrievePurposeDelegation = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   fileManager: FileManager,
   pdfGenerator: PDFGenerator
 ) {
@@ -1592,7 +1593,7 @@ const replacePurposeVersion = (
 const retrieveKindOfInvolvedTenantByEServiceMode = async (
   eservice: EService,
   consumerId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<TenantKind> => {
   if (eservice.mode === eserviceMode.deliver) {
     return retrieveTenantKind(consumerId, readModelService);
@@ -1632,7 +1633,7 @@ const performUpdatePurpose = async (
         updateContent: purposeApi.ReversePurposeUpdateContent;
       },
   authData: UIAuthData | M2MAdminAuthData,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   correlationId: CorrelationId,
   repository: ReturnType<typeof eventRepository<PurposeEvent>>
   // eslint-disable-next-line max-params
@@ -1759,7 +1760,7 @@ async function generateRiskAnalysisDocument({
   purpose: Purpose;
   userId?: UserId;
   dailyCalls: number;
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   fileManager: FileManager;
   pdfGenerator: PDFGenerator;
   logger: Logger;
@@ -1921,7 +1922,7 @@ async function activatePurposeLogic({
   purpose: WithMetadata<Purpose>;
   purposeVersion: PurposeVersion;
   eservice: EService;
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   fileManager: FileManager;
   pdfGenerator: PDFGenerator;
   correlationId: CorrelationId;
