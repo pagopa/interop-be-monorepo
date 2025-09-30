@@ -11,6 +11,7 @@ import {
   toUserNotificationConfigV2,
   TenantId,
   NotificationConfig,
+  emailNotificationPreference,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -93,6 +94,8 @@ describe("createUserNotificationConfig", () => {
       id: serviceReturnValue.id,
       userId,
       tenantId,
+      inAppNotificationPreference: false,
+      emailNotificationPreference: emailNotificationPreference.disabled,
       inAppConfig: defaultInAppConfig,
       emailConfig: defaultEmailConfig,
       createdAt: new Date(),
