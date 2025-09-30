@@ -161,7 +161,7 @@ describe("deletePurposeTemplate", () => {
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
-  it("should throw tenantNotAllowed if the requester is not the producer", async () => {
+  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
     const requesterId = generateId<TenantId>();
 
     await addOnePurposeTemplate(purposeTemplate);
