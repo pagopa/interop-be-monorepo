@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, Mock } from "vitest";
 import { DeleteItemCommand, DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { dbServiceBuilder } from "../src/services/dynamoService.js";
+import { dbServiceBuilder } from "pagopa-interop-commons";
 import { config } from "../src/config/config.js";
 
 const mockDynamoDBClient = {
@@ -18,7 +18,7 @@ describe("dbServiceBuilder - Unit Test for Deletion", () => {
       }
     );
 
-    const dbService = dbServiceBuilder(mockDynamoDBClient);
+    const dbService = dbServiceBuilder(mockDynamoDBClient, config);
     const safeStorageId = "mocked-id-to-delete";
     await dbService.deleteFromDynamo(safeStorageId);
 
@@ -26,7 +26,7 @@ describe("dbServiceBuilder - Unit Test for Deletion", () => {
     expect(firstCall).toBeInstanceOf(DeleteItemCommand);
 
     expect(firstCall.input).toEqual({
-      TableName: config.dbTableName,
+      TableName: config.signatureReferencesTableName,
       Key: {
         safeStorageId: { S: safeStorageId },
       },
