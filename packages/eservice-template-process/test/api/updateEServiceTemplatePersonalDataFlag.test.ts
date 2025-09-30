@@ -23,7 +23,7 @@ import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/ap
 import {
   eserviceTemplateNotFound,
   eserviceTemplateWithoutPublishedVersion,
-  eserviceTemplatePersonalDataCanOnlyBeSetOnce,
+  eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
 } from "../../src/model/domain/errors.js";
 
 describe("API /templates/{templateId}/personalDataFlag", () => {
@@ -90,7 +90,7 @@ describe("API /templates/{templateId}/personalDataFlag", () => {
       expectedStatus: 409,
     },
     {
-      error: eserviceTemplatePersonalDataCanOnlyBeSetOnce(
+      error: eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce(
         mockEServiceTemplate.id
       ),
       expectedStatus: 409,
