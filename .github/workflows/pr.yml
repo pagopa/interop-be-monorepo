@@ -114,7 +114,7 @@ jobs:
 
   lint:
     name: Lint sharded
-    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     needs: [packages_sharding, formatting, build]
@@ -147,7 +147,7 @@ jobs:
 
   test:
     name: Tests sharded
-    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     needs: [formatting, packages_sharding, build]
