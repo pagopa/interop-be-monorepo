@@ -1,11 +1,9 @@
 import {
   AgreementTopicConfig,
   KafkaConsumerConfig,
-  ReadModelDbConfig,
   AWSSesConfig,
   PurposeTopicConfig,
   CatalogTopicConfig,
-  FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -37,15 +35,13 @@ export const NotificationEmailSenderRedisConfig = z
   }));
 
 export const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
-  ReadModelDbConfig
+  ReadModelSQLDbConfig
 )
   .and(AgreementTopicConfig)
   .and(AWSSesConfig)
   .and(SESEmailSenderConfig)
   .and(PurposeTopicConfig)
   .and(CatalogTopicConfig)
-  .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig.optional())
   .and(NotificationEmailSenderRedisConfig);
 
 export type NotificationEmailSenderConfig = z.infer<
