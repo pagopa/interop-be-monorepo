@@ -483,6 +483,6 @@ export function eservicePersonalDataFlagCanOnlyBeSetOnce(
   return new ApiError({
     detail: `PersonalData flag has already been set for eService ${eserviceId}`,
     code: "eservicePersonalDataFlagCanOnlyBeSetOnce",
-    title: "EService personalData can only be set once",
+    title: "EService personalData flag can only be set once",
   });
 }
