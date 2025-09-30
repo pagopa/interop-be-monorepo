@@ -100,7 +100,7 @@ import {
   templateMissingRequiredRiskAnalysis,
   checksumDuplicate,
   attributeDuplicatedInGroup,
-  eservicePersonalDataCanOnlyBeSetOnce,
+  eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
@@ -2720,6 +2720,13 @@ export function catalogServiceBuilder(
         );
       }
 
+      if (
+        config.featureFlagEservicePersonalData &&
+        eservice.data.personalData === undefined
+      ) {
+        throw missingPersonalDataFlag(eserviceId, descriptorId);
+      }
+
       const updatedEService = await processDescriptorPublication(
         eservice.data,
         descriptor,
@@ -3571,7 +3578,7 @@ export function catalogServiceBuilder(
       assertEServiceUpdatableAfterPublish(eservice.data);
 
       if (eservice.data.personalData !== undefined) {
-        throw eservicePersonalDataCanOnlyBeSetOnce(eserviceId);
+        throw eservicePersonalDataFlagCanOnlyBeSetOnce(eserviceId);
       }
 
       const updatedEservice: EService = {
