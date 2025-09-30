@@ -209,6 +209,7 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       logger.info(`Deleting purpose template ${purposeTemplateId}`);
 
       await purposeTemplateClient.deletePurposeTemplate(undefined, {
@@ -217,6 +218,34 @@ export function purposeTemplateServiceBuilder(
         },
         headers,
       });
+    },
+    async deleteRiskAnalysisTemplateAnswerAnnotation({
+      purposeTemplateId,
+      answerId,
+      ctx,
+    }: {
+      purposeTemplateId: PurposeTemplateId;
+      answerId: PurposeTemplateId;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<void> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
+
+      logger.info(
+        `Deleting risk analysis template answer annotation for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      await purposeTemplateClient.deleteRiskAnalysisTemplateAnswerAnnotation(
+        undefined,
+        {
+          params: {
+            id: purposeTemplateId,
+            answerId,
+          },
+          headers,
+        }
+      );
     },
   };
 }

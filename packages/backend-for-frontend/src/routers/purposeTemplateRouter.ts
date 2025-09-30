@@ -134,14 +134,39 @@ const purposeTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          // TODO: add feature flag error mapper if needed
           emptyErrorMapper,
           ctx,
           `Error deleting purpose template ${req.params.purposeTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .delete(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation(
+            {
+              purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
+              answerId: unsafeBrandId(req.params.answerId),
+              ctx,
+            }
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error deleting risk analysis template answer annotation for purpose template ${req.params.purposeTemplateId} and answer ${req.params.answerId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return purposeTemplateRouter;
 };
