@@ -284,13 +284,6 @@ export const getMockCatalogApiEService = (): catalogApi.EService & {
   personalData: generateMock(z.boolean().optional()),
 });
 
-export const getMockBffApiEServicePersonaData = (): catalogApi.EService & {
-  id: EServiceId;
-} => ({
-  ...getMockCatalogApiEService(),
-  personalData: generateMock(z.boolean().optional()),
-});
-
 export const getMockBffApiFileResource = (): bffApi.FileResource => ({
   url: generateMock(z.string().url()),
   filename: generateMock(z.string()),
