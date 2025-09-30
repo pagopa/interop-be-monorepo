@@ -2,15 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
 
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  vi,
-  beforeAll,
-} from "vitest";
+import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
 import {
   generateId,
   AuthorizationEventEnvelopeV1,
