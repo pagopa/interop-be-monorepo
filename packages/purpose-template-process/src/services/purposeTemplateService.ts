@@ -14,7 +14,9 @@ import {
   AppContext,
   DB,
   eventRepository,
+  FileManager,
   getLatestVersionFormRules,
+  Logger,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -24,15 +26,21 @@ import {
   purposeTemplateNotFound,
   ruleSetNotFoundError,
 } from "../model/domain/errors.js";
-import { toCreateEventPurposeTemplateAdded } from "../model/domain/toEvent.js";
+import {
+  toCreateEventPurposeTemplateAdded,
+  toCreateEventPurposeTemplateDraftDeleted,
+} from "../model/domain/toEvent.js";
+import { config } from "../config/config.js";
 import {
   GetPurposeTemplatesFilters,
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
 import {
   assertConsistentFreeOfCharge,
+  assertPurposeTemplateIsDraft,
   assertPurposeTemplateTitleIsNotDuplicated,
   assertRequesterCanRetrievePurposeTemplate,
+  assertRequesterIsCreator,
   validateAndTransformRiskAnalysisTemplate,
 } from "./validators.js";
 
@@ -63,10 +71,38 @@ function getDefaultRiskAnalysisFormTemplate(
   };
 }
 
+async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
+  purposeTemplate,
+  fileManager,
+  readModelService,
+  logger,
+}: {
+  purposeTemplate: PurposeTemplate;
+  fileManager: FileManager;
+  readModelService: ReadModelServiceSQL;
+  logger: Logger;
+}): Promise<void> {
+  if (!purposeTemplate.purposeRiskAnalysisForm) {
+    return;
+  }
+
+  const annotationDocuments =
+    await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocsByPurposeTemplateId(
+      purposeTemplate.id
+    );
+
+  await Promise.all(
+    annotationDocuments.map(async (doc) => {
+      await fileManager.delete(config.s3Bucket, doc.path, logger);
+    })
+  );
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  fileManager: FileManager
 ) {
   const repository = eventRepository(
     dbInstance,
@@ -165,6 +201,39 @@ export function purposeTemplateServiceBuilder(
       );
 
       return purposeTemplate;
+    },
+    async deletePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<void> {
+      logger.info(`Deleting purpose template ${purposeTemplateId}`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertRequesterIsCreator(purposeTemplate.data, authData);
+      assertPurposeTemplateIsDraft(purposeTemplate.data);
+
+      await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
+        purposeTemplate: purposeTemplate.data,
+        fileManager,
+        readModelService,
+        logger,
+      });
+
+      await repository.createEvent(
+        toCreateEventPurposeTemplateDraftDeleted({
+          purposeTemplate: purposeTemplate.data,
+          version: purposeTemplate.metadata.version,
+          correlationId,
+        })
+      );
     },
   };
 }

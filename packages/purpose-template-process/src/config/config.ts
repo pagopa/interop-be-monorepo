@@ -5,6 +5,7 @@ import {
   ReadModelSQLDbConfig,
   S3Config,
   FeatureFlagPurposeTemplateConfig,
+  FileManagerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -13,6 +14,7 @@ const PurposeTemplateProcessConfig = CommonHTTPServiceConfig.and(
 )
   .and(ApplicationAuditProducerConfig)
   .and(ReadModelSQLDbConfig)
+  .and(FileManagerConfig)
   .and(S3Config)
   .and(
     z

@@ -3,6 +3,7 @@ import {
   ApiError,
   makeApiProblemBuilder,
   PurposeTemplateId,
+  PurposeTemplateState,
   TenantId,
   TenantKind,
 } from "pagopa-interop-models";
@@ -14,6 +15,7 @@ export const errorCodes = {
   riskAnalysisTemplateValidationFailed: "0004",
   ruleSetNotFoundError: "0005",
   tenantNotAllowed: "0006",
+  purposeTemplateNotInExpectedState: "0007",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -74,5 +76,17 @@ export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant ${tenantId} is not allowed to perform the operation because it's not the creator`,
     code: "tenantNotAllowed",
     title: "Tenant not allowed",
+  });
+}
+
+export function purposeTemplateNotInExpectedState(
+  purposeTemplateId: PurposeTemplateId,
+  currentState: PurposeTemplateState,
+  expectedStates: PurposeTemplateState[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template ${purposeTemplateId} not in expected state (current state: ${currentState}, expected states: ${expectedStates.toString()})`,
+    code: "purposeTemplateNotInExpectedState",
+    title: "Purpose Template not in expected state",
   });
 }

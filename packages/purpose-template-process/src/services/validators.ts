@@ -17,6 +17,7 @@ import { match } from "ts-pattern";
 import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
+  purposeTemplateNotInExpectedState,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../model/domain/errors.js";
@@ -97,6 +98,27 @@ export const assertRequesterCanRetrievePurposeTemplate = async (
     purposeTemplate.state !== purposeTemplateState.active &&
     purposeTemplate.creatorId !== authData.organizationId
   ) {
+    throw tenantNotAllowed(authData.organizationId);
+  }
+};
+
+export const assertPurposeTemplateIsDraft = (
+  purposeTemplate: PurposeTemplate
+): void => {
+  if (purposeTemplate.state !== purposeTemplateState.draft) {
+    throw purposeTemplateNotInExpectedState(
+      purposeTemplate.id,
+      purposeTemplate.state,
+      [purposeTemplateState.draft]
+    );
+  }
+};
+
+export const assertRequesterIsCreator = (
+  purposeTemplate: PurposeTemplate,
+  authData: UIAuthData | M2MAdminAuthData
+): void => {
+  if (purposeTemplate.creatorId !== authData.organizationId) {
     throw tenantNotAllowed(authData.organizationId);
   }
 };

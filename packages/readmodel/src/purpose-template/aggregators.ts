@@ -8,6 +8,7 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
@@ -216,14 +217,9 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
               id: unsafeBrandId(annotationSQL.id),
               text: annotationSQL.text,
               docs: annotationDocumentSQL
-                ? annotationDocumentSQL.map((doc) => ({
-                    id: unsafeBrandId(doc.id),
-                    name: doc.name,
-                    prettyName: doc.prettyName,
-                    contentType: doc.contentType,
-                    path: doc.path,
-                    createdAt: stringToDate(doc.createdAt),
-                  }))
+                ? annotationDocumentSQL.map(
+                    toRiskAnalysisTemplateAnswerAnnotationDocument
+                  )
                 : [],
             }
           : undefined;
@@ -409,3 +405,14 @@ export const toPurposeTemplateAggregatorArray = (
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
   };
 };
+
+export const toRiskAnalysisTemplateAnswerAnnotationDocument = (
+  docSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL
+): RiskAnalysisTemplateAnswerAnnotationDocument => ({
+  id: unsafeBrandId(docSQL.id),
+  name: docSQL.name,
+  prettyName: docSQL.prettyName,
+  contentType: docSQL.contentType,
+  path: docSQL.path,
+  createdAt: stringToDate(docSQL.createdAt),
+});
