@@ -89,7 +89,7 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test"
         token,
         generateId(),
         generateId(),
-        seed as typeof versionSeed
+        seed as m2mGatewayApi.EServiceTemplateVersionDraftUpdateSeed
       );
       expect(res.status).toBe(200);
     }
