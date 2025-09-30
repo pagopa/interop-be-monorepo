@@ -2301,7 +2301,7 @@ paths:
       description: Update the personalData flag of a template instance after a template update
       responses:
         "204":
-          description: E-Service personalData updated
+          description: E-Service personalData flag updated
         "404":
           description: E-Service Not Found
           content:
