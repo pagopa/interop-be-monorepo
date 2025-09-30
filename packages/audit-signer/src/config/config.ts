@@ -10,18 +10,9 @@ import {
   S3Config,
   KafkaBatchConsumerConfig,
   SafeStorageApiConfig,
+  DynamoDBClientConfig,
 } from "pagopa-interop-commons";
 import { SQSConsumerConfig } from "./sqsConfig.js";
-
-export const AuditsSignerConfig = z
-  .object({
-    SIGNATURE_REFERENCES_TABLE_NAME: z.string(),
-  })
-  .transform((c) => ({
-    signatureReferencesTableName: c.SIGNATURE_REFERENCES_TABLE_NAME,
-  }));
-
-export type AuditsSignerConfig = z.infer<typeof AuditsSignerConfig>;
 
 export const AuditSignerConfig = SQSConsumerConfig.and(CatalogTopicConfig)
   .and(AgreementTopicConfig)
@@ -32,7 +23,7 @@ export const AuditSignerConfig = SQSConsumerConfig.and(CatalogTopicConfig)
   .and(S3Config)
   .and(LoggerConfig)
   .and(KafkaBatchConsumerConfig)
-  .and(AuditsSignerConfig)
+  .and(DynamoDBClientConfig)
   .and(SafeStorageApiConfig)
   .and(
     z

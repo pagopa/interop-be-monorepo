@@ -2,7 +2,8 @@
 import "../setup.js";
 import { describe, it, beforeEach, expect, vi, Mock } from "vitest";
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
-import { dbServiceBuilder } from "../../../src/services/dynamoService.js";
+import { dbServiceBuilder, SignatureReference } from "pagopa-interop-commons";
+import { config } from "../../../src/config/config.js";
 
 describe("dbServiceBuilder", () => {
   let dynamoClient: DynamoDBClient;
@@ -11,11 +12,11 @@ describe("dbServiceBuilder", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     dynamoClient = { send: vi.fn() } as unknown as DynamoDBClient;
-    dbService = dbServiceBuilder(dynamoClient);
+    dbService = dbServiceBuilder(dynamoClient, config);
   });
 
   it("saves record correctly", async () => {
-    const mockReference = {
+    const mockReference: SignatureReference = {
       safeStorageId: "id-1",
       fileKind: "AUDIT_EVENTS",
       fileName: "file.json",
@@ -31,11 +32,12 @@ describe("dbServiceBuilder", () => {
       fileKind: { S: "AUDIT_EVENTS" },
       fileName: { S: "file.json" },
       correlationId: { S: "correlation-1" },
+      creationTimestamp: { N: expect.any(String) },
     });
   });
 
   it("throws error if DynamoDBClient.send rejects", async () => {
-    const mockReference = {
+    const mockReference: SignatureReference = {
       safeStorageId: "id-2",
       fileKind: "AUDIT_EVENTS",
       fileName: "file2.json",

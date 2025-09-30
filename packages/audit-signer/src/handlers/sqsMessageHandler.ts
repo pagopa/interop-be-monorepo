@@ -5,6 +5,8 @@ import {
   Logger,
   SafeStorageService,
   FileCreationRequest,
+  DbServiceBuilder,
+  formatError,
 } from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
 import {
@@ -13,11 +15,9 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { config } from "../config/config.js";
-import { DbServiceBuilder } from "../services/dynamoService.js";
 import { decodeSQSEventMessage } from "../utils/decodeSQSEventMessage.js";
 import { gzipBuffer } from "../utils/compression.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
-import { formatError } from "../utils/errorFormatter.js";
 
 // eslint-disable-next-line max-params
 async function processMessage(
