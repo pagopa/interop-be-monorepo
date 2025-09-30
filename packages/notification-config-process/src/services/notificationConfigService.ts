@@ -5,6 +5,7 @@ import {
   eventRepository,
   UIAuthData,
   InternalAuthData,
+  overrideNotificationConfigByAdmittedRoles,
 } from "pagopa-interop-commons";
 import {
   notificationConfigEventToBinaryDataV2,
@@ -179,7 +180,7 @@ export function notificationConfigServiceBuilder(
     async updateUserNotificationConfig(
       seed: notificationConfigApi.UserNotificationConfigUpdateSeed,
       {
-        authData: { userId, organizationId },
+        authData: { userId, organizationId, userRoles },
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData>>
@@ -198,6 +199,9 @@ export function notificationConfigServiceBuilder(
         throw userNotificationConfigNotFound(userId, organizationId);
       }
 
+      const overrideByUserRoles =
+        overrideNotificationConfigByAdmittedRoles(userRoles);
+
       const userNotificationConfig: UserNotificationConfig = {
         id: existingConfig.data.id,
         userId,
@@ -207,8 +211,8 @@ export function notificationConfigServiceBuilder(
           apiEmailNotificationPreferenceToEmailNotificationPreference(
             seed.emailNotificationPreference
           ),
-        inAppConfig: seed.inAppConfig,
-        emailConfig: seed.emailConfig,
+        inAppConfig: overrideByUserRoles(seed.inAppConfig),
+        emailConfig: overrideByUserRoles(seed.emailConfig),
         createdAt: existingConfig.data.createdAt,
         updatedAt: new Date(),
       };
