@@ -3,7 +3,7 @@ ARG NODE_REGISTRY="docker.io"
 
 FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:ef358d9fa0734e2c3b42482aa352c28a59245bc3d32e07ef57810cf8ba9092c5 AS build
 
-RUN npm install -g corepack@0.31.0 && corepack enable
+RUN corepack enable
 
 WORKDIR /app
 COPY package.json /app/
