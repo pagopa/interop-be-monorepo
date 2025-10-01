@@ -188,7 +188,7 @@ describe("handleConsumerDelegationApproved", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(3);
+    expect(messages.length).toEqual(2);
     expect(messages.some((message) => message.address === users[0].email)).toBe(
       true
     );
@@ -221,106 +221,13 @@ describe("handleConsumerDelegationApproved", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(2);
+    expect(messages.length).toEqual(1);
     expect(messages.some((message) => message.address === users[0].email)).toBe(
       true
     );
     expect(messages.some((message) => message.address === users[1].email)).toBe(
       false
     );
-  });
-
-  it("should generate one message to the delegator", async () => {
-    const delegation = getMockDelegation({
-      kind: "DelegatedConsumer",
-      delegatorId: delegatorTenant.id,
-      delegateId: delegateTenant.id,
-      eserviceId: eservice.id,
-    });
-    await addOneDelegation(delegation);
-
-    const messages = await handleConsumerDelegationApproved({
-      delegationV2Msg: toDelegationV2(delegation),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(3);
-    expect(
-      messages.some(
-        (message) => message.address === delegatorTenant.mails[0].address
-      )
-    ).toBe(true);
-  });
-
-  it("should generate a message using the latest tenant mail that was registered", async () => {
-    const oldMail = { ...getMockTenantMail(), createdAt: new Date(1999) };
-    const newMail = getMockTenantMail();
-    const delegatorTenantWithMultipleMails: Tenant = {
-      ...getMockTenant(),
-      mails: [oldMail, newMail],
-    };
-    await addOneTenant(delegatorTenantWithMultipleMails);
-
-    const delegation = getMockDelegation({
-      kind: "DelegatedConsumer",
-      delegatorId: delegatorTenantWithMultipleMails.id,
-      delegateId: delegateTenant.id,
-      eserviceId: eservice.id,
-    });
-    await addOneDelegation(delegation);
-
-    const messages = await handleConsumerDelegationApproved({
-      delegationV2Msg: toDelegationV2(delegation),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(1);
-    expect(
-      messages.some((message) => message.address === newMail.address)
-    ).toBe(true);
-  });
-
-  it("should not generate a message to the delegator if they disabled email notification", async () => {
-    readModelService.getTenantNotificationConfigByTenantId = vi
-      .fn()
-      .mockResolvedValue({
-        id: generateId<TenantNotificationConfigId>(),
-        tenantId: delegatorTenant.id,
-        enabled: false,
-        createAt: new Date(),
-      });
-
-    const delegation = getMockDelegation({
-      kind: "DelegatedConsumer",
-      delegatorId: delegatorTenant.id,
-      delegateId: delegateTenant.id,
-      eserviceId: eservice.id,
-    });
-    await addOneDelegation(delegation);
-
-    const messages = await handleConsumerDelegationApproved({
-      delegationV2Msg: toDelegationV2(delegation),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(2);
-    expect(
-      messages.some(
-        (message) => message.address === delegatorTenant.mails[0].address
-      )
-    ).toBe(false);
   });
 
   it("should generate a complete and correct message", async () => {
@@ -341,7 +248,7 @@ describe("handleConsumerDelegationApproved", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toBe(3);
+    expect(messages.length).toBe(2);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");

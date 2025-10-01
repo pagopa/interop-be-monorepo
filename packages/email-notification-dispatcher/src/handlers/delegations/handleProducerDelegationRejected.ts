@@ -55,7 +55,7 @@ export async function handleProducerDelegationRejected(
     readModelService,
     userService,
     logger,
-    includeTenantContactEmails: true,
+    includeTenantContactEmails: false,
   });
 
   if (targets.length === 0) {
