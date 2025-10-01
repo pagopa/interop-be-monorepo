@@ -10615,10 +10615,6 @@ paths:
       responses:
         "204":
           description: Risk analysis form template answer annotation deleted
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
           headers:
             "X-Rate-Limit-Limit":
               schema:
