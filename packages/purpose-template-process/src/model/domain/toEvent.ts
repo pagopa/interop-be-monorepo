@@ -26,11 +26,12 @@ export function toCreateEventPurposeTemplateAdded(
 export function toCreateEventPurposeTemplateAnswerAnnotationDocumentAdded(
   purposeTemplate: PurposeTemplate,
   documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  version: number,
   correlationId: CorrelationId
 ): CreateEvent<PurposeTemplateEventV2> {
   return {
     streamId: purposeTemplate.id,
-    version: undefined,
+    version,
     correlationId,
     event: {
       type: "PurposeTemplateAnnotationDocumentAdded",
