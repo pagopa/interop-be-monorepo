@@ -52,7 +52,7 @@ export async function handleClientPurposeRemoved(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Agreement ${purpose.id}, no emails to dispatch.`
+      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
     );
     return [];
   }

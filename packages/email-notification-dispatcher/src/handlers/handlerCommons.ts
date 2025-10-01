@@ -21,11 +21,11 @@ import { getLatestTenantMailOfKind, Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { UserServiceSQL } from "../services/userServiceSQL.js";
 import { HandlerCommonParams } from "../models/handlerParams.js";
-import { eServiceNotFound, purposeNotFound } from "../models/errors.js";
 import {
   attributeNotFound,
   certifierTenantNotFound,
   eServiceNotFound,
+  purposeNotFound,
 } from "../models/errors.js";
 
 export type AgreementHandlerParams = HandlerCommonParams & {
