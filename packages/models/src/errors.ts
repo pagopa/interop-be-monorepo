@@ -13,7 +13,6 @@ const {
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_TOO_MANY_REQUESTS,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
-  HTTP_STATUS_NOT_IMPLEMENTED,
 } = constants;
 
 export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
@@ -476,10 +475,10 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with(
       "unauthorizedError",
+      "featureFlagNotEnabled",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
