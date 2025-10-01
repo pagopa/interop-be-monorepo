@@ -9,14 +9,11 @@ import {
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
-  Agreement,
   CorrelationId,
-  EService,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
   NotificationType,
-  Tenant,
   TenantId,
   toAgreementV2,
   unsafeBrandId,
@@ -24,7 +21,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { handleAgreementActivatedToProducer } from "../src/handlers/agreements/handleAgreementActivatedToProducer.js";
+import { handleAgreementArchivedByConsumer } from "../src/handlers/agreements/handleAgreementArchivedByConsumer.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -36,23 +33,23 @@ import {
   userService,
 } from "./utils.js";
 
-describe("handleAgreementActivated", async () => {
+describe("handleAgreementArchivedByConsumer", async () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
 
   const descriptor = getMockDescriptorPublished();
-  const eservice: EService = {
+  const eservice = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
     descriptors: [descriptor],
   };
-  const producerTenant: Tenant = {
+  const producerTenant = {
     ...getMockTenant(producerId),
     mails: [getMockTenantMail()],
   };
-  const consumerTenant: Tenant = {
+  const consumerTenant = {
     ...getMockTenant(consumerId),
     mails: [getMockTenantMail()],
   };
@@ -85,7 +82,7 @@ describe("handleAgreementActivated", async () => {
 
   it("should throw missingKafkaMessageDataError when agreement is undefined", async () => {
     await expect(() =>
-      handleAgreementActivatedToProducer({
+      handleAgreementArchivedByConsumer({
         agreementV2Msg: undefined,
         logger,
         templateService,
@@ -94,14 +91,14 @@ describe("handleAgreementActivated", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("agreement", "AgreementActivated")
+      missingKafkaMessageDataError("agreement", "AgreementArchivedByConsumer")
     );
   });
 
   it("should throw tenantNotFound when producer is not found", async () => {
     const unknownProducerId = generateId<TenantId>();
 
-    const agreement: Agreement = {
+    const agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: unknownProducerId,
@@ -112,7 +109,7 @@ describe("handleAgreementActivated", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleAgreementActivatedToProducer({
+      handleAgreementArchivedByConsumer({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
@@ -123,9 +120,34 @@ describe("handleAgreementActivated", async () => {
     ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
+  it("should throw tenantNotFound when consumer is not found", async () => {
+    const unknownConsumerId = generateId<TenantId>();
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: unknownConsumerId,
+    };
+    await addOneAgreement(agreement);
+
+    await expect(() =>
+      handleAgreementArchivedByConsumer({
+        agreementV2Msg: toAgreementV2(agreement),
+        logger,
+        templateService,
+        userService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      })
+    ).rejects.toThrow(tenantNotFound(unknownConsumerId));
+  });
+
   it("should throw eServiceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
-    const agreement: Agreement = {
+    const agreement = {
       ...getMockAgreement(),
       stamps: {},
       producerId: producerTenant.id,
@@ -136,7 +158,7 @@ describe("handleAgreementActivated", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleAgreementActivatedToProducer({
+      handleAgreementArchivedByConsumer({
         agreementV2Msg: toAgreementV2(agreement),
         logger,
         templateService,
@@ -148,7 +170,7 @@ describe("handleAgreementActivated", async () => {
   });
 
   it("should generate one message per user of the tenant that produced the eservice", async () => {
-    const agreement: Agreement = {
+    const agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
@@ -158,7 +180,7 @@ describe("handleAgreementActivated", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementActivatedToProducer({
+    const messages = await handleAgreementArchivedByConsumer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
@@ -183,7 +205,7 @@ describe("handleAgreementActivated", async () => {
         { userId: users[0].id, tenantId: users[0].tenantId },
       ]);
 
-    const agreement: Agreement = {
+    const agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
@@ -193,7 +215,7 @@ describe("handleAgreementActivated", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementActivatedToProducer({
+    const messages = await handleAgreementArchivedByConsumer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
@@ -213,7 +235,7 @@ describe("handleAgreementActivated", async () => {
 
   it("should generate a complete and correct message", async () => {
     const activationDate = new Date();
-    const agreement: Agreement = {
+    const agreement = {
       ...getMockAgreement(),
       stamps: {
         activation: { when: activationDate, who: generateId<UserId>() },
@@ -225,7 +247,7 @@ describe("handleAgreementActivated", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleAgreementActivatedToProducer({
+    const messages = await handleAgreementArchivedByConsumer({
       agreementV2Msg: toAgreementV2(agreement),
       logger,
       templateService,
@@ -239,7 +261,7 @@ describe("handleAgreementActivated", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `Richiesta di fruizione accettata automaticamente`
+        `Richiesta di fruizione archiviata dal fruitore`
       );
       expect(message.email.body).toContain(producerTenant.name);
       expect(message.email.body).toContain(eservice.name);
