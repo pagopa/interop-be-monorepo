@@ -9,7 +9,10 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { fromBffAppContext } from "../utilities/context.js";
 import { InAppNotificationService } from "../services/inAppNotificationManagerService.js";
-import { toBffApiNotificationsCountBySection } from "../api/inAppNotificationApiConverter.js";
+import {
+  toBffApiNotification,
+  toBffApiNotificationsCountBySection,
+} from "../api/inAppNotificationApiConverter.js";
 import { makeApiProblem } from "../model/errors.js";
 
 const inAppNotificationRouter = (
@@ -21,7 +24,38 @@ const inAppNotificationRouter = (
   });
 
   inAppNotificationRouter
-    .get("/inAppNotifications", (_, res) => res.status(501).send())
+    .get("/inAppNotifications", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      const { q, offset, limit } = req.query;
+
+      try {
+        const notifications = await inAppNotificationService.getNotifications(
+          q,
+          offset,
+          limit,
+          ctx
+        );
+        return res.status(200).send(
+          bffApi.Notifications.parse({
+            pagination: {
+              offset,
+              limit,
+              totalCount: notifications.totalCount,
+            },
+            results: notifications.results.map(toBffApiNotification),
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error getting in-app notifications"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/inAppNotifications/bulk/markAsRead", (_, res) =>
       res.status(501).send()
     )
