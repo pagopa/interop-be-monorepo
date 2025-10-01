@@ -20,6 +20,7 @@ function toOutboundPurposeVersionStampV2(
 ): Exact<OutboundPurposeVersionStampV2, PurposeVersionStampV2> {
   return {
     ...stamp,
+    who: undefined,
   };
 }
 
