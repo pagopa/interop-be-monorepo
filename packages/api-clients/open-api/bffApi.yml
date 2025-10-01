@@ -20018,6 +20018,11 @@ paths:
           schema:
             type: string
         - in: query
+          name: category
+          description: Category to filter notifications
+          schema:
+            type: string
+        - in: query
           name: offset
           required: true
           schema:

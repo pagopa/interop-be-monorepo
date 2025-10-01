@@ -1,6 +1,7 @@
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
 import { NotificationType } from "pagopa-interop-models";
+import { z } from "zod";
 import {
   fromApiTenantMail,
   toBffTenantMail,
@@ -89,11 +90,13 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     certifiedVerifiedAttributeAssignedRevokedToAssignee: "/aderente/anagrafica",
   } as const;
 
-export type NotificationCategory =
-  | "Subscribers"
-  | "Providers"
-  | "Delegations"
-  | "AttributesAndKeys";
+export const Category = z.enum([
+  "Subscribers",
+  "Providers",
+  "Delegations",
+  "AttributesAndKeys",
+]);
+export type NotificationCategory = z.infer<typeof Category>;
 
 export const notificationTypeToCategory: Record<
   NotificationType,
@@ -119,3 +122,14 @@ export const notificationTypeToCategory: Record<
   delegationSubmittedRevokedToDelegate: "Delegations",
   certifiedVerifiedAttributeAssignedRevokedToAssignee: "AttributesAndKeys",
 };
+
+export const categoryToNotificationTypes: Record<
+  NotificationCategory,
+  NotificationType[]
+> = Object.entries(notificationTypeToCategory).reduce(
+  (acc, [type, category]) => ({
+    ...acc,
+    [category]: [...(acc[category] || []), type as NotificationType],
+  }),
+  {} as Record<NotificationCategory, NotificationType[]>
+);

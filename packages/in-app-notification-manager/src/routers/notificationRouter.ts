@@ -11,6 +11,7 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import {
   emptyErrorMapper,
   NotificationId,
+  NotificationType,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { inAppNotificationApi } from "pagopa-interop-api-clients";
@@ -41,9 +42,10 @@ export const notificationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
 
-        const { limit, offset, q } = req.query;
+        const { limit, offset, q, notificationTypes } = req.query;
         const { results, totalCount } = await service.getNotifications(
           q,
+          notificationTypes.map((t) => NotificationType.parse(t)),
           limit,
           offset,
           ctx
