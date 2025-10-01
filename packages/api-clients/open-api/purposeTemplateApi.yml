@@ -607,13 +607,6 @@ paths:
       responses:
         "204":
           description: Risk analysis form template answer annotation deleted
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
         "400":
           description: Bad Request
           content:
