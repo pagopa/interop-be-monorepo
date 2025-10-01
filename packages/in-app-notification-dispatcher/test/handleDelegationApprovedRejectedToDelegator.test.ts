@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockTenant,
@@ -14,8 +14,14 @@ import {
   DelegationKind,
 } from "pagopa-interop-models";
 import { tenantNotFound } from "../src/models/errors.js";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { handleDelegationApprovedRejectedToDelegator } from "../src/handlers/delegations/handleDelegationApprovedRejectedToDelegator.js";
-import { addOneDelegation, addOneTenant, readModelService } from "./utils.js";
+import {
+  addOneDelegation,
+  addOneTenant,
+  mockUserServiceSQL,
+  readModelService,
+} from "./utils.js";
 
 describe("handleDelegationApprovedRejectedToDelegator", () => {
   const delegator = getMockTenant();
@@ -29,7 +35,10 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
 
   const { logger } = getMockContext({});
 
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
+
   beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneTenant(delegator);
     await addOneTenant(delegate);
@@ -42,6 +51,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
         undefined,
         logger,
         readModelService,
+        mockUserServiceSQL,
         "ProducerDelegationApproved"
       )
     ).rejects.toThrow(
@@ -56,32 +66,30 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
       delegateId: unknownTenantId,
     };
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: delegator.id }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: delegator.id },
+    ]);
 
     await expect(() =>
       handleDelegationApprovedRejectedToDelegator(
         toDelegationV2(delegationWithUnknownDelegate),
         logger,
         readModelService,
+        mockUserServiceSQL,
         "ProducerDelegationApproved"
       )
     ).rejects.toThrow(tenantNotFound(unknownTenantId));
   });
 
   it("should return empty array when no users have notifications enabled", async () => {
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications = await handleDelegationApprovedRejectedToDelegator(
       toDelegationV2(delegation),
       logger,
       readModelService,
+      mockUserServiceSQL,
       "ProducerDelegationApproved"
     );
 
@@ -130,15 +138,13 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
         { userId: generateId(), tenantId: delegator.id },
       ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(delegatorUsers);
+      mockGetNotificationRecipients.mockResolvedValue(delegatorUsers);
 
       const notifications = await handleDelegationApprovedRejectedToDelegator(
         toDelegationV2({ ...delegation, kind, rejectionReason }),
         logger,
         readModelService,
+        mockUserServiceSQL,
         eventType
       );
 
@@ -164,15 +170,13 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
       { userId: generateId(), tenantId: delegator.id },
       { userId: generateId(), tenantId: delegator.id },
     ];
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications = await handleDelegationApprovedRejectedToDelegator(
       toDelegationV2(delegation),
       logger,
       readModelService,
+      mockUserServiceSQL,
       "ProducerDelegationApproved"
     );
 
