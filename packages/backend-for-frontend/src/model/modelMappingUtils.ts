@@ -88,3 +88,34 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     delegationSubmittedRevokedToDelegate: "/aderente/deleghe",
     certifiedVerifiedAttributeAssignedRevokedToAssignee: "/aderente/anagrafica",
   } as const;
+
+export type NotificationCategory =
+  | "Subscribers"
+  | "Providers"
+  | "Delegations"
+  | "AttributesAndKeys";
+
+export const notificationTypeToCategory: Record<
+  NotificationType,
+  NotificationCategory
+> = {
+  agreementManagementToProducer: "Providers",
+  agreementSuspendedUnsuspendedToProducer: "Providers",
+  agreementSuspendedUnsuspendedToConsumer: "Subscribers",
+  clientAddedRemovedToProducer: "Providers",
+  purposeStatusChangedToProducer: "Providers",
+  templateStatusChangedToProducer: "Providers",
+  newEserviceTemplateVersionToInstantiator: "Providers",
+  eserviceTemplateNameChangedToInstantiator: "Providers",
+  eserviceTemplateStatusChangedToInstantiator: "Providers",
+  clientKeyAddedDeletedToClientUsers: "Providers",
+  agreementActivatedRejectedToConsumer: "Subscribers",
+  purposeActivatedRejectedToConsumer: "Subscribers",
+  purposeSuspendedUnsuspendedToConsumer: "Subscribers",
+  eserviceStateChangedToConsumer: "Subscribers",
+  delegationApprovedRejectedToDelegator: "Delegations",
+  eserviceNewVersionSubmittedToDelegator: "Delegations",
+  eserviceNewVersionApprovedRejectedToDelegate: "Delegations",
+  delegationSubmittedRevokedToDelegate: "Delegations",
+  certifiedVerifiedAttributeAssignedRevokedToAssignee: "AttributesAndKeys",
+};
