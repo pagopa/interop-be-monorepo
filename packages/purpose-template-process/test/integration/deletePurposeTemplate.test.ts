@@ -178,7 +178,7 @@ describe("deletePurposeTemplate", () => {
       (state) => state !== purposeTemplateState.draft
     )
   )(
-    "should throw purposeTemplateNotInExpectedState if the purpose template is not in %s state",
+    "should throw purposeTemplateNotInExpectedState if the purpose template is in %s state",
     async (state) => {
       const purposeTemplateNotInWrongState: PurposeTemplate = {
         ...purposeTemplate,
