@@ -13,6 +13,7 @@ import { handleAgreementSuspendedByPlatformToProducer } from "./handleAgreementS
 import { handleAgreementUnsuspendedByConsumer } from "./handleAgreementUnsuspendedByConsumer.js";
 import { handleAgreementUnsuspendedByPlatformToProducer } from "./handleAgreementUnsuspendedByPlatformToProducer.js";
 import { handleAgreementActivatedToProducer } from "./handleAgreementActivatedToProducer.js";
+import { handleAgreementArchivedByConsumer } from "./handleAgreementArchivedByConsumer.js";
 
 export async function handleAgreementEvent(
   params: HandlerParams<typeof AgreementEventV2>
@@ -118,6 +119,16 @@ export async function handleAgreementEvent(
           correlationId,
         })
     )
+    .with({ type: "AgreementArchivedByConsumer" }, ({ data: { agreement } }) =>
+      handleAgreementArchivedByConsumer({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
     .with(
       {
         type: P.union(
@@ -125,7 +136,6 @@ export async function handleAgreementEvent(
           "AgreementDeleted",
           "DraftAgreementUpdated",
           "AgreementUnsuspendedByProducer",
-          "AgreementArchivedByConsumer",
           "AgreementArchivedByUpgrade",
           "AgreementSuspendedByProducer",
           "AgreementConsumerDocumentAdded",
