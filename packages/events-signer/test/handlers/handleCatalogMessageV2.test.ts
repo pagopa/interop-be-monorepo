@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
   EServiceEventEnvelopeV2,
   generateId,
@@ -18,11 +18,13 @@ import {
   dbServiceBuilder,
 } from "pagopa-interop-commons";
 import {
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
   getMockDescriptorPublished,
   getMockEService,
 } from "pagopa-interop-commons-test";
 import { config } from "../../src/config/config.js";
-import { createTableIfNotExists, dynamoDBClient, waitForTable } from "../utils/utils.js";
+import { dynamoDBClient } from "../utils/utils.js";
 import { handleCatalogMessageV2 } from "../../src/handlers/handleCatalogMessageV2.js";
 
 const fileManager: FileManager = initFileManager(config);
@@ -40,15 +42,14 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
     })),
   }));
 
-  beforeAll(async () => {
-    await createTableIfNotExists(config.signatureReferencesTableName);
-    await waitForTable(config.signatureReferencesTableName);
-  });
-
   beforeEach(async () => {
     vi.clearAllMocks();
+    await buildDynamoDBTables(dynamoDBClient);
   });
 
+  afterEach(async () => {
+    await deleteDynamoDBTables(dynamoDBClient);
+  });
 
   it("should process an EServiceDescriptorActivated event and save a reference in DynamoDB", async () => {
     const descriptor = getMockDescriptorPublished();

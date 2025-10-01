@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
   DelegationEventEnvelopeV2,
   generateId,
@@ -19,10 +19,12 @@ import {
   dbServiceBuilder,
 } from "pagopa-interop-commons";
 import {
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
   getMockDelegation,
 } from "pagopa-interop-commons-test";
 import { config } from "../../src/config/config.js";
-import { createTableIfNotExists, dynamoDBClient, waitForTable } from "../utils/utils.js";
+import { dynamoDBClient } from "../utils/utils.js";
 import { handleDelegationMessageV2 } from "../../src/handlers/handleDelegationMessageV2.js";
 
 const fileManager: FileManager = initFileManager(config);
@@ -40,15 +42,14 @@ describe("handleDelegationMessageV2 - Integration Test", () => {
     })),
   }));
 
-  beforeAll(async () => {
-    await createTableIfNotExists(config.signatureReferencesTableName);
-    await waitForTable(config.signatureReferencesTableName);
-  });
-
   beforeEach(async () => {
     vi.clearAllMocks();
+    await buildDynamoDBTables(dynamoDBClient);
   });
 
+  afterEach(async () => {
+    await deleteDynamoDBTables(dynamoDBClient);
+  });
 
   it("should process a ProducerDelegationApproved event and save a reference in DynamoDB", async () => {
     const mockDelegation = getMockDelegation({

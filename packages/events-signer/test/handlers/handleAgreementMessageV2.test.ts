@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
   AgreementAddedV2,
   generateId,
@@ -9,7 +9,11 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { FileManager, initFileManager } from "pagopa-interop-commons";
-import { getMockAgreement } from "pagopa-interop-commons-test";
+import {
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
+  getMockAgreement,
+} from "pagopa-interop-commons-test";
 import {
   SafeStorageService,
   createSafeStorageApiClient,
@@ -17,11 +21,7 @@ import {
   dbServiceBuilder,
 } from "pagopa-interop-commons";
 import { config } from "../../src/config/config.js";
-import {
-  createTableIfNotExists,
-  dynamoDBClient,
-  waitForTable,
-} from "../utils/utils.js";
+import { dynamoDBClient } from "../utils/utils.js";
 import { handleAgreementMessageV2 } from "../../src/handlers/handleAgreementMessageV2.js";
 
 const fileManager: FileManager = initFileManager(config);
@@ -41,13 +41,13 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     })),
   }));
 
-  beforeAll(async () => {
-    await createTableIfNotExists(config.signatureReferencesTableName);
-    await waitForTable(config.signatureReferencesTableName);
-  });
-
   beforeEach(async () => {
     vi.clearAllMocks();
+    await buildDynamoDBTables(dynamoDBClient);
+  });
+
+  afterEach(async () => {
+    await deleteDynamoDBTables(dynamoDBClient);
   });
 
   it("should process an AgreementActivated event and save a reference in DynamoDB", async () => {

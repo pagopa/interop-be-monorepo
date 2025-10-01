@@ -1,22 +1,30 @@
-import { describe, it, expect, beforeEach, beforeAll, vi } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  beforeAll,
+  vi,
+  afterEach,
+} from "vitest";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { generateId } from "pagopa-interop-models";
 import { dbServiceBuilder } from "pagopa-interop-commons";
 import {
-  createTableIfNotExists,
-  dynamoDBClient,
-  waitForTable,
-} from "../utils/utils.js";
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
+} from "pagopa-interop-commons-test";
+import { dynamoDBClient } from "../utils/utils.js";
 import { config } from "../../src/config/config.js";
 
 describe("dbServiceBuilder - Integration Tests", () => {
-  beforeAll(async () => {
-    await createTableIfNotExists(config.signatureReferencesTableName);
-    await waitForTable(config.signatureReferencesTableName);
-  });
-
   beforeEach(async () => {
     vi.clearAllMocks();
+    await buildDynamoDBTables(dynamoDBClient);
+  });
+
+  afterEach(async () => {
+    await deleteDynamoDBTables(dynamoDBClient);
   });
 
   it("should successfully save a signature reference and retrieve it", async () => {

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 
-import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
   AuthorizationEventEnvelopeV2,
   generateId,
@@ -19,13 +19,14 @@ import {
   DbServiceBuilder,
   dbServiceBuilder,
 } from "pagopa-interop-commons";
-import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
-import { config } from "../../src/config/config.js";
 import {
-  createTableIfNotExists,
-  dynamoDBClient,
-  waitForTable,
-} from "../utils/utils.js";
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
+  getMockClient,
+  getMockKey,
+} from "pagopa-interop-commons-test";
+import { config } from "../../src/config/config.js";
+import { dynamoDBClient } from "../utils/utils.js";
 import { handleAuthorizationMessageV2 } from "../../src/handlers/handleAuthorizationMessageV2.js";
 
 const fileManager: FileManager = initFileManager(config);
@@ -43,13 +44,13 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     })),
   }));
 
-  beforeAll(async () => {
-    await createTableIfNotExists(config.signatureReferencesTableName);
-    await waitForTable(config.signatureReferencesTableName);
-  });
-
   beforeEach(async () => {
     vi.clearAllMocks();
+    await buildDynamoDBTables(dynamoDBClient);
+  });
+
+  afterEach(async () => {
+    await deleteDynamoDBTables(dynamoDBClient);
   });
 
   it("should process a ClientKeyAdded event and save a reference in DynamoDB", async () => {
