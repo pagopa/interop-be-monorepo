@@ -27,9 +27,26 @@ export function visibilityFilter<
     | typeof purposeM2MEventInM2MEvent
     | typeof clientM2MEventInM2MEvent
     | typeof producerKeychainM2MEventInM2MEvent
->(table: T, filter: SQL | undefined): SQL | undefined {
+>(
+  table: T,
+  {
+    ownerFilter,
+    restrictedFilter,
+  }: {
+    ownerFilter: SQL | undefined;
+    restrictedFilter: SQL | undefined;
+  }
+): SQL | undefined {
   return or(
     eq(table.visibility, m2mEventVisibility.public),
-    and(eq(table.visibility, m2mEventVisibility.restricted), filter)
+    ownerFilter
+      ? and(eq(table.visibility, m2mEventVisibility.owner), ownerFilter)
+      : undefined,
+    restrictedFilter
+      ? and(
+          eq(table.visibility, m2mEventVisibility.restricted),
+          restrictedFilter
+        )
+      : undefined
   );
 }

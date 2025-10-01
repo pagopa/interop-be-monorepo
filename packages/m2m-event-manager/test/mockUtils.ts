@@ -51,17 +51,8 @@ export function getMockedEServiceM2MEvent({
     eserviceId: generateId<EServiceId>(),
     descriptorId: generateId<DescriptorId>(),
     visibility,
-    producerId:
-      visibility === m2mEventVisibility.restricted
-        ? producerId ?? generateId<TenantId>()
-        : undefined,
-    producerDelegateId:
-      visibility === m2mEventVisibility.restricted
-        ? producerDelegateId ?? generateId<TenantId>()
-        : undefined,
-    producerDelegationId:
-      visibility === m2mEventVisibility.restricted && producerDelegateId
-        ? generateId<DelegationId>()
-        : undefined,
+    producerId: producerId ?? generateId<TenantId>(),
+    producerDelegateId: producerDelegateId ?? generateId<TenantId>(),
+    producerDelegationId: producerDelegateId ?? generateId<DelegationId>(),
   } as EServiceM2MEvent;
 }

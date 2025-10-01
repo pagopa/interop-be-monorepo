@@ -4,7 +4,6 @@ import {
   AttributeM2MEvent,
   EServiceM2MEvent,
   dateToString,
-  m2mEventVisibility,
 } from "pagopa-interop-models";
 import {
   attributeM2MEventInM2MEvent,
@@ -47,18 +46,8 @@ export async function writeEServiceM2MEvent(event: EServiceM2MEvent) {
       ...event,
       eventTimestamp: dateToString(event.eventTimestamp),
       descriptorId: event.descriptorId ?? null,
-      producerId:
-        event.visibility === m2mEventVisibility.restricted
-          ? event.producerId ?? null
-          : null,
-      producerDelegateId:
-        event.visibility === m2mEventVisibility.restricted
-          ? event.producerDelegateId ?? null
-          : null,
-      producerDelegationId:
-        event.visibility === m2mEventVisibility.restricted
-          ? event.producerDelegationId ?? null
-          : null,
+      producerDelegateId: event.producerDelegateId ?? null,
+      producerDelegationId: event.producerDelegationId ?? null,
     },
   ]);
 }

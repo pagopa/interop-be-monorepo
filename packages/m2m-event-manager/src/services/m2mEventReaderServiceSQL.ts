@@ -60,13 +60,13 @@ export function m2mEventReaderServiceSQLBuilder(
         .where(
           and(
             afterEventIdFilter(eserviceM2MEventInM2MEvent, lastEventId),
-            visibilityFilter(
-              eserviceM2MEventInM2MEvent,
-              or(
+            visibilityFilter(eserviceM2MEventInM2MEvent, {
+              ownerFilter: or(
                 eq(eserviceM2MEventInM2MEvent.producerId, requester),
                 eq(eserviceM2MEventInM2MEvent.producerDelegateId, requester)
-              )
-            )
+              ),
+              restrictedFilter: undefined,
+            })
           )
         )
         .orderBy(asc(eserviceM2MEventInM2MEvent.id))

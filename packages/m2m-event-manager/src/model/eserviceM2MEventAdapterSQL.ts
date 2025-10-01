@@ -7,7 +7,6 @@ export function fromEServiceM2MEventSQL(
   return EServiceM2MEvent.parse({
     ...event,
     descriptorId: event.descriptorId ?? undefined,
-    producerId: event.producerId ?? undefined,
     producerDelegationId: event.producerDelegationId ?? undefined,
     producerDelegateId: event.producerDelegateId ?? undefined,
   });

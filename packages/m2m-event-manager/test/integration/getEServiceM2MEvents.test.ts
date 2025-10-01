@@ -15,29 +15,35 @@ describe("getEServiceM2MEvents", () => {
 
   const mockEServiceM2MEvents = EServiceM2MEventType.options
     .map((eventType) => [
-      getMockedEServiceM2MEvent({ eventType }),
       getMockedEServiceM2MEvent({
         eventType,
-        visibility: m2mEventVisibility.restricted,
+        // Public events
       }),
       getMockedEServiceM2MEvent({
         eventType,
-        visibility: m2mEventVisibility.restricted,
+        visibility: m2mEventVisibility.owner,
         producerId: mockProducerId,
+        // Visible only to mockProducerId
       }),
       getMockedEServiceM2MEvent({
         eventType,
-        visibility: m2mEventVisibility.restricted,
+        visibility: m2mEventVisibility.owner,
         producerId: mockProducerId,
         producerDelegateId: mockProducerDelegateId,
+        // Visible only to mockProducerId and mockProducerDelegateId
+      }),
+
+      getMockedEServiceM2MEvent({
+        eventType,
+        visibility: m2mEventVisibility.owner,
+        // Visible only to some other producer
       }),
     ])
     .flat();
 
   const publicEventsCount = EServiceM2MEventType.options.length;
-  const restrictedToProducerCount = EServiceM2MEventType.options.length * 2;
-  const restrictedToProducerAndDelegateCount =
-    EServiceM2MEventType.options.length;
+  const mockProducerEventsCount = EServiceM2MEventType.options.length * 2;
+  const mockProducerOrDelegateEventsCount = EServiceM2MEventType.options.length;
 
   beforeEach(async () => {
     await Promise.all(mockEServiceM2MEvents.map(writeEServiceM2MEvent));
@@ -57,45 +63,43 @@ describe("getEServiceM2MEvents", () => {
     expect(events.length).toEqual(publicEventsCount);
   });
 
-  it("should also list restricted eservice M2M events (requester = producerId)", async () => {
-    const restrictedEvents = mockEServiceM2MEvents.filter(
+  it("should also list owner eservice M2M events (requester = producerId)", async () => {
+    const ownerEvents = mockEServiceM2MEvents.filter(
       (e) =>
         e.visibility === m2mEventVisibility.public ||
-        (e.visibility === m2mEventVisibility.restricted &&
+        (e.visibility === m2mEventVisibility.owner &&
           e.producerId === mockProducerId)
     );
 
     const events = await m2mEventService.getEServiceM2MEvents(
       undefined,
-      restrictedEvents.length,
+      ownerEvents.length,
       getMockContextM2M({
         organizationId: mockProducerId,
       })
     );
-    expect(events).toEqual(restrictedEvents);
-    expect(events.length).toEqual(
-      restrictedToProducerCount + publicEventsCount
-    );
+    expect(events).toEqual(ownerEvents);
+    expect(events.length).toEqual(mockProducerEventsCount + publicEventsCount);
   });
 
-  it("should also list also restricted eservice M2M events (requester = producerDelegateId)", async () => {
-    const restrictedEvents = mockEServiceM2MEvents.filter(
+  it("should also list also owner eservice M2M events (requester = producerDelegateId)", async () => {
+    const ownerEvents = mockEServiceM2MEvents.filter(
       (e) =>
         e.visibility === m2mEventVisibility.public ||
-        (e.visibility === m2mEventVisibility.restricted &&
+        (e.visibility === m2mEventVisibility.owner &&
           e.producerDelegateId === mockProducerDelegateId)
     );
 
     const events = await m2mEventService.getEServiceM2MEvents(
       undefined,
-      restrictedEvents.length,
+      ownerEvents.length,
       getMockContextM2M({
         organizationId: mockProducerDelegateId,
       })
     );
-    expect(events).toEqual(restrictedEvents);
+    expect(events).toEqual(ownerEvents);
     expect(events.length).toEqual(
-      restrictedToProducerAndDelegateCount + publicEventsCount
+      mockProducerOrDelegateEventsCount + publicEventsCount
     );
   });
 
