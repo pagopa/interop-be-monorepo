@@ -1,12 +1,4 @@
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  beforeAll,
-  vi,
-  afterEach,
-} from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { generateId } from "pagopa-interop-models";
 import { dbServiceBuilder } from "pagopa-interop-commons";
