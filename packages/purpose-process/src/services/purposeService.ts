@@ -49,7 +49,6 @@ import {
   CorrelationId,
   Delegation,
   DelegationId,
-  PurposeVersionStamp,
   UserId,
   PurposeVersionStamps,
 } from "pagopa-interop-models";
@@ -913,15 +912,17 @@ export function purposeServiceBuilder(
        * also generate the new risk analysis document
        */
 
-      const stamp: PurposeVersionStamp = {
-        who: authData.userId,
-        when: new Date(),
+      const stamps: PurposeVersionStamps = {
+        creation: {
+          who: authData.userId,
+          when: new Date(),
+        },
       };
 
       const riskAnalysisDocument = await generateRiskAnalysisDocument({
         eservice,
         purpose: purpose.data,
-        userId: stamp.who,
+        userId: stamps.creation.who,
         dailyCalls: seed.dailyCalls,
         readModelService,
         fileManager,
@@ -936,9 +937,7 @@ export function purposeServiceBuilder(
         dailyCalls: seed.dailyCalls,
         firstActivationAt: new Date(),
         createdAt: new Date(),
-        stamps: {
-          creation: stamp,
-        },
+        stamps,
       };
 
       const oldVersions = archiveActiveAndSuspendedPurposeVersions(
