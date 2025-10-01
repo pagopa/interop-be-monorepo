@@ -26,6 +26,7 @@ import {
   eserviceMode,
   RiskAnalysisSingleAnswer,
   RiskAnalysisMultiAnswer,
+  UserId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -60,10 +61,12 @@ export const riskAnalysisDocumentBuilder = (
   const dirname = path.dirname(filename);
 
   return {
+    // eslint-disable-next-line max-params
     createRiskAnalysisDocument: async (
       purpose: Purpose,
       dailyCalls: number,
       eserviceInfo: PurposeDocumentEServiceInfo,
+      userId: UserId | undefined,
       tenantKind: TenantKind,
       language: Language
     ): Promise<PurposeVersionDocument> => {
@@ -97,6 +100,7 @@ export const riskAnalysisDocumentBuilder = (
         riskAnalysisForm: purpose.riskAnalysisForm,
         dailyCalls,
         eserviceInfo,
+        userId,
         isFreeOfCharge: purpose.isFreeOfCharge,
         freeOfChargeReason: purpose.freeOfChargeReason,
         language,
@@ -136,6 +140,7 @@ const getPdfPayload = ({
   riskAnalysisForm,
   dailyCalls,
   eserviceInfo,
+  userId,
   isFreeOfCharge,
   freeOfChargeReason,
   language,
@@ -144,6 +149,7 @@ const getPdfPayload = ({
   riskAnalysisForm: PurposeRiskAnalysisForm;
   dailyCalls: number;
   eserviceInfo: PurposeDocumentEServiceInfo;
+  userId: UserId | undefined;
   isFreeOfCharge: boolean;
   freeOfChargeReason?: string;
   language: Language;
@@ -182,6 +188,7 @@ const getPdfPayload = ({
     consumerDelegationId: eserviceInfo.consumerDelegationId,
     consumerDelegateName: eserviceInfo.consumerDelegateName,
     consumerDelegateIpaCode: eserviceInfo.consumerDelegateIpaCode,
+    userId,
   };
 };
 

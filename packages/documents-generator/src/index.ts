@@ -62,14 +62,14 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
 function processMessage(
   agreementTopicConfig: AgreementTopicConfig,
   purposeTopicConfig: PurposeTopicConfig,
-  delegationTopicConfig: DelegationTopicConfig,
+  delegationTopicConfig: DelegationTopicConfig
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     const { decodedMessage, documentGenerator } = match(messagePayload.topic)
       .with(agreementTopicConfig.agreementTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          AgreementEventV2,
+          AgreementEventV2
         );
 
         const documentGenerator = handleAgreementMessageV2.bind(
@@ -77,7 +77,7 @@ function processMessage(
           decodedMessage,
           pdfGenerator,
           fileManager,
-          readModelServiceSQL,
+          readModelServiceSQL
         );
 
         return { decodedMessage, documentGenerator };
@@ -85,7 +85,7 @@ function processMessage(
       .with(purposeTopicConfig.purposeTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          PurposeEventV2,
+          PurposeEventV2
         );
 
         const documentGenerator = handlePurposeMessageV2.bind(
@@ -93,7 +93,7 @@ function processMessage(
           decodedMessage,
           pdfGenerator,
           fileManager,
-          readModelServiceSQL,
+          readModelServiceSQL
         );
 
         return { decodedMessage, documentGenerator };
@@ -101,7 +101,7 @@ function processMessage(
       .with(delegationTopicConfig.delegationTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          DelegationEventV2,
+          DelegationEventV2
         );
 
         const documentGenerator = handleDelegationMessageV2.bind(
@@ -109,7 +109,7 @@ function processMessage(
           decodedMessage,
           pdfGenerator,
           fileManager,
-          readModelServiceSQL,
+          readModelServiceSQL
         );
 
         return { decodedMessage, documentGenerator };
@@ -132,7 +132,7 @@ function processMessage(
     });
 
     loggerInstance.info(
-      `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`,
+      `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
     );
 
     await documentGenerator(loggerInstance);
@@ -152,8 +152,8 @@ try {
       },
       {
         delegationTopic: config.delegationTopic,
-      },
-    ),
+      }
+    )
   );
 } catch (e) {
   genericLogger.error(`An error occurred during initialization:\n${e}`);

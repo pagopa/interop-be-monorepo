@@ -15,6 +15,7 @@ import {
   PurposeEventEnvelopeV2,
   Tenant,
   TenantId,
+  UserId,
   agreementState,
   generateId,
   purposeVersionState,
@@ -46,6 +47,7 @@ describe("handleDelegationMessageV2", () => {
 
   it("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
     vi.spyOn(pdfGenerator, "generate");
+    const mockUserId = generateId<UserId>();
     const mockConsumer: Tenant = {
       ...getMockTenant(),
       kind: "PA",
@@ -78,6 +80,12 @@ describe("handleDelegationMessageV2", () => {
     const mockPurposeVersion = {
       ...getMockPurposeVersion(),
       state: purposeVersionState.waitingForApproval,
+      stamps: {
+        creation: {
+          who: mockUserId,
+          when: new Date(),
+        },
+      },
     };
 
     const mockPurpose = {
@@ -128,6 +136,7 @@ describe("handleDelegationMessageV2", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
+      userId: mockUserId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(

@@ -19,14 +19,14 @@ export async function handleDelegationMessageV2(
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
-  logger: Logger,
+  logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
     .with(
       {
         type: P.union(
           "ProducerDelegationApproved",
-          "ConsumerDelegationApproved",
+          "ConsumerDelegationApproved"
         ),
       },
       async (msg): Promise<void> => {
@@ -56,7 +56,7 @@ export async function handleDelegationMessageV2(
         });
 
         logger.info(`Delegation event ${msg.type} handled successfully`);
-      },
+      }
     )
     .with(
       {
@@ -87,7 +87,7 @@ export async function handleDelegationMessageV2(
           logger,
         });
         logger.info(`Delegation event ${msg.type} handled successfully`);
-      },
+      }
     )
     .with(
       {
@@ -95,14 +95,14 @@ export async function handleDelegationMessageV2(
           "ConsumerDelegationRejected",
           "ConsumerDelegationSubmitted",
           "ProducerDelegationRejected",
-          "ProducerDelegationSubmitted",
+          "ProducerDelegationSubmitted"
         ),
       },
       () => {
         logger.info(
-          `No document generation needed for ${decodedMessage.type} message`,
+          `No document generation needed for ${decodedMessage.type} message`
         );
-      },
+      }
     )
     .exhaustive();
 }

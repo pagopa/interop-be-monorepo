@@ -21,7 +21,7 @@ export async function handleAgreementMessageV2(
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
-  logger: Logger,
+  logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
     .with(
@@ -35,19 +35,19 @@ export async function handleAgreementMessageV2(
         const agreement = fromAgreementV2(msg.data.agreement);
         const eservice = await retrieveEservice(
           readModelService,
-          agreement.eserviceId,
+          agreement.eserviceId
         );
         const consumer = await retrieveTenant(
           readModelService,
-          agreement.consumerId,
+          agreement.consumerId
         );
         const producer = await retrieveTenant(
           readModelService,
-          agreement.producerId,
+          agreement.producerId
         );
         const activeDelegations = await getActiveConsumerAndProducerDelegations(
           agreement,
-          readModelService,
+          readModelService
         );
 
         await agreementContractBuilder(
@@ -55,16 +55,16 @@ export async function handleAgreementMessageV2(
           pdfGenerator,
           fileManager,
           config,
-          logger,
+          logger
         ).createContract(
           agreement,
           eservice,
           consumer,
           producer,
-          activeDelegations,
+          activeDelegations
         );
         logger.info(`Agreement event ${msg.type} handled successfully`);
-      },
+      }
     )
     .with(
       {
@@ -87,14 +87,14 @@ export async function handleAgreementMessageV2(
           "AgreementSuspendedByProducer",
           "AgreementSuspendedByConsumer",
           "AgreementSuspendedByPlatform",
-          "AgreementRejected",
+          "AgreementRejected"
         ),
       },
       () => {
         logger.info(
-          `No document generation needed for ${decodedMessage.type} message`,
+          `No document generation needed for ${decodedMessage.type} message`
         );
-      },
+      }
     )
     .exhaustive();
 }

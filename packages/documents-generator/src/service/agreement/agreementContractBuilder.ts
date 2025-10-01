@@ -43,8 +43,8 @@ import {
   agreementStampNotFound,
   attributeNotFound,
 } from "../../model/errors.js";
-import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 import { ReadModelServiceSQL } from "../readModelSql.js";
+import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
@@ -57,16 +57,16 @@ export type DelegationData = {
 const createAgreementDocumentName = (
   consumerId: TenantId,
   producerId: TenantId,
-  documentCreatedAt: Date,
+  documentCreatedAt: Date
 ): string =>
   `${consumerId}_${producerId}_${formatDateyyyyMMddHHmmss(
-    documentCreatedAt,
+    documentCreatedAt
   )}_agreement_contract.pdf`;
 
 const getAttributesData = async (
   consumer: Tenant,
   agreement: Agreement,
-  readModelService: ReadModelServiceSQL,
+  readModelService: ReadModelServiceSQL
 ): Promise<{
   certified: Array<{
     attribute: Attribute;
@@ -85,9 +85,9 @@ const getAttributesData = async (
     T extends
       | CertifiedTenantAttribute
       | DeclaredTenantAttribute
-      | VerifiedTenantAttribute,
+      | VerifiedTenantAttribute
   >(
-    type: TenantAttributeType,
+    type: TenantAttributeType
   ): Promise<
     Array<{
       attribute: Attribute;
@@ -97,26 +97,26 @@ const getAttributesData = async (
     const seedAttributes = match(type)
       .with(
         tenantAttributeType.CERTIFIED,
-        () => agreement.certifiedAttributes || [],
+        () => agreement.certifiedAttributes || []
       )
       .with(
         tenantAttributeType.DECLARED,
-        () => agreement.declaredAttributes || [],
+        () => agreement.declaredAttributes || []
       )
       .with(
         tenantAttributeType.VERIFIED,
-        () => agreement.verifiedAttributes || [],
+        () => agreement.verifiedAttributes || []
       )
       .exhaustive()
       .map((attribute) => attribute.id);
     const tenantAttributes = consumer.attributes.filter(
-      (a) => a.type === type && seedAttributes.includes(a.id),
+      (a) => a.type === type && seedAttributes.includes(a.id)
     );
 
     return Promise.all(
       tenantAttributes.map(async (tenantAttribute) => {
         const attribute = await readModelService.getAttributeById(
-          tenantAttribute.id,
+          tenantAttribute.id
         );
         if (!attribute) {
           throw attributeNotFound(tenantAttribute.id);
@@ -125,18 +125,18 @@ const getAttributesData = async (
           attribute,
           tenantAttribute: tenantAttribute as T,
         };
-      }),
+      })
     );
   };
 
   const certified = await getAttributesDataByType<CertifiedTenantAttribute>(
-    tenantAttributeType.CERTIFIED,
+    tenantAttributeType.CERTIFIED
   );
   const declared = await getAttributesDataByType<DeclaredTenantAttribute>(
-    tenantAttributeType.DECLARED,
+    tenantAttributeType.DECLARED
   );
   const verified = await getAttributesDataByType<VerifiedTenantAttribute>(
-    tenantAttributeType.VERIFIED,
+    tenantAttributeType.VERIFIED
   );
 
   return {
@@ -153,13 +153,13 @@ const getPdfPayload = async (
   producer: Tenant,
   producerDelegationData: DelegationData | undefined,
   consumerDelegationData: DelegationData | undefined,
-  readModelService: ReadModelServiceSQL,
+  readModelService: ReadModelServiceSQL
 ): Promise<AgreementContractPDFPayload> => {
   const today = new Date();
   const { certified, declared, verified } = await getAttributesData(
     consumer,
     agreement,
-    readModelService,
+    readModelService
   );
 
   const descriptor = retrieveDescriptor(agreement.descriptorId, eservice);
@@ -202,7 +202,7 @@ const getPdfPayload = async (
     verifiedAttributes: verified.map(({ attribute, tenantAttribute }) => {
       const expirationDate = getVerifiedAttributeExpirationDate(
         producer.id,
-        tenantAttribute,
+        tenantAttribute
       );
       return {
         assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
@@ -214,7 +214,7 @@ const getPdfPayload = async (
           : undefined,
         delegationId: getVerifiedAttributeDelegationId(
           producer.id,
-          tenantAttribute,
+          tenantAttribute
         ),
       };
     }),
@@ -231,11 +231,11 @@ const getPdfPayload = async (
 
 const buildDelegationData = async (
   delegation: Delegation,
-  readModelService: ReadModelServiceSQL,
+  readModelService: ReadModelServiceSQL
 ): Promise<DelegationData> => {
   const delegate = await retrieveTenant(
     readModelService,
-    delegation.delegateId,
+    delegation.delegateId
   );
 
   return {
@@ -250,7 +250,7 @@ export const agreementContractBuilder = (
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   config: DocumentsGeneratorConfig,
-  logger: Logger,
+  logger: Logger
 ) => {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
@@ -258,7 +258,7 @@ export const agreementContractBuilder = (
     dirname,
     "../..",
     "resources/agreement",
-    "agreementContractTemplate.html",
+    "agreementContractTemplate.html"
   );
 
   return {
@@ -267,7 +267,7 @@ export const agreementContractBuilder = (
       eservice: EService,
       consumer: Tenant,
       producer: Tenant,
-      { producerDelegation, consumerDelegation }: ActiveDelegations,
+      { producerDelegation, consumerDelegation }: ActiveDelegations
     ): Promise<AgreementDocument> => {
       const producerDelegationData =
         producerDelegation &&
@@ -284,12 +284,12 @@ export const agreementContractBuilder = (
         producer,
         producerDelegationData,
         consumerDelegationData,
-        readModelService,
+        readModelService
       );
 
       const pdfBuffer: Buffer = await pdfGenerator.generate(
         templateFilePath,
-        pdfPayload,
+        pdfPayload
       );
 
       const documentId = generateId<AgreementDocumentId>();
@@ -297,7 +297,7 @@ export const agreementContractBuilder = (
       const documentName = createAgreementDocumentName(
         agreement.consumerId,
         agreement.producerId,
-        documentCreatedAt,
+        documentCreatedAt
       );
 
       const documentPath = await fileManager.storeBytes(
@@ -308,7 +308,7 @@ export const agreementContractBuilder = (
           name: documentName,
           content: pdfBuffer,
         },
-        logger,
+        logger
       );
 
       return {
@@ -325,7 +325,7 @@ export const agreementContractBuilder = (
 
 export function assertStampExists<S extends keyof AgreementStamps>(
   stamps: AgreementStamps,
-  stamp: S,
+  stamp: S
 ): asserts stamps is AgreementStamps & {
   [key in S]: AgreementStamp;
 } {

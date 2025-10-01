@@ -4,7 +4,7 @@ import { ReadModelServiceSQL } from "../readModelSql.js";
 
 export const retrieveTenantById = async (
   readModelService: ReadModelServiceSQL,
-  tenantId: TenantId,
+  tenantId: TenantId
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
@@ -15,7 +15,7 @@ export const retrieveTenantById = async (
 
 export const retrieveEserviceById = async (
   readModelService: ReadModelServiceSQL,
-  id: EServiceId,
+  id: EServiceId
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(id);
   if (!eservice) {
