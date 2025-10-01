@@ -8,25 +8,25 @@ import { match, P } from "ts-pattern";
 import { FileManager, Logger, PDFGenerator } from "pagopa-interop-commons";
 import { contractBuilder } from "../service/delegation/delegationContractBuilder.js";
 import { config } from "../config/config.js";
-import { ReadModelService } from "../service/readModelService.js";
 import {
   retrieveTenantById,
   retrieveEserviceById,
 } from "../service/delegation/delegationService.js";
+import { ReadModelServiceSQL } from "../service/readModelSql.js";
 
 export async function handleDelegationMessageV2(
   decodedMessage: DelegationEventEnvelopeV2,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
-  readModelService: ReadModelService,
-  logger: Logger
+  readModelService: ReadModelServiceSQL,
+  logger: Logger,
 ): Promise<void> {
   await match(decodedMessage)
     .with(
       {
         type: P.union(
           "ProducerDelegationApproved",
-          "ConsumerDelegationApproved"
+          "ConsumerDelegationApproved",
         ),
       },
       async (msg): Promise<void> => {
@@ -56,7 +56,7 @@ export async function handleDelegationMessageV2(
         });
 
         logger.info(`Delegation event ${msg.type} handled successfully`);
-      }
+      },
     )
     .with(
       {
@@ -87,7 +87,7 @@ export async function handleDelegationMessageV2(
           logger,
         });
         logger.info(`Delegation event ${msg.type} handled successfully`);
-      }
+      },
     )
     .with(
       {
@@ -95,14 +95,14 @@ export async function handleDelegationMessageV2(
           "ConsumerDelegationRejected",
           "ConsumerDelegationSubmitted",
           "ProducerDelegationRejected",
-          "ProducerDelegationSubmitted"
+          "ProducerDelegationSubmitted",
         ),
       },
       () => {
         logger.info(
-          `No document generation needed for ${decodedMessage.type} message`
+          `No document generation needed for ${decodedMessage.type} message`,
         );
-      }
+      },
     )
     .exhaustive();
 }

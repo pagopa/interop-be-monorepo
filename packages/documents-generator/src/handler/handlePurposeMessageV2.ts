@@ -13,7 +13,6 @@ import {
   Logger,
   PDFGenerator,
 } from "pagopa-interop-commons";
-import { ReadModelService } from "../service/readModelService.js";
 import {
   retrieveEService,
   retrievePurposeDelegation,
@@ -23,13 +22,14 @@ import { config } from "../config/config.js";
 import { PurposeDocumentEServiceInfo } from "../model/purposeModels.js";
 import { riskAnalysisDocumentBuilder } from "../service/purpose/purposeContractBuilder.js";
 import { eServiceNotFound, tenantKindNotFound } from "../model/errors.js";
+import { ReadModelServiceSQL } from "../service/readModelSql.js";
 
 export async function handlePurposeMessageV2(
   decodedMessage: PurposeEventEnvelopeV2,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
-  readModelService: ReadModelService,
-  logger: Logger
+  readModelService: ReadModelServiceSQL,
+  logger: Logger,
 ): Promise<void> {
   await match(decodedMessage)
     .with(
@@ -37,7 +37,7 @@ export async function handlePurposeMessageV2(
         type: P.union(
           "PurposeActivated",
           "NewPurposeVersionActivated",
-          "PurposeVersionActivated"
+          "PurposeVersionActivated",
         ),
       },
       async (msg): Promise<void> => {
@@ -49,7 +49,7 @@ export async function handlePurposeMessageV2(
 
         const eservice = await retrieveEService(
           purpose.eserviceId,
-          readModelService
+          readModelService,
         );
         if (!eservice) {
           throw eServiceNotFound(purpose.eserviceId);
@@ -59,7 +59,7 @@ export async function handlePurposeMessageV2(
             retrieveTenant(eservice?.data.producerId, readModelService),
             retrieveTenant(purpose.consumerId, readModelService),
             readModelService.getActiveProducerDelegationByEserviceId(
-              purpose.eserviceId
+              purpose.eserviceId,
             ),
             retrievePurposeDelegation(purpose, readModelService),
           ]);
@@ -104,15 +104,15 @@ export async function handlePurposeMessageV2(
           pdfGenerator,
           fileManager,
           config,
-          logger
+          logger,
         ).createRiskAnalysisDocument(
           purpose,
           purposeVersion.dailyCalls,
           eserviceInfo,
           tenantKind,
-          "it"
+          "it",
         );
-      }
+      },
     )
     .with(
       {
@@ -133,14 +133,14 @@ export async function handlePurposeMessageV2(
           "PurposeVersionUnsuspendedByProducer",
           "PurposeVersionOverQuotaUnsuspended",
           "PurposeArchived",
-          "PurposeVersionArchivedByRevokedDelegation"
+          "PurposeVersionArchivedByRevokedDelegation",
         ),
       },
       () => {
         logger.info(
-          `No document generation needed for ${decodedMessage.type} message`
+          `No document generation needed for ${decodedMessage.type} message`,
         );
-      }
+      },
     )
     .exhaustive();
 }

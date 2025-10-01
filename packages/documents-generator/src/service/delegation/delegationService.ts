@@ -1,10 +1,10 @@
 import { EService, EServiceId, Tenant, TenantId } from "pagopa-interop-models";
-import { ReadModelService } from "../readModelService.js";
 import { eServiceNotFound, tenantNotFound } from "../../model/errors.js";
+import { ReadModelServiceSQL } from "../readModelSql.js";
 
 export const retrieveTenantById = async (
-  readModelService: ReadModelService,
-  tenantId: TenantId
+  readModelService: ReadModelServiceSQL,
+  tenantId: TenantId,
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
@@ -14,8 +14,8 @@ export const retrieveTenantById = async (
 };
 
 export const retrieveEserviceById = async (
-  readModelService: ReadModelService,
-  id: EServiceId
+  readModelService: ReadModelServiceSQL,
+  id: EServiceId,
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(id);
   if (!eservice) {

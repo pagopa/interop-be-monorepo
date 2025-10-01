@@ -6,7 +6,6 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { FileManager, Logger, PDFGenerator } from "pagopa-interop-commons";
-import { ReadModelService } from "../service/readModelService.js";
 import { agreementContractBuilder } from "../service/agreement/agreementContractBuilder.js";
 import { config } from "../config/config.js";
 
@@ -15,13 +14,14 @@ import {
   retrieveEservice,
   retrieveTenant,
 } from "../service/agreement/agreementService.js";
+import { ReadModelServiceSQL } from "../service/readModelSql.js";
 
 export async function handleAgreementMessageV2(
   decodedMessage: AgreementEventEnvelopeV2,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
-  readModelService: ReadModelService,
-  logger: Logger
+  readModelService: ReadModelServiceSQL,
+  logger: Logger,
 ): Promise<void> {
   await match(decodedMessage)
     .with(
@@ -35,19 +35,19 @@ export async function handleAgreementMessageV2(
         const agreement = fromAgreementV2(msg.data.agreement);
         const eservice = await retrieveEservice(
           readModelService,
-          agreement.eserviceId
+          agreement.eserviceId,
         );
         const consumer = await retrieveTenant(
           readModelService,
-          agreement.consumerId
+          agreement.consumerId,
         );
         const producer = await retrieveTenant(
           readModelService,
-          agreement.producerId
+          agreement.producerId,
         );
         const activeDelegations = await getActiveConsumerAndProducerDelegations(
           agreement,
-          readModelService
+          readModelService,
         );
 
         await agreementContractBuilder(
@@ -55,16 +55,16 @@ export async function handleAgreementMessageV2(
           pdfGenerator,
           fileManager,
           config,
-          logger
+          logger,
         ).createContract(
           agreement,
           eservice,
           consumer,
           producer,
-          activeDelegations
+          activeDelegations,
         );
         logger.info(`Agreement event ${msg.type} handled successfully`);
-      }
+      },
     )
     .with(
       {
@@ -87,14 +87,14 @@ export async function handleAgreementMessageV2(
           "AgreementSuspendedByProducer",
           "AgreementSuspendedByConsumer",
           "AgreementSuspendedByPlatform",
-          "AgreementRejected"
+          "AgreementRejected",
         ),
       },
       () => {
         logger.info(
-          `No document generation needed for ${decodedMessage.type} message`
+          `No document generation needed for ${decodedMessage.type} message`,
         );
-      }
+      },
     )
     .exhaustive();
 }

@@ -5,7 +5,6 @@ import {
   AgreementTopicConfig,
   DelegationTopicConfig,
   PurposeTopicConfig,
-  ReadModelRepository,
   decodeKafkaMessage,
   genericLogger,
   initFileManager,
@@ -35,16 +34,13 @@ import { baseConsumerConfig, config } from "./config/config.js";
 import { handlePurposeMessageV2 } from "./handler/handlePurposeMessageV2.js";
 import { handleDelegationMessageV2 } from "./handler/handleDelegationMessageV2.js";
 import { handleAgreementMessageV2 } from "./handler/handleAgreementMessageV2.js";
-import { readModelServiceBuilder } from "./service/readModelService.js";
 import { readModelServiceBuilderSQL } from "./service/readModelSql.js";
 
 const fileManager = initFileManager(config);
 const pdfGenerator = await initPDFGenerator();
 
 const readModelDB = makeDrizzleConnection(config);
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
+
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const agreementReadModelServiceSQL =
@@ -62,24 +58,18 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   attributeReadModelServiceSQL,
   delegationReadModelServiceSQL,
 });
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 function processMessage(
   agreementTopicConfig: AgreementTopicConfig,
   purposeTopicConfig: PurposeTopicConfig,
-  delegationTopicConfig: DelegationTopicConfig
+  delegationTopicConfig: DelegationTopicConfig,
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     const { decodedMessage, documentGenerator } = match(messagePayload.topic)
       .with(agreementTopicConfig.agreementTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          AgreementEventV2
+          AgreementEventV2,
         );
 
         const documentGenerator = handleAgreementMessageV2.bind(
@@ -87,7 +77,7 @@ function processMessage(
           decodedMessage,
           pdfGenerator,
           fileManager,
-          readModelService
+          readModelServiceSQL,
         );
 
         return { decodedMessage, documentGenerator };
@@ -95,7 +85,7 @@ function processMessage(
       .with(purposeTopicConfig.purposeTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          PurposeEventV2
+          PurposeEventV2,
         );
 
         const documentGenerator = handlePurposeMessageV2.bind(
@@ -103,7 +93,7 @@ function processMessage(
           decodedMessage,
           pdfGenerator,
           fileManager,
-          readModelService
+          readModelServiceSQL,
         );
 
         return { decodedMessage, documentGenerator };
@@ -111,7 +101,7 @@ function processMessage(
       .with(delegationTopicConfig.delegationTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          DelegationEventV2
+          DelegationEventV2,
         );
 
         const documentGenerator = handleDelegationMessageV2.bind(
@@ -119,7 +109,7 @@ function processMessage(
           decodedMessage,
           pdfGenerator,
           fileManager,
-          readModelService
+          readModelServiceSQL,
         );
 
         return { decodedMessage, documentGenerator };
@@ -142,7 +132,7 @@ function processMessage(
     });
 
     loggerInstance.info(
-      `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
+      `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`,
     );
 
     await documentGenerator(loggerInstance);
@@ -162,8 +152,8 @@ try {
       },
       {
         delegationTopic: config.delegationTopic,
-      }
-    )
+      },
+    ),
   );
 } catch (e) {
   genericLogger.error(`An error occurred during initialization:\n${e}`);

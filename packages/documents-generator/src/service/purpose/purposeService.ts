@@ -7,16 +7,16 @@ import {
   Delegation,
   Purpose,
 } from "pagopa-interop-models";
-import { ReadModelService } from "../readModelService.js";
 import {
   eServiceNotFound,
   purposeDelegationNotFound,
   tenantNotFound,
 } from "../../model/errors.js";
+import { ReadModelServiceSQL } from "../readModelSql.js";
 
 export const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL,
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
@@ -27,7 +27,7 @@ export const retrieveTenant = async (
 
 export const retrieveEService = async (
   eserviceId: EServiceId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL,
 ): Promise<WithMetadata<EService> | undefined> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (eservice === undefined) {
@@ -38,14 +38,14 @@ export const retrieveEService = async (
 
 export const retrievePurposeDelegation = async (
   purpose: Purpose,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL,
 ): Promise<Delegation | undefined> => {
   if (!purpose.delegationId) {
     return undefined;
   }
   const delegation =
     await readModelService.getActiveConsumerDelegationByDelegationId(
-      purpose.delegationId
+      purpose.delegationId,
     );
   if (!delegation) {
     throw purposeDelegationNotFound(purpose.id, purpose.delegationId);
