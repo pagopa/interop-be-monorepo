@@ -21,12 +21,14 @@ export const errorCodes = {
   tenantNotAllowed: "0006",
   purposeTemplateNotInExpectedStates: "0007",
   purposeTemplateStateConflict: "0008",
-  purposeTemplateRiskAnalysisFormNotFound: "0009",
-  riskAnalysisTemplateAnswerNotFound: "0010",
-  riskAnalysisTemplateAnswerAnnotationNotFound: "0011",
-  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0012",
-  conflictDocumentPrettyNameDuplicate: "0013",
-  annotationDocumentLimitExceeded: "0014",
+  purposeTemplateIsNotDraft: "0009",
+  purposeTemplateRiskAnalysisFormNotFound: "0010",
+  riskAnalysisTemplateAnswerNotFound: "0011",
+  riskAnalysisTemplateAnswerAnnotationNotFound: "0012",
+  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0013",
+  conflictDocumentPrettyNameDuplicate: "0014",
+  annotationDocumentLimitExceeded: "0015",
+  conflictDuplicatedDocument: "0016",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -59,6 +61,16 @@ export function purposeTemplateNotFound(
     detail: `No Purpose Template found for ID ${purposeTemplateId}`,
     code: "purposeTemplateNotFound",
     title: "Purpose Template Not Found",
+  });
+}
+
+export function purposeTemplateStateNotDraft(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template with ID ${purposeTemplateId} is not in draft state`,
+    code: "purposeTemplateIsNotDraft",
+    title: "Purpose Template State Not Draft",
   });
 }
 
@@ -180,5 +192,16 @@ export function annotationDocumentLimitExceeded(
     detail: `Annotation document limit exceeded for answer with id '${answerId}'`,
     code: "annotationDocumentLimitExceeded",
     title: "Annotation document limit exceeded",
+  });
+}
+
+export function conflictDuplicatedDocument(
+  answerId: string,
+  checksum: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Conflict: annotation document with checksum '${checksum}' is duplicated for answer with id '${answerId}'`,
+    code: "conflictDuplicatedDocument",
+    title: "Conflict: annotation document with checksum already exists",
   });
 }
