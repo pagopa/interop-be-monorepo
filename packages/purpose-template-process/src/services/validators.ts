@@ -3,8 +3,7 @@ import {
   purposeTemplateState,
   PurposeTemplateState,
   RiskAnalysisFormTemplate,
-  RiskAnalysisMultiAnswerId,
-  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswer,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
   TenantKind,
@@ -22,11 +21,13 @@ import { match } from "ts-pattern";
 import {
   annotationDocumentLimitExceeded,
   conflictDocumentPrettyNameDuplicate,
+  conflictDuplicatedDocument,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
+  purposeTemplateStateNotDraft,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../model/domain/errors.js";
@@ -78,9 +79,17 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
   }
 };
 
+export const assertTemplateStateNotDraft = (
+  purposeTemplate: PurposeTemplate
+): void => {
+  if (purposeTemplate.state !== purposeTemplateState.draft) {
+    throw purposeTemplateStateNotDraft(purposeTemplate.id);
+  }
+};
+
 export const assertDocumentsLimitsNotReached = (
   docs: RiskAnalysisTemplateAnswerAnnotationDocument[] | undefined,
-  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+  answerId: string
 ): void => {
   const totalDocs = docs?.length || 0;
   if (totalDocs > ANNOTATION_DOCUMENTS_LIMIT) {
@@ -88,30 +97,20 @@ export const assertDocumentsLimitsNotReached = (
   }
 };
 
-export const validateDocuments = (
-  purposeTemplate: PurposeTemplate,
-  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
-  prettyName: string
-): void => {
-  const singleAnswersAnnotationsDocs =
-    purposeTemplate.purposeRiskAnalysisForm?.singleAnswers.flatMap(
-      (a) => a.annotation?.docs
-    ) || [];
+export const assertAnnotationDocumentIsUnique = (
+  { answer }: RiskAnalysisTemplateAnswer,
+  newPrettyName: string,
+  newChecksum: string
+): void =>
+  [...(answer?.annotation?.docs || [])].forEach((doc) => {
+    if (doc.prettyName === newPrettyName) {
+      throw conflictDocumentPrettyNameDuplicate(answer.id, newPrettyName);
+    }
 
-  const multiAnswersAnnotationsDocs =
-    purposeTemplate.purposeRiskAnalysisForm?.multiAnswers.flatMap(
-      (a) => a.annotation?.docs
-    ) || [];
-
-  const existingDocWithPrettyName = [
-    ...singleAnswersAnnotationsDocs,
-    ...multiAnswersAnnotationsDocs,
-  ].find((d) => d?.prettyName === prettyName);
-
-  if (existingDocWithPrettyName) {
-    throw conflictDocumentPrettyNameDuplicate(answerId, prettyName);
-  }
-};
+    if (doc?.checksum === newChecksum) {
+      throw conflictDuplicatedDocument(answer.id, newPrettyName);
+    }
+  });
 
 export function validateAndTransformRiskAnalysisTemplate(
   riskAnalysisFormTemplate:
