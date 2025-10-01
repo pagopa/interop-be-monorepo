@@ -385,19 +385,16 @@ describe("handleAgreementMessageV2", () => {
 
     const pdfGeneratorSpy = vi.spyOn(pdfGenerator, "generate");
     const fileManagerSpy = vi.spyOn(fileManager, "storeBytes");
-    const loggerInfoSpy = vi.spyOn(genericLogger, "info");
 
-    await handleAgreementMessageV2(
-      mockEvent,
-      pdfGenerator,
-      fileManager,
-      readModelService,
-      genericLogger
-    );
-
-    expect(loggerInfoSpy).toHaveBeenCalledWith(
-      `No document generation needed for ${mockEvent.type} message`
-    );
+    await expect(
+      handleAgreementMessageV2(
+        mockEvent,
+        pdfGenerator,
+        fileManager,
+        readModelService,
+        genericLogger
+      )
+    ).resolves.toBeUndefined();
     expect(pdfGeneratorSpy).not.toHaveBeenCalled();
     expect(fileManagerSpy).not.toHaveBeenCalled();
   });

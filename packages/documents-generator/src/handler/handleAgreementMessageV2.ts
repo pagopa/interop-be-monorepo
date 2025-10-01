@@ -90,11 +90,7 @@ export async function handleAgreementMessageV2(
           "AgreementRejected"
         ),
       },
-      () => {
-        logger.info(
-          `No document generation needed for ${decodedMessage.type} message`
-        );
-      }
+      () => Promise.resolve()
     )
     .exhaustive();
 }

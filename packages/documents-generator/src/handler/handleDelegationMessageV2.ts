@@ -98,11 +98,7 @@ export async function handleDelegationMessageV2(
           "ProducerDelegationSubmitted"
         ),
       },
-      () => {
-        logger.info(
-          `No document generation needed for ${decodedMessage.type} message`
-        );
-      }
+      () => Promise.resolve()
     )
     .exhaustive();
 }

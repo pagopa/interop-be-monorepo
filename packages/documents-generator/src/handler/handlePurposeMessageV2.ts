@@ -137,11 +137,7 @@ export async function handlePurposeMessageV2(
           "PurposeVersionArchivedByRevokedDelegation"
         ),
       },
-      () => {
-        logger.info(
-          `No document generation needed for ${decodedMessage.type} message`
-        );
-      }
+      () => Promise.resolve()
     )
     .exhaustive();
 }

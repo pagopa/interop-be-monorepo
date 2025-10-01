@@ -170,19 +170,17 @@ describe("handleDelegationMessageV2", () => {
 
     const pdfGeneratorSpy = vi.spyOn(pdfGenerator, "generate");
     const fileManagerSpy = vi.spyOn(fileManager, "storeBytes");
-    const loggerInfoSpy = vi.spyOn(genericLogger, "info");
 
-    await handlePurposeMessageV2(
-      mockEvent,
-      pdfGenerator,
-      fileManager,
-      readModelService,
-      genericLogger
-    );
+    await expect(
+      handlePurposeMessageV2(
+        mockEvent,
+        pdfGenerator,
+        fileManager,
+        readModelService,
+        genericLogger
+      )
+    ).resolves.toBeUndefined();
 
-    expect(loggerInfoSpy).toHaveBeenCalledWith(
-      `No document generation needed for ${mockEvent.type} message`
-    );
     expect(pdfGeneratorSpy).not.toHaveBeenCalled();
     expect(fileManagerSpy).not.toHaveBeenCalled();
   });

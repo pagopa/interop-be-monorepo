@@ -347,7 +347,7 @@ describe("handleDelegationMessageV2", () => {
     );
   });
 
-  it("should not process events that don't require contract generation and only log an info message", async () => {
+  it("should not process events that don't require contract generation", async () => {
     const mockDelegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       delegatorId: mockDelegatorId,
@@ -370,19 +370,17 @@ describe("handleDelegationMessageV2", () => {
     };
     const pdfGeneratorSpy = vi.spyOn(pdfGenerator, "generate");
     const fileManagerSpy = vi.spyOn(fileManager, "storeBytes");
-    const loggerInfoSpy = vi.spyOn(genericLogger, "info");
 
-    await handleDelegationMessageV2(
-      mockEvent,
-      pdfGenerator,
-      fileManager,
-      readModelService,
-      genericLogger
-    );
+    await expect(
+      handleDelegationMessageV2(
+        mockEvent,
+        pdfGenerator,
+        fileManager,
+        readModelService,
+        genericLogger
+      )
+    ).resolves.toBeUndefined();
 
-    expect(loggerInfoSpy).toHaveBeenCalledWith(
-      `No document generation needed for ${mockEvent.type} message`
-    );
     expect(pdfGeneratorSpy).not.toHaveBeenCalled();
     expect(fileManagerSpy).not.toHaveBeenCalled();
   });
