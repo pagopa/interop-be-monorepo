@@ -2,9 +2,9 @@ import {
   DynamoDBClient,
   PutItemCommand,
   PutItemInput,
-  DeleteItemCommand,
   GetItemInput,
   GetItemCommand,
+  UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { genericInternalError } from "pagopa-interop-models";
 import { getUnixTime } from "date-fns";
@@ -93,10 +93,20 @@ export function dbServiceBuilder(
     },
 
     deleteFromDynamo: async (id: string): Promise<void> => {
-      const command = new DeleteItemCommand({
+      const FIFTEEN_DAYS = 15 * 24 * 60 * 60;
+
+      const command = new UpdateItemCommand({
         TableName: config.signatureReferencesTableName,
         Key: {
           safeStorageId: { S: id },
+        },
+        UpdateExpression: "SET #ttl = :ttl, logicallyDeleted = :deleted",
+        ExpressionAttributeNames: {
+          "#ttl": "ttl", // alias because ttl is a reserved word
+        },
+        ExpressionAttributeValues: {
+          ":ttl": { N: (getUnixTime(new Date()) + FIFTEEN_DAYS).toString() },
+          ":deleted": { BOOL: true },
         },
       });
 

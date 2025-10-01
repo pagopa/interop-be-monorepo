@@ -17,7 +17,7 @@ import {
   InAppNotificationDBConfig,
   UserSQLDbConfig,
   M2MEventSQLDbConfig,
-  EventsSignerConfig,
+  DynamoDBClientConfig,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
 import type {} from "vitest";
@@ -48,7 +48,7 @@ import {
   EnhancedDPoPConfig,
   EnhancedTokenGenerationReadModelDbConfig,
   PecEmailManagerConfigTest,
-  EnhancedEventsSignerConfig,
+  EnhancedDynamoDBClientConfig,
 } from "./testConfig.js";
 
 declare module "vitest" {
@@ -65,7 +65,7 @@ declare module "vitest" {
     inAppNotificationDbConfig?: InAppNotificationDBConfig;
     m2mEventDbConfig?: M2MEventSQLDbConfig;
     userSQLConfig?: UserSQLDbConfig;
-    eventsSignerConfig?: EnhancedEventsSignerConfig;
+    dynamoDBClientConfig?: EnhancedDynamoDBClientConfig;
   }
 }
 
@@ -93,7 +93,7 @@ export function setupTestContainersVitestGlobal() {
     process.env
   );
   const userSQLConfig = UserSQLDbConfig.safeParse(process.env);
-  const eventsSignerConfig = EventsSignerConfig.safeParse(process.env);
+  const dynamoDBClientConfig = DynamoDBClientConfig.safeParse(process.env);
   const m2mEventDbConfig = M2MEventSQLDbConfig.safeParse(process.env);
 
   return async function ({
@@ -256,12 +256,12 @@ export function setupTestContainersVitestGlobal() {
       provide("userSQLConfig", userSQLConfig.data);
     }
 
-    if (eventsSignerConfig.success) {
+    if (dynamoDBClientConfig.success) {
       startedDynamoDbContainer = await dynamoDBContainer().start();
 
-      provide("eventsSignerConfig", {
-        ...eventsSignerConfig.data,
-        safeStoragePort:
+      provide("dynamoDBClientConfig", {
+        ...dynamoDBClientConfig.data,
+        dynamoDbTestPort:
           startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT),
       });
     }
