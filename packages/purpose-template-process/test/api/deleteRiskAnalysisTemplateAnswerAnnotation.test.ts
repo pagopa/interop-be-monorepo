@@ -119,12 +119,12 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
 
   it.each([
     {
-      name: "invalid purpose template id",
+      name: "purpose template id",
       run: (token: string) =>
         makeRequest(token, "invalid" as PurposeTemplateId),
     },
     {
-      name: "invalid answer id",
+      name: "answer id",
       run: (token: string) =>
         makeRequest(
           token,
@@ -132,7 +132,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
           "invalid" as RiskAnalysisSingleAnswerId
         ),
     },
-  ])("Should return 400 if an $name is passed", async ({ run }) => {
+  ])("Should return 400 if an invalid $name is passed", async ({ run }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await run(token);
 
