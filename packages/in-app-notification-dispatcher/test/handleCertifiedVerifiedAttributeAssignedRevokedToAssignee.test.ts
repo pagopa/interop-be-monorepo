@@ -1,5 +1,5 @@
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockTenant,
