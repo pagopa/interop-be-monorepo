@@ -265,7 +265,6 @@ export const IDS = z.union([
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientKidPK,
   GSIPKEServiceIdDescriptorId,
-  EServiceIdDescriptorId,
   GSIPKClientIdPurposeId,
   GSIPKClientIdKid,
   EServiceTemplateId,
