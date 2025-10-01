@@ -123,7 +123,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
       event_version: 2,
     });
 
-    const purposeDeletionPayload = decodeProtobufPayload({
+    const annotationDeletionPayload = decodeProtobufPayload({
       messageType: PurposeTemplateDraftUpdatedV2,
       payload: annotationDeletionEvent.data,
     });
@@ -140,7 +140,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
       },
     };
 
-    expect(purposeDeletionPayload.purposeTemplate).toEqual(
+    expect(annotationDeletionPayload.purposeTemplate).toEqual(
       toPurposeTemplateV2(expectedPurposeTemplate)
     );
 
@@ -238,7 +238,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
       (state) => state !== purposeTemplateState.draft
     )
   )(
-    "should throw purposeTemplateNotInExpectedState if the purpose template is not in %s state",
+    "should throw purposeTemplateNotInExpectedState if the purpose template is in %s state",
     async (state) => {
       const purposeTemplateNotInWrongState: PurposeTemplate = {
         ...purposeTemplate,

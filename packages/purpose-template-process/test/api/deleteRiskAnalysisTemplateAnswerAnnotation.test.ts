@@ -117,20 +117,24 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
     }
   );
 
-  it("Should return 400 if an invalid purpose template id is passed", async () => {
+  it.each([
+    {
+      name: "invalid purpose template id",
+      run: (token: string) =>
+        makeRequest(token, "invalid" as PurposeTemplateId),
+    },
+    {
+      name: "invalid answer id",
+      run: (token: string) =>
+        makeRequest(
+          token,
+          purposeTemplateId,
+          "invalid" as RiskAnalysisSingleAnswerId
+        ),
+    },
+  ])("Should return 400 if an $name is passed", async ({ run }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid" as PurposeTemplateId);
-
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if an invalid answer id is passed", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      purposeTemplateId,
-      "invalid" as RiskAnalysisSingleAnswerId
-    );
+    const res = await run(token);
 
     expect(res.status).toBe(400);
   });
