@@ -143,11 +143,9 @@ async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
   }
 
   await Promise.all(
-    answer.annotation
-      ? answer.annotation.docs.map(async (doc) => {
-          await fileManager.delete(config.s3Bucket, doc.path, logger);
-        })
-      : []
+    answer.annotation.docs.map(async (doc) => {
+      await fileManager.delete(config.s3Bucket, doc.path, logger);
+    })
   );
 
   return {
