@@ -22,6 +22,14 @@ import {
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
+const isRequesterCreator = (
+  purposeTemplate: Pick<PurposeTemplate, "creatorId">,
+  authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
+): boolean => authData.organizationId === purposeTemplate.creatorId;
+
+const isPurposeTemplateActive = (purposeTemplate: PurposeTemplate): boolean =>
+  purposeTemplate.state === purposeTemplateState.active;
+
 export const assertConsistentFreeOfCharge = (
   isFreeOfCharge: boolean,
   freeOfChargeReason: string | undefined
@@ -94,8 +102,8 @@ export const assertRequesterCanRetrievePurposeTemplate = async (
   authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
 ): Promise<void> => {
   if (
-    purposeTemplate.state !== purposeTemplateState.active &&
-    purposeTemplate.creatorId !== authData.organizationId
+    !isPurposeTemplateActive(purposeTemplate) &&
+    !isRequesterCreator(purposeTemplate, authData)
   ) {
     throw tenantNotAllowed(authData.organizationId);
   }
