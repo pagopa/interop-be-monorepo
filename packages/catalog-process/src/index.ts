@@ -1,9 +1,4 @@
-import {
-  initDB,
-  initFileManager,
-  ReadModelRepository,
-  startServer,
-} from "pagopa-interop-commons";
+import { initDB, initFileManager, startServer } from "pagopa-interop-commons";
 import {
   makeDrizzleConnection,
   catalogReadModelServiceBuilder,
@@ -13,7 +8,6 @@ import {
 import { config } from "./config/config.js";
 import { createApp } from "./app.js";
 import { catalogServiceBuilder } from "./services/catalogService.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const db = makeDrizzleConnection(config);
@@ -22,22 +16,12 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
 const eserviceTemplateReadModelServiceSQL =
   eserviceTemplateReadModelServiceBuilder(db);
 
-const readModelRepository = ReadModelRepository.init(config);
-
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL(
   db,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   eserviceTemplateReadModelServiceSQL
 );
-
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 const catalogService = catalogServiceBuilder(
   initDB({
@@ -49,7 +33,7 @@ const catalogService = catalogServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService,
+  readModelServiceSQL,
   initFileManager(config)
 );
 
