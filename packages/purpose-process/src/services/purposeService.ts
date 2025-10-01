@@ -49,7 +49,6 @@ import {
   CorrelationId,
   Delegation,
   DelegationId,
-  PurposeVersionStamp,
   UserId,
   PurposeVersionStamps,
 } from "pagopa-interop-models";
