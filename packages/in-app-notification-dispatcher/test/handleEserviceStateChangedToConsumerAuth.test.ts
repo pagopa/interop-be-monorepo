@@ -22,7 +22,7 @@ import {
   addOneEService,
   addOneTenant,
   readModelService,
-  mockUserServiceSQL,
+  mockUserService,
 } from "./utils.js";
 
 describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
@@ -57,7 +57,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
         nonExistentEServiceId,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       )
     ).rejects.toThrow(eserviceNotFound(nonExistentEServiceId));
   });
@@ -81,7 +81,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
         eserviceWithNonExistentProducer.id,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       )
     ).rejects.toThrow(
       tenantNotFound(eserviceWithNonExistentProducer.producerId)
@@ -110,7 +110,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
       eserviceWithoutAgreements.id,
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
     expect(notifications).toEqual([]);
   });
@@ -144,7 +144,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
         testEservice.id,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       )
     ).rejects.toThrow(tenantNotFound(consumerId));
   });
@@ -193,7 +193,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
         testEservice.id,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       );
 
       const expectedNotifications = shouldNotify ? users.length : 0;
@@ -270,7 +270,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
       testEservice.id,
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
 
     expect(notifications).toHaveLength(allUsers.length);
@@ -326,7 +326,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
       testEservice.id,
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
 
     expect(notifications).toEqual([]);
@@ -394,7 +394,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
       testEservice.id,
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
 
     expect(notifications).toHaveLength(notifiableUsers.length);
@@ -462,7 +462,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
       testEservice.id,
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
 
     const expectedBody = inAppTemplates.producerKeychainEServiceAddedToConsumer(

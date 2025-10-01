@@ -21,7 +21,7 @@ import {
   addOneEServiceTemplate,
   addOneTenant,
   readModelService,
-  mockUserServiceSQL,
+  mockUserService,
 } from "./utils.js";
 
 describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
@@ -46,7 +46,7 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
         undefined,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       )
     ).rejects.toThrow(
       missingKafkaMessageDataError(
@@ -65,7 +65,7 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
       "oldName",
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
 
     expect(notifications).toEqual([]);
@@ -86,7 +86,7 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
       "oldName",
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
 
     expect(notifications).toEqual([]);
@@ -128,7 +128,7 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
       "oldName",
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
 
     const body = inAppTemplates.eserviceTemplateNameChangedToInstantiator(

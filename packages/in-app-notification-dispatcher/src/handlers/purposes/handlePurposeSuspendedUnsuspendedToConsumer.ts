@@ -19,7 +19,7 @@ export async function handlePurposeSuspendedUnsuspendedToConsumer(
   purposeV2Msg: PurposeV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL,
+  userService: UserServiceSQL,
   type:
     | "PurposeVersionSuspendedByProducer"
     | "PurposeVersionUnsuspendedByProducer"
@@ -35,7 +35,7 @@ export async function handlePurposeSuspendedUnsuspendedToConsumer(
     [purpose.consumerId],
     "purposeSuspendedUnsuspendedToConsumer",
     readModelService,
-    userServiceSQL
+    userService
   );
   if (usersWithNotifications.length === 0) {
     logger.info(

@@ -17,7 +17,7 @@ export async function handleEserviceStateChangedToConsumer(
   eserviceId: string,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   logger.info(
     `Sending in-app notification for handleEserviceStateChangedToConsumer ${eserviceId}`
@@ -47,7 +47,7 @@ export async function handleEserviceStateChangedToConsumer(
     consumers.map((consumer) => consumer.id),
     "eserviceStateChangedToConsumer",
     readModelService,
-    userServiceSQL
+    userService
   );
 
   const body = inAppTemplates.producerKeychainEServiceAddedToConsumer(

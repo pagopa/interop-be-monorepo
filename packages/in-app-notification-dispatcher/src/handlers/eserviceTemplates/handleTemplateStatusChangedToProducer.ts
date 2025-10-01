@@ -14,7 +14,7 @@ export async function handleTemplateStatusChangedToProducer(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   if (!eserviceTemplateV2Msg) {
     throw missingKafkaMessageDataError(
@@ -33,7 +33,7 @@ export async function handleTemplateStatusChangedToProducer(
     [eserviceTemplate.creatorId],
     "templateStatusChangedToProducer",
     readModelService,
-    userServiceSQL
+    userService
   );
 
   const body = inAppTemplates.templateStatusChangedToProducer(

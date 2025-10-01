@@ -20,7 +20,7 @@ export async function handleEserviceNewVersionSubmittedToDelegator(
   descriptorId: DescriptorId,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   if (!eserviceV2Msg) {
     throw missingKafkaMessageDataError(
@@ -47,7 +47,7 @@ export async function handleEserviceNewVersionSubmittedToDelegator(
     [eservice.producerId],
     "eserviceNewVersionSubmittedToDelegator",
     readModelService,
-    userServiceSQL
+    userService
   );
 
   if (usersWithNotifications.length === 0) {

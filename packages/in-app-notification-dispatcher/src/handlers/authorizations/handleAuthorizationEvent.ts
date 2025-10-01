@@ -13,7 +13,7 @@ export async function handleAuthorizationEvent(
   decodedMessage: AuthorizationEventEnvelopeV2,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
@@ -25,7 +25,7 @@ export async function handleAuthorizationEvent(
           purposeId,
           logger,
           readModelService,
-          userServiceSQL,
+          userService,
           type
         )
     )
@@ -36,7 +36,7 @@ export async function handleAuthorizationEvent(
           eserviceId,
           logger,
           readModelService,
-          userServiceSQL
+          userService
         )
     )
     .with(

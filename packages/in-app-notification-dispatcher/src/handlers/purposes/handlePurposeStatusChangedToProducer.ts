@@ -24,7 +24,7 @@ export async function handlePurposeStatusChangedToProducer(
   purposeV2Msg: PurposeV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL,
+  userService: UserServiceSQL,
   type: PurposeStatusChangedToProducerType
 ): Promise<NewNotification[]> {
   if (!purposeV2Msg) {
@@ -40,7 +40,7 @@ export async function handlePurposeStatusChangedToProducer(
     [eservice.producerId],
     "purposeStatusChangedToProducer",
     readModelService,
-    userServiceSQL
+    userService
   );
   if (usersWithNotifications.length === 0) {
     logger.info(

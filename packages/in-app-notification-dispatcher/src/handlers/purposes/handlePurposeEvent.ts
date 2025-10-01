@@ -11,7 +11,7 @@ export async function handlePurposeEvent(
   decodedMessage: PurposeEventEnvelopeV2,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
@@ -27,7 +27,7 @@ export async function handlePurposeEvent(
           purpose,
           logger,
           readModelService,
-          userServiceSQL,
+          userService,
           type
         )
     )
@@ -43,7 +43,7 @@ export async function handlePurposeEvent(
           purpose,
           logger,
           readModelService,
-          userServiceSQL,
+          userService,
           type
         )
     )
@@ -56,7 +56,7 @@ export async function handlePurposeEvent(
           purpose,
           logger,
           readModelService,
-          userServiceSQL,
+          userService,
           type
         )
     )

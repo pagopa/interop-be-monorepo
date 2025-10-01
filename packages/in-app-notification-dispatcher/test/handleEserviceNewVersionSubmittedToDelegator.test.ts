@@ -28,7 +28,7 @@ import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
   addOneDelegation,
   addOneTenant,
-  mockUserServiceSQL,
+  mockUserService,
   readModelService,
 } from "./utils.js";
 
@@ -68,7 +68,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
         descriptorId,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       )
     ).rejects.toThrow(
       missingKafkaMessageDataError(
@@ -90,7 +90,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
         descriptorId,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       )
     ).rejects.toThrow(
       activeProducerDelegationNotFound(eserviceWithoutDelegation.id)
@@ -110,7 +110,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
         descriptorId,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       )
     ).rejects.toThrow(activeProducerDelegationNotFound(eservice.id));
   });
@@ -128,7 +128,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
         descriptorId,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       )
     ).rejects.toThrow(activeProducerDelegationNotFound(eservice.id));
   });
@@ -152,7 +152,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
           descriptorId,
           logger,
           readModelService,
-          mockUserServiceSQL
+          mockUserService
         )
       ).rejects.toThrow(activeProducerDelegationNotFound(eservice.id));
     }
@@ -177,7 +177,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
         descriptorId,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       )
     ).rejects.toThrow(tenantNotFound(unknownTenantId));
   });
@@ -190,7 +190,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
       descriptorId,
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
 
     expect(notifications).toEqual([]);
@@ -209,7 +209,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
       descriptorId,
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
 
     expect(notifications).toHaveLength(delegateUsers.length);
@@ -243,7 +243,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
       descriptorId,
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
 
     expect(notifications).toHaveLength(3);

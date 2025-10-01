@@ -28,14 +28,14 @@ export async function getNotificationRecipients(
   tenantIds: TenantId[],
   notificationType: NotificationType,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL
+  userService: UserServiceSQL
 ): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
   const usersWithNotifications =
     await readModelService.getTenantUsersWithNotificationEnabled(
       tenantIds,
       notificationType
     );
-  const usersWithRoles = await userServiceSQL.readUsers(
+  const usersWithRoles = await userService.readUsers(
     usersWithNotifications.map(({ userId }) => userId)
   );
   return usersWithNotifications.filter(({ userId }) =>

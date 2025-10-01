@@ -20,7 +20,7 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   if (!eserviceTemplateV2Msg) {
     throw missingKafkaMessageDataError(
@@ -56,7 +56,7 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
     ),
     "eserviceTemplateStatusChangedToInstantiator",
     readModelService,
-    userServiceSQL
+    userService
   );
   if (!usersWithNotifications) {
     logger.info(

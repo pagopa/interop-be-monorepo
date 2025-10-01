@@ -28,7 +28,7 @@ import { handleEserviceNewVersionApprovedRejectedToDelegate } from "../src/handl
 import {
   addOneDelegation,
   addOneTenant,
-  mockUserServiceSQL,
+  mockUserService,
   readModelService,
 } from "./utils.js";
 
@@ -68,7 +68,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
         descriptorId,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "EServiceDescriptorApprovedByDelegator"
       )
     ).rejects.toThrow(
@@ -91,7 +91,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
         descriptorId,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "EServiceDescriptorApprovedByDelegator"
       )
     ).rejects.toThrow(
@@ -112,7 +112,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
         descriptorId,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "EServiceDescriptorApprovedByDelegator"
       )
     ).rejects.toThrow(activeProducerDelegationNotFound(eservice.id));
@@ -131,7 +131,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
         descriptorId,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "EServiceDescriptorApprovedByDelegator"
       )
     ).rejects.toThrow(activeProducerDelegationNotFound(eservice.id));
@@ -156,7 +156,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
           descriptorId,
           logger,
           readModelService,
-          mockUserServiceSQL,
+          mockUserService,
           "EServiceDescriptorApprovedByDelegator"
         )
       ).rejects.toThrow(activeProducerDelegationNotFound(eservice.id));
@@ -186,7 +186,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
         descriptorId,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "EServiceDescriptorApprovedByDelegator"
       )
     ).rejects.toThrow(tenantNotFound(unknownTenantId));
@@ -201,7 +201,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
         descriptorId,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "EServiceDescriptorApprovedByDelegator"
       );
 
@@ -238,7 +238,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
           descriptorId,
           logger,
           readModelService,
-          mockUserServiceSQL,
+          mockUserService,
           eventType
         );
 
@@ -272,7 +272,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
         descriptorId,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "EServiceDescriptorApprovedByDelegator"
       );
 
@@ -337,7 +337,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
           descriptorId,
           logger,
           readModelService,
-          mockUserServiceSQL,
+          mockUserService,
           "EServiceDescriptorRejectedByDelegator"
         );
 

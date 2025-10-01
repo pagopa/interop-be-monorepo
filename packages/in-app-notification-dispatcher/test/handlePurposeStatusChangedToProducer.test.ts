@@ -25,7 +25,7 @@ import {
   addOnePurpose,
   addOneTenant,
   readModelService,
-  mockUserServiceSQL,
+  mockUserService,
 } from "./utils.js";
 
 describe("handlePurposeStatusChangedToProducer", () => {
@@ -70,7 +70,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
         undefined,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "PurposeVersionSuspendedByConsumer"
       )
     ).rejects.toThrow(
@@ -98,7 +98,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
         toPurposeV2(purposeWithUnknownTenant),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "PurposeVersionSuspendedByConsumer"
       )
     ).rejects.toThrow(tenantNotFound(unknownTenantId));
@@ -121,7 +121,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
         toPurposeV2(purposeWithUnknownEservice),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "PurposeVersionSuspendedByConsumer"
       )
     ).rejects.toThrow(eserviceNotFound(unknownEserviceId));
@@ -134,7 +134,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
       toPurposeV2(purpose),
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "PurposeVersionSuspendedByConsumer"
     );
 
@@ -174,7 +174,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
         toPurposeV2(purpose),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         eventType
       );
 
@@ -213,7 +213,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
       toPurposeV2(purpose),
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "PurposeVersionSuspendedByConsumer"
     );
 

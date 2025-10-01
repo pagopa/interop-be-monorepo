@@ -19,7 +19,7 @@ export async function handlePurposeActivatedRejectedToConsumer(
   purposeV2Msg: PurposeV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL,
+  userService: UserServiceSQL,
   type: "PurposeVersionActivated" | "PurposeVersionRejected"
 ): Promise<NewNotification[]> {
   if (!purposeV2Msg) {
@@ -34,7 +34,7 @@ export async function handlePurposeActivatedRejectedToConsumer(
     [purpose.consumerId],
     "purposeActivatedRejectedToConsumer",
     readModelService,
-    userServiceSQL
+    userService
   );
   if (usersWithNotifications.length === 0) {
     logger.info(

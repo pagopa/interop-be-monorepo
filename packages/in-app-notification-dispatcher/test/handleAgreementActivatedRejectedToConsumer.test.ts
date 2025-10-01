@@ -24,7 +24,7 @@ import {
   addOneEService,
   addOneTenant,
   readModelService,
-  mockUserServiceSQL,
+  mockUserService,
 } from "./utils.js";
 
 describe("handleAgreementActivatedRejectedToConsumer", () => {
@@ -67,7 +67,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
         undefined,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "AgreementActivated"
       )
     ).rejects.toThrow(
@@ -81,7 +81,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
         undefined,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "AgreementRejected"
       )
     ).rejects.toThrow(
@@ -106,7 +106,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
         toAgreementV2(agreementWithUnknownTenant),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "AgreementActivated"
       )
     ).rejects.toThrow(tenantNotFound(unknownTenantId));
@@ -129,7 +129,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
         toAgreementV2(agreementWithUnknownEservice),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "AgreementActivated"
       )
     ).rejects.toThrow(eserviceNotFound(unknownEserviceId));
@@ -142,7 +142,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
       toAgreementV2(agreement),
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "AgreementActivated"
     );
 
@@ -175,7 +175,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
         toAgreementV2(agreement),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         eventType
       );
 
@@ -213,7 +213,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
       toAgreementV2(agreement),
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "AgreementActivated"
     );
 

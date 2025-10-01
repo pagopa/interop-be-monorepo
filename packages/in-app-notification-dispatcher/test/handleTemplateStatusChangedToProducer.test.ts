@@ -18,7 +18,7 @@ import {
   addOneEServiceTemplate,
   addOneTenant,
   readModelService,
-  mockUserServiceSQL,
+  mockUserService,
 } from "./utils.js";
 
 describe("handleTemplateStatusChangedToProducer", async () => {
@@ -38,7 +38,7 @@ describe("handleTemplateStatusChangedToProducer", async () => {
         undefined,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       )
     ).rejects.toThrow(
       missingKafkaMessageDataError(
@@ -55,7 +55,7 @@ describe("handleTemplateStatusChangedToProducer", async () => {
       toEServiceTemplateV2(eserviceTemplate),
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
 
     expect(notifications).toEqual([]);
@@ -76,7 +76,7 @@ describe("handleTemplateStatusChangedToProducer", async () => {
       toEServiceTemplateV2(eserviceTemplate),
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
 
     const body = inAppTemplates.templateStatusChangedToProducer(

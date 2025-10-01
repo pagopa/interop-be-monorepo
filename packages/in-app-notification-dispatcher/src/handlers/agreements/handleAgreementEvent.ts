@@ -14,7 +14,7 @@ export async function handleAgreementEvent(
   decodedMessage: AgreementEventEnvelopeV2,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
@@ -32,7 +32,7 @@ export async function handleAgreementEvent(
           agreement,
           logger,
           readModelService,
-          userServiceSQL,
+          userService,
           type
         )
     )
@@ -45,7 +45,7 @@ export async function handleAgreementEvent(
           agreement,
           logger,
           readModelService,
-          userServiceSQL,
+          userService,
           type
         )
     )
@@ -58,14 +58,14 @@ export async function handleAgreementEvent(
           agreement,
           logger,
           readModelService,
-          userServiceSQL,
+          userService,
           type
         )),
         ...(await handleAgreementActivatedRejectedToConsumer(
           agreement,
           logger,
           readModelService,
-          userServiceSQL,
+          userService,
           type
         )),
       ]
@@ -79,7 +79,7 @@ export async function handleAgreementEvent(
           agreement,
           logger,
           readModelService,
-          userServiceSQL,
+          userService,
           type
         )
     )

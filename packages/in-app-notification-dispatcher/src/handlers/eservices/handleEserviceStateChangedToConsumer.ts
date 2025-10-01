@@ -49,7 +49,7 @@ export async function handleEserviceStateChangedToConsumer(
   eserviceV2Msg: EServiceStateChangedEvent,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   if (!eserviceV2Msg.data.eservice) {
     throw missingKafkaMessageDataError("eservice", eserviceV2Msg.type);
@@ -77,7 +77,7 @@ export async function handleEserviceStateChangedToConsumer(
     consumers.map((consumer) => consumer.id),
     "eserviceStateChangedToConsumer",
     readModelService,
-    userServiceSQL
+    userService
   );
 
   const { body, descriptorId } = getBodyAndDescriptorId(

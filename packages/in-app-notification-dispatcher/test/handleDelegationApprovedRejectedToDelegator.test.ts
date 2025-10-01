@@ -19,7 +19,7 @@ import { handleDelegationApprovedRejectedToDelegator } from "../src/handlers/del
 import {
   addOneDelegation,
   addOneTenant,
-  mockUserServiceSQL,
+  mockUserService,
   readModelService,
 } from "./utils.js";
 
@@ -51,7 +51,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
         undefined,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "ProducerDelegationApproved"
       )
     ).rejects.toThrow(
@@ -76,7 +76,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
         toDelegationV2(delegationWithUnknownDelegate),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "ProducerDelegationApproved"
       )
     ).rejects.toThrow(tenantNotFound(unknownTenantId));
@@ -89,7 +89,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
       toDelegationV2(delegation),
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "ProducerDelegationApproved"
     );
 
@@ -144,7 +144,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
         toDelegationV2({ ...delegation, kind, rejectionReason }),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         eventType
       );
 
@@ -176,7 +176,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
       toDelegationV2(delegation),
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "ProducerDelegationApproved"
     );
 

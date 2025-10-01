@@ -13,7 +13,7 @@ export async function handleDelegationEvent(
   decodedMessage: DelegationEventEnvelopeV2,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
@@ -30,7 +30,7 @@ export async function handleDelegationEvent(
           delegation,
           logger,
           readModelService,
-          userServiceSQL,
+          userService,
           type
         )
     )
@@ -48,7 +48,7 @@ export async function handleDelegationEvent(
           delegation,
           logger,
           readModelService,
-          userServiceSQL,
+          userService,
           type
         )
     )

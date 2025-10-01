@@ -23,7 +23,7 @@ export async function handleDelegationSubmittedRevokedToDelegate(
   delegationV2Msg: DelegationV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL,
+  userService: UserServiceSQL,
   eventType: DelegationSubmittedRevokedToDelegateEventType
 ): Promise<NewNotification[]> {
   if (!delegationV2Msg) {
@@ -39,7 +39,7 @@ export async function handleDelegationSubmittedRevokedToDelegate(
     [delegation.delegateId],
     "delegationSubmittedRevokedToDelegate",
     readModelService,
-    userServiceSQL
+    userService
   );
 
   if (usersWithNotifications.length === 0) {

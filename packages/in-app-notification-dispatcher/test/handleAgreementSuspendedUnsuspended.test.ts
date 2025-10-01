@@ -27,7 +27,7 @@ import {
   addOneEService,
   addOneTenant,
   readModelService,
-  mockUserServiceSQL,
+  mockUserService,
 } from "./utils.js";
 
 describe("handleAgreementSuspendedUnsuspended", () => {
@@ -70,7 +70,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         undefined,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "AgreementSuspendedByConsumer"
       )
     ).rejects.toThrow(
@@ -95,7 +95,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         toAgreementV2(agreementWithUnknownTenant),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "AgreementSuspendedByConsumer"
       )
     ).rejects.toThrow(tenantNotFound(unknownTenantId));
@@ -108,7 +108,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
       toAgreementV2(agreement),
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "AgreementSuspendedByConsumer"
     );
 
@@ -199,7 +199,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         toAgreementV2(agreement),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         eventType
       );
 
@@ -256,7 +256,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
       toAgreementV2(agreement),
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "AgreementSuspendedByConsumer"
     );
 

@@ -25,7 +25,7 @@ import {
   addOnePurpose,
   addOneTenant,
   readModelService,
-  mockUserServiceSQL,
+  mockUserService,
 } from "./utils.js";
 
 describe("handlePurposeActivatedRejectedToConsumer", () => {
@@ -70,7 +70,7 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
         undefined,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "PurposeVersionActivated"
       )
     ).rejects.toThrow(
@@ -82,7 +82,7 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
         undefined,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "PurposeVersionRejected"
       )
     ).rejects.toThrow(
@@ -109,7 +109,7 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
         toPurposeV2(purpose),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "PurposeVersionActivated"
       )
     ).rejects.toThrow(tenantNotFound(unknownTenantId));
@@ -132,7 +132,7 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
         toPurposeV2(purposeWithUnknownEservice),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "PurposeVersionActivated"
       )
     ).rejects.toThrow(eserviceNotFound(unknownEserviceId));
@@ -145,7 +145,7 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
       toPurposeV2(purpose),
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "PurposeVersionActivated"
     );
 
@@ -178,7 +178,7 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
         toPurposeV2(purpose),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         eventType
       );
 
@@ -202,6 +202,12 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
       expect(notifications).toEqual(
         expect.arrayContaining(expectedNotifications)
       );
+      expect(mockGetNotificationRecipients).toHaveBeenCalledWith(
+        expect.any(Array),
+        "purposeActivatedRejectedToConsumer",
+        expect.any(Object),
+        expect.any(Object)
+      );
     }
   );
 
@@ -217,7 +223,7 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
       toPurposeV2(purpose),
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "PurposeVersionActivated"
     );
 

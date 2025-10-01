@@ -26,7 +26,7 @@ export async function handleEserviceNewVersionApprovedRejectedToDelegate(
   descriptorId: DescriptorId,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL,
+  userService: UserServiceSQL,
   eventType: EserviceNewVersionApprovedRejectedToDelegateEventType
 ): Promise<NewNotification[]> {
   if (!eserviceV2Msg) {
@@ -51,7 +51,7 @@ export async function handleEserviceNewVersionApprovedRejectedToDelegate(
     [producerDelegation.delegateId],
     "eserviceNewVersionApprovedRejectedToDelegate",
     readModelService,
-    userServiceSQL
+    userService
   );
 
   if (usersWithNotifications.length === 0) {

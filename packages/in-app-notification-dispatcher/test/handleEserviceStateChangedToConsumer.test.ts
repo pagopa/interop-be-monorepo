@@ -28,7 +28,7 @@ import {
   addOneEService,
   addOneTenant,
   readModelService,
-  mockUserServiceSQL,
+  mockUserService,
 } from "./utils.js";
 
 describe("handleEserviceStateChangedToConsumer", async () => {
@@ -67,7 +67,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         msg,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       )
     ).rejects.toThrow(
       missingKafkaMessageDataError("eservice", "EServiceDescriptorPublished")
@@ -88,7 +88,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       msg,
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
     expect(notifications).toEqual([]);
   });
@@ -117,7 +117,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         msg,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       )
     ).rejects.toThrow(tenantNotFound(consumerId));
   });
@@ -174,7 +174,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         msg,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       );
 
       const expectedNotifications = isNotified ? users.length : 0;
@@ -497,7 +497,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         msg,
         logger,
         readModelService,
-        mockUserServiceSQL
+        mockUserService
       );
 
       const expectedNotifications = users.map((user) => ({
@@ -539,7 +539,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       msg,
       logger,
       readModelService,
-      mockUserServiceSQL
+      mockUserService
     );
 
     expect(notifications).toEqual([]);

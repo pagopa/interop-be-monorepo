@@ -15,7 +15,7 @@ export async function handleClientAddedRemovedToProducer(
   purposeId: string,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL,
+  userService: UserServiceSQL,
   type: "ClientPurposeAdded" | "ClientPurposeRemoved"
 ): Promise<NewNotification[]> {
   logger.info(
@@ -33,7 +33,7 @@ export async function handleClientAddedRemovedToProducer(
     [eservice.producerId],
     "clientAddedRemovedToProducer",
     readModelService,
-    userServiceSQL
+    userService
   );
 
   if (usersWithNotifications.length === 0) {

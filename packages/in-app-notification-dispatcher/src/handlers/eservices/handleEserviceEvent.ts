@@ -16,7 +16,7 @@ export async function handleEServiceEvent(
   decodedMessage: EServiceEventEnvelopeV2,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
@@ -49,7 +49,7 @@ export async function handleEServiceEvent(
           msg,
           logger,
           readModelService,
-          userServiceSQL
+          userService
         )
     )
     .with(
@@ -60,7 +60,7 @@ export async function handleEServiceEvent(
           unsafeBrandId<DescriptorId>(descriptorId),
           logger,
           readModelService,
-          userServiceSQL
+          userService
         )
     )
     .with(
@@ -76,7 +76,7 @@ export async function handleEServiceEvent(
           unsafeBrandId<DescriptorId>(descriptorId),
           logger,
           readModelService,
-          userServiceSQL,
+          userService,
           type
         )
     )

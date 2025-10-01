@@ -19,7 +19,7 @@ export async function handleAgreementActivatedRejectedToConsumer(
   agreementV2Msg: AgreementV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL,
+  userService: UserServiceSQL,
   eventType: "AgreementActivated" | "AgreementRejected"
 ): Promise<NewNotification[]> {
   if (!agreementV2Msg) {
@@ -35,7 +35,7 @@ export async function handleAgreementActivatedRejectedToConsumer(
     [agreement.consumerId],
     "agreementActivatedRejectedToConsumer",
     readModelService,
-    userServiceSQL
+    userService
   );
 
   if (usersWithNotifications.length === 0) {

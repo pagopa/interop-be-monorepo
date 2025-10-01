@@ -25,7 +25,7 @@ import {
   addOneEService,
   addOnePurpose,
   addOneTenant,
-  mockUserServiceSQL,
+  mockUserService,
   readModelService,
 } from "./utils.js";
 
@@ -78,7 +78,7 @@ describe("handleClientAddedRemovedToProducer", () => {
         unknownPurposeId,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "ClientPurposeAdded"
       )
     ).rejects.toThrow(purposeNotFound(unknownPurposeId));
@@ -104,7 +104,7 @@ describe("handleClientAddedRemovedToProducer", () => {
         purposeWithUnknownEservice.id,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "ClientPurposeAdded"
       )
     ).rejects.toThrow(eserviceNotFound(unknownEserviceId));
@@ -130,7 +130,7 @@ describe("handleClientAddedRemovedToProducer", () => {
         purposeWithUnknownTenant.id,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "ClientPurposeAdded"
       )
     ).rejects.toThrow(tenantNotFound(unknownTenantId));
@@ -143,7 +143,7 @@ describe("handleClientAddedRemovedToProducer", () => {
       purposeId,
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "ClientPurposeAdded"
     );
 
@@ -176,7 +176,7 @@ describe("handleClientAddedRemovedToProducer", () => {
         purposeId,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         eventType
       );
 
@@ -216,7 +216,7 @@ describe("handleClientAddedRemovedToProducer", () => {
       purposeId,
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "ClientPurposeAdded"
     );
 

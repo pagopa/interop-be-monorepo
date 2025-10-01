@@ -92,7 +92,7 @@ const userDB = drizzle(
     ssl: config.userSQLDbUseSSL,
   })
 );
-const userServiceSQL = userServiceBuilderSQL(userDB);
+const userService = userServiceBuilderSQL(userDB);
 
 const notificationDB = drizzle(
   new pg.Pool({
@@ -128,7 +128,7 @@ function processMessage(topicNames: TopicNames) {
         decodedMessage: EventEnvelope<z.infer<T>>,
         logger: Logger,
         readModelService: ReadModelServiceSQL,
-        userServiceSQL: UserServiceSQL
+        userService: UserServiceSQL
       ) => Promise<NewNotification[]>
     ): Promise<NewNotification[]> => {
       const decodedMessage = decodeKafkaMessage(
@@ -153,7 +153,7 @@ function processMessage(topicNames: TopicNames) {
         decodedMessage,
         loggerInstance,
         readModelService,
-        userServiceSQL
+        userService
       );
     };
 

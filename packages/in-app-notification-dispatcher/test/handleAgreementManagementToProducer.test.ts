@@ -24,7 +24,7 @@ import {
   addOneEService,
   addOneTenant,
   readModelService,
-  mockUserServiceSQL,
+  mockUserService,
 } from "./utils.js";
 
 describe("handleAgreementManagementToProducer", () => {
@@ -67,7 +67,7 @@ describe("handleAgreementManagementToProducer", () => {
         undefined,
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "AgreementActivated"
       )
     ).rejects.toThrow(
@@ -92,7 +92,7 @@ describe("handleAgreementManagementToProducer", () => {
         toAgreementV2(agreementWithUnknownTenant),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "AgreementActivated"
       )
     ).rejects.toThrow(tenantNotFound(unknownTenantId));
@@ -115,7 +115,7 @@ describe("handleAgreementManagementToProducer", () => {
         toAgreementV2(agreementWithUnknownEservice),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         "AgreementActivated"
       )
     ).rejects.toThrow(eserviceNotFound(unknownEserviceId));
@@ -128,7 +128,7 @@ describe("handleAgreementManagementToProducer", () => {
       toAgreementV2(agreement),
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "AgreementActivated"
     );
 
@@ -168,7 +168,7 @@ describe("handleAgreementManagementToProducer", () => {
         toAgreementV2(agreement),
         logger,
         readModelService,
-        mockUserServiceSQL,
+        mockUserService,
         eventType
       );
 
@@ -206,7 +206,7 @@ describe("handleAgreementManagementToProducer", () => {
       toAgreementV2(agreement),
       logger,
       readModelService,
-      mockUserServiceSQL,
+      mockUserService,
       "AgreementActivated"
     );
 

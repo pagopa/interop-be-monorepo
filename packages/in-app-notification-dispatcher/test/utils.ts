@@ -61,7 +61,7 @@ export const readModelService = readModelServiceBuilderSQL({
   purposeReadModelServiceSQL,
 });
 
-export const mockUserServiceSQL = {} as UserServiceSQL;
+export const mockUserService = {} as UserServiceSQL;
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await upsertTenant(readModelDB, tenant, 0);

@@ -15,7 +15,7 @@ export async function handleEServiceTemplateEvent(
   decodedMessage: EServiceTemplateEventEnvelopeV2,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
@@ -27,13 +27,13 @@ export async function handleEServiceTemplateEvent(
           eserviceTemplate,
           logger,
           readModelService,
-          userServiceSQL
+          userService
         )),
         ...(await handleEserviceTemplateStatusChangedToInstantiator(
           eserviceTemplate,
           logger,
           readModelService,
-          userServiceSQL
+          userService
         )),
       ]
     )
@@ -47,7 +47,7 @@ export async function handleEServiceTemplateEvent(
           eserviceTemplateVersionId,
           logger,
           readModelService,
-          userServiceSQL
+          userService
         )
     )
     .with(
@@ -60,7 +60,7 @@ export async function handleEServiceTemplateEvent(
           oldName,
           logger,
           readModelService,
-          userServiceSQL
+          userService
         )
     )
     .with(

@@ -19,7 +19,7 @@ export async function handleAgreementManagementToProducer(
   agreementV2Msg: AgreementV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL,
+  userService: UserServiceSQL,
   eventType: "AgreementActivated" | "AgreementSubmitted" | "AgreementUpgraded"
 ): Promise<NewNotification[]> {
   if (!agreementV2Msg) {
@@ -35,7 +35,7 @@ export async function handleAgreementManagementToProducer(
     [agreement.producerId],
     "agreementManagementToProducer",
     readModelService,
-    userServiceSQL
+    userService
   );
 
   if (usersWithNotifications.length === 0) {
