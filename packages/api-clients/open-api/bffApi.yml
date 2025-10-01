@@ -10611,14 +10611,10 @@ paths:
         - purposeTemplates
       summary: Delete risk analysis form template answer annotation
       operationId: deleteRiskAnalysisTemplateAnswerAnnotation
-      description: Delete a risk analysis form template answer annotation
+      description: Delete a risk analysis form template answer annotation and the related files
       responses:
         "204":
           description: Risk analysis form template answer annotation deleted
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
           headers:
             "X-Rate-Limit-Limit":
               schema:
