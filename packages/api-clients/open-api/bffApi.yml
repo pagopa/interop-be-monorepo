@@ -10455,7 +10455,7 @@ paths:
         - purposeTemplates
       summary: Retrieve Purpose Template
       operationId: getPurposeTemplate
-      description: Retrieve Purpose Template
+      description: Retrieve a Purpose Template by its ID
       responses:
         "200":
           description: Purpose Template retrieved
