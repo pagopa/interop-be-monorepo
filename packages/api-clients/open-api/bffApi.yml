@@ -10240,6 +10240,10 @@ paths:
       responses:
           "200":
             description: OK - Request successful. The response contains the created resource metadata (not the file)
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
             headers:
               "X-Rate-Limit-Limit":
                 schema:
@@ -23507,6 +23511,31 @@ components:
         - contentType
         - prettyName
         - path
+    RiskAnalysisTemplateAnswerAnnotationDocument:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        contentType:
+          type: string
+        prettyName:
+          type: string
+        path:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - contentType
+        - prettyName
+        - path
+        - createdAt
     CompactUsers:
       type: array
       items:
