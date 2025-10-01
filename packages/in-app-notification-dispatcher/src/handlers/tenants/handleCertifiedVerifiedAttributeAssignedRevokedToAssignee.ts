@@ -12,7 +12,9 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import {
+  getNotificationRecipients,
   retrieveAttribute,
   retrieveTenant,
   retrieveTenantByCertifierId,
@@ -29,11 +31,13 @@ type CertifiedVerifiedAttributeAssignedRevokedEventType =
   | "TenantVerifiedAttributeAssigned"
   | "TenantVerifiedAttributeRevoked";
 
+// eslint-disable-next-line max-params
 export async function handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
   tenantV2Msg: TenantV2 | undefined,
   attributeId: AttributeId,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
+  userService: UserServiceSQL,
   eventType: CertifiedVerifiedAttributeAssignedRevokedEventType
 ): Promise<NewNotification[]> {
   if (!tenantV2Msg) {
@@ -45,11 +49,12 @@ export async function handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
 
   const tenant = fromTenantV2(tenantV2Msg);
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [tenant.id],
-      "certifiedVerifiedAttributeAssignedRevokedToAssignee"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [tenant.id],
+    "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+    readModelService,
+    userService
+  );
 
   if (usersWithNotifications.length === 0) {
     logger.info(
