@@ -13,6 +13,7 @@ import { handleAgreementSuspendedByPlatformToProducer } from "./handleAgreementS
 import { handleAgreementUnsuspendedByConsumer } from "./handleAgreementUnsuspendedByConsumer.js";
 import { handleAgreementUnsuspendedByPlatformToProducer } from "./handleAgreementUnsuspendedByPlatformToProducer.js";
 import { handleAgreementActivatedToProducer } from "./handleAgreementActivatedToProducer.js";
+import { handleAgreementArchivedByConsumer } from "./handleAgreementArchivedByConsumer.js";
 import { handleAgreementUnsuspendedByProducer } from "./handleAgreementUnsuspendedByProducer.js";
 import { handleAgreementSuspendedByPlatformToConsumer } from "./handleAgreementSuspendedByPlatformToConsumer.js";
 import { handleAgreementUnsuspendedByPlatformToConsumer } from "./handleAgreementUnsuspendedByPlatformToConsumer.js";
@@ -143,6 +144,16 @@ export async function handleAgreementEvent(
           correlationId,
         })
     )
+    .with({ type: "AgreementArchivedByConsumer" }, ({ data: { agreement } }) =>
+      handleAgreementArchivedByConsumer({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
     .with(
       { type: "AgreementUnsuspendedByPlatform" },
       async ({ data: { agreement } }) => [
@@ -170,7 +181,6 @@ export async function handleAgreementEvent(
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
-          "AgreementArchivedByConsumer",
           "AgreementArchivedByUpgrade",
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
