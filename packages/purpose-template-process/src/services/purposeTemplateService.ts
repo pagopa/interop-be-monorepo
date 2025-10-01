@@ -1,16 +1,3 @@
-import {
-  generateId,
-  PurposeTemplate,
-  PurposeTemplateId,
-  purposeTemplateState,
-  WithMetadata,
-  purposeTemplateEventToBinaryDataV2,
-  ListResult,
-  EServiceDescriptorPurposeTemplate,
-  EServiceId,
-  RiskAnalysisFormTemplate,
-  TenantKind,
-} from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
@@ -24,9 +11,28 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
-  associationEServicesForPurposeTemplateFailed,
+  ListResult,
+  EServiceDescriptorPurposeTemplate,
+  EServiceId,
+  generateId,
+  PurposeTemplate,
+  purposeTemplateEventToBinaryDataV2,
+  PurposeTemplateId,
+  purposeTemplateState,
+  RiskAnalysisFormTemplate,
+  RiskAnalysisTemplateAnswer,
+  RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
+  TenantKind,
+  WithMetadata,
+} from "pagopa-interop-models";
+import {
   purposeTemplateNotFound,
+  associationEServicesForPurposeTemplateFailed,
   disassociationEServicesFromPurposeTemplateFailed,
+  riskAnalysisAnswerNotFound,
+  riskAnalysisFormTemplateNotFound,
+  riskAnalysisAnswerAnnotationNotFound,
   ruleSetNotFoundError,
 } from "../model/domain/errors.js";
 import {
@@ -34,6 +40,7 @@ import {
   toCreateEventPurposeTemplateDraftUpdated,
   toCreateEventPurposeTemplateEServiceLinked,
   toCreateEventPurposeTemplateEServiceUnlinked,
+  toCreateEventPurposeTemplateAnswerAnnotationDocumentAdded,
 } from "../model/domain/toEvent.js";
 import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisDocUtils.js";
 import {
@@ -41,12 +48,15 @@ import {
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
 import {
+  assertAnnotationDocumentIsUnique,
   assertConsistentFreeOfCharge,
   assertEServiceIdsCountIsBelowThreshold,
   assertPurposeTemplateIsDraft,
   assertPurposeTemplateStateIsValid,
-  assertPurposeTemplateTitleIsNotDuplicated,
   assertRequesterIsCreator,
+  assertDocumentsLimitsNotReached,
+  assertPurposeTemplateTitleIsNotDuplicated,
+  assertTemplateStateNotDraft,
   validateAndTransformRiskAnalysisTemplate,
   validateEservicesAssociations,
   validateEservicesDisassociations,
@@ -61,6 +71,47 @@ async function retrievePurposeTemplate(
     throw purposeTemplateNotFound(id);
   }
   return purposeTemplate;
+}
+
+function retrieveRiskAnalysisFormTemplate(
+  purposeTemplate: PurposeTemplate
+): RiskAnalysisFormTemplate {
+  if (!purposeTemplate.purposeRiskAnalysisForm) {
+    throw riskAnalysisFormTemplateNotFound(purposeTemplate.id);
+  }
+  return purposeTemplate.purposeRiskAnalysisForm;
+}
+
+function retrieveRiskAnalysisTemplateAnswer(
+  purposeRiskAnalysisForm: RiskAnalysisFormTemplate,
+  answerId: string,
+  purposeTemplateId: PurposeTemplateId
+): RiskAnalysisTemplateAnswer {
+  const singleAnswer = purposeRiskAnalysisForm?.singleAnswers.find(
+    (a) => a.id === answerId
+  );
+  if (singleAnswer) {
+    return { type: "single", answer: singleAnswer };
+  }
+
+  const multiAnswer = purposeRiskAnalysisForm?.multiAnswers.find(
+    (a) => a.id === answerId
+  );
+  if (multiAnswer) {
+    return { type: "multi", answer: multiAnswer };
+  }
+
+  throw riskAnalysisAnswerNotFound(purposeTemplateId, answerId);
+}
+
+function retrieveAnswerAnnotation(
+  { answer }: RiskAnalysisTemplateAnswer,
+  purposeTemplateId: PurposeTemplateId
+): RiskAnalysisTemplateAnswerAnnotation {
+  if (!answer?.annotation) {
+    throw riskAnalysisAnswerAnnotationNotFound(purposeTemplateId, answer.id);
+  }
+  return answer.annotation;
 }
 
 function getDefaultRiskAnalysisFormTemplate(
@@ -374,6 +425,111 @@ export function purposeTemplateServiceBuilder(
 
       return {
         data: updatedPurposeTemplate,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async addRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: string,
+      body: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocumentSeed,
+      {
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
+      logger.info(
+        `Adding annotation document to risk analysis template answer ${purposeTemplateId}`
+      );
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertTemplateStateNotDraft(purposeTemplate.data);
+
+      const riskAnalysisFormTemplate = retrieveRiskAnalysisFormTemplate(
+        purposeTemplate.data
+      );
+
+      const answerToUpdate: RiskAnalysisTemplateAnswer =
+        retrieveRiskAnalysisTemplateAnswer(
+          riskAnalysisFormTemplate,
+          answerId,
+          purposeTemplateId
+        );
+
+      assertAnnotationDocumentIsUnique(
+        answerToUpdate,
+        body.checksum,
+        body.prettyName
+      );
+
+      const oldAnnotation = retrieveAnswerAnnotation(
+        answerToUpdate,
+        purposeTemplate.data.id
+      );
+
+      assertDocumentsLimitsNotReached(oldAnnotation.docs, answerId);
+
+      const newAnnotationDocument: RiskAnalysisTemplateAnswerAnnotationDocument =
+        {
+          id: generateId(),
+          name: body.name,
+          prettyName: body.prettyName,
+          contentType: body.contentType,
+          path: body.path,
+          createdAt: new Date(),
+          checksum: body.checksum,
+        };
+
+      const updatedAnnotation: RiskAnalysisTemplateAnswerAnnotation = {
+        ...oldAnnotation,
+        docs: [
+          ...(oldAnnotation.docs ? oldAnnotation.docs : []),
+          newAnnotationDocument,
+        ],
+      };
+
+      const updatedAnswers =
+        answerToUpdate.type === "single"
+          ? {
+              multiAnswers: riskAnalysisFormTemplate.multiAnswers,
+              singleAnswers: riskAnalysisFormTemplate.singleAnswers.map((a) =>
+                a.id === answerId ? { ...a, annotation: updatedAnnotation } : a
+              ),
+            }
+          : {
+              singleAnswers: riskAnalysisFormTemplate.singleAnswers,
+              multiAnswers: riskAnalysisFormTemplate.multiAnswers.map((a) =>
+                a.id === answerId ? { ...a, annotation: updatedAnnotation } : a
+              ),
+            };
+
+      const updatedRiskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
+        ...riskAnalysisFormTemplate,
+        singleAnswers: updatedAnswers.singleAnswers,
+        multiAnswers: updatedAnswers.multiAnswers,
+      };
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        purposeRiskAnalysisForm: updatedRiskAnalysisFormTemplate,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateAnswerAnnotationDocumentAdded(
+          updatedPurposeTemplate,
+          newAnnotationDocument.id,
+          purposeTemplate.metadata.version,
+          correlationId
+        )
+      );
+
+      return {
+        data: newAnnotationDocument,
         metadata: {
           version: event.newVersion,
         },

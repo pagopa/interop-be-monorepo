@@ -25,10 +25,12 @@ import {
   linkEservicesToPurposeTemplateErrorMapper,
   unlinkEServicesFromPurposeTemplateErrorMapper,
   updatePurposeTemplateErrorMapper,
-} from "../utilities/errorMappers.js";
-import {
+  addPurposeTemplateAnswerAnnotationErrorMapper,
   apiPurposeTemplateStateToPurposeTemplateState,
   eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate,
+} from "../utilities/errorMappers.js";
+import {
+  annotationDocumentToApiAnnotationDocument,
   purposeTemplateToApiPurposeTemplate,
 } from "../model/domain/apiConverter.js";
 
@@ -288,7 +290,36 @@ const purposeTemplateRouter = (
         return res.status(501);
       }
       return res.status(501);
-    });
+    })
+    .post(
+      "/purposeTemplates/:id/riskAnalysis/answers/:answerId/annotation/documents",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          const result =
+            await purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
+              unsafeBrandId(req.params.id),
+              req.params.answerId,
+              req.body,
+              ctx
+            );
+
+          setMetadataVersionHeader(res, result.metadata);
+          return res
+            .status(200)
+            .send(annotationDocumentToApiAnnotationDocument(result.data));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addPurposeTemplateAnswerAnnotationErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send();
+        }
+      }
+    );
 
   return purposeTemplateRouter;
 };
