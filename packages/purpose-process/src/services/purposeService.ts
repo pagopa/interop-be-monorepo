@@ -912,21 +912,22 @@ export function purposeServiceBuilder(
        * If the purpose is not over quota, we will create a new version directly in active state and
        * also generate the new risk analysis document
        */
+
+      const stamp: PurposeVersionStamp = {
+        who: authData.userId,
+        when: new Date(),
+      };
+
       const riskAnalysisDocument = await generateRiskAnalysisDocument({
         eservice,
         purpose: purpose.data,
-        userId: authData.userId,
+        userId: stamp.who,
         dailyCalls: seed.dailyCalls,
         readModelService,
         fileManager,
         pdfGenerator,
         logger,
       });
-
-      const stamp: PurposeVersionStamp = {
-        who: authData.userId,
-        when: new Date(),
-      };
 
       const newPurposeVersion: PurposeVersion = {
         id: generateId(),
