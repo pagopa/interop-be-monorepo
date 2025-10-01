@@ -10142,21 +10142,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
           headers:
-              "X-Rate-Limit-Limit":
-                schema:
-                  type: integer
-                  format: int32
-                description: Max allowed requests within time interval
-              "X-Rate-Limit-Remaining":
-                schema:
-                  type: integer
-                  format: int32
-                description: Remaining requests within time interval
-              "X-Rate-Limit-Interval":
-                schema:
-                  type: integer
-                  format: int32
-                description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad Request
           content:
@@ -25334,6 +25334,9 @@ components:
         deepLink:
           type: string
           description: Deep link to the notification
+        category:
+          type: string
+          description: Category of the notification
         readAt:
           type: string
           format: date-time
@@ -25349,6 +25352,7 @@ components:
         - tenantId
         - body
         - deepLink
+        - category
         - createdAt
     NotificationConfig:
       type: object

@@ -2,6 +2,7 @@ import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import { bffApi } from "pagopa-interop-api-clients";
 import { NotificationType } from "pagopa-interop-models";
 import {
+  notificationTypeToCategory,
   notificationTypeToUiSection,
   UiSection,
 } from "../model/modelMappingUtils.js";
@@ -68,6 +69,7 @@ export function toBffApiNotifications(
         userId: notification.userId,
         body: notification.body,
         deepLink: notificationTypeToUiSection[notificationType],
+        category: notificationTypeToCategory[notificationType],
         createdAt: notification.createdAt,
         readAt: notification.readAt,
       };
