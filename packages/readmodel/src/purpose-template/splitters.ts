@@ -301,6 +301,7 @@ const splitRiskAnalysisTemplateAnswerAnnotationsIntoObjectsSQL = (
           name: doc.name,
           prettyName: doc.prettyName,
           contentType: doc.contentType,
+          checksum: doc.checksum,
           path: doc.path,
           createdAt: dateToString(doc.createdAt),
         }))

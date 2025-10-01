@@ -293,6 +293,7 @@ export const getMockRiskAnalysisTemplateAnswerAnnotationDocument = (
   prettyName: "prettyName",
   contentType: "application/pdf",
   createdAt: new Date(),
+  checksum: "checksum",
 });
 
 export const getMockRiskAnalysisTemplateAnswerAnnotation = (

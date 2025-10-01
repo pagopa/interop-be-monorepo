@@ -26,6 +26,7 @@ export type RiskAnalysisTemplateAnswerAnnotationDocument = {
   contentType: string;
   prettyName: string;
   path: string;
+  checksum: string;
 };
 
 export type RiskAnalysisTemplateValidatedForm = {
