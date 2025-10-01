@@ -8,6 +8,7 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
   Tenant,
@@ -350,6 +351,51 @@ export function readModelServiceBuilderSQL({
 
       return aggregateRiskAnalysisTemplateAnswer(
         toRiskAnalysisTemplateAnswerAggregator(queryResult)
+      );
+    },
+    async getRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
+    ): Promise<RiskAnalysisTemplateAnswerAnnotationDocument | undefined> {
+      const queryResult = await readModelDB
+        .select({
+          riskAnalysisAnswerAnnotationDocument:
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+        })
+        .from(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+        )
+        .innerJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.id,
+              documentId
+            ),
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+              answerId
+            )
+          )
+        );
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      return toRiskAnalysisTemplateAnswerAnnotationDocument(
+        queryResult[0].riskAnalysisAnswerAnnotationDocument
       );
     },
   };

@@ -61,3 +61,17 @@ export const deleteRiskAnalysisTemplateAnswerAnnotationErrorMapper = (
     )
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeTemplateNotInExpectedState", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "purposeTemplateNotFound",
+      "riskAnalysisTemplateNotFound",
+      "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

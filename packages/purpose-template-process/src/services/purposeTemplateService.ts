@@ -12,6 +12,7 @@ import {
   RiskAnalysisTemplateSingleAnswer,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -28,6 +29,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   purposeTemplateNotFound,
+  riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
   riskAnalysisTemplateNotFound,
@@ -79,9 +81,7 @@ function getDefaultRiskAnalysisFormTemplate(
   };
 }
 
-/*
-Deletes all the annotations documents associated to the purpose template
-*/
+// Deletes all the annotations documents associated to the purpose template
 async function deleteAllRiskAnalysisTemplateAnswerAnnotationDocuments({
   purposeTemplate,
   fileManager,
@@ -109,9 +109,7 @@ async function deleteAllRiskAnalysisTemplateAnswerAnnotationDocuments({
   );
 }
 
-/*
-Deletes all the documents associated to one purpose template answer annotation
-*/
+// Deletes all the documents associated to one purpose template answer annotation
 async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
   purposeTemplateId,
   answerId,
@@ -153,6 +151,120 @@ async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
   return {
     ...answer,
     annotation: undefined,
+  };
+}
+
+async function deleteRiskAnalysisTemplateAnswerAnnotationDoc({
+  purposeTemplateId,
+  answerId,
+  documentId,
+  fileManager,
+  readModelService,
+  logger,
+}: {
+  purposeTemplateId: PurposeTemplateId;
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  fileManager: FileManager;
+  readModelService: ReadModelServiceSQL;
+  logger: Logger;
+}): Promise<void> {
+  const annotationDocument =
+    await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId,
+      answerId,
+      documentId
+    );
+  if (!annotationDocument) {
+    throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
+      purposeTemplateId,
+      answerId,
+      documentId
+    );
+  }
+
+  await fileManager.delete(config.s3Bucket, annotationDocument.path, logger);
+}
+
+async function checkPurposeTemplateForAnnotationOrDocumentDeletion({
+  purposeTemplateId,
+  answerId,
+  documentId,
+  readModelService,
+  ctx,
+}: {
+  purposeTemplateId: PurposeTemplateId;
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+  documentId?: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  readModelService: ReadModelServiceSQL;
+  ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
+}): Promise<WithMetadata<PurposeTemplate>> {
+  const { authData, logger } = ctx;
+
+  logger.info(
+    `Deleting risk analysis template answer annotation${
+      documentId ? " document" : ""
+    } for purpose template ${purposeTemplateId}, answer ${answerId}${
+      documentId ? ` and document ${documentId}` : ""
+    }`
+  );
+
+  const purposeTemplate = await retrievePurposeTemplate(
+    purposeTemplateId,
+    readModelService
+  );
+
+  const purposeRiskAnalysisTemplateForm =
+    purposeTemplate.data.purposeRiskAnalysisForm;
+  if (!purposeRiskAnalysisTemplateForm) {
+    throw riskAnalysisTemplateNotFound(purposeTemplateId);
+  }
+
+  assertRequesterIsCreator(purposeTemplate.data, authData);
+  assertPurposeTemplateIsDraft(purposeTemplate.data);
+
+  const updateAnswerWithoutAnnotation = <
+    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+  >(
+    answer: T
+  ): T =>
+    answer.id === answerId ? { ...answer, annotation: undefined } : answer;
+
+  const updateAnswerWithoutAnnotationDocument = <
+    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+  >(
+    answer: T
+  ): T =>
+    answer.id === answerId
+      ? {
+          ...answer,
+          annotation: {
+            ...answer.annotation,
+            docs:
+              answer.annotation?.docs.filter((doc) => doc.id !== documentId) ||
+              [],
+          },
+        }
+      : answer;
+
+  return {
+    data: {
+      ...purposeTemplate.data,
+      purposeRiskAnalysisForm: {
+        ...purposeRiskAnalysisTemplateForm,
+        singleAnswers: purposeRiskAnalysisTemplateForm.singleAnswers.map(
+          documentId
+            ? updateAnswerWithoutAnnotationDocument
+            : updateAnswerWithoutAnnotation
+        ),
+        multiAnswers: purposeRiskAnalysisTemplateForm.multiAnswers.map(
+          documentId
+            ? updateAnswerWithoutAnnotationDocument
+            : updateAnswerWithoutAnnotation
+        ),
+      },
+    },
+    metadata: purposeTemplate.metadata,
   };
 }
 
@@ -306,25 +418,15 @@ export function purposeTemplateServiceBuilder(
         RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
       >
     > {
-      const { authData, logger, correlationId } = ctx;
+      const { logger, correlationId } = ctx;
 
-      logger.info(
-        `Deleting risk analysis template answer annotation for purpose template ${purposeTemplateId} and answer ${answerId}`
-      );
-
-      const purposeTemplate = await retrievePurposeTemplate(
-        purposeTemplateId,
-        readModelService
-      );
-
-      const purposeRiskAnalysisTemplateForm =
-        purposeTemplate.data.purposeRiskAnalysisForm;
-      if (!purposeRiskAnalysisTemplateForm) {
-        throw riskAnalysisTemplateNotFound(purposeTemplateId);
-      }
-
-      assertRequesterIsCreator(purposeTemplate.data, authData);
-      assertPurposeTemplateIsDraft(purposeTemplate.data);
+      const updatedPurposeTemplate =
+        await checkPurposeTemplateForAnnotationOrDocumentDeletion({
+          purposeTemplateId,
+          answerId,
+          readModelService,
+          ctx,
+        });
 
       const answerWithDeletedAnnotation =
         await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
@@ -335,32 +437,10 @@ export function purposeTemplateServiceBuilder(
           logger,
         });
 
-      const updateAnswerWithoutAnnotation = <
-        T extends
-          | RiskAnalysisTemplateSingleAnswer
-          | RiskAnalysisTemplateMultiAnswer
-      >(
-        answer: T
-      ): T =>
-        answer.id === answerId ? { ...answer, annotation: undefined } : answer;
-
-      const updatedPurposeTemplate: PurposeTemplate = {
-        ...purposeTemplate.data,
-        purposeRiskAnalysisForm: {
-          ...purposeRiskAnalysisTemplateForm,
-          singleAnswers: purposeRiskAnalysisTemplateForm.singleAnswers.map(
-            updateAnswerWithoutAnnotation
-          ),
-          multiAnswers: purposeRiskAnalysisTemplateForm.multiAnswers.map(
-            updateAnswerWithoutAnnotation
-          ),
-        },
-      };
-
       const event = await repository.createEvent(
         toCreateEventPurposeTemplateDraftUpdated({
-          purposeTemplate: updatedPurposeTemplate,
-          version: purposeTemplate.metadata.version,
+          purposeTemplate: updatedPurposeTemplate.data,
+          version: updatedPurposeTemplate.metadata.version,
           correlationId,
         })
       );
@@ -371,6 +451,45 @@ export function purposeTemplateServiceBuilder(
           version: event.newVersion,
         },
       };
+    },
+    async deleteRiskAnalysisTemplateAnswerAnnotationDocument({
+      purposeTemplateId,
+      answerId,
+      documentId,
+      ctx,
+    }: {
+      purposeTemplateId: PurposeTemplateId;
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
+    }): Promise<void> {
+      const { logger, correlationId } = ctx;
+
+      const updatedPurposeTemplate =
+        await checkPurposeTemplateForAnnotationOrDocumentDeletion({
+          purposeTemplateId,
+          answerId,
+          documentId,
+          readModelService,
+          ctx,
+        });
+
+      await deleteRiskAnalysisTemplateAnswerAnnotationDoc({
+        purposeTemplateId,
+        answerId,
+        documentId,
+        fileManager,
+        readModelService,
+        logger,
+      });
+
+      await repository.createEvent(
+        toCreateEventPurposeTemplateDraftUpdated({
+          purposeTemplate: updatedPurposeTemplate.data,
+          version: updatedPurposeTemplate.metadata.version,
+          correlationId,
+        })
+      );
     },
   };
 }

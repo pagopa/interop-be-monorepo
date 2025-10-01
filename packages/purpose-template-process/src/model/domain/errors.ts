@@ -7,6 +7,7 @@ import {
   RiskAnalysisFormTemplateId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
   TenantKind,
 } from "pagopa-interop-models";
@@ -22,6 +23,7 @@ export const errorCodes = {
   riskAnalysisTemplateNotFound: "0008",
   riskAnalysisTemplateAnswerNotFound: "0009",
   riskAnalysisTemplateAnswerAnnotationNotFound: "0010",
+  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -131,5 +133,17 @@ export function riskAnalysisTemplateAnswerAnnotationNotFound(
     detail: `No Risk Analysis Template Answer Annotation found for Purpose Template ID ${purposeTemplateId} and Answer ID ${answerId}`,
     code: "riskAnalysisTemplateAnswerAnnotationNotFound",
     title: "Risk Analysis Template Answer Annotation Not Found",
+  });
+}
+
+export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
+  purposeTemplateId: PurposeTemplateId,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Risk Analysis Template Answer Annotation Document found for Purpose Template ID ${purposeTemplateId}, Answer ID ${answerId} and Document ID ${documentId}`,
+    code: "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
+    title: "Risk Analysis Template Answer Annotation Document Not Found",
   });
 }
