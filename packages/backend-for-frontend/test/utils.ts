@@ -7,7 +7,11 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
+import {
+  catalogApi,
+  eserviceTemplateApi,
+  inAppNotificationApi,
+} from "pagopa-interop-api-clients";
 import {
   ApiError,
   Descriptor,
@@ -176,3 +180,17 @@ export const expectedUserIdAndOrganizationId = (
       organizationId,
     }),
   });
+
+export const getMockNotification = (
+  notificationType: string,
+  entityId: string = "test-entity-id"
+): inAppNotificationApi.Notification => ({
+  id: "notification-id",
+  tenantId: "tenant-id",
+  userId: "user-id",
+  body: "Test notification body",
+  notificationType,
+  entityId,
+  createdAt: "2024-01-01T00:00:00Z",
+  readAt: undefined,
+});
