@@ -34,6 +34,8 @@ export const errorCodes = {
   associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0017",
   conflictDocumentPrettyNameDuplicate: "0018",
   annotationDocumentLimitExceeded: "0019",
+  purposeTemplateIsNotDraft: "0020",
+  conflictDuplicatedDocument: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -66,6 +68,16 @@ export function purposeTemplateNotFound(
     detail: `No Purpose Template found for ID ${purposeTemplateId}`,
     code: "purposeTemplateNotFound",
     title: "Purpose Template Not Found",
+  });
+}
+
+export function purposeTemplateStateNotDraft(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template with ID ${purposeTemplateId} is not in draft state`,
+    code: "purposeTemplateIsNotDraft",
+    title: "Purpose Template State Not Draft",
   });
 }
 
@@ -246,5 +258,16 @@ export function annotationDocumentLimitExceeded(
     detail: `Annotation document limit exceeded for answer with id '${answerId}'`,
     code: "annotationDocumentLimitExceeded",
     title: "Annotation document limit exceeded",
+  });
+}
+
+export function conflictDuplicatedDocument(
+  answerId: string,
+  checksum: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Conflict: annotation document with checksum '${checksum}' is duplicated for answer with id '${answerId}'`,
+    code: "conflictDuplicatedDocument",
+    title: "Conflict: annotation document with checksum already exists",
   });
 }
