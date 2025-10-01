@@ -4,7 +4,6 @@ import {
   EventStoreConfig,
   S3Config,
   ApplicationAuditProducerConfig,
-  FeatureFlagSignalhubWhitelistConfig,
   ReadModelSQLDbConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
 } from "pagopa-interop-commons";
@@ -25,7 +24,6 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(EventStoreConfig)
-  .and(FeatureFlagSignalhubWhitelistConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
   .and(
     z

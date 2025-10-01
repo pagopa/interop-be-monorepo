@@ -1,27 +1,6 @@
 import { featureFlagNotEnabled } from "pagopa-interop-models";
 import { z } from "zod";
 
-export const FeatureFlagSignalhubWhitelistConfig = z
-  .object({
-    FEATURE_FLAG_SIGNALHUB_WHITELIST: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true")
-      .optional(),
-    SIGNALHUB_WHITELIST_PRODUCER: z
-      .string()
-      .transform((value) => value.split(","))
-      .pipe(z.array(z.string().uuid()))
-      .optional(),
-  })
-  .transform((c) => ({
-    featureFlagSignalhubWhitelist: c.FEATURE_FLAG_SIGNALHUB_WHITELIST ?? false,
-    signalhubWhitelistProducer: c.SIGNALHUB_WHITELIST_PRODUCER,
-  }));
-export type FeatureFlagSignalhubWhitelistConfig = z.infer<
-  typeof FeatureFlagSignalhubWhitelistConfig
->;
-
 export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
   .object({
     FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE: z
@@ -114,8 +93,7 @@ export type FeatureFlagPurposeTemplateConfig = z.infer<
   typeof FeatureFlagPurposeTemplateConfig
 >;
 
-type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
-  FeatureFlagAgreementApprovalPolicyUpdateConfig &
+type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
