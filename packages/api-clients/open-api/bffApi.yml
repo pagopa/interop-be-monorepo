@@ -10908,6 +10908,10 @@ paths:
       responses:
           "200":
             description: OK - Request successful. The response contains the created resource metadata (not the file)
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
             headers:
               "X-Rate-Limit-Limit":
                 schema:
@@ -24407,15 +24411,6 @@ components:
       required:
         - results
         - pagination
-    CompactUsers:
-      type: array
-      items:
-        $ref: "#/components/schemas/CompactUser"
-    KeySeed:
-      description: "Models the seed for a public key to be persisted"
-      type: object
-      additionalProperties: false
-      properties:
         key:
           type: string
           description: "Base64 UTF-8 encoding of a public key in PEM format"

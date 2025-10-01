@@ -655,6 +655,10 @@ paths:
       responses:
         "200":
           description: OK - Request successful. The response contains the created resource metadata (not the file)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
