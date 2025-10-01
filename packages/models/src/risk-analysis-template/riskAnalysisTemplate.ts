@@ -16,6 +16,7 @@ export const RiskAnalysisTemplateAnswerAnnotationDocument = z.object({
   contentType: z.string(),
   path: z.string(),
   createdAt: z.coerce.date(),
+  checksum: z.string(),
 });
 export type RiskAnalysisTemplateAnswerAnnotationDocument = z.infer<
   typeof RiskAnalysisTemplateAnswerAnnotationDocument

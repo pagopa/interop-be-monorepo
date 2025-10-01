@@ -221,6 +221,7 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
                     name: doc.name,
                     prettyName: doc.prettyName,
                     contentType: doc.contentType,
+                    checksum: doc.checksum,
                     path: doc.path,
                     createdAt: stringToDate(doc.createdAt),
                   }))
