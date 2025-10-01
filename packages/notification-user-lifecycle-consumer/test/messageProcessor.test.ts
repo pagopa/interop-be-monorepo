@@ -80,6 +80,8 @@ describe("processUserEvent", () => {
       createdAt: "2022-01-01T00:00:00.000Z",
       tenantId,
       userId,
+      inAppNotificationPreference: true,
+      emailNotificationPreference: "ENABLED",
       inAppConfig: {
         agreementSuspendedUnsuspendedToProducer: false,
         agreementManagementToProducer: false,
