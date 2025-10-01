@@ -96,13 +96,28 @@ export function getTenantUpsertData(
   // that should be assigned to the corresponding tenant in the platform.
   return institutionsAlreadyPresent.map((i) => {
     const attributesWithoutKind = match(i)
+      // Agency - SCEC -> Assign institution name attribute only
       .with(
         {
-          kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
           category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+          classification: AGENCY_CLASSIFICATION,
+        },
+        () => [
+          {
+            origin: i.origin,
+            code: i.originId,
+          },
+        ]
+      )
+      // SCEC - AOO/UO -> Assign nothing
+      .with(
+        {
+          category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+          classification: P.not(AGENCY_CLASSIFICATION),
         },
         () => []
       )
+      // Agency - any -> Assign institution name attribute + category attribute
       .with({ classification: AGENCY_CLASSIFICATION }, () => [
         {
           origin: i.origin,
@@ -113,6 +128,7 @@ export function getTenantUpsertData(
           code: i.originId,
         },
       ])
+      // AOO/UO -> Assign category attribute only
       .otherwise(() => [
         {
           origin: i.origin,

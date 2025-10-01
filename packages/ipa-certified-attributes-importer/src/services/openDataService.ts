@@ -96,7 +96,7 @@ async function loadCertifiedAttributes(
       description: c.kind,
       /**
        * Società in Conto Economico Consolidato exists both as a category and as a type.
-       * To avoid duplicates, we add the suffix ' - Tipologia' to the name of the type.
+       * To avoid duplicates, we add the suffix ' - Tipologia IPA' to the name of the type.
        */
       name: match(c.kind)
         .with(
