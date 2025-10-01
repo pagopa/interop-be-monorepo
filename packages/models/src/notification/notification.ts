@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { UserId, TenantId, NotificationId, IDS } from "../brandedIds.js";
+import {
+  UserId,
+  TenantId,
+  NotificationId,
+  IDS,
+  EServiceIdDescriptorId,
+} from "../brandedIds.js";
 
 export const NotificationType = z.enum([
   "agreementSuspendedUnsuspendedToProducer", // 04: Variazione dello stato di una richiesta di fruizione
@@ -30,7 +36,7 @@ export const Notification = z.object({
   tenantId: TenantId,
   body: z.string(),
   notificationType: NotificationType,
-  entityId: IDS,
+  entityId: z.union([IDS, EServiceIdDescriptorId]),
   readAt: z.date().optional(),
   createdAt: z.date(),
 });

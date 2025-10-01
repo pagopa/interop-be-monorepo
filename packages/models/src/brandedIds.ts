@@ -150,6 +150,23 @@ export type GSIPKEServiceIdDescriptorId = z.infer<
   typeof GSIPKEServiceIdDescriptorId
 >;
 
+export const EServiceIdDescriptorId = z
+  .custom<`${EServiceId}/${DescriptorId}`>((val) => {
+    if (typeof val !== "string") {
+      return false;
+    }
+    const parts = val.split("/");
+    if (parts.length !== 2) {
+      return false;
+    }
+    return (
+      EServiceId.safeParse(parts[0]).success &&
+      DescriptorId.safeParse(parts[1]).success
+    );
+  })
+  .brand("EServiceIdDescriptorId");
+export type EServiceIdDescriptorId = z.infer<typeof EServiceIdDescriptorId>;
+
 export const GSIPKClientIdPurposeId = z.string().brand(`clientId#purposeId`);
 export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
 
@@ -248,6 +265,7 @@ export const IDS = z.union([
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientKidPK,
   GSIPKEServiceIdDescriptorId,
+  EServiceIdDescriptorId,
   GSIPKClientIdPurposeId,
   GSIPKClientIdKid,
   EServiceTemplateId,
