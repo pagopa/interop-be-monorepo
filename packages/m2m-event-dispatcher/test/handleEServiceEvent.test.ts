@@ -10,7 +10,6 @@ import {
   EServiceEventV2,
   EServiceEventEnvelopeV2,
   descriptorState,
-  EServiceM2MEvent,
   m2mEventVisibility,
   EService,
   delegationKind,
@@ -60,47 +59,49 @@ describe("handleEServiceEvent test", async () => {
     ],
   };
 
+  const testCases = [
+    { testCase: "Draft", eservice: draftEservice1, delegation: undefined },
+    {
+      testCase: "Published",
+      eservice: publishedEservice,
+      delegation: undefined,
+    },
+    {
+      testCase: "WaitingForApproval with Delegation",
+      eservice: draftEservice2,
+      delegation: getMockDelegation({
+        eserviceId: draftEservice2.id,
+        kind: delegationKind.delegatedProducer,
+        delegatorId: draftEservice2.producerId,
+        delegateId: generateId<TenantId>(),
+        state: delegationState.active,
+      }),
+    },
+    {
+      testCase: "Published with Delegation",
+      eservice: publishedEservice,
+      delegation: getMockDelegation({
+        eserviceId: publishedEservice.id,
+        kind: delegationKind.delegatedProducer,
+        delegatorId: publishedEservice.producerId,
+        delegateId: generateId<TenantId>(),
+        state: delegationState.active,
+      }),
+    },
+    /** Draft events cannot contain a Published E-Service and viceversa.
+     * However, some events apply both to Draft and Published E-Services.
+     * We test all combinations, to check that:
+     * - Draft events are always owner-visible, regardless of the E-Service state;
+     * - Published events are always public-visible, regardless of the E-Service state;
+     * - Events that apply to both Draft and Published E-Services have the right visibility,
+     *   depending on the actual state of the E-Service.
+     */
+  ] as const;
+
   describe.each(EServiceEventV2.options.map((o) => o.shape.type.value))(
     "with %s event",
     (eventType: EServiceEventV2["type"]) => {
-      it.each([
-        { testCase: "Draft", eservice: draftEservice1, delegation: undefined },
-        {
-          testCase: "Published",
-          eservice: publishedEservice,
-          delegation: undefined,
-        },
-        {
-          testCase: "WaitingForApproval with Delegation",
-          eservice: draftEservice2,
-          delegation: getMockDelegation({
-            eserviceId: draftEservice2.id,
-            kind: delegationKind.delegatedProducer,
-            delegatorId: draftEservice2.producerId,
-            delegateId: generateId<TenantId>(),
-            state: delegationState.active,
-          }),
-        },
-        {
-          testCase: "Published with Delegation",
-          eservice: publishedEservice,
-          delegation: getMockDelegation({
-            eserviceId: publishedEservice.id,
-            kind: delegationKind.delegatedProducer,
-            delegatorId: publishedEservice.producerId,
-            delegateId: generateId<TenantId>(),
-            state: delegationState.active,
-          }),
-        },
-        /** Draft events cannot contain a Published E-Service and viceversa.
-         * However, some events apply both to Draft and Published E-Services.
-         * We test all combinations, to check that:
-         * - Draft events are always owner-visible, regardless of the E-Service state;
-         * - Published events are always public-visible, regardless of the E-Service state;
-         * - Events that apply to both Draft and Published E-Services have the right visibility,
-         *   depending on the actual state of the E-Service.
-         */
-      ])(
+      it.each(testCases)(
         "should write M2M event with the right visibility (E-Service: $testCase)",
         async ({ testCase, eservice, delegation }) => {
           if (delegation) {
@@ -116,9 +117,17 @@ describe("handleEServiceEvent test", async () => {
             },
           } as EServiceEventEnvelopeV2;
 
+          const messageWithDescriptorId = {
+            ...messageWithEService,
+            data: {
+              ...messageWithEService.data,
+              descriptorId: eservice.descriptors[0].id,
+            },
+          } as EServiceEventEnvelopeV2;
+
           const eventTimestamp = new Date();
 
-          await match(eventType)
+          const { messageToHandle, expectedM2MEvent } = await match(eventType)
             .with(
               P.union(
                 // Draft E-Service events, owner visibility
@@ -130,20 +139,9 @@ describe("handleEServiceEvent test", async () => {
                 "EServiceRiskAnalysisUpdated",
                 "EServiceRiskAnalysisDeleted"
               ),
-              async () => {
-                await handleEServiceEvent(
-                  messageWithEService,
-                  eventTimestamp,
-                  genericLogger,
-                  testM2mEventWriterService,
-                  testReadModelService
-                );
-
-                expect(
-                  testM2mEventWriterService.insertEServiceM2MEvent
-                ).toHaveBeenCalledTimes(1);
-                const eserviceM2MEvent = await retrieveLastEServiceM2MEvent();
-                const expectedEserviceM2MEvent: EServiceM2MEvent = {
+              async () => ({
+                messageToHandle: messageWithEService,
+                expectedM2MEvent: {
                   id: expect.any(String),
                   eventType: messageWithEService.type,
                   eventTimestamp,
@@ -153,9 +151,8 @@ describe("handleEServiceEvent test", async () => {
                   producerDelegateId: delegation?.delegateId,
                   producerDelegationId: delegation?.id,
                   visibility: m2mEventVisibility.owner,
-                };
-                expect(eserviceM2MEvent).toEqual(expectedEserviceM2MEvent);
-              }
+                },
+              })
             )
             .with(
               P.union(
@@ -169,27 +166,9 @@ describe("handleEServiceEvent test", async () => {
                 "EServiceDescriptorInterfaceUpdated",
                 "EServiceDescriptorInterfaceDeleted"
               ),
-              async () => {
-                const messageWithDescriptorId = {
-                  ...messageWithEService,
-                  data: {
-                    ...messageWithEService.data,
-                    descriptorId: eservice.descriptors[0].id,
-                  },
-                } as EServiceEventEnvelopeV2;
-                await handleEServiceEvent(
-                  messageWithDescriptorId,
-                  eventTimestamp,
-                  genericLogger,
-                  testM2mEventWriterService,
-                  testReadModelService
-                );
-
-                expect(
-                  testM2mEventWriterService.insertEServiceM2MEvent
-                ).toHaveBeenCalledTimes(1);
-                const eserviceM2MEvent = await retrieveLastEServiceM2MEvent();
-                const expectedEserviceM2MEvent: EServiceM2MEvent = {
+              async () => ({
+                messageToHandle: messageWithDescriptorId,
+                expectedM2MEvent: {
                   id: expect.any(String),
                   eventType: messageWithDescriptorId.type,
                   eventTimestamp,
@@ -199,9 +178,8 @@ describe("handleEServiceEvent test", async () => {
                   producerDelegateId: delegation?.delegateId,
                   producerDelegationId: delegation?.id,
                   visibility: m2mEventVisibility.owner,
-                };
-                expect(eserviceM2MEvent).toEqual(expectedEserviceM2MEvent);
-              }
+                },
+              })
             )
             .with(
               P.union(
@@ -215,20 +193,9 @@ describe("handleEServiceEvent test", async () => {
                 "EServiceSignalHubEnabled",
                 "EServiceSignalHubDisabled"
               ),
-              async () => {
-                await handleEServiceEvent(
-                  messageWithEService,
-                  eventTimestamp,
-                  genericLogger,
-                  testM2mEventWriterService,
-                  testReadModelService
-                );
-
-                expect(
-                  testM2mEventWriterService.insertEServiceM2MEvent
-                ).toHaveBeenCalledTimes(1);
-                const eserviceM2MEvent = await retrieveLastEServiceM2MEvent();
-                const expectedEserviceM2MEvent: EServiceM2MEvent = {
+              async () => ({
+                messageToHandle: messageWithEService,
+                expectedM2MEvent: {
                   id: expect.any(String),
                   eventType: messageWithEService.type,
                   eventTimestamp,
@@ -238,9 +205,8 @@ describe("handleEServiceEvent test", async () => {
                   producerDelegateId: delegation?.delegateId,
                   producerDelegationId: delegation?.id,
                   visibility: m2mEventVisibility.public,
-                };
-                expect(eserviceM2MEvent).toEqual(expectedEserviceM2MEvent);
-              }
+                },
+              })
             )
             .with(
               P.union(
@@ -254,27 +220,9 @@ describe("handleEServiceEvent test", async () => {
                 "EServiceDescriptorAgreementApprovalPolicyUpdated",
                 "EServiceDescriptorAttributesUpdated"
               ),
-              async () => {
-                const messageWithDescriptorId = {
-                  ...messageWithEService,
-                  data: {
-                    ...messageWithEService.data,
-                    descriptorId: eservice.descriptors[0].id,
-                  },
-                } as EServiceEventEnvelopeV2;
-                await handleEServiceEvent(
-                  messageWithDescriptorId,
-                  eventTimestamp,
-                  genericLogger,
-                  testM2mEventWriterService,
-                  testReadModelService
-                );
-
-                expect(
-                  testM2mEventWriterService.insertEServiceM2MEvent
-                ).toHaveBeenCalledTimes(1);
-                const eserviceM2MEvent = await retrieveLastEServiceM2MEvent();
-                const expectedEserviceM2MEvent: EServiceM2MEvent = {
+              async () => ({
+                messageToHandle: messageWithDescriptorId,
+                expectedM2MEvent: {
                   id: expect.any(String),
                   eventType: messageWithEService.type,
                   eventTimestamp,
@@ -284,9 +232,8 @@ describe("handleEServiceEvent test", async () => {
                   producerDelegateId: delegation?.delegateId,
                   producerDelegationId: delegation?.id,
                   visibility: m2mEventVisibility.public,
-                };
-                expect(eserviceM2MEvent).toEqual(expectedEserviceM2MEvent);
-              }
+                },
+              })
             )
             .with(
               P.union(
@@ -295,33 +242,9 @@ describe("handleEServiceEvent test", async () => {
                 "EServiceNameUpdatedByTemplateUpdate",
                 "EServiceDescriptionUpdatedByTemplateUpdate"
               ),
-              async () => {
-                const expectedVisibility = match(testCase)
-                  .with(
-                    "Draft",
-                    "WaitingForApproval with Delegation",
-                    () => m2mEventVisibility.owner
-                  )
-                  .with(
-                    "Published",
-                    "Published with Delegation",
-                    () => m2mEventVisibility.public
-                  )
-                  .run();
-
-                await handleEServiceEvent(
-                  messageWithEService,
-                  eventTimestamp,
-                  genericLogger,
-                  testM2mEventWriterService,
-                  testReadModelService
-                );
-
-                expect(
-                  testM2mEventWriterService.insertEServiceM2MEvent
-                ).toHaveBeenCalledTimes(1);
-                const eserviceM2MEvent = await retrieveLastEServiceM2MEvent();
-                const expectedEserviceM2MEvent: EServiceM2MEvent = {
+              async () => ({
+                messageToHandle: messageWithEService,
+                expectedM2MEvent: {
                   id: expect.any(String),
                   eventType: messageWithEService.type,
                   eventTimestamp,
@@ -330,10 +253,20 @@ describe("handleEServiceEvent test", async () => {
                   producerId: eservice.producerId,
                   producerDelegateId: delegation?.delegateId,
                   producerDelegationId: delegation?.id,
-                  visibility: expectedVisibility,
-                };
-                expect(eserviceM2MEvent).toEqual(expectedEserviceM2MEvent);
-              }
+                  visibility: match(testCase)
+                    .with(
+                      "Draft",
+                      "WaitingForApproval with Delegation",
+                      () => m2mEventVisibility.owner
+                    )
+                    .with(
+                      "Published",
+                      "Published with Delegation",
+                      () => m2mEventVisibility.public
+                    )
+                    .run(),
+                },
+              })
             )
             .with(
               P.union(
@@ -348,40 +281,9 @@ describe("handleEServiceEvent test", async () => {
                 "EServiceDescriptorDocumentDeletedByTemplateUpdate",
                 "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
               ),
-              async () => {
-                const messageWithDescriptorId = {
-                  ...messageWithEService,
-                  data: {
-                    ...messageWithEService.data,
-                    descriptorId: eservice.descriptors[0].id,
-                  },
-                } as EServiceEventEnvelopeV2;
-                const expectedVisibility = match(testCase)
-                  .with(
-                    "Draft",
-                    "WaitingForApproval with Delegation",
-                    () => m2mEventVisibility.owner
-                  )
-                  .with(
-                    "Published",
-                    "Published with Delegation",
-                    () => m2mEventVisibility.public
-                  )
-                  .run();
-
-                await handleEServiceEvent(
-                  messageWithDescriptorId,
-                  eventTimestamp,
-                  genericLogger,
-                  testM2mEventWriterService,
-                  testReadModelService
-                );
-
-                expect(
-                  testM2mEventWriterService.insertEServiceM2MEvent
-                ).toHaveBeenCalledTimes(1);
-                const eserviceM2MEvent = await retrieveLastEServiceM2MEvent();
-                const expectedEserviceM2MEvent: EServiceM2MEvent = {
+              async () => ({
+                messageToHandle: messageWithDescriptorId,
+                expectedM2MEvent: {
                   id: expect.any(String),
                   eventType: messageWithEService.type,
                   eventTimestamp,
@@ -390,12 +292,35 @@ describe("handleEServiceEvent test", async () => {
                   producerId: eservice.producerId,
                   producerDelegateId: delegation?.delegateId,
                   producerDelegationId: delegation?.id,
-                  visibility: expectedVisibility,
-                };
-                expect(eserviceM2MEvent).toEqual(expectedEserviceM2MEvent);
-              }
+                  visibility: match(testCase)
+                    .with(
+                      "Draft",
+                      "WaitingForApproval with Delegation",
+                      () => m2mEventVisibility.owner
+                    )
+                    .with(
+                      "Published",
+                      "Published with Delegation",
+                      () => m2mEventVisibility.public
+                    )
+                    .exhaustive(),
+                },
+              })
             )
             .exhaustive();
+
+          await handleEServiceEvent(
+            messageToHandle,
+            eventTimestamp,
+            genericLogger,
+            testM2mEventWriterService,
+            testReadModelService
+          );
+          expect(
+            testM2mEventWriterService.insertEServiceM2MEvent
+          ).toHaveBeenCalledTimes(1);
+          const actualM2MEvent = await retrieveLastEServiceM2MEvent();
+          expect(actualM2MEvent).toEqual(expectedM2MEvent);
         }
       );
     }
