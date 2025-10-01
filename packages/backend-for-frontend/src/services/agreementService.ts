@@ -16,6 +16,7 @@ import {
   tenantApi,
   attributeRegistryApi,
   delegationApi,
+  inAppNotificationApi,
 } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
 import {
@@ -70,7 +71,7 @@ export function agreementServiceBuilder(
   clients: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
-  const { agreementProcessClient, inAppNotificationManagerClient } = clients;
+  const { agreementProcessClient } = clients;
   return {
     async createAgreement(
       payload: bffApi.AgreementPayload,
@@ -165,23 +166,7 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         });
 
-      const notificationsPromise =
-        inAppNotificationManagerClient.getNotifications({
-          queries: {
-            offset: 0,
-            limit,
-            entityIds: results.map((a) => a.id),
-            unread: true,
-          },
-          headers: ctx.headers,
-        });
-
-      const agreementsPromise = enrichAgreementListEntry(results, clients, ctx);
-
-      const [agreements, notifications] = await Promise.all([
-        agreementsPromise,
-        notificationsPromise,
-      ]);
+      const agreements = await enrichAgreementListEntry(results, clients, ctx);
 
       return {
         pagination: {
@@ -189,12 +174,7 @@ export function agreementServiceBuilder(
           offset,
           totalCount,
         },
-        results: agreements.map((a) => ({
-          ...a,
-          hasUnreadNotifications: notifications.results.some(
-            (n) => n.entityId === a.id
-          ),
-        })),
+        results: agreements,
       };
     },
 
@@ -677,6 +657,20 @@ async function enrichAgreementListEntry(
 ): Promise<bffApi.AgreementListEntry[]> {
   const cachedTenants = new Map<string, tenantApi.Tenant>();
 
+  const notificationsPromise =
+    getAllFromPaginated<inAppNotificationApi.Notification>(
+      async (offset, limit) =>
+        await clients.inAppNotificationManagerClient.getNotifications({
+          queries: {
+            offset,
+            limit,
+            entityIds: agreements.map((a) => a.id),
+            unread: true,
+          },
+          headers: ctx.headers,
+        })
+    );
+
   const agreementsResult = [];
   for (const agreement of agreements) {
     const { consumer, producer, eservice, delegation } =
@@ -735,7 +729,14 @@ async function enrichAgreementListEntry(
     });
   }
 
-  return agreementsResult;
+  const notifications = await notificationsPromise;
+
+  return agreementsResult.map((agreement) => ({
+    ...agreement,
+    unreadNotifications: notifications
+      .filter((n) => n.entityId === agreement.id)
+      .map((n) => n.id),
+  }));
 }
 
 export async function enrichAgreement(
