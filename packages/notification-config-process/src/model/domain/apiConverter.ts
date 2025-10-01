@@ -1,10 +1,8 @@
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
-  EmailNotificationPreference,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 
 export function tenantNotificationConfigToApiTenantNotificationConfig({
   id,
@@ -26,8 +24,6 @@ export function userNotificationConfigToApiUserNotificationConfig({
   id,
   userId,
   tenantId,
-  inAppNotificationPreference,
-  emailNotificationPreference,
   inAppConfig: {
     agreementSuspendedUnsuspendedToProducer:
       agreementSuspendedUnsuspendedToProducerInApp,
@@ -102,11 +98,6 @@ export function userNotificationConfigToApiUserNotificationConfig({
     id,
     userId,
     tenantId,
-    inAppNotificationPreference,
-    emailNotificationPreference:
-      emailNotificationPreferenceToApiEmailNotificationPreference(
-        emailNotificationPreference
-      ),
     inAppConfig: {
       agreementSuspendedUnsuspendedToProducer:
         agreementSuspendedUnsuspendedToProducerInApp,
@@ -180,24 +171,4 @@ export function userNotificationConfigToApiUserNotificationConfig({
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),
   };
-}
-
-export function apiEmailNotificationPreferenceToEmailNotificationPreference(
-  apiEmailNotificationPreference: notificationConfigApi.UserNotificationConfig["emailNotificationPreference"]
-): EmailNotificationPreference {
-  return match(apiEmailNotificationPreference)
-    .with("ENABLED", () => "Enabled" as const)
-    .with("DISABLED", () => "Disabled" as const)
-    .with("DIGEST", () => "Digest" as const)
-    .exhaustive();
-}
-
-export function emailNotificationPreferenceToApiEmailNotificationPreference(
-  emailNotificationPreference: EmailNotificationPreference
-): notificationConfigApi.UserNotificationConfig["emailNotificationPreference"] {
-  return match(emailNotificationPreference)
-    .with("Enabled", () => "ENABLED" as const)
-    .with("Disabled", () => "DISABLED" as const)
-    .with("Digest", () => "DIGEST" as const)
-    .exhaustive();
 }

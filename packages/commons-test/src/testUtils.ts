@@ -110,12 +110,10 @@ import {
   TenantNotificationConfig,
   UserNotificationConfig,
   DelegationStamps,
-  PurposeVersionStamps,
   PurposeTemplate,
   tenantKind,
   purposeTemplateState,
   PurposeTemplateState,
-  EmailNotificationPreference,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -227,8 +225,7 @@ export const getMockEServiceAttributes = (): EserviceAttributes => ({
 export const getMockEService = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   producerId: TenantId = generateId<TenantId>(),
-  descriptors: Descriptor[] = [],
-  templateId?: EServiceTemplateId | undefined
+  descriptors: Descriptor[] = []
 ): EService => ({
   id: eserviceId,
   name: "eService name",
@@ -239,7 +236,6 @@ export const getMockEService = (
   descriptors,
   riskAnalysis: [],
   mode: "Deliver",
-  ...(templateId && { templateId }),
 });
 
 export const getMockVerifiedTenantAttribute = (
@@ -360,8 +356,7 @@ export const getMockPurposeTemplate = (
 });
 
 export const getMockPurposeVersion = (
-  state?: PurposeVersionState,
-  stamps?: PurposeVersionStamps
+  state?: PurposeVersionState
 ): PurposeVersion => ({
   id: generateId(),
   state: state || purposeVersionState.draft,
@@ -377,7 +372,6 @@ export const getMockPurposeVersion = (
   ...(state === purposeVersionState.rejected
     ? { rejectionReason: "test" }
     : {}),
-  ...(stamps ? { stamps } : {}),
 });
 
 export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
@@ -386,9 +380,6 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   contentType: "json",
   createdAt: new Date(),
 });
-
-export const getMockPurposeVersionStamps = (): PurposeVersionStamps =>
-  generateMock(PurposeVersionStamps);
 
 export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
@@ -1323,8 +1314,6 @@ export const getMockUserNotificationConfig = (): UserNotificationConfig => ({
   id: generateId(),
   userId: generateId(),
   tenantId: generateId(),
-  inAppNotificationPreference: generateMock(z.boolean()),
-  emailNotificationPreference: generateMock(EmailNotificationPreference),
   inAppConfig: getMockNotificationConfig(),
   emailConfig: getMockNotificationConfig(),
   createdAt: generateMock(z.coerce.date()),

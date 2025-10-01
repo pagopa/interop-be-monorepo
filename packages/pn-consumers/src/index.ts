@@ -1,4 +1,5 @@
 import {
+  ReadModelRepository,
   initSesMailManager,
   logger,
   withExecutionTime,
@@ -8,6 +9,7 @@ import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { config } from "./configs/config.js";
 import { toCSV, toCsvDataRow } from "./utils/helpersUtils.js";
 import { CSV_FILENAME, MAIL_BODY, MAIL_SUBJECT } from "./configs/constants.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const loggerInstance = logger({
@@ -22,13 +24,22 @@ async function main(): Promise<void> {
 
   const readModelDB = makeDrizzleConnection(config);
 
+  const oldReadModelService = readModelServiceBuilder(
+    ReadModelRepository.init(config)
+  );
   const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+  const readModelService =
+    config.featureFlagSQL &&
+    config.readModelSQLDbHost &&
+    config.readModelSQLDbPort
+      ? readModelServiceSQL
+      : oldReadModelService;
 
   loggerInstance.info("> Connected to database!\n");
 
   loggerInstance.info("> Getting data...");
 
-  const purposes = await readModelServiceSQL.getSENDPurposes(
+  const purposes = await readModelService.getSENDPurposes(
     config.pnEserviceId,
     config.comuniELoroConsorziEAssociazioniAttributeId
   );

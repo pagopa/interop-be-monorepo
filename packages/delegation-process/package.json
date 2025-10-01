@@ -42,6 +42,7 @@
     "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",
     "express": "4.20.0",
+    "mongodb": "6.7.0",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-commons": "workspace:*",

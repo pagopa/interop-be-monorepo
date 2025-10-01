@@ -2,7 +2,6 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
-  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   withTotalCount,
@@ -113,7 +112,7 @@ export function readModelServiceBuilderSQL({
       filters: GetEServiceTemplatesFilters,
       offset: number,
       limit: number,
-      authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+      authData: UIAuthData | M2MAuthData
     ): Promise<ListResult<EServiceTemplate>> {
       const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
 

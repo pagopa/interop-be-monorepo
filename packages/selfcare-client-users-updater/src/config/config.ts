@@ -1,6 +1,8 @@
 import { z } from "zod";
 import {
+  FeatureFlagSQLConfig,
   KafkaConsumerConfig,
+  ReadModelDbConfig,
   ReadModelSQLDbConfig,
   SelfcareConsumerConfig,
   TokenGenerationConfig,
@@ -9,7 +11,9 @@ import {
 export const SelfcareClientUsersUpdaterConsumerConfig = KafkaConsumerConfig.and(
   TokenGenerationConfig
 )
-  .and(ReadModelSQLDbConfig)
+  .and(ReadModelDbConfig)
+  .and(ReadModelSQLDbConfig.optional())
+  .and(FeatureFlagSQLConfig)
   .and(SelfcareConsumerConfig)
   .and(
     z

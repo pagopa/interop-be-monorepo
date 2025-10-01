@@ -35,7 +35,7 @@ import {
   descriptorNotFoundInEservice,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import { ReadModelService } from "./readModelService.js";
 
 export function assertVerifiedAttributeExistsInTenant(
   attributeId: AttributeId,
@@ -59,7 +59,7 @@ export async function assertVerifiedAttributeOperationAllowed({
   producerDelegation: Delegation | undefined;
   attributeId: AttributeId;
   agreement: Agreement;
-  readModelService: ReadModelServiceSQL;
+  readModelService: ReadModelService;
   error: Error;
 }): Promise<void> {
   if (producerDelegation && producerDelegation.delegateId !== requesterId) {
@@ -160,7 +160,7 @@ export function assertRequesterDelegationsAllowedOrigin(
 }
 
 export async function getTenantKindLoadingCertifiedAttributes(
-  readModelService: ReadModelServiceSQL,
+  readModelService: ReadModelService,
   attributes: TenantAttribute[],
   externalId: ExternalId
 ): Promise<TenantKind> {

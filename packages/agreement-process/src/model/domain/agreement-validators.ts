@@ -34,7 +34,7 @@ import {
   filterDeclaredAttributes,
   filterVerifiedAttributes,
 } from "pagopa-interop-agreement-lifecycle";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { ReadModelService } from "../../services/readModelService.js";
 import {
   agreementActivationFailed,
   agreementAlreadyExists,
@@ -216,7 +216,7 @@ export const getOrganizationRole = (
 export const assertRequesterCanRetrieveAgreement = async (
   agreement: Agreement,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<void> => {
   // This validator is for retrieval operations that can be performed by all the tenants involved:
   // the consumer, the producer, the consumer delegate, and the producer delegate.
@@ -418,7 +418,7 @@ export const validateCreationOnDescriptor = (
 export const verifyCreationConflictingAgreements = async (
   organizationId: TenantId,
   eserviceId: EServiceId,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<void> => {
   await verifyConflictingAgreements(
     organizationId,
@@ -430,7 +430,7 @@ export const verifyCreationConflictingAgreements = async (
 
 export const verifySubmissionConflictingAgreements = async (
   agreement: Agreement,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<void> => {
   await verifyConflictingAgreements(
     agreement.consumerId,
@@ -475,7 +475,7 @@ export const verifyConflictingAgreements = async (
   consumerId: TenantId,
   eserviceId: EServiceId,
   conflictingStates: AgreementState[],
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<void> => {
   const agreements = await readModelService.getAllAgreements({
     consumerId,

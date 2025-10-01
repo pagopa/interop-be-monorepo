@@ -3,6 +3,7 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   EmailManagerSES,
+  ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
   initSesMailManager,
@@ -36,6 +37,7 @@ import {
   NotificationEmailSenderService,
   notificationEmailSenderServiceBuilder,
 } from "./services/notificationEmailSenderService.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 interface TopicHandlers {
@@ -50,11 +52,20 @@ const agreementReadModelServiceSQL =
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
+const oldReadModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
 });
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 const templateService = buildHTMLTemplateService();
 const interopFeBaseUrl = config.interopFeBaseUrl;
@@ -82,7 +93,7 @@ const buildNotificationEmailSenderService =
     return notificationEmailSenderServiceBuilder(
       sesEmailManager,
       sesEmailsenderData,
-      readModelServiceSQL,
+      readModelService,
       templateService,
       interopFeBaseUrl
     );

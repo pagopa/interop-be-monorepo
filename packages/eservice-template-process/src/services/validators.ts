@@ -28,7 +28,7 @@ import {
   missingRiskAnalysis,
   riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import { ReadModelService } from "./readModelService.js";
 
 export function assertRequesterEServiceTemplateCreator(
   creatorId: TenantId,
@@ -138,7 +138,7 @@ export function hasRoleToAccessDraftTemplateVersions(
 
 export async function assertEServiceTemplateNameAvailable(
   name: string,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<void> {
   const isEServiceTemplateNameAvailable =
     await readModelService.isEServiceTemplateNameAvailable({

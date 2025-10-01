@@ -98,6 +98,7 @@ import {
 import {
   GetClientsFilters,
   GetProducerKeychainsFilters,
+  ReadModelService,
 } from "./readModelService.js";
 import {
   assertClientKeysCountIsBelowThreshold,
@@ -114,11 +115,10 @@ import {
   assertClientIsAPI,
   assertAdminInClient,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveClient = async (
   clientId: ClientId,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<WithMetadata<Client>> => {
   const client = await readModelService.getClientById(clientId);
   if (!client) {
@@ -129,7 +129,7 @@ const retrieveClient = async (
 
 const retrieveEService = async (
   eserviceId: EServiceId,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (eservice === undefined) {
@@ -140,7 +140,7 @@ const retrieveEService = async (
 
 const retrievePurpose = async (
   purposeId: PurposeId,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<Purpose> => {
   const purpose = await readModelService.getPurposeById(purposeId);
   if (purpose === undefined) {
@@ -151,7 +151,7 @@ const retrievePurpose = async (
 
 const retrievePurposeDelegation = async (
   purpose: Purpose,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<Delegation | undefined> => {
   if (!purpose.delegationId) {
     return undefined;
@@ -184,7 +184,7 @@ const retrieveDescriptor = (
 
 const retrieveProducerKeychain = async (
   producerKeychainId: ProducerKeychainId,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<WithMetadata<ProducerKeychain>> => {
   const producerKeychain = await readModelService.getProducerKeychainById(
     producerKeychainId
@@ -198,7 +198,7 @@ const retrieveProducerKeychain = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelServiceSQL,
+  readModelService: ReadModelService,
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {
   const repository = eventRepository(

@@ -56,7 +56,6 @@ describe("Purpose aggregator", () => {
       riskAnalysisAnswersSQL,
       versionsSQL,
       versionDocumentsSQL,
-      versionStampsSQL,
     } = splitPurposeIntoObjectsSQL(purpose.data, 1);
 
     const aggregatedPurpose = aggregatePurpose({
@@ -65,7 +64,6 @@ describe("Purpose aggregator", () => {
       riskAnalysisAnswersSQL,
       versionsSQL,
       versionDocumentsSQL,
-      versionStampsSQL,
     });
 
     expect(aggregatedPurpose).toStrictEqual(purpose);
@@ -88,7 +86,6 @@ describe("Purpose aggregator", () => {
       riskAnalysisAnswersSQL,
       versionsSQL,
       versionDocumentsSQL,
-      versionStampsSQL,
     } = splitPurposeIntoObjectsSQL(purpose.data, 1);
 
     const aggregatedPurpose = aggregatePurpose({
@@ -97,7 +94,6 @@ describe("Purpose aggregator", () => {
       riskAnalysisAnswersSQL,
       versionsSQL,
       versionDocumentsSQL,
-      versionStampsSQL,
     });
 
     expect(aggregatedPurpose).toStrictEqual(purpose);

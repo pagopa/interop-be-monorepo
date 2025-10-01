@@ -45,7 +45,7 @@ import {
   eserviceWithoutValidDescriptors,
   eserviceTemplateNameConflict,
 } from "../model/domain/errors.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import { ReadModelService } from "./readModelService.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -116,7 +116,7 @@ export async function assertRequesterIsDelegateProducerOrProducer(
   producerId: TenantId,
   eserviceId: EServiceId,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<void> {
   // Search for active producer delegation
   const producerDelegation = await readModelService.getLatestDelegation({
@@ -150,7 +150,7 @@ export function assertRequesterIsProducer(
 
 export async function assertNoExistingProducerDelegationInActiveOrPendingState(
   eserviceId: EServiceId,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<void> {
   const producerDelegation = await readModelService.getLatestDelegation({
     eserviceId,
@@ -281,7 +281,7 @@ export function assertDocumentDeletableDescriptorState(
 export async function assertEServiceNameAvailableForProducer(
   name: string,
   producerId: TenantId,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<void> {
   const isEServiceNameAvailable =
     await readModelService.isEServiceNameAvailableForProducer({
@@ -295,7 +295,7 @@ export async function assertEServiceNameAvailableForProducer(
 
 export async function assertEServiceNameNotConflictingWithTemplate(
   name: string,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<void> {
   const eserviceTemplateWithSameNameExists =
     await readModelService.isEServiceNameConflictingWithTemplate({

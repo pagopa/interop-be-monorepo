@@ -3,6 +3,7 @@ import {
   decodeKafkaMessage,
   InteropTokenGenerator,
   logger,
+  ReadModelRepository,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
@@ -21,6 +22,7 @@ import {
 import { handleMessageV2 } from "./delegationItemsArchiverConsumerServiceV2.js";
 import { config } from "./config/config.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
+import { readModelServiceBuilder } from "./readModelService.js";
 import { readModelServiceBuilderSQL } from "./readModelServiceSQL.js";
 
 const readModelDB = makeDrizzleConnection(config);
@@ -28,11 +30,20 @@ const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 
+const oldReadModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   agreementReadModelServiceSQL,
   purposeReadModelServiceSQL,
 });
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)
@@ -70,7 +81,7 @@ async function processMessage({
         offset: message.offset,
         logger: loggerInstance,
         correlationId,
-        readModelService: readModelServiceSQL,
+        readModelService,
         agreementProcessClient,
         purposeProcessClient,
       })

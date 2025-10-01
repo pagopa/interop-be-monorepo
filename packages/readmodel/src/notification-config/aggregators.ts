@@ -1,5 +1,4 @@
 import {
-  EmailNotificationPreference,
   NotificationConfig,
   stringToDate,
   TenantNotificationConfig,
@@ -53,8 +52,6 @@ export const aggregateUserNotificationConfig = ({
     metadataVersion,
     userId,
     tenantId,
-    inAppNotificationPreference,
-    emailNotificationPreference,
     createdAt,
     updatedAt,
     ...rest
@@ -202,10 +199,6 @@ export const aggregateUserNotificationConfig = ({
       id: unsafeBrandId(id),
       userId: unsafeBrandId(userId),
       tenantId: unsafeBrandId(tenantId),
-      inAppNotificationPreference,
-      emailNotificationPreference: EmailNotificationPreference.parse(
-        emailNotificationPreference
-      ),
       inAppConfig,
       emailConfig,
       createdAt: stringToDate(createdAt),

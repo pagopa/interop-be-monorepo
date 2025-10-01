@@ -3,7 +3,6 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
   getMockPurposeVersionDocument,
-  getMockPurposeVersionStamps,
   getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
 import { describe, it, expect } from "vitest";
@@ -15,9 +14,6 @@ import {
   PurposeTemplateId,
   PurposeVersion,
   PurposeVersionDocument,
-  PurposeVersionStampKind,
-  PurposeVersionStamps,
-  purposeVersionState,
   riskAnalysisAnswerKind,
   RiskAnalysisId,
   tenantKind,
@@ -28,7 +24,6 @@ import {
   PurposeSQL,
   PurposeVersionDocumentSQL,
   PurposeVersionSQL,
-  PurposeVersionStampSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitPurposeIntoObjectsSQL } from "../src/purpose/splitters.js";
 
@@ -45,10 +40,8 @@ describe("Purpose splitter", () => {
     const purposeVersionRiskAnalysis: PurposeVersionDocument =
       getMockPurposeVersionDocument();
 
-    const purposeVersionStamps = getMockPurposeVersionStamps();
-
     const purposeVersion: PurposeVersion = {
-      ...getMockPurposeVersion(purposeVersionState.draft, purposeVersionStamps),
+      ...getMockPurposeVersion(),
       rejectionReason,
       suspendedAt,
       updatedAt,
@@ -79,7 +72,6 @@ describe("Purpose splitter", () => {
       riskAnalysisAnswersSQL,
       versionsSQL,
       versionDocumentsSQL,
-      versionStampsSQL,
     } = splitPurposeIntoObjectsSQL(purpose, 1);
 
     const expectedPurposeSQL: PurposeSQL = {
@@ -157,26 +149,6 @@ describe("Purpose splitter", () => {
       path: purposeVersionRiskAnalysis.path,
     };
 
-    const expectedPurposeVersionStampsSQL: PurposeVersionStampSQL[] = [];
-
-    for (const [key, stamp] of Object.entries(purposeVersionStamps) as Array<
-      [
-        keyof PurposeVersionStamps,
-        PurposeVersionStamps[keyof PurposeVersionStamps]
-      ]
-    >) {
-      if (stamp) {
-        expectedPurposeVersionStampsSQL.push({
-          purposeId: purpose.id,
-          purposeVersionId: purposeVersion.id,
-          metadataVersion: 1,
-          kind: PurposeVersionStampKind.enum[key],
-          who: stamp.who,
-          when: stamp.when.toISOString(),
-        });
-      }
-    }
-
     expect(purposeSQL).toStrictEqual(expectedPurposeSQL);
     expect(riskAnalysisFormSQL).toStrictEqual(
       expectedPurposeRiskAnalysisFormSQL
@@ -188,7 +160,6 @@ describe("Purpose splitter", () => {
     expect(versionDocumentsSQL).toStrictEqual([
       expectedPurposeVersionDocumentSQL,
     ]);
-    expect(versionStampsSQL).toStrictEqual(expectedPurposeVersionStampsSQL);
   });
 
   it("should convert an incomplete purpose into purpose SQL objects (undefined -> null)", () => {
@@ -202,7 +173,6 @@ describe("Purpose splitter", () => {
       updatedAt: undefined,
       firstActivationAt: undefined,
       riskAnalysis: purposeVersionRiskAnalysis,
-      stamps: undefined,
     };
 
     const purposeRiskAnalysisForm: PurposeRiskAnalysisForm =
@@ -225,7 +195,6 @@ describe("Purpose splitter", () => {
       riskAnalysisAnswersSQL,
       versionsSQL,
       versionDocumentsSQL,
-      versionStampsSQL,
     } = splitPurposeIntoObjectsSQL(purpose, 1);
 
     const expectedPurposeSQL: PurposeSQL = {
@@ -303,8 +272,6 @@ describe("Purpose splitter", () => {
       path: purposeVersionRiskAnalysis.path,
     };
 
-    const expectedpurposeVersionStampsSQL: PurposeVersion[] = [];
-
     expect(purposeSQL).toStrictEqual(expectedPurposeSQL);
     expect(riskAnalysisFormSQL).toStrictEqual(
       expectedPurposeRiskAnalysisFormSQL
@@ -316,6 +283,5 @@ describe("Purpose splitter", () => {
     expect(versionDocumentsSQL).toStrictEqual([
       expectedPurposeVersionDocumentSQL,
     ]);
-    expect(versionStampsSQL).toStrictEqual(expectedpurposeVersionStampsSQL);
   });
 });

@@ -1,5 +1,6 @@
 import {
   InteropTokenGenerator,
+  ReadModelRepository,
   RefreshableInteropToken,
   logger,
 } from "pagopa-interop-commons";
@@ -14,8 +15,11 @@ import { SftpClient } from "./service/sftpService.js";
 import { TenantProcessService } from "./service/tenantProcessService.js";
 import { importAttributes } from "./service/processor.js";
 import { readModelQueriesBuilderSQL } from "./service/readmodelQueriesServiceSQL.js";
+import { readModelQueriesBuilder } from "./service/readmodelQueriesService.js";
 
 const sftpClient: SftpClient = new SftpClient(config);
+const readModelClient = ReadModelRepository.init(config);
+const oldReadModelQueries = readModelQueriesBuilder(readModelClient);
 const db = makeDrizzleConnection(config);
 const tenantReadModelService = tenantReadModelServiceBuilder(db);
 const attributeReadModelService = attributeReadModelServiceBuilder(db);
@@ -24,6 +28,13 @@ const readModelQueriesSQL = readModelQueriesBuilderSQL(
   tenantReadModelService,
   attributeReadModelService
 );
+
+const readModelQueries =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelQueriesSQL
+    : oldReadModelQueries;
 
 const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
@@ -37,7 +48,7 @@ const loggerInstance = logger({
 
 await importAttributes(
   sftpClient,
-  readModelQueriesSQL,
+  readModelQueries,
   tenantProcess,
   refreshableToken,
   config.recordsProcessBatchSize,

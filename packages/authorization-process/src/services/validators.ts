@@ -39,7 +39,7 @@ import {
   tenantNotAllowedOnClient,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import { ReadModelService } from "./readModelService.js";
 
 export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareId,
@@ -153,7 +153,7 @@ export const assertOrganizationIsEServiceProducer = (
 
 export const assertKeyDoesNotAlreadyExist = async (
   kid: string,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<void> => {
   const [clientKey, producerKey] = await Promise.all([
     readModelService.getClientKeyByKid(kid),

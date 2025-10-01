@@ -1,6 +1,8 @@
 import {
   APIEndpoint,
+  FeatureFlagSQLConfig,
   LoggerConfig,
+  ReadModelDbConfig,
   ReadModelSQLDbConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
@@ -29,11 +31,13 @@ export type AttributeRegistryProcessServerConfig = z.infer<
 >;
 
 export const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
-  ReadModelSQLDbConfig
+  ReadModelDbConfig
 )
   .and(TokenGenerationConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(TenantProcessServerConfig)
+  .and(FeatureFlagSQLConfig)
+  .and(ReadModelSQLDbConfig.optional())
   .and(
     z
       .object({

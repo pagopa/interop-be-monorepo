@@ -18,7 +18,6 @@ import {
   purposeRiskAnalysisFormInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
-  purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -34,7 +33,6 @@ export function purposeWriterServiceBuilder(db: DrizzleReturnType) {
       purposeRiskAnalysisAnswerInReadmodelPurpose,
       purposeVersionInReadmodelPurpose,
       purposeVersionDocumentInReadmodelPurpose,
-      purposeVersionStampInReadmodelPurpose,
     ];
 
     for (const table of purposeTables) {
@@ -77,7 +75,6 @@ export function purposeWriterServiceBuilder(db: DrizzleReturnType) {
           riskAnalysisAnswersSQL,
           versionsSQL,
           versionDocumentsSQL,
-          versionStampsSQL,
         } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
         await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
@@ -104,12 +101,6 @@ export function purposeWriterServiceBuilder(db: DrizzleReturnType) {
           await tx
             .insert(purposeVersionDocumentInReadmodelPurpose)
             .values(versionDocumentSQL);
-        }
-
-        for (const versionStampSQL of versionStampsSQL) {
-          await tx
-            .insert(purposeVersionStampInReadmodelPurpose)
-            .values(versionStampSQL);
         }
       });
     },
@@ -147,7 +138,7 @@ export function purposeWriterServiceBuilder(db: DrizzleReturnType) {
           .delete(purposeVersionInReadmodelPurpose)
           .where(eq(purposeVersionInReadmodelPurpose.id, purposeVersion.id));
 
-        const { versionSQL, versionDocumentSQL, versionStampsSQL } =
+        const { versionSQL, versionDocumentSQL } =
           splitPurposeVersionIntoObjectsSQL(
             purposeId,
             purposeVersion,
@@ -159,11 +150,6 @@ export function purposeWriterServiceBuilder(db: DrizzleReturnType) {
           await tx
             .insert(purposeVersionDocumentInReadmodelPurpose)
             .values(versionDocumentSQL);
-        }
-        for (const versionStampSQL of versionStampsSQL) {
-          await tx
-            .insert(purposeVersionStampInReadmodelPurpose)
-            .values(versionStampSQL);
         }
 
         await updateMetadataVersionInPurposeTables(

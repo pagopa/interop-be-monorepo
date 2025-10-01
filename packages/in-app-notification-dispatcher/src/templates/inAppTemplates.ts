@@ -1,5 +1,4 @@
 import { match } from "ts-pattern";
-import { EServiceTemplate } from "pagopa-interop-models";
 import { EService } from "pagopa-interop-models";
 import { DelegationApprovedRejectedToDelegatorEventType } from "../handlers/delegations/handleDelegationApprovedRejectedToDelegator.js";
 import { DelegationSubmittedRevokedToDelegateEventType } from "../handlers/delegations/handleDelegationSubmittedRevokedToDelegate.js";
@@ -152,28 +151,6 @@ export const inAppTemplates = {
       .exhaustive();
     return `${delegatorName} ha ${action} una delega in ${delegationKind}.`;
   },
-  templateStatusChangedToProducer: (templateName: string): string =>
-    `Hai sospeso il tuo template "<strong>${templateName}</strong>".`,
-  newEserviceTemplateVersionToInstantiator: (
-    creatorName: string,
-    eserviceTemplateVersion: string,
-    eserviceTemplateName: string
-  ): string =>
-    `${creatorName} ha pubblicato una nuova versione ${eserviceTemplateVersion} del template "<strong>${eserviceTemplateName}</strong>" per il tuo e-service.`,
-  eserviceTemplateNameChangedToInstantiator: (
-    eserviceTemplate: EServiceTemplate,
-    oldName: string | undefined
-  ): string =>
-    `Ti informiamo che il tuo e-service <strong>${
-      oldName ?? eserviceTemplate.id
-    }</strong> è stato rinominato in ${
-      eserviceTemplate.name
-    } in quanto è stato modificato il template e-service da cui lo hai generato.`,
-  eserviceTemplateStatusChangedToInstantiator: (
-    creatorName: string,
-    eserviceTemplateName: string
-  ): string =>
-    `${creatorName} ha sospeso il template "<strong>${eserviceTemplateName}</strong>" per il tuo e-service.`,
   purposeStatusChangedToConsumer: (
     purposeName: string,
     consumerName: string,
@@ -202,9 +179,4 @@ export const inAppTemplates = {
     action: "associato" | "disassociato"
   ): string =>
     `L'ente ${consumerName} ha ${action} un proprio client alla finalità ${purposeName} per il tuo e-service ${eserviceName}`,
-  producerKeychainEServiceAddedToConsumer: (
-    producerName: string,
-    eserviceName: string
-  ): string =>
-    `Ti informiamo che l'ente erogatore <strong>${producerName}</strong> ha aggiunto un nuovo livello di sicurezza (portachiavi) all'e-service <strong>${eserviceName}</strong>.`,
 };

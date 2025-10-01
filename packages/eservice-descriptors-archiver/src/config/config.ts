@@ -2,15 +2,19 @@ import {
   AgreementTopicConfig,
   TokenGenerationConfig,
   KafkaConsumerConfig,
+  ReadModelDbConfig,
   ReadModelSQLDbConfig,
+  FeatureFlagSQLConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 export const EserviceDescriptorsArchiverConfig = KafkaConsumerConfig.and(
   TokenGenerationConfig
 )
-  .and(ReadModelSQLDbConfig)
+  .and(ReadModelDbConfig)
   .and(AgreementTopicConfig)
+  .and(FeatureFlagSQLConfig)
+  .and(ReadModelSQLDbConfig.optional())
   .and(
     z
       .object({

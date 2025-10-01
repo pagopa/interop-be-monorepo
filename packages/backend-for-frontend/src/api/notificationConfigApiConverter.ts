@@ -12,10 +12,6 @@ export function toBffApiUserNotificationConfig(
   userNotificationConfig: notificationConfigApi.UserNotificationConfig
 ): bffApi.UserNotificationConfig {
   return {
-    inAppNotificationPreference:
-      userNotificationConfig.inAppNotificationPreference,
-    emailNotificationPreference:
-      userNotificationConfig.emailNotificationPreference,
     inAppConfig: userNotificationConfig.inAppConfig,
     emailConfig: userNotificationConfig.emailConfig,
   };

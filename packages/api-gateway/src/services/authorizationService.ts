@@ -6,12 +6,12 @@ import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayClient } from "../api/authorizationApiConverter.js";
 import { clientNotFound, keyNotFound } from "../models/errors.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import { readModelServiceBuilder } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
   authorizationProcessClient: AuthorizationProcessClient,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReturnType<typeof readModelServiceBuilder>
 ) {
   return {
     getClient: async (

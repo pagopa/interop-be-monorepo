@@ -6,7 +6,6 @@ import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleClientAddedRemovedToProducer } from "./handleClientAddedRemovedToProducer.js";
-import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
 
 export async function handleAuthorizationEvent(
   decodedMessage: AuthorizationEventEnvelopeV2,
@@ -27,15 +26,6 @@ export async function handleAuthorizationEvent(
         )
     )
     .with(
-      { type: "ProducerKeychainEServiceAdded" },
-      ({ data: { eserviceId } }) =>
-        handleEserviceStateChangedToConsumer(
-          eserviceId,
-          logger,
-          readModelService
-        )
-    )
-    .with(
       {
         type: P.union(
           "ClientAdded",
@@ -53,6 +43,7 @@ export async function handleAuthorizationEvent(
           "ProducerKeychainKeyDeleted",
           "ProducerKeychainUserAdded",
           "ProducerKeychainUserDeleted",
+          "ProducerKeychainEServiceAdded",
           "ProducerKeychainEServiceRemoved"
         ),
       },

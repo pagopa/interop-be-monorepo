@@ -3,6 +3,7 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   InteropTokenGenerator,
+  ReadModelRepository,
   RefreshableInteropToken,
   decodeKafkaMessage,
   logger,
@@ -22,6 +23,7 @@ import {
   makeDrizzleConnection,
 } from "pagopa-interop-readmodel";
 import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
 import { config } from "./config/config.js";
 import { archiveDescriptorForArchivedAgreement } from "./services/archiveDescriptorProcessor.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
@@ -31,10 +33,19 @@ const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 
+const oldReadModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
 });
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 const catalogProcessClient = catalogProcessClientBuilder(
   config.catalogProcessUrl
@@ -79,7 +90,7 @@ async function processMessage({
           await archiveDescriptorForArchivedAgreement(
             fromAgreementV2(agreement),
             refreshableToken,
-            readModelServiceSQL,
+            readModelService,
             catalogProcessClient,
             loggerInstance,
             correlationId

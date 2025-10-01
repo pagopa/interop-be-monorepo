@@ -75,7 +75,6 @@ import {
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
-  purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import { and, eq } from "drizzle-orm";
 import {
@@ -639,7 +638,6 @@ export const upsertPurpose = async (
       riskAnalysisAnswersSQL,
       versionsSQL,
       versionDocumentsSQL,
-      versionStampsSQL,
     } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
     await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
@@ -666,12 +664,6 @@ export const upsertPurpose = async (
       await tx
         .insert(purposeVersionDocumentInReadmodelPurpose)
         .values(versionDocumentSQL);
-    }
-
-    for (const versionStampSQL of versionStampsSQL) {
-      await tx
-        .insert(purposeVersionStampInReadmodelPurpose)
-        .values(versionStampSQL);
     }
   });
 };

@@ -40,11 +40,11 @@ import {
   riskAnalysisValidationFailed,
   tenantIsNotTheDelegate,
 } from "../model/domain/errors.js";
+import { ReadModelService } from "./readModelService.js";
 import {
   retrieveActiveAgreement,
   retrievePurposeDelegation,
 } from "./purposeService.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -186,7 +186,7 @@ export const assertPurposeTitleIsNotDuplicated = async ({
   consumerId,
   title,
 }: {
-  readModelService: ReadModelServiceSQL;
+  readModelService: ReadModelService;
   eserviceId: EServiceId;
   consumerId: TenantId;
   title: string;
@@ -206,7 +206,7 @@ export async function isOverQuota(
   eservice: EService,
   purpose: Purpose,
   dailyCalls: number,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<boolean> {
   const allPurposes = await readModelService.getAllPurposes({
     eservicesIds: [eservice.id],
@@ -259,7 +259,7 @@ export const assertRequesterCanRetrievePurpose = async (
   purpose: Purpose,
   eservice: EService,
   authData: Pick<UIAuthData, "organizationId">,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<void> => {
   // This validator is for retrieval operations that can be performed by all the tenants involved:
   // the consumer, the producer, the consumer delegate, and the producer delegate.
@@ -381,7 +381,7 @@ export const verifyRequesterIsConsumerOrDelegateConsumer = async (
   consumerId: TenantId,
   eserviceId: EServiceId,
   authData: UIAuthData | M2MAdminAuthData,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<DelegationId | undefined> => {
   try {
     assertRequesterIsConsumer(
@@ -428,7 +428,7 @@ export const getOrganizationRole = async ({
   purpose: Purpose;
   producerId: TenantId;
   delegationId: DelegationId | undefined;
-  readModelService: ReadModelServiceSQL;
+  readModelService: ReadModelService;
   authData: UIAuthData | M2MAdminAuthData;
 }): Promise<Ownership> => {
   if (

@@ -18,13 +18,13 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { AuthorizationProcessClient } from "../clients/authorizationProcessClient.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function selfcareClientUsersUpdaterProcessorBuilder(
   refreshableToken: RefreshableInteropToken,
   authorizationProcessClient: AuthorizationProcessClient,
-  readModelService: ReadModelServiceSQL,
+  readModelService: ReadModelService,
   productId: string
 ) {
   return {

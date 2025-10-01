@@ -60,5 +60,3 @@ export function readModelServiceBuilderSQL(
     },
   };
 }
-
-export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;

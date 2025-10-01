@@ -38,7 +38,7 @@ import {
   htmlTemplateNotFound,
   tenantNotFound,
 } from "../models/errors.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import { ReadModelService } from "./readModelService.js";
 
 // Be careful to change this enum, it's used to find the html template files
 export const eventMailTemplateType = {
@@ -65,7 +65,7 @@ type EventMailTemplateType = z.infer<typeof EventMailTemplateType>;
 
 async function retrieveAgreementEservice(
   agreement: Agreement,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<EService> {
   const eservice = await readModelService.getEServiceById(agreement.eserviceId);
 
@@ -78,7 +78,7 @@ async function retrieveAgreementEservice(
 
 async function retrieveTenant(
   tenantId: TenantId,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<Tenant> {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
@@ -103,7 +103,7 @@ function retrieveAgreementDescriptor(
 
 export const retrieveEService = async (
   eserviceId: EServiceId,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
@@ -155,7 +155,7 @@ function retrieveLatestPublishedDescriptor(eservice: EService): Descriptor {
 export function notificationEmailSenderServiceBuilder(
   sesEmailManager: EmailManagerSES,
   sesSenderData: { label: string; mail: string },
-  readModelService: ReadModelServiceSQL,
+  readModelService: ReadModelService,
   templateService: HtmlTemplateService,
   interopFeBaseUrl?: string
 ) {

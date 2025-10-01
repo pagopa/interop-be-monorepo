@@ -3,6 +3,7 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   EmailManagerPEC,
+  ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
   initPecEmailManager,
@@ -23,16 +24,27 @@ import {
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { certifiedEmailSenderServiceBuilder } from "./services/certifiedEmailSenderService.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const readModelDB = makeDrizzleConnection(config);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
+const oldReadModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
 });
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
+
 const templateService = buildHTMLTemplateService();
 
 const pecEmailManager: EmailManagerPEC = initPecEmailManager(config);
@@ -44,7 +56,7 @@ const pecEmailSenderData = {
 const certifiedEmailSenderService = certifiedEmailSenderServiceBuilder(
   pecEmailManager,
   pecEmailSenderData,
-  readModelServiceSQL,
+  readModelService,
   templateService
 );
 

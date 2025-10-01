@@ -228,8 +228,6 @@ export function readModelServiceBuilderSQL(
   };
 }
 
-export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;
-
 const readAllTenantsSQL = async (
   tx: DrizzleTransactionType
 ): Promise<TenantSQL[]> =>

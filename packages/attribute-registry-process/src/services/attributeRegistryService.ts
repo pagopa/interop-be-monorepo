@@ -33,11 +33,11 @@ import {
   tenantNotFound,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import { ReadModelService } from "./readModelService.js";
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: Pick<ReadModelServiceSQL, "getTenantById">
+  readModelService: Pick<ReadModelService, "getTenantById">
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
@@ -49,7 +49,7 @@ const retrieveTenant = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeRegistryServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ) {
   const repository = eventRepository(dbInstance, attributeEventToBinaryData);
 
@@ -356,7 +356,7 @@ export function attributeRegistryServiceBuilder(
 
 async function getCertifierId(
   tenantId: TenantId,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelService
 ): Promise<string> {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {

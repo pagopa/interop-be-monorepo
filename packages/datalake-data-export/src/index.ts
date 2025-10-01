@@ -1,7 +1,12 @@
-import { initFileManager, logger } from "pagopa-interop-commons";
+import {
+  initFileManager,
+  logger,
+  ReadModelRepository,
+} from "pagopa-interop-commons";
 import { generateId, CorrelationId } from "pagopa-interop-models";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { datalakeServiceBuilder } from "./services/datalakeService.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
 import { config } from "./config/config.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
@@ -11,11 +16,20 @@ const log = logger({
 });
 
 const fileManager = initFileManager(config);
+const oldReadModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
 const readModelDB = makeDrizzleConnection(config);
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 export const dataLakeService = datalakeServiceBuilder(
-  readModelServiceSQL,
+  readModelService,
   fileManager,
   log
 );

@@ -1,4 +1,5 @@
 import {
+  ReadModelRepository,
   initDB,
   initFileManager,
   initPDFGenerator,
@@ -13,6 +14,7 @@ import {
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { createApp } from "./app.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { delegationServiceBuilder } from "./services/delegationService.js";
 
@@ -27,6 +29,9 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 
+const oldReadModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   delegationReadModelServiceSQL,
@@ -34,6 +39,12 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
 });
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 const service = delegationServiceBuilder(
   initDB({
@@ -45,7 +56,7 @@ const service = delegationServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelServiceSQL,
+  readModelService,
   pdfGenerator,
   fileManager
 );

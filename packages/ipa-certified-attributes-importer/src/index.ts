@@ -1,5 +1,6 @@
 import {
   InteropTokenGenerator,
+  ReadModelRepository,
   RefreshableInteropToken,
   getInteropHeaders,
   logger,
@@ -11,6 +12,7 @@ import {
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
 import { getRegistryData } from "./services/openDataService.js";
 import {
   assignNewAttributes,
@@ -37,11 +39,21 @@ try {
   const attributeReadModelServiceSQL =
     attributeReadModelServiceBuilder(readModelDB);
 
+  const oldReadModelService = readModelServiceBuilder(
+    ReadModelRepository.init(config)
+  );
   const readModelServiceSQL = readModelServiceBuilderSQL({
     readModelDB,
     attributeReadModelServiceSQL,
     tenantReadModelServiceSQL,
   });
+  const readModelService =
+    config.featureFlagSQL &&
+    config.readModelSQLDbHost &&
+    config.readModelSQLDbPort
+      ? readModelServiceSQL
+      : oldReadModelService;
+
   const tokenGenerator = new InteropTokenGenerator(config);
   const refreshableToken = new RefreshableInteropToken(tokenGenerator);
   await refreshableToken.init();
@@ -52,8 +64,8 @@ try {
 
   loggerInstance.info("Getting Platform data");
 
-  const attributes = await readModelServiceSQL.getAttributes();
-  const tenants = await readModelServiceSQL.getIPATenants();
+  const attributes = await readModelService.getAttributes();
+  const tenants = await readModelService.getIPATenants();
 
   const tenantUpsertData = getTenantUpsertData(registryData, tenants);
 
@@ -69,7 +81,7 @@ try {
   const headers = getInteropHeaders({ token, correlationId });
   await createNewAttributes(
     newAttributes,
-    readModelServiceSQL,
+    readModelService,
     headers,
     loggerInstance
   );

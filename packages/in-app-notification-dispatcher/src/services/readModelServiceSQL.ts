@@ -4,7 +4,6 @@ import {
   Delegation,
   EService,
   EServiceId,
-  EServiceTemplateId,
   NotificationConfig,
   Purpose,
   PurposeId,
@@ -26,7 +25,6 @@ import {
 import {
   agreementInReadmodelAgreement,
   delegationInReadmodelDelegation,
-  eserviceInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -95,13 +93,6 @@ export function readModelServiceBuilderSQL({
           )
         )
       )?.data;
-    },
-    async getEServicesByTemplateId(
-      templateId: EServiceTemplateId
-    ): Promise<EService[]> {
-      return await catalogReadModelServiceSQL.getEServicesByFilter(
-        eq(eserviceInReadmodelCatalog.templateId, templateId)
-      );
     },
     async getPurposeById(purposeId: PurposeId): Promise<Purpose | undefined> {
       return (await purposeReadModelServiceSQL.getPurposeById(purposeId))?.data;
