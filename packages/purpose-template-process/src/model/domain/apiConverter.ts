@@ -5,6 +5,7 @@ import {
   PurposeTemplateState,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
@@ -105,9 +106,13 @@ export const purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation
       ? {
           id: annotation.id,
           text: annotation.text,
-          docs: annotation.docs.map((doc) => ({
-            ...doc,
-            createdAt: doc.createdAt?.toJSON(),
-          })),
+          docs: annotation.docs.map(annotationDocumentToApiAnnotationDocument),
         }
       : undefined;
+
+export const annotationDocumentToApiAnnotationDocument = (
+  document: RiskAnalysisTemplateAnswerAnnotationDocument
+): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument => ({
+  ...document,
+  createdAt: document.createdAt?.toJSON(),
+});
