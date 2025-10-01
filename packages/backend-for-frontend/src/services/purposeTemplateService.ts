@@ -1,9 +1,15 @@
+import { randomUUID } from "crypto";
 import {
   bffApi,
   purposeTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
+import {
+  assertFeatureFlagEnabled,
+  FileManager,
+  validateAndStorePDFDocument,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { PurposeTemplateId, TenantKind } from "pagopa-interop-models";
 import {
   PurposeTemplateProcessClient,
@@ -20,7 +26,8 @@ import { tenantNotFound } from "../model/errors.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   purposeTemplateClient: PurposeTemplateProcessClient,
-  tenantProcessClient: TenantProcessClient
+  tenantProcessClient: TenantProcessClient,
+  fileManager: FileManager
 ) {
   async function getTenantsFromPurposeTemplates(
     tenantClient: TenantProcessClient,
@@ -227,6 +234,55 @@ export function purposeTemplateServiceBuilder(
         headers,
         params: { id },
       });
+    },
+    async addRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: string,
+      answerId: string,
+      body: bffApi.addRiskAnalysisTemplateAnswerAnnotationDocument_Body,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
+      logger.info(
+        `Adding annotation document to purpose template with id ${purposeTemplateId}`
+      );
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const documentId = randomUUID();
+
+      return await validateAndStorePDFDocument(
+        fileManager,
+        purposeTemplateId,
+        body.doc,
+        documentId,
+        config.riskAnalysisDocumentsContainer,
+        config.riskAnalysisDocumentsPath,
+        body.prettyName,
+        async (
+          documentId: string,
+          fileName: string,
+          filePath: string,
+          prettyName: string,
+          contentType: string,
+          checksum: string
+        ): Promise<purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument> =>
+          await purposeTemplateClient.addRiskAnalysisTemplateAnswerAnnotationDocument(
+            {
+              documentId,
+              name: fileName,
+              path: filePath,
+              prettyName,
+              contentType,
+              checksum,
+            },
+            {
+              headers,
+              params: {
+                id: purposeTemplateId,
+                answerId,
+              },
+            }
+          ),
+        logger
+      );
     },
   };
 }
