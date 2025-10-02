@@ -16,6 +16,7 @@ import {
   UserId,
   TenantId,
   NotificationConfig,
+  emailNotificationPreference,
 } from "pagopa-interop-models";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
@@ -36,12 +37,15 @@ import {
   userNotificationConfigAlreadyExists,
   userNotificationConfigNotFound,
 } from "../model/domain/errors.js";
+import { apiEmailNotificationPreferenceToEmailNotificationPreference } from "../model/domain/apiConverter.js";
 
 const defaultNotificationConfigs = {
   tenant: {
     enabled: true,
   },
   user: {
+    inAppNotificationPreference: false,
+    emailNotificationPreference: emailNotificationPreference.disabled,
     inApp: {
       agreementSuspendedUnsuspendedToProducer: false,
       agreementManagementToProducer: false,
@@ -198,6 +202,11 @@ export function notificationConfigServiceBuilder(
         id: existingConfig.data.id,
         userId,
         tenantId: organizationId,
+        inAppNotificationPreference: seed.inAppNotificationPreference,
+        emailNotificationPreference:
+          apiEmailNotificationPreferenceToEmailNotificationPreference(
+            seed.emailNotificationPreference
+          ),
         inAppConfig: seed.inAppConfig,
         emailConfig: seed.emailConfig,
         createdAt: existingConfig.data.createdAt,
@@ -277,6 +286,10 @@ export function notificationConfigServiceBuilder(
         id: generateId<UserNotificationConfigId>(),
         userId,
         tenantId,
+        inAppNotificationPreference:
+          defaultNotificationConfigs.user.inAppNotificationPreference,
+        emailNotificationPreference:
+          defaultNotificationConfigs.user.emailNotificationPreference,
         inAppConfig: defaultNotificationConfigs.user.inApp,
         emailConfig: defaultNotificationConfigs.user.email,
         createdAt: new Date(),

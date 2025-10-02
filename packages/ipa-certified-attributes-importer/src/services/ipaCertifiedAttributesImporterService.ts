@@ -16,7 +16,7 @@ import {
   kindsToInclude,
   InternalCertifiedAttribute,
 } from "./openDataService.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const AGENCY_CLASSIFICATION = "Agency";
 
@@ -49,7 +49,7 @@ function toAttributeKey(key: {
 }
 
 async function checkAttributesPresence(
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   newAttributes: attributeRegistryApi.InternalCertifiedAttributeSeed[]
 ): Promise<boolean> {
   const attributes = await readModelService.getAttributes();
@@ -155,7 +155,7 @@ export function getTenantUpsertData(
 
 export async function createNewAttributes(
   newAttributes: InternalCertifiedAttribute[],
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   headers: InteropHeaders,
   loggerInstance: Logger
 ): Promise<void> {

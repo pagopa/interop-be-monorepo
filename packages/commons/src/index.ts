@@ -12,7 +12,6 @@ export * from "./logging/index.js";
 export * from "./model/apiEndpoint.js";
 export * from "./pdf-generator/pdfGenerator.js";
 export * from "./repositories/EventRepository.js";
-export * from "./repositories/ReadModelRepository.js";
 export * from "./repositories/db.js";
 export * from "./risk-analysis/index.js";
 export * from "./risk-analysis-template/index.js";
