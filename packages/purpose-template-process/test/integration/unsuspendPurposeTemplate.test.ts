@@ -32,8 +32,8 @@ import {
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
 import {
-  missingRiskAnalysisFormTemplate,
-  purposeTemplateNotInExpectedState,
+  purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
@@ -155,7 +155,9 @@ describe("unsuspendPurposeTemplate", () => {
         getMockContext({ authData: getMockAuthData(creatorId) })
       );
     }).rejects.toThrowError(
-      missingRiskAnalysisFormTemplate(purposeTemplateWithoutRiskAnalysis.id)
+      purposeTemplateRiskAnalysisFormNotFound(
+        purposeTemplateWithoutRiskAnalysis.id
+      )
     );
   });
 
@@ -207,16 +209,18 @@ describe("unsuspendPurposeTemplate", () => {
       state: purposeTemplateState.active,
     },
     {
-      error: purposeTemplateNotInExpectedState(
+      error: purposeTemplateNotInExpectedStates(
         purposeTemplate.id,
-        purposeTemplateState.archived
+        purposeTemplateState.archived,
+        [purposeTemplateState.suspended]
       ),
       state: purposeTemplateState.archived,
     },
     {
-      error: purposeTemplateNotInExpectedState(
+      error: purposeTemplateNotInExpectedStates(
         purposeTemplate.id,
-        purposeTemplateState.draft
+        purposeTemplateState.draft,
+        [purposeTemplateState.suspended]
       ),
       state: purposeTemplateState.draft,
     },

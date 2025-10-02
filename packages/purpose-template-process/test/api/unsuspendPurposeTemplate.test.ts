@@ -17,9 +17,9 @@ import {
 import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiConverter.js";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
-  missingRiskAnalysisFormTemplate,
   purposeTemplateNotFound,
-  purposeTemplateNotInExpectedState,
+  purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
 } from "../../src/model/domain/errors.js";
@@ -75,14 +75,15 @@ describe("API POST /purposeTemplates/{id}/unsuspend", () => {
 
   it.each([
     {
-      error: missingRiskAnalysisFormTemplate(purposeTemplate.id),
+      error: purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id),
       expectedStatus: 400,
     },
     { error: riskAnalysisTemplateValidationFailed([]), expectedStatus: 400 },
     {
-      error: purposeTemplateNotInExpectedState(
+      error: purposeTemplateNotInExpectedStates(
         generateId(),
-        purposeTemplateState.active
+        purposeTemplateState.active,
+        [purposeTemplateState.suspended]
       ),
       expectedStatus: 400,
     },
