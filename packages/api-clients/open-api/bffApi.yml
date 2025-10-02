@@ -22769,6 +22769,11 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
+        unreadNotifications:
+          type: array
+          items:
+            type: string
+            format: uuid
     CompactAttribute:
       type: object
       additionalProperties: false

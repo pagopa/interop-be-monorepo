@@ -16,6 +16,7 @@ import {
   tenantApi,
   attributeRegistryApi,
   delegationApi,
+  inAppNotificationApi,
 } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
 import {
@@ -656,6 +657,20 @@ async function enrichAgreementListEntry(
 ): Promise<bffApi.AgreementListEntry[]> {
   const cachedTenants = new Map<string, tenantApi.Tenant>();
 
+  const notificationsPromise =
+    getAllFromPaginated<inAppNotificationApi.Notification>(
+      async (offset, limit) =>
+        await clients.inAppNotificationManagerClient.getNotifications({
+          queries: {
+            offset,
+            limit,
+            entityIds: agreements.map((a) => a.id),
+            unread: true,
+          },
+          headers: ctx.headers,
+        })
+    );
+
   const agreementsResult = [];
   for (const agreement of agreements) {
     const { consumer, producer, eservice, delegation } =
@@ -714,7 +729,14 @@ async function enrichAgreementListEntry(
     });
   }
 
-  return agreementsResult;
+  const notifications = await notificationsPromise;
+
+  return agreementsResult.map((agreement) => ({
+    ...agreement,
+    unreadNotifications: notifications
+      .filter((n) => n.entityId === agreement.id)
+      .map((n) => n.id),
+  }));
 }
 
 export async function enrichAgreement(
