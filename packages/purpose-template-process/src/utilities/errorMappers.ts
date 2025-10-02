@@ -9,6 +9,7 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_NOT_FOUND,
 } = constants;
 
@@ -36,7 +37,7 @@ export const linkEservicesToPurposeTemplateErrorMapper = (
     .with(
       "associationEServicesForPurposeTemplateFailed",
       "tooManyEServicesForPurposeTemplate",
-      "purposeTemplateNotInValidState",
+      "purposeTemplateNotInExpectedStates",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -44,6 +45,7 @@ export const linkEservicesToPurposeTemplateErrorMapper = (
       "associationBetweenEServiceAndPurposeTemplateAlreadyExists",
       () => HTTP_STATUS_CONFLICT
     )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const unlinkEServicesFromPurposeTemplateErrorMapper = (
