@@ -516,6 +516,7 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   mode VARCHAR(2048) NOT NULL,
   is_signal_hub_enabled BOOLEAN,
+  personal_data BOOLEAN,
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );

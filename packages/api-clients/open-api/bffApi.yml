@@ -24820,6 +24820,8 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
+        personalData:
+          type: boolean
         draftVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
     EServiceTemplateVersionDetails:
@@ -24940,6 +24942,8 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
+        personalData:
+          type: boolean
     EServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -24969,6 +24973,8 @@ components:
         version:
           $ref: "#/components/schemas/VersionSeedForEServiceTemplateCreation"
         isSignalHubEnabled:
+          type: boolean
+        personalData:
           type: boolean
     InstanceEServiceSeed:
       type: object
