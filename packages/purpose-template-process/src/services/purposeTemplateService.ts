@@ -321,7 +321,7 @@ export function purposeTemplateServiceBuilder(
         throw riskAnalysisTemplateNotFound(purposeTemplateId);
       }
 
-      assertRequesterIsCreator(purposeTemplate.data, authData);
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
       assertPurposeTemplateIsDraft(purposeTemplate.data);
 
       const answerWithDeletedAnnotation =
