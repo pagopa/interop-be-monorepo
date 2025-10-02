@@ -15,7 +15,6 @@ export const { cleanup, readModelDB, m2mEventDB } =
     undefined,
     undefined,
     undefined,
-    undefined,
     inject("readModelSQLConfig"),
     undefined,
     undefined,

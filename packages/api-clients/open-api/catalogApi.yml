@@ -2277,7 +2277,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/templates/eservices/{eServiceId}/personalData/set:
+  /internal/templates/eservices/{eServiceId}/personalDataFlag/set:
     post:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2297,11 +2297,11 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
-      operationId: setTemplateInstancePersonalData
+      operationId: setTemplateInstancePersonalDataFlag
       description: Update the personalData flag of a template instance after a template update
       responses:
         "204":
-          description: E-Service personalData updated
+          description: E-Service personalData flag updated
         "404":
           description: E-Service Not Found
           content:

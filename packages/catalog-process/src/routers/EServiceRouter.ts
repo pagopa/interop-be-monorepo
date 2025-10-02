@@ -2,6 +2,7 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  assertFeatureFlagEnabled,
   authRole,
   ExpressContext,
   fromAppContext,
@@ -74,7 +75,7 @@ import {
   updateAgreementApprovalPolicyErrorMapper,
   updateEServiceSignalhubFlagErrorMapper,
   documentListErrorMapper,
-  updateEServicePersonalDataErrorMapper,
+  updateEServicePersonalDataFlagErrorMapper,
   updateTemplateInstancePersonalDataErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
@@ -1236,14 +1237,14 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/internal/templates/eservices/:eServiceId/personalData/set",
+      "/internal/templates/eservices/:eServiceId/personalDataFlag/set",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
 
-          await catalogService.internalUpdateTemplateInstancePersonalData(
+          await catalogService.internalUpdateTemplateInstancePersonalDataFlag(
             unsafeBrandId(req.params.eServiceId),
             req.body.personalData,
             ctx
@@ -1501,9 +1502,7 @@ const eservicesRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-        if (config.featureFlagEservicePersonalData === false) {
-          return res.status(501);
-        }
+        assertFeatureFlagEnabled(config, "featureFlagEservicePersonalData");
 
         const updatedEService =
           await catalogService.updateEServicePersonalDataFlagAfterPublication(
@@ -1520,7 +1519,7 @@ const eservicesRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          updateEServicePersonalDataErrorMapper,
+          updateEServicePersonalDataFlagErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

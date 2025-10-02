@@ -284,13 +284,6 @@ export const getMockCatalogApiEService = (): catalogApi.EService & {
   personalData: generateMock(z.boolean().optional()),
 });
 
-export const getMockBffApiEServicePersonaData = (): catalogApi.EService & {
-  id: EServiceId;
-} => ({
-  ...getMockCatalogApiEService(),
-  personalData: generateMock(z.boolean().optional()),
-});
-
 export const getMockBffApiFileResource = (): bffApi.FileResource => ({
   url: generateMock(z.string().url()),
   filename: generateMock(z.string()),
@@ -537,6 +530,19 @@ export const getMockPurposeSeed = (): bffApi.PurposeSeed => ({
   isFreeOfCharge: generateMock(z.boolean()),
   freeOfChargeReason: generateMock(z.string().optional()),
   dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
+});
+
+export const getMockPurposeTemplateSeed = (): bffApi.PurposeTemplateSeed => ({
+  targetDescription:
+    "This is a valid target description that meets the minimum length requirement",
+  targetTenantKind: "PA" as bffApi.TenantKind,
+  purposeTitle: "Valid Purpose Title",
+  purposeDescription:
+    "This is a valid purpose description that meets the minimum length requirement",
+  purposeRiskAnalysisForm: generateMock(bffApi.RiskAnalysisFormTemplateSeed),
+  purposeIsFreeOfCharge: false,
+  purposeFreeOfChargeReason: undefined,
+  purposeDailyCalls: 1000,
 });
 
 export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({

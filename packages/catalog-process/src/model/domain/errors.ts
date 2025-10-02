@@ -55,7 +55,7 @@ export const errorCodes = {
   eserviceTemplateNameConflict: "0039",
   checksumDuplicate: "0040",
   attributeDuplicatedInGroup: "0041",
-  eservicePersonalDataCanOnlyBeSetOnce: "0042",
+  eservicePersonalDataFlagCanOnlyBeSetOnce: "0042",
   missingPersonalDataFlag: "0043",
 };
 
@@ -478,13 +478,13 @@ export function attributeDuplicatedInGroup(
   });
 }
 
-export function eservicePersonalDataCanOnlyBeSetOnce(
+export function eservicePersonalDataFlagCanOnlyBeSetOnce(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `PersonalData flag has already been set for eService ${eserviceId}`,
-    code: "eservicePersonalDataCanOnlyBeSetOnce",
-    title: "EService personalData can only be set once",
+    code: "eservicePersonalDataFlagCanOnlyBeSetOnce",
+    title: "EService personalData flag can only be set once",
   });
 }
 

@@ -100,7 +100,7 @@ import {
   templateMissingRequiredRiskAnalysis,
   checksumDuplicate,
   attributeDuplicatedInGroup,
-  eservicePersonalDataCanOnlyBeSetOnce,
+  eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
@@ -2721,6 +2721,13 @@ export function catalogServiceBuilder(
         );
       }
 
+      if (
+        config.featureFlagEservicePersonalData &&
+        eservice.data.personalData === undefined
+      ) {
+        throw missingPersonalDataFlag(eserviceId, descriptorId);
+      }
+
       const updatedEService = await processDescriptorPublication(
         eservice.data,
         descriptor,
@@ -2923,7 +2930,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async internalUpdateTemplateInstancePersonalData(
+    async internalUpdateTemplateInstancePersonalDataFlag(
       eserviceId: EServiceId,
       personalData: boolean,
       { correlationId, logger }: WithLogger<AppContext>
@@ -2932,7 +2939,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       if (eservice.data.personalData !== undefined) {
-        throw eservicePersonalDataCanOnlyBeSetOnce(eserviceId);
+        throw eservicePersonalDataFlagCanOnlyBeSetOnce(eserviceId);
       }
 
       const updatedEservice: EService = {
@@ -3596,7 +3603,7 @@ export function catalogServiceBuilder(
       assertEServiceUpdatableAfterPublish(eservice.data);
 
       if (eservice.data.personalData !== undefined) {
-        throw eservicePersonalDataCanOnlyBeSetOnce(eserviceId);
+        throw eservicePersonalDataFlagCanOnlyBeSetOnce(eserviceId);
       }
 
       const updatedEservice: EService = {

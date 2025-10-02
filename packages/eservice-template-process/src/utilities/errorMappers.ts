@@ -312,7 +312,7 @@ export const getEServiceTemplatesErrorMapper = (
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const updateEServiceTemplatePersonalDataErrorMapper = (
+export const updateEServiceTemplatePersonalDataFlagErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -320,7 +320,7 @@ export const updateEServiceTemplatePersonalDataErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceTemplateWithoutPublishedVersion",
-      "eserviceTemplatePersonalDataCanOnlyBeSetOnce",
+      "eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
