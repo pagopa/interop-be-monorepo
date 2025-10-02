@@ -1,7 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   getMockDescriptor,
   getMockEService,
   getMockPurposeTemplate,
+  getMockRiskAnalysisTemplateAnswerAnnotation,
+  getMockRiskAnalysisTemplateAnswerAnnotationDocument,
+  getMockValidRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import {
@@ -10,6 +14,7 @@ import {
   EServiceDescriptorPurposeTemplate,
   PurposeTemplate,
   PurposeTemplateAddedV2,
+  PurposeTemplateAnnotationDocumentDeletedV2,
   PurposeTemplateArchivedV2,
   PurposeTemplateDraftDeletedV2,
   PurposeTemplateDraftUpdatedV2,
@@ -20,6 +25,8 @@ import {
   purposeTemplateState,
   PurposeTemplateSuspendedV2,
   PurposeTemplateUnsuspendedV2,
+  RiskAnalysisFormTemplate,
+  tenantKind,
   toEServiceV2,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
@@ -302,6 +309,81 @@ describe("Integration tests", async () => {
       expect(retrievedOtherPurposeTemplate).toStrictEqual({
         data: otherPurposeTemplate,
         metadata: { version: 0 },
+      });
+    });
+
+    it("PurposeTemplateAnnotationDocumentDeleted", async () => {
+      const metadataVersion = 1;
+
+      const annotationDocument1 =
+        getMockRiskAnalysisTemplateAnswerAnnotationDocument();
+      const annotationDocument2 =
+        getMockRiskAnalysisTemplateAnswerAnnotationDocument();
+
+      const incompleteRiskAnalysisFormTemplate =
+        getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+      const riskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
+        ...incompleteRiskAnalysisFormTemplate,
+        singleAnswers: [
+          {
+            ...incompleteRiskAnalysisFormTemplate.singleAnswers[0],
+            annotation: {
+              ...getMockRiskAnalysisTemplateAnswerAnnotation(),
+              docs: [annotationDocument1, annotationDocument2],
+            },
+          },
+        ],
+      };
+
+      const purposeTemplateBeforeDocDeletion: PurposeTemplate = {
+        ...purposeTemplate,
+        purposeRiskAnalysisForm: riskAnalysisFormTemplate,
+      };
+
+      await purposeTemplateWriterService.upsertPurposeTemplate(
+        purposeTemplateBeforeDocDeletion,
+        0
+      );
+
+      const purposeTemplateAfterDocDeletion: PurposeTemplate = {
+        ...purposeTemplate,
+        purposeRiskAnalysisForm: {
+          ...riskAnalysisFormTemplate,
+          singleAnswers: [
+            {
+              ...riskAnalysisFormTemplate.singleAnswers[0],
+              annotation: {
+                ...riskAnalysisFormTemplate.singleAnswers[0].annotation!,
+                docs: [annotationDocument2],
+              },
+            },
+          ],
+        },
+      };
+
+      const payload: PurposeTemplateAnnotationDocumentDeletedV2 = {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplateAfterDocDeletion),
+        documentId: annotationDocument1.id,
+      };
+      const message: PurposeTemplateEventEnvelope = {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: metadataVersion,
+        type: "PurposeTemplateAnnotationDocumentDeleted",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, purposeTemplateWriterService);
+
+      const retrievedDeletedPurposeTemplate =
+        await purposeTemplateReadModelService.getPurposeTemplateById(
+          purposeTemplate.id
+        );
+
+      expect(retrievedDeletedPurposeTemplate).toStrictEqual({
+        data: purposeTemplateAfterDocDeletion,
+        metadata: { version: metadataVersion },
       });
     });
 

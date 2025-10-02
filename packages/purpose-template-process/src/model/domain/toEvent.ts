@@ -2,6 +2,7 @@ import {
   CorrelationId,
   PurposeTemplate,
   PurposeTemplateEventV2,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
 import { CreateEvent } from "pagopa-interop-commons";
@@ -60,6 +61,32 @@ export function toCreateEventPurposeTemplateDraftUpdated({
       type: "PurposeTemplateDraftUpdated",
       event_version: 2,
       data: { purposeTemplate: toPurposeTemplateV2(purposeTemplate) },
+    },
+  };
+}
+
+export function toCreateEventPurposeTemplateAnnotationDocumentDeleted({
+  purposeTemplate,
+  documentId,
+  correlationId,
+  version,
+}: {
+  purposeTemplate: PurposeTemplate;
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  correlationId: CorrelationId;
+  version: number;
+}): CreateEvent<PurposeTemplateEventV2> {
+  return {
+    streamId: purposeTemplate.id,
+    version,
+    correlationId,
+    event: {
+      type: "PurposeTemplateAnnotationDocumentDeleted",
+      event_version: 2,
+      data: {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        documentId,
+      },
     },
   };
 }
