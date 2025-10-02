@@ -114,7 +114,7 @@ const insertUser = async (
     familyName: user.familyName,
     institutionId: generateId(),
     name: user.name,
-    productRole: user.productRole,
+    productRoles: [user.productRole],
     tenantId: user.tenantId,
   };
   await userDB.insert(userTable).values(toInsert);

@@ -53,24 +53,19 @@ export function toBffApiNotificationsCountBySection({
   };
 }
 
-export function toBffApiNotifications(
-  notifications: inAppNotificationApi.Notifications
-): bffApi.Notifications {
+export function toBffApiNotification(
+  notification: inAppNotificationApi.Notification
+): bffApi.Notification {
+  const notificationType = NotificationType.parse(
+    notification.notificationType
+  );
   return {
-    totalCount: notifications.totalCount,
-    results: notifications.results.map((notification) => {
-      const notificationType = NotificationType.parse(
-        notification.notificationType
-      );
-      return {
-        id: notification.id,
-        tenantId: notification.tenantId,
-        userId: notification.userId,
-        body: notification.body,
-        deepLink: notificationTypeToUiSection[notificationType],
-        createdAt: notification.createdAt,
-        readAt: notification.readAt,
-      };
-    }),
+    id: notification.id,
+    tenantId: notification.tenantId,
+    userId: notification.userId,
+    body: notification.body,
+    deepLink: notificationTypeToUiSection[notificationType],
+    createdAt: notification.createdAt,
+    readAt: notification.readAt,
   };
 }
