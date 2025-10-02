@@ -33,7 +33,8 @@ export async function handleClientAddedRemovedToProducer(
     [eservice.producerId],
     "clientAddedRemovedToProducer",
     readModelService,
-    userService
+    userService,
+    logger
   );
 
   if (usersWithNotifications.length === 0) {

@@ -35,7 +35,8 @@ export async function handlePurposeSuspendedUnsuspendedToConsumer(
     [purpose.consumerId],
     "purposeSuspendedUnsuspendedToConsumer",
     readModelService,
-    userService
+    userService,
+    logger
   );
   if (usersWithNotifications.length === 0) {
     logger.info(

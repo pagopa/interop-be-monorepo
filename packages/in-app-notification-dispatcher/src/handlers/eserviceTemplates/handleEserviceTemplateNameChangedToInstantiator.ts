@@ -54,7 +54,8 @@ export async function handleEserviceTemplateNameChangedToInstantiator(
     ),
     "eserviceTemplateNameChangedToInstantiator",
     readModelService,
-    userService
+    userService,
+    logger
   );
 
   if (!usersWithNotifications) {

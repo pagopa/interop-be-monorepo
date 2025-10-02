@@ -39,7 +39,8 @@ export async function handleDelegationSubmittedRevokedToDelegate(
     [delegation.delegateId],
     "delegationSubmittedRevokedToDelegate",
     readModelService,
-    userService
+    userService,
+    logger
   );
 
   if (usersWithNotifications.length === 0) {

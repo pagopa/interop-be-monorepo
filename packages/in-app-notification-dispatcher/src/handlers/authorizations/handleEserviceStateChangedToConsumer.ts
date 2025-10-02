@@ -47,7 +47,8 @@ export async function handleEserviceStateChangedToConsumer(
     consumers.map((consumer) => consumer.id),
     "eserviceStateChangedToConsumer",
     readModelService,
-    userService
+    userService,
+    logger
   );
 
   const body = inAppTemplates.producerKeychainEServiceAddedToConsumer(

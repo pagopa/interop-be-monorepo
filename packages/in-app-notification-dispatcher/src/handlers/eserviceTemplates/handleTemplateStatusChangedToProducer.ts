@@ -33,7 +33,8 @@ export async function handleTemplateStatusChangedToProducer(
     [eserviceTemplate.creatorId],
     "templateStatusChangedToProducer",
     readModelService,
-    userService
+    userService,
+    logger
   );
 
   const body = inAppTemplates.templateStatusChangedToProducer(

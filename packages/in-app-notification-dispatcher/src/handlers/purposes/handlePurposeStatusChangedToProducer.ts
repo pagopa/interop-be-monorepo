@@ -40,7 +40,8 @@ export async function handlePurposeStatusChangedToProducer(
     [eservice.producerId],
     "purposeStatusChangedToProducer",
     readModelService,
-    userService
+    userService,
+    logger
   );
   if (usersWithNotifications.length === 0) {
     logger.info(

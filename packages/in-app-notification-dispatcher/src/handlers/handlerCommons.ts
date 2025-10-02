@@ -12,7 +12,7 @@ import {
   NotificationType,
   UserId,
 } from "pagopa-interop-models";
-import { notificationAdmittedRoles } from "pagopa-interop-commons";
+import { Logger, notificationAdmittedRoles } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { UserServiceSQL } from "../services/userServiceSQL.js";
 import {
@@ -28,7 +28,8 @@ export async function getNotificationRecipients(
   tenantIds: TenantId[],
   notificationType: NotificationType,
   readModelService: ReadModelServiceSQL,
-  userService: UserServiceSQL
+  userService: UserServiceSQL,
+  logger: Logger
 ): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
   const usersWithNotifications =
     await readModelService.getTenantUsersWithNotificationEnabled(
@@ -38,11 +39,18 @@ export async function getNotificationRecipients(
   const usersWithRoles = await userService.readUsers(
     usersWithNotifications.map(({ userId }) => userId)
   );
-  return usersWithNotifications.filter(({ userId }) =>
-    usersWithRoles
-      .find((u) => u.userId === userId)
-      ?.roles?.some((r) => notificationAdmittedRoles[notificationType][r])
-  );
+  return usersWithNotifications.filter(({ userId }) => {
+    const userRoles = usersWithRoles.find((u) => u.userId === userId)?.roles;
+    if (!userRoles) {
+      logger.warn(
+        `Could not retrieve roles for user ${userId}, skipping notification`
+      );
+      return false;
+    }
+    return userRoles.some(
+      (r) => notificationAdmittedRoles[notificationType][r]
+    );
+  });
 }
 
 export async function retrieveTenant(

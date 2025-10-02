@@ -47,7 +47,8 @@ export async function handleEserviceNewVersionSubmittedToDelegator(
     [eservice.producerId],
     "eserviceNewVersionSubmittedToDelegator",
     readModelService,
-    userService
+    userService,
+    logger
   );
 
   if (usersWithNotifications.length === 0) {

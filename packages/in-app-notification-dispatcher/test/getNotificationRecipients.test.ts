@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { authRole, notificationAdmittedRoles } from "pagopa-interop-commons";
+import {
+  authRole,
+  genericLogger,
+  notificationAdmittedRoles,
+} from "pagopa-interop-commons";
 import { TenantId, UserId, UserRole, generateId } from "pagopa-interop-models";
 import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
@@ -74,7 +78,8 @@ describe("getNotificationRecipients", () => {
       tenants,
       "agreementActivatedRejectedToConsumer",
       readModelService,
-      userService
+      userService,
+      genericLogger
     );
     expect(
       readModelService.getTenantUsersWithNotificationEnabled
@@ -86,7 +91,8 @@ describe("getNotificationRecipients", () => {
       tenants,
       "agreementActivatedRejectedToConsumer",
       readModelService,
-      userService
+      userService,
+      genericLogger
     );
     expect(userService.readUsers).toHaveBeenCalledWith(
       users.map((u) => u.userId)
@@ -98,7 +104,8 @@ describe("getNotificationRecipients", () => {
       tenants,
       "agreementActivatedRejectedToConsumer",
       readModelService,
-      userService
+      userService,
+      genericLogger
     );
     expect(result).not.toContainEqual({
       userId: users[6].userId,
@@ -111,7 +118,8 @@ describe("getNotificationRecipients", () => {
       tenants,
       "agreementActivatedRejectedToConsumer",
       readModelService,
-      userService
+      userService,
+      genericLogger
     );
     expect(result).not.toContainEqual({
       userId: users[5].userId,
@@ -133,7 +141,8 @@ describe("getNotificationRecipients", () => {
       tenants,
       "agreementSuspendedUnsuspendedToProducer",
       readModelService,
-      userService
+      userService,
+      genericLogger
     );
     expect(result).toHaveLength(2);
     expect(result).toEqual(
@@ -162,7 +171,8 @@ describe("getNotificationRecipients", () => {
       tenants,
       "templateStatusChangedToProducer",
       readModelService,
-      userService
+      userService,
+      genericLogger
     );
     expect(result).toHaveLength(4);
     expect(result).toEqual(
@@ -199,7 +209,8 @@ describe("getNotificationRecipients", () => {
       tenants,
       "eserviceStateChangedToConsumer",
       readModelService,
-      userService
+      userService,
+      genericLogger
     );
     expect(result).toHaveLength(4);
     expect(result).toEqual(

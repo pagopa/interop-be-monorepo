@@ -57,7 +57,8 @@ export async function handleNewEserviceTemplateVersionToInstantiator(
     ),
     "newEserviceTemplateVersionToInstantiator",
     readModelService,
-    userService
+    userService,
+    logger
   );
 
   if (!usersWithNotifications) {

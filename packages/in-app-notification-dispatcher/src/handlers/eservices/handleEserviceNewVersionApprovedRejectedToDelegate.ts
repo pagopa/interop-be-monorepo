@@ -51,7 +51,8 @@ export async function handleEserviceNewVersionApprovedRejectedToDelegate(
     [producerDelegation.delegateId],
     "eserviceNewVersionApprovedRejectedToDelegate",
     readModelService,
-    userService
+    userService,
+    logger
   );
 
   if (usersWithNotifications.length === 0) {

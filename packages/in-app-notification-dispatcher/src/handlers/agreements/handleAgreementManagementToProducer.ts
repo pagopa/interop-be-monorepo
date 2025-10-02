@@ -35,7 +35,8 @@ export async function handleAgreementManagementToProducer(
     [agreement.producerId],
     "agreementManagementToProducer",
     readModelService,
-    userService
+    userService,
+    logger
   );
 
   if (usersWithNotifications.length === 0) {

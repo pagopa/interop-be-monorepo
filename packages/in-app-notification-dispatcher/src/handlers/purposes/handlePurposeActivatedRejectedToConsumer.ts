@@ -34,7 +34,8 @@ export async function handlePurposeActivatedRejectedToConsumer(
     [purpose.consumerId],
     "purposeActivatedRejectedToConsumer",
     readModelService,
-    userService
+    userService,
+    logger
   );
   if (usersWithNotifications.length === 0) {
     logger.info(

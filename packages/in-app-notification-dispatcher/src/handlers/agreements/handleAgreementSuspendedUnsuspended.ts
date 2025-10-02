@@ -53,7 +53,8 @@ export async function handleAgreementSuspendedUnsuspended(
     agreement,
     audiencesToNotify,
     readModelService,
-    userService
+    userService,
+    logger
   );
 
   if (usersWithNotifications.length === 0) {
@@ -165,7 +166,8 @@ async function getUsersWithNotificationsEnabled(
   agreement: { consumerId: TenantId; producerId: TenantId },
   audiences: NotificationAudience[],
   readModelService: ReadModelServiceSQL,
-  userService: UserServiceSQL
+  userService: UserServiceSQL,
+  logger: Logger
 ): Promise<
   Array<{
     userId: UserId;
@@ -188,7 +190,8 @@ async function getUsersWithNotificationsEnabled(
       [audienceId],
       notificationType,
       readModelService,
-      userService
+      userService,
+      logger
     ).then((config) => config.map((c) => ({ ...c, notificationType })));
   });
 

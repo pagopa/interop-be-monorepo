@@ -56,7 +56,8 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
     ),
     "eserviceTemplateStatusChangedToInstantiator",
     readModelService,
-    userService
+    userService,
+    logger
   );
   if (!usersWithNotifications) {
     logger.info(

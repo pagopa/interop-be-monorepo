@@ -35,7 +35,8 @@ export async function handleAgreementActivatedRejectedToConsumer(
     [agreement.consumerId],
     "agreementActivatedRejectedToConsumer",
     readModelService,
-    userService
+    userService,
+    logger
   );
 
   if (usersWithNotifications.length === 0) {

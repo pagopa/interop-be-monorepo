@@ -53,7 +53,8 @@ export async function handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
     [tenant.id],
     "certifiedVerifiedAttributeAssignedRevokedToAssignee",
     readModelService,
-    userService
+    userService,
+    logger
   );
 
   if (usersWithNotifications.length === 0) {
