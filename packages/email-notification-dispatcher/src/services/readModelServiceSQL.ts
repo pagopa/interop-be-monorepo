@@ -2,6 +2,8 @@ import { and, eq, inArray } from "drizzle-orm";
 import { TenantNotificationConfig } from "pagopa-interop-models";
 import { WithMetadata } from "pagopa-interop-models";
 import {
+  Attribute,
+  AttributeId,
   Agreement,
   EService,
   EServiceId,
@@ -13,6 +15,7 @@ import {
 } from "pagopa-interop-models";
 import {
   AgreementReadModelService,
+  AttributeReadModelService,
   CatalogReadModelService,
   NotificationConfigReadModelService,
   TenantReadModelService,
@@ -26,12 +29,14 @@ import {
 export function readModelServiceBuilderSQL({
   readModelDB,
   agreementReadModelServiceSQL,
+  attributeReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   agreementReadModelServiceSQL: AgreementReadModelService;
+  attributeReadModelServiceSQL: AttributeReadModelService;
   catalogReadModelServiceSQL: CatalogReadModelService;
   tenantReadModelServiceSQL: TenantReadModelService;
   notificationConfigReadModelServiceSQL: NotificationConfigReadModelService;
@@ -42,6 +47,13 @@ export function readModelServiceBuilderSQL({
     },
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
+    },
+    async getTenantByCertifierId(
+      certifierId: string
+    ): Promise<Tenant | undefined> {
+      return (
+        await tenantReadModelServiceSQL.getTenantByCertifierId(certifierId)
+      )?.data;
     },
     async getTenantsById(tenantIds: TenantId[]): Promise<Tenant[]> {
       return await readModelDB.transaction(async (tx) =>
@@ -85,6 +97,17 @@ export function readModelServiceBuilderSQL({
         );
 
       return notificationConfig?.data;
+    },
+    async getAttributeById(
+      attributeId: AttributeId
+    ): Promise<Attribute | undefined> {
+      const attributeWithMetadata =
+        await attributeReadModelServiceSQL.getAttributeById(attributeId);
+
+      if (!attributeWithMetadata) {
+        return undefined;
+      }
+      return attributeWithMetadata.data;
     },
   };
 }

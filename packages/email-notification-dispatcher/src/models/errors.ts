@@ -9,11 +9,13 @@ import {
 type EmailNotificationDispatcherErrorCode =
   | "htmlTemplateNotFound"
   | "agreementStampDateNotFound"
+  | "attributeNotFound"
   | "eServiceNotFound"
   | "tenantNotFound"
   | "descriptorNotFound"
   | "eserviceAgreementsNotFound"
-  | "descriptorPublishedNotFound";
+  | "descriptorPublishedNotFound"
+  | "certifierTenantNotFound";
 
 export class EmailNotificationDispatcherError extends InternalError<EmailNotificationDispatcherErrorCode> {
   constructor({
@@ -73,6 +75,15 @@ export function tenantNotFound(
   });
 }
 
+export function certifierTenantNotFound(
+  certifierId: string
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Certifier tenant ${certifierId} not found`,
+    code: "certifierTenantNotFound",
+  });
+}
+
 export function descriptorNotFound(
   eServiceId: EServiceId,
   descriptorId: DescriptorId
@@ -89,5 +100,14 @@ export function descriptorPublishedNotFound(
   return new InternalError({
     detail: `Published descriptor not found in EService ${eServiceId}`,
     code: "descriptorPublishedNotFound",
+  });
+}
+
+export function attributeNotFound(
+  attributeId: string
+): EmailNotificationDispatcherError {
+  return new InternalError({
+    detail: `Attribute ${attributeId} not found`,
+    code: "attributeNotFound",
   });
 }
