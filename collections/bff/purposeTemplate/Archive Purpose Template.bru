@@ -1,0 +1,19 @@
+meta {
+  name: Archive Purpose Template
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{host-bff}}/purposeTemplates/:purposeTemplateId/archive
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
