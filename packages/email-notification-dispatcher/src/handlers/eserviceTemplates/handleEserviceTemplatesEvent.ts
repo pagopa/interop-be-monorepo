@@ -1,10 +1,15 @@
 import {
   EmailNotificationMessagePayload,
   EServiceTemplateEventV2,
+  EServiceTemplateVersionId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleEServiceTemplateVersionSuspendedToCreator } from "./handleEServiceTemplateVersionSuspendedToCreator.js";
+import { handleEServiceTemplateVersionPublished } from "./handleEserviceTemplateVersionPublished.js";
+import { handleEServiceTemplateNameUpdated } from "./handleEserviceTemplateNameUpdated.js";
+import { handleEServiceTemplateVersionSuspendedToInstantiator } from "./handleEserviceTemplateVersionSuspendedToInstantiator.js";
 
 export async function handleEServiceTemplateEvent(
   params: HandlerParams<typeof EServiceTemplateEventV2>
@@ -20,10 +25,37 @@ export async function handleEServiceTemplateEvent(
   return match(decodedMessage)
     .with(
       { type: "EServiceTemplateVersionSuspended" },
-      ({ data: { eserviceTemplate, eserviceTemplateVersionId } }) =>
-        handleEServiceTemplateVersionSuspendedToCreator({
+      async ({ data: { eserviceTemplate, eserviceTemplateVersionId } }) => [
+        ...(await handleEServiceTemplateVersionSuspendedToCreator({
           eserviceTemplateV2Msg: eserviceTemplate,
-          eserviceTemplateVersionId: unsafeBrand<eserviceTemplateVersionId>(
+          eserviceTemplateVersionId: unsafeBrandId<EServiceTemplateVersionId>(
+            eserviceTemplateVersionId
+          ),
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })),
+        ...(await handleEServiceTemplateVersionSuspendedToInstantiator({
+          eserviceTemplateV2Msg: eserviceTemplate,
+          eserviceTemplateVersionId: unsafeBrandId<EServiceTemplateVersionId>(
+            eserviceTemplateVersionId
+          ),
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })),
+      ]
+    )
+    .with(
+      { type: "EServiceTemplateVersionPublished" },
+      async ({ data: { eserviceTemplate, eserviceTemplateVersionId } }) =>
+        handleEServiceTemplateVersionPublished({
+          eserviceTemplateV2Msg: eserviceTemplate,
+          eserviceTemplateVersionId: unsafeBrandId<EServiceTemplateVersionId>(
             eserviceTemplateVersionId
           ),
           logger,
@@ -34,10 +66,21 @@ export async function handleEServiceTemplateEvent(
         })
     )
     .with(
+      { type: "EServiceTemplateNameUpdated" },
+      async ({ data: { eserviceTemplate, oldName } }) =>
+        handleEServiceTemplateNameUpdated({
+          eserviceTemplateV2Msg: eserviceTemplate,
+          oldName,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })
+    )
+    .with(
       {
         type: P.union(
-          "EServiceTemplateVersionPublished",
-          "EServiceTemplateNameUpdated",
           "EServiceTemplateAdded",
           "EServiceTemplateRiskAnalysisAdded",
           "EServiceTemplateRiskAnalysisDeleted",

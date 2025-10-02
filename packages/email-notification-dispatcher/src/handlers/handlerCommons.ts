@@ -71,7 +71,7 @@ export type EserviceTemplateHandlerParams = HandlerCommonParams & {
 
 export type EserviceTemplateNameUpdatedHandlerParams = HandlerCommonParams & {
   eserviceTemplateV2Msg?: EServiceTemplateV2;
-  oldName: string;
+  oldName?: string;
 };
 
 export type ProducerKeychainKeyHandlerParams = HandlerCommonParams & {
