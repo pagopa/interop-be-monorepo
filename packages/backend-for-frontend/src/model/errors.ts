@@ -49,6 +49,10 @@ export const errorCodes = {
   missingUserRolesInIdentityToken: "0041",
   templateInstanceNotAllowed: "0042",
   tenantBySelfcareIdNotFound: "0043",
+  eserviceTemplateInterfaceNotFound: "0044",
+  invalidInterfaceFile: "0045",
+  eserviceTemplateInterfaceDataNotValid: "0046",
+  invalidEserviceInterfaceFileDetected: "0047",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
