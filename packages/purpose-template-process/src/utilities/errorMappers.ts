@@ -32,7 +32,7 @@ export const updatePurposeTemplateErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "purposeTemplateNotInDraftState",
+      "purposeTemplateNotInExpectedStates",
       "riskAnalysisTemplateValidationFailed",
       "missingFreeOfChargeReason",
       () => HTTP_STATUS_BAD_REQUEST

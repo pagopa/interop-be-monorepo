@@ -34,7 +34,7 @@ import { config } from "../../src/config/config.js";
 import {
   missingFreeOfChargeReason,
   purposeTemplateNotFound,
-  purposeTemplateNotInDraftState,
+  purposeTemplateNotInExpectedStates,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import * as validators from "../../src/services/validators.js";
@@ -283,7 +283,11 @@ describe("updatePurposeTemplate", () => {
         })
       )
     ).rejects.toThrowError(
-      purposeTemplateNotInDraftState(purposeTemplateInActiveState.id)
+      purposeTemplateNotInExpectedStates(
+        purposeTemplateInActiveState.id,
+        purposeTemplateInActiveState.state,
+        [purposeTemplateState.draft]
+      )
     );
   });
 

@@ -156,7 +156,7 @@ export function purposeTemplateServiceBuilder(
       );
 
       assertPurposeTemplateIsDraft(purposeTemplate.data);
-      assertRequesterIsCreator(purposeTemplate.data, authData);
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
 
       if (purposeTemplateSeed.purposeTitle) {
         await assertPurposeTemplateTitleIsNotDuplicated({

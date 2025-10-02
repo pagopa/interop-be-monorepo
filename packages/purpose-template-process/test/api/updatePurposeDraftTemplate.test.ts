@@ -7,7 +7,12 @@ import {
   getMockPurposeTemplate,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { PurposeTemplate, generateId, tenantKind } from "pagopa-interop-models";
+import {
+  PurposeTemplate,
+  generateId,
+  purposeTemplateState,
+  tenantKind,
+} from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiConverter.js";
@@ -16,7 +21,7 @@ import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotFound,
-  purposeTemplateNotInDraftState,
+  purposeTemplateNotInExpectedStates,
 } from "../../src/model/domain/errors.js";
 
 describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
@@ -157,7 +162,11 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
     purposeTemplateService.updatePurposeTemplate = vi
       .fn()
       .mockRejectedValue(
-        purposeTemplateNotInDraftState(mockPurposeTemplate.id)
+        purposeTemplateNotInExpectedStates(
+          mockPurposeTemplate.id,
+          mockPurposeTemplate.state,
+          [purposeTemplateState.draft]
+        )
       );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, validPurposeTemplateSeed);
