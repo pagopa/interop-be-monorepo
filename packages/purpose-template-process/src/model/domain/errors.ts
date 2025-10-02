@@ -3,6 +3,7 @@ import {
   ApiError,
   makeApiProblemBuilder,
   PurposeTemplateId,
+  PurposeTemplateState,
   TenantKind,
 } from "pagopa-interop-models";
 
@@ -12,6 +13,9 @@ export const errorCodes = {
   purposeTemplateNotFound: "0003",
   riskAnalysisTemplateValidationFailed: "0004",
   ruleSetNotFoundError: "0005",
+  hyperlinkDetectionError: "0006",
+  purposeTemplateNotInValidState: "0007",
+  purposeTemplateRiskAnalysisFormNotFound: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -64,5 +68,34 @@ export function ruleSetNotFoundError(
     detail: `No risk analysis rule set found for target tenant kind ${tenantKind}`,
     code: "ruleSetNotFoundError",
     title: "No risk analysis rule set found for target tenant kind",
+  });
+}
+
+export function purposeTemplateRiskAnalysisFormNotFound(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Purpose Template Risk Analysis Form found for ID ${purposeTemplateId}`,
+    code: "purposeTemplateRiskAnalysisFormNotFound",
+    title: "Purpose Template Risk Analysis Form Not Found",
+  });
+}
+
+export function purposeTemplateNotInValidState(
+  state: PurposeTemplateState,
+  validStates: PurposeTemplateState[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose template state is: ${state} but valid states are: ${validStates}`,
+    code: "purposeTemplateNotInValidState",
+    title: "Purpose template not in valid state",
+  });
+}
+
+export function hyperlinkDetectionError(text: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Hyperlink detection error for text ${text}`,
+    code: "hyperlinkDetectionError",
+    title: "Hyperlink detection error",
   });
 }

@@ -239,14 +239,13 @@ export const addEServiceInterfaceByTemplateErrorMapper = (
     .with(
       "eserviceTemplateIsNotPublished",
       "eserviceIsNotDraft",
-      "eserviceDescriptorDraftNotFound",
-      "eserviceTemplateNotFound",
-      "eserviceTemplateInterfaceNotFound",
-      "eserviceTemplateInterfaceDataNotValid",
-      "invalidContentTypeDetected",
-      "invalidEserviceInterfaceFileDetected",
       "interfaceExtractingInfoError",
-      "templateDataNotFound",
+      "eserviceTemplateNotFound",
+      "invalidEserviceInterfaceFileDetected",
+      "eserviceTemplateInterfaceNotFound",
+      "invalidContentTypeDetected",
+      "eserviceTemplateInterfaceDataNotValid",
+      "invalidInterfaceFile",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)

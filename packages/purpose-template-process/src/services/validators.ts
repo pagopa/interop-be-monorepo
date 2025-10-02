@@ -1,14 +1,29 @@
-import { RiskAnalysisFormTemplate, TenantKind } from "pagopa-interop-models";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
-  RiskAnalysisTemplateValidatedForm,
-  riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
-  validatePurposeTemplateRiskAnalysis,
-} from "pagopa-interop-commons";
+  PurposeTemplate,
+  PurposeTemplateState,
+  RiskAnalysisFormTemplate,
+  TenantKind,
+  TenantId,
+  operationForbidden,
+} from "pagopa-interop-models";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import {
+  RiskAnalysisTemplateValidatedForm,
+  RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
+  riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
+  validatePurposeTemplateRiskAnalysis,
+  validateRiskAnalysisAnswer,
+  UIAuthData,
+  M2MAdminAuthData,
+  validateNoHyperlinks,
+} from "pagopa-interop-commons";
+import {
+  hyperlinkDetectionError,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
+  purposeTemplateNotInValidState,
+  purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateValidationFailed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -37,6 +52,15 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
       purposeTemplateWithSameName.data.id,
       purposeTemplateWithSameName.data.purposeTitle
     );
+  }
+};
+
+export const assertPurposeTemplateStateIsValid = (
+  state: PurposeTemplateState,
+  validStates: PurposeTemplateState[]
+): void => {
+  if (!validStates.includes(state)) {
+    throw purposeTemplateNotInValidState(state, validStates);
   }
 };
 
@@ -78,4 +102,50 @@ function validateRiskAnalysisTemplateOrThrow({
     })
     .with({ type: "valid" }, ({ value }) => value)
     .exhaustive();
+}
+
+export function validateRiskAnalysisAnswerOrThrow({
+  riskAnalysisAnswer,
+  tenantKind,
+}: {
+  riskAnalysisAnswer: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest;
+  tenantKind: TenantKind;
+}): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {
+  if (riskAnalysisAnswer.answerData.annotation) {
+    validateNoHyperlinks(
+      riskAnalysisAnswer.answerData.annotation.text,
+      hyperlinkDetectionError(riskAnalysisAnswer.answerData.annotation.text)
+    );
+  }
+
+  const result = validateRiskAnalysisAnswer(
+    riskAnalysisAnswer.answerKey,
+    riskAnalysisAnswer.answerData,
+    tenantKind
+  );
+
+  if (result.type === "invalid") {
+    throw riskAnalysisTemplateValidationFailed(result.issues);
+  }
+
+  return result.value;
+}
+
+export function assertPurposeTemplateHasRiskAnalysisForm(
+  purposeTemplate: PurposeTemplate
+): asserts purposeTemplate is PurposeTemplate & {
+  purposeRiskAnalysisForm: RiskAnalysisFormTemplate;
+} {
+  if (!purposeTemplate.purposeRiskAnalysisForm) {
+    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
+  }
+}
+
+export function assertRequesterPurposeTemplateCreator(
+  creatorId: TenantId,
+  authData: UIAuthData | M2MAdminAuthData
+): void {
+  if (authData.organizationId !== creatorId) {
+    throw operationForbidden;
+  }
 }

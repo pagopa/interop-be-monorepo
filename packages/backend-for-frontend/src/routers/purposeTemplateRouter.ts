@@ -6,6 +6,7 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -38,6 +39,32 @@ const purposeTemplateRouter = (
       return res.status(errorRes.status).send(errorRes);
     }
   });
+
+  purposeTemplateRouter.post(
+    "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers",
+    async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await purposeTemplateService.createRiskAnalysisAnswer(
+          unsafeBrandId(req.params.purposeTemplateId),
+          req.body,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(bffApi.RiskAnalysisTemplateAnswer.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateErrorMapper,
+          ctx,
+          "Error creating risk analysis answer for purpose template"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    }
+  );
 
   return purposeTemplateRouter;
 };

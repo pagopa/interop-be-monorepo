@@ -14,8 +14,14 @@ import {
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { createPurposeTemplateErrorMapper } from "../utilities/errorMappers.js";
-import { purposeTemplateToApiPurposeTemplate } from "../model/domain/apiConverter.js";
+import {
+  createPurposeTemplateErrorMapper,
+  createRiskAnalysisAnswerErrorMapper,
+} from "../utilities/errorMappers.js";
+import {
+  purposeTemplateToApiPurposeTemplate,
+  riskAnalysisAnswerToApiRiskAnalysisAnswer,
+} from "../model/domain/apiConverter.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -186,6 +192,32 @@ const purposeTemplateRouter = (
         return res.status(501);
       }
       return res.status(501);
+    })
+    .post("/purposeTemplates/:id/riskAnalysis/answers", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data: riskAnalysisAnswer, metadata } =
+          await purposeTemplateService.createRiskAnalysisAnswer(
+            unsafeBrandId(req.params.id),
+            req.body,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(riskAnalysisAnswerToApiRiskAnalysisAnswer(riskAnalysisAnswer));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createRiskAnalysisAnswerErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return purposeTemplateRouter;
