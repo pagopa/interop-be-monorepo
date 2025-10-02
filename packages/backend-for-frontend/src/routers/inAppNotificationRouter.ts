@@ -68,6 +68,27 @@ const inAppNotificationRouter = (
     .post("/inAppNotifications/bulk/markAsUnread", (_, res) =>
       res.status(501).send()
     )
+    .post(
+      "/inAppNotifications/markAsReadByEntityId/:entityId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        const { entityId } = req.params;
+
+        try {
+          await inAppNotificationService.markAsReadByEntityId(entityId, ctx);
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            "Error marking in-app notifications as read by entity id"
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete("/inAppNotifications", (_, res) => res.status(501).send())
     .delete("/inAppNotifications/:notificationId", (_, res) =>
       res.status(501).send()
