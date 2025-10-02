@@ -199,10 +199,11 @@ describe("E-service aggregator", () => {
       eservice: toEServiceV2(eservice),
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const _ of Array(100)) {
-      const deserialized = EServiceAddedV2.fromBinary(serialized).eservice;
+    // eslint-disable-next-line functional/no-let
+    let deserialized = EServiceAddedV2.fromBinary(serialized).eservice;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const _ of Array(400)) {
       if (!deserialized) {
         throw new Error("Deserialized eservice is undefined");
       }
@@ -261,6 +262,12 @@ describe("E-service aggregator", () => {
           descriptorDeclaredAttributeGroups[index].length
         );
       });
+
+      deserialized = EServiceAddedV2.fromBinary(
+        EServiceAddedV2.toBinary({
+          eservice: toEServiceV2(aggregatedEservice),
+        })
+      ).eservice;
     }
   });
 });
