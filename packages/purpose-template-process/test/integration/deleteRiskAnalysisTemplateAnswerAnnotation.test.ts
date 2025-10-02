@@ -31,9 +31,9 @@ import {
 } from "../integrationUtils.js";
 import {
   purposeTemplateNotFound,
-  purposeTemplateNotInExpectedState,
+  purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  riskAnalysisTemplateNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -210,7 +210,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
         }),
       })
     ).rejects.toThrowError(
-      riskAnalysisTemplateNotFound(
+      purposeTemplateRiskAnalysisFormNotFound(
         purposeTemplateWithoutRiskAnalysisTemplate.id
       )
     );
@@ -255,7 +255,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
           }),
         })
       ).rejects.toThrowError(
-        purposeTemplateNotInExpectedState(
+        purposeTemplateNotInExpectedStates(
           purposeTemplateNotInWrongState.id,
           purposeTemplateNotInWrongState.state,
           [purposeTemplateState.draft]

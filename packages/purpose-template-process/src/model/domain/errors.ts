@@ -159,18 +159,3 @@ export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
     title: "Risk Analysis Template Answer Annotation Document Not Found",
   });
 }
-
-export function riskAnalysisTemplateNotFound(
-  purposeTemplateId: PurposeTemplateId,
-  riskAnalysisTemplateId?: RiskAnalysisFormTemplateId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `No Risk Analysis Template found for Purpose Template ID ${purposeTemplateId}${
-      riskAnalysisTemplateId
-        ? ` and Risk Analysis Template ID ${riskAnalysisTemplateId}`
-        : ""
-    }`,
-    code: "riskAnalysisTemplateNotFound",
-    title: "Risk Analysis Template Not Found",
-  });
-}
