@@ -95,11 +95,11 @@ describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{an
     purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument = vi
       .fn()
       .mockRejectedValue(
-        riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
+        riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
           purposeTemplateId,
           answerId,
-          documentId: riskAnalysisTemplateAnswerAnnotationDocument.id,
-        })
+          riskAnalysisTemplateAnswerAnnotationDocument.id
+        )
       );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);

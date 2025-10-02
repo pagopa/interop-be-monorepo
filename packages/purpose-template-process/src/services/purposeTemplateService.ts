@@ -183,11 +183,11 @@ export function purposeTemplateServiceBuilder(
         );
 
       if (!annotationDocument) {
-        throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
+        throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
           purposeTemplateId,
           answerId,
-          documentId,
-        });
+          documentId
+        );
       }
 
       return annotationDocument;

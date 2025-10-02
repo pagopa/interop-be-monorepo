@@ -93,11 +93,11 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
       )
     ).rejects.toThrowError(
-      riskAnalysisTemplateAnswerAnnotationDocumentNotFound({
-        purposeTemplateId: purposeTemplate.id,
-        answerId: singleAnswer.id,
-        documentId: notExistingId,
-      })
+      riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
+        purposeTemplate.id,
+        singleAnswer.id,
+        notExistingId
+      )
     );
   });
 });
