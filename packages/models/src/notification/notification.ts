@@ -5,6 +5,7 @@ import {
   NotificationId,
   IDS,
   EServiceIdDescriptorId,
+  EServiceTemplateIdEServiceTemplateVersionId,
 } from "../brandedIds.js";
 
 export const NotificationType = z.enum([
@@ -36,7 +37,11 @@ export const Notification = z.object({
   tenantId: TenantId,
   body: z.string(),
   notificationType: NotificationType,
-  entityId: z.union([IDS, EServiceIdDescriptorId]),
+  entityId: z.union([
+    IDS,
+    EServiceIdDescriptorId,
+    EServiceTemplateIdEServiceTemplateVersionId,
+  ]),
   readAt: z.date().optional(),
   createdAt: z.date(),
 });
