@@ -258,7 +258,7 @@ async function activatePurposeTemplate({
   const purposeRiskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
 
   if (!purposeRiskAnalysisForm) {
-    throw missingRiskAnalysisFormTemplate(purposeTemplate.data.id);
+    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.data.id);
   }
 
   assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
