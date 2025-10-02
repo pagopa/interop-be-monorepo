@@ -29,10 +29,10 @@ import {
   conflictDocumentPrettyNameDuplicate,
   conflictDuplicatedDocument,
   purposeTemplateNotFound,
+  purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateNotDraft,
-  riskAnalysisAnswerAnnotationNotFound,
-  riskAnalysisAnswerNotFound,
-  riskAnalysisFormTemplateNotFound,
+  riskAnalysisTemplateAnswerAnnotationNotFound,
+  riskAnalysisTemplateAnswerNotFound,
 } from "../../src/model/domain/errors.js";
 
 const {
@@ -63,7 +63,7 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
     RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
   >();
   const documentId = generateId();
-  const validPurposeTemplateSeed: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocumentSeed =
+  const validAnnotationDocumentSeed: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocumentSeed =
     {
       documentId,
       name: "A Document",
@@ -77,10 +77,10 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
   const expectedResponse: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument =
     {
       id: documentId,
-      name: validPurposeTemplateSeed.name,
-      contentType: validPurposeTemplateSeed.contentType,
-      prettyName: validPurposeTemplateSeed.prettyName,
-      path: validPurposeTemplateSeed.path,
+      name: validAnnotationDocumentSeed.name,
+      contentType: validAnnotationDocumentSeed.contentType,
+      prettyName: validAnnotationDocumentSeed.prettyName,
+      path: validAnnotationDocumentSeed.path,
       createdAt: mockDate.toISOString(),
     };
 
@@ -117,7 +117,7 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
         token,
         purposeTemplateId,
         answerId,
-        validPurposeTemplateSeed
+        validAnnotationDocumentSeed
       );
       expect(res.status).toBe(200);
       expect(res.body).toEqual(annotationDocumentResponse);
@@ -135,7 +135,7 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
       token,
       purposeTemplateId,
       answerId,
-      validPurposeTemplateSeed
+      validAnnotationDocumentSeed
     );
     expect(res.status).toBe(HTTP_STATUS_FORBIDDEN);
   });
@@ -150,34 +150,37 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
       expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
-      error: riskAnalysisFormTemplateNotFound(purposeTemplateId),
+      error: purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId),
       expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
     {
-      error: riskAnalysisAnswerNotFound(purposeTemplateId, answerId),
+      error: riskAnalysisTemplateAnswerNotFound(purposeTemplateId, answerId),
       expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
     {
       error: conflictDocumentPrettyNameDuplicate(
         answerId,
-        validPurposeTemplateSeed.prettyName
+        validAnnotationDocumentSeed.prettyName
       ),
       expectedStatus: HTTP_STATUS_CONFLICT,
     },
     {
       error: conflictDuplicatedDocument(
         answerId,
-        validPurposeTemplateSeed.prettyName
+        validAnnotationDocumentSeed.prettyName
       ),
       expectedStatus: HTTP_STATUS_CONFLICT,
     },
     {
-      error: riskAnalysisAnswerAnnotationNotFound(purposeTemplateId, answerId),
+      error: riskAnalysisTemplateAnswerAnnotationNotFound(
+        purposeTemplateId,
+        answerId
+      ),
       expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
     {
       error: annotationDocumentLimitExceeded(answerId),
-      expectedStatus: HTTP_STATUS_BAD_REQUEST,
+      expectedStatus: HTTP_STATUS_CONFLICT,
     },
   ])(
     "Should return $expectedStatus for $error.code",
@@ -189,7 +192,7 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
         token,
         purposeTemplateId,
         answerId,
-        validPurposeTemplateSeed
+        validAnnotationDocumentSeed
       );
       expect(res.status).toBe(expectedStatus);
     }
