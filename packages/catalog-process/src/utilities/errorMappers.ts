@@ -556,6 +556,17 @@ export const updateTemplateInstanceDescriptionErrorMapper = (
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const updateTemplateInstancePersonalDataErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "eservicePersonalDataFlagCanOnlyBeSetOnce",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const updateTemplateInstanceDescriptorVoucherLifespanErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -688,7 +699,7 @@ export const updateTemplateInstanceDescriptorErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const updateEServicePersonalDataErrorMapper = (
+export const updateEServicePersonalDataFlagErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

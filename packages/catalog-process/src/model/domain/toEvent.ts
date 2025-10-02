@@ -702,6 +702,23 @@ export const toCreateEventEServiceDescriptionUpdatedByTemplateUpdate = (
   correlationId,
 });
 
+export const toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
 export const toCreateEventEServiceDescriptorQuotasUpdatedByTemplateUpdate = (
   streamId: string,
   version: number,

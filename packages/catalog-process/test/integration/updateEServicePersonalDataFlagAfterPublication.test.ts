@@ -73,7 +73,7 @@ describe("update E-service personalData flag for an already created E-service", 
 
   it.each([
     [true, true],
-    [false, false],
+    [false, true],
   ])(
     "should NOT write on event-store for the update of the E-service personalData flag if it was already set (%s -> %s)",
     async (oldPersonalDataValue, newPersonalDataValue) => {
