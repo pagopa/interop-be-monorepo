@@ -30,21 +30,19 @@ export const addPurposeTemplateAnswerAnnotationErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with(
-      "annotationDocumentLimitExceeded",
-      "purposeTemplateIsNotDraft",
-      () => HTTP_STATUS_BAD_REQUEST
-    )
+    .with("purposeTemplateIsNotDraft", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "purposeTemplateNotFound",
-      "riskAnalysisFormTemplateNotFound",
-      "riskAnalysisAnswerNotFound",
-      "riskAnalysisAnswerAnnotationNotFound",
+      "purposeTemplateRiskAnalysisFormNotFound",
+      "riskAnalysisTemplateAnswerNotFound",
+      "riskAnalysisTemplateAnswerAnnotationNotFound",
+      "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
       "conflictDocumentPrettyNameDuplicate",
       "conflictDuplicatedDocument",
+      "annotationDocumentLimitExceeded",
       () => HTTP_STATUS_CONFLICT
     )
 

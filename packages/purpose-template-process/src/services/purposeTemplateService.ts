@@ -20,13 +20,14 @@ import {
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantKind,
+  unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
   purposeTemplateNotFound,
-  riskAnalysisAnswerAnnotationNotFound,
-  riskAnalysisAnswerNotFound,
-  riskAnalysisFormTemplateNotFound,
+  purposeTemplateRiskAnalysisFormNotFound,
+  riskAnalysisTemplateAnswerAnnotationNotFound,
+  riskAnalysisTemplateAnswerNotFound,
   ruleSetNotFoundError,
 } from "../model/domain/errors.js";
 import {
@@ -58,7 +59,7 @@ function retrieveRiskAnalysisFormTemplate(
   purposeTemplate: PurposeTemplate
 ): RiskAnalysisFormTemplate {
   if (!purposeTemplate.purposeRiskAnalysisForm) {
-    throw riskAnalysisFormTemplateNotFound(purposeTemplate.id);
+    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
   }
   return purposeTemplate.purposeRiskAnalysisForm;
 }
@@ -82,7 +83,10 @@ function retrieveRiskAnalysisTemplateAnswer(
     return { type: "multi", answer: multiAnswer };
   }
 
-  throw riskAnalysisAnswerNotFound(purposeTemplateId, answerId);
+  throw riskAnalysisTemplateAnswerNotFound(
+    purposeTemplateId,
+    unsafeBrandId(answerId)
+  );
 }
 
 function retrieveAnswerAnnotation(
@@ -90,7 +94,10 @@ function retrieveAnswerAnnotation(
   purposeTemplateId: PurposeTemplateId
 ): RiskAnalysisTemplateAnswerAnnotation {
   if (!answer?.annotation) {
-    throw riskAnalysisAnswerAnnotationNotFound(purposeTemplateId, answer.id);
+    throw riskAnalysisTemplateAnswerAnnotationNotFound(
+      purposeTemplateId,
+      answer.id
+    );
   }
   return answer.annotation;
 }
