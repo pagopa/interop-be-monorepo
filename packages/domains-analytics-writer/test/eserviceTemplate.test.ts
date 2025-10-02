@@ -15,6 +15,8 @@ import {
   EServiceTemplateVersion,
   EServiceTemplate,
   tenantKind,
+  EServiceTemplateVersionPublishedV2,
+  EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2,
 } from "pagopa-interop-models";
 import {
   getMockEServiceTemplate,
@@ -616,5 +618,90 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
       { riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id }
     );
     expect(retrievedRiskAnalysisAnswers).toHaveLength(0);
+  });
+
+  it("EServiceTemplatePersonalDataFlagUpdatedAfterPublication: updates eServiceTemplate personalData flag", async () => {
+    const eServiceTemplateDraftVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
+      state: eserviceTemplateVersionState.draft,
+    };
+
+    const eServiceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eServiceTemplateDraftVersion],
+    };
+
+    const eServiceTemplateAddPayload: EServiceTemplateAddedV2 = {
+      eserviceTemplate: toEServiceTemplateV2(eServiceTemplate),
+    };
+    const eServiceTemplateAddMsg: EServiceTemplateEventEnvelope = {
+      sequence_num: 1,
+      stream_id: eServiceTemplate.id,
+      version: 1,
+      type: "EServiceTemplateAdded",
+      event_version: 2,
+      data: eServiceTemplateAddPayload,
+      log_date: new Date(),
+    };
+
+    const eServiceTemplatePublishedVersion: EServiceTemplateVersion = {
+      ...eServiceTemplateDraftVersion,
+      publishedAt: new Date(),
+      state: eserviceTemplateVersionState.published,
+    };
+    const eServiceTemplatePublished: EServiceTemplate = {
+      ...eServiceTemplate,
+      versions: [eServiceTemplatePublishedVersion],
+    };
+    const eServiceTemplatePublishPayload: EServiceTemplateVersionPublishedV2 = {
+      eserviceTemplateVersionId: eServiceTemplatePublishedVersion.id,
+      eserviceTemplate: toEServiceTemplateV2(eServiceTemplatePublished),
+    };
+    const eServiceTemplatePublishMsg: EServiceTemplateEventEnvelope = {
+      sequence_num: 2,
+      stream_id: eServiceTemplate.id,
+      version: 2,
+      type: "EServiceTemplateVersionPublished",
+      event_version: 2,
+      data: eServiceTemplatePublishPayload,
+      log_date: new Date(),
+    };
+
+    const eServiceTemplateUpdated: EServiceTemplate = {
+      ...eServiceTemplatePublished,
+      personalData: true,
+    };
+    const eServiceTemplateUpdatePayload: EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2 =
+      {
+        eserviceTemplate: toEServiceTemplateV2(eServiceTemplateUpdated),
+      };
+    const eServiceTemplateUpdateMsg: EServiceTemplateEventEnvelope = {
+      sequence_num: 3,
+      stream_id: eServiceTemplate.id,
+      version: 3,
+      type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
+      event_version: 2,
+      data: eServiceTemplateUpdatePayload,
+      log_date: new Date(),
+    };
+
+    await handleEserviceTemplateMessageV2(
+      [
+        eServiceTemplateAddMsg,
+        eServiceTemplatePublishMsg,
+        eServiceTemplateUpdateMsg,
+      ],
+      dbContext
+    );
+
+    const retrievedEServiceTemplate = await getOneFromDb(
+      dbContext,
+      EserviceTemplateDbTable.eservice_template,
+      { id: eServiceTemplate.id }
+    );
+
+    expect(retrievedEServiceTemplate?.personalData).toBe(true);
+    expect(retrievedEServiceTemplate?.metadataVersion).toBe(3);
   });
 });
