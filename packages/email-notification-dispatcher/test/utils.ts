@@ -5,6 +5,7 @@ import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   Agreement,
+  Attribute,
   EService,
   generateId,
   Purpose,
@@ -17,12 +18,14 @@ import {
 import { afterEach, inject } from "vitest";
 import {
   agreementReadModelServiceBuilder,
+  attributeReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertAttribute,
   upsertEService,
   upsertPurpose,
   upsertTenant,
@@ -52,6 +55,8 @@ export const { cleanup, readModelDB, userDB } = await setupTestContainersVitest(
 
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
+const attributeReadModelServiceSQL =
+  attributeReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
@@ -60,6 +65,7 @@ const notificationConfigReadModelServiceSQL =
 export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   agreementReadModelServiceSQL,
+  attributeReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
@@ -90,6 +96,10 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await upsertAgreement(readModelDB, agreement, 0);
+};
+
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await upsertAttribute(readModelDB, attribute, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {

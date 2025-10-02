@@ -19,11 +19,12 @@ import {
   PurposeEventV2,
   unsafeBrandId,
   AuthorizationEventV2,
-  AttributeEvent,
   EmailNotificationMessagePayload,
+  TenantEventV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  attributeReadModelServiceBuilder,
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   makeDrizzleConnection,
@@ -39,11 +40,11 @@ import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { userServiceBuilderSQL } from "./services/userServiceSQL.js";
 import { handleEServiceEvent } from "./handlers/eservices/handleEserviceEvent.js";
 import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent.js";
-import { handleAttributeEvent } from "./handlers/attributes/handleAttributeEvent.js";
-import { handleAuthorizationEvent } from "./handlers/authorization/handleAuthorizationEvent.js";
 import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
 import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
 import { HandlerParams } from "./models/handlerParams.js";
+import { handleTenantEvent } from "./handlers/tenants/handleTenantEvent.js";
+import { handleAuthorizationEvent } from "./handlers/authorization/handleAuthorizationEvent.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -51,12 +52,14 @@ interface TopicNames {
   purposeTopic: string;
   delegationTopic: string;
   authorizationTopic: string;
-  attributeTopic: string;
+  tenantTopic: string;
 }
 
 const readModelDB = makeDrizzleConnection(config);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
+const attributeReadModelServiceSQL =
+  attributeReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
@@ -65,6 +68,7 @@ const notificationConfigReadModelServiceSQL =
 const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   agreementReadModelServiceSQL,
+  attributeReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
@@ -110,7 +114,7 @@ function processMessage(topicHandlers: TopicNames) {
       purposeTopic,
       delegationTopic,
       authorizationTopic,
-      attributeTopic,
+      tenantTopic,
     } = topicHandlers;
 
     const handleWith = <T extends z.ZodType>(
@@ -165,8 +169,8 @@ function processMessage(topicHandlers: TopicNames) {
       .with(authorizationTopic, async () =>
         handleWith(AuthorizationEventV2, handleAuthorizationEvent)
       )
-      .with(attributeTopic, async () =>
-        handleWith(AttributeEvent, handleAttributeEvent)
+      .with(tenantTopic, async () =>
+        handleWith(TenantEventV2, handleTenantEvent)
       )
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
@@ -186,7 +190,7 @@ await runConsumer(
     config.purposeTopic,
     config.delegationTopic,
     config.authorizationTopic,
-    config.attributeTopic,
+    config.tenantTopic,
   ],
   processMessage({
     catalogTopic: config.catalogTopic,
@@ -194,6 +198,6 @@ await runConsumer(
     purposeTopic: config.purposeTopic,
     delegationTopic: config.delegationTopic,
     authorizationTopic: config.authorizationTopic,
-    attributeTopic: config.attributeTopic,
+    tenantTopic: config.tenantTopic,
   })
 );

@@ -32,6 +32,14 @@ export const eventMailTemplateType = {
   agreementRejectedMailTemplate: "agreement-rejected-mail",
   agreementUpgradedMailTemplate: "agreement-upgraded-mail",
   eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
+  tenantCertifiedAttributeAssignedMailTemplate:
+    "tenant-certified-attribute-assigned-mail",
+  tenantCertifiedAttributeRevokedMailTemplate:
+    "tenant-certified-attribute-revoked-mail",
+  tenantVerifiedAttributeAssignedMailTemplate:
+    "tenant-verified-attribute-assigned-mail",
+  tenantVerifiedAttributeRevokedMailTemplate:
+    "tenant-verified-attribute-revoked-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
