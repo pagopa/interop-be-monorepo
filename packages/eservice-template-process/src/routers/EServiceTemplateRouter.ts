@@ -7,6 +7,7 @@ import {
   fromAppContext,
   authRole,
   validateAuthorization,
+  assertFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
@@ -40,6 +41,7 @@ import {
   updateDocumentErrorMapper,
   deleteDocumentErrorMapper,
   getEServiceTemplatesErrorMapper,
+  updateEServiceTemplatePersonalDataErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   eserviceTemplateToApiEServiceTemplate,
@@ -47,6 +49,7 @@ import {
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
   documentToApiDocument,
 } from "../model/domain/apiConverter.js";
+import { config } from "../config/config.js";
 
 const eserviceTemplatesRouter = (
   ctx: ZodiosContext,
@@ -696,6 +699,37 @@ const eserviceTemplatesRouter = (
         }
       }
     )
+    .post("/templates/:templateId/personalDataFlag", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        assertFeatureFlagEnabled(config, "featureFlagEservicePersonalData");
+
+        const updatedEServiceTemplate =
+          await eserviceTemplateService.updateEServiceTemplatePersonalDataFlagAfterPublication(
+            unsafeBrandId(req.params.templateId),
+            req.body.personalData,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            eserviceTemplateApi.EServiceTemplate.parse(
+              eserviceTemplateToApiEServiceTemplate(updatedEServiceTemplate)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateEServiceTemplatePersonalDataErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/creators", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 

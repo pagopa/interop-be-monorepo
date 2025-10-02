@@ -55,6 +55,7 @@ export function toOutboundEventV2(
       { type: "EServiceTemplateDeleted" },
       { type: "EServiceTemplateIntendedTargetUpdated" },
       { type: "EServiceTemplateDescriptionUpdated" },
+      { type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

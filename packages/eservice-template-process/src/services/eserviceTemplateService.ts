@@ -50,6 +50,7 @@ import {
   notValidEServiceTemplateVersionState,
   attributeDuplicatedInGroup,
   missingPersonalDataFlag,
+  eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
 } from "../model/domain/errors.js";
 import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
@@ -87,6 +88,7 @@ import {
   toCreateEventEServiceTemplateVersionDocumentUpdated,
   toCreateEventEServiceTemplateVersionDocumentDeleted,
   toCreateEventEServiceTemplateVersionInterfaceDeleted,
+  toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -1791,6 +1793,49 @@ export function eserviceTemplateServiceBuilder(
           );
 
       await repository.createEvent(event);
+    },
+    async updateEServiceTemplatePersonalDataFlagAfterPublication(
+      eserviceTemplateId: EServiceTemplateId,
+      personalData: boolean,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EServiceTemplate> {
+      logger.info(
+        `Setting personalData flag for EServiceTemplate ${eserviceTemplateId} to ${personalData}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      assertPublishedEServiceTemplate(eserviceTemplate.data);
+
+      if (eserviceTemplate.data.personalData !== undefined) {
+        throw eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce(
+          eserviceTemplateId
+        );
+      }
+
+      const updatedEServiceTemplate: EServiceTemplate = {
+        ...eserviceTemplate.data,
+        personalData,
+      };
+
+      const event =
+        toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication(
+          eserviceTemplate.metadata.version,
+          updatedEServiceTemplate,
+          correlationId
+        );
+
+      await repository.createEvent(event);
+
+      return updatedEServiceTemplate;
     },
   };
 }

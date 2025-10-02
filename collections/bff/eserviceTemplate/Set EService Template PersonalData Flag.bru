@@ -1,0 +1,25 @@
+meta {
+  name: Set EService Template PersonalData Flag
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{host-bff}}/templates/:eserviceTemplateId/personalDataFlag
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceTemplateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+  Content-Type: application/json
+}
+
+body:json {
+  "personalData": true
+}

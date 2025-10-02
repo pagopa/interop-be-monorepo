@@ -630,7 +630,6 @@ export function eserviceTemplateServiceBuilder(
 
       return { contentType, document: Buffer.from(stream) };
     },
-
     updateEServiceTemplateDocumentById: async (
       templateId: EServiceTemplateId,
       templateVersionId: EServiceTemplateVersionId,
@@ -655,6 +654,24 @@ export function eserviceTemplateServiceBuilder(
         );
 
       return { id, name, contentType, prettyName, checksum };
+    },
+    updateEServiceTemplatePersonalDataFlag: async (
+      { logger, headers }: WithLogger<BffAppContext>,
+      templateId: EServiceTemplateId,
+      personalDataSeed: bffApi.EServiceTemplatePersonalDataFlagUpdateSeed
+    ): Promise<void> => {
+      logger.info(
+        `Set personal flag for E-Service Template with id = ${templateId} to ${personalDataSeed.personalData}`
+      );
+      await eserviceTemplateClient.updateEServiceTemplatePersonalDataFlagAfterPublication(
+        personalDataSeed,
+        {
+          headers,
+          params: {
+            templateId,
+          },
+        }
+      );
     },
     deleteEServiceTemplateDocumentById: async (
       templateId: EServiceTemplateId,

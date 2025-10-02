@@ -36,6 +36,7 @@ describe("getEserviceTemplate", () => {
       name: mockApiTemplate.data.name,
       technology: mockApiTemplate.data.technology,
       isSignalHubEnabled: mockApiTemplate.data.isSignalHubEnabled,
+      personalData: mockApiTemplate.data.personalData,
     };
 
     const result = await eserviceTemplateService.getEServiceTemplateById(
