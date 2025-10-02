@@ -72,6 +72,15 @@ export const eventMailTemplateType = {
     "purpose-version-unsuspended-by-producer-mail",
   newPurposeVersionWaitingForApprovalMailTemplate:
     "new-purpose-version-waiting-for-approval-mail",
+  eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
+  eserviceTemplateVersionSuspendedToCreatorMailTemplate:
+    "eservice-template-version-suspended-to-creator-mail",
+  eserviceTemplateVersionPublishedMailTemplate:
+    "eservice-template-version-published-mail",
+  eserviceTemplateNameUpdatedMailTemplate:
+    "eservice-template-name-updated-mail",
+  eserviceTemplateVersionSuspendedToInstantiatorMailTemplate:
+    "eservice-template-version-suspended-to-instantiator-mail",
   consumerDelegationApprovedMailTemplate: "consumer-delegation-approved-mail",
   consumerDelegationRejectedMailTemplate: "consumer-delegation-rejected-mail",
   consumerDelegationRevokedMailTemplate: "consumer-delegation-revoked-mail",

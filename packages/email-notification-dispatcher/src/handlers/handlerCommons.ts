@@ -5,6 +5,8 @@ import {
   Attribute,
   AttributeId,
   EService,
+  EServiceTemplateV2,
+  EServiceTemplateVersionId,
   EServiceV2,
   NotificationConfig,
   NotificationType,
@@ -60,6 +62,16 @@ export type TenantHandlerParams = HandlerCommonParams & {
 
 export type DelegationHandlerParams = HandlerCommonParams & {
   delegationV2Msg?: DelegationV2;
+};
+
+export type EserviceTemplateHandlerParams = HandlerCommonParams & {
+  eserviceTemplateV2Msg?: EServiceTemplateV2;
+  eserviceTemplateVersionId: EServiceTemplateVersionId;
+};
+
+export type EserviceTemplateNameUpdatedHandlerParams = HandlerCommonParams & {
+  eserviceTemplateV2Msg?: EServiceTemplateV2;
+  oldName: string;
 };
 
 export type ProducerKeychainKeyHandlerParams = HandlerCommonParams & {
