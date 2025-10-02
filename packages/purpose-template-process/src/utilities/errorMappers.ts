@@ -43,8 +43,8 @@ export const publishPurposeTemplateErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "missingRiskAnalysisFormTemplate",
-      "purposeTemplateNotInExpectedState",
+      "purposeTemplateNotInExpectedStates",
+      "purposeTemplateRiskAnalysisFormNotFound",
       "riskAnalysisTemplateValidationFailed",
       () => HTTP_STATUS_BAD_REQUEST
     )

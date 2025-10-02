@@ -32,8 +32,8 @@ import {
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
 import {
-  missingRiskAnalysisFormTemplate,
-  purposeTemplateNotInExpectedState,
+  purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
@@ -137,7 +137,7 @@ describe("publishPurposeTemplate", () => {
     }).rejects.toThrowError(tenantNotAllowed(otherTenantId));
   });
 
-  it("should throw missingRiskAnalysisFormTemplate if the purpose template has no risk analysis template", async () => {
+  it("should throw purposeTemplateRiskAnalysisFormNotFound if the purpose template has no risk analysis template", async () => {
     const purposeTemplateWithoutRiskAnalysis: PurposeTemplate = {
       ...purposeTemplate,
       purposeRiskAnalysisForm: undefined,
@@ -151,7 +151,9 @@ describe("publishPurposeTemplate", () => {
         getMockContext({ authData: getMockAuthData(creatorId) })
       );
     }).rejects.toThrowError(
-      missingRiskAnalysisFormTemplate(purposeTemplateWithoutRiskAnalysis.id)
+      purposeTemplateRiskAnalysisFormNotFound(
+        purposeTemplateWithoutRiskAnalysis.id
+      )
     );
   });
 
@@ -203,16 +205,18 @@ describe("publishPurposeTemplate", () => {
       state: purposeTemplateState.active,
     },
     {
-      error: purposeTemplateNotInExpectedState(
+      error: purposeTemplateNotInExpectedStates(
         purposeTemplate.id,
-        purposeTemplateState.archived
+        purposeTemplateState.archived,
+        [purposeTemplateState.draft]
       ),
       state: purposeTemplateState.archived,
     },
     {
-      error: purposeTemplateNotInExpectedState(
+      error: purposeTemplateNotInExpectedStates(
         purposeTemplate.id,
-        purposeTemplateState.suspended
+        purposeTemplateState.suspended,
+        [purposeTemplateState.draft]
       ),
       state: purposeTemplateState.suspended,
     },

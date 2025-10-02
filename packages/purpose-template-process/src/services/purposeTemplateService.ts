@@ -22,8 +22,8 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
-  missingRiskAnalysisFormTemplate,
   purposeTemplateNotFound,
+  purposeTemplateRiskAnalysisFormNotFound,
   ruleSetNotFoundError,
 } from "../model/domain/errors.js";
 import {
@@ -35,8 +35,8 @@ import {
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
 import {
+  assertActivatableState,
   assertConsistentFreeOfCharge,
-  assertPublishableState,
   assertPurposeTemplateTitleIsNotDuplicated,
   assertRequesterIsCreator,
   assertRequesterCanRetrievePurposeTemplate,
@@ -193,11 +193,11 @@ export function purposeTemplateServiceBuilder(
         purposeTemplate.data.purposeRiskAnalysisForm;
 
       if (!purposeRiskAnalysisForm) {
-        throw missingRiskAnalysisFormTemplate(purposeTemplate.data.id);
+        throw purposeTemplateRiskAnalysisFormNotFound(id);
       }
 
       assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
-      assertPublishableState(purposeTemplate.data);
+      assertActivatableState(purposeTemplate.data, purposeTemplateState.draft);
 
       validateRiskAnalysisTemplateOrThrow({
         riskAnalysisFormTemplate:
