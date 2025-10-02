@@ -1,6 +1,8 @@
 import {
   Agreement,
   AgreementV2,
+  Attribute,
+  AttributeId,
   EService,
   EServiceV2,
   NotificationConfig,
@@ -8,12 +10,17 @@ import {
   Tenant,
   TenantId,
   tenantMailKind,
+  TenantV2,
 } from "pagopa-interop-models";
 import { getLatestTenantMailOfKind, Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { UserServiceSQL } from "../services/userServiceSQL.js";
 import { HandlerCommonParams } from "../models/handlerParams.js";
-import { eServiceNotFound } from "../models/errors.js";
+import {
+  attributeNotFound,
+  certifierTenantNotFound,
+  eServiceNotFound,
+} from "../models/errors.js";
 
 export type AgreementHandlerParams = HandlerCommonParams & {
   agreementV2Msg?: AgreementV2;
@@ -21,6 +28,11 @@ export type AgreementHandlerParams = HandlerCommonParams & {
 
 export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
+};
+
+export type TenantHandlerParams = HandlerCommonParams & {
+  tenantV2Msg?: TenantV2;
+  attributeId: AttributeId;
 };
 
 type EmailNotificationRecipient = { type: "Tenant" | "User"; address: string };
@@ -54,6 +66,28 @@ export async function retrieveAgreementEservice(
   }
 
   return eservice;
+}
+
+export async function retrieveAttribute(
+  attributeId: AttributeId,
+  readModelService: ReadModelServiceSQL
+): Promise<Attribute> {
+  const attribute = await readModelService.getAttributeById(attributeId);
+  if (!attribute) {
+    throw attributeNotFound(attributeId);
+  }
+  return attribute;
+}
+
+export async function retrieveTenantByCertifierId(
+  certifierId: string,
+  readModelService: ReadModelServiceSQL
+): Promise<Tenant> {
+  const tenant = await readModelService.getTenantByCertifierId(certifierId);
+  if (!tenant) {
+    throw certifierTenantNotFound(certifierId);
+  }
+  return tenant;
 }
 
 const getTenantContactEmailIfEnabled = async (
