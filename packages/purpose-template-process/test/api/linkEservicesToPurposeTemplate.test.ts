@@ -19,7 +19,7 @@ import {
   associationEServicesForPurposeTemplateFailed,
   tooManyEServicesForPurposeTemplate,
   purposeTemplateNotFound,
-  purposeTemplateNotInValidState,
+  purposeTemplateNotInExpectedStates,
 } from "../../src/model/domain/errors.js";
 import { eserviceNotFound } from "../../src/errors/purposeTemplateValidationErrors.js";
 
@@ -172,17 +172,19 @@ describe("API POST /purposeTemplates/:id/linkEservices", () => {
       expectedStatus: 404,
     },
     {
-      error: purposeTemplateNotInValidState(purposeTemplateState.suspended, [
-        purposeTemplateState.draft,
-        purposeTemplateState.active,
-      ]),
+      error: purposeTemplateNotInExpectedStates(
+        purposeTemplateId,
+        purposeTemplateState.suspended,
+        [purposeTemplateState.draft, purposeTemplateState.active]
+      ),
       expectedStatus: 400,
     },
     {
-      error: purposeTemplateNotInValidState(purposeTemplateState.archived, [
-        purposeTemplateState.draft,
-        purposeTemplateState.active,
-      ]),
+      error: purposeTemplateNotInExpectedStates(
+        purposeTemplateId,
+        purposeTemplateState.archived,
+        [purposeTemplateState.draft, purposeTemplateState.active]
+      ),
       expectedStatus: 400,
     },
     {

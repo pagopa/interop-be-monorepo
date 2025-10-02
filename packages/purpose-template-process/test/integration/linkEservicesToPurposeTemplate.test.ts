@@ -31,7 +31,7 @@ import {
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
   purposeTemplateNotFound,
   tooManyEServicesForPurposeTemplate,
-  purposeTemplateNotInValidState,
+  purposeTemplateNotInExpectedStates,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -356,10 +356,11 @@ describe("linkEservicesToPurposeTemplate", () => {
         })
       )
     ).rejects.toThrowError(
-      purposeTemplateNotInValidState(purposeTemplateState.suspended, [
-        purposeTemplateState.draft,
-        purposeTemplateState.active,
-      ])
+      purposeTemplateNotInExpectedStates(
+        suspendedPurposeTemplate.id,
+        suspendedPurposeTemplate.state,
+        [purposeTemplateState.draft, purposeTemplateState.active]
+      )
     );
   });
 
@@ -383,10 +384,11 @@ describe("linkEservicesToPurposeTemplate", () => {
         })
       )
     ).rejects.toThrowError(
-      purposeTemplateNotInValidState(purposeTemplateState.archived, [
-        purposeTemplateState.draft,
-        purposeTemplateState.active,
-      ])
+      purposeTemplateNotInExpectedStates(
+        archivedPurposeTemplate.id,
+        archivedPurposeTemplate.state,
+        [purposeTemplateState.draft, purposeTemplateState.active]
+      )
     );
   });
 

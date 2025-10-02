@@ -184,7 +184,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertPurposeTemplateStateIsValid(purposeTemplate.data.state, [
+      assertPurposeTemplateStateIsValid(purposeTemplate.data, [
         purposeTemplateState.draft,
         purposeTemplateState.active,
       ]);
