@@ -261,15 +261,12 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertPurposeTemplateStateIsValid(purposeTemplate.data.state, [
+      assertPurposeTemplateStateIsValid(purposeTemplate.data, [
         purposeTemplateState.draft,
         purposeTemplateState.active,
       ]);
 
-      assertRequesterPurposeTemplateCreator(
-        purposeTemplate.data.creatorId,
-        authData
-      );
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
 
       const validationResult = await validateEservicesDisassociations(
         eserviceIds,

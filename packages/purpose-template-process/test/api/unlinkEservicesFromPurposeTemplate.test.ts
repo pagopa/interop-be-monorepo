@@ -6,6 +6,7 @@ import {
   EServiceId,
   generateId,
   PurposeTemplateId,
+  purposeTemplateState,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -15,6 +16,8 @@ import {
   tooManyEServicesForPurposeTemplate,
   disassociationEServicesFromPurposeTemplateFailed,
   purposeTemplateNotFound,
+  purposeTemplateNotInExpectedStates,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { eserviceNotAssociatedError } from "../../src/errors/purposeTemplateValidationErrors.js";
 
@@ -148,6 +151,26 @@ describe("API POST /purposeTemplates/:id/unlinkEservices", () => {
     {
       error: purposeTemplateNotFound(purposeTemplateId),
       expectedStatus: 404,
+    },
+    {
+      error: purposeTemplateNotInExpectedStates(
+        purposeTemplateId,
+        purposeTemplateState.suspended,
+        [purposeTemplateState.draft, purposeTemplateState.active]
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: purposeTemplateNotInExpectedStates(
+        purposeTemplateId,
+        purposeTemplateState.archived,
+        [purposeTemplateState.draft, purposeTemplateState.active]
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: tenantNotAllowed(generateId()),
+      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",

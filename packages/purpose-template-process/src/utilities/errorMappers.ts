@@ -55,7 +55,7 @@ export const unlinkEServicesFromPurposeTemplateErrorMapper = (
     .with(
       "disassociationEServicesFromPurposeTemplateFailed",
       "tooManyEServicesForPurposeTemplate",
-      "purposeTemplateNotInValidState",
+      "purposeTemplateNotInExpectedStates",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -63,4 +63,5 @@ export const unlinkEServicesFromPurposeTemplateErrorMapper = (
       "associationBetweenEServiceAndPurposeTemplateDoesNotExist",
       () => HTTP_STATUS_CONFLICT
     )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
