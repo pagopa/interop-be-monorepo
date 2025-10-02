@@ -33,7 +33,7 @@ import {
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
-const ANNOTATION_DOCUMENTS_LIMIT = 2;
+export const ANNOTATION_DOCUMENTS_LIMIT = 2;
 
 const isRequesterCreator = (
   creatorId: TenantId,
@@ -92,7 +92,7 @@ export const assertDocumentsLimitsNotReached = (
   answerId: string
 ): void => {
   const totalDocs = docs?.length || 0;
-  if (totalDocs > ANNOTATION_DOCUMENTS_LIMIT) {
+  if (totalDocs === ANNOTATION_DOCUMENTS_LIMIT) {
     throw annotationDocumentLimitExceeded(answerId);
   }
 };
@@ -108,7 +108,7 @@ export const assertAnnotationDocumentIsUnique = (
     }
 
     if (doc?.checksum === newChecksum) {
-      throw conflictDuplicatedDocument(answer.id, newPrettyName);
+      throw conflictDuplicatedDocument(answer.id, newChecksum);
     }
   });
 
