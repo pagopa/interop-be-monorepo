@@ -20022,6 +20022,11 @@ paths:
           description: Category to filter notifications
           schema:
             type: string
+            enum:
+              - Subscribers
+              - Providers
+              - Delegations
+              - AttributesAndKeys
         - in: query
           name: offset
           required: true

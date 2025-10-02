@@ -96,12 +96,9 @@ export const Category = z.enum([
   "Delegations",
   "AttributesAndKeys",
 ]);
-export type NotificationCategory = z.infer<typeof Category>;
+export type Category = z.infer<typeof Category>;
 
-export const notificationTypeToCategory: Record<
-  NotificationType,
-  NotificationCategory
-> = {
+export const notificationTypeToCategory: Record<NotificationType, Category> = {
   agreementManagementToProducer: "Providers",
   agreementSuspendedUnsuspendedToProducer: "Providers",
   agreementSuspendedUnsuspendedToConsumer: "Subscribers",
@@ -123,13 +120,11 @@ export const notificationTypeToCategory: Record<
   certifiedVerifiedAttributeAssignedRevokedToAssignee: "AttributesAndKeys",
 };
 
-export const categoryToNotificationTypes: Record<
-  NotificationCategory,
-  NotificationType[]
-> = Object.entries(notificationTypeToCategory).reduce(
-  (acc, [type, category]) => ({
-    ...acc,
-    [category]: [...(acc[category] || []), type as NotificationType],
-  }),
-  {} as Record<NotificationCategory, NotificationType[]>
-);
+export const categoryToNotificationTypes: Record<Category, NotificationType[]> =
+  Object.entries(notificationTypeToCategory).reduce(
+    (acc, [type, category]) => ({
+      ...acc,
+      [category]: [...(acc[category] || []), type as NotificationType],
+    }),
+    {} as Record<Category, NotificationType[]>
+  );

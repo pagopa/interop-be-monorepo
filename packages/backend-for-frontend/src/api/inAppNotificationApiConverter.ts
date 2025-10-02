@@ -59,20 +59,15 @@ export function toBffApiNotifications(
 ): bffApi.Notifications {
   return {
     totalCount: notifications.totalCount,
-    results: notifications.results.map((notification) => {
-      const notificationType = NotificationType.parse(
-        notification.notificationType
-      );
-      return {
-        id: notification.id,
-        tenantId: notification.tenantId,
-        userId: notification.userId,
-        body: notification.body,
-        deepLink: notificationTypeToUiSection[notificationType],
-        category: notificationTypeToCategory[notificationType],
-        createdAt: notification.createdAt,
-        readAt: notification.readAt,
-      };
-    }),
+    results: notifications.results.map((notification) => ({
+      id: notification.id,
+      tenantId: notification.tenantId,
+      userId: notification.userId,
+      body: notification.body,
+      deepLink: notificationTypeToUiSection[notification.notificationType],
+      category: notificationTypeToCategory[notification.notificationType],
+      createdAt: notification.createdAt,
+      readAt: notification.readAt,
+    })),
   };
 }

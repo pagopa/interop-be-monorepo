@@ -63,7 +63,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
+              $ref: "#/components/schemas/NotificationType"
             default: []
           explode: false
       responses:
@@ -394,7 +394,7 @@ components:
           type: string
           description: Content of the notification
         notificationType:
-          type: string
+          $ref: "#/components/schemas/NotificationType"
           description: Type of the notification
         entityId:
           type: string
@@ -417,7 +417,28 @@ components:
         - notificationType
         - entityId
         - createdAt
-
+    NotificationType:
+      type: string
+      enum:
+        - agreementSuspendedUnsuspendedToProducer
+        - agreementManagementToProducer
+        - clientAddedRemovedToProducer
+        - purposeStatusChangedToProducer
+        - templateStatusChangedToProducer
+        - agreementSuspendedUnsuspendedToConsumer
+        - eserviceStateChangedToConsumer
+        - agreementActivatedRejectedToConsumer
+        - purposeActivatedRejectedToConsumer
+        - purposeSuspendedUnsuspendedToConsumer
+        - newEserviceTemplateVersionToInstantiator
+        - eserviceTemplateNameChangedToInstantiator
+        - eserviceTemplateStatusChangedToInstantiator
+        - delegationApprovedRejectedToDelegator
+        - eserviceNewVersionSubmittedToDelegator
+        - eserviceNewVersionApprovedRejectedToDelegate
+        - delegationSubmittedRevokedToDelegate
+        - certifiedVerifiedAttributeAssignedRevokedToAssignee
+        - clientKeyAddedDeletedToClientUsers
     NotificationsByType:
       type: object
       additionalProperties: false

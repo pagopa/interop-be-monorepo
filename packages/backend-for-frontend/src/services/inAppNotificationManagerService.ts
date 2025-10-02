@@ -15,7 +15,7 @@ export function inAppNotificationServiceBuilder(
   return {
     getNotifications: (
       q: string | undefined,
-      category: string | undefined,
+      category: Category | undefined,
       offset: number,
       limit: number,
       { headers, logger }: WithLogger<BffAppContext>
@@ -23,7 +23,7 @@ export function inAppNotificationServiceBuilder(
       assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
       logger.info("Getting notifications");
       const notificationTypes = category
-        ? categoryToNotificationTypes[Category.parse(category)]
+        ? categoryToNotificationTypes[category]
         : [];
 
       return inAppNotificationManagerClient.getNotifications({
