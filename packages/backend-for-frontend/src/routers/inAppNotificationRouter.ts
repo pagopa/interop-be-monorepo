@@ -10,7 +10,7 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { fromBffAppContext } from "../utilities/context.js";
 import { InAppNotificationService } from "../services/inAppNotificationManagerService.js";
 import {
-  toBffApiNotifications,
+  toBffApiNotification,
   toBffApiNotificationsCountBySection,
 } from "../api/inAppNotificationApiConverter.js";
 import { makeApiProblem } from "../model/errors.js";
@@ -37,11 +37,16 @@ const inAppNotificationRouter = (
           limit,
           ctx
         );
-        return res
-          .status(200)
-          .send(
-            bffApi.Notifications.parse(toBffApiNotifications(notifications))
-          );
+        return res.status(200).send(
+          bffApi.Notifications.parse({
+            pagination: {
+              offset,
+              limit,
+              totalCount: notifications.totalCount,
+            },
+            results: notifications.results.map(toBffApiNotification),
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
