@@ -553,7 +553,7 @@ async function innerCreateEService(
       .with(true, () => seed.isClientAccessDelegable)
       .exhaustive(),
     templateId: template?.id,
-    ...(config.featureFlagEservicePersonalData
+    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: seed.personalData }
       : {}),
   };
@@ -1632,7 +1632,7 @@ export function catalogServiceBuilder(
       }
 
       if (
-        config.featureFlagEservicePersonalData &&
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
         eservice.data.personalData === undefined
       ) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
@@ -2721,7 +2721,7 @@ export function catalogServiceBuilder(
       }
 
       if (
-        config.featureFlagEservicePersonalData &&
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
         eservice.data.personalData === undefined
       ) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
@@ -4066,7 +4066,7 @@ async function updateDraftEService(
       .with(false, () => false)
       .with(true, () => updatedIsClientAccessDelegable)
       .exhaustive(),
-    ...(config.featureFlagEservicePersonalData
+    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: updatedPersonalData }
       : {}),
   };
