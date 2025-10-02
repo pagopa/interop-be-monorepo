@@ -273,7 +273,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsCreator(purposeTemplate.data, authData);
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
       assertPurposeTemplateIsDraft(purposeTemplate.data);
 
       await deleteAllRiskAnalysisTemplateAnswerAnnotationDocuments({
