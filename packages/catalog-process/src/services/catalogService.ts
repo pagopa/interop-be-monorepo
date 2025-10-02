@@ -550,7 +550,7 @@ async function innerCreateEService(
       .with(true, () => seed.isClientAccessDelegable)
       .exhaustive(),
     templateId: template?.id,
-    ...(config.featureFlagEservicePersonalData
+    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: seed.personalData }
       : {}),
   };
@@ -4007,7 +4007,7 @@ async function updateDraftEService(
       .with(false, () => false)
       .with(true, () => updatedIsClientAccessDelegable)
       .exhaustive(),
-    ...(config.featureFlagEservicePersonalData
+    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: updatedPersonalData }
       : {}),
   };
