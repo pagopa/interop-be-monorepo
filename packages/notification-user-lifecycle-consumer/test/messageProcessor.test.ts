@@ -168,7 +168,7 @@ describe("processUserEvent", () => {
       name: "John",
       familyName: "Doe",
       email: "john.doe@example.com",
-      productRole: "admin",
+      productRoles: ["admin"],
     });
 
     expect(
@@ -210,7 +210,7 @@ describe("processUserEvent", () => {
       name: "John",
       familyName: "Doe",
       email: "john.doe@example.com",
-      productRole: "admin",
+      productRoles: ["admin"],
     });
   });
 

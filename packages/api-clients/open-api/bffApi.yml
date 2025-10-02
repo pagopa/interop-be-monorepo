@@ -25805,12 +25805,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Notification"
-        totalCount:
-          type: integer
-          format: int32
+        pagination:
+          $ref: "#/components/schemas/Pagination"
       required:
         - results
-        - totalCount
+        - pagination
     Notification:
       type: object
       additionalProperties: false
