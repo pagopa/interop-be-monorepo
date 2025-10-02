@@ -206,6 +206,7 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
         expect.any(Array),
         "purposeActivatedRejectedToConsumer",
         expect.any(Object),
+        expect.any(Object),
         expect.any(Object)
       );
     }
