@@ -297,28 +297,21 @@ export function purposeTemplateServiceBuilder(
         );
 
       const results = purposeTemplateEServiceDescriptorsResponse.results.map(
-        (purposeTemplateEServiceDescriptor) => {
-          const compactEService = compactEServicesMap.get(
-            purposeTemplateEServiceDescriptor.eserviceId
-          );
+        (eserviceDescriptor) => {
+          const { eserviceId, descriptorId } = eserviceDescriptor;
+
+          const compactEService = compactEServicesMap.get(eserviceId);
           if (!compactEService) {
-            throw eServiceNotFound(
-              purposeTemplateEServiceDescriptor.eserviceId
-            );
+            throw eServiceNotFound(eserviceId);
           }
 
-          const compactDescriptor = compactDescriptorsMap.get(
-            purposeTemplateEServiceDescriptor.descriptorId
-          );
+          const compactDescriptor = compactDescriptorsMap.get(descriptorId);
           if (!compactDescriptor) {
-            throw eserviceDescriptorNotFound(
-              purposeTemplateEServiceDescriptor.eserviceId,
-              purposeTemplateEServiceDescriptor.descriptorId
-            );
+            throw eserviceDescriptorNotFound(eserviceId, descriptorId);
           }
 
           return toBffEServiceDescriptorsPurposeTemplate(
-            purposeTemplateEServiceDescriptor,
+            eserviceDescriptor,
             compactEService,
             compactDescriptor
           );
