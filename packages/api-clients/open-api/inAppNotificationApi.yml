@@ -262,6 +262,36 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /notifications/markAsReadByEntityId/{entityId}:
+    post:
+      tags:
+        - notification
+      summary: Mark all notifications as read by entity id
+      description: Mark all notifications as read by entity id
+      operationId: markNotificationsAsReadByEntityId
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - in: path
+          name: entityId
+          required: true
+          description: ID of Entity
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Notifications marked as read
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /notifications/{notificationId}:
     delete:
       tags:
