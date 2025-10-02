@@ -28,9 +28,9 @@ import {
 } from "pagopa-interop-commons";
 import {
   purposeTemplateNotFound,
+  purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  riskAnalysisTemplateNotFound,
   ruleSetNotFoundError,
 } from "../model/domain/errors.js";
 import {
@@ -318,7 +318,7 @@ export function purposeTemplateServiceBuilder(
       const purposeRiskAnalysisTemplateForm =
         purposeTemplate.data.purposeRiskAnalysisForm;
       if (!purposeRiskAnalysisTemplateForm) {
-        throw riskAnalysisTemplateNotFound(purposeTemplateId);
+        throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId);
       }
 
       assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
