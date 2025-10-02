@@ -5,6 +5,8 @@ import {
   Attribute,
   AttributeId,
   EService,
+  EServiceTemplateV2,
+  EServiceTemplateVersionId,
   EServiceV2,
   NotificationConfig,
   NotificationType,
@@ -38,6 +40,16 @@ export type TenantHandlerParams = HandlerCommonParams & {
 
 export type DelegationHandlerParams = HandlerCommonParams & {
   delegationV2Msg?: DelegationV2;
+};
+
+export type EserviceTemplateHandlerParams = HandlerCommonParams & {
+  eserviceTemplateV2Msg?: EServiceTemplateV2;
+  eserviceTemplateVersionId: EServiceTemplateVersionId;
+};
+
+export type EserviceTemplateNameUpdatedHandlerParams = HandlerCommonParams & {
+  eserviceTemplateV2Msg?: EServiceTemplateV2;
+  oldName: string;
 };
 
 type EmailNotificationRecipient = { type: "Tenant" | "User"; address: string };
@@ -147,17 +159,17 @@ export const getRecipientsForTenants = async ({
 
   const tenantContactEmails = includeTenantContactEmails
     ? (
-        await Promise.all(
-          tenants.map(
-            async (tenant) =>
-              await getTenantContactEmailIfEnabled(
-                tenant,
-                readModelService,
-                logger
-              )
-          )
+      await Promise.all(
+        tenants.map(
+          async (tenant) =>
+            await getTenantContactEmailIfEnabled(
+              tenant,
+              readModelService,
+              logger
+            )
         )
-      ).filter((email): email is string => email !== undefined)
+      )
+    ).filter((email): email is string => email !== undefined)
     : [];
 
   return [
