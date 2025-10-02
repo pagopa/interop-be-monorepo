@@ -10,18 +10,18 @@ import request from "supertest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateId,
-  operationForbidden,
   PurposeTemplateId,
   purposeTemplateState,
 } from "pagopa-interop-models";
 import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiConverter.js";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
-  missingRiskAnalysisFormTemplate,
   purposeTemplateNotFound,
-  purposeTemplateNotInExpectedState,
+  purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposeTemplates/{id}/publish", () => {
@@ -75,18 +75,19 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
 
   it.each([
     {
-      error: missingRiskAnalysisFormTemplate(purposeTemplate.id),
+      error: purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id),
       expectedStatus: 400,
     },
     { error: riskAnalysisTemplateValidationFailed([]), expectedStatus: 400 },
     {
-      error: purposeTemplateNotInExpectedState(
+      error: purposeTemplateNotInExpectedStates(
         generateId(),
-        purposeTemplateState.suspended
+        purposeTemplateState.suspended,
+        [purposeTemplateState.draft]
       ),
       expectedStatus: 400,
     },
-    { error: operationForbidden, expectedStatus: 403 },
+    { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
     {
       error: purposeTemplateNotFound(generateId()),
       expectedStatus: 404,

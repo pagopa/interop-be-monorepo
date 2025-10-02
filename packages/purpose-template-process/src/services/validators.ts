@@ -3,6 +3,7 @@ import {
   purposeTemplateState,
   PurposeTemplateState,
   RiskAnalysisFormTemplate,
+  TenantId,
   TenantKind,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
@@ -18,12 +19,30 @@ import { match } from "ts-pattern";
 import {
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
-  purposeTemplateNotInExpectedState,
+  purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+
+const isRequesterCreator = (
+  creatorId: TenantId,
+  authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
+): boolean => authData.organizationId === creatorId;
+
+const isPurposeTemplateActive = (
+  currentPurposeTemplateState: PurposeTemplateState
+): boolean => currentPurposeTemplateState === purposeTemplateState.active;
+
+const isPurposeTemplateArchived = (
+  currentPurposeTemplateState: PurposeTemplateState
+): boolean => currentPurposeTemplateState === purposeTemplateState.archived;
+
+const isPurposeTemplateDraft = (
+  currentPurposeTemplateState: PurposeTemplateState
+): boolean => currentPurposeTemplateState === purposeTemplateState.draft;
 
 export const assertConsistentFreeOfCharge = (
   isFreeOfCharge: boolean,
@@ -92,22 +111,47 @@ export function validateRiskAnalysisTemplateOrThrow({
     .exhaustive();
 }
 
+export const assertPurposeTemplateIsDraft = (
+  purposeTemplate: PurposeTemplate
+): void => {
+  if (!isPurposeTemplateDraft(purposeTemplate.state)) {
+    throw purposeTemplateNotInExpectedStates(
+      purposeTemplate.id,
+      purposeTemplate.state,
+      [purposeTemplateState.draft]
+    );
+  }
+};
+
 export const assertRequesterIsCreator = (
-  creatorId: string,
+  creatorId: TenantId,
   authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">
 ): void => {
-  if (authData.organizationId !== creatorId) {
+  if (!isRequesterCreator(creatorId, authData)) {
     throw tenantNotAllowed(authData.organizationId);
   }
 };
 
-export const assertActivatableState = (
+export const assertRequesterCanRetrievePurposeTemplate = async (
   purposeTemplate: PurposeTemplate,
-  allowedInitialState: PurposeTemplateState
+  authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
+): Promise<void> => {
+  if (
+    !isPurposeTemplateActive(purposeTemplate.state) &&
+    !isRequesterCreator(purposeTemplate.creatorId, authData)
+  ) {
+    throw tenantNotAllowed(authData.organizationId);
+  }
+};
+
+export const assertPurposeTemplateStateIsValid = (
+  purposeTemplate: PurposeTemplate,
+  expectedInitialStates: PurposeTemplateState[],
+  conflictState?: PurposeTemplateState
 ): void => {
   match(purposeTemplate)
     .when(
-      (p) => p.state === purposeTemplateState.active,
+      (p) => p.state === conflictState,
       () => {
         throw purposeTemplateStateConflict(
           purposeTemplate.id,
@@ -116,25 +160,55 @@ export const assertActivatableState = (
       }
     )
     .when(
-      (p) => p.state === allowedInitialState,
-      () => undefined
-    )
-    .otherwise(() => {
-      throw purposeTemplateNotInExpectedState(
-        purposeTemplate.id,
-        purposeTemplate.state
-      );
-    });
+      (p) => !expectedInitialStates.includes(p.state),
+      () => {
+        throw purposeTemplateNotInExpectedStates(
+          purposeTemplate.id,
+          purposeTemplate.state,
+          expectedInitialStates
+        );
+      }
+    );
 };
 
-export const assertRequesterCanRetrievePurposeTemplate = async (
+export const assertActivatableState = (
   purposeTemplate: PurposeTemplate,
-  authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
-): Promise<void> => {
-  if (
-    purposeTemplate.state !== purposeTemplateState.active &&
-    purposeTemplate.creatorId !== authData.organizationId
-  ) {
-    throw tenantNotAllowed(authData.organizationId);
-  }
+  expectedInitialState: PurposeTemplateState
+): void => {
+  assertPurposeTemplateStateIsValid(
+    purposeTemplate,
+    [expectedInitialState],
+    purposeTemplateState.active
+  );
 };
+
+export const assertSuspendableState = (
+  purposeTemplate: PurposeTemplate
+): void => {
+  assertPurposeTemplateStateIsValid(
+    purposeTemplate,
+    [purposeTemplateState.active],
+    purposeTemplateState.suspended
+  );
+};
+
+export const archivableInitialStates = Object.values(
+  purposeTemplateState
+).filter((state) => !isPurposeTemplateArchived(state));
+export const assertArchivableState = (
+  purposeTemplate: PurposeTemplate
+): void => {
+  assertPurposeTemplateStateIsValid(
+    purposeTemplate,
+    archivableInitialStates,
+    purposeTemplateState.archived
+  );
+};
+
+export function assertPurposeTemplateHasRiskAnalysisForm(
+  purposeTemplate: PurposeTemplate
+): void {
+  if (!purposeTemplate.purposeRiskAnalysisForm) {
+    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
+  }
+}
