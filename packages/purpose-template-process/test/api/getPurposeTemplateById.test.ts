@@ -84,7 +84,7 @@ describe("API GET /purposeTemplates/{id}", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid purpose template id", async () => {
+  it("Should return 400 if an invalid purpose template id is passed", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as PurposeTemplateId);
     expect(res.status).toBe(400);

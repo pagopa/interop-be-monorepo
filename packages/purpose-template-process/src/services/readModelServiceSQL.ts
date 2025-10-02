@@ -5,6 +5,7 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeTemplateState,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   Tenant,
   TenantId,
   TenantKind,
@@ -16,6 +17,7 @@ import {
   PurposeTemplateReadModelService,
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
+  toRiskAnalysisTemplateAnswerAnnotationDocument,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
@@ -273,6 +275,23 @@ export function readModelServiceBuilderSQL({
     },
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
+    },
+    async getRiskAnalysisTemplateAnswerAnnotationDocsByPurposeTemplateId(
+      purposeTemplateId: PurposeTemplateId
+    ): Promise<RiskAnalysisTemplateAnswerAnnotationDocument[]> {
+      const queryResult = await readModelDB
+        .select()
+        .from(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+        )
+        .where(
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+            purposeTemplateId
+          )
+        );
+
+      return queryResult.map(toRiskAnalysisTemplateAnswerAnnotationDocument);
     },
   };
 }

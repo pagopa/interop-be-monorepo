@@ -117,6 +117,26 @@ const purposeTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .delete("/purposeTemplates/:purposeTemplateId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await purposeTemplateService.deletePurposeTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error deleting purpose template ${req.params.purposeTemplateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return purposeTemplateRouter;
