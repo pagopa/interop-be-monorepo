@@ -12,7 +12,11 @@ import {
   tenantMailKind,
   TenantV2,
 } from "pagopa-interop-models";
-import { getLatestTenantMailOfKind, Logger } from "pagopa-interop-commons";
+import {
+  getLatestTenantMailOfKind,
+  Logger,
+  notificationAdmittedRoles,
+} from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { UserServiceSQL } from "../services/userServiceSQL.js";
 import { HandlerCommonParams } from "../models/handlerParams.js";
@@ -136,9 +140,22 @@ export const getRecipientsForTenants = async ({
       notificationType
     );
 
-  const userEmails: string[] = (
-    await userService.readUsers(tenantUsers.map((u) => u.userId))
-  ).map((u) => u.email);
+  const usersWithEmailsAndRoles = await userService.readUsers(
+    tenantUsers.map((u) => u.userId)
+  );
+  const userEmails: string[] = tenantUsers.flatMap(({ userId }) => {
+    const user = usersWithEmailsAndRoles.find((u) => u.userId === userId);
+    if (!user) {
+      logger.warn(
+        `Could not retrieve email and roles for user ${userId}, skipping notification`
+      );
+      return [];
+    }
+    const hasAdmittedRole = user.roles.some(
+      (r) => notificationAdmittedRoles[notificationType][r]
+    );
+    return hasAdmittedRole ? [user.email] : [];
+  });
 
   const tenantContactEmails = includeTenantContactEmails
     ? (

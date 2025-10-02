@@ -1,7 +1,7 @@
 import { fileURLToPath } from "url";
 import fs from "fs";
 import path from "path";
-import { buildHTMLTemplateService } from "pagopa-interop-commons";
+import { authRole, buildHTMLTemplateService } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -13,7 +13,6 @@ import {
   TenantId,
   User,
   UserId,
-  UserRole,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
@@ -136,7 +135,9 @@ export const getMockUser = (tenantId?: TenantId, userId?: UserId): User => ({
   email: generateMock(z.string().email()),
   familyName: generateMock(z.string()),
   name: generateMock(z.string()),
-  productRole: generateMock(UserRole),
+  // For notification handler tests, we only generate admin users, so that they can receive all notifications.
+  // Role restrictions are tested in getRecipientsForTenants.test.ts
+  productRole: authRole.ADMIN_ROLE,
   tenantId: tenantId ?? generateId<TenantId>(),
   id: userId ?? generateId<UserId>(),
 });
