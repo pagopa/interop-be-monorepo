@@ -11,7 +11,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   purposeTemplateNotFound,
-  purposeTemplateNotInExpectedState,
+  purposeTemplateNotInExpectedStates,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -54,7 +54,7 @@ describe("API /purposeTemplates/{id}", () => {
 
   it.each([
     {
-      error: purposeTemplateNotInExpectedState(
+      error: purposeTemplateNotInExpectedStates(
         purposeTemplateId,
         purposeTemplateState.active,
         [purposeTemplateState.draft]

@@ -29,7 +29,7 @@ import {
 } from "../integrationUtils.js";
 import {
   purposeTemplateNotFound,
-  purposeTemplateNotInExpectedState,
+  purposeTemplateNotInExpectedStates,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -194,7 +194,7 @@ describe("deletePurposeTemplate", () => {
           })
         )
       ).rejects.toThrowError(
-        purposeTemplateNotInExpectedState(
+        purposeTemplateNotInExpectedStates(
           purposeTemplateNotInWrongState.id,
           purposeTemplateNotInWrongState.state,
           [purposeTemplateState.draft]

@@ -19,11 +19,12 @@ export const errorCodes = {
   riskAnalysisTemplateValidationFailed: "0004",
   ruleSetNotFoundError: "0005",
   tenantNotAllowed: "0006",
-  purposeTemplateNotInExpectedState: "0007",
-  riskAnalysisTemplateNotFound: "0008",
-  riskAnalysisTemplateAnswerNotFound: "0009",
-  riskAnalysisTemplateAnswerAnnotationNotFound: "0010",
-  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0011",
+  purposeTemplateNotInExpectedStates: "0007",
+  purposeTemplateStateConflict: "0008",
+  purposeTemplateRiskAnalysisFormNotFound: "0009",
+  riskAnalysisTemplateAnswerNotFound: "0010",
+  riskAnalysisTemplateAnswerAnnotationNotFound: "0011",
+  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -87,30 +88,41 @@ export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
   });
 }
 
-export function purposeTemplateNotInExpectedState(
+export function purposeTemplateNotInExpectedStates(
   purposeTemplateId: PurposeTemplateId,
   currentState: PurposeTemplateState,
   expectedStates: PurposeTemplateState[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose Template ${purposeTemplateId} not in expected state (current state: ${currentState}, expected states: ${expectedStates.toString()})`,
-    code: "purposeTemplateNotInExpectedState",
-    title: "Purpose Template not in expected state",
+    detail: `Purpose Template ${purposeTemplateId} not in expected states (current state: ${currentState}, expected states: ${expectedStates.toString()})`,
+    code: "purposeTemplateNotInExpectedStates",
+    title: "Purpose Template not in expected states",
   });
 }
 
-export function riskAnalysisTemplateNotFound(
+export function purposeTemplateStateConflict(
+  purposeTemplateId: PurposeTemplateId,
+  state: PurposeTemplateState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template ${purposeTemplateId} is already in state ${state}`,
+    code: "purposeTemplateStateConflict",
+    title: "Purpose Template state conflict",
+  });
+}
+
+export function purposeTemplateRiskAnalysisFormNotFound(
   purposeTemplateId: PurposeTemplateId,
   riskAnalysisTemplateId?: RiskAnalysisFormTemplateId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No Risk Analysis Template found for Purpose Template ID ${purposeTemplateId}${
+    detail: `No Risk Analysis Template Form found for Purpose Template ${purposeTemplateId}${
       riskAnalysisTemplateId
-        ? ` and Risk Analysis Template ID ${riskAnalysisTemplateId}`
+        ? ` and Risk Analysis Template Form ${riskAnalysisTemplateId}`
         : ""
     }`,
-    code: "riskAnalysisTemplateNotFound",
-    title: "Risk Analysis Template Not Found",
+    code: "purposeTemplateRiskAnalysisFormNotFound",
+    title: "Purpose Template Risk Analysis Form Not Found",
   });
 }
 
@@ -119,7 +131,7 @@ export function riskAnalysisTemplateAnswerNotFound(
   answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No Risk Analysis Template Answer found for Purpose Template ID ${purposeTemplateId} and Answer ID ${answerId}`,
+    detail: `No Risk Analysis Template Answer found for Purpose Template ${purposeTemplateId} and Answer ${answerId}`,
     code: "riskAnalysisTemplateAnswerNotFound",
     title: "Risk Analysis Template Answer Not Found",
   });
@@ -130,7 +142,7 @@ export function riskAnalysisTemplateAnswerAnnotationNotFound(
   answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No Risk Analysis Template Answer Annotation found for Purpose Template ID ${purposeTemplateId} and Answer ID ${answerId}`,
+    detail: `No Risk Analysis Template Answer Annotation found for Purpose Template ${purposeTemplateId} and Answer ${answerId}`,
     code: "riskAnalysisTemplateAnswerAnnotationNotFound",
     title: "Risk Analysis Template Answer Annotation Not Found",
   });
@@ -142,7 +154,7 @@ export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
   documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No Risk Analysis Template Answer Annotation Document found for Purpose Template ID ${purposeTemplateId}, Answer ID ${answerId} and Document ID ${documentId}`,
+    detail: `No Risk Analysis Template Answer Annotation Document found for Purpose Template ${purposeTemplateId}, Answer ${answerId} and Document ${documentId}`,
     code: "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
     title: "Risk Analysis Template Answer Annotation Document Not Found",
   });

@@ -10455,7 +10455,7 @@ paths:
         - purposeTemplates
       summary: Retrieve Purpose Template
       operationId: getPurposeTemplate
-      description: Retrieve Purpose Template
+      description: Retrieve a Purpose Template by its ID
       responses:
         "200":
           description: Purpose Template retrieved
@@ -26112,12 +26112,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Notification"
-        totalCount:
-          type: integer
-          format: int32
+        pagination:
+          $ref: "#/components/schemas/Pagination"
       required:
         - results
-        - totalCount
+        - pagination
     Notification:
       type: object
       additionalProperties: false

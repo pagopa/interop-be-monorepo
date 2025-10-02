@@ -29,10 +29,10 @@ import {
 } from "pagopa-interop-commons";
 import {
   purposeTemplateNotFound,
+  purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  riskAnalysisTemplateNotFound,
   ruleSetNotFoundError,
 } from "../model/domain/errors.js";
 import {
@@ -215,10 +215,10 @@ async function checkPurposeTemplateForAnnotationOrDocumentDeletion({
   const purposeRiskAnalysisTemplateForm =
     purposeTemplate.data.purposeRiskAnalysisForm;
   if (!purposeRiskAnalysisTemplateForm) {
-    throw riskAnalysisTemplateNotFound(purposeTemplateId);
+    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId);
   }
 
-  assertRequesterIsCreator(purposeTemplate.data, authData);
+  assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
   assertPurposeTemplateIsDraft(purposeTemplate.data);
 
   const updateAnswerWithoutAnnotation = <
@@ -385,7 +385,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsCreator(purposeTemplate.data, authData);
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
       assertPurposeTemplateIsDraft(purposeTemplate.data);
 
       await deleteAllRiskAnalysisTemplateAnswerAnnotationDocuments({
