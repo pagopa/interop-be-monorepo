@@ -66,10 +66,10 @@ export const deleteRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("purposeTemplateNotInExpectedState", () => HTTP_STATUS_CONFLICT)
+    .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_CONFLICT)
     .with(
       "purposeTemplateNotFound",
-      "riskAnalysisTemplateNotFound",
+      "purposeTemplateRiskAnalysisFormNotFound",
       "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )

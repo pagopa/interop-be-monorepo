@@ -21,9 +21,9 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   purposeTemplateNotFound,
-  purposeTemplateNotInExpectedState,
+  purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
-  riskAnalysisTemplateNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -86,7 +86,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
 
   it.each([
     {
-      error: purposeTemplateNotInExpectedState(
+      error: purposeTemplateNotInExpectedStates(
         purposeTemplateId,
         purposeTemplateState.active,
         [purposeTemplateState.draft]
@@ -98,7 +98,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
       expectedStatus: 404,
     },
     {
-      error: riskAnalysisTemplateNotFound(purposeTemplateId),
+      error: purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId),
       expectedStatus: 404,
     },
     {
