@@ -40,6 +40,7 @@ import {
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
   audienceCannotBeEmpty,
+  missingPersonalDataFlag,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -72,6 +73,7 @@ describe("publish descriptor", () => {
       ...mockEService,
       mode: eserviceMode.deliver,
       descriptors: [descriptor],
+      personalData: false,
     };
     await addOneEService(eservice);
     const publishDescriptorResponse = await catalogService.publishDescriptor(
@@ -134,6 +136,7 @@ describe("publish descriptor", () => {
       mode: eserviceMode.receive,
       descriptors: [descriptor],
       riskAnalysis: [riskAnalysis],
+      personalData: false,
     };
 
     await addOneTenant(producer);
@@ -199,6 +202,7 @@ describe("publish descriptor", () => {
       mode: eserviceMode.receive,
       descriptors: [descriptor],
       riskAnalysis: [riskAnalysis],
+      personalData: false,
     };
 
     const delegate = {
@@ -268,6 +272,7 @@ describe("publish descriptor", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor1, descriptor2],
+      personalData: false,
     };
     await addOneEService(eservice);
     await catalogService.publishDescriptor(
@@ -329,6 +334,7 @@ describe("publish descriptor", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor1, descriptor2],
+      personalData: false,
     };
     await addOneEService(eservice);
     const tenant: Tenant = {
@@ -722,5 +728,29 @@ describe("publish descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(audienceCannotBeEmpty(descriptor.id));
+  });
+
+  it("should throw missingPersonalDataFlag if the eservice has personalData undefined", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      personalData: undefined,
+    };
+
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(missingPersonalDataFlag(eservice.id, descriptor.id));
   });
 });
