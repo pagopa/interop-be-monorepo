@@ -336,7 +336,7 @@ describe("linkEservicesToPurposeTemplate", () => {
     );
   });
 
-  it("should throw purposeTemplateNotInValidState when purpose template is suspended", async () => {
+  it("should throw purposeTemplateNotInExpectedStates when purpose template is suspended", async () => {
     const suspendedPurposeTemplate: PurposeTemplate = {
       ...getMockPurposeTemplate(),
       creatorId: tenant.id,
@@ -364,7 +364,7 @@ describe("linkEservicesToPurposeTemplate", () => {
     );
   });
 
-  it("should throw purposeTemplateNotInValidState when purpose template is archived", async () => {
+  it("should throw purposeTemplateNotInExpectedStates when purpose template is archived", async () => {
     const archivedPurposeTemplate: PurposeTemplate = {
       ...getMockPurposeTemplate(),
       creatorId: tenant.id,
