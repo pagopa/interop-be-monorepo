@@ -16,9 +16,9 @@ import {
 import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiConverter.js";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
-  missingRiskAnalysisFormTemplate,
   purposeTemplateNotFound,
-  purposeTemplateNotInExpectedState,
+  purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
@@ -75,14 +75,14 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
 
   it.each([
     {
-      error: missingRiskAnalysisFormTemplate(purposeTemplate.id),
+      error: purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id),
       expectedStatus: 400,
     },
     { error: riskAnalysisTemplateValidationFailed([]), expectedStatus: 400 },
     {
-      error: purposeTemplateNotInExpectedState(
+      error: purposeTemplateNotInExpectedStates(
         generateId(),
-        purposeTemplate.state,
+        purposeTemplateState.suspended,
         [purposeTemplateState.draft]
       ),
       expectedStatus: 400,
