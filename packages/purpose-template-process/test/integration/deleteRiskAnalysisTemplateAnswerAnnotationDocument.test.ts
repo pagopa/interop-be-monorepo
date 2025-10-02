@@ -18,7 +18,7 @@ import {
   purposeTemplateState,
   TenantId,
   generateId,
-  PurposeTemplateDraftUpdatedV2,
+  PurposeTemplateAnnotationDocumentDeletedV2,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
@@ -123,12 +123,12 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocumentDocument", () => {
     expect(annotationDocumentDeletionEvent).toMatchObject({
       stream_id: purposeTemplate.id,
       version: "1",
-      type: "PurposeTemplateDraftUpdated",
+      type: "PurposeTemplateAnnotationDocumentDeleted",
       event_version: 2,
     });
 
     const annotationDocumentDeletionPayload = decodeProtobufPayload({
-      messageType: PurposeTemplateDraftUpdatedV2,
+      messageType: PurposeTemplateAnnotationDocumentDeletedV2,
       payload: annotationDocumentDeletionEvent.data,
     });
 
@@ -148,9 +148,10 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocumentDocument", () => {
       },
     };
 
-    expect(annotationDocumentDeletionPayload.purposeTemplate).toEqual(
-      toPurposeTemplateV2(expectedPurposeTemplate)
-    );
+    expect(annotationDocumentDeletionPayload).toEqual({
+      purposeTemplate: toPurposeTemplateV2(expectedPurposeTemplate),
+      documentId: annotationDocument1.id,
+    });
 
     expect(response).toBeUndefined();
 

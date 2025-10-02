@@ -37,6 +37,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
+  toCreateEventPurposeTemplateAnnotationDocumentDeleted,
   toCreateEventPurposeTemplateDraftDeleted,
   toCreateEventPurposeTemplateDraftUpdated,
 } from "../model/domain/toEvent.js";
@@ -482,8 +483,9 @@ export function purposeTemplateServiceBuilder(
       });
 
       await repository.createEvent(
-        toCreateEventPurposeTemplateDraftUpdated({
+        toCreateEventPurposeTemplateAnnotationDocumentDeleted({
           purposeTemplate: updatedPurposeTemplate.data,
+          documentId,
           version: updatedPurposeTemplate.metadata.version,
           correlationId,
         })
