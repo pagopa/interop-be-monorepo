@@ -87,7 +87,7 @@ export async function handleEServiceTemplateNameUpdated(
           notificationType,
           entityId: eserviceId,
           instantiatorName: tenant.name,
-          oldName,
+          oldName: oldName ?? eserviceTemplate.id,
           newName: eserviceTemplate.name,
         }),
       },
