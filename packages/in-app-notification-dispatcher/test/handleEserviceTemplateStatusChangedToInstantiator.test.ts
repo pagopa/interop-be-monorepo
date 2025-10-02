@@ -2,16 +2,18 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   getMockContext,
+  getMockDescriptor,
   getMockEService,
   getMockEServiceTemplate,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  descriptorState,
+  EServiceId,
   generateId,
   missingKafkaMessageDataError,
   TenantId,
   toEServiceTemplateV2,
-  EServiceId,
 } from "pagopa-interop-models";
 import { handleEserviceTemplateStatusChangedToInstantiator } from "../src/handlers/eserviceTemplates/handleEserviceTemplateStatusChangedToInstantiator.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
@@ -102,7 +104,7 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
     const eservice = getMockEService(
       eserviceId,
       producerId,
-      [],
+      [getMockDescriptor(descriptorState.published)],
       updatedEServiceTemplate.id
     );
     await addOneEService(eservice);
@@ -146,7 +148,7 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
       tenantId: producerId,
       body,
       notificationType: "eserviceTemplateStatusChangedToInstantiator",
-      entityId: eserviceId,
+      entityId: `${eserviceId}/${eservice.descriptors[0].id}`,
     }));
 
     expect(notifications).toHaveLength(users.length);

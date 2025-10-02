@@ -8,7 +8,7 @@ export const notification = notificationSchema.table("notification", {
   tenantId: uuid("tenant_id").notNull(),
   body: varchar("body").notNull(),
   notificationType: varchar("notification_type").notNull(),
-  entityId: uuid("entity_id").notNull(),
+  entityId: varchar("entity_id").notNull(),
   readAt: timestamp("read_at", {
     withTimezone: true,
     mode: "string",

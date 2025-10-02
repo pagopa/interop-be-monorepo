@@ -239,7 +239,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
         tenantId: user.tenantId,
         body: expectedBody,
         notificationType: "eserviceNewVersionApprovedRejectedToDelegate",
-        entityId: descriptorId,
+        entityId: `${eservice.id}/${descriptorId}`,
       }));
 
       expect(notifications).toEqual(

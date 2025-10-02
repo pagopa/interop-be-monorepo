@@ -5,6 +5,7 @@ import {
   fromEServiceV2,
   DescriptorId,
   EService,
+  EServiceIdDescriptorId,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -65,12 +66,16 @@ export async function handleEserviceNewVersionApprovedRejectedToDelegate(
     rejectionReason
   );
 
+  const entityId = EServiceIdDescriptorId.parse(
+    `${eservice.id}/${descriptorId}`
+  );
+
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
     notificationType: "eserviceNewVersionApprovedRejectedToDelegate",
-    entityId: descriptorId,
+    entityId,
   }));
 }
 

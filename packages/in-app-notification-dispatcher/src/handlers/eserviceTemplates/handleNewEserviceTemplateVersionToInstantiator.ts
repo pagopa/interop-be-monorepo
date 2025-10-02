@@ -1,6 +1,7 @@
 import { Logger } from "pagopa-interop-commons";
 import {
-  EServiceId,
+  EService,
+  EServiceIdDescriptorId,
   fromEServiceTemplateV2,
   missingKafkaMessageDataError,
   NewNotification,
@@ -10,7 +11,10 @@ import {
 import { EServiceTemplateV2 } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant } from "../handlerCommons.js";
+import {
+  retrieveLatestPublishedDescriptor,
+  retrieveTenant,
+} from "../handlerCommons.js";
 
 export async function handleNewEserviceTemplateVersionToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
@@ -36,13 +40,10 @@ export async function handleNewEserviceTemplateVersionToInstantiator(
   );
 
   const instantiatorEserviceMap = eservices.reduce<
-    Record<TenantId, EServiceId[]>
+    Record<TenantId, EService[]>
   >((acc, eservice) => {
     // eslint-disable-next-line functional/immutable-data
-    acc[eservice.producerId] = [
-      ...(acc[eservice.producerId] || []),
-      eservice.id,
-    ];
+    acc[eservice.producerId] = [...(acc[eservice.producerId] || []), eservice];
     return acc;
   }, {});
 
@@ -71,19 +72,24 @@ export async function handleNewEserviceTemplateVersionToInstantiator(
   );
 
   return userNotificationConfigs.flatMap(({ userId, tenantId }) => {
-    const tenantEserviceIds = instantiatorEserviceMap[tenantId] || [];
-    return tenantEserviceIds.map((eserviceId) => ({
-      userId,
-      tenantId,
-      body: inAppTemplates.newEserviceTemplateVersionToInstantiator(
-        creator.name,
-        eserviceTemplateVersion?.version
-          ? eserviceTemplateVersion.version.toString()
-          : "",
-        eserviceTemplate.name
-      ),
-      notificationType: "newEserviceTemplateVersionToInstantiator",
-      entityId: eserviceId,
-    }));
+    const tenantEservices = instantiatorEserviceMap[tenantId] || [];
+    return tenantEservices.map((eservice) => {
+      const entityId = EServiceIdDescriptorId.parse(
+        `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+      );
+      return {
+        userId,
+        tenantId,
+        body: inAppTemplates.newEserviceTemplateVersionToInstantiator(
+          creator.name,
+          eserviceTemplateVersion?.version
+            ? eserviceTemplateVersion.version.toString()
+            : "",
+          eserviceTemplate.name
+        ),
+        notificationType: "newEserviceTemplateVersionToInstantiator",
+        entityId,
+      };
+    });
   });
 }

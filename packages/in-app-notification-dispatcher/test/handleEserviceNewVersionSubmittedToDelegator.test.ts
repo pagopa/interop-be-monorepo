@@ -212,7 +212,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
         eservice.name
       ),
       notificationType: "eserviceNewVersionSubmittedToDelegator",
-      entityId: descriptorId,
+      entityId: `${eservice.id}/${descriptorId}`,
     }));
 
     expect(notifications).toEqual(

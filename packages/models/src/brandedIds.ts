@@ -150,6 +150,42 @@ export type GSIPKEServiceIdDescriptorId = z.infer<
   typeof GSIPKEServiceIdDescriptorId
 >;
 
+export const EServiceIdDescriptorId = z
+  .custom<`${EServiceId}/${DescriptorId}`>((val) => {
+    if (typeof val !== "string") {
+      return false;
+    }
+    const parts = val.split("/");
+    if (parts.length !== 2) {
+      return false;
+    }
+    return (
+      EServiceId.safeParse(parts[0]).success &&
+      DescriptorId.safeParse(parts[1]).success
+    );
+  })
+  .brand("EServiceIdDescriptorId");
+export type EServiceIdDescriptorId = z.infer<typeof EServiceIdDescriptorId>;
+
+export const EServiceTemplateIdEServiceTemplateVersionId = z
+  .custom<`${EServiceTemplateId}/${EServiceTemplateVersionId}`>((val) => {
+    if (typeof val !== "string") {
+      return false;
+    }
+    const parts = val.split("/");
+    if (parts.length !== 2) {
+      return false;
+    }
+    return (
+      EServiceTemplateId.safeParse(parts[0]).success &&
+      EServiceTemplateVersionId.safeParse(parts[1]).success
+    );
+  })
+  .brand("EServiceTemplateIdEServiceTemplateVersionId");
+export type EServiceTemplateIdEServiceTemplateVersionId = z.infer<
+  typeof EServiceTemplateIdEServiceTemplateVersionId
+>;
+
 export const GSIPKClientIdPurposeId = z.string().brand(`clientId#purposeId`);
 export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
 
