@@ -43,8 +43,8 @@ export const activatePurposeTemplateErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "missingRiskAnalysisFormTemplate",
-      "purposeTemplateNotInExpectedState",
+      "purposeTemplateNotInExpectedStates",
+      "purposeTemplateRiskAnalysisFormNotFound",
       "riskAnalysisTemplateValidationFailed",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -57,7 +57,7 @@ export const suspendPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("purposeTemplateNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_BAD_REQUEST)
     .with("purposeTemplateStateConflict", () => HTTP_STATUS_CONFLICT)
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)

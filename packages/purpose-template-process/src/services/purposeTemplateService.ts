@@ -23,8 +23,8 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
-  missingRiskAnalysisFormTemplate,
   purposeTemplateNotFound,
+  purposeTemplateRiskAnalysisFormNotFound,
   ruleSetNotFoundError,
 } from "../model/domain/errors.js";
 import {
@@ -39,8 +39,8 @@ import {
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
 import {
-  assertConsistentFreeOfCharge,
   assertActivatableState,
+  assertConsistentFreeOfCharge,
   assertPurposeTemplateTitleIsNotDuplicated,
   assertRequesterIsCreator,
   assertRequesterCanRetrievePurposeTemplate,
@@ -336,7 +336,7 @@ async function activatePurposeTemplate({
   const purposeRiskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
 
   if (!purposeRiskAnalysisForm) {
-    throw missingRiskAnalysisFormTemplate(purposeTemplate.data.id);
+    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.data.id);
   }
 
   assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);

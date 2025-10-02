@@ -88,6 +88,11 @@ tags:
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
+  - name: emailDeepLink
+    description: Email DeepLink Module
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
   - name: health
     description: Verify service status
     externalDocs:
@@ -10450,7 +10455,7 @@ paths:
         - purposeTemplates
       summary: Retrieve Purpose Template
       operationId: getPurposeTemplate
-      description: Retrieve Purpose Template
+      description: Retrieve a Purpose Template by its ID
       responses:
         "200":
           description: Purpose Template retrieved
@@ -20830,6 +20835,10 @@ paths:
       responses:
         "200":
           description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notifications"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -21733,6 +21742,123 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/inAppNotifications/count":
+    get:
+      tags:
+        - inAppNotifications
+      summary: Retrieve the count of notifications grouped by section and subsection
+      operationId: getNotificationsCountBySection
+      responses:
+        "200":
+          description: The count of notifications grouped by section and subsection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationsCountBySection"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
 
   "/tenantNotificationConfigs":
     get:
@@ -22169,6 +22295,67 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/emailDeepLink/{notificationType}/{entityId}":
+    get:
+      security: []
+      tags:
+        - emailDeepLink
+      summary: Redirect the user to the correct deepLink based on notification type and entity id
+      operationId: getNotificationDeeplink
+      parameters:
+        - name: notificationType
+          in: path
+          required: true
+          description: The type of the notification
+          schema:
+            type: string
+        - name: entityId
+          in: path
+          required: true
+          description: The id of the entity
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to the correct deepLink based on notification type and entity id
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
           content:
             application/problem+json:
               schema:
@@ -26166,12 +26353,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Notification"
-        totalCount:
-          type: integer
-          format: int32
+        pagination:
+          $ref: "#/components/schemas/Pagination"
       required:
         - results
-        - totalCount
+        - pagination
     Notification:
       type: object
       additionalProperties: false
@@ -26191,6 +26377,9 @@ components:
         body:
           type: string
           description: Content of the notification
+        deepLink:
+          type: string
+          description: Deep link to the notification
         readAt:
           type: string
           format: date-time
@@ -26205,7 +26394,7 @@ components:
         - userId
         - tenantId
         - body
-        - readAt
+        - deepLink
         - createdAt
     NotificationConfig:
       type: object
@@ -26281,9 +26470,19 @@ components:
       type: object
       additionalProperties: false
       required:
+        - inAppNotificationPreference
+        - emailNotificationPreference
         - inAppConfig
         - emailConfig
       properties:
+        inAppNotificationPreference:
+          type: boolean
+        emailNotificationPreference:
+          type: string
+          enum:
+            - ENABLED
+            - DISABLED
+            - DIGEST
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
@@ -26300,13 +26499,108 @@ components:
       type: object
       additionalProperties: false
       required:
+        - inAppNotificationPreference
+        - emailNotificationPreference
         - inAppConfig
         - emailConfig
       properties:
+        inAppNotificationPreference:
+          type: boolean
+        emailNotificationPreference:
+          type: string
+          enum:
+            - ENABLED
+            - DISABLED
+            - DIGEST
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
           $ref: "#/components/schemas/NotificationConfig"
+    NotificationsCountBySection:
+      type: object
+      additionalProperties: false
+      required:
+        - erogazione
+        - fruizione
+        - "catalogo-e-service"
+        - aderente
+        - totalCount
+      properties:
+        erogazione:
+          type: object
+          additionalProperties: false
+          properties:
+            richieste:
+              type: integer
+              format: int32
+            finalita:
+              type: integer
+              format: int32
+            template-eservice:
+              type: integer
+              format: int32
+            e-service:
+              type: integer
+              format: int32
+            portachiavi:
+              type: integer
+              format: int32
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - richieste
+            - finalita
+            - "template-eservice"
+            - "e-service"
+            - portachiavi
+            - totalCount
+        fruizione:
+          type: object
+          additionalProperties: false
+          properties:
+            richieste:
+              type: integer
+              format: int32
+            finalita:
+              type: integer
+              format: int32
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - richieste
+            - finalita
+            - totalCount
+        catalogo-e-service:
+          type: object
+          additionalProperties: false
+          properties:
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - totalCount
+        aderente:
+          type: object
+          additionalProperties: false
+          properties:
+            deleghe:
+              type: integer
+              format: int32
+            anagrafica:
+              type: integer
+              format: int32
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - deleghe
+            - anagrafica
+            - totalCount
+        totalCount:
+          type: integer
+          format: int32
     ProblemError:
       properties:
         code:

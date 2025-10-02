@@ -4,7 +4,6 @@ import { EachMessagePayload } from "kafkajs";
 import { decodeKafkaMessage, Logger, logger } from "pagopa-interop-commons";
 import {
   AgreementEventV2,
-  AttributeEvent,
   AuthorizationEventV2,
   CorrelationId,
   DelegationEventV2,
@@ -15,11 +14,13 @@ import {
   genericInternalError,
   NewNotification,
   PurposeEventV2,
+  TenantEventV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   agreementReadModelServiceBuilder,
+  attributeReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   makeDrizzleConnection,
@@ -41,7 +42,7 @@ import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent
 import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
 import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
 import { handleAuthorizationEvent } from "./handlers/authorizations/handleAuthorizationEvent.js";
-import { handleAttributeEvent } from "./handlers/attributes/handleAttributeEvent.js";
+import { handleTenantEvent } from "./handlers/tenants/handleTenantEvent.js";
 import { handleEServiceTemplateEvent } from "./handlers/eserviceTemplates/handleEserviceTemplatesEvent.js";
 
 interface TopicNames {
@@ -50,13 +51,15 @@ interface TopicNames {
   purposeTopic: string;
   delegationTopic: string;
   authorizationTopic: string;
-  attributeTopic: string;
+  tenantTopic: string;
   eserviceTemplateTopic: string;
 }
 
 const readModelDB = makeDrizzleConnection(config);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
+const attributeReadModelServiceSQL =
+  attributeReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
@@ -67,6 +70,7 @@ const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
+  attributeReadModelServiceSQL,
   catalogReadModelServiceSQL,
   delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
@@ -98,7 +102,7 @@ function processMessage(topicNames: TopicNames) {
       purposeTopic,
       delegationTopic,
       authorizationTopic,
-      attributeTopic,
+      tenantTopic,
       eserviceTemplateTopic,
     } = topicNames;
 
@@ -147,8 +151,8 @@ function processMessage(topicNames: TopicNames) {
       .with(authorizationTopic, async () =>
         handleWith(AuthorizationEventV2, handleAuthorizationEvent)
       )
-      .with(attributeTopic, async () =>
-        handleWith(AttributeEvent, handleAttributeEvent)
+      .with(tenantTopic, async () =>
+        handleWith(TenantEventV2, handleTenantEvent)
       )
       .with(eserviceTemplateTopic, async () =>
         handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
@@ -169,7 +173,7 @@ await runConsumer(
     config.purposeTopic,
     config.delegationTopic,
     config.authorizationTopic,
-    config.attributeTopic,
+    config.tenantTopic,
     config.eserviceTemplateTopic,
   ],
   processMessage({
@@ -178,7 +182,7 @@ await runConsumer(
     purposeTopic: config.purposeTopic,
     delegationTopic: config.delegationTopic,
     authorizationTopic: config.authorizationTopic,
-    attributeTopic: config.attributeTopic,
+    tenantTopic: config.tenantTopic,
     eserviceTemplateTopic: config.eserviceTemplateTopic,
   }),
   "in-app-notification-dispatcher"

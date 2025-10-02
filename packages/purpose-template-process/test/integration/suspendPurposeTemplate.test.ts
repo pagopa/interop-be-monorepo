@@ -28,7 +28,7 @@ import {
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
 import {
-  purposeTemplateNotInExpectedState,
+  purposeTemplateNotInExpectedStates,
   purposeTemplateStateConflict,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -143,7 +143,7 @@ describe("suspendPurposeTemplate", () => {
       state: purposeTemplateState.suspended,
     },
     {
-      error: purposeTemplateNotInExpectedState(
+      error: purposeTemplateNotInExpectedStates(
         purposeTemplate.id,
         purposeTemplateState.archived,
         [purposeTemplateState.active]
@@ -151,7 +151,7 @@ describe("suspendPurposeTemplate", () => {
       state: purposeTemplateState.archived,
     },
     {
-      error: purposeTemplateNotInExpectedState(
+      error: purposeTemplateNotInExpectedStates(
         purposeTemplate.id,
         purposeTemplateState.draft,
         [purposeTemplateState.active]

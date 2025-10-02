@@ -193,9 +193,11 @@ export function purposeTemplateServiceBuilder(
         throw tenantNotFound(result.creatorId);
       }
 
-      const annotationDocuments = result.purposeRiskAnalysisForm
-        ? Object.values(result.purposeRiskAnalysisForm.answers).flatMap(
-            (answer) => (answer.annotation ? answer.annotation.docs : [])
+      const riskAnalysisFormTemplateAnswers =
+        result.purposeRiskAnalysisForm?.answers;
+      const annotationDocuments = riskAnalysisFormTemplateAnswers
+        ? Object.values(riskAnalysisFormTemplateAnswers).flatMap(
+            (answer) => answer.annotation?.docs ?? []
           )
         : [];
 
