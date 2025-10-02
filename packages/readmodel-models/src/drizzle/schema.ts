@@ -1734,6 +1734,12 @@ export const userNotificationConfigInReadmodelNotificationConfig =
       metadataVersion: integer("metadata_version").notNull(),
       userId: uuid("user_id").notNull(),
       tenantId: uuid("tenant_id").notNull(),
+      inAppNotificationPreference: boolean(
+        "in_app_notification_preference"
+      ).notNull(),
+      emailNotificationPreference: varchar(
+        "email_notification_preference"
+      ).notNull(),
       createdAt: timestamp("created_at", {
         withTimezone: true,
         mode: "string",
