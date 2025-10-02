@@ -28,6 +28,11 @@ describe("getRecipientsForTenants", () => {
       ...getMockTenant(),
       mails: [getMockTenantMail()],
     },
+    {
+      // Tenant with contact mail but without a notification config
+      ...getMockTenant(),
+      mails: [getMockTenantMail()],
+    },
     // Tenant without contact mail, included to test that no error is thrown
     getMockTenant(),
   ];
@@ -94,13 +99,14 @@ describe("getRecipientsForTenants", () => {
       .fn()
       .mockImplementation((tenantId) => {
         const tenant = tenants.find((t) => t.id === tenantId);
-        if (!tenant) {
+        if (!tenant || tenantId === tenants[2].id) {
+          // tenants[2] has no notification config
           return undefined;
         }
         return {
           id: generateId(),
           tenantId: tenant.id,
-          enabled: tenants.indexOf(tenant) !== 1,
+          enabled: tenantId !== tenants[1].id, // tenants[1] has notifications disabled
           createdAt: new Date(),
           updatedAt: new Date(),
         };
@@ -319,7 +325,7 @@ describe("getRecipientsForTenants", () => {
     );
   });
 
-  it("should return tenant contact emails if `includeTenantContactEmails` is true but the tenant has notifications disabled", async () => {
+  it("should not return the tenant contact email if `includeTenantContactEmails` is true but the tenant has notifications disabled", async () => {
     const result = await getRecipientsForTenants({
       tenants,
       notificationType: "agreementActivatedRejectedToConsumer",
@@ -332,6 +338,23 @@ describe("getRecipientsForTenants", () => {
       expect.objectContaining({
         type: "Tenant",
         address: tenants[1].mails[0].address,
+      })
+    );
+  });
+
+  it("should not return the tenant contact email if `includeTenantContactEmails` is true but the tenant has no notification config", async () => {
+    const result = await getRecipientsForTenants({
+      tenants,
+      notificationType: "agreementActivatedRejectedToConsumer",
+      includeTenantContactEmails: false,
+      readModelService,
+      userService,
+      logger: genericLogger,
+    });
+    expect(result).not.toContainEqual(
+      expect.objectContaining({
+        type: "Tenant",
+        address: tenants[2].mails[0].address,
       })
     );
   });
