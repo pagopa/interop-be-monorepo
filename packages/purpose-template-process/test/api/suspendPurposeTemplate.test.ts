@@ -17,7 +17,7 @@ import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiC
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   purposeTemplateNotFound,
-  purposeTemplateNotInExpectedState,
+  purposeTemplateNotInExpectedStates,
   purposeTemplateStateConflict,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -73,7 +73,7 @@ describe("API POST /purposeTemplates/{id}/suspend", () => {
 
   it.each([
     {
-      error: purposeTemplateNotInExpectedState(
+      error: purposeTemplateNotInExpectedStates(
         purposeTemplate.id,
         purposeTemplateState.archived,
         [purposeTemplateState.active]
