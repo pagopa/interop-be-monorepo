@@ -470,8 +470,8 @@ export function purposeTemplateServiceBuilder(
 
       assertAnnotationDocumentIsUnique(
         answerToUpdate,
-        body.checksum,
-        body.prettyName
+        body.prettyName,
+        body.checksum
       );
 
       const oldAnnotation = retrieveAnswerAnnotation(
@@ -483,7 +483,7 @@ export function purposeTemplateServiceBuilder(
 
       const newAnnotationDocument: RiskAnalysisTemplateAnswerAnnotationDocument =
         {
-          id: generateId(),
+          id: unsafeBrandId(body.documentId),
           name: body.name,
           prettyName: body.prettyName,
           contentType: body.contentType,
