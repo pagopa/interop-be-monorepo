@@ -6,7 +6,6 @@ import {
   EServiceDescriptorPurposeTemplate,
   EServiceId,
   generateId,
-  operationForbidden,
   PurposeTemplateId,
   purposeTemplateState,
 } from "pagopa-interop-models";
@@ -20,6 +19,7 @@ import {
   tooManyEServicesForPurposeTemplate,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { eserviceNotFound } from "../../src/errors/purposeTemplateValidationErrors.js";
 
@@ -188,7 +188,7 @@ describe("API POST /purposeTemplates/:id/linkEservices", () => {
       expectedStatus: 400,
     },
     {
-      error: operationForbidden,
+      error: tenantNotAllowed(generateId()),
       expectedStatus: 403,
     },
   ])(

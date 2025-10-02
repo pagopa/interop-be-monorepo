@@ -41,7 +41,7 @@ import {
   assertEServiceIdsCountIsBelowThreshold,
   assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
-  assertRequesterPurposeTemplateCreator,
+  assertRequesterIsCreator,
   validateAndTransformRiskAnalysisTemplate,
   validateEServicesForPurposeTemplate,
 } from "./validators.js";
@@ -189,10 +189,7 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateState.active,
       ]);
 
-      assertRequesterPurposeTemplateCreator(
-        purposeTemplate.data.creatorId,
-        authData
-      );
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
 
       const validationResult = await validateEServicesForPurposeTemplate(
         eserviceIds,

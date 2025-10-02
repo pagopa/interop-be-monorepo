@@ -8,7 +8,6 @@ import {
   Tenant,
   descriptorState,
   generateId,
-  operationForbidden,
   purposeTemplateState,
   tenantKind,
   toEServiceV2,
@@ -32,6 +31,7 @@ import {
   purposeTemplateNotFound,
   tooManyEServicesForPurposeTemplate,
   purposeTemplateNotInExpectedStates,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -392,7 +392,7 @@ describe("linkEservicesToPurposeTemplate", () => {
     );
   });
 
-  it("should throw operationForbidden when user is not the creator of the purpose template", async () => {
+  it("should throw tenantNotAllowed when user is not the creator of the purpose template", async () => {
     const differentTenant: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -411,7 +411,7 @@ describe("linkEservicesToPurposeTemplate", () => {
           authData: getMockAuthData(differentTenant.id),
         })
       )
-    ).rejects.toThrowError(operationForbidden);
+    ).rejects.toThrowError(tenantNotAllowed(differentTenant.id));
   });
 
   it("should throw eserviceAlreadyAssociatedError when linking the same eservice twice", async () => {
