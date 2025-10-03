@@ -15,7 +15,10 @@ import {
   toGetClientsApiQueryParams,
   toM2MGatewayApiConsumerClient,
 } from "../api/clientApiConverter.js";
-import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
+import {
+  toGetPurposesApiQueryParamsForClient,
+  toM2MGatewayApiPurpose,
+} from "../api/purposeApiConverter.js";
 import { toM2MJWK } from "../api/keysApiConverter.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
@@ -138,16 +141,16 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
       assertClientVisibilityIsFull(client);
 
-      const purposeIds = client.purposes;
+      const queries = toGetPurposesApiQueryParamsForClient({
+        limit,
+        offset,
+        eserviceId,
+        state,
+        purposesIds: client.purposes,
+      });
 
       const { data } = await clients.purposeProcessClient.getPurposes({
-        queries: {
-          purposesIds: purposeIds ? purposeIds : [],
-          eservicesIds: eserviceId ? [eserviceId] : [],
-          states: state ? [state] : [],
-          limit,
-          offset,
-        },
+        queries,
         headers,
       });
 
