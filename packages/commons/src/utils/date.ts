@@ -37,6 +37,5 @@ export const secondsToMilliseconds = (timestamp: number): number => {
   if (timestamp.toString().length === 10) {
     return timestamp * 1000;
   }
-
   return timestamp;
 };
