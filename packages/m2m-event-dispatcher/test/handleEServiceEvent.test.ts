@@ -3,6 +3,7 @@ import {
   getMockDelegation,
   getMockDescriptor,
   getMockEService,
+  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
   toEServiceV2,
@@ -15,6 +16,7 @@ import {
   delegationState,
   TenantId,
   Delegation,
+  EServiceId,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
@@ -45,156 +47,232 @@ describe("handleEServiceEvent test", async () => {
       describe.each(["with Delegation", "without Delegation"] as const)(
         "test case: %s",
         async (delegationTestCase) =>
-          it.each([
-            descriptorState.draft,
-            descriptorState.published,
-            // TODO all states?
-          ])(
-            "should write M2M event with the right visibility for eservice latest descriptor in state %s",
-            async (latestDescriptorState) => {
-              let delegation: Delegation | undefined;
+          it("should write M2M events with the right visibility", async () => {
+            let delegation: Delegation | undefined;
 
-              const eservice = {
-                ...getMockEService(),
-                descriptors: [
-                  getMockDescriptor(descriptorState.deprecated),
-                  getMockDescriptor(descriptorState.published),
-                  getMockDescriptor(latestDescriptorState),
-                ],
-              };
+            const eserviceId = generateId<EServiceId>();
+            const producerId = generateId<TenantId>();
 
-              await match(delegationTestCase)
-                .with("with Delegation", async () => {
-                  delegation = getMockDelegation({
-                    eserviceId: eservice.id,
-                    kind: delegationKind.delegatedProducer,
-                    delegatorId: eservice.producerId,
-                    delegateId: generateId<TenantId>(),
-                    state: delegationState.active,
-                  });
-                  await addOneDelegationToReadModel(delegation);
-                })
-                .with("without Delegation", async () => void 0)
-                .exhaustive();
+            await match(delegationTestCase)
+              .with("with Delegation", async () => {
+                delegation = getMockDelegation({
+                  eserviceId,
+                  kind: delegationKind.delegatedProducer,
+                  delegatorId: producerId,
+                  delegateId: generateId<TenantId>(),
+                  state: delegationState.active,
+                });
+                await addOneDelegationToReadModel(delegation);
+              })
+              .with("without Delegation", async () => void 0)
+              .exhaustive();
 
-              const eventTimestamp = new Date();
+            const eventTimestamp = new Date();
 
-              const { descriptorId, expectedVisibility } = await match(
-                eventType
+            const testCasesData = await match(eventType)
+              .with(
+                P.union(
+                  // Draft E-Service events, owner visibility
+                  "EServiceAdded",
+                  "DraftEServiceUpdated",
+                  "EServiceCloned",
+                  "EServiceDeleted",
+                  "EServiceRiskAnalysisAdded",
+                  "EServiceRiskAnalysisUpdated",
+                  "EServiceRiskAnalysisDeleted"
+                ),
+                async () => [
+                  {
+                    descriptors: [
+                      getMockDescriptor(
+                        randomArrayItem(Object.values(descriptorState))
+                      ),
+                      getMockDescriptor(
+                        randomArrayItem(Object.values(descriptorState))
+                      ),
+                      // Visibility based only on event, descriptors state doesn't matter
+                    ],
+                    affectedDescriptor: undefined,
+                    expectedVisibility: m2mEventVisibility.owner,
+                  },
+                ]
               )
-                .with(
-                  P.union(
-                    // Draft E-Service events, owner visibility
-                    "EServiceAdded",
-                    "DraftEServiceUpdated",
-                    "EServiceCloned",
-                    "EServiceDeleted",
-                    "EServiceRiskAnalysisAdded",
-                    "EServiceRiskAnalysisUpdated",
-                    "EServiceRiskAnalysisDeleted"
-                  ),
-                  async () => ({
-                    descriptorId: undefined,
+              .with(
+                P.union(
+                  // Draft E-Service Descriptor events, owner visibility
+                  "EServiceDescriptorAdded",
+                  "EServiceDraftDescriptorDeleted",
+                  "EServiceDraftDescriptorUpdated",
+                  "EServiceDescriptorSubmittedByDelegate",
+                  "EServiceDescriptorRejectedByDelegator",
+                  "EServiceDescriptorInterfaceAdded",
+                  "EServiceDescriptorInterfaceUpdated",
+                  "EServiceDescriptorInterfaceDeleted"
+                ),
+                async () => [
+                  {
+                    descriptors: [
+                      getMockDescriptor(
+                        randomArrayItem(Object.values(descriptorState))
+                      ),
+                      getMockDescriptor(
+                        randomArrayItem(Object.values(descriptorState))
+                      ),
+                      // Visibility based only on event, descriptors state doesn't matter
+                    ],
+                    affectedDescriptor: 1,
                     expectedVisibility: m2mEventVisibility.owner,
-                  })
-                )
-                .with(
-                  P.union(
-                    // Draft E-Service Descriptor events, owner visibility
-                    "EServiceDescriptorAdded",
-                    "EServiceDraftDescriptorDeleted",
-                    "EServiceDraftDescriptorUpdated",
-                    "EServiceDescriptorSubmittedByDelegate",
-                    "EServiceDescriptorRejectedByDelegator",
-                    "EServiceDescriptorInterfaceAdded",
-                    "EServiceDescriptorInterfaceUpdated",
-                    "EServiceDescriptorInterfaceDeleted"
-                  ),
-                  async () => ({
-                    descriptorId: eservice.descriptors.at(-1)!.id,
+                  },
+                ]
+              )
+              .with(
+                P.union(
+                  // E-Service events after publication, public visibility
+                  "EServiceNameUpdated",
+                  "EServiceDescriptionUpdated",
+                  "EServiceIsConsumerDelegableEnabled",
+                  "EServiceIsConsumerDelegableDisabled",
+                  "EServiceIsClientAccessDelegableEnabled",
+                  "EServiceIsClientAccessDelegableDisabled",
+                  "EServiceSignalHubEnabled",
+                  "EServiceSignalHubDisabled"
+                ),
+                async () => [
+                  {
+                    descriptors: [
+                      getMockDescriptor(
+                        randomArrayItem(Object.values(descriptorState))
+                      ),
+                      getMockDescriptor(
+                        randomArrayItem(Object.values(descriptorState))
+                      ),
+                      // Visibility based only on event, descriptors state doesn't matter
+                    ],
+                    affectedDescriptor: undefined,
+                    expectedVisibility: m2mEventVisibility.public,
+                  },
+                ]
+              )
+              .with(
+                P.union(
+                  // E-Service Descriptor events after publication, public visibility
+                  "EServiceDescriptorPublished",
+                  "EServiceDescriptorActivated",
+                  "EServiceDescriptorApprovedByDelegator",
+                  "EServiceDescriptorSuspended",
+                  "EServiceDescriptorArchived",
+                  "EServiceDescriptorQuotasUpdated",
+                  "EServiceDescriptorAgreementApprovalPolicyUpdated",
+                  "EServiceDescriptorAttributesUpdated"
+                ),
+                async () => [
+                  {
+                    descriptors: [
+                      getMockDescriptor(
+                        randomArrayItem(Object.values(descriptorState))
+                      ),
+                      getMockDescriptor(
+                        randomArrayItem(Object.values(descriptorState))
+                      ),
+                      // Visibility based only on event, descriptors state doesn't matter
+                    ],
+                    affectedDescriptor: 1,
+                    expectedVisibility: m2mEventVisibility.public,
+                  },
+                ]
+              )
+              .with(
+                P.union(
+                  // E-Service events both for Draft and Published E-Services,
+                  // visibility depends on the state
+                  "EServiceNameUpdatedByTemplateUpdate",
+                  "EServiceDescriptionUpdatedByTemplateUpdate"
+                ),
+                async () => [
+                  {
+                    // Published e-service, public visibility even if a draft descriptor exists
+                    descriptors: [
+                      getMockDescriptor(descriptorState.deprecated),
+                      getMockDescriptor(descriptorState.published),
+                      getMockDescriptor(descriptorState.draft),
+                    ],
+                    affectedDescriptor: undefined,
+                    expectedVisibility: m2mEventVisibility.public,
+                  },
+                  // All descriptors in draft / waiting for approval, owner visibility
+                  {
+                    descriptors: [getMockDescriptor(descriptorState.draft)],
+                    affectedDescriptor: undefined,
                     expectedVisibility: m2mEventVisibility.owner,
-                  })
-                )
-                .with(
-                  P.union(
-                    // E-Service events after publication, public visibility
-                    "EServiceNameUpdated",
-                    "EServiceDescriptionUpdated",
-                    "EServiceIsConsumerDelegableEnabled",
-                    "EServiceIsConsumerDelegableDisabled",
-                    "EServiceIsClientAccessDelegableEnabled",
-                    "EServiceIsClientAccessDelegableDisabled",
-                    "EServiceSignalHubEnabled",
-                    "EServiceSignalHubDisabled"
-                  ),
-                  async () => ({
-                    descriptorId: undefined,
+                  },
+                  {
+                    descriptors: [
+                      getMockDescriptor(descriptorState.waitingForApproval),
+                    ],
+                    affectedDescriptor: undefined,
+                    expectedVisibility: m2mEventVisibility.owner,
+                  },
+                ]
+              )
+              .with(
+                P.union(
+                  // E-Service descriptor events both for Draft and Published E-Services,
+                  // visibility depends on the state
+                  "EServiceDescriptorDocumentAdded",
+                  "EServiceDescriptorDocumentUpdated",
+                  "EServiceDescriptorDocumentDeleted",
+                  "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+                  "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+                  "EServiceDescriptorDocumentAddedByTemplateUpdate",
+                  "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+                  "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+                ),
+                async () => [
+                  {
+                    // Affected descriptor is published, public visibility
+                    descriptors: [
+                      getMockDescriptor(descriptorState.deprecated),
+                      getMockDescriptor(descriptorState.published),
+                      getMockDescriptor(descriptorState.draft),
+                    ],
+                    affectedDescriptor: 1,
                     expectedVisibility: m2mEventVisibility.public,
-                  })
-                )
-                .with(
-                  P.union(
-                    // E-Service Descriptor events after publication, public visibility
-                    "EServiceDescriptorPublished",
-                    "EServiceDescriptorActivated",
-                    "EServiceDescriptorApprovedByDelegator",
-                    "EServiceDescriptorSuspended",
-                    "EServiceDescriptorArchived",
-                    "EServiceDescriptorQuotasUpdated",
-                    "EServiceDescriptorAgreementApprovalPolicyUpdated",
-                    "EServiceDescriptorAttributesUpdated"
-                  ),
-                  async () => ({
-                    descriptorId: eservice.descriptors.at(-1)!.id,
-                    expectedVisibility: m2mEventVisibility.public,
-                  })
-                )
-                .with(
-                  P.union(
-                    // E-Service events both for Draft and Published E-Services,
-                    // visibility depends on the state
-                    "EServiceNameUpdatedByTemplateUpdate",
-                    "EServiceDescriptionUpdatedByTemplateUpdate"
-                  ),
-                  async () => ({
-                    descriptorId: undefined,
-                    expectedVisibility: m2mEventVisibility.public,
-                  })
-                  // TODO add other case
-                )
-                .with(
-                  P.union(
-                    // E-Service descriptor events both for Draft and Published E-Services,
-                    // visibility depends on the state
-                    "EServiceDescriptorDocumentAdded",
-                    "EServiceDescriptorDocumentUpdated",
-                    "EServiceDescriptorDocumentDeleted",
-                    "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
-                    "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
-                    "EServiceDescriptorDocumentAddedByTemplateUpdate",
-                    "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-                    "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
-                  ),
-                  async () => ({
-                    descriptorId: eservice.descriptors.at(-1)!.id,
-                    expectedVisibility: match(latestDescriptorState)
-                      .with(
-                        descriptorState.draft,
-                        // descriptorState.waitingForApproval,
-                        () => m2mEventVisibility.owner
-                      )
-                      .with(
-                        // descriptorState.deprecated,
-                        descriptorState.published,
-                        // descriptorState.suspended,
-                        // descriptorState.archived,
-                        () => m2mEventVisibility.public
-                      )
-                      .exhaustive(),
-                    // TODO add other case
-                  })
-                )
-                .exhaustive();
+                  },
+                  // Affected descriptor is draft or waiting for approval, owner visibility
+                  {
+                    descriptors: [
+                      getMockDescriptor(descriptorState.published),
+                      getMockDescriptor(descriptorState.draft),
+                    ],
+                    affectedDescriptor: 1,
+                    expectedVisibility: m2mEventVisibility.owner,
+                  },
+                  {
+                    // Affected descriptor is draft, owner visibility
+                    descriptors: [
+                      getMockDescriptor(descriptorState.waitingForApproval),
+                    ],
+                    affectedDescriptor: 0,
+                    expectedVisibility: m2mEventVisibility.owner,
+                  },
+                ]
+              )
+              .exhaustive();
+
+            for (const {
+              descriptors,
+              affectedDescriptor,
+              expectedVisibility,
+            } of testCasesData) {
+              const eservice = getMockEService(
+                eserviceId,
+                producerId,
+                descriptors
+              );
+
+              const descriptorId = affectedDescriptor
+                ? eservice.descriptors.at(affectedDescriptor)!.id
+                : undefined;
 
               const message = {
                 ...getMockEventEnvelopeCommons(),
@@ -216,6 +294,8 @@ describe("handleEServiceEvent test", async () => {
               expect(
                 testM2mEventWriterService.insertEServiceM2MEvent
               ).toHaveBeenCalledTimes(1);
+              vi.clearAllMocks();
+
               const actualM2MEvent = await retrieveLastEServiceM2MEvent();
               expect(actualM2MEvent).toEqual({
                 id: expect.any(String),
@@ -229,7 +309,7 @@ describe("handleEServiceEvent test", async () => {
                 visibility: expectedVisibility,
               });
             }
-          )
+          })
       )
   );
 });
