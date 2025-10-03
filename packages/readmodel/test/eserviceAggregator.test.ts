@@ -11,6 +11,7 @@ import {
   Descriptor,
   EService,
   EServiceAddedV2,
+  EServiceAttribute,
   EserviceAttributes,
   EServiceTemplateId,
   EServiceTemplateVersionRef,
@@ -245,11 +246,18 @@ describe("E-service aggregator", () => {
           | "declared"
           | "verified"]
       >(original: TAttributeGroup, aggregated: TAttributeGroup): void {
+        function sortAttributes(
+          attributes: EServiceAttribute[]
+        ): EServiceAttribute[] {
+          return [...attributes.sort((a, b) => a.id.localeCompare(b.id))];
+        }
         // Check that the number of groups is the same
         expect(aggregated).toHaveLength(original.length);
         // Check that each group has the same number of attributes
         aggregated.forEach((group, index) => {
-          expect(group).toHaveLength(original[index].length);
+          expect(sortAttributes(group)).toEqual(
+            sortAttributes(original[index])
+          );
         });
       }
 
