@@ -124,30 +124,29 @@ const purposeTemplateRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
-
-  purposeTemplateRouter.post(
-    "/purposeTemplates/:purposeTemplateId/unlinkEservice",
-    async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-      try {
-        await purposeTemplateService.unlinkEServicesFromPurposeTemplate(
-          unsafeBrandId(req.params.purposeTemplateId),
-          req.body.eserviceId,
-          ctx
-        );
-        return res.status(204).send();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          unlinkEServicesFromPurposeTemplateErrorMapper,
-          ctx,
-          `Error unlinking e-service ${req.body.eserviceId} from purpose template ${req.params.purposeTemplateId}`
-        );
-        return res.status(errorRes.status).send(errorRes);
+    )
+    .post(
+      "/purposeTemplates/:purposeTemplateId/unlinkEservice",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await purposeTemplateService.unlinkEServicesFromPurposeTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            req.body.eserviceId,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            unlinkEServicesFromPurposeTemplateErrorMapper,
+            ctx,
+            `Error unlinking e-service ${req.body.eserviceId} from purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    }
-  );
+    );
 
   return purposeTemplateRouter;
 };
