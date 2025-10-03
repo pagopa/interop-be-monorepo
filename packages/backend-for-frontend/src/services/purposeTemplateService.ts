@@ -81,7 +81,7 @@ export function purposeTemplateServiceBuilder(
     },
     async unlinkEServicesFromPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
-      eserviceId: bffApi.EServiceId,
+      eserviceId: string,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(
