@@ -99,6 +99,16 @@ describe("PATCH /eservices/:eserviceId router test", () => {
       isClientAccessDelegable: true,
       mode: "RECEIVE",
     },
+    {
+      name: "updated name",
+      description: "updated description",
+      technology: "REST",
+      isSignalHubEnabled: true,
+      isConsumerDelegable: false,
+      isClientAccessDelegable: true,
+      mode: "RECEIVE",
+      personalData: true,
+    },
   ] satisfies m2mGatewayApi.EServiceDraftUpdateSeed[])(
     "Should return 200 with partial seed and nullable fields (seed #%#)",
     async (seed) => {

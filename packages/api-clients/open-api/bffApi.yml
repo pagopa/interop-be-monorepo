@@ -22359,6 +22359,8 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        personalData:
+          type: boolean
     UpdateEServiceTemplateInstanceSeed:
       type: object
       additionalProperties: false
@@ -22391,6 +22393,8 @@ components:
         isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
+          type: boolean
+        personalData:
           type: boolean
     UpdateEServiceDescriptorQuotas:
       required:
@@ -22747,6 +22751,8 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        personalData:
+          type: boolean
     ProducerEServiceDetails:
       type: object
       additionalProperties: false
@@ -22778,6 +22784,8 @@ components:
         isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
+          type: boolean
+        personalData:
           type: boolean
     EServiceMode:
       type: string
@@ -22974,6 +22982,8 @@ components:
         isConsumerDelegable:
           type: boolean
         isClientAccessDelegable:
+          type: boolean
+        personalData:
           type: boolean
     ProducerDescriptorEServiceProducer:
       type: object
