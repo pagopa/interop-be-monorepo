@@ -17,6 +17,7 @@ import {
   PurposeTemplateReadModelService,
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
+  aggregatePurposeTemplateEServiceDescriptor,
   aggregatePurposeTemplateEServiceDescriptorArray,
 } from "pagopa-interop-readmodel";
 import {
@@ -277,13 +278,47 @@ export function readModelServiceBuilderSQL({
     async getPurposeTemplateById(
       purposeTemplateId: PurposeTemplateId
     ): Promise<WithMetadata<PurposeTemplate> | undefined> {
-      return purposeTemplateReadModelServiceSQL.getPurposeTemplateById(
+      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateById(
         purposeTemplateId
       );
     },
     // TODO: remove if unused
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
+    },
+    async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceId: EServiceId
+    ): Promise<EServiceDescriptorPurposeTemplate | undefined> {
+      const queryResult = await readModelDB
+        .select(
+          getTableColumns(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+          )
+        )
+        .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+        .where(
+          and(
+            eq(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+              eserviceId
+            )
+          )
+        )
+        .limit(1);
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      const purposeTemplateEServiceDescriptor =
+        aggregatePurposeTemplateEServiceDescriptor(queryResult[0]);
+
+      return purposeTemplateEServiceDescriptor.data;
     },
     async getPurposeTemplateEServiceDescriptors(
       filters: GetPurposeTemplateEServiceDescriptorsFilters,
