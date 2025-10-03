@@ -1,5 +1,6 @@
 import {
   EService,
+  EServiceDescriptorPurposeTemplate,
   EServiceId,
   ListResult,
   PurposeTemplate,
@@ -13,6 +14,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  aggregatePurposeTemplateEServiceDescriptor,
   CatalogReadModelService,
   TenantReadModelService,
   PurposeTemplateReadModelService,
@@ -33,6 +35,7 @@ import {
   and,
   eq,
   exists,
+  getTableColumns,
   ilike,
   inArray,
   isNotNull,
@@ -269,10 +272,11 @@ export function readModelServiceBuilderSQL({
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getPurposeTemplateById(
-      _id: PurposeTemplateId
+      id: PurposeTemplateId
     ): Promise<WithMetadata<PurposeTemplate> | undefined> {
-      // TO DO: this is a placeholder function Replace with actual implementation to fetch the purpose template by ID
-      return undefined;
+      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateById(
+        id
+      );
     },
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
@@ -309,6 +313,40 @@ export function readModelServiceBuilderSQL({
         data: toRiskAnalysisTemplateAnswerAnnotationDocument(queryResult[0]),
         metadata: { version: queryResult[0].metadataVersion },
       };
+    },
+    async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceId: EServiceId
+    ): Promise<EServiceDescriptorPurposeTemplate | undefined> {
+      const queryResult = await readModelDB
+        .select(
+          getTableColumns(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+          )
+        )
+        .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+        .where(
+          and(
+            eq(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+              eserviceId
+            )
+          )
+        )
+        .limit(1);
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      const purposeTemplateEServiceDescriptor =
+        aggregatePurposeTemplateEServiceDescriptor(queryResult[0]);
+
+      return purposeTemplateEServiceDescriptor.data;
     },
   };
 }

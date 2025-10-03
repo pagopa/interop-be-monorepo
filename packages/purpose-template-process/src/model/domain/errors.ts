@@ -1,6 +1,7 @@
 import { RiskAnalysisTemplateValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
+  EServiceId,
   makeApiProblemBuilder,
   PurposeTemplateId,
   PurposeTemplateState,
@@ -11,6 +12,7 @@ import {
   TenantId,
   TenantKind,
 } from "pagopa-interop-models";
+import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
 
 export const errorCodes = {
   missingFreeOfChargeReason: "0001",
@@ -25,6 +27,11 @@ export const errorCodes = {
   riskAnalysisTemplateAnswerNotFound: "0010",
   riskAnalysisTemplateAnswerAnnotationNotFound: "0011",
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0012",
+  associationEServicesForPurposeTemplateFailed: "0013",
+  associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0014",
+  tooManyEServicesForPurposeTemplate: "0015",
+  disassociationEServicesFromPurposeTemplateFailed: "0016",
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -157,5 +164,64 @@ export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
     detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId} and answer ${answerId}`,
     code: "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
     title: "Risk Analysis Template Answer Annotation Document Not Found",
+  });
+}
+
+export function associationEServicesForPurposeTemplateFailed(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Association of e-services to purpose template failed. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "associationEServicesForPurposeTemplateFailed",
+    title: "Association of e-services to purpose template failed",
+  });
+}
+
+export function associationBetweenEServiceAndPurposeTemplateAlreadyExists(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Association between e-services and purpose template failed. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "associationBetweenEServiceAndPurposeTemplateAlreadyExists",
+    title: "Association between e-service and purpose template already exists",
+  });
+}
+
+export function tooManyEServicesForPurposeTemplate(
+  actualCount: number,
+  maxCount: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Too many e-services provided. Maximum allowed: ${maxCount}, provided: ${actualCount}`,
+    code: "tooManyEServicesForPurposeTemplate",
+    title: "Too Many E-Services for Purpose Template",
+  });
+}
+
+export function disassociationEServicesFromPurposeTemplateFailed(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Disassociation of e-services from purpose template failed. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "disassociationEServicesFromPurposeTemplateFailed",
+    title: "Disassociation of e-services from purpose template failed",
+  });
+}
+
+export function associationBetweenEServiceAndPurposeTemplateDoesNotExist(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Association between e-services and purpose template does not exist. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "associationBetweenEServiceAndPurposeTemplateDoesNotExist",
+    title: "Association between e-services and purpose template does not exist",
   });
 }
