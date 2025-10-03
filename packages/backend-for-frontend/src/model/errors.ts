@@ -59,6 +59,12 @@ export const errorCodes = {
   noVersionInEServiceTemplate: "0055",
   templateInstanceNotAllowed: "0056",
   tenantBySelfcareIdNotFound: "0057",
+  associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0058",
+  tooManyEServicesForPurposeTemplate: "0059",
+  associationEServicesForPurposeTemplateFailed: "0060",
+  purposeTemplateNotInValidState: "0061",
+  purposeTemplateNotFound: "0062",
+  operationForbidden: "0063",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
