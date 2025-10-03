@@ -26195,13 +26195,13 @@ components:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
+            $ref: "#/components/schemas/EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor"
         pagination:
           $ref: "#/components/schemas/Pagination"
       required:
         - results
         - pagination
-    EServiceDescriptorPurposeTemplate:
+    EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor:
       type: object
       additionalProperties: false
       properties:

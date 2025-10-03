@@ -33,7 +33,7 @@ export function toBffEServiceDescriptorsPurposeTemplate(
   eserviceDescriptorPurposeTemplate: purposeTemplateApi.EServiceDescriptorPurposeTemplate,
   eservice: bffApi.CompactEService,
   descriptor: bffApi.CompactDescriptor
-): bffApi.EServiceDescriptorPurposeTemplate {
+): bffApi.EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor {
   return {
     purposeTemplateId: eserviceDescriptorPurposeTemplate.purposeTemplateId,
     eservice,
