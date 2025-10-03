@@ -13,12 +13,12 @@ import {
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
+  EService,
   EServiceDescriptorPurposeTemplate,
   ListResult,
   PurposeTemplate,
   PurposeTemplateEvent,
   PurposeTemplateId,
-  EService,
   Tenant,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";

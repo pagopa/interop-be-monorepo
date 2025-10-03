@@ -19,6 +19,7 @@ import {
   generateId,
   PurposeId,
   PurposeVersionId,
+  PurposeTemplateId,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
@@ -1035,4 +1036,14 @@ export const getMockBffApiCatalogPurposeTemplate =
     purposeTitle: generateMock(z.string()),
     purposeDescription: generateMock(z.string()),
     creator: generateMock(bffApi.CompactOrganization),
+  });
+
+export const getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor =
+  (
+    purposeTemplateId: PurposeTemplateId = generateId()
+  ): bffApi.EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor => ({
+    purposeTemplateId,
+    createdAt: generateMock(z.string().datetime({ offset: true })),
+    eservice: generateMock(bffApi.CompactEService),
+    descriptor: generateMock(bffApi.CompactDescriptor),
   });

@@ -207,7 +207,8 @@ export async function createServices(
     purposeService: purposeServiceBuilder(clients, fileManager),
     purposeTemplateService: purposeTemplateServiceBuilder(
       clients.purposeTemplateProcessClient,
-      clients.tenantProcessClient
+      clients.tenantProcessClient,
+      clients.catalogProcessClient
     ),
     selfcareService: selfcareServiceBuilder(clients),
     tenantService: tenantServiceBuilder(

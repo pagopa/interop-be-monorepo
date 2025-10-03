@@ -18,13 +18,13 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  PurposeTemplateEServiceDescriptorSQL,
   PurposeTemplateRiskAnalysisAnswerSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL,
   PurposeTemplateRiskAnalysisFormSQL,
   PurposeTemplateItemsSQL,
   PurposeTemplateSQL,
-  PurposeTemplateEServiceDescriptorSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 import { throwIfMultiple } from "../utils.js";
@@ -411,6 +411,13 @@ export const toPurposeTemplateAggregatorArray = (
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
   };
 };
+
+export const aggregatePurposeTemplateEServiceDescriptorArray = (
+  purposeTemplateEServiceDescriptor: PurposeTemplateEServiceDescriptorSQL[]
+): Array<WithMetadata<EServiceDescriptorPurposeTemplate>> =>
+  purposeTemplateEServiceDescriptor.map(
+    aggregatePurposeTemplateEServiceDescriptor
+  );
 
 export const aggregatePurposeTemplateEServiceDescriptor = ({
   purposeTemplateId,
