@@ -1,4 +1,3 @@
-/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {

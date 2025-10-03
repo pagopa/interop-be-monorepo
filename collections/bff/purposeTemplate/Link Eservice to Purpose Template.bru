@@ -1,0 +1,30 @@
+meta {
+  name: Link Eservice to Purpose Template
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/purposeTemplates/:purposeTemplateId/linkEservice
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "eserviceId": "a46948f4-fd24-4383-84dd-6337498dba47"
+  }
+}
+
+vars:post-response {
+  linkedEServiceDescriptor: res.body
+}

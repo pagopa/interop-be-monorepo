@@ -1,4 +1,4 @@
-import { TenantKind } from "pagopa-interop-models";
+import { tenantKind, TenantKind } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
   RiskAnalysisFormToValidate,
@@ -132,6 +132,27 @@ export function getFormRulesByVersion(
   return riskAnalysisFormRules[tenantKind].find(
     (config) => config.version === version
   );
+}
+
+/*
+Get all the not expired risk analysis form rules (without expiration date and within the grace period) for each tenant kind
+*/
+export function getValidFormRulesVersions(): Map<TenantKind, string[]> {
+  const validFormRulesByTenantKind = new Map<TenantKind, string[]>();
+  for (const kind of Object.values(tenantKind)) {
+    validFormRulesByTenantKind.set(
+      kind,
+      riskAnalysisFormRules[kind]
+        .filter(
+          (rule) =>
+            !rule.expiration ||
+            rule.expiration >= new Date(new Date().toDateString())
+        )
+        .map((rule) => rule.version)
+    );
+  }
+
+  return validFormRulesByTenantKind;
 }
 
 function questionRulesDepsToValidationRuleDeps(

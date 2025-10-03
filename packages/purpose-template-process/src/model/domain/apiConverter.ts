@@ -1,5 +1,6 @@
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
+  EServiceDescriptorPurposeTemplate,
   PurposeTemplate,
   purposeTemplateState,
   PurposeTemplateState,
@@ -21,6 +22,19 @@ export function purposeTemplateStateToApiPurposeTemplateState(
     .with(purposeTemplateState.active, () => "ACTIVE")
     .with(purposeTemplateState.suspended, () => "SUSPENDED")
     .with(purposeTemplateState.archived, () => "ARCHIVED")
+    .exhaustive();
+}
+
+export function apiPurposeTemplateStateToPurposeTemplateState(
+  state: purposeTemplateApi.PurposeTemplateState
+): PurposeTemplateState {
+  return match<purposeTemplateApi.PurposeTemplateState, PurposeTemplateState>(
+    state
+  )
+    .with("DRAFT", () => purposeTemplateState.draft)
+    .with("ACTIVE", () => purposeTemplateState.active)
+    .with("SUSPENDED", () => purposeTemplateState.suspended)
+    .with("ARCHIVED", () => purposeTemplateState.archived)
     .exhaustive();
 }
 
@@ -116,3 +130,11 @@ export const annotationDocumentToApiAnnotationDocument = (
   ...document,
   createdAt: document.createdAt?.toJSON(),
 });
+
+export const eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate =
+  (
+    eserviceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate
+  ): purposeTemplateApi.EServiceDescriptorPurposeTemplate => ({
+    ...eserviceDescriptorPurposeTemplate,
+    createdAt: eserviceDescriptorPurposeTemplate.createdAt.toJSON(),
+  });
