@@ -7,7 +7,7 @@ import {
   EServiceM2MEventId,
   TenantId,
 } from "../brandedIds.js";
-import { M2MEventVisibility } from "./m2mEventVisibility.js";
+import { m2mEventVisibility } from "./m2mEventVisibility.js";
 
 export const EServiceM2MEventType = z.enum([
   // EService events
@@ -72,7 +72,11 @@ export const EServiceM2MEvent = z.object({
   producerId: TenantId,
   producerDelegateId: TenantId.optional(),
   producerDelegationId: DelegationId.optional(),
-  visibility: M2MEventVisibility,
+  visibility: z.union([
+    z.literal(m2mEventVisibility.owner),
+    z.literal(m2mEventVisibility.public),
+    // Restricted visibility is not currently used for EServiceM2MEvents,
+  ]),
 });
 
 export type EServiceM2MEvent = z.infer<typeof EServiceM2MEvent>;
