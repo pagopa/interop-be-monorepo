@@ -53,6 +53,54 @@ export function purposeTemplateServiceBuilder(
 
       return { id: result.id };
     },
+    async linkEServiceToPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceId: string,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceDescriptorPurposeTemplate> {
+      logger.info(
+        `Linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
+      );
+
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const result = await purposeTemplateClient.linkEServicesToPurposeTemplate(
+        {
+          eserviceIds: [eserviceId],
+        },
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+
+      return result[0];
+    },
+    async unlinkEServicesFromPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceId: string,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Unlinking e-service ${eserviceId} from purpose template ${purposeTemplateId}`
+      );
+
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      await purposeTemplateClient.unlinkEServicesFromPurposeTemplate(
+        {
+          eserviceIds: [eserviceId],
+        },
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+    },
     async getCreatorPurposeTemplates({
       purposeTitle,
       states,
@@ -69,6 +117,7 @@ export function purposeTemplateServiceBuilder(
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.CreatorPurposeTemplates> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
       const { headers, authData, logger } = ctx;
 
       logger.info(

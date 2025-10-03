@@ -16,6 +16,7 @@ import {
   PurposeTemplateId,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  EService,
   Tenant,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
@@ -25,6 +26,7 @@ import {
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
+  upsertEService,
   upsertPurposeTemplate,
   upsertPurposeTemplateEServiceDescriptor,
   upsertTenant,
@@ -126,6 +128,10 @@ export const addOnePurposeTemplateEServiceDescriptor = async (
     purposeTemplateEServiceDescriptor,
     0
   );
+};
+
+export const addOneEService = async (eservice: EService): Promise<void> => {
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
