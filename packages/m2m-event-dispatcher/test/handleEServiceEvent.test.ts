@@ -100,7 +100,7 @@ describe("handleEServiceEvent test", async () => {
 
   describe.each(EServiceEventV2.options.map((o) => o.shape.type.value))(
     "with %s event",
-    (eventType: EServiceEventV2["type"]) => {
+    (eventType: EServiceEventV2["type"]) =>
       it.each(testCases)(
         "should write M2M event with the right visibility (E-Service: $testCase)",
         async ({ testCase, eservice, delegation }) => {
@@ -322,7 +322,6 @@ describe("handleEServiceEvent test", async () => {
           const actualM2MEvent = await retrieveLastEServiceM2MEvent();
           expect(actualM2MEvent).toEqual(expectedM2MEvent);
         }
-      );
-    }
+      )
   );
 });
