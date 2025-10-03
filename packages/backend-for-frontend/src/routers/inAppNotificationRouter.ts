@@ -27,11 +27,12 @@ const inAppNotificationRouter = (
     .get("/inAppNotifications", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
-      const { q, offset, limit } = req.query;
+      const { q, offset, limit, category } = req.query;
 
       try {
         const notifications = await inAppNotificationService.getNotifications(
           q,
+          category,
           offset,
           limit,
           ctx

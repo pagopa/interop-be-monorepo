@@ -35,6 +35,7 @@ export function inAppNotificationServiceBuilder(
   return {
     getNotifications: async (
       q: string | undefined,
+      notificationTypes: NotificationType[],
       limit: number,
       offset: number,
       {
@@ -50,7 +51,10 @@ export function inAppNotificationServiceBuilder(
           and(
             eq(notification.userId, userId),
             eq(notification.tenantId, organizationId),
-            q ? ilike(notification.body, `%${escapeRegExp(q)}%`) : undefined
+            q ? ilike(notification.body, `%${escapeRegExp(q)}%`) : undefined,
+            notificationTypes.length > 0
+              ? inArray(notification.notificationType, notificationTypes)
+              : undefined
           )
         )
         .orderBy(desc(notification.createdAt))

@@ -2,6 +2,7 @@ import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import { bffApi } from "pagopa-interop-api-clients";
 import { NotificationType } from "pagopa-interop-models";
 import {
+  notificationTypeToCategory,
   notificationTypeToUiSection,
   UiSection,
 } from "../model/modelMappingUtils.js";
@@ -56,15 +57,13 @@ export function toBffApiNotificationsCountBySection({
 export function toBffApiNotification(
   notification: inAppNotificationApi.Notification
 ): bffApi.Notification {
-  const notificationType = NotificationType.parse(
-    notification.notificationType
-  );
   return {
     id: notification.id,
     tenantId: notification.tenantId,
     userId: notification.userId,
     body: notification.body,
-    deepLink: notificationTypeToUiSection[notificationType],
+    deepLink: notificationTypeToUiSection[notification.notificationType],
+    category: notificationTypeToCategory[notification.notificationType],
     createdAt: notification.createdAt,
     readAt: notification.readAt,
   };
