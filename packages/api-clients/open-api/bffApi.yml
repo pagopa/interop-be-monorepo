@@ -20687,15 +20687,20 @@ paths:
       summary: "Mark a list of notifications as unread"
       description: "Mark a list of notifications as unread"
       operationId: markNotificationsAsUnread
-      parameters:
-        - name: ids
-          in: body
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
       responses:
         "204":
           description: successful operation

@@ -56,22 +56,123 @@ const inAppNotificationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/inAppNotifications/bulk/markAsRead", (_, res) =>
-      res.status(501).send()
+    .post("/inAppNotifications/bulk/markAsRead", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await inAppNotificationService.markNotificationsAsRead(
+          req.body.ids,
+          ctx
+        );
+        return res.status(200).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error marking notifications as read"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/inAppNotifications/bulk/markAsUnread", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await inAppNotificationService.markNotificationsAsUnread(
+          req.body.ids,
+          ctx
+        );
+        return res.status(200).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error marking notifications as unread"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post(
+      "/inAppNotifications/:notificationId/markAsRead",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          await inAppNotificationService.markNotificationAsRead(
+            req.params.notificationId,
+            ctx
+          );
+          return res.status(200).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            "Error marking notification as read"
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
-    .post("/inAppNotifications/:notificationId/markAsRead", (_, res) =>
-      res.status(501).send()
+    .post(
+      "/inAppNotifications/:notificationId/markAsUnread",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          await inAppNotificationService.markNotificationAsUnread(
+            req.params.notificationId,
+            ctx
+          );
+          return res.status(200).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            "Error marking notification as unread"
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
-    .post("/inAppNotifications/:notificationId/markAsUnread", (_, res) =>
-      res.status(501).send()
-    )
-    .post("/inAppNotifications/bulk/markAsUnread", (_, res) =>
-      res.status(501).send()
-    )
-    .delete("/inAppNotifications", (_, res) => res.status(501).send())
-    .delete("/inAppNotifications/:notificationId", (_, res) =>
-      res.status(501).send()
-    )
+    .delete("/inAppNotifications", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await inAppNotificationService.deleteNotifications(req.body.ids, ctx);
+        return res.status(200).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error deleting notifications"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/inAppNotifications/:notificationId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await inAppNotificationService.deleteNotification(
+          req.params.notificationId,
+          ctx
+        );
+        return res.status(200).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error deleting notification"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/inAppNotifications/count", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
