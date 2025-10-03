@@ -88,7 +88,8 @@ export function expectSinglePageListResult(
 }
 
 export const writePurposeTemplateInEventstore = async (
-  purposeTemplate: PurposeTemplate
+  purposeTemplate: PurposeTemplate,
+  metadataVersion: number = 0
 ): Promise<void> => {
   const purposeTemplateEvent: PurposeTemplateEvent = {
     type: "PurposeTemplateAdded",
@@ -98,17 +99,18 @@ export const writePurposeTemplateInEventstore = async (
   const eventToWrite: StoredEvent<PurposeTemplateEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     stream_id: purposeTemplateEvent.data.purposeTemplate!.id,
-    version: 0,
+    version: metadataVersion,
     event: purposeTemplateEvent,
   };
   await writeInEventstore(eventToWrite, "purpose_template", postgresDB);
 };
 
 export const addOnePurposeTemplate = async (
-  purposeTemplate: PurposeTemplate
+  purposeTemplate: PurposeTemplate,
+  metadataVersion: number = 0
 ): Promise<void> => {
-  await writePurposeTemplateInEventstore(purposeTemplate);
-  await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
+  await writePurposeTemplateInEventstore(purposeTemplate, metadataVersion);
+  await upsertPurposeTemplate(readModelDB, purposeTemplate, metadataVersion);
 };
 
 export const addOnePurposeTemplateEServiceDescriptor = async (
