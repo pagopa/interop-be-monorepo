@@ -183,13 +183,26 @@ const catalogRouter = (
           ctx
         );
 
-        return res
-          .header(
-            "Content-Disposition",
-            `attachment; filename=${response.filename}`
-          )
-          .header("Content-Type", "application/octet-stream")
-          .send(response.file);
+        // Encode the filename for use in `filename*` (RFC 5987 / UTF-8 support)
+        const encodedFilename = encodeURIComponent(response.filename);
+
+        // Create a safe ASCII-only fallback filename
+        // This regex replaces any non-ASCII character with "_"
+        // eslint-disable-next-line no-control-regex
+        const safeFilename = response.filename.replace(/[^\x00-\x7F]/g, "_");
+
+        return (
+          res
+            // Set the Content-Disposition header so the browser downloads the file
+            // - `filename` is a fallback for older browsers (ASCII only)
+            // - `filename*` allows UTF-8 encoded filenames (modern browsers)
+            .header(
+              "Content-Disposition",
+              `attachment; filename="${safeFilename}"; filename*=utf-8''${encodedFilename}`
+            )
+            .header("Content-Type", "application/octet-stream")
+            .send(response.file)
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
