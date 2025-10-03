@@ -23,7 +23,7 @@
     "@protobuf-ts/plugin": "2.9.4",
     "@protobuf-ts/protoc": "2.9.4",
     "@protobuf-ts/runtime": "2.9.4",
-    "axios": "1.8.2",
+    "axios": "1.12.0",
     "ts-pattern": "5.2.0",
     "zod": "3.23.8",
     "zod-validation-error": "3.3.0"
