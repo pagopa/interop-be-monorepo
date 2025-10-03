@@ -35,16 +35,22 @@ export function visibilityFilter<
     restrictedFilter: SQL | undefined;
   }
 ): SQL | undefined {
+  const {
+    public: publicVisibility,
+    owner: ownerVisibility,
+    restricted: restrictedVisibility,
+    ...rest
+  } = m2mEventVisibility;
+  void (rest satisfies Record<string, never>);
+  // ^ ensure all visibilities are handled
+
   return or(
-    eq(table.visibility, m2mEventVisibility.public),
+    eq(table.visibility, publicVisibility),
     ownerFilter
-      ? and(eq(table.visibility, m2mEventVisibility.owner), ownerFilter)
+      ? and(eq(table.visibility, ownerVisibility), ownerFilter)
       : undefined,
     restrictedFilter
-      ? and(
-          eq(table.visibility, m2mEventVisibility.restricted),
-          restrictedFilter
-        )
+      ? and(eq(table.visibility, restrictedVisibility), restrictedFilter)
       : undefined
   );
 }
