@@ -30,7 +30,7 @@ describe("handleAttributeEvent test", async () => {
         stream_id: attribute.id,
         type: eventType,
         data: {
-          eservice: toAttributeV1(attribute),
+          attribute: toAttributeV1(attribute),
         },
       } as AttributeEventEnvelope;
 
