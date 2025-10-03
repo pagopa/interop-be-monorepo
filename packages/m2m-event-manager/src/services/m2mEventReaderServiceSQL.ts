@@ -1,4 +1,4 @@
-import { 
+import {
   attributeInM2MEvent,
   eserviceInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
