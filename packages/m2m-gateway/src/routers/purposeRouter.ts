@@ -406,6 +406,28 @@ const purposeRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .patch("/reversePurposes/:purposeId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purpose = await purposeService.updateDraftReversePurpose(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating reverse purpose with id ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return purposeRouter;

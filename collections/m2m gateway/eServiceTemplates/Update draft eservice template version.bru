@@ -1,0 +1,30 @@
+meta {
+  name: Update draft eservice template version
+  type: http
+  seq: 13
+}
+
+patch {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/versions/:versionId
+  body: json
+  auth: none
+}
+
+params:path {
+  versionId: {{versionId}}
+  templateId: {{templateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "description": "Version description",
+    "voucherLifespan": 100,
+    "dailyCallsPerConsumer": null,
+    "dailyCallsTotal": null,
+    "agreementApprovalPolicy": null
+  }
+}

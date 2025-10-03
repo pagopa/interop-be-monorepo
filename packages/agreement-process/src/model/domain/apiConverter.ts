@@ -12,6 +12,8 @@ import {
   badRequestError,
   CompactTenant,
   DelegationId,
+  AgreementStamp,
+  AgreementStamps,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -87,6 +89,7 @@ export const agreementToApiAgreement = (
     ? agreementDocumentToApiAgreementDocument(agreement.contract)
     : undefined,
   suspendedAt: agreement.suspendedAt?.toJSON(),
+  stamps: agreementStampsToApiAgreementStamps(agreement.stamps),
 });
 
 export const apiAgreementDocumentToAgreementDocument = (
@@ -196,4 +199,38 @@ export const fromApiCompactTenant = (
 ): CompactTenant => ({
   id: unsafeBrandId(input.id),
   attributes: input.attributes.map(fromApiTenantAttribute),
+});
+
+export const agreementStampToApiAgreementStamp = (
+  input: AgreementStamp
+): agreementApi.AgreementStamp => ({
+  who: input.who,
+  delegationId: input.delegationId,
+  when: input.when.toJSON(),
+});
+
+export const agreementStampsToApiAgreementStamps = (
+  input: AgreementStamps
+): agreementApi.AgreementStamps => ({
+  submission: input.submission
+    ? agreementStampToApiAgreementStamp(input.submission)
+    : undefined,
+  activation: input.activation
+    ? agreementStampToApiAgreementStamp(input.activation)
+    : undefined,
+  rejection: input.rejection
+    ? agreementStampToApiAgreementStamp(input.rejection)
+    : undefined,
+  suspensionByProducer: input.suspensionByProducer
+    ? agreementStampToApiAgreementStamp(input.suspensionByProducer)
+    : undefined,
+  suspensionByConsumer: input.suspensionByConsumer
+    ? agreementStampToApiAgreementStamp(input.suspensionByConsumer)
+    : undefined,
+  upgrade: input.upgrade
+    ? agreementStampToApiAgreementStamp(input.upgrade)
+    : undefined,
+  archiving: input.archiving
+    ? agreementStampToApiAgreementStamp(input.archiving)
+    : undefined,
 });

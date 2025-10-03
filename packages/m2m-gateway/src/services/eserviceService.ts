@@ -11,12 +11,12 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   toGetEServicesQueryParams,
-  toM2MGatewayApiDocument,
   toM2MGatewayApiEService,
   toM2MGatewayApiEServiceDescriptor,
   toCatalogApiEServiceDescriptorSeed,
   toM2MGatewayApiEServiceRiskAnalysis,
   toCatalogApiPatchUpdateEServiceDescriptorSeed,
+  toM2MGatewayApiDocument,
 } from "../api/eserviceApiConverter.js";
 import {
   cannotDeleteLastEServiceDescriptor,
@@ -116,13 +116,8 @@ export function eserviceServiceBuilder(
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EService> {
       logger.info(`Retrieving eservice with id ${eserviceId}`);
-
-      const { data: eservice } = await retrieveEServiceById(
-        headers,
-        eserviceId
-      );
-
-      return toM2MGatewayApiEService(eservice);
+      const response = await retrieveEServiceById(headers, eserviceId);
+      return toM2MGatewayApiEService(response.data);
     },
     async getEServices(
       params: m2mGatewayApi.GetEServicesQueryParams,
@@ -454,7 +449,7 @@ export function eserviceServiceBuilder(
       logger.info(`Updating draft EService with id ${eserviceId}`);
 
       const response =
-        await clients.catalogProcessClient.patchUpdateEServiceById(seed, {
+        await clients.catalogProcessClient.patchUpdateDraftEServiceById(seed, {
           params: { eServiceId: eserviceId },
           headers,
         });
@@ -542,6 +537,25 @@ export function eserviceServiceBuilder(
           headers,
         }
       );
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async updatePublishedEServiceSignalHub(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceSignalHubUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating Signal Hub flag for published E-Service with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateEServiceSignalHubFlag(seed, {
+          params: { eServiceId: eserviceId },
+          headers,
+        });
 
       const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
@@ -771,11 +785,45 @@ export function eserviceServiceBuilder(
         unsafeBrandId(createdRiskAnalysisId)
       );
 
-      if (!createdRiskAnalysis) {
-        throw eserviceRiskAnalysisNotFound(eservice.id, createdRiskAnalysisId);
-      }
-
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
+    },
+
+    async updatePublishedEServiceDescriptorQuotas(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApi.EServiceDescriptorQuotasUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
+      logger.info(
+        `Updating Descriptor Quotas for published E-Service with id ${eserviceId}`
+      );
+
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId
+      );
+
+      const response = await clients.catalogProcessClient.updateDescriptor(
+        {
+          voucherLifespan: seed.voucherLifespan ?? descriptor.voucherLifespan,
+          dailyCallsPerConsumer:
+            seed.dailyCallsPerConsumer ?? descriptor.dailyCallsPerConsumer,
+          dailyCallsTotal: seed.dailyCallsTotal ?? descriptor.dailyCallsTotal,
+        },
+        {
+          params: { eServiceId: eserviceId, descriptorId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollEService(response, headers);
+
+      return toM2MGatewayApiEServiceDescriptor(
+        retrieveEServiceDescriptorById(
+          polledResource,
+          unsafeBrandId(descriptorId)
+        )
+      );
     },
 
     async getEServiceRiskAnalyses(

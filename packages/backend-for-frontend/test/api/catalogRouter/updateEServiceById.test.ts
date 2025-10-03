@@ -19,7 +19,7 @@ describe("API PUT /eservices/:eServiceId", () => {
   const mockApiCreatedResource = getMockBffApiCreatedResource(mockEService.id);
 
   beforeEach(() => {
-    clients.catalogProcessClient.updateEServiceById = vi
+    clients.catalogProcessClient.updateDraftEServiceById = vi
       .fn()
       .mockResolvedValue(mockEService);
   });

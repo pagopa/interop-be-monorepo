@@ -54,6 +54,8 @@ describe("cloneAgreement", () => {
       consumerId: mockAgreementProcessResponse.data.consumerId,
       state: mockAgreementProcessResponse.data.state,
       createdAt: mockAgreementProcessResponse.data.createdAt,
+      delegationId:
+        mockAgreementProcessResponse.data.stamps.submission?.delegationId,
     };
 
     const result = await agreementService.cloneAgreement(

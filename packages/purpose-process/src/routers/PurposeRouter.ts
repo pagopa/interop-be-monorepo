@@ -193,6 +193,39 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .patch("/reverse/purposes/:id", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.patchUpdateReversePurpose(
+          unsafeBrandId(req.params.id),
+          req.body,
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            purposeApi.Purpose.parse(
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateReversePurposeErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/purposes/:id", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 

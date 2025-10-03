@@ -76,7 +76,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
     await addOneTenant(creator);
     await addOneEServiceTemplate(eserviceTemplate);
 
-    await eserviceTemplateService.deleteRiskAnalysis(
+    const deleteResponse = await eserviceTemplateService.deleteRiskAnalysis(
       eserviceTemplate.id,
       riskAnalysis.id,
       getMockContext({
@@ -105,6 +105,10 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
     expect(writtenPayload.eserviceTemplate).toEqual(
       toEServiceTemplateV2(updatedEServiceTemplate)
     );
+    expect(deleteResponse).toEqual({
+      data: updatedEServiceTemplate,
+      metadata: { version: 1 },
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {

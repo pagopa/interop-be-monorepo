@@ -7,7 +7,6 @@ import {
   EServiceTemplateVersionV2,
 } from "../gen/v2/eservice-template/eservice-template.js";
 import {
-  toAgreementApprovalPolicyV2,
   toDocumentV2,
   toEServiceAttributeV2,
   toEServiceModeV2,
@@ -15,12 +14,31 @@ import {
 } from "../eservice/protobufConverterToV2.js";
 import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 import {
+  AgreementApprovalPolicy,
+  agreementApprovalPolicy,
+} from "../eservice/eservice.js";
+import { AgreementApprovalPolicyV2 } from "../gen/v2/eservice/eservice.js";
+import {
   EServiceTemplate,
   EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
 } from "./eserviceTemplate.js";
+
+const toAgreementApprovalPolicyV2 = (
+  input: AgreementApprovalPolicy
+): AgreementApprovalPolicyV2 =>
+  match(input)
+    .with(
+      agreementApprovalPolicy.manual,
+      () => AgreementApprovalPolicyV2.MANUAL
+    )
+    .with(
+      agreementApprovalPolicy.automatic,
+      () => AgreementApprovalPolicyV2.AUTOMATIC
+    )
+    .exhaustive();
 
 export const toEServiceTemplateVersionStateV2 = (
   state: EServiceTemplateVersionState
@@ -66,9 +84,9 @@ export const toEServiceTemplateVersionV2 = (
   state: toEServiceTemplateVersionStateV2(input.state),
   interface:
     input.interface != null ? toDocumentV2(input.interface) : undefined,
-  agreementApprovalPolicy: toAgreementApprovalPolicyV2(
-    input.agreementApprovalPolicy
-  ),
+  agreementApprovalPolicy: input.agreementApprovalPolicy
+    ? toAgreementApprovalPolicyV2(input.agreementApprovalPolicy)
+    : undefined,
   createdAt: dateToBigInt(input.createdAt),
   publishedAt: dateToBigInt(input.publishedAt),
   suspendedAt: dateToBigInt(input.suspendedAt),

@@ -55,7 +55,7 @@ describe("upload Document", () => {
       };
       await addOneEServiceTemplate(eserviceTemplate);
 
-      const returnedEServiceTemplate =
+      const returnedDocument =
         await eserviceTemplateService.createEServiceTemplateDocument(
           eserviceTemplate.id,
           version.id,
@@ -77,32 +77,40 @@ describe("upload Document", () => {
         payload: writtenEvent.data,
       });
 
-      const expectedEservice = toEServiceTemplateV2({
+      const expectedDocument: Document = {
+        ...mockDocument,
+        id: unsafeBrandId(
+          writtenPayload.eserviceTemplate!.versions[0]!.interface!.id
+        ),
+        checksum:
+          writtenPayload.eserviceTemplate!.versions[0]!.interface!.checksum,
+        uploadDate: new Date(
+          writtenPayload.eserviceTemplate!.versions[0]!.interface!.uploadDate
+        ),
+      };
+
+      const expectedEserviceTemplate = toEServiceTemplateV2({
         ...eserviceTemplate,
         versions: [
           {
             ...version,
-            interface: {
-              ...mockDocument,
-              id: unsafeBrandId(
-                writtenPayload.eserviceTemplate!.versions[0]!.interface!.id
-              ),
-              checksum:
-                writtenPayload.eserviceTemplate!.versions[0]!.interface!
-                  .checksum,
-              uploadDate: new Date(
-                writtenPayload.eserviceTemplate!.versions[0]!.interface!.uploadDate
-              ),
-            },
+            interface: expectedDocument,
           },
         ],
       });
 
       expect(writtenPayload.eserviceTemplateVersionId).toEqual(version.id);
-      expect(writtenPayload.eserviceTemplate).toEqual(expectedEservice);
-      expect(writtenPayload.eserviceTemplate).toEqual(
-        toEServiceTemplateV2(returnedEServiceTemplate)
-      );
+      expect(writtenPayload).toEqual({
+        eserviceTemplateVersionId: version.id,
+        documentId: expectedDocument.id,
+        eserviceTemplate: expectedEserviceTemplate,
+      });
+      expect(returnedDocument).toEqual({
+        data: expectedDocument,
+        metadata: {
+          version: 1,
+        },
+      });
     }
   );
 

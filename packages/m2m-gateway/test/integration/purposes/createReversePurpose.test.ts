@@ -17,8 +17,9 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
+  delegationEServiceMismatch,
   missingMetadata,
-  notAnActiveConsumerDelegation,
+  requesterIsNotTheDelegateConsumer,
 } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
@@ -181,6 +182,32 @@ describe("createReversePurpose", () => {
     });
   });
 
+  it(`Should throw delegationEServiceMismatch if the specified delegation
+    is not a delegation for the purpose e-service`, async () => {
+    const mockDelegation = {
+      ...mockConsumerDelegation,
+      eserviceId: generateId(),
+    };
+    mockGetDelegation.mockResolvedValue(getMockWithMetadata(mockDelegation));
+
+    const mockPurposeSeedWithDelegation: m2mGatewayApi.ReversePurposeSeed = {
+      ...mockReversePurposeSeed,
+      delegationId: mockDelegation.id,
+    };
+
+    await expect(
+      purposeService.createReversePurpose(
+        mockPurposeSeedWithDelegation,
+        mockAppContext
+      )
+    ).rejects.toThrowError(
+      delegationEServiceMismatch(
+        mockReversePurposeSeed.eserviceId,
+        mockDelegation
+      )
+    );
+  });
+
   it.each([
     {
       ...mockConsumerDelegation,
@@ -200,15 +227,11 @@ describe("createReversePurpose", () => {
     },
     {
       ...mockConsumerDelegation,
-      eserviceId: generateId(),
-    },
-    {
-      ...mockConsumerDelegation,
       delegateId: generateId(),
     },
   ] satisfies delegationApi.Delegation[])(
-    `Should throw notAnActiveConsumerDelegation if the specified delegation
-    is not an active consumer delegation for requester tenant and e-service`,
+    `Should throw requesterIsNotTheDelegateConsumer if the specified delegation
+    is not an active consumer delegation for requester tenant`,
     async (mockDelegation) => {
       mockGetDelegation.mockResolvedValue(getMockWithMetadata(mockDelegation));
 
@@ -222,13 +245,7 @@ describe("createReversePurpose", () => {
           mockPurposeSeedWithDelegation,
           mockAppContext
         )
-      ).rejects.toThrowError(
-        notAnActiveConsumerDelegation(
-          mockAppContext.authData.organizationId,
-          mockReversePurposeSeed.eserviceId,
-          mockDelegation
-        )
-      );
+      ).rejects.toThrowError(requesterIsNotTheDelegateConsumer(mockDelegation));
     }
   );
 

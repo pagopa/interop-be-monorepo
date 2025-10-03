@@ -102,9 +102,13 @@ export type DelegationProcessServerConfig = z.infer<
 export const EServiceTemplateProcessServerConfig = z
   .object({
     ESERVICE_TEMPLATE_PROCESS_URL: APIEndpoint,
+    ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
+    ESERVICE_TEMPLATE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     eserviceTemplateProcessUrl: c.ESERVICE_TEMPLATE_PROCESS_URL,
+    eserviceTemplateDocumentsContainer: c.ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER,
+    eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
   }));
 export type EServiceTemplateProcessServerConfig = z.infer<
   typeof EServiceTemplateProcessServerConfig

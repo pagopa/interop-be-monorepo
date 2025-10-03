@@ -1,6 +1,10 @@
 import { basename } from "path";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import { FileManager, WithLogger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  M2MAdminAuthData,
+  WithLogger,
+} from "pagopa-interop-commons";
 import {
   PurposeId,
   PurposeVersionId,
@@ -34,7 +38,7 @@ import {
 import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
-import { assertActiveConsumerDelegateForEservice } from "../utils/validators/delegationValidators.js";
+import { assertRequesterIsDelegateConsumerForEservice } from "../utils/validators/delegationValidators.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -125,31 +129,28 @@ export function purposeServiceBuilder(
 
   const getConsumerIdForPurposeCreation = async (
     purposeSeed: m2mGatewayApi.PurposeSeed | m2mGatewayApi.ReversePurposeSeed,
-    requesterTenantId: TenantId,
+    authData: M2MAdminAuthData,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<TenantId> => {
-    const delegation = purposeSeed.delegationId
-      ? (
-          await clients.delegationProcessClient.delegation.getDelegation({
-            params: {
-              delegationId: purposeSeed.delegationId,
-            },
-            headers,
-          })
-        ).data
-      : undefined;
+    if (!purposeSeed.delegationId) {
+      return authData.organizationId;
+    } else {
+      const delegation = (
+        await clients.delegationProcessClient.delegation.getDelegation({
+          params: {
+            delegationId: purposeSeed.delegationId,
+          },
+          headers,
+        })
+      ).data;
 
-    if (delegation) {
-      assertActiveConsumerDelegateForEservice(
-        requesterTenantId,
+      assertRequesterIsDelegateConsumerForEservice(
+        authData,
         purposeSeed.eserviceId,
         delegation
       );
+      return unsafeBrandId<TenantId>(delegation.delegatorId);
     }
-
-    return delegation
-      ? unsafeBrandId<TenantId>(delegation.delegatorId)
-      : requesterTenantId;
   };
 
   return {
@@ -201,7 +202,7 @@ export function purposeServiceBuilder(
         {
           consumerId: await getConsumerIdForPurposeCreation(
             purposeSeed,
-            authData.organizationId,
+            authData,
             headers
           ),
           eserviceId: purposeSeed.eserviceId,
@@ -483,7 +484,7 @@ export function purposeServiceBuilder(
           {
             consumerId: await getConsumerIdForPurposeCreation(
               purposeSeed,
-              authData.organizationId,
+              authData,
               headers
             ),
             eserviceId: purposeSeed.eserviceId,
@@ -555,7 +556,7 @@ export function purposeServiceBuilder(
         throw purposeAgreementNotFound(purposeId);
       }
 
-      return toM2MGatewayApiAgreement(agreement);
+      return toM2MGatewayApiAgreement(agreement, purpose.delegationId);
     },
     async updateDraftPurpose(
       purposeId: PurposeId,
@@ -569,6 +570,26 @@ export function purposeServiceBuilder(
           params: { id: purposeId },
           headers,
         });
+
+      const polledResource = await pollPurpose(updatedPurpose, headers);
+
+      return toM2MGatewayApiPurpose(polledResource.data);
+    },
+    async updateDraftReversePurpose(
+      purposeId: PurposeId,
+      updateSeed: m2mGatewayApi.ReversePurposeDraftUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Purpose> {
+      logger.info(`Updating draft reverse purpose with id ${purposeId}`);
+
+      const updatedPurpose =
+        await clients.purposeProcessClient.patchUpdateReversePurpose(
+          updateSeed,
+          {
+            params: { id: purposeId },
+            headers,
+          }
+        );
 
       const polledResource = await pollPurpose(updatedPurpose, headers);
 

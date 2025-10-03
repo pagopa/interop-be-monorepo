@@ -62,6 +62,8 @@ describe("rejectAgreement", () => {
       consumerId: mockAgreementProcessResponse.data.consumerId,
       state: mockAgreementProcessResponse.data.state,
       createdAt: mockAgreementProcessResponse.data.createdAt,
+      delegationId:
+        mockAgreementProcessResponse.data.stamps.submission?.delegationId,
     };
 
     const result = await agreementService.rejectAgreement(
