@@ -3,7 +3,11 @@ import {
   purposeTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
+import {
+  assertFeatureFlagEnabled,
+  FileManager,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { TenantKind } from "pagopa-interop-models";
 import { PurposeTemplateId } from "pagopa-interop-models";
 import {
@@ -21,7 +25,8 @@ import { tenantNotFound } from "../model/errors.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   purposeTemplateClient: PurposeTemplateProcessClient,
-  tenantProcessClient: TenantProcessClient
+  tenantProcessClient: TenantProcessClient,
+  fileManager: FileManager
 ) {
   async function getTenantsFromPurposeTemplates(
     tenantClient: TenantProcessClient,
@@ -216,6 +221,41 @@ export function purposeTemplateServiceBuilder(
           totalCount: catalogPurposeTemplatesResponse.totalCount,
         },
       };
+    },
+    async getRiskAnalysisTemplateAnswerAnnotationDocument({
+      purposeTemplateId,
+      answerId,
+      documentId,
+      ctx,
+    }: {
+      purposeTemplateId: string;
+      answerId: string;
+      documentId: string;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<Buffer> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
+
+      logger.info(
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      const riskAnalysisTemplateAnswerAnnotationDocument =
+        await purposeTemplateClient.getRiskAnalysisTemplateAnswerAnnotationDocument(
+          {
+            params: { purposeTemplateId, answerId, documentId },
+            headers,
+          }
+        );
+
+      const documentBytes = await fileManager.get(
+        config.purposeTemplateDocumentsContainer,
+        riskAnalysisTemplateAnswerAnnotationDocument.path,
+        logger
+      );
+
+      return Buffer.from(documentBytes);
     },
   };
 }
