@@ -2,6 +2,8 @@ import { and, eq } from "drizzle-orm";
 import {
   Delegation,
   EService,
+  EServiceId,
+  TenantId,
   delegationKind,
   delegationState,
 } from "pagopa-interop-models";
@@ -14,23 +16,30 @@ export function readModelServiceBuilderSQL({
 }: {
   delegationReadModelServiceSQL: DelegationReadModelService;
 }) {
+  async function getActiveProducerDelegation(
+    eserviceId: EServiceId,
+    delegatorId: TenantId
+  ): Promise<Delegation | undefined> {
+    const delegation =
+      await delegationReadModelServiceSQL.getDelegationByFilter(
+        and(
+          eq(delegationInReadmodelDelegation.eserviceId, eserviceId),
+          eq(delegationInReadmodelDelegation.state, delegationState.active),
+          eq(
+            delegationInReadmodelDelegation.kind,
+            delegationKind.delegatedProducer
+          ),
+          eq(delegationInReadmodelDelegation.delegatorId, delegatorId)
+        )
+      );
+    return delegation?.data;
+  }
+
   return {
     async getActiveProducerDelegationForEService(
       eservice: EService
     ): Promise<Delegation | undefined> {
-      const delegation =
-        await delegationReadModelServiceSQL.getDelegationByFilter(
-          and(
-            eq(delegationInReadmodelDelegation.eserviceId, eservice.id),
-            eq(delegationInReadmodelDelegation.state, delegationState.active),
-            eq(
-              delegationInReadmodelDelegation.kind,
-              delegationKind.delegatedProducer
-            ),
-            eq(delegationInReadmodelDelegation.delegatorId, eservice.producerId)
-          )
-        );
-      return delegation?.data;
+      return getActiveProducerDelegation(eservice.id, eservice.producerId);
     },
   };
 }
