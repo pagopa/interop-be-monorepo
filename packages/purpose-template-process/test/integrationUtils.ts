@@ -4,10 +4,13 @@ import {
   ReadEvent,
   readLastEventByStreamId,
   setupTestContainersVitest,
+  sortPurposeTemplate,
   StoredEvent,
   writeInEventstore,
 } from "pagopa-interop-commons-test";
 import {
+  EServiceDescriptorPurposeTemplate,
+  ListResult,
   PurposeTemplate,
   PurposeTemplateEvent,
   PurposeTemplateId,
@@ -23,6 +26,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   upsertPurposeTemplate,
+  upsertPurposeTemplateEServiceDescriptor,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { afterEach, expect, inject } from "vitest";
@@ -52,6 +56,7 @@ export const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
+  readModelDB,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
@@ -92,12 +97,37 @@ export const readLastPurposeTemplateEvent = async (
     postgresDB
   );
 
+export function expectSinglePageListResult(
+  actual: ListResult<PurposeTemplate>,
+  expected: PurposeTemplate[]
+): void {
+  expect({
+    totalCount: actual.totalCount,
+    results: actual.results.map(sortPurposeTemplate),
+  }).toEqual({
+    totalCount: expected.length,
+    results: expected.map(sortPurposeTemplate),
+  });
+  expect(actual.results).toHaveLength(expected.length);
+}
+
 export const addOnePurposeTemplate = async (
   purposeTemplate: PurposeTemplate
 ): Promise<void> => {
   await writePurposeTemplateInEventstore(purposeTemplate);
   await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
 };
+
+export const addOnePurposeTemplateEServiceDescriptor = async (
+  purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate
+): Promise<void> => {
+  await upsertPurposeTemplateEServiceDescriptor(
+    readModelDB,
+    purposeTemplateEServiceDescriptor,
+    0
+  );
+};
+
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await upsertTenant(readModelDB, tenant, 0);
 };
