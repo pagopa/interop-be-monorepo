@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
-import { FileManager } from "pagopa-interop-commons";
+import { FileManager, SafeStorageService } from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
-import { SafeStorageService } from "../src/services/safeStorageClient.js";
-import { DbServiceBuilder } from "../src/services/dynamoService.js";
+import { DbServiceBuilder } from "pagopa-interop-commons";
 import { sqsMessageHandler } from "../src/handlers/sqsMessageHandler.js";
 
 vi.mock("../src/config/config.js", () => ({
@@ -19,9 +18,13 @@ const mockFileManager: Partial<FileManager> = {
 
 const mockDbService: DbServiceBuilder = {
   deleteFromDynamo: vi.fn(),
+  saveSignatureReference: vi.fn(),
+  readSignatureReference: vi.fn(),
 };
 
 const mockSafeStorageService: SafeStorageService = {
+  createFile: vi.fn(),
+  uploadFileContent: vi.fn(),
   getFile: vi.fn(),
   downloadFileContent: vi.fn(),
 };

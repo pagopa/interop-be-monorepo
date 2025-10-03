@@ -7,6 +7,7 @@ import {
   DeleteTableCommand,
   DeleteTableInput,
   DynamoDBClient,
+  UpdateTimeToLiveCommand,
 } from "@aws-sdk/client-dynamodb";
 
 export const buildDynamoDBTables = async (
@@ -59,6 +60,15 @@ export const buildDynamoDBTables = async (
     signatureReferencesTableDefinition
   );
   await dynamoDBClient.send(signatureReferencesCreationCommand);
+  const ttlCommand = new UpdateTimeToLiveCommand({
+    TableName: signatureReferencesTableDefinition.TableName,
+    TimeToLiveSpecification: {
+      Enabled: true,
+      AttributeName: "ttl",
+    },
+  });
+
+  await dynamoDBClient.send(ttlCommand);
 };
 
 export const deleteDynamoDBTables = async (

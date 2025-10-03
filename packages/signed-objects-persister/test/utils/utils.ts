@@ -5,12 +5,17 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { genericInternalError } from "pagopa-interop-models";
 import { inject } from "vitest";
 
-export const dynamoDBClientConfig = inject("dynamoDBClientConfig");
+export const DynamoDBClientConfig = inject("dynamoDBClientConfig");
 
-if (!dynamoDBClientConfig) {
+if (!DynamoDBClientConfig) {
   throw genericInternalError("Invalid DynamoDBClientConfig config");
 }
 
 export const dynamoDBClient = new DynamoDBClient({
-  endpoint: `http://localhost:${dynamoDBClientConfig.dynamoDbTestPort}`,
+  region: "us-east-1",
+  credentials: {
+    accessKeyId: "fakeAccessKeyId",
+    secretAccessKey: "fakeSecretAccessKey",
+  },
+  endpoint: `http://localhost:${DynamoDBClientConfig.dynamoDbTestPort}`,
 });

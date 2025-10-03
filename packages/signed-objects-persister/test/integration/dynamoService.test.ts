@@ -19,7 +19,7 @@ describe("dbServiceBuilder - Integration Tests", () => {
     await deleteDynamoDBTables(dynamoDBClient);
   });
 
-  it("should successfully save a signature reference and retrieve it", async () => {
+  it("should successfully delete logically and still retrieve it", async () => {
     const safeStorageId = generateId();
     const dbService = dbServiceBuilder(dynamoDBClient, config);
     const mockReference = {
@@ -30,6 +30,8 @@ describe("dbServiceBuilder - Integration Tests", () => {
     };
 
     await dbService.saveSignatureReference(mockReference);
+
+    await dbService.deleteFromDynamo(mockReference.safeStorageId);
 
     const retrievedItem = await dbService.readSignatureReference(
       mockReference.safeStorageId

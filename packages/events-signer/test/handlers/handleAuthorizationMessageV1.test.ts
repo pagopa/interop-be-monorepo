@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
   generateId,
   AuthorizationEventEnvelopeV1,
@@ -19,25 +19,19 @@ import {
   getMockKey,
 } from "pagopa-interop-commons-test";
 import {
-  config as appConfig,
-  safeStorageApiConfig,
-} from "../../src/config/config.js";
-import {
-  DbServiceBuilder,
-  dbServiceBuilder,
-} from "../../src/services/dbService.js";
-import { dynamoDBClient } from "../utils/utils.js";
-import { readSignatureReference } from "../utils/dbServiceUtils.js";
-import { handleAuthorizationMessageV1 } from "../../src/handlers/handleAuthorizationMessageV1.js";
-import {
   SafeStorageService,
   createSafeStorageApiClient,
-} from "../../src/services/safeStorageService.js";
+  DbServiceBuilder,
+  dbServiceBuilder,
+} from "pagopa-interop-commons";
+import { config } from "../../src/config/config.js";
+import { dynamoDBClient } from "../utils/utils.js";
+import { handleAuthorizationMessageV1 } from "../../src/handlers/handleAuthorizationMessageV1.js";
 
-const fileManager: FileManager = initFileManager(appConfig);
+const fileManager: FileManager = initFileManager(config);
 const safeStorageService: SafeStorageService =
-  createSafeStorageApiClient(safeStorageApiConfig);
-const dbService: DbServiceBuilder = dbServiceBuilder(dynamoDBClient);
+  createSafeStorageApiClient(config);
+const dbService: DbServiceBuilder = dbServiceBuilder(dynamoDBClient, config);
 
 const mockSafeStorageId = generateId();
 
@@ -108,15 +102,13 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
       safeStorageService
     );
 
-    const retrievedReference = await readSignatureReference(
-      mockSafeStorageId,
-      dynamoDBClient
+    const retrievedReference = await dbService.readSignatureReference(
+      mockSafeStorageId
     );
 
     expect(retrievedReference).toEqual({
-      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
-      fileKind: "PLATFORM_EVENTS",
+      fileKind: "EVENT_JOURNAL",
       fileName: expect.stringMatching(/.ndjson.gz$/),
       correlationId: expect.any(String),
     });
@@ -159,15 +151,13 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
       safeStorageService
     );
 
-    const retrievedReference = await readSignatureReference(
-      mockSafeStorageId,
-      dynamoDBClient
+    const retrievedReference = await dbService.readSignatureReference(
+      mockSafeStorageId
     );
 
     expect(retrievedReference).toEqual({
-      PK: mockSafeStorageId,
       safeStorageId: mockSafeStorageId,
-      fileKind: "PLATFORM_EVENTS",
+      fileKind: "EVENT_JOURNAL",
       fileName: expect.stringMatching(/.ndjson.gz$/),
       correlationId: expect.any(String),
     });
@@ -205,9 +195,8 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
     expect(safeStorageCreateFileSpy).not.toHaveBeenCalled();
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
-    const retrievedReference = await readSignatureReference(
-      mockSafeStorageId,
-      dynamoDBClient
+    const retrievedReference = await dbService.readSignatureReference(
+      generateId()
     );
     expect(retrievedReference).toBeUndefined();
   });
