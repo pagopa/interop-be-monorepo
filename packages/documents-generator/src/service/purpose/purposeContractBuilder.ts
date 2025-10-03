@@ -114,7 +114,7 @@ export const riskAnalysisDocumentBuilder = (
       const documentId = generateId<PurposeVersionDocumentId>();
       const documentName = createRiskAnalysisDocumentName();
 
-      const documentPath = await fileManager.storeBytes(
+      const documentPath = await fileManager.resumeOrStoreBytes(
         {
           bucket: config.s3Bucket,
           path: config.riskAnalysisDocumentsPath,
