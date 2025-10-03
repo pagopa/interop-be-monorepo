@@ -32,6 +32,10 @@ export const errorCodes = {
   tooManyEServicesForPurposeTemplate: "0015",
   disassociationEServicesFromPurposeTemplateFailed: "0016",
   associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0017",
+  purposeTemplateIsNotDraft: "0018",
+  conflictDocumentPrettyNameDuplicate: "0019",
+  annotationDocumentLimitExceeded: "0020",
+  conflictDuplicatedDocument: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -223,5 +227,47 @@ export function associationBetweenEServiceAndPurposeTemplateDoesNotExist(
     detail: `Association between e-services and purpose template does not exist. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
     code: "associationBetweenEServiceAndPurposeTemplateDoesNotExist",
     title: "Association between e-services and purpose template does not exist",
+  });
+}
+
+export function purposeTemplateStateNotDraft(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template with ID ${purposeTemplateId} is not in draft state`,
+    code: "purposeTemplateIsNotDraft",
+    title: "Purpose Template State Not Draft",
+  });
+}
+
+export function conflictDocumentPrettyNameDuplicate(
+  answerId: string,
+  prettyName: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Conflict: annotation document with pretty name '${prettyName}' is duplicated for answer with id '${answerId}'`,
+    code: "conflictDocumentPrettyNameDuplicate",
+    title: "Annotation document with pretty name already exists",
+  });
+}
+
+export function annotationDocumentLimitExceeded(
+  answerId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Annotation document limit exceeded for answer with id '${answerId}'`,
+    code: "annotationDocumentLimitExceeded",
+    title: "Annotation document limit exceeded",
+  });
+}
+
+export function conflictDuplicatedDocument(
+  answerId: string,
+  checksum: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Conflict: annotation document with checksum '${checksum}' is duplicated for answer with id '${answerId}'`,
+    code: "conflictDuplicatedDocument",
+    title: "Conflict: annotation document with checksum already exists",
   });
 }

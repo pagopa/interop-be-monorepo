@@ -286,6 +286,7 @@ export const getMockRiskAnalysisTemplateAnswerAnnotationDocument =
     contentType: "json",
     path: "filePath",
     createdAt: new Date(),
+    checksum: "checksum",
   });
 
 export const getMockRiskAnalysisTemplateAnswerAnnotation =

@@ -8,6 +8,8 @@ import {
   purposeTemplateState,
   PurposeTemplateState,
   RiskAnalysisFormTemplate,
+  RiskAnalysisTemplateAnswer,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
   TenantKind,
 } from "pagopa-interop-models";
@@ -22,6 +24,9 @@ import {
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
+  annotationDocumentLimitExceeded,
+  conflictDocumentPrettyNameDuplicate,
+  conflictDuplicatedDocument,
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
   associationEServicesForPurposeTemplateFailed,
   missingFreeOfChargeReason,
@@ -29,6 +34,7 @@ import {
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
+  purposeTemplateStateNotDraft,
   riskAnalysisTemplateValidationFailed,
   tooManyEServicesForPurposeTemplate,
   associationBetweenEServiceAndPurposeTemplateDoesNotExist,
@@ -51,6 +57,8 @@ import {
   validPurposeTemplateResult,
 } from "../errors/purposeTemplateValidationErrors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+
+export const ANNOTATION_DOCUMENTS_LIMIT = 2;
 
 const isRequesterCreator = (
   creatorId: TenantId,
@@ -95,6 +103,39 @@ export const assertPurposeTemplateTitleIsNotDuplicated = async ({
     );
   }
 };
+
+export const assertTemplateStateNotDraft = (
+  purposeTemplate: PurposeTemplate
+): void => {
+  if (purposeTemplate.state !== purposeTemplateState.draft) {
+    throw purposeTemplateStateNotDraft(purposeTemplate.id);
+  }
+};
+
+export const assertDocumentsLimitsNotReached = (
+  docs: RiskAnalysisTemplateAnswerAnnotationDocument[] | undefined,
+  answerId: string
+): void => {
+  const totalDocs = docs?.length || 0;
+  if (totalDocs === ANNOTATION_DOCUMENTS_LIMIT) {
+    throw annotationDocumentLimitExceeded(answerId);
+  }
+};
+
+export const assertAnnotationDocumentIsUnique = (
+  { answer }: RiskAnalysisTemplateAnswer,
+  newPrettyName: string,
+  newChecksum: string
+): void =>
+  [...(answer?.annotation?.docs || [])].forEach((doc) => {
+    if (doc.prettyName === newPrettyName) {
+      throw conflictDocumentPrettyNameDuplicate(answer.id, newPrettyName);
+    }
+
+    if (doc?.checksum === newChecksum) {
+      throw conflictDuplicatedDocument(answer.id, newChecksum);
+    }
+  });
 
 export const assertEServiceIdsCountIsBelowThreshold = (
   eserviceIdsSize: number

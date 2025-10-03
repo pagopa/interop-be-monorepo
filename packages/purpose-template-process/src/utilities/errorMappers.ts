@@ -65,3 +65,25 @@ export const unlinkEServicesFromPurposeTemplateErrorMapper = (
     )
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addPurposeTemplateAnswerAnnotationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeTemplateIsNotDraft", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "purposeTemplateNotFound",
+      "purposeTemplateRiskAnalysisFormNotFound",
+      "riskAnalysisTemplateAnswerNotFound",
+      "riskAnalysisTemplateAnswerAnnotationNotFound",
+      "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "conflictDocumentPrettyNameDuplicate",
+      "conflictDuplicatedDocument",
+      "annotationDocumentLimitExceeded",
+      () => HTTP_STATUS_CONFLICT
+    )
+
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
