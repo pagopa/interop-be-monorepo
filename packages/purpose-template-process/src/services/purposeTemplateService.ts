@@ -19,6 +19,7 @@ import {
   getLatestVersionFormRules,
   M2MAdminAuthData,
   M2MAuthData,
+  riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -26,19 +27,21 @@ import {
   associationEServicesForPurposeTemplateFailed,
   purposeTemplateNotFound,
   disassociationEServicesFromPurposeTemplateFailed,
+  purposeTemplateRiskAnalysisFormNotFound,
   ruleSetNotFoundError,
 } from "../model/domain/errors.js";
 import {
+  toCreateEventPurposeTemplateAdded,
   toCreateEventPurposeTemplateEServiceLinked,
   toCreateEventPurposeTemplateEServiceUnlinked,
-  toCreateEventPurposeTemplateAdded,
+  toCreateEventPurposeTemplatePublished,
 } from "../model/domain/toEvent.js";
-
 import {
   GetPurposeTemplatesFilters,
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
 import {
+  assertActivatableState,
   assertConsistentFreeOfCharge,
   assertEServiceIdsCountIsBelowThreshold,
   assertPurposeTemplateStateIsValid,
@@ -48,6 +51,7 @@ import {
   validateAndTransformRiskAnalysisTemplate,
   validateEservicesAssociations,
   validateEservicesDisassociations,
+  validateRiskAnalysisTemplateOrThrow,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -320,6 +324,58 @@ export function purposeTemplateServiceBuilder(
       );
 
       await repository.createEvents(createEvents);
+    },
+    async publishPurposeTemplate(
+      id: PurposeTemplateId,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeTemplate>> {
+      logger.info(`Publishing purpose template ${id}`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        id,
+        readModelService
+      );
+
+      const purposeRiskAnalysisForm =
+        purposeTemplate.data.purposeRiskAnalysisForm;
+
+      if (!purposeRiskAnalysisForm) {
+        throw purposeTemplateRiskAnalysisFormNotFound(id);
+      }
+
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertActivatableState(purposeTemplate.data, purposeTemplateState.draft);
+
+      validateRiskAnalysisTemplateOrThrow({
+        riskAnalysisFormTemplate:
+          riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
+            purposeRiskAnalysisForm
+          ),
+        tenantKind: purposeTemplate.data.targetTenantKind,
+      });
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        state: purposeTemplateState.active,
+        updatedAt: new Date(),
+      };
+
+      const createdEvent = await repository.createEvent(
+        toCreateEventPurposeTemplatePublished({
+          purposeTemplate: updatedPurposeTemplate,
+          version: purposeTemplate.metadata.version,
+          correlationId,
+        })
+      );
+
+      return {
+        data: updatedPurposeTemplate,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
   };
 }
