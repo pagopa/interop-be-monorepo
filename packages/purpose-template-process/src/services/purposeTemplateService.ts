@@ -35,7 +35,7 @@ import {
   toCreateEventPurposeTemplateEServiceLinked,
   toCreateEventPurposeTemplateEServiceUnlinked,
 } from "../model/domain/toEvent.js";
-
+import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisDocUtils.js";
 import {
   GetPurposeTemplatesFilters,
   ReadModelServiceSQL,
