@@ -202,7 +202,6 @@ export function purposeTemplateServiceBuilder(
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.CatalogPurposeTemplates> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, logger } = ctx;
 
       logger.info(
