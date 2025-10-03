@@ -12,7 +12,6 @@ import {
   EServiceM2MEventId,
   TenantId,
   generateId,
-  m2mEventVisibility,
   unsafeBrandId,
 } from "pagopa-interop-models";
 
@@ -37,12 +36,12 @@ export function getMockedAttributeM2MEvent(
 
 export function getMockedEServiceM2MEvent({
   eventType,
-  visibility = m2mEventVisibility.public,
+  visibility,
   producerId,
   producerDelegateId,
 }: {
   eventType: EServiceM2MEvent["eventType"];
-  visibility?: EServiceM2MEvent["visibility"];
+  visibility: EServiceM2MEvent["visibility"];
   producerId?: TenantId;
   producerDelegateId?: TenantId;
 }): EServiceM2MEvent {
@@ -63,14 +62,14 @@ export function getMockedEServiceM2MEvent({
 
 export function getMockedAgreementM2MEvent({
   eventType,
-  visibility = m2mEventVisibility.owner,
+  visibility,
   consumerId,
   producerId,
   consumerDelegateId,
   producerDelegateId,
 }: {
   eventType: AgreementM2MEvent["eventType"];
-  visibility?: AgreementM2MEvent["visibility"];
+  visibility: AgreementM2MEvent["visibility"];
   consumerId?: TenantId;
   consumerDelegateId?: TenantId;
   producerId?: TenantId;
