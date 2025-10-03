@@ -6,7 +6,10 @@ import {
   AgreementM2MEventId,
   TenantId,
 } from "../brandedIds.js";
-import { M2MEventVisibility } from "./m2mEventVisibility.js";
+import {
+  M2MEventVisibility,
+  m2mEventVisibility,
+} from "./m2mEventVisibility.js";
 
 export const AgreementM2MEventType = z.enum([
   "AgreementAdded",
@@ -50,7 +53,11 @@ export const AgreementM2MEvent = z.object({
   consumerDelegationId: DelegationId.optional(),
   producerDelegateId: TenantId.optional(),
   producerDelegationId: DelegationId.optional(),
-  visibility: M2MEventVisibility,
+  visibility: M2MEventVisibility.extract([
+    m2mEventVisibility.owner,
+    m2mEventVisibility.restricted,
+    // No E-Service M2M events with Public visibility
+  ]),
 });
 
 export type AgreementM2MEvent = z.infer<typeof AgreementM2MEvent>;

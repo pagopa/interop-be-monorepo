@@ -1,21 +1,19 @@
 import {
-  Delegation,
   Agreement,
   AgreementM2MEvent,
-  M2MEventVisibility,
   m2mEventVisibility,
+  agreementState,
+  AgreementState,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { generateM2MEventId } from "../../utils/uuidv7.js";
+import { Delegations } from "../../models/delegations.js";
 
 export async function createAgreementM2MEvent(
   agreement: Agreement,
   eventType: AgreementM2MEvent["eventType"],
   eventTimestamp: Date,
-  delegations: {
-    producer: Delegation | undefined;
-    consumer: Delegation | undefined;
-  }
+  delegations: Delegations
 ): Promise<AgreementM2MEvent> {
   return {
     id: generateM2MEventId(),
@@ -24,11 +22,11 @@ export async function createAgreementM2MEvent(
     agreementId: agreement.id,
     producerId: agreement.producerId,
     consumerId: agreement.consumerId,
-    consumerDelegateId: delegations.consumer?.delegateId,
-    consumerDelegationId: delegations.consumer?.id,
-    producerDelegateId: delegations.producer?.delegateId,
-    producerDelegationId: delegations.producer?.id,
-    visibility: getAgreementM2MEventVisibility(eventType),
+    consumerDelegateId: delegations.consumerDelegation?.delegateId,
+    consumerDelegationId: delegations.consumerDelegation?.id,
+    producerDelegateId: delegations.producerDelegation?.delegateId,
+    producerDelegationId: delegations.producerDelegation?.id,
+    visibility: getAgreementM2MEventVisibility(eventType, agreement),
   };
 }
 
@@ -37,34 +35,61 @@ export async function createAgreementM2MEvent(
  * based on the event type; fallback to the state of the E-Service and its Descriptors if needed.
  */
 function getAgreementM2MEventVisibility(
-  eventType: AgreementM2MEvent["eventType"]
-): Extract<M2MEventVisibility, "Public" | "Owner"> {
+  eventType: AgreementM2MEvent["eventType"],
+  agreement: Agreement
+): AgreementM2MEvent["visibility"] {
   return match(eventType)
     .with(
       P.union(
+        // Draft Agreement events, visible only to the owner (consumer or delegate)
         "AgreementAdded",
-        "AgreementDeleted",
         "DraftAgreementUpdated",
-        "AgreementSubmitted",
+        "AgreementSetDraftByPlatform",
+        "AgreementSetMissingCertifiedAttributesByPlatform",
+        "AgreementArchivedByRevokedDelegation"
+      ),
+      () => m2mEventVisibility.owner
+    )
+    .with(
+      P.union(
+        // Agreement events after submission, visibility restricted to producer/consumer/delegates
         "AgreementActivated",
+        "AgreementSubmitted",
+        "AgreementUpgraded",
+        "AgreementRejected",
+        "AgreementSuspendedByProducer",
+        "AgreementSuspendedByConsumer",
+        "AgreementSuspendedByPlatform",
         "AgreementUnsuspendedByProducer",
         "AgreementUnsuspendedByConsumer",
         "AgreementUnsuspendedByPlatform",
         "AgreementArchivedByConsumer",
         "AgreementArchivedByUpgrade",
-        "AgreementUpgraded",
-        "AgreementSuspendedByProducer",
-        "AgreementSuspendedByConsumer",
-        "AgreementSuspendedByPlatform",
-        "AgreementRejected",
         "AgreementConsumerDocumentAdded",
-        "AgreementConsumerDocumentRemoved",
-        "AgreementSetDraftByPlatform",
-        "AgreementSetMissingCertifiedAttributesByPlatform",
-        "AgreementDeletedByRevokedDelegation",
-        "AgreementArchivedByRevokedDelegation"
+        "AgreementConsumerDocumentRemoved"
       ),
-      () => m2mEventVisibility.public // TODO
+      () => m2mEventVisibility.restricted
+    )
+    .with(
+      // Events that apply both to draft and pending submitted Agreements,
+      // visibility depends on the state
+      P.union("AgreementDeleted", "AgreementDeletedByRevokedDelegation"),
+      () => getAgreementM2MEventVisibilityFromAgreement(agreement)
     )
     .exhaustive();
+}
+
+const ownerVisibilityStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.missingCertifiedAttributes,
+];
+
+function getAgreementM2MEventVisibilityFromAgreement(
+  agreement: Agreement
+): AgreementM2MEvent["visibility"] {
+  if (ownerVisibilityStates.includes(agreement.state)) {
+    return m2mEventVisibility.owner;
+  } else {
+    return m2mEventVisibility.restricted;
+  }
 }
