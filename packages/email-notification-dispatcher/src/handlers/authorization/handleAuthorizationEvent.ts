@@ -1,9 +1,13 @@
 import {
   AuthorizationEventV2,
   EmailNotificationMessagePayload,
+  PurposeId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
+import { handleClientPurposeAdded } from "./handleClientPurposeAddedEvent.js";
+import { handleClientPurposeRemoved } from "./handleClientPurposeRemovedEvent.js";
 
 // const interopFeBaseUrl = config.interopFeBaseUrl;
 
@@ -13,12 +17,32 @@ export async function handleAuthorizationEvent(
   const {
     decodedMessage,
     logger,
-    // readModelService,
-    // templateService,
-    // userService,
-    // correlationId,
+    readModelService,
+    templateService,
+    userService,
+    correlationId,
   } = params;
   return match(decodedMessage)
+    .with({ type: "ClientPurposeAdded" }, ({ data: { purposeId } }) =>
+      handleClientPurposeAdded({
+        purposeId: unsafeBrandId<PurposeId>(purposeId),
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
+    .with({ type: "ClientPurposeRemoved" }, ({ data: { purposeId } }) =>
+      handleClientPurposeRemoved({
+        purposeId: unsafeBrandId<PurposeId>(purposeId),
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
     .with(
       {
         type: P.union(
@@ -29,8 +53,6 @@ export async function handleAuthorizationEvent(
           "ClientKeyDeleted",
           "ClientUserAdded",
           "ClientUserDeleted",
-          "ClientPurposeAdded",
-          "ClientPurposeRemoved",
           "ClientAdminRoleRevoked",
           "ClientAdminRemoved",
           "ProducerKeychainAdded",
