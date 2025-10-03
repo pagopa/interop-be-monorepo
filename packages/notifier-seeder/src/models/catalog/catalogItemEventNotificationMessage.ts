@@ -21,6 +21,7 @@ export const eventV2TypeMapper = (
       "EServiceDescriptionUpdatedByTemplateUpdate",
       "EServiceSignalHubEnabled",
       "EServiceSignalHubDisabled",
+      "EServicePersonalDataFlagUpdatedAfterPublication",
       () => "catalog_item_updated"
     )
     .with(

@@ -281,6 +281,7 @@ export const getMockCatalogApiEService = (): catalogApi.EService & {
   isConsumerDelegable: generateMock(z.boolean().optional()),
   isClientAccessDelegable: generateMock(z.boolean().optional()),
   templateId: generateMock(z.string().uuid().optional()),
+  personalData: generateMock(z.boolean().optional()),
 });
 
 export const getMockBffApiFileResource = (): bffApi.FileResource => ({
@@ -358,6 +359,11 @@ export const getMockBffApiInstanceEServiceSeed =
     isSignalHubEnabled: generateMock(z.boolean().optional()),
     isClientAccessDelegable: generateMock(z.boolean().optional()),
     isConsumerDelegable: generateMock(z.boolean().optional()),
+  });
+
+export const getMockBffApiEServicePersonalDataFlagUpdateSeed =
+  (): bffApi.EServicePersonalDataFlagUpdateSeed => ({
+    personalData: generateMock(z.boolean()),
   });
 
 export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
