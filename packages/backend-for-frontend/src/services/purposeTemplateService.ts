@@ -79,6 +79,29 @@ export function purposeTemplateServiceBuilder(
 
       return result[0];
     },
+    async unlinkEServicesFromPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceId: string,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Unlinking e-service ${eserviceId} from purpose template ${purposeTemplateId}`
+      );
+
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      await purposeTemplateClient.unlinkEServicesFromPurposeTemplate(
+        {
+          eserviceIds: [eserviceId],
+        },
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+    },
     async getCreatorPurposeTemplates({
       purposeTitle,
       states,
