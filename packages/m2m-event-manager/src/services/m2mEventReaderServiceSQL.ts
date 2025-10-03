@@ -1,6 +1,6 @@
-import {
-  attributeM2MEventInM2MEvent,
-  eserviceM2MEventInM2MEvent,
+import { 
+  attributeInM2MEvent,
+  eserviceInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -41,9 +41,9 @@ export function m2mEventReaderServiceSQLBuilder(
     ): Promise<AttributeM2MEvent[]> {
       const sqlEvents = await m2mEventDB
         .select()
-        .from(attributeM2MEventInM2MEvent)
-        .where(afterEventIdFilter(attributeM2MEventInM2MEvent, lastEventId))
-        .orderBy(asc(attributeM2MEventInM2MEvent.id))
+        .from(attributeInM2MEvent)
+        .where(afterEventIdFilter(attributeInM2MEvent, lastEventId))
+        .orderBy(asc(attributeInM2MEvent.id))
         .limit(limit);
 
       return sqlEvents.map(fromAttributeM2MEventSQL);
@@ -56,20 +56,20 @@ export function m2mEventReaderServiceSQLBuilder(
     ): Promise<EServiceM2MEvent[]> {
       const sqlEvents = await m2mEventDB
         .select()
-        .from(eserviceM2MEventInM2MEvent)
+        .from(eserviceInM2MEvent)
         .where(
           and(
-            afterEventIdFilter(eserviceM2MEventInM2MEvent, lastEventId),
-            visibilityFilter(eserviceM2MEventInM2MEvent, {
+            afterEventIdFilter(eserviceInM2MEvent, lastEventId),
+            visibilityFilter(eserviceInM2MEvent, {
               ownerFilter: or(
-                eq(eserviceM2MEventInM2MEvent.producerId, requester),
-                eq(eserviceM2MEventInM2MEvent.producerDelegateId, requester)
+                eq(eserviceInM2MEvent.producerId, requester),
+                eq(eserviceInM2MEvent.producerDelegateId, requester)
               ),
               restrictedFilter: undefined,
             })
           )
         )
-        .orderBy(asc(eserviceM2MEventInM2MEvent.id))
+        .orderBy(asc(eserviceInM2MEvent.id))
         .limit(limit);
 
       return sqlEvents.map(fromEServiceM2MEventSQL);

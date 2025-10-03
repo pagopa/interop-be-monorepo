@@ -1,8 +1,8 @@
 import { desc } from "drizzle-orm";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
-  attributeM2MEventInM2MEvent,
-  eserviceM2MEventInM2MEvent,
+  attributeInM2MEvent,
+  eserviceInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { afterEach, inject } from "vitest";
 import {
@@ -53,8 +53,8 @@ export const addOneDelegationToReadModel = async (
 export async function retrieveLastAttributeM2MEvent(): Promise<AttributeM2MEvent> {
   const sqlEvents = await m2mEventDB
     .select()
-    .from(attributeM2MEventInM2MEvent)
-    .orderBy(desc(attributeM2MEventInM2MEvent.id))
+    .from(attributeInM2MEvent)
+    .orderBy(desc(attributeInM2MEvent.id))
     .limit(1);
 
   return AttributeM2MEvent.parse(sqlEvents[0]);
@@ -63,8 +63,8 @@ export async function retrieveLastAttributeM2MEvent(): Promise<AttributeM2MEvent
 export async function retrieveLastEServiceM2MEvent(): Promise<EServiceM2MEvent> {
   const sqlEvents = await m2mEventDB
     .select()
-    .from(eserviceM2MEventInM2MEvent)
-    .orderBy(desc(eserviceM2MEventInM2MEvent.id))
+    .from(eserviceInM2MEvent)
+    .orderBy(desc(eserviceInM2MEvent.id))
     .limit(1);
 
   return EServiceM2MEvent.parse({

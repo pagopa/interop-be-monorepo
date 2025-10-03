@@ -6,8 +6,8 @@ import {
   dateToString,
 } from "pagopa-interop-models";
 import {
-  attributeM2MEventInM2MEvent,
-  eserviceM2MEventInM2MEvent,
+  attributeInM2MEvent,
+  eserviceInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { m2mEventServiceBuilder } from "../src/services/m2mEventService.js";
 import { m2mEventReaderServiceSQLBuilder } from "../src/services/m2mEventReaderServiceSQL.js";
@@ -32,7 +32,7 @@ export const m2mEventService = m2mEventServiceBuilder(m2mEventReaderServiceSQL);
 export async function writeAttributeM2MEvent(
   event: AttributeM2MEvent
 ): Promise<void> {
-  await m2mEventDB.insert(attributeM2MEventInM2MEvent).values([
+  await m2mEventDB.insert(attributeInM2MEvent).values([
     {
       ...event,
       eventTimestamp: dateToString(event.eventTimestamp),
@@ -41,7 +41,7 @@ export async function writeAttributeM2MEvent(
 }
 
 export async function writeEServiceM2MEvent(event: EServiceM2MEvent) {
-  await m2mEventDB.insert(eserviceM2MEventInM2MEvent).values([
+  await m2mEventDB.insert(eserviceInM2MEvent).values([
     {
       ...event,
       eventTimestamp: dateToString(event.eventTimestamp),
