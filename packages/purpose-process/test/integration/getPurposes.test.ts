@@ -398,6 +398,24 @@ describe("getPurposes", async () => {
     ]);
   });
 
+  it("should get purposes with filters: purposesIds", async () => {
+    const result = await purposeService.getPurposes(
+      {
+        eservicesIds: [],
+        consumersIds: [],
+        producersIds: [],
+        purposesIds: [mockPurpose1.id],
+        states: [],
+        excludeDraft: undefined,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(producerId1) })
+    );
+    expect(result.totalCount).toBe(1);
+
+    expectSinglePageListResult(result, [mockPurpose1]);
+  });
+
   it("should get purposes with filters: eservicesIds, consumerIds", async () => {
     const result = await purposeService.getPurposes(
       {
@@ -650,6 +668,42 @@ describe("getPurposes", async () => {
     );
 
     expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
+  });
+
+  it("should get purposes with filters: name, eservicesIds, consumersIds, producersIds, states, purposesIds", async () => {
+    const result = await purposeService.getPurposes(
+      {
+        title: "test",
+        eservicesIds: [mockEService1ByTenant1.id, mockEService2ByTenant1.id],
+        consumersIds: [consumerId1],
+        producersIds: [producerId1],
+        purposesIds: [mockPurpose1.id],
+        states: [purposeVersionState.draft, purposeVersionState.suspended],
+        excludeDraft: undefined,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(producerId1) })
+    );
+
+    expectSinglePageListResult(result, [mockPurpose1]);
+  });
+
+  it("should not get purposes with filters: name, eservicesIds, consumersIds, producersIds, states, purposesIds", async () => {
+    const result = await purposeService.getPurposes(
+      {
+        title: "test",
+        eservicesIds: [mockEService1ByTenant1.id, mockEService2ByTenant1.id],
+        consumersIds: [consumerId1],
+        producersIds: [producerId1],
+        purposesIds: [mockPurpose2.id],
+        states: [purposeVersionState.draft, purposeVersionState.suspended],
+        excludeDraft: undefined,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(producerId1) })
+    );
+
+    expectSinglePageListResult(result, []);
   });
 
   it("should get purposes with filters: producersIds with only producer delegate id", async () => {
