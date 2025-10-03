@@ -1,4 +1,4 @@
-import { attributeM2MEventInM2MEvent } from "pagopa-interop-m2m-event-db-models";
+import { attributeInM2MEvent } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { AttributeM2MEvent, AttributeM2MEventId } from "pagopa-interop-models";
 import { asc } from "drizzle-orm";
@@ -27,14 +27,14 @@ export function m2mEventReaderServiceSQLBuilder(
     ): Promise<AttributeM2MEvent[]> {
       const sqlEvents = await m2mEventDB
         .select({
-          id: attributeM2MEventInM2MEvent.id,
-          eventType: attributeM2MEventInM2MEvent.eventType,
-          eventTimestamp: attributeM2MEventInM2MEvent.eventTimestamp,
-          attributeId: attributeM2MEventInM2MEvent.attributeId,
+          id: attributeInM2MEvent.id,
+          eventType: attributeInM2MEvent.eventType,
+          eventTimestamp: attributeInM2MEvent.eventTimestamp,
+          attributeId: attributeInM2MEvent.attributeId,
         })
-        .from(attributeM2MEventInM2MEvent)
-        .where(afterEventIdFilter(attributeM2MEventInM2MEvent.id, lastEventId))
-        .orderBy(asc(attributeM2MEventInM2MEvent.id))
+        .from(attributeInM2MEvent)
+        .where(afterEventIdFilter(attributeInM2MEvent.id, lastEventId))
+        .orderBy(asc(attributeInM2MEvent.id))
         .limit(limit);
 
       return sqlEvents.map((event) => AttributeM2MEvent.parse(event));
