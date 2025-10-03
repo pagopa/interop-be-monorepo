@@ -11,6 +11,7 @@ import {
   TenantId,
   tenantMailKind,
   TenantV2,
+  UserId,
 } from "pagopa-interop-models";
 import {
   getLatestTenantMailOfKind,
@@ -39,7 +40,22 @@ export type TenantHandlerParams = HandlerCommonParams & {
   attributeId: AttributeId;
 };
 
-type EmailNotificationRecipient = { type: "Tenant" | "User"; address: string };
+type TenantEmailNotificationRecipient = {
+  type: "Tenant";
+  tenantId: TenantId;
+  address: string;
+};
+
+type UserEmailNotificationRecipient = {
+  type: "User";
+  userId: UserId;
+  tenantId: TenantId;
+  address: string;
+};
+
+type EmailNotificationRecipient =
+  | TenantEmailNotificationRecipient
+  | UserEmailNotificationRecipient;
 
 export async function getUserEmailsToNotify(
   tenantId: TenantId,
@@ -143,43 +159,43 @@ export const getRecipientsForTenants = async ({
   const usersWithEmailsAndRoles = await userService.readUsers(
     tenantUsers.map((u) => u.userId)
   );
-  const userEmails: string[] = tenantUsers.flatMap(({ userId }) => {
-    const user = usersWithEmailsAndRoles.find((u) => u.userId === userId);
-    if (!user) {
-      logger.warn(
-        `Could not retrieve email and roles for user ${userId}, skipping notification`
-      );
-      return [];
-    }
-    const hasAdmittedRole = user.roles.some(
-      (r) => notificationAdmittedRoles[notificationType][r]
-    );
-    return hasAdmittedRole ? [user.email] : [];
-  });
 
-  const tenantContactEmails = includeTenantContactEmails
-    ? (
-        await Promise.all(
-          tenants.map(
-            async (tenant) =>
-              await getTenantContactEmailIfEnabled(
+  const userRecipients: UserEmailNotificationRecipient[] = tenantUsers.flatMap(
+    ({ userId, tenantId }) => {
+      const user = usersWithEmailsAndRoles.find((u) => u.userId === userId);
+      if (!user) {
+        logger.warn(
+          `Could not retrieve email and roles for user ${userId}, skipping notification`
+        );
+        return [];
+      }
+      const hasAdmittedRole = user.roles.some(
+        (r) => notificationAdmittedRoles[notificationType][r]
+      );
+      return hasAdmittedRole
+        ? [{ type: "User" as const, userId, tenantId, address: user.email }]
+        : [];
+    }
+  );
+
+  const tenantRecipients: TenantEmailNotificationRecipient[] =
+    includeTenantContactEmails
+      ? (
+          await Promise.all(
+            tenants.map(async (tenant) => ({
+              type: "Tenant" as const,
+              tenantId: tenant.id,
+              address: await getTenantContactEmailIfEnabled(
                 tenant,
                 readModelService,
                 logger
-              )
+              ),
+            }))
           )
+        ).filter(
+          (t): t is TenantEmailNotificationRecipient => t.address !== undefined
         )
-      ).filter((email): email is string => email !== undefined)
-    : [];
+      : [];
 
-  return [
-    ...tenantContactEmails.map((tenantContactEmail) => ({
-      type: "Tenant" as const,
-      address: tenantContactEmail,
-    })),
-    ...userEmails.map((address) => ({
-      type: "User" as const,
-      address,
-    })),
-  ];
+  return [...userRecipients, ...tenantRecipients];
 };

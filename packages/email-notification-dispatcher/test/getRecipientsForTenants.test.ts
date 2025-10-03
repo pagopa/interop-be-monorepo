@@ -89,6 +89,19 @@ describe("getRecipientsForTenants", () => {
     },
   ];
 
+  const tenantRecipients = tenants.map((t) => ({
+    type: "Tenant" as const,
+    tenantId: t.id,
+    address: t.mails[0]?.address,
+  }));
+
+  const userRecipients = users.map((u) => ({
+    type: "User" as const,
+    userId: u.userId,
+    tenantId: u.tenantId,
+    address: u.email,
+  }));
+
   const readModelService = {
     getTenantUsersWithNotificationEnabled: vi
       .fn()
@@ -162,10 +175,7 @@ describe("getRecipientsForTenants", () => {
       userService,
       logger: genericLogger,
     });
-    expect(result).not.toContainEqual({
-      type: "User",
-      address: "user6@email.com",
-    });
+    expect(result).not.toContainEqual(userRecipients[6]);
   });
 
   it("should not return users with 'support' role", async () => {
@@ -177,10 +187,7 @@ describe("getRecipientsForTenants", () => {
       userService,
       logger: genericLogger,
     });
-    expect(result).not.toContainEqual({
-      type: "User",
-      address: "user5@email.com",
-    });
+    expect(result).not.toContainEqual(userRecipients[5]);
   });
 
   it("should return the expected users for an 'admin'-only notification type", async () => {
@@ -203,16 +210,7 @@ describe("getRecipientsForTenants", () => {
     });
     expect(result).toHaveLength(2);
     expect(result).toEqual(
-      expect.arrayContaining([
-        {
-          type: "User",
-          address: "user0@email.com",
-        },
-        {
-          type: "User",
-          address: "user3@email.com",
-        },
-      ])
+      expect.arrayContaining([userRecipients[0], userRecipients[3]])
     );
   });
 
@@ -235,22 +233,10 @@ describe("getRecipientsForTenants", () => {
     expect(result).toHaveLength(4);
     expect(result).toEqual(
       expect.arrayContaining([
-        {
-          type: "User",
-          address: "user0@email.com",
-        },
-        {
-          type: "User",
-          address: "user1@email.com",
-        },
-        {
-          type: "User",
-          address: "user3@email.com",
-        },
-        {
-          type: "User",
-          address: "user4@email.com",
-        },
+        userRecipients[0],
+        userRecipients[1],
+        userRecipients[3],
+        userRecipients[4],
       ])
     );
   });
@@ -274,22 +260,10 @@ describe("getRecipientsForTenants", () => {
     expect(result).toHaveLength(4);
     expect(result).toEqual(
       expect.arrayContaining([
-        {
-          type: "User",
-          address: "user0@email.com",
-        },
-        {
-          type: "User",
-          address: "user2@email.com",
-        },
-        {
-          type: "User",
-          address: "user3@email.com",
-        },
-        {
-          type: "User",
-          address: "user4@email.com",
-        },
+        userRecipients[0],
+        userRecipients[2],
+        userRecipients[3],
+        userRecipients[4],
       ])
     );
   });
@@ -317,12 +291,7 @@ describe("getRecipientsForTenants", () => {
       userService,
       logger: genericLogger,
     });
-    expect(result).toContainEqual(
-      expect.objectContaining({
-        type: "Tenant",
-        address: tenants[0].mails[0].address,
-      })
-    );
+    expect(result).toContainEqual(tenantRecipients[0]);
   });
 
   it("should not return the tenant contact email if `includeTenantContactEmails` is true but the tenant has notifications disabled", async () => {
@@ -334,12 +303,7 @@ describe("getRecipientsForTenants", () => {
       userService,
       logger: genericLogger,
     });
-    expect(result).not.toContainEqual(
-      expect.objectContaining({
-        type: "Tenant",
-        address: tenants[1].mails[0].address,
-      })
-    );
+    expect(result).not.toContainEqual(tenantRecipients[1]);
   });
 
   it("should not return the tenant contact email if `includeTenantContactEmails` is true but the tenant has no notification config", async () => {
@@ -351,11 +315,6 @@ describe("getRecipientsForTenants", () => {
       userService,
       logger: genericLogger,
     });
-    expect(result).not.toContainEqual(
-      expect.objectContaining({
-        type: "Tenant",
-        address: tenants[2].mails[0].address,
-      })
-    );
+    expect(result).not.toContainEqual(tenantRecipients[2]);
   });
 });
