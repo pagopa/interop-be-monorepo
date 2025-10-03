@@ -124,7 +124,12 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async getClientPurposes(
       clientId: ClientId,
-      { limit, offset }: m2mGatewayApi.GetClientPurposesQueryParams,
+      {
+        limit,
+        offset,
+        eserviceId,
+        state,
+      }: m2mGatewayApi.GetClientPurposesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purposes> {
       logger.info(`Retrieving purposes for client with id ${clientId}`);
@@ -133,24 +138,26 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
       assertClientVisibilityIsFull(client);
 
-      const paginatedPurposeIds = client.purposes.slice(offset, offset + limit);
+      const purposeIds = client.purposes;
 
-      const paginatedPurposes = await Promise.all(
-        paginatedPurposeIds.map((purposeId) =>
-          clients.purposeProcessClient
-            .getPurpose({
-              params: { id: purposeId },
-              headers,
-            })
-            .then(({ data: purpose }) => purpose)
-        )
-      );
+      const { data } = await clients.purposeProcessClient.getPurposes({
+        queries: {
+          purposesIds: purposeIds ? purposeIds : [],
+          eservicesIds: eserviceId ? [eserviceId] : [],
+          states: state ? [state] : [],
+          limit,
+          offset,
+        },
+        headers,
+      });
+
+      const { results: paginatedPurposes, totalCount } = data;
 
       return {
         pagination: {
           limit,
           offset,
-          totalCount: client.purposes.length,
+          totalCount,
         },
         results: paginatedPurposes.map(toM2MGatewayApiPurpose),
       };
