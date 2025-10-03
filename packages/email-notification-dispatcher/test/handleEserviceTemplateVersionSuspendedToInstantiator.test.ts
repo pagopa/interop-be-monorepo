@@ -22,7 +22,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { tenantNotFound } from "../src/models/errors.js";
-import { handleEServiceTemplateVersionSuspendedToCreator } from "../src/handlers/eserviceTemplates/handleEServiceTemplateVersionSuspendedToCreator.js";
+import { handleEServiceTemplateVersionSuspendedToInstantiator } from "../src/handlers/eserviceTemplates/handleEServiceTemplateVersionSuspendedToInstantiator.js";
 import {
   addOneEService,
   addOneEServiceTemplate,
@@ -34,7 +34,7 @@ import {
   userService,
 } from "./utils.js";
 
-describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
+describe("handleEServiceTemplateVersionSuspendedToInstantiator", async () => {
   const creatorId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
   const instantiatorId = generateId<TenantId>();
@@ -53,7 +53,7 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
 
   const creatorTenant = getMockTenant(creatorId);
   const instantiatorTenant = getMockTenant(instantiatorId);
-  const users = [getMockUser(creatorId), getMockUser(creatorId)];
+  const users = [getMockUser(instantiatorId), getMockUser(instantiatorId)];
 
   const { logger } = getMockContext({});
 
@@ -86,7 +86,7 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
 
   it("should throw missingKafkaMessageDataError when eserviceTemplate is undefined", async () => {
     await expect(() =>
-      handleEServiceTemplateVersionSuspendedToCreator({
+      handleEServiceTemplateVersionSuspendedToInstantiator({
         eserviceTemplateV2Msg: undefined,
         eserviceTemplateVersionId,
         logger,
@@ -112,7 +112,7 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
     await addOneEServiceTemplate(eserviceTemplateUnknownCreator);
 
     await expect(() =>
-      handleEServiceTemplateVersionSuspendedToCreator({
+      handleEServiceTemplateVersionSuspendedToInstantiator({
         eserviceTemplateV2Msg: toEServiceTemplateV2(
           eserviceTemplateUnknownCreator
         ),
@@ -126,16 +126,18 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
     ).rejects.toThrow(tenantNotFound(unknownCreatorId));
   });
 
-  it("should generate one message per user of the creator", async () => {
-    const messages = await handleEServiceTemplateVersionSuspendedToCreator({
-      eserviceTemplateV2Msg: toEServiceTemplateV2(eserviceTemplate),
-      eserviceTemplateVersionId,
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
+  it("should generate one message per user of the instantiator", async () => {
+    const messages = await handleEServiceTemplateVersionSuspendedToInstantiator(
+      {
+        eserviceTemplateV2Msg: toEServiceTemplateV2(eserviceTemplate),
+        eserviceTemplateVersionId,
+        logger,
+        templateService,
+        userService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      }
+    );
 
     expect(messages.length).toEqual(2);
     expect(messages.some((message) => message.address === users[0].email)).toBe(
@@ -153,15 +155,17 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
         { userId: users[0].id, tenantId: users[0].tenantId },
       ]);
 
-    const messages = await handleEServiceTemplateVersionSuspendedToCreator({
-      eserviceTemplateV2Msg: toEServiceTemplateV2(eserviceTemplate),
-      eserviceTemplateVersionId,
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
+    const messages = await handleEServiceTemplateVersionSuspendedToInstantiator(
+      {
+        eserviceTemplateV2Msg: toEServiceTemplateV2(eserviceTemplate),
+        eserviceTemplateVersionId,
+        logger,
+        templateService,
+        userService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      }
+    );
 
     expect(messages.length).toEqual(1);
     expect(messages.some((message) => message.address === users[0].email)).toBe(
@@ -173,26 +177,27 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
   });
 
   it("should generate a complete and correct message", async () => {
-    const messages = await handleEServiceTemplateVersionSuspendedToCreator({
-      eserviceTemplateV2Msg: toEServiceTemplateV2(eserviceTemplate),
-      eserviceTemplateVersionId,
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
+    const messages = await handleEServiceTemplateVersionSuspendedToInstantiator(
+      {
+        eserviceTemplateV2Msg: toEServiceTemplateV2(eserviceTemplate),
+        eserviceTemplateVersionId,
+        logger,
+        templateService,
+        userService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      }
+    );
 
     expect(messages.length).toBe(2);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `Hai sospeso un tuo template e-service`
+        `Sospensione del template &quot;${eserviceTemplate.name}&quot;`
       );
       expect(message.email.body).toContain(creatorTenant.name);
       expect(message.email.body).toContain(eserviceTemplate.name);
-      expect(message.email.body).toContain(`Visualizza template`);
     });
   });
 });

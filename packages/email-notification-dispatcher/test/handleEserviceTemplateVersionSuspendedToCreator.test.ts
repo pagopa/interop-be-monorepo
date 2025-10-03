@@ -22,7 +22,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { tenantNotFound } from "../src/models/errors.js";
-import { handleEServiceTemplateVersionSuspendedToCreator } from "../src/handlers/eserviceTemplates/handleEServiceTemplateVersionSuspendedToCreator.js";
+import { handleEServiceTemplateVersionSuspendedToCreator } from "../src/handlers/eserviceTemplates/handleEserviceTemplateVersionSuspendedToCreator.js";
 import {
   addOneEService,
   addOneEServiceTemplate,
@@ -53,7 +53,7 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
 
   const creatorTenant = getMockTenant(creatorId);
   const instantiatorTenant = getMockTenant(instantiatorId);
-  const users = [getMockUser(instantiatorId), getMockUser(instantiatorId)];
+  const users = [getMockUser(creatorId), getMockUser(creatorId)];
 
   const { logger } = getMockContext({});
 
@@ -126,7 +126,7 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
     ).rejects.toThrow(tenantNotFound(unknownCreatorId));
   });
 
-  it("should generate one message per user of the instantiator", async () => {
+  it("should generate one message per user of the creator", async () => {
     const messages = await handleEServiceTemplateVersionSuspendedToCreator({
       eserviceTemplateV2Msg: toEServiceTemplateV2(eserviceTemplate),
       eserviceTemplateVersionId,
@@ -188,11 +188,12 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `Sospensione del template "${eserviceTemplate.name}"`
+        `Hai sospeso un tuo template e-service`
       );
       expect(message.email.body).toContain(instantiatorTenant.name);
       expect(message.email.body).toContain(creatorTenant.name);
       expect(message.email.body).toContain(eserviceTemplate.name);
+      expect(message.email.body).toContain(`Visualizza template`);
     });
   });
 });
