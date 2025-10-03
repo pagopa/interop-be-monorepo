@@ -40,17 +40,17 @@ describe("handleEServiceEvent test", async () => {
     );
   });
 
-  const draftEservice1: EService = {
+  const draftEService1: EService = {
     ...getMockEService(),
     descriptors: [getMockDescriptor(descriptorState.draft)],
   };
 
-  const draftEservice2: EService = {
+  const draftEService2: EService = {
     ...getMockEService(),
     descriptors: [getMockDescriptor(descriptorState.waitingForApproval)],
   };
 
-  const publishedEservice: EService = {
+  const publishedEService: EService = {
     ...getMockEService(),
     descriptors: [
       getMockDescriptor(descriptorState.published),
@@ -60,30 +60,30 @@ describe("handleEServiceEvent test", async () => {
   };
 
   const testCases = [
-    { testCase: "Draft", eservice: draftEservice1, delegation: undefined },
+    { testCase: "Draft", eservice: draftEService1, delegation: undefined },
     {
       testCase: "Published",
-      eservice: publishedEservice,
+      eservice: publishedEService,
       delegation: undefined,
     },
     {
       testCase: "WaitingForApproval with Delegation",
-      eservice: draftEservice2,
+      eservice: draftEService2,
       delegation: getMockDelegation({
-        eserviceId: draftEservice2.id,
+        eserviceId: draftEService2.id,
         kind: delegationKind.delegatedProducer,
-        delegatorId: draftEservice2.producerId,
+        delegatorId: draftEService2.producerId,
         delegateId: generateId<TenantId>(),
         state: delegationState.active,
       }),
     },
     {
       testCase: "Published with Delegation",
-      eservice: publishedEservice,
+      eservice: publishedEService,
       delegation: getMockDelegation({
-        eserviceId: publishedEservice.id,
+        eserviceId: publishedEService.id,
         kind: delegationKind.delegatedProducer,
-        delegatorId: publishedEservice.producerId,
+        delegatorId: publishedEService.producerId,
         delegateId: generateId<TenantId>(),
         state: delegationState.active,
       }),
@@ -264,7 +264,7 @@ describe("handleEServiceEvent test", async () => {
                       "Published with Delegation",
                       () => m2mEventVisibility.public
                     )
-                    .run(),
+                    .exhaustive(),
                 },
               })
             )
