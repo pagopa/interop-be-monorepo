@@ -1,6 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS m2m_event;
 
-CREATE TABLE IF NOT EXISTS m2m_event.eservice_m2m_event (
+CREATE TABLE IF NOT EXISTS m2m_event.eservice (
   id UUID NOT NULL,
   event_type VARCHAR NOT NULL,
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.eservice_m2m_event (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS m2m_event.eservice_template_m2m_event (
+CREATE TABLE IF NOT EXISTS m2m_event.eservice_template (
   id UUID NOT NULL,
   event_type VARCHAR NOT NULL,
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.eservice_template_m2m_event (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS m2m_event.agreement_m2m_event (
+CREATE TABLE IF NOT EXISTS m2m_event.agreement (
   id UUID NOT NULL,
   event_type VARCHAR NOT NULL,
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.agreement_m2m_event (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS m2m_event.purpose_m2m_event (
+CREATE TABLE IF NOT EXISTS m2m_event.purpose (
   id UUID NOT NULL,
   event_type VARCHAR NOT NULL,
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.purpose_m2m_event (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS m2m_event.tenant_m2m_event (
+CREATE TABLE IF NOT EXISTS m2m_event.tenant (
   id UUID NOT NULL,
   event_type VARCHAR NOT NULL,
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.tenant_m2m_event (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS m2m_event.attribute_m2m_event (
+CREATE TABLE IF NOT EXISTS m2m_event.attribute (
   id UUID NOT NULL,
   event_type VARCHAR NOT NULL,
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.attribute_m2m_event (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS m2m_event.consumer_delegation_m2m_event (
+CREATE TABLE IF NOT EXISTS m2m_event.consumer_delegation (
   id UUID NOT NULL,
   event_type VARCHAR NOT NULL,
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.consumer_delegation_m2m_event (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS m2m_event.producer_delegation_m2m_event (
+CREATE TABLE IF NOT EXISTS m2m_event.producer_delegation (
   id UUID NOT NULL,
   event_type VARCHAR NOT NULL,
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_delegation_m2m_event (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS m2m_event.client_m2m_event (
+CREATE TABLE IF NOT EXISTS m2m_event.client (
   id UUID NOT NULL,
   event_type VARCHAR NOT NULL,
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.client_m2m_event (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS m2m_event.producer_keychain_m2m_event (
+CREATE TABLE IF NOT EXISTS m2m_event.producer_keychain (
   id UUID NOT NULL,
   event_type VARCHAR NOT NULL,
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -155,7 +155,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_keychain_m2m_event (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS m2m_event.key_m2m_event (
+CREATE TABLE IF NOT EXISTS m2m_event.key (
   id UUID NOT NULL,
   event_type VARCHAR NOT NULL,
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -166,7 +166,7 @@ CREATE TABLE IF NOT EXISTS m2m_event.key_m2m_event (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS m2m_event.producer_key_m2m_event (
+CREATE TABLE IF NOT EXISTS m2m_event.producer_key (
   id UUID NOT NULL,
   event_type VARCHAR NOT NULL,
   event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
