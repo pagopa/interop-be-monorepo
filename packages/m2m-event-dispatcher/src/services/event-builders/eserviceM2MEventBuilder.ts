@@ -4,7 +4,6 @@ import {
   DescriptorState,
   EService,
   EServiceM2MEvent,
-  M2MEventVisibility,
   descriptorState,
   m2mEventVisibility,
 } from "pagopa-interop-models";
@@ -73,7 +72,7 @@ function createEServiceM2MEventHelper(
 function getEServiceM2MEventVisibility(
   eventType: EServiceM2MEvent["eventType"],
   eservice: EService
-): Extract<M2MEventVisibility, "Public" | "Owner"> {
+): EServiceM2MEvent["visibility"] {
   return match(eventType)
     .with(
       P.union(
@@ -138,18 +137,16 @@ function getEServiceM2MEventVisibility(
     .exhaustive();
 }
 
-const restrictedVisibilityStates: DescriptorState[] = [
+const ownerVisibilityStates: DescriptorState[] = [
   descriptorState.draft,
   descriptorState.waitingForApproval,
 ];
 
 function getEServiceM2MEventVisibilityFromEService(
   eservice: EService
-): Extract<M2MEventVisibility, "Public" | "Owner"> {
+): EServiceM2MEvent["visibility"] {
   if (
-    eservice.descriptors.every((d) =>
-      restrictedVisibilityStates.includes(d.state)
-    )
+    eservice.descriptors.every((d) => ownerVisibilityStates.includes(d.state))
   ) {
     return m2mEventVisibility.owner;
   } else {
