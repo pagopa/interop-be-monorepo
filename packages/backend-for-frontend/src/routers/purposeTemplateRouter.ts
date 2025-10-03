@@ -6,11 +6,14 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { getCatalogPurposeTemplatesErrorMapper } from "../utilities/errorMappers.js";
+import {
+  getCatalogPurposeTemplatesErrorMapper,
+  linkEServiceToPurposeTemplateErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -95,7 +98,32 @@ const purposeTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .post(
+      "/purposeTemplates/:purposeTemplateId/linkEservice",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const result =
+            await purposeTemplateService.linkEServiceToPurposeTemplate(
+              unsafeBrandId(req.params.purposeTemplateId),
+              req.body.eserviceId,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(bffApi.EServiceDescriptorPurposeTemplate.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            linkEServiceToPurposeTemplateErrorMapper,
+            ctx,
+            `Error linking e-service ${req.body.eserviceId} to purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return purposeTemplateRouter;
 };
