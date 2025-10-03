@@ -9,8 +9,13 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant, retrieveEservice } from "../handlerCommons.js";
+import {
+  retrieveTenant,
+  retrieveEservice,
+  getNotificationRecipients,
+} from "../handlerCommons.js";
 
 export type AgreementSuspendedUnsuspendedEventType =
   | "AgreementSuspendedByConsumer"
@@ -30,6 +35,7 @@ export async function handleAgreementSuspendedUnsuspended(
   agreementV2Msg: AgreementV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
+  userService: UserServiceSQL,
   eventType: AgreementSuspendedUnsuspendedEventType
 ): Promise<NewNotification[]> {
   if (!agreementV2Msg) {
@@ -46,7 +52,9 @@ export async function handleAgreementSuspendedUnsuspended(
   const usersWithNotifications = await getUsersWithNotificationsEnabled(
     agreement,
     audiencesToNotify,
-    readModelService
+    readModelService,
+    userService,
+    logger
   );
 
   if (usersWithNotifications.length === 0) {
@@ -157,7 +165,9 @@ function getActionPerformed(
 async function getUsersWithNotificationsEnabled(
   agreement: { consumerId: TenantId; producerId: TenantId },
   audiences: NotificationAudience[],
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  userService: UserServiceSQL,
+  logger: Logger
 ): Promise<
   Array<{
     userId: UserId;
@@ -176,9 +186,13 @@ async function getUsersWithNotificationsEnabled(
       .with("producer", () => "agreementSuspendedUnsuspendedToProducer")
       .exhaustive();
 
-    return readModelService
-      .getTenantUsersWithNotificationEnabled([audienceId], notificationType)
-      .then((config) => config.map((c) => ({ ...c, notificationType })));
+    return getNotificationRecipients(
+      [audienceId],
+      notificationType,
+      readModelService,
+      userService,
+      logger
+    ).then((config) => config.map((c) => ({ ...c, notificationType })));
   });
 
   const results = await Promise.all(configPromises);

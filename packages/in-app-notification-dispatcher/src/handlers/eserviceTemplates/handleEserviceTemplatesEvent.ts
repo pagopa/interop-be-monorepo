@@ -5,6 +5,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { handleTemplateStatusChangedToProducer } from "./handleTemplateStatusChangedToProducer.js";
 import { handleNewEserviceTemplateVersionToInstantiator } from "./handleNewEserviceTemplateVersionToInstantiator.js";
 import { handleEserviceTemplateNameChangedToInstantiator } from "./handleEserviceTemplateNameChangedToInstantiator.js";
@@ -13,7 +14,8 @@ import { handleEserviceTemplateStatusChangedToInstantiator } from "./handleEserv
 export async function handleEServiceTemplateEvent(
   decodedMessage: EServiceTemplateEventEnvelopeV2,
   logger: Logger,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
@@ -24,12 +26,14 @@ export async function handleEServiceTemplateEvent(
         ...(await handleTemplateStatusChangedToProducer(
           eserviceTemplate,
           logger,
-          readModelService
+          readModelService,
+          userService
         )),
         ...(await handleEserviceTemplateStatusChangedToInstantiator(
           eserviceTemplate,
           logger,
-          readModelService
+          readModelService,
+          userService
         )),
       ]
     )
@@ -42,7 +46,8 @@ export async function handleEServiceTemplateEvent(
           eserviceTemplate,
           eserviceTemplateVersionId,
           logger,
-          readModelService
+          readModelService,
+          userService
         )
     )
     .with(
@@ -54,7 +59,8 @@ export async function handleEServiceTemplateEvent(
           eserviceTemplate,
           oldName,
           logger,
-          readModelService
+          readModelService,
+          userService
         )
     )
     .with(

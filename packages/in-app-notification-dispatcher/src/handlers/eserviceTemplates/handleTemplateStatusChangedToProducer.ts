@@ -6,12 +6,15 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
+import { getNotificationRecipients } from "../handlerCommons.js";
 
 export async function handleTemplateStatusChangedToProducer(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
   logger: Logger,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   if (!eserviceTemplateV2Msg) {
     throw missingKafkaMessageDataError(
@@ -26,16 +29,18 @@ export async function handleTemplateStatusChangedToProducer(
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
 
-  const userNotificationConfigs =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [eserviceTemplate.creatorId],
-      "templateStatusChangedToProducer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [eserviceTemplate.creatorId],
+    "templateStatusChangedToProducer",
+    readModelService,
+    userService,
+    logger
+  );
 
   const body = inAppTemplates.templateStatusChangedToProducer(
     eserviceTemplate.name
   );
-  return userNotificationConfigs.map(({ userId, tenantId }) => ({
+  return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,

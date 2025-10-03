@@ -5,6 +5,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { handleAgreementManagementToProducer } from "./handleAgreementManagementToProducer.js";
 import { handleAgreementSuspendedUnsuspended } from "./handleAgreementSuspendedUnsuspended.js";
 import { handleAgreementActivatedRejectedToConsumer } from "./handleAgreementActivatedRejectedToConsumer.js";
@@ -12,7 +13,8 @@ import { handleAgreementActivatedRejectedToConsumer } from "./handleAgreementAct
 export async function handleAgreementEvent(
   decodedMessage: AgreementEventEnvelopeV2,
   logger: Logger,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
@@ -30,6 +32,7 @@ export async function handleAgreementEvent(
           agreement,
           logger,
           readModelService,
+          userService,
           type
         )
     )
@@ -42,6 +45,7 @@ export async function handleAgreementEvent(
           agreement,
           logger,
           readModelService,
+          userService,
           type
         )
     )
@@ -54,12 +58,14 @@ export async function handleAgreementEvent(
           agreement,
           logger,
           readModelService,
+          userService,
           type
         )),
         ...(await handleAgreementActivatedRejectedToConsumer(
           agreement,
           logger,
           readModelService,
+          userService,
           type
         )),
       ]
@@ -73,6 +79,7 @@ export async function handleAgreementEvent(
           agreement,
           logger,
           readModelService,
+          userService,
           type
         )
     )

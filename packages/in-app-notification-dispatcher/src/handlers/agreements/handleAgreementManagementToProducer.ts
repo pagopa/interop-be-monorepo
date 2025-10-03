@@ -7,13 +7,19 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant, retrieveEservice } from "../handlerCommons.js";
+import {
+  retrieveTenant,
+  retrieveEservice,
+  getNotificationRecipients,
+} from "../handlerCommons.js";
 
 export async function handleAgreementManagementToProducer(
   agreementV2Msg: AgreementV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
+  userService: UserServiceSQL,
   eventType: "AgreementActivated" | "AgreementSubmitted" | "AgreementUpgraded"
 ): Promise<NewNotification[]> {
   if (!agreementV2Msg) {
@@ -25,11 +31,13 @@ export async function handleAgreementManagementToProducer(
 
   const agreement = fromAgreementV2(agreementV2Msg);
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [agreement.producerId],
-      "agreementManagementToProducer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [agreement.producerId],
+    "agreementManagementToProducer",
+    readModelService,
+    userService,
+    logger
+  );
 
   if (usersWithNotifications.length === 0) {
     logger.info(

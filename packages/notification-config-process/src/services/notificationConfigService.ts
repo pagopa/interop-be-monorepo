@@ -5,6 +5,8 @@ import {
   eventRepository,
   UIAuthData,
   InternalAuthData,
+  overrideNotificationConfigByAdmittedRoles,
+  notificationConfigIsAllowedForUserRoles,
 } from "pagopa-interop-commons";
 import {
   notificationConfigEventToBinaryDataV2,
@@ -32,6 +34,7 @@ import {
   toCreateEventUserNotificationConfigUpdated,
 } from "../model/domain/toEvent.js";
 import {
+  notificationConfigNotAllowedForUserRoles,
   tenantNotificationConfigAlreadyExists,
   tenantNotificationConfigNotFound,
   userNotificationConfigAlreadyExists,
@@ -120,7 +123,7 @@ export function notificationConfigServiceBuilder(
     },
 
     async getUserNotificationConfig({
-      authData: { userId, organizationId },
+      authData: { userId, organizationId, userRoles },
       logger,
     }: WithLogger<AppContext<UIAuthData>>): Promise<UserNotificationConfig> {
       logger.info(
@@ -134,7 +137,13 @@ export function notificationConfigServiceBuilder(
       if (config === undefined) {
         throw userNotificationConfigNotFound(userId, organizationId);
       }
-      return config.data;
+      const overrideByUserRoles =
+        overrideNotificationConfigByAdmittedRoles(userRoles);
+      return {
+        ...config.data,
+        inAppConfig: overrideByUserRoles(config.data.inAppConfig),
+        emailConfig: overrideByUserRoles(config.data.emailConfig),
+      };
     },
 
     async updateTenantNotificationConfig(
@@ -179,7 +188,7 @@ export function notificationConfigServiceBuilder(
     async updateUserNotificationConfig(
       seed: notificationConfigApi.UserNotificationConfigUpdateSeed,
       {
-        authData: { userId, organizationId },
+        authData: { userId, organizationId, userRoles },
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData>>
@@ -187,6 +196,13 @@ export function notificationConfigServiceBuilder(
       logger.info(
         `Updating notification configuration for user ${userId} in tenant ${organizationId}`
       );
+
+      if (
+        !notificationConfigIsAllowedForUserRoles(seed.inAppConfig, userRoles) ||
+        !notificationConfigIsAllowedForUserRoles(seed.emailConfig, userRoles)
+      ) {
+        throw notificationConfigNotAllowedForUserRoles(userId, organizationId);
+      }
 
       const existingConfig =
         await readModelService.getUserNotificationConfigByUserIdAndTenantId(

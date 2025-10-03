@@ -7,7 +7,12 @@ import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { retrieveEservice, retrieveTenant } from "../handlerCommons.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
+import {
+  getNotificationRecipients,
+  retrieveEservice,
+  retrieveTenant,
+} from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
 type PurposeStatusChangedToProducerType =
@@ -19,6 +24,7 @@ export async function handlePurposeStatusChangedToProducer(
   purposeV2Msg: PurposeV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
+  userService: UserServiceSQL,
   type: PurposeStatusChangedToProducerType
 ): Promise<NewNotification[]> {
   if (!purposeV2Msg) {
@@ -30,11 +36,13 @@ export async function handlePurposeStatusChangedToProducer(
   const purpose = fromPurposeV2(purposeV2Msg);
   const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [eservice.producerId],
-      "purposeStatusChangedToProducer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [eservice.producerId],
+    "purposeStatusChangedToProducer",
+    readModelService,
+    userService,
+    logger
+  );
   if (usersWithNotifications.length === 0) {
     logger.info(
       `No users with notifications enabled for ${type} purpose ${purpose.id}`

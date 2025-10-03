@@ -7,13 +7,19 @@ import {
 import { NewNotification } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { retrieveEservice, retrieveTenant } from "../handlerCommons.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
+import {
+  getNotificationRecipients,
+  retrieveEservice,
+  retrieveTenant,
+} from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
 export async function handlePurposeSuspendedUnsuspendedToConsumer(
   purposeV2Msg: PurposeV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
+  userService: UserServiceSQL,
   type:
     | "PurposeVersionSuspendedByProducer"
     | "PurposeVersionUnsuspendedByProducer"
@@ -25,11 +31,13 @@ export async function handlePurposeSuspendedUnsuspendedToConsumer(
     `Sending in-app notification for handlePurposeSuspendedUnsuspendedToConsumer ${purposeV2Msg.id}`
   );
   const purpose = fromPurposeV2(purposeV2Msg);
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [purpose.consumerId],
-      "purposeSuspendedUnsuspendedToConsumer"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [purpose.consumerId],
+    "purposeSuspendedUnsuspendedToConsumer",
+    readModelService,
+    userService,
+    logger
+  );
   if (usersWithNotifications.length === 0) {
     logger.info(
       `No users with notifications enabled for ${type} purpose ${purpose.id}`

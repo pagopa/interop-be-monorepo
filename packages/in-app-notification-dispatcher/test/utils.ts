@@ -28,6 +28,7 @@ import {
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../src/services/userServiceSQL.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
@@ -59,6 +60,8 @@ export const readModelService = readModelServiceBuilderSQL({
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
 });
+
+export const mockUserService = {} as UserServiceSQL;
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await upsertTenant(readModelDB, tenant, 0);

@@ -8,19 +8,25 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  retrieveTenant,
+} from "../handlerCommons.js";
 import { activeProducerDelegationNotFound } from "../../models/errors.js";
 
 export type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorApprovedByDelegator"
   | "EServiceDescriptorRejectedByDelegator";
 
+// eslint-disable-next-line max-params
 export async function handleEserviceNewVersionApprovedRejectedToDelegate(
   eserviceV2Msg: EServiceV2 | undefined,
   descriptorId: DescriptorId,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
+  userService: UserServiceSQL,
   eventType: EserviceNewVersionApprovedRejectedToDelegateEventType
 ): Promise<NewNotification[]> {
   if (!eserviceV2Msg) {
@@ -41,11 +47,13 @@ export async function handleEserviceNewVersionApprovedRejectedToDelegate(
     throw activeProducerDelegationNotFound(eservice.id);
   }
 
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      [producerDelegation.delegateId],
-      "eserviceNewVersionApprovedRejectedToDelegate"
-    );
+  const usersWithNotifications = await getNotificationRecipients(
+    [producerDelegation.delegateId],
+    "eserviceNewVersionApprovedRejectedToDelegate",
+    readModelService,
+    userService,
+    logger
+  );
 
   if (usersWithNotifications.length === 0) {
     logger.info(

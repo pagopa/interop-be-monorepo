@@ -5,13 +5,15 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { UserServiceSQL } from "../../services/userServiceSQL.js";
 import { handleClientAddedRemovedToProducer } from "./handleClientAddedRemovedToProducer.js";
 import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
 
 export async function handleAuthorizationEvent(
   decodedMessage: AuthorizationEventEnvelopeV2,
   logger: Logger,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  userService: UserServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with(
@@ -23,6 +25,7 @@ export async function handleAuthorizationEvent(
           purposeId,
           logger,
           readModelService,
+          userService,
           type
         )
     )
@@ -32,7 +35,8 @@ export async function handleAuthorizationEvent(
         handleEserviceStateChangedToConsumer(
           eserviceId,
           logger,
-          readModelService
+          readModelService,
+          userService
         )
     )
     .with(

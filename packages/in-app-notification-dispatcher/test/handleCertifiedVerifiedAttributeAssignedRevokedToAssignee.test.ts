@@ -1,5 +1,5 @@
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockTenant,
@@ -25,8 +25,14 @@ import {
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
 } from "../src/models/errors.js";
+import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
-import { addOneAttribute, addOneTenant, readModelService } from "./utils.js";
+import {
+  addOneAttribute,
+  addOneTenant,
+  mockUserService,
+  readModelService,
+} from "./utils.js";
 
 describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
   const certifierId = generateId();
@@ -73,7 +79,10 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
 
   const { logger } = getMockContext({});
 
+  const mockGetNotificationRecipients = getNotificationRecipients as Mock;
+
   beforeEach(async () => {
+    mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneTenant(assignee);
     await addOneTenant(certifier);
@@ -93,6 +102,7 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
         generateId(),
         logger,
         readModelService,
+        mockUserService,
         "TenantCertifiedAttributeAssigned"
       )
     ).rejects.toThrow(
@@ -103,10 +113,10 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
   it("should throw attributeNotFound when attribute is not found", async () => {
     const unknownAttributeId = generateId<AttributeId>();
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: assignee.id }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: assignee.id },
+    ]);
 
     await expect(() =>
       handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
@@ -114,6 +124,7 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
         unknownAttributeId,
         logger,
         readModelService,
+        mockUserService,
         "TenantCertifiedAttributeAssigned"
       )
     ).rejects.toThrow(attributeNotFound(unknownAttributeId));
@@ -126,10 +137,10 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
     };
     await addOneAttribute(certifiedAttributeWithUndefinedOrigin);
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: assignee.id }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: assignee.id },
+    ]);
 
     await expect(() =>
       handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
@@ -137,6 +148,7 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
         certifiedAttributeWithUndefinedOrigin.id,
         logger,
         readModelService,
+        mockUserService,
         "TenantCertifiedAttributeAssigned"
       )
     ).rejects.toThrow(
@@ -152,10 +164,10 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
     };
     await addOneAttribute(certifiedAttributeWithUnknownCertifier);
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: assignee.id }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: assignee.id },
+    ]);
 
     await expect(() =>
       handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
@@ -163,16 +175,17 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
         certifiedAttributeWithUnknownCertifier.id,
         logger,
         readModelService,
+        mockUserService,
         "TenantCertifiedAttributeAssigned"
       )
     ).rejects.toThrow(certifierTenantNotFound(unknownCertifierId));
   });
 
   it("should throw verifiedAttributeNotFoundInTenant when the verified attribute is not found", async () => {
-    // Mock notification service to return users (so the check doesn't exit early)
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: assignee.id }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: assignee.id },
+    ]);
 
     await expect(() =>
       handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
@@ -180,6 +193,7 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
         verifiedAttribute.id,
         logger,
         readModelService,
+        mockUserService,
         "TenantVerifiedAttributeAssigned"
       )
     ).rejects.toThrow(
@@ -190,10 +204,10 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
   it("should throw tenantNotFound when the verifier is not found", async () => {
     const unknownVerifierId = generateId<TenantId>();
 
-    // Mock notification service to return users (so the check doesn't exit early)
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([{ userId: generateId(), tenantId: assignee.id }]);
+    // Mock notification recipients so the check doesn't exit early
+    mockGetNotificationRecipients.mockResolvedValue([
+      { userId: generateId(), tenantId: assignee.id },
+    ]);
 
     await expect(() =>
       handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
@@ -211,15 +225,14 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
         verifiedAttribute.id,
         logger,
         readModelService,
+        mockUserService,
         "TenantVerifiedAttributeAssigned"
       )
     ).rejects.toThrow(tenantNotFound(unknownVerifierId));
   });
 
   it("should return empty array when no users have notifications enabled", async () => {
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue([]);
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications =
       await handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
@@ -227,6 +240,7 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
         certifiedAttribute.id,
         logger,
         readModelService,
+        mockUserService,
         "TenantCertifiedAttributeAssigned"
       );
 
@@ -340,9 +354,7 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
         { userId: generateId(), tenantId: assignee.id },
       ];
 
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(assigneeUsers);
+      mockGetNotificationRecipients.mockResolvedValue(assigneeUsers);
 
       const notifications =
         await handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
@@ -350,6 +362,7 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
           attributeId,
           logger,
           readModelService,
+          mockUserService,
           eventType
         );
 
@@ -375,9 +388,7 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
       { userId: generateId(), tenantId: assignee.id },
       { userId: generateId(), tenantId: assignee.id },
     ];
-    readModelService.getTenantUsersWithNotificationEnabled = vi
-      .fn()
-      .mockResolvedValue(users);
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications =
       await handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
@@ -385,6 +396,7 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
         certifiedAttribute.id,
         logger,
         readModelService,
+        mockUserService,
         "TenantCertifiedAttributeAssigned"
       );
 

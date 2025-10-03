@@ -7,9 +7,9 @@ import {
   EService,
   EServiceId,
   EServiceTemplateId,
-  NotificationConfig,
   Purpose,
   PurposeId,
+  NotificationType,
   Tenant,
   TenantId,
   UserId,
@@ -75,11 +75,11 @@ export function readModelServiceBuilderSQL({
     },
     async getTenantUsersWithNotificationEnabled(
       tenantIds: TenantId[],
-      notificationName: keyof NotificationConfig
+      notificationType: NotificationType
     ): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
       return notificationConfigReadModelServiceSQL.getTenantUsersWithNotificationEnabled(
         tenantIds,
-        notificationName,
+        notificationType,
         "inApp"
       );
     },
