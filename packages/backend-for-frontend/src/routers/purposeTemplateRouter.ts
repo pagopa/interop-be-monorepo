@@ -141,7 +141,7 @@ const purposeTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
     .post(
       "/purposeTemplates/:purposeTemplateId/linkEservice",
       async (req, res) => {
