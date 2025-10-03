@@ -30,6 +30,8 @@ export const errorCodes = {
   associationEServicesForPurposeTemplateFailed: "0013",
   associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0014",
   tooManyEServicesForPurposeTemplate: "0015",
+  disassociationEServicesFromPurposeTemplateFailed: "0016",
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -197,5 +199,29 @@ export function tooManyEServicesForPurposeTemplate(
     detail: `Too many e-services provided. Maximum allowed: ${maxCount}, provided: ${actualCount}`,
     code: "tooManyEServicesForPurposeTemplate",
     title: "Too Many E-Services for Purpose Template",
+  });
+}
+
+export function disassociationEServicesFromPurposeTemplateFailed(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Disassociation of e-services from purpose template failed. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "disassociationEServicesFromPurposeTemplateFailed",
+    title: "Disassociation of e-services from purpose template failed",
+  });
+}
+
+export function associationBetweenEServiceAndPurposeTemplateDoesNotExist(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Association between e-services and purpose template does not exist. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "associationBetweenEServiceAndPurposeTemplateDoesNotExist",
+    title: "Association between e-services and purpose template does not exist",
   });
 }
