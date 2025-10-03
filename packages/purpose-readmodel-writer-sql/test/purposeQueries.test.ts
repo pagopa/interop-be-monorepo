@@ -4,6 +4,7 @@ import {
   getMockPurposeVersionDocument,
   getMockPurpose,
   getMockValidRiskAnalysisForm,
+  getMockPurposeVersionStamps,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -25,6 +26,7 @@ import {
   retrievePurposeSQLById,
   retrievePurposeVersionDocumentsSQLById,
   retrievePurposeVersionsSQLById,
+  retrievePurposeVersionStampsSQLById,
 } from "./utils.js";
 
 describe("Purpose queries", () => {
@@ -46,10 +48,21 @@ describe("Purpose queries", () => {
         firstActivationAt: new Date(),
         suspendedAt: new Date(),
       };
+      const purposeVersion3: PurposeVersion = {
+        ...getMockPurposeVersion(
+          purposeVersionState.active,
+          getMockPurposeVersionStamps()
+        ),
+        riskAnalysis: getMockPurposeVersionDocument(),
+        rejectionReason: "Test rejection reason",
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+        suspendedAt: new Date(),
+      };
 
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [purposeVersion1, purposeVersion2],
+        versions: [purposeVersion1, purposeVersion2, purposeVersion3],
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
         suspendedByProducer: false,
@@ -67,6 +80,7 @@ describe("Purpose queries", () => {
         riskAnalysisAnswersSQL,
         versionsSQL,
         versionDocumentsSQL,
+        versionStampsSQL,
       } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
@@ -75,6 +89,7 @@ describe("Purpose queries", () => {
         riskAnalysisAnswersSQL,
         versionsSQL,
         versionDocumentsSQL,
+        versionStampsSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -106,11 +121,15 @@ describe("Purpose queries", () => {
       const retrievedPurposeVersionDocumentSQL =
         await retrievePurposeVersionDocumentsSQLById(purpose.id, readModelDB);
 
+      const retrievedPurposeVersionStampSQL =
+        await retrievePurposeVersionStampsSQLById(purpose.id, readModelDB);
+
       expect(retrievedPurposeSQL).toBeDefined();
       expect(retrievedRiskAnalysisFormSQL).toBeUndefined();
       expect(retrievedRiskAnalysisAnswersSQL).toHaveLength(0);
       expect(retrievedPurposeVersionsSQL).toHaveLength(0);
       expect(retrievedPurposeVersionDocumentSQL).toHaveLength(0);
+      expect(retrievedPurposeVersionStampSQL).toHaveLength(0);
 
       const retrievedPurpose = aggregatePurpose({
         purposeSQL: retrievedPurposeSQL!,
@@ -118,6 +137,7 @@ describe("Purpose queries", () => {
         riskAnalysisAnswersSQL: retrievedRiskAnalysisAnswersSQL,
         versionsSQL: retrievedPurposeVersionsSQL,
         versionDocumentsSQL: retrievedPurposeVersionDocumentSQL,
+        versionStampsSQL: retrievedPurposeVersionStampSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -143,10 +163,21 @@ describe("Purpose queries", () => {
         firstActivationAt: new Date(),
         suspendedAt: new Date(),
       };
+      const purposeVersion3: PurposeVersion = {
+        ...getMockPurposeVersion(
+          purposeVersionState.active,
+          getMockPurposeVersionStamps()
+        ),
+        riskAnalysis: getMockPurposeVersionDocument(),
+        rejectionReason: "Test rejection reason",
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+        suspendedAt: new Date(),
+      };
 
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [purposeVersion1, purposeVersion2],
+        versions: [purposeVersion1, purposeVersion2, purposeVersion3],
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
         suspendedByProducer: false,
@@ -165,6 +196,7 @@ describe("Purpose queries", () => {
         riskAnalysisAnswersSQL,
         versionsSQL,
         versionDocumentsSQL,
+        versionStampsSQL,
       } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
@@ -173,6 +205,7 @@ describe("Purpose queries", () => {
         riskAnalysisAnswersSQL,
         versionsSQL,
         versionDocumentsSQL,
+        versionStampsSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -197,6 +230,17 @@ describe("Purpose queries", () => {
           },
           {
             ...getMockPurposeVersion(),
+            riskAnalysis: getMockPurposeVersionDocument(),
+            rejectionReason: "Test rejection reason",
+            updatedAt: new Date(),
+            firstActivationAt: new Date(),
+            suspendedAt: new Date(),
+          },
+          {
+            ...getMockPurposeVersion(
+              purposeVersionState.active,
+              getMockPurposeVersionStamps()
+            ),
             riskAnalysis: getMockPurposeVersionDocument(),
             rejectionReason: "Test rejection reason",
             updatedAt: new Date(),
@@ -234,6 +278,17 @@ describe("Purpose queries", () => {
             firstActivationAt: new Date(),
             suspendedAt: new Date(),
           },
+          {
+            ...getMockPurposeVersion(
+              purposeVersionState.active,
+              getMockPurposeVersionStamps()
+            ),
+            riskAnalysis: getMockPurposeVersionDocument(),
+            rejectionReason: "Test rejection reason",
+            updatedAt: new Date(),
+            firstActivationAt: new Date(),
+            suspendedAt: new Date(),
+          },
         ],
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
@@ -265,6 +320,9 @@ describe("Purpose queries", () => {
       ).toHaveLength(0);
       expect(
         await retrievePurposeVersionDocumentsSQLById(purpose1.id, readModelDB)
+      ).toHaveLength(0);
+      expect(
+        await retrievePurposeVersionStampsSQLById(purpose1.id, readModelDB)
       ).toHaveLength(0);
 
       await checkCompletePurpose(purpose2);
