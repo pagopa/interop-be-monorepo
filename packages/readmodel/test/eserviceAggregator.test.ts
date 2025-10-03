@@ -195,15 +195,17 @@ describe("E-service aggregator", () => {
     };
 
     const eservice = getMockEService(undefined, undefined, [descriptor]);
-    const serialized = EServiceAddedV2.toBinary({
+
+    // eslint-disable-next-line functional/no-let
+    let serialized = EServiceAddedV2.toBinary({
       eservice: toEServiceV2(eservice),
     });
 
-    // eslint-disable-next-line functional/no-let
-    let deserialized = EServiceAddedV2.fromBinary(serialized).eservice;
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const _ of Array(400)) {
+      // eslint-disable-next-line functional/no-let
+      const deserialized = EServiceAddedV2.fromBinary(serialized).eservice;
+
       if (!deserialized) {
         throw new Error("Deserialized eservice is undefined");
       }
@@ -263,11 +265,9 @@ describe("E-service aggregator", () => {
         );
       });
 
-      deserialized = EServiceAddedV2.fromBinary(
-        EServiceAddedV2.toBinary({
-          eservice: toEServiceV2(aggregatedEservice),
-        })
-      ).eservice;
+      serialized = EServiceAddedV2.toBinary({
+        eservice: toEServiceV2(aggregatedEservice),
+      });
     }
   });
 });
