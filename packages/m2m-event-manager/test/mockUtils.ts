@@ -1,4 +1,7 @@
 import {
+  AgreementId,
+  AgreementM2MEvent,
+  AgreementM2MEventId,
   AttributeId,
   AttributeM2MEvent,
   AttributeM2MEventId,
@@ -7,7 +10,6 @@ import {
   EServiceId,
   EServiceM2MEvent,
   EServiceM2MEventId,
-  M2MEventVisibility,
   TenantId,
   generateId,
   m2mEventVisibility,
@@ -17,7 +19,7 @@ import {
 import { v7 as uuidv7 } from "uuid";
 
 export function generateM2MEventId<
-  ID extends AttributeM2MEventId | EServiceM2MEventId
+  ID extends AttributeM2MEventId | EServiceM2MEventId | AgreementM2MEventId
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }
@@ -40,7 +42,7 @@ export function getMockedEServiceM2MEvent({
   producerDelegateId,
 }: {
   eventType: EServiceM2MEvent["eventType"];
-  visibility?: M2MEventVisibility;
+  visibility?: EServiceM2MEvent["visibility"];
   producerId?: TenantId;
   producerDelegateId?: TenantId;
 }): EServiceM2MEvent {
@@ -53,6 +55,42 @@ export function getMockedEServiceM2MEvent({
     visibility,
     producerId: producerId ?? generateId<TenantId>(),
     producerDelegateId: producerDelegateId ?? generateId<TenantId>(),
-    producerDelegationId: producerDelegateId ?? generateId<DelegationId>(),
-  } as EServiceM2MEvent;
+    producerDelegationId: producerDelegateId
+      ? generateId<DelegationId>()
+      : undefined,
+  };
+}
+
+export function getMockedAgreementM2MEvent({
+  eventType,
+  visibility = m2mEventVisibility.owner,
+  consumerId,
+  producerId,
+  consumerDelegateId,
+  producerDelegateId,
+}: {
+  eventType: AgreementM2MEvent["eventType"];
+  visibility?: AgreementM2MEvent["visibility"];
+  consumerId?: TenantId;
+  consumerDelegateId?: TenantId;
+  producerId?: TenantId;
+  producerDelegateId?: TenantId;
+}): AgreementM2MEvent {
+  return {
+    id: generateM2MEventId(),
+    eventType,
+    eventTimestamp: new Date(),
+    agreementId: generateId<AgreementId>(),
+    visibility,
+    consumerId: consumerId ?? generateId<TenantId>(),
+    consumerDelegateId: consumerDelegateId ?? generateId<TenantId>(),
+    consumerDelegationId: consumerDelegateId
+      ? generateId<DelegationId>()
+      : undefined,
+    producerId: producerId ?? generateId<TenantId>(),
+    producerDelegateId: producerDelegateId ?? generateId<TenantId>(),
+    producerDelegationId: producerDelegateId
+      ? generateId<DelegationId>()
+      : undefined,
+  };
 }
