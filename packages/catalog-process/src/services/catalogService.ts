@@ -3975,7 +3975,11 @@ async function updateDraftEService(
 
   const updatedPersonalData = match(type)
     .with("put", () => personalData)
-    .with("patch", () => personalData ?? eservice.data.personalData)
+    .with("patch", () =>
+      personalData ?? personalData === null
+        ? undefined
+        : eservice.data.personalData
+    )
     .exhaustive();
 
   const updatedEService: EService = {
