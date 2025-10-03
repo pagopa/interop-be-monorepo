@@ -272,7 +272,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /purposeTemplates/{id}/eservices:
+  /purposeTemplates/{id}/linkEservices:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: id
@@ -281,55 +281,36 @@ paths:
         schema:
           type: string
           format: uuid
-    get:
+    post:
       tags:
         - purposeTemplate
-      summary: Get Purpose Template E-Services
-      operationId: getPurposeTemplateEServices
-      description: Retrieve a purpose template e-services
+      summary: Link E-Services to Purpose Template
+      operationId: linkEServicesToPurposeTemplate
+      description: Link E-Services to a purpose template (in Draft or Active state)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eserviceIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  minItems: 1
+              required:
+                - eserviceIds
+        required: true
       responses:
         "200":
-          description: Purpose Template E-Services retrieved
+          description: E-Services linked to purpose template
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
-        "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: Purpose Template Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-    post:
-      tags:
-        - purposeTemplate
-      summary: Add E-Service to Purpose Template
-      operationId: addEServiceToPurposeTemplate
-      description: Add an E-Service to a purpose template (in Draft state)
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateEServiceDescriptorPurposeTemplateSeed"
-        required: true
-      responses:
-        "200":
-          description: E-Service added to purpose template
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -369,6 +350,42 @@ paths:
       responses:
         "204":
           description: E-Service removed from purpose template
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{id}/eservices:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purposeTemplate
+      summary: Get Purpose Template E-Services
+      operationId: getPurposeTemplateEServices
+      description: Retrieve a purpose template e-services
+      responses:
+        "200":
+          description: Purpose Template E-Services retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
         "403":
           description: Forbidden
           content:
