@@ -1,50 +1,38 @@
 import { InferSelectModel } from "drizzle-orm";
 import {
-  agreementM2MEventInM2MEvent,
-  attributeM2MEventInM2MEvent,
-  clientM2MEventInM2MEvent,
-  consumerDelegationM2MEventInM2MEvent,
-  eserviceM2MEventInM2MEvent,
-  eserviceTemplateM2MEventInM2MEvent,
-  keyM2MEventInM2MEvent,
-  producerDelegationM2MEventInM2MEvent,
-  producerKeyM2MEventInM2MEvent,
-  producerKeychainM2MEventInM2MEvent,
-  purposeM2MEventInM2MEvent,
-  tenantM2MEventInM2MEvent,
+  agreementInM2MEvent,
+  attributeInM2MEvent,
+  clientInM2MEvent,
+  consumerDelegationInM2MEvent,
+  eserviceInM2MEvent,
+  eserviceTemplateInM2MEvent,
+  keyInM2MEvent,
+  producerDelegationInM2MEvent,
+  producerKeyInM2MEvent,
+  producerKeychainInM2MEvent,
+  purposeInM2MEvent,
+  tenantInM2MEvent,
 } from "./drizzle/schema.js";
 
-export type EServiceM2MEventSQL = InferSelectModel<
-  typeof eserviceM2MEventInM2MEvent
->;
+export type EServiceM2MEventSQL = InferSelectModel<typeof eserviceInM2MEvent>;
 export type EServiceTemplateM2MEventSQL = InferSelectModel<
-  typeof eserviceTemplateM2MEventInM2MEvent
+  typeof eserviceTemplateInM2MEvent
 >;
-export type AgreementM2MEventSQL = InferSelectModel<
-  typeof agreementM2MEventInM2MEvent
->;
-export type PurposeM2MEventSQL = InferSelectModel<
-  typeof purposeM2MEventInM2MEvent
->;
-export type TenantM2MEventSQL = InferSelectModel<
-  typeof tenantM2MEventInM2MEvent
->;
-export type AttributeM2MEventSQL = InferSelectModel<
-  typeof attributeM2MEventInM2MEvent
->;
+export type AgreementM2MEventSQL = InferSelectModel<typeof agreementInM2MEvent>;
+export type PurposeM2MEventSQL = InferSelectModel<typeof purposeInM2MEvent>;
+export type TenantM2MEventSQL = InferSelectModel<typeof tenantInM2MEvent>;
+export type AttributeM2MEventSQL = InferSelectModel<typeof attributeInM2MEvent>;
 export type ConsumerDelegationM2MEventSQL = InferSelectModel<
-  typeof consumerDelegationM2MEventInM2MEvent
+  typeof consumerDelegationInM2MEvent
 >;
 export type ProducerDelegationM2MEventSQL = InferSelectModel<
-  typeof producerDelegationM2MEventInM2MEvent
+  typeof producerDelegationInM2MEvent
 >;
-export type ClientM2MEventSQL = InferSelectModel<
-  typeof clientM2MEventInM2MEvent
+export type ClientM2MEventSQL = InferSelectModel<typeof clientInM2MEvent>;
+export type ProducerKeychainM2MEventSQL = InferSelectModel<
+  typeof producerKeychainInM2MEvent
 >;
-export type ProducerKeychaM2MEventinM2MEventSQL = InferSelectModel<
-  typeof producerKeychainM2MEventInM2MEvent
->;
-export type KeyM2MEventSQL = InferSelectModel<typeof keyM2MEventInM2MEvent>;
+export type KeyM2MEventSQL = InferSelectModel<typeof keyInM2MEvent>;
 export type ProducerKeyM2MEventSQL = InferSelectModel<
-  typeof producerKeyM2MEventInM2MEvent
+  typeof producerKeyInM2MEvent
 >;
