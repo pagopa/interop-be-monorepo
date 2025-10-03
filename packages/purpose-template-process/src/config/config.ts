@@ -18,9 +18,11 @@ const PurposeTemplateProcessConfig = CommonHTTPServiceConfig.and(
     z
       .object({
         PURPOSE_TEMPLATE_DOCUMENTS_PATH: z.string(),
+        MAX_ESERVICES_PER_LINK_REQUEST: z.coerce.number(),
       })
       .transform((c) => ({
         purposeTemplateDocumentsPath: c.PURPOSE_TEMPLATE_DOCUMENTS_PATH,
+        maxEServicesPerLinkRequest: c.MAX_ESERVICES_PER_LINK_REQUEST,
       }))
   )
   .and(FeatureFlagPurposeTemplateConfig);

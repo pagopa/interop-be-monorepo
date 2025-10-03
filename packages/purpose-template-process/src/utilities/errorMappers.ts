@@ -27,6 +27,9 @@ export const createPurposeTemplateErrorMapper = (
     .with("purposeTemplateNameConflict", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getPurposeTemplatesErrorMapper = (): number =>
+  HTTP_STATUS_INTERNAL_SERVER_ERROR;
+
 export const getPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -35,8 +38,41 @@ export const getPurposeTemplateErrorMapper = (
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getPurposeTemplatesErrorMapper = (): number =>
-  HTTP_STATUS_INTERNAL_SERVER_ERROR;
+export const linkEservicesToPurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "associationEServicesForPurposeTemplateFailed",
+      "tooManyEServicesForPurposeTemplate",
+      "purposeTemplateNotInExpectedStates",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "associationBetweenEServiceAndPurposeTemplateAlreadyExists",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const unlinkEServicesFromPurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "disassociationEServicesFromPurposeTemplateFailed",
+      "tooManyEServicesForPurposeTemplate",
+      "purposeTemplateNotInExpectedStates",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "associationBetweenEServiceAndPurposeTemplateDoesNotExist",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const activatePurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
