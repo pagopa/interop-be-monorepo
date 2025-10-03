@@ -56,7 +56,7 @@ export function purposeTemplateServiceBuilder(
     },
     async linkEServiceToPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
-      eserviceId: bffApi.EServiceId,
+      eserviceId: string,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.EServiceDescriptorPurposeTemplate> {
       logger.info(
@@ -95,7 +95,9 @@ export function purposeTemplateServiceBuilder(
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.CreatorPurposeTemplates> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
       const { headers, authData, logger } = ctx;
+
       logger.info(
         `Retrieving creator's purpose templates with title ${purposeTitle}, offset ${offset}, limit ${limit}`
       );
@@ -194,7 +196,6 @@ export function purposeTemplateServiceBuilder(
     },
   };
 }
-
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;

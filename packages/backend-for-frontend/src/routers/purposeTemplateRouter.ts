@@ -6,7 +6,7 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { unsafeBrandId, emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -98,33 +98,32 @@ const purposeTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
-
-  purposeTemplateRouter.post(
-    "/purposeTemplates/:purposeTemplateId/linkEservice",
-    async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-      try {
-        const result =
-          await purposeTemplateService.linkEServiceToPurposeTemplate(
-            unsafeBrandId(req.params.purposeTemplateId),
-            req.body.eserviceId,
-            ctx
+    })
+    .post(
+      "/purposeTemplates/:purposeTemplateId/linkEservice",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const result =
+            await purposeTemplateService.linkEServiceToPurposeTemplate(
+              unsafeBrandId(req.params.purposeTemplateId),
+              req.body.eserviceId,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(bffApi.EServiceDescriptorPurposeTemplate.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            linkEServiceToPurposeTemplateErrorMapper,
+            ctx,
+            `Error linking e-service ${req.body.eserviceId} to purpose template ${req.params.purposeTemplateId}`
           );
-        return res
-          .status(200)
-          .send(bffApi.EServiceDescriptorPurposeTemplate.parse(result));
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          linkEServiceToPurposeTemplateErrorMapper,
-          ctx,
-          `Error linking e-service ${req.body.eserviceId} to purpose template ${req.params.purposeTemplateId}`
-        );
-        return res.status(errorRes.status).send(errorRes);
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    }
-  );
+    );
 
   return purposeTemplateRouter;
 };
