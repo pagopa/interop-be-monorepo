@@ -73,7 +73,7 @@ function createEServiceM2MEventHelper(
 function getEServiceM2MEventVisibility(
   eventType: EServiceM2MEvent["eventType"],
   eservice: EService
-): M2MEventVisibility {
+): Extract<M2MEventVisibility, "Public" | "Owner"> {
   return match(eventType)
     .with(
       P.union(
@@ -145,7 +145,7 @@ const restrictedVisibilityStates: DescriptorState[] = [
 
 function getEServiceM2MEventVisibilityFromEService(
   eservice: EService
-): M2MEventVisibility {
+): Extract<M2MEventVisibility, "Public" | "Owner"> {
   if (
     eservice.descriptors.every((d) =>
       restrictedVisibilityStates.includes(d.state)
