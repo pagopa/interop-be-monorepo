@@ -27,6 +27,9 @@ export const createPurposeTemplateErrorMapper = (
     .with("purposeTemplateNameConflict", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getPurposeTemplatesErrorMapper = (): number =>
+  HTTP_STATUS_INTERNAL_SERVER_ERROR;
+
 export const getPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -34,6 +37,3 @@ export const getPurposeTemplateErrorMapper = (
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const getPurposeTemplatesErrorMapper = (): number =>
-  HTTP_STATUS_INTERNAL_SERVER_ERROR;
