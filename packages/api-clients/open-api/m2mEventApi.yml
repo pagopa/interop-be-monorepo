@@ -536,6 +536,9 @@ components:
         - eserviceId
     EServiceM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -563,6 +566,9 @@ components:
         - agreementId
     AgreementM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -593,6 +599,9 @@ components:
         - purposeId
     PurposeM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -620,6 +629,9 @@ components:
         - tenantId
     TenantM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -649,6 +661,9 @@ components:
         - attributeId
     AttributeM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -676,6 +691,9 @@ components:
         - delegationId
     ConsumerDelegationM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -703,6 +721,9 @@ components:
         - delegationId
     ProducerDelegationM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -730,6 +751,9 @@ components:
         - clientId
     ClientM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -757,6 +781,9 @@ components:
         - producerKeychainId
     ProducerKeychainM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -784,6 +811,9 @@ components:
         - kid
     KeyM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -811,6 +841,9 @@ components:
         - kid
     ProducerKeyM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -841,6 +874,9 @@ components:
         - eserviceTemplateId
     EServiceTemplateM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
