@@ -151,50 +151,60 @@ describe("E-service aggregator", () => {
    * rely on the order of these groups.
    */
   it("should keep the descriptor attributes group order by groupIndex", () => {
-    const descriptorCertifiedAttributeGroups: EserviceAttributes["certified"] =
-      [
-        [getMockEServiceAttribute()],
-        [getMockEServiceAttribute(), getMockEServiceAttribute()],
-        [getMockEServiceAttribute(), getMockEServiceAttribute()],
-        [
-          getMockEServiceAttribute(),
-          getMockEServiceAttribute(),
-          getMockEServiceAttribute(),
-        ],
-      ];
+    function generateRandomEServiceAttributes({
+      maxGroupsNum,
+      maxAttributesNum,
+    }: {
+      maxGroupsNum: number;
+      maxAttributesNum: number;
+    }): EserviceAttributes {
+      function generateRandomAttributeGroups(): EserviceAttributes[
+        | "certified"
+        | "declared"
+        | "verified"] {
+        const randomGroupsNum = Math.floor(Math.random() * maxGroupsNum) + 1;
+        return Array(randomGroupsNum)
+          .fill(null)
+          .map(() => {
+            const randomAttributesNum =
+              Math.floor(Math.random() * maxAttributesNum) + 1;
+            return Array(randomAttributesNum)
+              .fill(null)
+              .map(() => getMockEServiceAttribute());
+          });
+      }
 
-    const descriptorVerifiedAttributeGroups: EserviceAttributes["verified"] = [
-      [getMockEServiceAttribute()],
-      [getMockEServiceAttribute(), getMockEServiceAttribute()],
-      [getMockEServiceAttribute(), getMockEServiceAttribute()],
-      [
-        getMockEServiceAttribute(),
-        getMockEServiceAttribute(),
-        getMockEServiceAttribute(),
-      ],
-    ];
+      return {
+        certified: generateRandomAttributeGroups(),
+        declared: generateRandomAttributeGroups(),
+        verified: generateRandomAttributeGroups(),
+      };
+    }
 
-    const descriptorDeclaredAttributeGroups: EserviceAttributes["declared"] = [
-      [getMockEServiceAttribute()],
-      [getMockEServiceAttribute(), getMockEServiceAttribute()],
-      [getMockEServiceAttribute(), getMockEServiceAttribute()],
-      [
-        getMockEServiceAttribute(),
-        getMockEServiceAttribute(),
-        getMockEServiceAttribute(),
-      ],
-    ];
-
-    const descriptor: Descriptor = {
-      ...getMockDescriptor(),
-      attributes: {
-        certified: descriptorCertifiedAttributeGroups,
-        verified: descriptorVerifiedAttributeGroups,
-        declared: descriptorDeclaredAttributeGroups,
+    // Given numbers are just casual
+    const eservice = getMockEService(undefined, undefined, [
+      {
+        ...getMockDescriptor(),
+        attributes: generateRandomEServiceAttributes({
+          maxGroupsNum: 5,
+          maxAttributesNum: 20,
+        }),
       },
-    };
-
-    const eservice = getMockEService(undefined, undefined, [descriptor]);
+      {
+        ...getMockDescriptor(),
+        attributes: generateRandomEServiceAttributes({
+          maxGroupsNum: 20,
+          maxAttributesNum: 50,
+        }),
+      },
+      {
+        ...getMockDescriptor(),
+        attributes: generateRandomEServiceAttributes({
+          maxGroupsNum: 4,
+          maxAttributesNum: 5,
+        }),
+      },
+    ]);
 
     // eslint-disable-next-line functional/no-let
     let serialized = EServiceAddedV2.toBinary({
@@ -236,32 +246,38 @@ describe("E-service aggregator", () => {
         templateVersionRefsSQL,
       }).data;
 
-      const aggregatedDescriptor = aggregatedEservice.descriptors[0];
+      const aggregatedDescriptors = aggregatedEservice.descriptors;
 
-      expect(aggregatedDescriptor.attributes.certified).toHaveLength(
-        descriptorCertifiedAttributeGroups.length
-      );
-      aggregatedDescriptor.attributes.certified.forEach((group, index) => {
-        expect(group).toHaveLength(
-          descriptorCertifiedAttributeGroups[index].length
+      function checkForOrderConsistency<
+        TAttributeGroup extends EserviceAttributes[
+          | "certified"
+          | "declared"
+          | "verified"]
+      >(original: TAttributeGroup, aggregated: TAttributeGroup): void {
+        // Check that the number of groups is the same
+        expect(aggregated).toHaveLength(original.length);
+        // Check that each group has the same number of attributes...
+        aggregated.forEach((group, index) => {
+          expect(group).toHaveLength(original[index].length);
+          // ... and that each attribute is the same (order matters)
+          group.forEach((attribute, attrIndex) => {
+            expect(attribute).toStrictEqual(original[index][attrIndex]);
+          });
+        });
+      }
+
+      aggregatedDescriptors.forEach((aggregatedDescriptor, index) => {
+        checkForOrderConsistency(
+          eservice.descriptors[index].attributes.certified,
+          aggregatedDescriptor.attributes.certified
         );
-      });
-
-      expect(aggregatedDescriptor.attributes.verified).toHaveLength(
-        descriptorVerifiedAttributeGroups.length
-      );
-      aggregatedDescriptor.attributes.verified.forEach((group, index) => {
-        expect(group).toHaveLength(
-          descriptorVerifiedAttributeGroups[index].length
+        checkForOrderConsistency(
+          eservice.descriptors[index].attributes.verified,
+          aggregatedDescriptor.attributes.verified
         );
-      });
-
-      expect(aggregatedDescriptor.attributes.declared).toHaveLength(
-        descriptorDeclaredAttributeGroups.length
-      );
-      aggregatedDescriptor.attributes.declared.forEach((group, index) => {
-        expect(group).toHaveLength(
-          descriptorDeclaredAttributeGroups[index].length
+        checkForOrderConsistency(
+          eservice.descriptors[index].attributes.declared,
+          aggregatedDescriptor.attributes.declared
         );
       });
 
