@@ -21,7 +21,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { handleEServiceTemplateNameUpdated } from "../src/handlers/eserviceTemplates/handleEServiceTemplateNameUpdated.js";
+import { handleEServiceTemplateNameUpdated } from "../src/handlers/eserviceTemplates/handleEserviceTemplateNameUpdated.js";
 import {
   addOneEService,
   addOneEServiceTemplate,
