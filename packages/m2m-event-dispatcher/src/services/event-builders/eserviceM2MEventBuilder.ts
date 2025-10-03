@@ -1,5 +1,6 @@
 import {
   Delegation,
+  Descriptor,
   DescriptorId,
   DescriptorState,
   EService,
@@ -9,6 +10,7 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { generateM2MEventId } from "../../utils/uuidv7.js";
+import { descriptorNotFoundInEService } from "../../models/errors.js";
 
 export async function createEServiceM2MEvent(
   eservice: EService,
@@ -61,7 +63,11 @@ function createEServiceM2MEventHelper(
     producerId: eservice.producerId,
     producerDelegateId: producerDelegation?.delegateId,
     producerDelegationId: producerDelegation?.id,
-    visibility: getEServiceM2MEventVisibility(eventType, eservice),
+    visibility: getEServiceM2MEventVisibility(
+      eventType,
+      eservice,
+      descriptorId
+    ),
   };
 }
 
@@ -71,7 +77,8 @@ function createEServiceM2MEventHelper(
  */
 function getEServiceM2MEventVisibility(
   eventType: EServiceM2MEvent["eventType"],
-  eservice: EService
+  eservice: EService,
+  descriptorId: DescriptorId | undefined
 ): EServiceM2MEvent["visibility"] {
   return match(eventType)
     .with(
@@ -132,7 +139,7 @@ function getEServiceM2MEventVisibility(
         "EServiceDescriptorDocumentDeletedByTemplateUpdate",
         "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
       ),
-      () => getEServiceM2MEventVisibilityFromEService(eservice)
+      () => getEServiceM2MEventVisibilityFromEService(eservice, descriptorId)
     )
     .exhaustive();
 }
@@ -143,9 +150,15 @@ const ownerVisibilityStates: DescriptorState[] = [
 ];
 
 function getEServiceM2MEventVisibilityFromEService(
-  eservice: EService
+  eservice: EService,
+  descriptorId: DescriptorId | undefined
 ): EServiceM2MEvent["visibility"] {
+  const descriptor = descriptorId
+    ? retrieveDescriptorFromEService(descriptorId, eservice)
+    : undefined;
   if (
+    (descriptor !== undefined &&
+      ownerVisibilityStates.includes(descriptor.state)) ||
     eservice.descriptors.every((d) => ownerVisibilityStates.includes(d.state))
   ) {
     return m2mEventVisibility.owner;
@@ -153,3 +166,18 @@ function getEServiceM2MEventVisibilityFromEService(
     return m2mEventVisibility.public;
   }
 }
+
+const retrieveDescriptorFromEService = (
+  descriptorId: DescriptorId,
+  eservice: EService
+): Descriptor => {
+  const descriptor = eservice.descriptors.find(
+    (d: Descriptor) => d.id === descriptorId
+  );
+
+  if (descriptor === undefined) {
+    throw descriptorNotFoundInEService(descriptorId, eservice.id);
+  }
+
+  return descriptor;
+};

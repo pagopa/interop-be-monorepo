@@ -335,21 +335,45 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-    delete:
+  /purposeTemplates/{id}/unlinkEservices:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Unlink E-Services from Purpose Template
+      description: Unlink E-Services from a purpose template (in Draft or Active state)
+      operationId: unlinkEServicesFromPurposeTemplate
       tags:
         - purposeTemplate
-      summary: Remove E-Service from Purpose Template
-      operationId: removeEServiceFromPurposeTemplate
-      description: Remove an E-Service from a purpose template (in Draft state)
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEServiceDescriptorPurposeTemplateSeed"
+              type: object
+              properties:
+                eserviceIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  minItems: 1
+              required:
+                - eserviceIds
         required: true
       responses:
         "204":
-          description: E-Service removed from purpose template
+          description: E-Services unlinked from purpose template
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
@@ -358,6 +382,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:

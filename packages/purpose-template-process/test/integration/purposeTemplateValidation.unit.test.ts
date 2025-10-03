@@ -14,17 +14,22 @@ import {
 import {
   associationEServicesForPurposeTemplateFailed,
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist,
 } from "../../src/model/domain/errors.js";
-import { validateEServicesForPurposeTemplate } from "../../src/services/validators.js";
 import { ReadModelServiceSQL } from "../../src/services/readModelServiceSQL.js";
 import {
   eserviceAlreadyAssociatedError,
+  eserviceNotAssociatedError,
   eserviceNotFound,
   invalidDescriptorStateError,
   missingDescriptorError,
   unexpectedAssociationEServiceError,
   unexpectedEServiceError,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
+import {
+  validateEservicesAssociations,
+  validateEservicesDisassociations,
+} from "../../src/services/validators.js";
 
 describe("Purpose Template Validation", () => {
   const mockReadModelService: ReadModelServiceSQL = {
@@ -68,7 +73,7 @@ describe("Purpose Template Validation", () => {
       mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
         vi.fn().mockResolvedValue(undefined); // No existing associations
 
-      const result = await validateEServicesForPurposeTemplate(
+      const result = await validateEservicesAssociations(
         eserviceIds,
         purposeTemplateId,
         mockReadModelService
@@ -91,7 +96,7 @@ describe("Purpose Template Validation", () => {
         .mockResolvedValue(undefined);
 
       await expect(
-        validateEServicesForPurposeTemplate(
+        validateEservicesAssociations(
           eserviceIds,
           purposeTemplateId,
           mockReadModelService
@@ -114,7 +119,7 @@ describe("Purpose Template Validation", () => {
         .mockRejectedValue(new Error(errorMessage));
 
       await expect(
-        validateEServicesForPurposeTemplate(
+        validateEservicesAssociations(
           eserviceIds,
           purposeTemplateId,
           mockReadModelService
@@ -146,7 +151,7 @@ describe("Purpose Template Validation", () => {
         vi.fn().mockResolvedValue(existingAssociation);
 
       await expect(
-        validateEServicesForPurposeTemplate(
+        validateEservicesAssociations(
           eserviceIds,
           purposeTemplateId,
           mockReadModelService
@@ -171,7 +176,7 @@ describe("Purpose Template Validation", () => {
         vi.fn().mockRejectedValue(new Error(errorMessage));
 
       await expect(
-        validateEServicesForPurposeTemplate(
+        validateEservicesAssociations(
           eserviceIds,
           purposeTemplateId,
           mockReadModelService
@@ -195,7 +200,7 @@ describe("Purpose Template Validation", () => {
       mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
         vi.fn().mockResolvedValue(undefined);
 
-      const result = await validateEServicesForPurposeTemplate(
+      const result = await validateEservicesAssociations(
         eserviceIds,
         purposeTemplateId,
         mockReadModelService
@@ -223,7 +228,7 @@ describe("Purpose Template Validation", () => {
       mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
         vi.fn().mockResolvedValue(undefined);
 
-      const result = await validateEServicesForPurposeTemplate(
+      const result = await validateEservicesAssociations(
         eserviceIds,
         purposeTemplateId,
         mockReadModelService
@@ -236,6 +241,76 @@ describe("Purpose Template Validation", () => {
             descriptorState.published,
             descriptorState.draft,
           ]),
+        ],
+      });
+    });
+
+    it("should return error when trying to unlink eservice that is not associated", async () => {
+      const eserviceIds = [eserviceId1];
+      const mockEService1 = getMockEService(
+        eserviceId1,
+        generateId<TenantId>(),
+        [getMockDescriptor(descriptorState.published)]
+      );
+
+      mockReadModelService.getEServiceById = vi
+        .fn()
+        .mockResolvedValue(mockEService1);
+
+      mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
+        vi.fn().mockResolvedValue(undefined); // No existing association
+
+      await expect(
+        validateEservicesDisassociations(
+          eserviceIds,
+          purposeTemplateId,
+          mockReadModelService
+        )
+      ).rejects.toThrow(
+        associationBetweenEServiceAndPurposeTemplateDoesNotExist(
+          [eserviceNotAssociatedError(eserviceId1, purposeTemplateId)],
+          eserviceIds,
+          purposeTemplateId
+        )
+      );
+    });
+
+    it("should return valid when trying to unlink eservice that is associated", async () => {
+      const eserviceIds = [eserviceId1];
+      const mockDescriptor = getMockDescriptor(descriptorState.published);
+      mockDescriptor.id = descriptorId1;
+      const mockEService1 = getMockEService(
+        eserviceId1,
+        generateId<TenantId>(),
+        [mockDescriptor]
+      );
+
+      const existingAssociation = {
+        eserviceId: eserviceId1,
+        descriptorId: descriptorId1,
+        purposeTemplateId,
+      };
+
+      mockReadModelService.getEServiceById = vi
+        .fn()
+        .mockResolvedValue(mockEService1);
+
+      mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
+        vi.fn().mockResolvedValue(existingAssociation);
+
+      const result = await validateEservicesDisassociations(
+        eserviceIds,
+        purposeTemplateId,
+        mockReadModelService
+      );
+
+      expect(result).toEqual({
+        type: "valid",
+        value: [
+          {
+            eservice: mockEService1,
+            descriptorId: descriptorId1,
+          },
         ],
       });
     });
