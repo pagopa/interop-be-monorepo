@@ -5,6 +5,8 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
+  AgreementM2MEvent,
+  AgreementM2MEventId,
   AttributeM2MEvent,
   AttributeM2MEventId,
   EServiceM2MEvent,
@@ -35,11 +37,21 @@ export function m2mEventServiceBuilder(
       );
     },
     async getAgreementM2MEvents(
-      _lastEventId: string | undefined,
-      _limit: number,
-      _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
-    ): Promise<unknown[]> {
-      return [];
+      lastEventId: AgreementM2MEventId | undefined,
+      limit: number,
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<AgreementM2MEvent[]> {
+      logger.info(
+        `Getting agreement M2M events with lastEventId=${lastEventId}, limit=${limit}`
+      );
+      return m2mEventReaderService.getAgreementM2MEvents(
+        lastEventId,
+        limit,
+        authData.organizationId
+      );
     },
     async getPurposeM2MEvents(
       _lastEventId: string | undefined,

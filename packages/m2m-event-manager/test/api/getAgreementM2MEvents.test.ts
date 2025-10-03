@@ -4,52 +4,54 @@ import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
-  EServiceM2MEventType,
+  AgreementM2MEventType,
   generateId,
   m2mEventVisibility,
 } from "pagopa-interop-models";
-import { generateM2MEventId, getMockedEServiceM2MEvent } from "../mockUtils.js";
+import {
+  generateM2MEventId,
+  getMockedAgreementM2MEvent,
+} from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
 import { testToUpperSnakeCase } from "../utils.js";
 
-describe("API /events/eservices test", () => {
-  const mockEServiceM2MEvents = EServiceM2MEventType.options
+describe("API /events/agreements test", () => {
+  const mockAgreementM2MEvents = AgreementM2MEventType.options
     .map((eventType) => [
-      getMockedEServiceM2MEvent({
-        eventType,
-        visibility: m2mEventVisibility.public,
-      }),
-      getMockedEServiceM2MEvent({
+      getMockedAgreementM2MEvent({
         eventType,
         visibility: m2mEventVisibility.owner,
+      }),
+      getMockedAgreementM2MEvent({
+        eventType,
+        visibility: m2mEventVisibility.restricted,
       }),
     ])
     .flat();
 
-  const mockEServiceM2MEventsResponse: m2mEventApi.EServiceM2MEvents = {
-    events: mockEServiceM2MEvents.map(
+  const mockAgreementM2MEventsResponse: m2mEventApi.AgreementM2MEvents = {
+    events: mockAgreementM2MEvents.map(
       (e) =>
         ({
           id: e.id,
           eventTimestamp: e.eventTimestamp.toJSON(),
           eventType: testToUpperSnakeCase(e.eventType),
-          eserviceId: e.eserviceId,
-          descriptorId: e.descriptorId,
-        } as m2mEventApi.EServiceM2MEvent)
+          agreementId: e.agreementId,
+        } as m2mEventApi.AgreementM2MEvent)
     ),
   };
 
-  const mockQueryParams: m2mEventApi.GetEServiceM2MEventsQueryParams = {
+  const mockQueryParams: m2mEventApi.GetAgreementM2MEventsQueryParams = {
     lastEventId: generateM2MEventId(),
     limit: 10,
   };
 
   const makeRequest = async (
     token: string,
-    query: m2mEventApi.GetEServiceM2MEventsQueryParams = mockQueryParams
+    query: m2mEventApi.GetAgreementM2MEventsQueryParams = mockQueryParams
   ) =>
     request(api)
-      .get(`/events/eservices`)
+      .get(`/events/agreements`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .query(query)
@@ -63,16 +65,16 @@ describe("API /events/eservices test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      m2mEventService.getEServiceM2MEvents = vi
+      m2mEventService.getAgreementM2MEvents = vi
         .fn()
-        .mockResolvedValue(mockEServiceM2MEvents);
+        .mockResolvedValue(mockAgreementM2MEvents);
 
       const token = generateToken(role);
       const res = await makeRequest(token);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockEServiceM2MEventsResponse);
-      expect(m2mEventService.getEServiceM2MEvents).toHaveBeenCalledWith(
+      expect(res.body).toEqual(mockAgreementM2MEventsResponse);
+      expect(m2mEventService.getAgreementM2MEvents).toHaveBeenCalledWith(
         mockQueryParams.lastEventId,
         mockQueryParams.limit,
         expect.any(Object)
@@ -100,7 +102,7 @@ describe("API /events/eservices test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as unknown as m2mEventApi.GetEServiceM2MEventsQueryParams
+      query as unknown as m2mEventApi.GetAgreementM2MEventsQueryParams
     );
 
     expect(res.status).toBe(400);

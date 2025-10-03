@@ -17,7 +17,7 @@ describe("getEServiceM2MEvents", () => {
     .map((eventType) => [
       getMockedEServiceM2MEvent({
         eventType,
-        // Public events
+        visibility: m2mEventVisibility.public,
       }),
       getMockedEServiceM2MEvent({
         eventType,
@@ -42,8 +42,9 @@ describe("getEServiceM2MEvents", () => {
     .flat();
 
   const publicEventsCount = EServiceM2MEventType.options.length;
-  const mockProducerEventsCount = EServiceM2MEventType.options.length * 2;
-  const mockProducerOrDelegateEventsCount = EServiceM2MEventType.options.length;
+  const eventsVisibleToProducer = EServiceM2MEventType.options.length * 3; // public + owner (all)
+  const eventsVisibleToProducerDelegate =
+    EServiceM2MEventType.options.length * 2; // public + owner (only with delegate)
 
   beforeEach(async () => {
     await Promise.all(mockEServiceM2MEvents.map(writeEServiceM2MEvent));
@@ -63,7 +64,7 @@ describe("getEServiceM2MEvents", () => {
     expect(events.length).toEqual(publicEventsCount);
   });
 
-  it("should also list owner eservice M2M events (requester = producerId)", async () => {
+  it("should list public & owner eservice M2M events (requester = producerId)", async () => {
     const ownerEvents = mockEServiceM2MEvents.filter(
       (e) =>
         e.visibility === m2mEventVisibility.public ||
@@ -79,10 +80,10 @@ describe("getEServiceM2MEvents", () => {
       })
     );
     expect(events).toEqual(ownerEvents);
-    expect(events.length).toEqual(mockProducerEventsCount + publicEventsCount);
+    expect(events.length).toEqual(eventsVisibleToProducer);
   });
 
-  it("should also list also owner eservice M2M events (requester = producerDelegateId)", async () => {
+  it("should list public & owner eservice M2M events (requester = producerDelegateId)", async () => {
     const ownerEvents = mockEServiceM2MEvents.filter(
       (e) =>
         e.visibility === m2mEventVisibility.public ||
@@ -98,9 +99,7 @@ describe("getEServiceM2MEvents", () => {
       })
     );
     expect(events).toEqual(ownerEvents);
-    expect(events.length).toEqual(
-      mockProducerOrDelegateEventsCount + publicEventsCount
-    );
+    expect(events.length).toEqual(eventsVisibleToProducerDelegate);
   });
 
   it.each([1, 3, 10])(
@@ -122,7 +121,7 @@ describe("getEServiceM2MEvents", () => {
   it.each([1, 3, 10])(
     "should list the %d oldest eservice M2M events after the given lastEventId",
     async (limit) => {
-      const lastEventId = mockEServiceM2MEvents[1].id;
+      const lastEventId = mockEServiceM2MEvents[limit].id;
       const events = await m2mEventService.getEServiceM2MEvents(
         lastEventId,
         limit,
