@@ -203,7 +203,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-    post:
+    put:
       tags:
         - purposeTemplate
       summary: Update Purpose Template

@@ -4,8 +4,7 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
-import { TenantKind } from "pagopa-interop-models";
-import { PurposeTemplateId } from "pagopa-interop-models";
+import { PurposeTemplateId, TenantKind } from "pagopa-interop-models";
 import {
   PurposeTemplateProcessClient,
   TenantProcessClient,
@@ -216,6 +215,18 @@ export function purposeTemplateServiceBuilder(
           totalCount: catalogPurposeTemplatesResponse.totalCount,
         },
       };
+    },
+    async updatePurposeTemplate(
+      id: PurposeTemplateId,
+      seed: bffApi.PurposeTemplateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplateSeed> {
+      logger.info(`Updating purpose template ${id}`);
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+      return await purposeTemplateClient.updatePurposeTemplate(seed, {
+        headers,
+        params: { id },
+      });
     },
   };
 }

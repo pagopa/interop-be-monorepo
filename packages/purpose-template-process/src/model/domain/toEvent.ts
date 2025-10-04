@@ -1,3 +1,4 @@
+import { CreateEvent } from "pagopa-interop-commons";
 import {
   CorrelationId,
   dateToBigInt,
@@ -8,7 +9,6 @@ import {
   toEServiceV2,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
-import { CreateEvent } from "pagopa-interop-commons";
 
 export function toCreateEventPurposeTemplateAdded(
   purposeTemplate: PurposeTemplate,
@@ -69,6 +69,27 @@ export function toCreateEventPurposeTemplateEServiceUnlinked(
         eservice: toEServiceV2(eservice),
         descriptorId: eServiceDescriptorPurposeTemplate.descriptorId,
       },
+    },
+  };
+}
+
+export function toCreateEventPurposeTemplateDraftUpdated({
+  purposeTemplate,
+  correlationId,
+  version,
+}: {
+  purposeTemplate: PurposeTemplate;
+  correlationId: CorrelationId;
+  version: number;
+}): CreateEvent<PurposeTemplateEventV2> {
+  return {
+    streamId: purposeTemplate.id,
+    version,
+    correlationId,
+    event: {
+      type: "PurposeTemplateDraftUpdated",
+      event_version: 2,
+      data: { purposeTemplate: toPurposeTemplateV2(purposeTemplate) },
     },
   };
 }
