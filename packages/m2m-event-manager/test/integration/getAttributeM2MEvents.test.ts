@@ -21,6 +21,15 @@ describe("getAttributeM2MEvents", () => {
     await Promise.all(mockAttributeM2MEvents.map(writeAttributeM2MEvent));
   });
 
+  it("should list all attribute M2M events", async () => {
+    const events = await m2mEventService.getAttributeM2MEvents(
+      undefined,
+      mockAttributeM2MEvents.length,
+      getMockContextM2M({})
+    );
+    expect(events).toEqual(mockAttributeM2MEvents);
+  });
+
   it.each([1, 3, 10])(
     "should list the %d oldest attribute M2M events if lastEventId is not provided",
     async (limit) => {
