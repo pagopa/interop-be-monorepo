@@ -402,9 +402,13 @@ describe("updatePurposeTemplate", () => {
     // Seeding DB and File storage for the tests
     await addOneTenant(creator);
     await addOnePurposeTemplate(existingPurposeTemplateWithAnnotations);
-    [...annotationToDelete.docs, ...notAffectedAnnotation.docs].forEach((d) => {
-      uploadDocument(existingPurposeTemplate.id, d.id, d.name);
-    });
+    const uploadPromises = [
+      ...annotationToDelete.docs,
+      ...notAffectedAnnotation.docs,
+    ].map((d) => uploadDocument(existingPurposeTemplate.id, d.id, d.name));
+
+    // wait for all asynchronous uploads to complete
+    await Promise.all(uploadPromises);
 
     // Prepare test seed input
     const purposeTemplateSeedUpdated: purposeTemplateApi.PurposeTemplateSeed =
