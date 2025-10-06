@@ -166,7 +166,33 @@ export function eserviceTemplateServiceBuilder(
 
       return toM2MGatewayEServiceTemplateVersion(version);
     },
+    async createEserviceTemplateVersion(
+      templateId: EServiceTemplateId,
+      seed: m2mGatewayApi.EServiceTemplateVersionCreationSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
+      logger.info(`Creating Version for E-Service Template ${templateId}`);
+      const response =
+        await clients.eserviceTemplateProcessClient.createEServiceTemplateVersion(
+          seed,
+          {
+            params: { templateId },
+            headers,
+          }
+        );
+      const polledResource = await pollEServiceTemplateById(
+        templateId,
+        response.metadata,
+        headers
+      );
 
+      return toM2MGatewayEServiceTemplateVersion(
+        retrieveEServiceTemplateVersionById(
+          polledResource,
+          unsafeBrandId(response.data.id)
+        )
+      );
+    },
     async createEServiceTemplateRiskAnalysis(
       templateId: EServiceTemplateId,
       body: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed,

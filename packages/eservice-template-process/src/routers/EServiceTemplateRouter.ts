@@ -282,13 +282,15 @@ const eserviceTemplatesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE, ADMIN_ROLE, API_ROLE]);
 
-        const eserviceTemplateVersion =
+        const { data: eserviceTemplateVersion, metadata } =
           await eserviceTemplateService.createEServiceTemplateVersion(
             unsafeBrandId(req.params.templateId),
+            req.body,
             ctx
           );
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(

@@ -17,6 +17,7 @@ import {
   EServiceTemplate,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   draftEServiceTemplateVersionAlreadyExists,
   eserviceTemplateNotFound,
@@ -27,6 +28,7 @@ import {
   readLastEserviceTemplateEvent,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
+import { eserviceTemplateToApiEServiceTemplateSeed } from "../mockUtils.js";
 
 describe("createEServiceTemplateVersion", async () => {
   beforeAll(() => {
@@ -52,10 +54,15 @@ describe("createEServiceTemplateVersion", async () => {
     };
 
     await addOneEServiceTemplate(eserviceTemplate);
-
+    const eserviceTemplateVersionSeed =
+      eserviceTemplateApi.VersionSeedForEServiceTemplateCreation.strip().parse({
+        ...getMockEServiceTemplateVersion(),
+        agreementApprovalPolicy: "AUTOMATIC",
+      });
     const returnedEServiceTemplateVersion =
       await eserviceTemplateService.createEServiceTemplateVersion(
         eserviceTemplate.id,
+        eserviceTemplateVersionSeed,
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
@@ -110,10 +117,12 @@ describe("createEServiceTemplateVersion", async () => {
     };
 
     await addOneEServiceTemplate(eserviceTemplate);
-
+    const eserviceTemplateVersionSeed =
+      eserviceTemplateToApiEServiceTemplateSeed(eserviceTemplate).version;
     expect(
       eserviceTemplateService.createEServiceTemplateVersion(
         eserviceTemplate.id,
+        eserviceTemplateVersionSeed,
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
@@ -135,10 +144,12 @@ describe("createEServiceTemplateVersion", async () => {
     };
 
     await addOneEServiceTemplate(eserviceTemplate);
-
+    const eserviceTemplateVersionSeed =
+      eserviceTemplateToApiEServiceTemplateSeed(eserviceTemplate).version;
     expect(
       eserviceTemplateService.createEServiceTemplateVersion(
         eserviceTemplate.id,
+        eserviceTemplateVersionSeed,
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
@@ -153,9 +164,12 @@ describe("createEServiceTemplateVersion", async () => {
       ...getMockEServiceTemplate(),
       versions: [publishedTemplateVersion],
     };
+    const eserviceTemplateVersionSeed =
+      eserviceTemplateToApiEServiceTemplateSeed(mockEServiceTemplate).version;
     expect(
       eserviceTemplateService.createEServiceTemplateVersion(
         mockEServiceTemplate.id,
+        eserviceTemplateVersionSeed,
         getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
@@ -169,9 +183,12 @@ describe("createEServiceTemplateVersion", async () => {
       versions: [publishedTemplateVersion],
     };
     await addOneEServiceTemplate(eserviceTemplate);
+    const eserviceTemplateVersionSeed =
+      eserviceTemplateToApiEServiceTemplateSeed(eserviceTemplate).version;
     expect(
       eserviceTemplateService.createEServiceTemplateVersion(
         eserviceTemplate.id,
+        eserviceTemplateVersionSeed,
         getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);

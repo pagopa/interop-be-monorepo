@@ -6,12 +6,19 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockBffApiCreatedResource } from "../../mockUtils.js";
+import {
+  getMockBffApiCreatedResource,
+  getMockBffApiEServiceTemplateApiEServiceTemplate,
+} from "../../mockUtils.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/versions", () => {
   const mockCreatedResource = getMockBffApiCreatedResource();
-
+  const mockGetEServiceTemplate =
+    getMockBffApiEServiceTemplateApiEServiceTemplate();
   beforeEach(() => {
+    clients.eserviceTemplateProcessClient.getEServiceTemplateById = vi
+      .fn()
+      .mockResolvedValue(mockGetEServiceTemplate);
     clients.eserviceTemplateProcessClient.createEServiceTemplateVersion = vi
       .fn()
       .mockResolvedValue(mockCreatedResource);

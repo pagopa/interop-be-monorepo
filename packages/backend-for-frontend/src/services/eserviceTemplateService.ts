@@ -40,6 +40,7 @@ import { config } from "../config/config.js";
 import {
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
+  noVersionInEserviceTemplate,
   tenantNotFound,
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
@@ -500,8 +501,26 @@ export function eserviceTemplateServiceBuilder(
     ): Promise<bffApi.CreatedResource> => {
       logger.info(`Creating new version for EService template ${templateId}`);
 
+      const eserviceTemplate =
+        await eserviceTemplateClient.getEServiceTemplateById({
+          params: {
+            templateId,
+          },
+          headers,
+        });
+
+      if (eserviceTemplate.versions.length === 0) {
+        throw noVersionInEserviceTemplate(eserviceTemplate.id);
+      }
+
+      const previousVersion = eserviceTemplate.versions.reduce(
+        (latestVersions, curr) =>
+          curr.version > latestVersions.version ? curr : latestVersions,
+        eserviceTemplate.versions[0]
+      );
+
       const { id } = await eserviceTemplateClient.createEServiceTemplateVersion(
-        undefined,
+        previousVersion,
         {
           headers,
           params: {

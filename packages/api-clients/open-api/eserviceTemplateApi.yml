@@ -298,6 +298,13 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        description: An E-Service template version seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VersionSeedForEServiceTemplateCreation"
+        required: true
       responses:
         "200":
           description: EService template version created.

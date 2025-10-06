@@ -1365,8 +1365,13 @@ export function eserviceTemplateServiceBuilder(
     },
     async createEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplateVersion> {
+      seed: eserviceTemplateApi.VersionSeedForEServiceTemplateCreation,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplateVersion>> {
       logger.info(
         `Creating new eservice template version for EService template ${eserviceTemplateId}`
       );
@@ -1394,22 +1399,31 @@ export function eserviceTemplateServiceBuilder(
       const newEServiceTemplateVersionId: EServiceTemplateVersionId =
         generateId();
 
+      const parsedAttributes = {
+        declared: [],
+        certified: [],
+        verified: [],
+      };
       const newEServiceTemplateVersion: EServiceTemplateVersion = {
         id: newEServiceTemplateVersionId,
-        description: previousVersion.description,
+        description: seed.description,
         version: newVersion,
         interface: undefined,
         docs: [],
         state: eserviceTemplateVersionState.draft,
-        voucherLifespan: previousVersion.voucherLifespan,
-        dailyCallsPerConsumer: previousVersion.dailyCallsPerConsumer,
-        dailyCallsTotal: previousVersion.dailyCallsTotal,
-        agreementApprovalPolicy: previousVersion.agreementApprovalPolicy,
+        voucherLifespan: seed.voucherLifespan,
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.dailyCallsTotal,
+        agreementApprovalPolicy: seed.agreementApprovalPolicy
+          ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+              seed.agreementApprovalPolicy
+            )
+          : undefined,
         publishedAt: undefined,
         suspendedAt: undefined,
         deprecatedAt: undefined,
         createdAt: new Date(),
-        attributes: previousVersion.attributes,
+        attributes: parsedAttributes,
       };
 
       const newEServiceTemplate: EServiceTemplate = {
@@ -1467,9 +1481,14 @@ export function eserviceTemplateServiceBuilder(
         events.push(documentEvent);
       }
 
-      await repository.createEvents(events);
+      const event = await repository.createEvents(events);
 
-      return eserviceTemplateVersionWithDocs;
+      return {
+        data: eserviceTemplateVersionWithDocs,
+        metadata: {
+          version: event[0].newVersion,
+        },
+      };
     },
     async getEServiceTemplates(
       filters: GetEServiceTemplatesFilters,

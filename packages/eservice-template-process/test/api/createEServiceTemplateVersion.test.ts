@@ -7,10 +7,11 @@ import {
 } from "pagopa-interop-models";
 import {
   generateToken,
-  getMockEServiceTemplateVersion,
+  getMockEServiceTemplate,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import { eserviceTemplateVersionToApiEServiceTemplateVersion } from "../../src/model/domain/apiConverter.js";
 import {
@@ -19,23 +20,33 @@ import {
   eserviceTemplateWithoutPublishedVersion,
   inconsistentDailyCalls,
 } from "../../src/model/domain/errors.js";
+import { eserviceTemplateToApiEServiceTemplateSeed } from "../mockUtils.js";
 
 describe("API POST /templates/:templateId/versions", () => {
-  const eserviceTemplateId = generateId<EServiceTemplateId>();
-  const mockEserviceTemplateVersion = getMockEServiceTemplateVersion();
+  const mockEServiceTemplate = getMockEServiceTemplate();
+  const eserviceTemplateId = mockEServiceTemplate.id;
+
+  const mockEserviceTemplateVersion = mockEServiceTemplate.versions[0];
+  const eserviceTemplateVersionSeed =
+    eserviceTemplateToApiEServiceTemplateSeed(mockEServiceTemplate).version;
+
   const notFoundEserviceTemplateId = generateId<EServiceTemplateId>();
 
   const makeRequest = async (
     token: string,
-    id: EServiceTemplateId = eserviceTemplateId
+    id: EServiceTemplateId = eserviceTemplateId,
+    body: eserviceTemplateApi.VersionSeedForEServiceTemplateCreation = eserviceTemplateVersionSeed
   ) =>
     request(api)
       .post(`/templates/${id}/versions`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send();
+      .send(body);
 
   beforeEach(() => {
+    eserviceTemplateService.getEServiceTemplateById = vi
+      .fn()
+      .mockResolvedValue(mockEServiceTemplate);
     eserviceTemplateService.createEServiceTemplateVersion = vi
       .fn()
       .mockResolvedValue(mockEserviceTemplateVersion);
