@@ -44,7 +44,8 @@ export async function handleEServiceEvent(
           "EServiceSignalHubDisabled",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
-          "EServiceRiskAnalysisDeleted"
+          "EServiceRiskAnalysisDeleted",
+          "EServicePersonalDataFlagUpdatedAfterPublication"
         ),
       },
       async (event) => {
@@ -91,8 +92,7 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
           "EServiceDescriptorInterfaceAdded",
           "EServiceDescriptorInterfaceUpdated",
-          "EServiceDescriptorInterfaceDeleted",
-          "EServicePersonalDataFlagUpdatedAfterPublication"
+          "EServiceDescriptorInterfaceDeleted"
         ),
       },
       async (event) => {
