@@ -21,6 +21,7 @@ import {
 import { notification } from "pagopa-interop-in-app-notification-db-models";
 import {
   fromNotificationSQL,
+  IDS,
   ListResult,
   Notification,
   NotificationId,
@@ -33,6 +34,32 @@ export function inAppNotificationServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
+    // eslint-disable-next-line max-params
+    hasUnreadNotification: async (
+      entityIds: IDS[],
+      {
+        logger,
+        authData: { userId, organizationId },
+      }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<IDS[]> => {
+      logger.info("Checking for unread notifications");
+
+      const idListPromise = db
+        .selectDistinct({ entityId: notification.entityId })
+        .from(notification)
+        .where(
+          and(
+            eq(notification.userId, userId),
+            eq(notification.tenantId, organizationId),
+            isNull(notification.readAt),
+            inArray(notification.entityId, entityIds)
+          )
+        );
+
+      const idList = entityIds.length > 0 ? await idListPromise : [];
+      return idList.map((e) => e.entityId as IDS);
+    },
+    // eslint-disable-next-line max-params
     getNotifications: async (
       q: string | undefined,
       limit: number,

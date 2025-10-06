@@ -27,6 +27,46 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
+  /hasUnreadNotifications:
+    get:
+      tags:
+        - notification
+      summary: Get all unread notifications from a list of entity IDs
+      description: Returns a subset of all entity IDs that have unread notifications
+      operationId: hasUnreadNotifications
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - in: query
+          name: entityIds
+          description: Filter notifications by entity IDs
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/EntityId"
+            default: []
+          explode: false
+      responses:
+        "200":
+          description: A list of entity IDs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EntityId"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /notifications:
     get:
       tags:
@@ -41,6 +81,22 @@ paths:
           description: Query to filter notifications
           schema:
             type: string
+        - in: query
+          name: entityIds
+          description: Filter notifications by entity IDs
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/EntityId"
+            default: []
+          explode: false
+        - in: query
+          name: unread
+          required: false
+          schema:
+            type: boolean
+            default: false
         - in: query
           name: offset
           required: true
@@ -381,6 +437,12 @@ components:
       schema:
         type: string
   schemas:
+    EntityId:
+      type: string
+      format: uuid
+      description: ID of the entity
+      schema:
+        type: string
     Notifications:
       type: object
       additionalProperties: false
@@ -417,9 +479,7 @@ components:
           type: string
           description: Type of the notification
         entityId:
-          type: string
-          format: uuid
-          description: ID of the entity
+          $ref: "#/components/schemas/EntityId"
         readAt:
           type: string
           format: date-time

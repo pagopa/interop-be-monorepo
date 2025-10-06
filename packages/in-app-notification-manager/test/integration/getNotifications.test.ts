@@ -33,6 +33,8 @@ describe("getNotifications", () => {
     await addNotifications(notificationsList);
     const notifications = await inAppNotificationService.getNotifications(
       undefined,
+      [],
+      false,
       5,
       0,
       getMockContext({
@@ -61,6 +63,8 @@ describe("getNotifications", () => {
     await addNotifications(notificationsList);
     const notifications = await inAppNotificationService.getNotifications(
       "Notification 1",
+      [],
+      false,
       5,
       0,
       getMockContext({
@@ -80,6 +84,8 @@ describe("getNotifications", () => {
     const nonExistentFilter = "ThisFilterWillNotMatchAnyNotification";
     const result = await inAppNotificationService.getNotifications(
       nonExistentFilter,
+      [],
+      false,
       5,
       0,
       getMockContext({
@@ -100,6 +106,8 @@ describe("getNotifications", () => {
     // Test with limit = 1
     const result1 = await inAppNotificationService.getNotifications(
       undefined,
+      [],
+      false,
       1,
       0,
       getMockContext({
@@ -115,6 +123,8 @@ describe("getNotifications", () => {
     // Test with limit = 3
     const result2 = await inAppNotificationService.getNotifications(
       undefined,
+      [],
+      false,
       3,
       0,
       getMockContext({
@@ -134,6 +144,8 @@ describe("getNotifications", () => {
     // Get first page
     const firstPage = await inAppNotificationService.getNotifications(
       undefined,
+      [],
+      false,
       3,
       0,
       getMockContext({
@@ -147,6 +159,8 @@ describe("getNotifications", () => {
     // Get second page
     const secondPage = await inAppNotificationService.getNotifications(
       undefined,
+      [],
+      false,
       3,
       3,
       getMockContext({
@@ -168,6 +182,8 @@ describe("getNotifications", () => {
 
     const result = await inAppNotificationService.getNotifications(
       undefined,
+      [],
+      false,
       100, // Limit larger than total count
       0,
       getMockContext({

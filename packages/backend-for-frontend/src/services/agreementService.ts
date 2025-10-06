@@ -656,6 +656,14 @@ async function enrichAgreementListEntry(
 ): Promise<bffApi.AgreementListEntry[]> {
   const cachedTenants = new Map<string, tenantApi.Tenant>();
 
+  const notificationsPromise: Promise<inAppNotificationApi.EntityId[]> =
+    clients.inAppNotificationManagerClient.hasUnreadNotifications({
+      queries: {
+        entityIds: agreements.map((a) => a.id),
+      },
+      headers: ctx.headers,
+    });
+
   const agreementsResult = [];
   for (const agreement of agreements) {
     const { consumer, producer, eservice, delegation } =
@@ -714,7 +722,12 @@ async function enrichAgreementListEntry(
     });
   }
 
-  return agreementsResult;
+  const notifications = await notificationsPromise;
+
+  return agreementsResult.map((agreement) => ({
+    ...agreement,
+    hasUnreadNotifications: notifications.includes(agreement.id),
+  }));
 }
 
 export async function enrichAgreement(
