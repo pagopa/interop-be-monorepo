@@ -17,6 +17,7 @@ import {
   DB,
   eventRepository,
   getLatestVersionFormRules,
+  FileManager,
   M2MAdminAuthData,
   M2MAuthData,
   riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
@@ -32,10 +33,12 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
+  toCreateEventPurposeTemplateDraftUpdated,
   toCreateEventPurposeTemplateEServiceLinked,
   toCreateEventPurposeTemplateEServiceUnlinked,
   toCreateEventPurposeTemplatePublished,
 } from "../model/domain/toEvent.js";
+import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisDocUtils.js";
 import {
   GetPurposeTemplatesFilters,
   ReadModelServiceSQL,
@@ -44,6 +47,7 @@ import {
   assertActivatableState,
   assertConsistentFreeOfCharge,
   assertEServiceIdsCountIsBelowThreshold,
+  assertPurposeTemplateIsDraft,
   assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
   assertRequesterCanRetrievePurposeTemplate,
@@ -84,7 +88,8 @@ function getDefaultRiskAnalysisFormTemplate(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  fileManager: FileManager
 ) {
   const repository = eventRepository(
     dbInstance,
@@ -324,6 +329,73 @@ export function purposeTemplateServiceBuilder(
       );
 
       await repository.createEvents(createEvents);
+    },
+    async updatePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      purposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeTemplate>> {
+      logger.info(`Updating purpose template ${purposeTemplateId}`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertPurposeTemplateIsDraft(purposeTemplate.data);
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+
+      if (purposeTemplateSeed.purposeTitle) {
+        await assertPurposeTemplateTitleIsNotDuplicated({
+          readModelService,
+          title: purposeTemplateSeed.purposeTitle,
+        });
+      }
+
+      assertConsistentFreeOfCharge(
+        purposeTemplateSeed.purposeIsFreeOfCharge,
+        purposeTemplateSeed.purposeFreeOfChargeReason
+      );
+
+      const purposeRiskAnalysisForm =
+        purposeTemplateSeed.purposeRiskAnalysisForm
+          ? validateAndTransformRiskAnalysisTemplate(
+              purposeTemplateSeed.purposeRiskAnalysisForm,
+              purposeTemplate.data.targetTenantKind
+            )
+          : purposeTemplate.data.purposeRiskAnalysisForm;
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        ...purposeTemplateSeed,
+        purposeRiskAnalysisForm,
+      };
+
+      await cleanupAnnotationDocsForRemovedAnswers(
+        purposeTemplateSeed,
+        purposeTemplate.data,
+        fileManager,
+        logger
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateDraftUpdated({
+          purposeTemplate: updatedPurposeTemplate,
+          correlationId,
+          version: purposeTemplate.metadata.version,
+        })
+      );
+
+      return {
+        data: updatedPurposeTemplate,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async publishPurposeTemplate(
       id: PurposeTemplateId,

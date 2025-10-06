@@ -275,6 +275,18 @@ export function purposeTemplateServiceBuilder(
 
       return bffApi.PurposeTemplate.parse(result);
     },
+    async updatePurposeTemplate(
+      id: PurposeTemplateId,
+      seed: bffApi.PurposeTemplateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplateSeed> {
+      logger.info(`Updating purpose template ${id}`);
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+      return await purposeTemplateClient.updatePurposeTemplate(seed, {
+        headers,
+        params: { id },
+      });
+    },
   };
 }
 export type PurposeTemplateService = ReturnType<
