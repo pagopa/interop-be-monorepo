@@ -41,6 +41,7 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
       "inconsistentDailyCalls",
       "eServiceTemplateWithoutPublishedVersion",
       "templateMissingRequiredRiskAnalysis",
+      "eServiceTemplateWithoutPersonalDataFlag",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(

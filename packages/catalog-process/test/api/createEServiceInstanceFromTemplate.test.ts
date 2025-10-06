@@ -26,6 +26,7 @@ import {
   documentPrettyNameDuplicate,
   eServiceNameDuplicateForProducer,
   eServiceTemplateNotFound,
+  eServiceTemplateWithoutPersonalDataFlag,
   eServiceTemplateWithoutPublishedVersion,
   inconsistentDailyCalls,
   interfaceAlreadyExists,
@@ -57,7 +58,7 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
   };
 
   const mockApiEservice: catalogApi.EService = catalogApi.EService.parse(
-    eServiceToApiEService(eService)
+    eServiceToApiEService(eService),
   );
 
   catalogService.createEServiceInstanceFromTemplate = vi
@@ -80,11 +81,11 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockApiEservice);
-    }
+    },
   );
 
   it.each(
-    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role)),
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token, eServiceTemplate.id);
@@ -104,7 +105,7 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
     {
       error: eServiceNameDuplicateForProducer(
         eService.name,
-        eService.producerId
+        eService.producerId,
       ),
       expectedStatus: 409,
     },
@@ -140,7 +141,14 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
       error: templateMissingRequiredRiskAnalysis(
         eServiceTemplate.id,
         generateId(),
-        tenantKind.PA
+        tenantKind.PA,
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: eServiceTemplateWithoutPersonalDataFlag(
+        eServiceTemplate.id,
+        publishedVersion.id,
       ),
       expectedStatus: 400,
     },
@@ -155,7 +163,7 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
       const res = await makeRequest(token, eServiceTemplate.id);
 
       expect(res.status).toBe(expectedStatus);
-    }
+    },
   );
 
   it.each([{}, { eServiceTemplateId: "invalidId" }])(
@@ -164,10 +172,10 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        eServiceTemplateId as EServiceTemplateId
+        eServiceTemplateId as EServiceTemplateId,
       );
 
       expect(res.status).toBe(400);
-    }
+    },
   );
 });
