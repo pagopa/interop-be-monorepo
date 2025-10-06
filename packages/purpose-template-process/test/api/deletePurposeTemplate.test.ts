@@ -12,6 +12,7 @@ import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -68,6 +69,10 @@ describe("API /purposeTemplates/{id}", () => {
     {
       error: tenantNotAllowed(generateId()),
       expectedStatus: 403,
+    },
+    {
+      error: purposeTemplateRiskAnalysisFormNotFound(generateId()),
+      expectedStatus: 500,
     },
   ])(
     "Should return $expectedStatus for $error.code",

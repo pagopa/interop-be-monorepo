@@ -28,6 +28,7 @@ import {
   associationEServicesForPurposeTemplateFailed,
   purposeTemplateNotFound,
   disassociationEServicesFromPurposeTemplateFailed,
+  purposeTemplateRiskAnalysisFormNotFound,
   ruleSetNotFoundError,
 } from "../model/domain/errors.js";
 import {
@@ -95,7 +96,7 @@ async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
   logger: Logger;
 }): Promise<void> {
   if (!purposeTemplate.purposeRiskAnalysisForm) {
-    return;
+    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
   }
 
   const annotationDocuments =
