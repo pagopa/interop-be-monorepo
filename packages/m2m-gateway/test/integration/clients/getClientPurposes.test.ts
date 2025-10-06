@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiConsumerFullClient,
   getMockedApiPurpose,
+  getMockedApiPurposeVersion,
 } from "pagopa-interop-commons-test";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
@@ -23,27 +24,68 @@ describe("getClientPurposes", () => {
 
   const mockApiPurpose1 = getMockedApiPurpose();
   const mockApiPurpose2 = getMockedApiPurpose();
-  const mockApiPurposes = [mockApiPurpose1, mockApiPurpose2];
+  const mockApiPurpose3 = {
+    ...getMockedApiPurpose({
+      versions: [
+        getMockedApiPurposeVersion({
+          state: "ACTIVE",
+        }),
+      ],
+    }),
+    eserviceId: mockApiPurpose2.eserviceId,
+  };
+  const mockApiPurposes = [mockApiPurpose1, mockApiPurpose2, mockApiPurpose3];
 
-  const mockGetPurpose = vi.fn(({ params: { id } }) => {
-    const purpose = mockApiPurposes.find((p) => p.id === id);
-    if (purpose) {
-      return Promise.resolve(getMockWithMetadata(purpose));
+  const mockGetPurposes = vi.fn(
+    ({
+      queries: { offset, limit, purposesIds, eservicesIds, states },
+    }: {
+      queries: purposeApi.GetPurposesQueryParams;
+    }) => {
+      const purposes = mockApiPurposes.filter((p) => {
+        if (eservicesIds.length > 0 && !eservicesIds.includes(p.eserviceId)) {
+          return false;
+        }
+        const state = p.versions[0].state;
+        return states.length === 0 || states.includes(state);
+      });
+
+      const filteredPurposes =
+        purposesIds.length > 0
+          ? purposes.filter((p) => purposesIds.includes(p.id))
+          : purposes;
+
+      const results = filteredPurposes.slice(offset, offset + limit);
+
+      return Promise.resolve(
+        getMockWithMetadata({
+          results,
+          totalCount: filteredPurposes.length,
+        })
+      );
     }
-    return Promise.reject(new Error("Purpose not found"));
-  });
+  );
 
   mockInteropBeClients.purposeProcessClient = {
-    getPurpose: mockGetPurpose,
+    getPurposes: mockGetPurposes,
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
   const mockApiConsumerClient = getMockedApiConsumerFullClient({
-    purposes: [mockApiPurpose1.id, mockApiPurpose2.id],
+    purposes: [mockApiPurpose1.id, mockApiPurpose2.id, mockApiPurpose3.id],
   });
+  const mockApiConsumerClient2 = getMockedApiConsumerFullClient({
+    purposes: [],
+  });
+  const mockApiConsumerClients = [
+    mockApiConsumerClient,
+    mockApiConsumerClient2,
+  ];
 
-  const mockGetClient = vi
-    .fn()
-    .mockResolvedValue(getMockWithMetadata(mockApiConsumerClient));
+  const mockGetClient = vi.fn(({ params: { clientId } }) =>
+    getMockWithMetadata(
+      mockApiConsumerClients.find((client) => client.id === clientId)
+    )
+  );
 
   mockInteropBeClients.authorizationClient = {
     client: {
@@ -89,9 +131,28 @@ describe("getClientPurposes", () => {
     waitingForApprovalVersion: undefined,
   };
 
+  const expectedM2MPurpose3: m2mGatewayApi.Purpose = {
+    consumerId: mockApiPurpose3.consumerId,
+    createdAt: mockApiPurpose3.createdAt,
+    description: mockApiPurpose3.description,
+    eserviceId: mockApiPurpose3.eserviceId,
+    id: mockApiPurpose3.id,
+    isFreeOfCharge: mockApiPurpose3.isFreeOfCharge,
+    isRiskAnalysisValid: mockApiPurpose3.isRiskAnalysisValid,
+    title: mockApiPurpose3.title,
+    currentVersion: mockApiPurpose3.versions.at(0),
+    delegationId: mockApiPurpose3.delegationId,
+    freeOfChargeReason: mockApiPurpose3.freeOfChargeReason,
+    rejectedVersion: undefined,
+    suspendedByConsumer: undefined,
+    suspendedByProducer: undefined,
+    updatedAt: mockApiPurpose3.updatedAt,
+    waitingForApprovalVersion: undefined,
+  };
+
   beforeEach(() => {
     mockGetClient.mockClear();
-    mockGetPurpose.mockClear();
+    mockGetPurposes.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
@@ -101,7 +162,7 @@ describe("getClientPurposes", () => {
         offset: mockParams.offset,
         totalCount: mockApiConsumerClient.purposes.length,
       },
-      results: [expectedM2MPurpose1, expectedM2MPurpose2],
+      results: [expectedM2MPurpose1, expectedM2MPurpose2, expectedM2MPurpose3],
     };
 
     const result = await clientService.getClientPurposes(
@@ -118,14 +179,20 @@ describe("getClientPurposes", () => {
         clientId: mockApiConsumerClient.id,
       },
     });
-    mockApiConsumerClient.purposes.forEach((id, index) => {
-      expectApiClientGetToHaveBeenNthCalledWith({
-        nthCall: index + 1,
-        mockGet: mockGetPurpose,
-        params: {
-          id,
-        },
-      });
+    expectApiClientGetToHaveBeenNthCalledWith({
+      nthCall: 1,
+      mockGet: mockGetPurposes,
+      queries: {
+        eservicesIds: [],
+        limit: mockParams.limit,
+        offset: mockParams.offset,
+        consumersIds: [],
+        producersIds: [],
+        purposesIds: mockApiConsumerClient.purposes,
+        states: [],
+        excludeDraft: false,
+        name: "",
+      },
     });
   });
 
@@ -140,13 +207,13 @@ describe("getClientPurposes", () => {
       pagination: {
         offset: 0,
         limit: 1,
-        totalCount: 2,
+        totalCount: 3,
       },
       results: [expectedM2MPurpose1],
     });
 
     expect(mockGetClient).toHaveBeenCalledTimes(1);
-    expect(mockGetPurpose).toHaveBeenCalledTimes(1);
+    expect(mockGetPurposes).toHaveBeenCalledTimes(1);
 
     const result2 = await clientService.getClientPurposes(
       unsafeBrandId(mockApiConsumerClient.id),
@@ -158,12 +225,76 @@ describe("getClientPurposes", () => {
       pagination: {
         offset: 1,
         limit: 1,
-        totalCount: 2,
+        totalCount: 3,
       },
       results: [expectedM2MPurpose2],
     });
 
     expect(mockGetClient).toHaveBeenCalledTimes(2);
-    expect(mockGetPurpose).toHaveBeenCalledTimes(2);
+    expect(mockGetPurposes).toHaveBeenCalledTimes(2);
+  });
+
+  it("Should apply filters (eserviceId, state)", async () => {
+    const result1 = await clientService.getClientPurposes(
+      unsafeBrandId(mockApiConsumerClient.id),
+      {
+        offset: mockParams.offset,
+        limit: mockParams.limit,
+        eserviceId: mockApiPurpose2.eserviceId,
+      },
+      getMockM2MAdminAppContext()
+    );
+
+    expect(result1).toEqual({
+      pagination: {
+        offset: mockParams.offset,
+        limit: mockParams.limit,
+        totalCount: 2,
+      },
+      results: [expectedM2MPurpose2, expectedM2MPurpose3],
+    });
+
+    expect(mockGetClient).toHaveBeenCalledTimes(1);
+    expect(mockGetPurposes).toHaveBeenCalledTimes(1);
+
+    const result2 = await clientService.getClientPurposes(
+      unsafeBrandId(mockApiConsumerClient.id),
+      {
+        offset: mockParams.offset,
+        limit: mockParams.limit,
+        eserviceId: mockApiPurpose2.eserviceId,
+        state: "ACTIVE",
+      },
+      getMockM2MAdminAppContext()
+    );
+
+    expect(result2).toEqual({
+      pagination: {
+        offset: mockParams.offset,
+        limit: mockParams.limit,
+        totalCount: 1,
+      },
+      results: [expectedM2MPurpose3],
+    });
+
+    expect(mockGetClient).toHaveBeenCalledTimes(2);
+    expect(mockGetPurposes).toHaveBeenCalledTimes(2);
+  });
+
+  it("Should return an empty array if the client has no purposes", async () => {
+    const result = await clientService.getClientPurposes(
+      unsafeBrandId(mockApiConsumerClient2.id),
+      mockParams,
+      getMockM2MAdminAppContext()
+    );
+
+    expect(result).toEqual({
+      pagination: {
+        limit: mockParams.limit,
+        offset: mockParams.offset,
+        totalCount: 0,
+      },
+      results: [],
+    });
   });
 });
