@@ -99,7 +99,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/
     },
     {
       error: purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId),
-      expectedStatus: 404,
+      expectedStatus: 500,
     },
     {
       error: riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
