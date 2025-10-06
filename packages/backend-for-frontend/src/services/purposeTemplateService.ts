@@ -4,8 +4,12 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
-import { PurposeTemplateId, RiskAnalysisMultiAnswerId,
-  RiskAnalysisSingleAnswerId, TenantKind } from "pagopa-interop-models";
+import {
+  PurposeTemplateId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  TenantKind,
+} from "pagopa-interop-models";
 import {
   PurposeTemplateProcessClient,
   TenantProcessClient,

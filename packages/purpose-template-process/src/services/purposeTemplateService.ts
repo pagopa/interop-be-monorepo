@@ -528,7 +528,7 @@ export function purposeTemplateServiceBuilder(
 
       assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
 
-      assertPurposeTemplateStateIsValid(purposeTemplate.data.state, [
+      assertPurposeTemplateStateIsValid(purposeTemplate.data, [
         purposeTemplateState.draft,
       ]);
 
