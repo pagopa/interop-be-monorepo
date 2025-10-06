@@ -33,7 +33,6 @@ import {
   associationEServicesForPurposeTemplateFailed,
   disassociationEServicesFromPurposeTemplateFailed,
   purposeTemplateNotFound,
-  purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
@@ -56,6 +55,7 @@ import {
 import {
   assertConsistentFreeOfCharge,
   assertEServiceIdsCountIsBelowThreshold,
+  assertPurposeTemplateHasRiskAnalysisForm,
   assertPurposeTemplateIsDraft,
   assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
@@ -105,9 +105,7 @@ async function deleteAllRiskAnalysisTemplateAnswerAnnotationDocuments({
   readModelService: ReadModelServiceSQL;
   logger: Logger;
 }): Promise<void> {
-  if (!purposeTemplate.purposeRiskAnalysisForm) {
-    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
-  }
+  assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate);
 
   const annotationDocuments =
     await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocsByPurposeTemplateId(
@@ -224,14 +222,12 @@ async function checkPurposeTemplateForAnnotationOrDocumentDeletion({
     readModelService
   );
 
-  const purposeRiskAnalysisTemplateForm =
-    purposeTemplate.data.purposeRiskAnalysisForm;
-  if (!purposeRiskAnalysisTemplateForm) {
-    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId);
-  }
-
   assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
   assertPurposeTemplateIsDraft(purposeTemplate.data);
+  assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
+
+  const purposeTemplateRiskAnalysisForm =
+    purposeTemplate.data.purposeRiskAnalysisForm;
 
   const updateAnswerWithoutAnnotation = <
     T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
@@ -261,13 +257,13 @@ async function checkPurposeTemplateForAnnotationOrDocumentDeletion({
     data: {
       ...purposeTemplate.data,
       purposeRiskAnalysisForm: {
-        ...purposeRiskAnalysisTemplateForm,
-        singleAnswers: purposeRiskAnalysisTemplateForm.singleAnswers.map(
+        ...purposeTemplateRiskAnalysisForm,
+        singleAnswers: purposeTemplateRiskAnalysisForm.singleAnswers.map(
           documentId
             ? updateAnswerWithoutAnnotationDocument
             : updateAnswerWithoutAnnotation
         ),
-        multiAnswers: purposeRiskAnalysisTemplateForm.multiAnswers.map(
+        multiAnswers: purposeTemplateRiskAnalysisForm.multiAnswers.map(
           documentId
             ? updateAnswerWithoutAnnotationDocument
             : updateAnswerWithoutAnnotation
@@ -607,6 +603,7 @@ export function purposeTemplateServiceBuilder(
 
       assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
       assertPurposeTemplateIsDraft(purposeTemplate.data);
+      assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
 
       await deleteAllRiskAnalysisTemplateAnswerAnnotationDocuments({
         purposeTemplate: purposeTemplate.data,

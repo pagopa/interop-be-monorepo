@@ -243,7 +243,9 @@ export const assertArchivableState = (
 
 export function assertPurposeTemplateHasRiskAnalysisForm(
   purposeTemplate: PurposeTemplate
-): void {
+): asserts purposeTemplate is PurposeTemplate & {
+  purposeRiskAnalysisForm: RiskAnalysisFormTemplate;
+} {
   if (!purposeTemplate.purposeRiskAnalysisForm) {
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
   }
