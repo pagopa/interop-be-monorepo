@@ -52,6 +52,7 @@ describe("E-service aggregator", () => {
         termsAndConditionsUrl: "terms and conditions url",
       },
     };
+    const personalData = true;
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -80,6 +81,7 @@ describe("E-service aggregator", () => {
       isClientAccessDelegable,
       isConsumerDelegable,
       templateId,
+      personalData,
     };
 
     const {

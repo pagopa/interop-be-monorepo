@@ -368,6 +368,7 @@ export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
   isSignalHubEnabled: generateMock(z.boolean().optional()),
   isClientAccessDelegable: generateMock(z.boolean().optional()),
   isConsumerDelegable: generateMock(z.boolean().optional()),
+  personalData: generateMock(z.boolean().optional()),
 });
 
 export const getMockBffApiRejectDelegatedEServiceDescriptorSeed =
