@@ -2277,7 +2277,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/templates/eservices/{eServiceId}/personalDataFlag/set:
+  /internal/templates/eservices/{eServiceId}/personalDataFlag:
     post:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
