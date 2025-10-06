@@ -30,6 +30,7 @@ import {
 import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -171,6 +172,26 @@ describe("deletePurposeTemplate", () => {
         getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).rejects.toThrowError(tenantNotAllowed(requesterId));
+  });
+
+  it("should throw purposeTemplateRiskAnalysisFormNotFound if the purpose template doesn't have a risk analysis form", async () => {
+    const purposeTemplateWithoutRiskAnalysisForm = getMockPurposeTemplate();
+
+    await addOnePurposeTemplate(purposeTemplateWithoutRiskAnalysisForm);
+    expect(
+      purposeTemplateService.deletePurposeTemplate(
+        purposeTemplateWithoutRiskAnalysisForm.id,
+        getMockContext({
+          authData: getMockAuthData(
+            purposeTemplateWithoutRiskAnalysisForm.creatorId
+          ),
+        })
+      )
+    ).rejects.toThrowError(
+      purposeTemplateRiskAnalysisFormNotFound(
+        purposeTemplateWithoutRiskAnalysisForm.id
+      )
+    );
   });
 
   it.each(

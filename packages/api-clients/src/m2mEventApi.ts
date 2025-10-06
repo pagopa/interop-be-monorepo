@@ -8,4 +8,9 @@ export type GetAttributeM2MEventsQueryParams = QueryParametersByAlias<
   "getAttributeM2MEvents"
 >;
 
+export type GetEServiceM2MEventsQueryParams = QueryParametersByAlias<
+  M2MEventsAPI,
+  "getEServiceM2MEvents"
+>;
+
 export * from "./generated/m2mEventApi.js";
