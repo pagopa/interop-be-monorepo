@@ -130,7 +130,7 @@ function toApiEServiceM2MEventType(
     )
     .with(
       "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-      () => "ESERVICE_PERSONAL_DATA_UPDATED_BY_TEMPLATE_UPDATE"
+      () => "ESERVICE_PERSONAL_DATA_FLAG_UPDATED_BY_TEMPLATE_UPDATE"
     )
     .exhaustive();
 }
