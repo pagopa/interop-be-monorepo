@@ -3969,10 +3969,11 @@ async function updateDraftEService(
 
   const updatedPersonalData = match(typeAndSeed)
     .with({ type: "put" }, ({ seed }) => seed.personalData)
-    .with({ type: "patch" }, ({ seed }) =>
-      seed.personalData ?? seed.personalData === null
-        ? undefined
-        : eservice.data.personalData
+    .with(
+      { type: "patch" },
+      ({ seed }) =>
+        seed.personalData ??
+        (seed.personalData === null ? undefined : eservice.data.personalData)
     )
     .exhaustive();
 
