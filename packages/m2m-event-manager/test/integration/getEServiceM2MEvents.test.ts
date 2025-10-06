@@ -73,7 +73,7 @@ describe("getEServiceM2MEvents", () => {
     expect(events.length).toEqual(publicEventsCount);
   });
 
-  it("should list public & owner eservice M2M events (requester = producerId)", async () => {
+  it("should list public & owner eservice M2M events (requester = producer)", async () => {
     const ownerEvents = mockEServiceM2MEvents.filter(
       (e) =>
         e.visibility === m2mEventVisibility.public ||
@@ -93,7 +93,7 @@ describe("getEServiceM2MEvents", () => {
     expect(events.length).toEqual(eventsVisibleToProducer);
   });
 
-  it("should list public & owner eservice M2M events (requester = producerDelegateId)", async () => {
+  it("should list public & owner eservice M2M events (requester = producerDelegate)", async () => {
     const ownerEvents = mockEServiceM2MEvents.filter(
       (e) =>
         e.visibility === m2mEventVisibility.public ||
@@ -152,7 +152,7 @@ describe("getEServiceM2MEvents", () => {
     }
   );
 
-  it("should apply delegationId filter both for producer and producerDelegate", async () => {
+  it("should apply delegationId filter (requester = producer / producerDelegate)", async () => {
     const expectedEvents = mockEServiceM2MEvents.filter(
       (e) => e.producerDelegationId === mockProducerDelegationId
     );
