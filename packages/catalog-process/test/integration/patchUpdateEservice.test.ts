@@ -48,8 +48,11 @@ import {
   apiTechnologyToTechnology,
 } from "../../src/model/domain/apiConverter.js";
 
-describe("update eService", () => {
-  const mockEService = { ...getMockEService(), isSignalHubEnabled: false };
+describe("patch update eService", () => {
+  const mockEService: EService = {
+    ...getMockEService(),
+    isSignalHubEnabled: false,
+  };
   const mockDocument = getMockDocument();
 
   it.each([
@@ -95,6 +98,16 @@ describe("update eService", () => {
       isSignalHubEnabled: true,
       isConsumerDelegable: true,
       isClientAccessDelegable: true,
+    },
+    {
+      name: "New name",
+      description: "New description",
+      technology: "SOAP",
+      mode: "DELIVER",
+      isSignalHubEnabled: true,
+      isConsumerDelegable: true,
+      isClientAccessDelegable: true,
+      personalData: true,
     },
   ] as catalogApi.PatchUpdateEServiceSeed[])(
     "should write on event-store and update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",
@@ -147,6 +160,7 @@ describe("update eService", () => {
           seed.isConsumerDelegable ?? eservice.isConsumerDelegable,
         isClientAccessDelegable:
           seed.isClientAccessDelegable ?? eservice.isClientAccessDelegable,
+        personalData: seed.personalData ?? eservice.personalData,
         descriptors: eservice.descriptors.map((d) => ({
           ...d,
           interface: wasTechnologyUpdated ? undefined : d.interface,
