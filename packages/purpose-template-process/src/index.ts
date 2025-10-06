@@ -11,6 +11,7 @@ import { createApp } from "./app.js";
 import { purposeTemplateServiceBuilder } from "./services/purposeTemplateService.js";
 
 const readModelDB = makeDrizzleConnection(config);
+const fileManager = initFileManager(config);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
@@ -34,7 +35,7 @@ const service = purposeTemplateServiceBuilder(
     useSSL: config.eventStoreDbUseSSL,
   }),
   readModelServiceSQL,
-  initFileManager(config)
+  fileManager
 );
 
 startServer(await createApp(service), config);

@@ -1,5 +1,6 @@
 import {
   EService,
+  EServiceDescriptorPurposeTemplate,
   EServiceId,
   ListResult,
   PurposeTemplate,
@@ -16,6 +17,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  aggregatePurposeTemplateEServiceDescriptor,
   CatalogReadModelService,
   TenantReadModelService,
   PurposeTemplateReadModelService,
@@ -38,6 +40,7 @@ import {
   and,
   eq,
   exists,
+  getTableColumns,
   ilike,
   inArray,
   isNotNull,
@@ -298,6 +301,40 @@ export function readModelServiceBuilderSQL({
         );
 
       return queryResult.map(toRiskAnalysisTemplateAnswerAnnotationDocument);
+    },
+    async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceId: EServiceId
+    ): Promise<EServiceDescriptorPurposeTemplate | undefined> {
+      const queryResult = await readModelDB
+        .select(
+          getTableColumns(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+          )
+        )
+        .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+        .where(
+          and(
+            eq(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+              eserviceId
+            )
+          )
+        )
+        .limit(1);
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      const purposeTemplateEServiceDescriptor =
+        aggregatePurposeTemplateEServiceDescriptor(queryResult[0]);
+
+      return purposeTemplateEServiceDescriptor.data;
     },
     async getRiskAnalysisTemplateAnswer(
       purposeTemplateId: PurposeTemplateId,
