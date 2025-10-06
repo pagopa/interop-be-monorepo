@@ -272,7 +272,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         },
       };
       await addOnePurposeTemplate(purposeTemplateWithoutSubjectAnswer);
-      
+
       await expect(
         purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
           existentPurposeTemplate.id,
