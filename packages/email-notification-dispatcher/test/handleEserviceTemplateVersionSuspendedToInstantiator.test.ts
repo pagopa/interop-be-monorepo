@@ -22,7 +22,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { tenantNotFound } from "../src/models/errors.js";
-import { handleEServiceTemplateVersionSuspendedToInstantiator } from "../src/handlers/eserviceTemplates/handleEServiceTemplateVersionSuspendedToInstantiator.js";
+import { handleEServiceTemplateVersionSuspendedToInstantiator } from "../src/handlers/eserviceTemplates/handleEserviceTemplateVersionSuspendedToInstantiator.js";
 import {
   addOneEService,
   addOneEServiceTemplate,
