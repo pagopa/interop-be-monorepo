@@ -352,7 +352,7 @@ const retrieveDocument = (
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: Pick<ReadModelService, "getTenantById">
+  readModelService: Pick<ReadModelServiceSQL, "getTenantById">
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
@@ -1910,7 +1910,7 @@ async function updateDraftEServiceTemplate(
         type: "patch";
         seed: eserviceTemplateApi.PatchUpdateEServiceTemplateSeed;
       },
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   fileManager: FileManager,
   repository: ReturnType<typeof eventRepository<EServiceTemplateEvent>>,
   {
@@ -2036,7 +2036,7 @@ async function updateDraftEServiceTemplateVersion(
         type: "patch";
         seed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed;
       },
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   repository: ReturnType<typeof eventRepository<EServiceTemplateEvent>>,
   {
     authData,

@@ -330,7 +330,13 @@ export function authorizationServiceBuilder(
           : filters.userIds;
 
       return await readModelService.getClients(
-        { ...filters, userIds, consumerId },
+        {
+          name: filters.name,
+          kind: filters.kind,
+          purposeId: filters.purposeId,
+          userIds,
+          consumerId,
+        },
         {
           offset,
           limit,
@@ -970,7 +976,12 @@ export function authorizationServiceBuilder(
           : filters.userIds;
 
       return await readModelService.getProducerKeychains(
-        { ...filters, userIds, producerId },
+        {
+          eserviceId: filters.eserviceId,
+          name: filters.name,
+          userIds,
+          producerId,
+        },
         {
           offset,
           limit,
