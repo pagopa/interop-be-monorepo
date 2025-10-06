@@ -76,7 +76,7 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
   it.each([
     {
       error: purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id),
-      expectedStatus: 400,
+      expectedStatus: 500,
     },
     { error: riskAnalysisTemplateValidationFailed([]), expectedStatus: 400 },
     {
