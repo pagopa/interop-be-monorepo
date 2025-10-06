@@ -1,5 +1,6 @@
 import {
-  EServiceId,
+  EService,
+  EServiceIdDescriptorId,
   EServiceTemplateV2,
   fromEServiceTemplateV2,
   missingKafkaMessageDataError,
@@ -10,7 +11,10 @@ import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant } from "../handlerCommons.js";
+import {
+  retrieveLatestPublishedDescriptor,
+  retrieveTenant,
+} from "../handlerCommons.js";
 
 export async function handleEserviceTemplateStatusChangedToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
@@ -35,13 +39,10 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
   );
 
   const instantiatorEserviceMap = eservices.reduce<
-    Record<TenantId, EServiceId[]>
+    Record<TenantId, EService[]>
   >((acc, eservice) => {
     // eslint-disable-next-line functional/immutable-data
-    acc[eservice.producerId] = [
-      ...(acc[eservice.producerId] || []),
-      eservice.id,
-    ];
+    acc[eservice.producerId] = [...(acc[eservice.producerId] || []), eservice];
     return acc;
   }, {});
 
@@ -65,16 +66,21 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
   );
 
   return userNotificationConfigs.flatMap(({ userId, tenantId }) => {
-    const tenantEserviceIds = instantiatorEserviceMap[tenantId] || [];
-    return tenantEserviceIds.map((eserviceId) => ({
-      userId,
-      tenantId,
-      body: inAppTemplates.eserviceTemplateStatusChangedToInstantiator(
-        creator.name,
-        eserviceTemplate.name
-      ),
-      notificationType: "eserviceTemplateStatusChangedToInstantiator",
-      entityId: eserviceId,
-    }));
+    const tenantEservices = instantiatorEserviceMap[tenantId] || [];
+    return tenantEservices.map((eservice) => {
+      const entityId = EServiceIdDescriptorId.parse(
+        `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+      );
+      return {
+        userId,
+        tenantId,
+        body: inAppTemplates.eserviceTemplateStatusChangedToInstantiator(
+          creator.name,
+          eserviceTemplate.name
+        ),
+        notificationType: "eserviceTemplateStatusChangedToInstantiator",
+        entityId,
+      };
+    });
   });
 }
