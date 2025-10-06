@@ -6,7 +6,6 @@ import {
   S3Config,
   FileManagerConfig,
   FeatureFlagPurposeTemplateConfig,
-  FileManagerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
