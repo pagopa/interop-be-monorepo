@@ -12,17 +12,21 @@ import { api, m2mEventService } from "../vitest.api.setup.js";
 import { testToUpperSnakeCase } from "../utils.js";
 
 describe("API /events/attributes test", () => {
-  const mockAttributeM2MEvents = AttributeM2MEventType.options.map((type) =>
-    getMockedAttributeM2MEvent(type)
-  );
+  const mockAttributeM2MEvents = AttributeM2MEventType.options
+    .map((type) => [
+      getMockedAttributeM2MEvent(type),
+      getMockedAttributeM2MEvent(type),
+    ])
+    .flat();
 
   const mockAttributeM2MEventsResponse: m2mEventApi.AttributeM2MEvents = {
     events: mockAttributeM2MEvents.map(
       (e) =>
         ({
-          ...e,
+          id: e.id,
           eventTimestamp: e.eventTimestamp.toJSON(),
           eventType: testToUpperSnakeCase(e.eventType),
+          attributeId: e.attributeId,
         } as m2mEventApi.AttributeM2MEvent)
     ),
   };
