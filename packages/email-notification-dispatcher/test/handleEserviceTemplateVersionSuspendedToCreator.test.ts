@@ -2,8 +2,10 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import {
   getMockContext,
+  getMockDescriptorPublished,
   getMockEService,
   getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
@@ -13,6 +15,7 @@ import {
   EServiceTemplate,
   EServiceTemplateId,
   generateId,
+  descriptorState,
   missingKafkaMessageDataError,
   NotificationType,
   TenantId,
@@ -43,11 +46,16 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
   const eserviceTemplate: EServiceTemplate = {
     ...getMockEServiceTemplate(eserviceTemplateId),
     creatorId,
+    versions: [{
+      ...getMockEServiceTemplateVersion(),
+      state: descriptorState.published
+    }]
   };
   const eservice: EService = {
     ...getMockEService(eserviceId),
     templateId: eserviceTemplateId,
     producerId: instantiatorId,
+    descriptors: [getMockDescriptorPublished()]
   };
   const eserviceTemplateVersionId = eserviceTemplate.versions[0].id;
 

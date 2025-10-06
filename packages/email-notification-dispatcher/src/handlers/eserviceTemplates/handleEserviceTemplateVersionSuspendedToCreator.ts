@@ -1,5 +1,6 @@
 import {
   EmailNotificationMessagePayload,
+  EServiceTemplateIdEServiceTemplateVersionId,
   fromEServiceTemplateV2,
   generateId,
   missingKafkaMessageDataError,
@@ -13,6 +14,7 @@ import {
 import {
   EserviceTemplateHandlerParams,
   getRecipientsForTenants,
+  retrieveLatestPublishedEServiceTemplateVersion,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "templateStatusChangedToProducer";
@@ -68,7 +70,10 @@ export async function handleEServiceTemplateVersionSuspendedToCreator(
       body: templateService.compileHtml(htmlTemplate, {
         title: "Hai sospeso un tuo template e-service",
         notificationType,
-        entityId: eserviceTemplate.id,
+        entityId: EServiceTemplateIdEServiceTemplateVersionId.parse(
+          `${eserviceTemplate.id}/${retrieveLatestPublishedEServiceTemplateVersion(eserviceTemplate).id
+          }`
+        ),
         creatorName: creator.name,
         templateName: eserviceTemplate.name,
         ctaLabel: `Visualizza template`,

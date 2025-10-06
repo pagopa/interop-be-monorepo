@@ -1,6 +1,7 @@
 import {
   EmailNotificationMessagePayload,
-  EServiceId,
+  EService,
+  EServiceIdDescriptorId,
   fromEServiceTemplateV2,
   generateId,
   missingKafkaMessageDataError,
@@ -11,6 +12,7 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
+  retrieveLatestPublishedDescriptor,
 } from "../../services/utils.js";
 import { EserviceTemplateNameUpdatedHandlerParams } from "../handlerCommons.js";
 
@@ -45,9 +47,9 @@ export async function handleEServiceTemplateNameUpdated(
   ]);
 
   const instantiatorEserviceMap = Object.fromEntries(
-    eservices.reduce<Map<TenantId, EServiceId[]>>((acc, eservice) => {
+    eservices.reduce<Map<TenantId, EService[]>>((acc, eservice) => {
       const current = acc.get(eservice.producerId) ?? [];
-      acc.set(eservice.producerId, [...current, eservice.id]);
+      acc.set(eservice.producerId, [...current, eservice]);
       return acc;
     }, new Map())
   );
@@ -69,7 +71,7 @@ export async function handleEServiceTemplateNameUpdated(
   );
 
   return tenantUsers.flatMap(({ userId, tenantId }) => {
-    const eserviceIds = instantiatorEserviceMap[tenantId] || [];
+    const tenantEServices = instantiatorEserviceMap[tenantId] || [];
     const user = users.find((user) => user.userId === userId);
     const tenant = instantiators.find((tenant) => tenant.id === tenantId);
 
@@ -78,14 +80,16 @@ export async function handleEServiceTemplateNameUpdated(
     }
 
     const address = user.email;
-    return eserviceIds.map((eserviceId) => ({
+    return tenantEServices.map((eservice) => ({
       correlationId: correlationId ?? generateId(),
       email: {
         subject: `Aggiornamento nome del template "${oldName}"`,
         body: templateService.compileHtml(htmlTemplate, {
           title: `Aggiornamento nome del template "${oldName}"`,
           notificationType,
-          entityId: eserviceId,
+          entityId: EServiceIdDescriptorId.parse(
+            `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+          ),
           instantiatorName: tenant.name,
           oldName: oldName ?? eserviceTemplate.id,
           newName: eserviceTemplate.name,

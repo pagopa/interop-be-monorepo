@@ -1,6 +1,7 @@
 import {
   EmailNotificationMessagePayload,
-  EServiceId,
+  EService,
+  EServiceIdDescriptorId,
   fromEServiceTemplateV2,
   generateId,
   missingKafkaMessageDataError,
@@ -11,6 +12,7 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
+  retrieveLatestPublishedDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import { EserviceTemplateHandlerParams } from "../handlerCommons.js";
@@ -47,9 +49,9 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
   ]);
 
   const instantiatorEserviceMap = Object.fromEntries(
-    eservices.reduce<Map<TenantId, EServiceId[]>>((acc, eservice) => {
+    eservices.reduce<Map<TenantId, EService[]>>((acc, eservice) => {
       const current = acc.get(eservice.producerId) ?? [];
-      acc.set(eservice.producerId, [...current, eservice.id]);
+      acc.set(eservice.producerId, [...current, eservice]);
       return acc;
     }, new Map())
   );
@@ -71,7 +73,7 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
   );
 
   return tenantUsers.flatMap(({ userId, tenantId }) => {
-    const eserviceIds = instantiatorEserviceMap[tenantId] || [];
+    const eservices = instantiatorEserviceMap[tenantId] || [];
     const user = users.find((user) => user.userId === userId);
     const tenant = instantiators.find((tenant) => tenant.id === tenantId);
 
@@ -80,14 +82,16 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
     }
 
     const address = user.email;
-    return eserviceIds.map((eserviceId) => ({
+    return eservices.map((eservice) => ({
       correlationId: correlationId ?? generateId(),
       email: {
         subject: `Sospensione del template "${eserviceTemplate.name}"`,
         body: templateService.compileHtml(htmlTemplate, {
           title: `Sospensione del template "${eserviceTemplate.name}"`,
           notificationType,
-          entityId: eserviceId,
+          entityId: EServiceIdDescriptorId.parse(
+            `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+          ),
           instantiatorName: tenant.name,
           creatorName: creator.name,
           templateName: eserviceTemplate.name,

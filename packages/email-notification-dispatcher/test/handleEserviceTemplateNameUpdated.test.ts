@@ -2,6 +2,7 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import {
   getMockContext,
+  getMockDescriptorPublished,
   getMockEService,
   getMockEServiceTemplate,
   getMockTenant,
@@ -48,6 +49,7 @@ describe("handleEServiceTemplateNameUpdated", async () => {
     ...getMockEService(eserviceId),
     templateId: eserviceTemplateId,
     producerId: instantiatorId,
+    descriptors: [getMockDescriptorPublished()]
   };
 
   const creatorTenant = getMockTenant(creatorId);
