@@ -24130,54 +24130,6 @@ components:
           format: uuid
       required:
         - purposeId
-    PurposeTemplate:
-      type: object
-      description: Business representation of a purpose template
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        targetDescription:
-          type: string
-        targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
-        creatorId:
-          type: string
-          format: uuid
-        state:
-          $ref: "#/components/schemas/PurposeTemplateState"
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-        purposeTitle:
-          type: string
-        purposeDescription:
-          type: string
-        purposeRiskAnalysisForm:
-          $ref: "#/components/schemas/RiskAnalysisFormTemplate"
-        purposeIsFreeOfCharge:
-          type: boolean
-        purposeFreeOfChargeReason:
-          type: string
-        purposeDailyCalls:
-          type: integer
-          format: int32
-          minimum: 1
-          maximum: 1000000000
-      required:
-        - id
-        - targetDescription
-        - targetTenantKind
-        - creatorId
-        - state
-        - createdAt
-        - purposeTitle
-        - purposeDescription
-        - purposeIsFreeOfCharge
     PurposeTemplateState:
       type: string
       description: Purpose Template State
