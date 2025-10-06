@@ -113,10 +113,10 @@ export function m2mEventReaderServiceSQLBuilder(
                 eq(agreementInM2MEvent.producerDelegateId, requester)
               ),
             }),
-            delegationIdFilter(eserviceInM2MEvent, delegationId, {
+            delegationIdFilter(agreementInM2MEvent, delegationId, {
               nullFilter: or(
-                eq(eserviceInM2MEvent.visibility, m2mEventVisibility.public),
-                eq(eserviceInM2MEvent.producerId, requester)
+                eq(agreementInM2MEvent.producerId, requester),
+                eq(agreementInM2MEvent.consumerId, requester)
               ),
             })
           )
