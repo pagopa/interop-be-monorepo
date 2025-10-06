@@ -27,17 +27,18 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers", () => {
       },
     };
 
-  const mockCreatedRiskAnalysisAnswer: bffApi.RiskAnalysisTemplateAnswer = {
-    id: generateId<RiskAnalysisSingleAnswerId>(),
-    values: ["INSTITUTIONAL"],
-    editable: false,
-    suggestedValues: [],
-    annotation: {
-      id: generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
-      text: "Risk analysis template answer annotation text",
-      docs: [],
-    },
-  };
+  const mockCreatedRiskAnalysisAnswer: bffApi.RiskAnalysisTemplateAnswerResponse =
+    {
+      id: generateId<RiskAnalysisSingleAnswerId>(),
+      values: ["INSTITUTIONAL"],
+      editable: false,
+      suggestedValues: [],
+      annotation: {
+        id: generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
+        text: "Risk analysis template answer annotation text",
+        docs: [],
+      },
+    };
 
   beforeEach(() => {
     clients.purposeTemplateProcessClient.addRiskAnalysisAnswerForPurposeTemplate =

@@ -10896,7 +10896,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RiskAnalysisTemplateAnswer"
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerResponse"
           headers:
               "X-Rate-Limit-Limit":
                 schema:
@@ -24377,7 +24377,7 @@ components:
       required:
         - results
         - pagination
-    RiskAnalysisTemplateAnswer:
+    RiskAnalysisTemplateAnswerResponse:
       type: object
       additionalProperties: false
       properties:

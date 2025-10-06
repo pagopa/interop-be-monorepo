@@ -173,7 +173,9 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/purposeTemplates/:purposeTemplateId/riskAnalysis/answers", async (req, res) => {
+    .post(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers",
+      async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
 
         try {
@@ -184,11 +186,11 @@ const purposeTemplateRouter = (
           );
           return res
             .status(200)
-            .send(bffApi.RiskAnalysisTemplateAnswer.parse(result));
+            .send(bffApi.RiskAnalysisTemplateAnswerResponse.parse(result));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getPurposeTemplateErrorMapper,
+            emptyErrorMapper,
             ctx,
             "Error creating risk analysis answer for purpose template"
           );

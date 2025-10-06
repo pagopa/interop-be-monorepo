@@ -153,9 +153,9 @@ export function validateRiskAnalysisTemplateOrThrow({
 }
 
 export function validateRiskAnalysisAnswerOrThrow({
-                                                    riskAnalysisAnswer,
-                                                    tenantKind,
-                                                  }: {
+  riskAnalysisAnswer,
+  tenantKind,
+}: {
   riskAnalysisAnswer: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest;
   tenantKind: TenantKind;
 }): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {

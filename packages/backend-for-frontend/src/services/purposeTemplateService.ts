@@ -232,7 +232,7 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       seed: bffApi.RiskAnalysisTemplateAnswerRequest,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.RiskAnalysisTemplateAnswer> {
+    ): Promise<bffApi.RiskAnalysisTemplateAnswerResponse> {
       logger.info(
         `Creating risk analysis answer for purpose template ${purposeTemplateId}`
       );

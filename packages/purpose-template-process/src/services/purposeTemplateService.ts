@@ -9,6 +9,8 @@ import {
   EServiceDescriptorPurposeTemplate,
   EServiceId,
   RiskAnalysisFormTemplate,
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswer,
   TenantKind,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
@@ -24,18 +26,6 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import {
-  generateId,
-  PurposeTemplate,
-  purposeTemplateEventToBinaryDataV2,
-  PurposeTemplateId,
-  purposeTemplateState,
-  RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisTemplateSingleAnswer,
-  TenantKind,
-  WithMetadata,
-} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   associationEServicesForPurposeTemplateFailed,
@@ -382,11 +372,11 @@ export function purposeTemplateServiceBuilder(
       );
 
       const event = await repository.createEvent(
-        toCreateEventPurposeTemplateDraftUpdated({
-          purposeTemplate: updatedPurposeTemplate,
+        toCreateEventPurposeTemplateDraftUpdated(
+          updatedPurposeTemplate,
           correlationId,
-          version: purposeTemplate.metadata.version,
-        })
+          purposeTemplate.metadata.version
+        )
       );
 
       return {
@@ -418,7 +408,7 @@ export function purposeTemplateServiceBuilder(
 
       assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
 
-      assertPurposeTemplateStateIsValid(purposeTemplate.data.state, [
+      assertPurposeTemplateStateIsValid(purposeTemplate.data, [
         purposeTemplateState.draft,
       ]);
 
