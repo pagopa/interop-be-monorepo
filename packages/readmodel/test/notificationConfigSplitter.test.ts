@@ -75,6 +75,10 @@ describe("Notification config splitters", () => {
         metadataVersion: 1,
         createdAt: userNotificationConfig.createdAt.toISOString(),
         updatedAt: expectedUpdatedAt,
+        inAppNotificationPreference:
+          userNotificationConfig.inAppNotificationPreference,
+        emailNotificationPreference:
+          userNotificationConfig.emailNotificationPreference,
       };
 
       const expectedEnabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[] =

@@ -26,6 +26,8 @@ describe("API POST /userNotificationConfigs", () => {
   } = getMockNotificationConfig();
 
   const notificationConfigSeed: bffApi.UserNotificationConfigUpdateSeed = {
+    inAppNotificationPreference: true,
+    emailNotificationPreference: "ENABLED",
     inAppConfig: {
       ...restConfigMock,
       clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:

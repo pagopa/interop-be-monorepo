@@ -367,6 +367,7 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
     isConsumerDelegable: boolean("is_consumer_delegable"),
     isClientAccessDelegable: boolean("is_client_access_delegable"),
     templateId: uuid("template_id"),
+    personalData: boolean("personal_data"),
   },
   (table) => [
     unique("eservice_id_metadata_version_unique").on(
@@ -1734,6 +1735,12 @@ export const userNotificationConfigInReadmodelNotificationConfig =
       metadataVersion: integer("metadata_version").notNull(),
       userId: uuid("user_id").notNull(),
       tenantId: uuid("tenant_id").notNull(),
+      inAppNotificationPreference: boolean(
+        "in_app_notification_preference"
+      ).notNull(),
+      emailNotificationPreference: varchar(
+        "email_notification_preference"
+      ).notNull(),
       createdAt: timestamp("created_at", {
         withTimezone: true,
         mode: "string",

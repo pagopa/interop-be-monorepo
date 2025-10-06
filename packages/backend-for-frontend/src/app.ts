@@ -41,6 +41,7 @@ import delegationRouter from "./routers/delegationRouter.js";
 import producerDelegationRouter from "./routers/producerDelegationRouter.js";
 import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
+import emailDeeplinkRouter from "./routers/emailDeeplinkRouter.js";
 import { appBasePath } from "./config/appBasePath.js";
 import {
   AgreementService,
@@ -205,7 +206,8 @@ export async function createServices(
     producerKeychainService: producerKeychainServiceBuilder(clients),
     purposeService: purposeServiceBuilder(clients, fileManager),
     purposeTemplateService: purposeTemplateServiceBuilder(
-      clients.purposeTemplateProcessClient
+      clients.purposeTemplateProcessClient,
+      clients.tenantProcessClient
     ),
     selfcareService: selfcareServiceBuilder(clients),
     tenantService: tenantServiceBuilder(
@@ -251,6 +253,7 @@ export async function createApp(
       config
     ),
     authorizationRouter(zodiosCtx, services.authorizationService),
+    emailDeeplinkRouter(zodiosCtx),
     authenticationMiddleware(config),
     uiAuthDataValidationMiddleware(),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
@@ -268,6 +271,7 @@ export async function createApp(
     producerDelegationRouter(zodiosCtx, services.delegationService),
     producerKeychainRouter(zodiosCtx, services.producerKeychainService),
     purposeRouter(zodiosCtx, services.purposeService),
+    purposeTemplateRouter(zodiosCtx, services.purposeTemplateService),
     purposeTemplateRouter(zodiosCtx, services.purposeTemplateService),
     selfcareRouter(zodiosCtx, services.selfcareService),
     supportRouter(zodiosCtx, services.authorizationServiceForSupport),

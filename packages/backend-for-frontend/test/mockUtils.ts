@@ -368,6 +368,7 @@ export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
   isSignalHubEnabled: generateMock(z.boolean().optional()),
   isClientAccessDelegable: generateMock(z.boolean().optional()),
   isConsumerDelegable: generateMock(z.boolean().optional()),
+  personalData: generateMock(z.boolean().optional()),
 });
 
 export const getMockBffApiRejectDelegatedEServiceDescriptorSeed =
@@ -1019,3 +1020,20 @@ export const toBffCompactEServiceLight = (
   id: compactEService.id,
   name: compactEService.name,
 });
+
+export const getMockBffApiCreatorPurposeTemplate =
+  (): bffApi.CreatorPurposeTemplate => ({
+    id: generateId(),
+    targetTenantKind: generateMock(bffApi.TenantKind),
+    purposeTitle: generateMock(z.string()),
+    state: generateMock(bffApi.PurposeTemplateState),
+  });
+
+export const getMockBffApiCatalogPurposeTemplate =
+  (): bffApi.CatalogPurposeTemplate => ({
+    id: generateId(),
+    targetTenantKind: generateMock(bffApi.TenantKind),
+    purposeTitle: generateMock(z.string()),
+    purposeDescription: generateMock(z.string()),
+    creator: generateMock(bffApi.CompactOrganization),
+  });

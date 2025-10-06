@@ -202,6 +202,18 @@ export const inAppTemplates = {
     action: "associato" | "disassociato"
   ): string =>
     `L'ente ${consumerName} ha ${action} un proprio client alla finalità ${purposeName} per il tuo e-service ${eserviceName}`,
+  certifiedVerifiedAttributeAssignedToAssignee: (
+    attributeName: string,
+    attributeKind: "certificato" | "verificato",
+    assignerName: string
+  ): string =>
+    `${assignerName} ti ha conferito l'attributo ${attributeKind} "${attributeName}". Puoi ora utilizzarlo nelle richieste di fruizione.`,
+  certifiedVerifiedAttributeRevokedToAssignee: (
+    attributeName: string,
+    attributeKind: "certificato" | "verificato",
+    revokerName: string
+  ): string =>
+    `Ti informiamo che ${revokerName} ti ha revocato l'attributo ${attributeKind} "${attributeName}". Tutte le richieste di fruizione che utilizzano tale attributo subiranno una sospensione. Non potrai più utilizzare questo attributo per le future richieste di fruizione`,
   producerKeychainEServiceAddedToConsumer: (
     producerName: string,
     eserviceName: string

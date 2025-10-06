@@ -52,6 +52,8 @@ describe("API GET /userNotificationConfigs", () => {
     },
   };
   const apiResponse: bffApi.UserNotificationConfig = {
+    inAppNotificationPreference: clientResponse.inAppNotificationPreference,
+    emailNotificationPreference: clientResponse.emailNotificationPreference,
     inAppConfig: {
       ...inAppConfig,
       clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:

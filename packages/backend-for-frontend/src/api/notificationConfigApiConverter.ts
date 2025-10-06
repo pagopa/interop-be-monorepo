@@ -29,6 +29,10 @@ export function toBffApiUserNotificationConfig(
   };
 
   return {
+    inAppNotificationPreference:
+      userNotificationConfig.inAppNotificationPreference,
+    emailNotificationPreference:
+      userNotificationConfig.emailNotificationPreference,
     inAppConfig: mapNotificationConfig(userNotificationConfig.inAppConfig),
     emailConfig: mapNotificationConfig(userNotificationConfig.emailConfig),
   };
