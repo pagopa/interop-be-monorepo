@@ -404,7 +404,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [],
-        purposesIds: [mockPurpose1.id],
+        purposesIds: [mockPurpose2.id],
         states: [],
         excludeDraft: undefined,
       },
@@ -413,7 +413,7 @@ describe("getPurposes", async () => {
     );
     expect(result.totalCount).toBe(1);
 
-    expectSinglePageListResult(result, [mockPurpose1]);
+    expectSinglePageListResult(result, [mockPurpose2]);
   });
 
   it("should get purposes with filters: eservicesIds, consumerIds", async () => {
