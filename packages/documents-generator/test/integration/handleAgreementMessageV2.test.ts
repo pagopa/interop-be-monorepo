@@ -122,7 +122,7 @@ describe("handleAgreementMessageV2", () => {
     vi.spyOn(pdfGenerator, "generate").mockResolvedValue(
       Buffer.from("mock pdf content")
     );
-    vi.spyOn(fileManager, "storeBytes").mockResolvedValue(
+    vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
       `${config.s3Bucket}/${config.agreementContractsPath}/${mockAgreementId}/mock-file.pdf`
     );
 
@@ -135,7 +135,7 @@ describe("handleAgreementMessageV2", () => {
     );
 
     expect(pdfGenerator.generate).toHaveBeenCalledOnce();
-    expect(fileManager.storeBytes).toHaveBeenCalledWith(
+    expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.s3Bucket,
         path: `${config.agreementContractsPath}/${mockAgreement.id}`,
@@ -286,7 +286,7 @@ describe("handleAgreementMessageV2", () => {
     vi.spyOn(pdfGenerator, "generate").mockResolvedValue(
       Buffer.from("mock pdf content")
     );
-    vi.spyOn(fileManager, "storeBytes").mockResolvedValue(`mock/path`);
+    vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(`mock/path`);
 
     const mockEvent: AgreementEventEnvelopeV2 = {
       sequence_num: 1,
