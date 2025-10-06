@@ -31,7 +31,7 @@ export function m2mEventServiceBuilder(
       }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
     ): Promise<EServiceM2MEvent[]> {
       logger.info(
-        `Getting e-service M2M events with lastEventId=${lastEventId}, limit=${limit}`
+        `Getting e-service M2M events with lastEventId=${lastEventId}, limit=${limit}, delegationId=${delegationId}`
       );
       return m2mEventReaderService.getEServiceM2MEvents(
         lastEventId,
@@ -50,7 +50,7 @@ export function m2mEventServiceBuilder(
       }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
     ): Promise<AgreementM2MEvent[]> {
       logger.info(
-        `Getting agreement M2M events with lastEventId=${lastEventId}, limit=${limit}`
+        `Getting agreement M2M events with lastEventId=${lastEventId}, limit=${limit}, delegationId=${delegationId}`
       );
       return m2mEventReaderService.getAgreementM2MEvents(
         lastEventId,
