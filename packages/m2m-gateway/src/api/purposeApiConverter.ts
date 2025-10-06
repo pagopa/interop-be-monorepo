@@ -30,13 +30,13 @@ export function toGetPurposesApiQueryParamsForClient(
   } & m2mGatewayApi.GetClientPurposesQueryParams
 ): purposeApi.GetPurposesQueryParams {
   return {
-    eservicesIds: params.eserviceId ? [params.eserviceId] : [],
+    eservicesIds: params.eservicesIds ? params.eservicesIds : [],
     limit: params.limit,
     offset: params.offset,
     consumersIds: [],
     producersIds: [],
     purposesIds: params.purposesIds,
-    states: params.state ? [params.state] : [],
+    states: params.states ? params.states : [],
     excludeDraft: false,
     name: "",
   };

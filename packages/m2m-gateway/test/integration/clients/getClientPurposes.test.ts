@@ -20,6 +20,8 @@ describe("getClientPurposes", () => {
   const mockParams: m2mGatewayApi.GetClientPurposesQueryParams = {
     offset: 0,
     limit: 10,
+    eservicesIds: [],
+    states: [],
   };
 
   const mockApiPurpose1 = getMockedApiPurpose();
@@ -199,7 +201,7 @@ describe("getClientPurposes", () => {
   it("Should apply filters (offset, limit)", async () => {
     const result1 = await clientService.getClientPurposes(
       unsafeBrandId(mockApiConsumerClient.id),
-      { offset: 0, limit: 1 },
+      { ...mockParams, offset: 0, limit: 1 },
       getMockM2MAdminAppContext()
     );
 
@@ -217,7 +219,7 @@ describe("getClientPurposes", () => {
 
     const result2 = await clientService.getClientPurposes(
       unsafeBrandId(mockApiConsumerClient.id),
-      { offset: 1, limit: 1 },
+      { ...mockParams, offset: 1, limit: 1 },
       getMockM2MAdminAppContext()
     );
 
@@ -238,9 +240,8 @@ describe("getClientPurposes", () => {
     const result1 = await clientService.getClientPurposes(
       unsafeBrandId(mockApiConsumerClient.id),
       {
-        offset: mockParams.offset,
-        limit: mockParams.limit,
-        eserviceId: mockApiPurpose2.eserviceId,
+        ...mockParams,
+        eservicesIds: [mockApiPurpose2.eserviceId],
       },
       getMockM2MAdminAppContext()
     );
@@ -260,10 +261,9 @@ describe("getClientPurposes", () => {
     const result2 = await clientService.getClientPurposes(
       unsafeBrandId(mockApiConsumerClient.id),
       {
-        offset: mockParams.offset,
-        limit: mockParams.limit,
-        eserviceId: mockApiPurpose2.eserviceId,
-        state: "ACTIVE",
+        ...mockParams,
+        eservicesIds: [mockApiPurpose2.eserviceId],
+        states: ["ACTIVE"],
       },
       getMockM2MAdminAppContext()
     );

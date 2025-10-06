@@ -3618,16 +3618,26 @@ paths:
             minimum: 1
             maximum: 50
         - in: query
-          name: eserviceId
-          description: Filter purposes by E-Service ID. If not specified, return purposes for any E-Service
+          name: eservicesIds
+          description: Filter purposes by E-Service IDs. If not specified, return purposes for any E-Service
           schema:
-            type: string
-            format: uuid
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+          required: false
         - in: query
-          name: state
-          description: Filter Versions by states. If not specified, return Versions in any state
+          name: states
+          description: Filter Versions by state. If not specified, return Versions in any state
           schema:
-            $ref: "#/components/schemas/PurposeVersionState"
+            type: array
+            items:
+              $ref: "#/components/schemas/PurposeVersionState"
+            default: []
+          explode: false
+          required: false
       responses:
         "200":
           description: List of Purposes linked to the Client

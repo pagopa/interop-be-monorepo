@@ -130,8 +130,8 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       {
         limit,
         offset,
-        eserviceId,
-        state,
+        eservicesIds,
+        states,
       }: m2mGatewayApi.GetClientPurposesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purposes> {
@@ -157,8 +157,8 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       const queries = toGetPurposesApiQueryParamsForClient({
         limit,
         offset,
-        eserviceId,
-        state,
+        eservicesIds,
+        states,
         purposesIds: clientPurposesIds,
       });
 

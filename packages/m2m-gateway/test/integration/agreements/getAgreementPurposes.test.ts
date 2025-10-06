@@ -121,6 +121,7 @@ describe("getAgreementPurposes", () => {
         consumersIds: [mockApiAgreement.data.consumerId],
         eservicesIds: [mockApiAgreement.data.eserviceId],
         producersIds: [],
+        purposesIds: [],
         states: [],
         excludeDraft: false,
         name: undefined,
