@@ -6,7 +6,7 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
-import { handleEServiceTemplateVersionSuspendedToCreator } from "./handleEServiceTemplateVersionSuspendedToCreator.js";
+import { handleEServiceTemplateVersionSuspendedToCreator } from "./handleEserviceTemplateVersionSuspendedToCreator.js";
 import { handleEServiceTemplateVersionPublished } from "./handleEserviceTemplateVersionPublished.js";
 import { handleEServiceTemplateNameUpdated } from "./handleEserviceTemplateNameUpdated.js";
 import { handleEServiceTemplateVersionSuspendedToInstantiator } from "./handleEserviceTemplateVersionSuspendedToInstantiator.js";
