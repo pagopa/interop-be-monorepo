@@ -270,12 +270,11 @@ export function readModelServiceBuilderSQL({
         queryResult[0]?.totalCount
       );
     },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getPurposeTemplateById(
-      id: PurposeTemplateId
+      purposeTemplateId: PurposeTemplateId
     ): Promise<WithMetadata<PurposeTemplate> | undefined> {
-      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateById(
-        id
+      return purposeTemplateReadModelServiceSQL.getPurposeTemplateById(
+        purposeTemplateId
       );
     },
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
