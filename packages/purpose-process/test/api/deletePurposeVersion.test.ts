@@ -6,7 +6,7 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole, Metadata } from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, purposeService } from "../vitest.api.setup.js";
 import {
@@ -20,7 +20,7 @@ describe("API DELETE /purposes/{purposeId}/versions/{versionId} test", () => {
   const mockPurposeVersion = getMockPurposeVersion();
   const mockPurpose = { ...getMockPurpose(), versions: [mockPurposeVersion] };
 
-  const metadata: Metadata = {
+  const metadata = {
     version: 0,
   };
 
