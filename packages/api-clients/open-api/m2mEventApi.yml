@@ -510,16 +510,18 @@ components:
     DelegationId:
       in: query
       name: delegationId
-      required: false
       description: |
         Filter events by delegation ID.
         - Omitted: Return all events, both for delegated and non-delegated resources.
         - Delegation UUID: Return only events for resources related to the specified delegation.
         - null: Return only events for resources accessible without delegation
             (public resources, resources accessible as consumer/producer, owned resources, etc.)
+      required: false
       schema:
-        type: string
-        format: uuid
+        oneOf:
+          - type: "null"
+          - type: string
+            format: uuid
     CorrelationIdHeader:
       in: header
       name: X-Correlation-Id

@@ -39,11 +39,13 @@ export function getMockedEServiceM2MEvent({
   visibility,
   producerId,
   producerDelegateId,
+  producerDelegationId,
 }: {
   eventType: EServiceM2MEvent["eventType"];
   visibility: EServiceM2MEvent["visibility"];
   producerId?: TenantId;
   producerDelegateId?: TenantId;
+  producerDelegationId?: DelegationId;
 }): EServiceM2MEvent {
   return {
     id: generateM2MEventId(),
@@ -54,9 +56,7 @@ export function getMockedEServiceM2MEvent({
     visibility,
     producerId: producerId ?? generateId<TenantId>(),
     producerDelegateId: producerDelegateId ?? generateId<TenantId>(),
-    producerDelegationId: producerDelegateId
-      ? generateId<DelegationId>()
-      : undefined,
+    producerDelegationId: producerDelegationId ?? generateId<DelegationId>(),
   };
 }
 
