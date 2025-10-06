@@ -31,7 +31,10 @@ import {
   unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError,
 } from "./riskAnalysisTemplateValidationErrors.js";
 
-/*
+/* 
+========================================
+Risk Analysis Template Validation criteria composition
+========================================
 validatePurposeTemplateRiskAnalysis
 ├── getLatestVersionFormRules
 ├── buildValidationRules
