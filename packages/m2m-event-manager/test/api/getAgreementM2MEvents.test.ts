@@ -44,6 +44,7 @@ describe("API /events/agreements test", () => {
   const mockQueryParams: m2mEventApi.GetAgreementM2MEventsQueryParams = {
     lastEventId: generateM2MEventId(),
     limit: 10,
+    delegationId: generateId(),
   };
 
   const makeRequest = async (
@@ -77,6 +78,7 @@ describe("API /events/agreements test", () => {
       expect(m2mEventService.getAgreementM2MEvents).toHaveBeenCalledWith(
         mockQueryParams.lastEventId,
         mockQueryParams.limit,
+        mockQueryParams.delegationId,
         expect.any(Object)
       );
     }
@@ -90,6 +92,18 @@ describe("API /events/agreements test", () => {
     expect(res.status).toBe(403);
   });
 
+  it.each([generateId(), null, undefined])(
+    "Should accept delegationId query param as %s",
+    async (delegationId) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, {
+        ...mockQueryParams,
+        delegationId,
+      });
+      expect(res.status).toBe(200);
+    }
+  );
+
   it.each([
     {},
     { ...mockQueryParams, limit: 0 },
@@ -98,6 +112,7 @@ describe("API /events/agreements test", () => {
     { ...mockQueryParams, limit: undefined },
     { ...mockQueryParams, lastEventId: -1 },
     { ...mockQueryParams, lastEventId: "invalidLastEventId" },
+    { ...mockQueryParams, delegationId: 1 },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
