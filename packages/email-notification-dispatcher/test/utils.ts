@@ -5,6 +5,8 @@ import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   Agreement,
+  Delegation,
+  Attribute,
   EService,
   generateId,
   Purpose,
@@ -17,12 +19,16 @@ import {
 import { afterEach, inject } from "vitest";
 import {
   agreementReadModelServiceBuilder,
+  attributeReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertAttribute,
+  upsertDelegation,
   upsertEService,
   upsertPurpose,
   upsertTenant,
@@ -52,7 +58,11 @@ export const { cleanup, readModelDB, userDB } = await setupTestContainersVitest(
 
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
+const attributeReadModelServiceSQL =
+  attributeReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
@@ -60,7 +70,9 @@ const notificationConfigReadModelServiceSQL =
 export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   agreementReadModelServiceSQL,
+  attributeReadModelServiceSQL,
   catalogReadModelServiceSQL,
+  delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
 });
@@ -92,6 +104,10 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await upsertAgreement(readModelDB, agreement, 0);
 };
 
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await upsertAttribute(readModelDB, attribute, 0);
+};
+
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await upsertEService(readModelDB, eservice, 0);
 };
@@ -102,6 +118,12 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
 
 export const addOneUser = async (user: User): Promise<void> => {
   await insertUser(userDB, user);
+};
+
+export const addOneDelegation = async (
+  delegation: Delegation
+): Promise<void> => {
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 const insertUser = async (
