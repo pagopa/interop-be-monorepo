@@ -20,6 +20,8 @@ describe("API GET /userNotificationConfigs", () => {
   const clientResponse: notificationConfigApi.UserNotificationConfig =
     generateMock(notificationConfigApi.UserNotificationConfig);
   const apiResponse: bffApi.UserNotificationConfig = {
+    inAppNotificationPreference: clientResponse.inAppNotificationPreference,
+    emailNotificationPreference: clientResponse.emailNotificationPreference,
     inAppConfig: clientResponse.inAppConfig,
     emailConfig: clientResponse.emailConfig,
   };
