@@ -9,9 +9,10 @@ import { handleAgreementRejected } from "./handleAgreementRejected.js";
 import { handleAgreementSubmitted } from "./handleAgreementSubmitted.js";
 import { handleAgreementUpgraded } from "./handleAgreementUpgraded.js";
 import { handleAgreementSuspendedByProducer } from "./handleAgreementSuspendedByProducer.js";
-import { handleAgreementUnsuspendedByProducer } from./ handleAgreementSuspendedByPlatformToConsumer.jsr.js";
-import { handleAgreementSuspendedByPlatform } from "./handleAgreementSuspendedByPlatform.js";
 import { handleAgreementActivatedToProducer } from "./handleAgreementActivatedToProducer.js";
+import { handleAgreementUnsuspendedByProducer } from "./handleAgreementUnsuspendedByProducer.js";
+import { handleAgreementSuspendedByPlatformToConsumer } from "./handleAgreementSuspendedByPlatformToConsumer.js";
+import { handleAgreementUnsuspendedByPlatformToConsumer } from "./handleAgreementUnsuspendedByPlatformToConsumer.js";
 
 export async function handleAgreementEvent(
   params: HandlerParams<typeof AgreementEventV2>
@@ -84,7 +85,7 @@ export async function handleAgreementEvent(
       })
     )
     .with({ type: "AgreementSuspendedByPlatform" }, ({ data: { agreement } }) =>
-      handleAgreementSuspendedByPlatform({
+      handleAgreementSuspendedByPlatformToConsumer({
         agreementV2Msg: agreement,
         logger,
         readModelService,
@@ -106,13 +107,24 @@ export async function handleAgreementEvent(
         })
     )
     .with(
+      { type: "AgreementUnsuspendedByPlatform" },
+      ({ data: { agreement } }) =>
+        handleAgreementUnsuspendedByPlatformToConsumer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })
+    )
+    .with(
       {
         type: P.union(
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
           "AgreementUnsuspendedByConsumer",
-          "AgreementUnsuspendedByPlatform",
           "AgreementArchivedByConsumer",
           "AgreementArchivedByUpgrade",
           "AgreementSuspendedByConsumer",
