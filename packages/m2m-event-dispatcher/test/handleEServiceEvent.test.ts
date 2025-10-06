@@ -135,7 +135,8 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceIsClientAccessDelegableEnabled",
                   "EServiceIsClientAccessDelegableDisabled",
                   "EServiceSignalHubEnabled",
-                  "EServiceSignalHubDisabled"
+                  "EServiceSignalHubDisabled",
+                  "EServicePersonalDataFlagUpdatedAfterPublication"
                 ),
                 async () => [
                   {
