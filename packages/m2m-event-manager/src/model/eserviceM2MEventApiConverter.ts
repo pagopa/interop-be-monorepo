@@ -126,7 +126,7 @@ function toApiEServiceM2MEventType(
     )
     .with(
       "EServicePersonalDataFlagUpdatedAfterPublication",
-      () => "ESERVICE_PERSONAL_DATA_UPDATED_AFTER_PUBLICATION"
+      () => "ESERVICE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION"
     )
     .with(
       "EServicePersonalDataFlagUpdatedByTemplateUpdate",
