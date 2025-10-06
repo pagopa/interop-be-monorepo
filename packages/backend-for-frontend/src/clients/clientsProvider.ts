@@ -11,6 +11,7 @@ import {
   delegationApi,
   eserviceTemplateApi,
   notificationConfigApi,
+  inAppNotificationApi,
   purposeTemplateApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
@@ -74,6 +75,10 @@ export type NotificationConfigProcessClient = ReturnType<
   typeof notificationConfigApi.createProcessApiClient
 >;
 
+export type InAppNotificationManagerClient = ReturnType<
+  typeof inAppNotificationApi.createNotificationApiClient
+>;
+
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
   attributeProcessClient: AttributeProcessClient;
@@ -87,6 +92,7 @@ export type PagoPAInteropBeClients = {
   delegationProcessClient: DelegationProcessClient;
   eserviceTemplateProcessClient: EServiceTemplateProcessClient;
   notificationConfigProcessClient: NotificationConfigProcessClient;
+  inAppNotificationManagerClient: InAppNotificationManagerClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -145,6 +151,10 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     notificationConfigProcessClient:
       notificationConfigApi.createProcessApiClient(
         config.notificationConfigProcessUrl
+      ),
+    inAppNotificationManagerClient:
+      inAppNotificationApi.createNotificationApiClient(
+        config.inAppNotificationManagerUrl
       ),
   };
 }

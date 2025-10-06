@@ -31,7 +31,10 @@ import {
   unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError,
 } from "./riskAnalysisTemplateValidationErrors.js";
 
-/*
+/* 
+========================================
+Risk Analysis Template Validation criteria composition
+========================================
 validatePurposeTemplateRiskAnalysis
 ├── getLatestVersionFormRules
 ├── buildValidationRules
@@ -326,9 +329,10 @@ function buildValidResultAnswer(
         type: "single",
         answer: {
           key: answerKey,
-          value: answerValue.values[0] ?? undefined,
+          value: answerValue.values[0],
           editable: answerValue.editable,
           suggestedValues: answerValue.suggestedValues,
+          annotation: answerValue.annotation,
         },
       })
     )
@@ -339,6 +343,7 @@ function buildValidResultAnswer(
           key: answerKey,
           values: answerValue.values,
           editable: answerValue.editable,
+          annotation: answerValue.annotation,
         },
       })
     )
