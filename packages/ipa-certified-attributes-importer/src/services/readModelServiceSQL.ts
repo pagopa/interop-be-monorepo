@@ -58,3 +58,5 @@ export function readModelServiceBuilderSQL({
       ).map((a) => a.data),
   };
 }
+
+export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;
