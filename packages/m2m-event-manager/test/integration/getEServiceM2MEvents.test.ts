@@ -25,7 +25,7 @@ describe("getEServiceM2MEvents", () => {
         eventType,
         visibility: m2mEventVisibility.owner,
         producerId: mockProducerId,
-        // Visible only to mockProducerId
+        // Visible only to mockProducer
       }),
       getMockedEServiceM2MEvent({
         eventType,
@@ -33,7 +33,7 @@ describe("getEServiceM2MEvents", () => {
         producerId: mockProducerId,
         producerDelegateId: mockProducerDelegateId,
         producerDelegationId: mockProducerDelegationId,
-        // Visible only to mockProducerId and mockProducerDelegateId
+        // Visible only to mockProducer and mockProducerDelegate
       }),
       getMockedEServiceM2MEvent({
         eventType,
@@ -191,7 +191,6 @@ describe("getEServiceM2MEvents", () => {
     );
 
     expect(events).toEqual([]);
-    expect(events.length).toEqual(0);
   });
 
   it("should exclude events accessible only as delegate if delegationId filter is set to null", async () => {
