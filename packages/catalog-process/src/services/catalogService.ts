@@ -417,7 +417,7 @@ const replaceRiskAnalysis = (
 async function parseAndCheckAttributesOfKind(
   attributesSeedForKind: catalogApi.AttributeSeed[][],
   kind: AttributeKind,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EServiceAttribute[][]> {
   const parsedAttributesSeed = attributesSeedForKind.map((group) => {
     const groupAttributesIdsFound: Set<AttributeId> = new Set();
@@ -456,7 +456,7 @@ async function parseAndCheckAttributesOfKind(
 
 export async function parseAndCheckAttributes(
   attributesSeed: catalogApi.AttributesSeed,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EserviceAttributes> {
   const [certifiedAttributes, declaredAttributes, verifiedAttributes] =
     await Promise.all([
@@ -757,7 +757,7 @@ function createNextDescriptor(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, catalogEventToBinaryData);
@@ -3716,7 +3716,7 @@ async function createOpenApiInterfaceByTemplate(
 async function applyVisibilityToEService(
   eservice: EService,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EService> {
   if (authData.systemRole === authRole.INTERNAL_ROLE) {
     return eservice;
@@ -3779,7 +3779,7 @@ const deleteDescriptorInterfaceAndDocs = async (
 const processDescriptorPublication = async (
   eservice: EService,
   descriptor: Descriptor,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   logger: Logger
 ): Promise<EService> => {
   const currentActiveDescriptor = eservice.descriptors.find(
@@ -3916,7 +3916,7 @@ function evaluateTemplateVersionRef(
 async function extractEServiceRiskAnalysisFromTemplate(
   template: EServiceTemplate & { mode: typeof eserviceMode.receive },
   requester: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<RiskAnalysis[]> {
   const tenant = await retrieveTenant(requester, readModelService);
 
