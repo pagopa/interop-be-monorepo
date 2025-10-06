@@ -141,12 +141,25 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
       assertClientVisibilityIsFull(client);
 
+      const clientPurposesIds = client.purposes;
+
+      if (clientPurposesIds.length === 0) {
+        return {
+          results: [],
+          pagination: {
+            limit,
+            offset,
+            totalCount: 0,
+          },
+        };
+      }
+
       const queries = toGetPurposesApiQueryParamsForClient({
         limit,
         offset,
         eserviceId,
         state,
-        purposesIds: client.purposes,
+        purposesIds: clientPurposesIds,
       });
 
       const { data } = await clients.purposeProcessClient.getPurposes({
