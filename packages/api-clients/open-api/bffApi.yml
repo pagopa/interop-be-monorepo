@@ -10869,9 +10869,9 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/documents:
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents:
     parameters:
-      - name: id
+      - name: purposeTemplateId
         in: path
         required: true
         schema:
@@ -10884,7 +10884,7 @@ paths:
           type: string
           format: uuid
     post:
-      tags:  
+      tags:
         - purposeTemplates 
       summary: Add Document to Risk Analysis Answer Annotation
       description: Add Answer Annotation Document to Risk Analysis of Purpose Template
@@ -10983,7 +10983,7 @@ paths:
                 schema:
                   type: integer
                   format: int32
-                description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+                description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available                  
   "/tenants/{tenantId}/attributes/declared":
     get:
       tags:
@@ -24276,6 +24276,30 @@ components:
       required:
         - text
         - docs
+    RiskAnalysisTemplateAnswerAnnotationDocumentSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        documentId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prettyName:
+          type: string
+        path:
+          type: string
+        contentType:
+          type: string
+        checksum:
+          type: string
+      required:
+        - documentId
+        - checksum
+        - name
+        - contentType
+        - prettyName
+        - path
     RiskAnalysisTemplateAnswerAnnotationDocument:
       type: object
       additionalProperties: false
@@ -24301,30 +24325,6 @@ components:
         - prettyName
         - path
         - createdAt
-    RiskAnalysisTemplateAnswerAnnotationDocumentSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        documentId:
-          type: string
-          format: uuid
-        name:
-          type: string
-        prettyName:
-          type: string
-        path:
-          type: string
-        contentType:
-          type: string
-        checksum:
-          type: string
-      required:
-        - documentId
-        - checksum
-        - name
-        - contentType
-        - prettyName
-        - path
     EServiceDescriptorPurposeTemplate:
       type: object
       additionalProperties: false
@@ -24411,6 +24411,15 @@ components:
       required:
         - results
         - pagination
+    CompactUsers:
+      type: array
+      items:
+        $ref: "#/components/schemas/CompactUser"
+    KeySeed:
+      description: "Models the seed for a public key to be persisted"
+      type: object
+      additionalProperties: false
+      properties:
         key:
           type: string
           description: "Base64 UTF-8 encoding of a public key in PEM format"

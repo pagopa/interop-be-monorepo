@@ -130,14 +130,14 @@ const purposeTemplateRouter = (
       }
     )
     .post(
-      "/purposeTemplates/:id/riskAnalysis/answers/:answerId/annotation/documents",
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
-        const { id, answerId } = req.params;
+        const { purposeTemplateId, answerId } = req.params;
         try {
           const result =
             await purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
-              id,
+              unsafeBrandId(purposeTemplateId),
               answerId,
               req.body,
               ctx

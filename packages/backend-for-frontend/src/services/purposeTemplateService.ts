@@ -227,7 +227,7 @@ export function purposeTemplateServiceBuilder(
       id: PurposeTemplateId,
       seed: bffApi.PurposeTemplateSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PurposeTemplateSeed> {
+    ): Promise<bffApi.PurposeTemplate> {
       logger.info(`Updating purpose template ${id}`);
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       return await purposeTemplateClient.updatePurposeTemplate(seed, {
@@ -236,7 +236,7 @@ export function purposeTemplateServiceBuilder(
       });
     },
     async addRiskAnalysisTemplateAnswerAnnotationDocument(
-      purposeTemplateId: string,
+      purposeTemplateId: PurposeTemplateId,
       answerId: string,
       body: bffApi.addRiskAnalysisTemplateAnswerAnnotationDocument_Body,
       { logger, headers }: WithLogger<BffAppContext>

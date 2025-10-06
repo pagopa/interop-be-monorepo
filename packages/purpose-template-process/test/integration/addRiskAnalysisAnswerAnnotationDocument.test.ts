@@ -27,7 +27,6 @@ import {
   addOnePurposeTemplate,
   purposeTemplateService,
   readLastPurposeTemplateEvent,
-  writePurposeTemplateInEventstore,
 } from "../integrationUtils.js";
 import {
   annotationDocumentLimitExceeded,
@@ -119,7 +118,6 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       vi.setSystemTime(expectedUpdateDate);
 
       await addOnePurposeTemplate(existentPurposeTemplate);
-      await writePurposeTemplateInEventstore(existentPurposeTemplate);
 
       const updatedPurposeTemplateResponse =
         await purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
@@ -216,7 +214,6 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       state: purposeTemplateState.active,
     };
     await addOnePurposeTemplate(publishedPurposeTemplate);
-    await writePurposeTemplateInEventstore(publishedPurposeTemplate);
 
     await expect(
       purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
@@ -238,7 +235,6 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       purposeRiskAnalysisForm: undefined,
     };
     await addOnePurposeTemplate(purposeTemplateWithoutRiskAnalysis);
-    await writePurposeTemplateInEventstore(purposeTemplateWithoutRiskAnalysis);
 
     await expect(
       purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
@@ -276,10 +272,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         },
       };
       await addOnePurposeTemplate(purposeTemplateWithoutSubjectAnswer);
-      await writePurposeTemplateInEventstore(
-        purposeTemplateWithoutSubjectAnswer
-      );
-
+      
       await expect(
         purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
           existentPurposeTemplate.id,
@@ -336,7 +329,6 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         },
       };
       await addOnePurposeTemplate(purposeTemplateWithSameDocument);
-      await writePurposeTemplateInEventstore(purposeTemplateWithSameDocument);
 
       await expect(
         purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
@@ -394,7 +386,6 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         },
       };
       await addOnePurposeTemplate(purposeTemplateWithSameDocument);
-      await writePurposeTemplateInEventstore(purposeTemplateWithSameDocument);
 
       await expect(
         purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
@@ -443,7 +434,6 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         },
       };
       await addOnePurposeTemplate(purposeTemplateWithoutAnnotation);
-      await writePurposeTemplateInEventstore(purposeTemplateWithoutAnnotation);
 
       await expect(
         purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
@@ -499,9 +489,6 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         },
       };
       await addOnePurposeTemplate(
-        purposeTemplateWithAllAvailableAnnotationDocs
-      );
-      await writePurposeTemplateInEventstore(
         purposeTemplateWithAllAvailableAnnotationDocs
       );
 
