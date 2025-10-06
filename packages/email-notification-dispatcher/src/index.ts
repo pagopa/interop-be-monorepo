@@ -30,6 +30,7 @@ import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -61,6 +62,8 @@ const agreementReadModelServiceSQL =
 const attributeReadModelServiceSQL =
   attributeReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
@@ -70,6 +73,7 @@ const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   attributeReadModelServiceSQL,
   catalogReadModelServiceSQL,
+  delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
 });

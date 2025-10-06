@@ -7,7 +7,7 @@ import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
 import { toAttributeM2MEventSQL } from "../models/attributeM2MEventAdapterSQL.js";
-import { createAttributeM2MEvent } from "../models/attributeM2MEventBuilder.js";
+import { createAttributeM2MEvent } from "../services/event-builders/attributeM2MEventBuilder.js";
 
 export async function handleAttributeEvent(
   decodedMessage: AttributeEventEnvelope,
