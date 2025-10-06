@@ -1,17 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
-import {
-  setupTestContainersVitest,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
-import {
-  Agreement,
-  EService,
-  Tenant,
-  toReadModelAgreement,
-  toReadModelEService,
-  toReadModelTenant,
-} from "pagopa-interop-models";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { Agreement, EService, Tenant } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
   catalogReadModelServiceBuilder,
@@ -22,16 +12,13 @@ import {
   upsertEService,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { certifiedEmailSenderServiceBuilder } from "../src/services/certifiedEmailSenderService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import { config } from "../src/config/config.js";
 
 export const emailManagerConfig = inject("emailManagerConfig");
 
-export const { cleanup, readModelRepository, pecEmailManager, readModelDB } =
+export const { cleanup, pecEmailManager, readModelDB } =
   await setupTestContainersVitest(
-    inject("readModelConfig"),
     undefined,
     undefined,
     emailManagerConfig,
@@ -43,17 +30,10 @@ export const { cleanup, readModelRepository, pecEmailManager, readModelDB } =
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL({
+const readModelService = readModelServiceBuilderSQL({
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
 });
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 export const templateService = buildHTMLTemplateService();
 
@@ -70,32 +50,15 @@ export const certifiedEmailSenderService = certifiedEmailSenderServiceBuilder(
   templateService
 );
 
-export const agreements = readModelRepository.agreements;
-
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelTenant(tenant),
-    readModelRepository.tenants
-  );
-
   await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelAgreement(agreement),
-    readModelRepository.agreements
-  );
-
   await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelEService(eservice),
-    readModelRepository.eservices
-  );
-
   await upsertEService(readModelDB, eservice, 0);
 };
 

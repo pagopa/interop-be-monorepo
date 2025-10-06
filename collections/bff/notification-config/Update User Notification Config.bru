@@ -1,0 +1,63 @@
+meta {
+  name: Update User Notification Config
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host-bff}}/userNotificationConfigs
+  body: json
+  auth: none
+}
+
+headers {
+  x-correlation-id: {{correlation-id}}
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "inAppConfig": {
+      "agreementSuspendedUnsuspendedToProducer": true,
+      "agreementManagementToProducer": true,
+      "clientAddedRemovedToProducer": true,
+      "purposeStatusChangedToProducer": true,
+      "templateStatusChangedToProducer": true,
+      "agreementSuspendedUnsuspendedToConsumer": true,
+      "eserviceStateChangedToConsumer": true,
+      "agreementActivatedRejectedToConsumer": true,
+      "purposeActivatedRejectedToConsumer": true,
+      "purposeSuspendedUnsuspendedToConsumer": true,
+      "newEserviceTemplateVersionToInstantiator": true,
+      "eserviceTemplateNameChangedToInstantiator": true,
+      "eserviceTemplateStatusChangedToInstantiator": true,
+      "delegationApprovedRejectedToDelegator": true,
+      "eserviceNewVersionSubmittedToDelegator": true,
+      "eserviceNewVersionApprovedRejectedToDelegate": true,
+      "delegationSubmittedRevokedToDelegate": true,
+      "certifiedVerifiedAttributeAssignedRevokedToAssignee": true,
+      "clientKeyAddedDeletedToClientUsers": true
+    },
+    "emailConfig": {
+      "agreementSuspendedUnsuspendedToProducer": true,
+      "agreementManagementToProducer": true,
+      "clientAddedRemovedToProducer": true,
+      "purposeStatusChangedToProducer": true,
+      "templateStatusChangedToProducer": true,
+      "agreementSuspendedUnsuspendedToConsumer": true,
+      "eserviceStateChangedToConsumer": true,
+      "agreementActivatedRejectedToConsumer": true,
+      "purposeActivatedRejectedToConsumer": true,
+      "purposeSuspendedUnsuspendedToConsumer": true,
+      "newEserviceTemplateVersionToInstantiator": true,
+      "eserviceTemplateNameChangedToInstantiator": true,
+      "eserviceTemplateStatusChangedToInstantiator": true,
+      "delegationApprovedRejectedToDelegator": true,
+      "eserviceNewVersionSubmittedToDelegator": true,
+      "eserviceNewVersionApprovedRejectedToDelegate": true,
+      "delegationSubmittedRevokedToDelegate": true,
+      "certifiedVerifiedAttributeAssignedRevokedToAssignee": true,
+      "clientKeyAddedDeletedToClientUsers": true
+    }
+  }
+}

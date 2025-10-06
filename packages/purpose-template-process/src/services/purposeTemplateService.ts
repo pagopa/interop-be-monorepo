@@ -1,18 +1,56 @@
 import {
+  generateId,
   PurposeTemplate,
   PurposeTemplateId,
+  purposeTemplateState,
   WithMetadata,
+  purposeTemplateEventToBinaryDataV2,
+  ListResult,
+  EServiceDescriptorPurposeTemplate,
+  EServiceId,
+  RiskAnalysisFormTemplate,
+  TenantKind,
 } from "pagopa-interop-models";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
+  eventRepository,
+  getLatestVersionFormRules,
+  FileManager,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import { purposeTemplateNotFound } from "../model/errors.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import {
+  associationEServicesForPurposeTemplateFailed,
+  purposeTemplateNotFound,
+  disassociationEServicesFromPurposeTemplateFailed,
+  ruleSetNotFoundError,
+} from "../model/domain/errors.js";
+import {
+  toCreateEventPurposeTemplateAdded,
+  toCreateEventPurposeTemplateDraftUpdated,
+  toCreateEventPurposeTemplateEServiceLinked,
+  toCreateEventPurposeTemplateEServiceUnlinked,
+} from "../model/domain/toEvent.js";
+import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisDocUtils.js";
+import {
+  GetPurposeTemplatesFilters,
+  ReadModelServiceSQL,
+} from "./readModelServiceSQL.js";
+import {
+  assertConsistentFreeOfCharge,
+  assertEServiceIdsCountIsBelowThreshold,
+  assertPurposeTemplateIsDraft,
+  assertPurposeTemplateStateIsValid,
+  assertPurposeTemplateTitleIsNotDuplicated,
+  assertRequesterIsCreator,
+  validateAndTransformRiskAnalysisTemplate,
+  validateEservicesAssociations,
+  validateEservicesDisassociations,
+} from "./validators.js";
 
 async function retrievePurposeTemplate(
   id: PurposeTemplateId,
@@ -25,16 +63,105 @@ async function retrievePurposeTemplate(
   return purposeTemplate;
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeTemplateServiceBuilder(
-  _dbInstance: DB,
-  readModelService: ReadModelServiceSQL
-) {
-  // TODO : use it to write purpose template events in the event store
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const repository = eventRepository(dbInstance, purposeTemplateEventToBinaryDataV2);
+function getDefaultRiskAnalysisFormTemplate(
+  tenantKind: TenantKind
+): RiskAnalysisFormTemplate | undefined {
+  const versionedRules = getLatestVersionFormRules(tenantKind);
+  if (!versionedRules) {
+    throw ruleSetNotFoundError(tenantKind);
+  }
 
   return {
+    id: generateId(),
+    version: versionedRules.version,
+    singleAnswers: [],
+    multiAnswers: [],
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function purposeTemplateServiceBuilder(
+  dbInstance: DB,
+  readModelService: ReadModelServiceSQL,
+  fileManager: FileManager
+) {
+  const repository = eventRepository(
+    dbInstance,
+    purposeTemplateEventToBinaryDataV2
+  );
+
+  return {
+    async createPurposeTemplate(
+      seed: purposeTemplateApi.PurposeTemplateSeed,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeTemplate>> {
+      logger.info(`Creating purpose template`);
+
+      assertConsistentFreeOfCharge(
+        seed.purposeIsFreeOfCharge,
+        seed.purposeFreeOfChargeReason
+      );
+
+      await assertPurposeTemplateTitleIsNotDuplicated({
+        readModelService,
+        title: seed.purposeTitle,
+      });
+
+      const validatedPurposeRiskAnalysisFormSeed = seed.purposeRiskAnalysisForm
+        ? validateAndTransformRiskAnalysisTemplate(
+            seed.purposeRiskAnalysisForm,
+            seed.targetTenantKind
+          )
+        : getDefaultRiskAnalysisFormTemplate(seed.targetTenantKind);
+
+      const purposeTemplate: PurposeTemplate = {
+        id: generateId(),
+        targetDescription: seed.targetDescription,
+        targetTenantKind: seed.targetTenantKind,
+        creatorId: authData.organizationId,
+        state: purposeTemplateState.draft,
+        createdAt: new Date(),
+        purposeTitle: seed.purposeTitle,
+        purposeDescription: seed.purposeDescription,
+        purposeRiskAnalysisForm: validatedPurposeRiskAnalysisFormSeed,
+        purposeIsFreeOfCharge: seed.purposeIsFreeOfCharge,
+        purposeFreeOfChargeReason: seed.purposeFreeOfChargeReason,
+        purposeDailyCalls: seed.purposeDailyCalls,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateAdded(purposeTemplate, correlationId)
+      );
+
+      return {
+        data: purposeTemplate,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async getPurposeTemplates(
+      filters: GetPurposeTemplatesFilters,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<PurposeTemplate>> {
+      logger.info(
+        `Getting purpose templates with filters: ${JSON.stringify(
+          filters
+        )}, limit = ${limit}, offset = ${offset}`
+      );
+
+      return await readModelService.getPurposeTemplates(filters, {
+        offset,
+        limit,
+      });
+    },
     async getPurposeTemplateById(
       id: PurposeTemplateId,
       {
@@ -43,6 +170,214 @@ export function purposeTemplateServiceBuilder(
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Retrieving purpose template ${id}`);
       return retrievePurposeTemplate(id, readModelService);
+    },
+    async linkEservicesToPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceIds: EServiceId[],
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<EServiceDescriptorPurposeTemplate[]> {
+      logger.info(
+        `Linking e-services ${eserviceIds} to purpose template ${purposeTemplateId}`
+      );
+
+      assertEServiceIdsCountIsBelowThreshold(eserviceIds.length);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertPurposeTemplateStateIsValid(purposeTemplate.data, [
+        purposeTemplateState.draft,
+        purposeTemplateState.active,
+      ]);
+
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+
+      const validationResult = await validateEservicesAssociations(
+        eserviceIds,
+        purposeTemplateId,
+        readModelService
+      );
+
+      if (validationResult.type === "invalid") {
+        throw associationEServicesForPurposeTemplateFailed(
+          validationResult.issues,
+          eserviceIds,
+          purposeTemplateId
+        );
+      }
+
+      const creationTimestamp = new Date();
+
+      const createEvents = validationResult.value.map(
+        (purposeTemplateValidationResult, index: number) => {
+          const eServiceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate =
+            {
+              purposeTemplateId,
+              eserviceId: purposeTemplateValidationResult.eservice.id,
+              descriptorId: purposeTemplateValidationResult.descriptorId,
+              createdAt: creationTimestamp,
+            };
+
+          const version = purposeTemplate.metadata.version + index;
+
+          return toCreateEventPurposeTemplateEServiceLinked(
+            eServiceDescriptorPurposeTemplate,
+            purposeTemplate.data,
+            purposeTemplateValidationResult.eservice,
+            correlationId,
+            version
+          );
+        }
+      );
+
+      await repository.createEvents(createEvents);
+
+      return validationResult.value.map((purposeTemplateValidationResult) => ({
+        purposeTemplateId,
+        eserviceId: purposeTemplateValidationResult.eservice.id,
+        descriptorId: purposeTemplateValidationResult.descriptorId,
+        createdAt: creationTimestamp,
+      }));
+    },
+    async unlinkEservicesFromPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceIds: EServiceId[],
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Unlinking e-services ${eserviceIds} from purpose template ${purposeTemplateId}`
+      );
+
+      assertEServiceIdsCountIsBelowThreshold(eserviceIds.length);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertPurposeTemplateStateIsValid(purposeTemplate.data, [
+        purposeTemplateState.draft,
+        purposeTemplateState.active,
+      ]);
+
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+
+      const validationResult = await validateEservicesDisassociations(
+        eserviceIds,
+        purposeTemplateId,
+        readModelService
+      );
+
+      if (validationResult.type === "invalid") {
+        throw disassociationEServicesFromPurposeTemplateFailed(
+          validationResult.issues,
+          eserviceIds,
+          purposeTemplateId
+        );
+      }
+
+      const creationTimestamp = new Date();
+
+      const createEvents = validationResult.value.map(
+        (purposeTemplateValidationResult, index: number) => {
+          const eServiceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate =
+            {
+              purposeTemplateId,
+              eserviceId: purposeTemplateValidationResult.eservice.id,
+              descriptorId: purposeTemplateValidationResult.descriptorId,
+              createdAt: creationTimestamp,
+            };
+
+          const version = purposeTemplate.metadata.version + index;
+
+          return toCreateEventPurposeTemplateEServiceUnlinked(
+            eServiceDescriptorPurposeTemplate,
+            purposeTemplate.data,
+            purposeTemplateValidationResult.eservice,
+            correlationId,
+            version
+          );
+        }
+      );
+
+      await repository.createEvents(createEvents);
+    },
+    async updatePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      purposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeTemplate>> {
+      logger.info(`Updating purpose template ${purposeTemplateId}`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertPurposeTemplateIsDraft(purposeTemplate.data);
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+
+      if (purposeTemplateSeed.purposeTitle) {
+        await assertPurposeTemplateTitleIsNotDuplicated({
+          readModelService,
+          title: purposeTemplateSeed.purposeTitle,
+        });
+      }
+
+      assertConsistentFreeOfCharge(
+        purposeTemplateSeed.purposeIsFreeOfCharge,
+        purposeTemplateSeed.purposeFreeOfChargeReason
+      );
+
+      const purposeRiskAnalysisForm =
+        purposeTemplateSeed.purposeRiskAnalysisForm
+          ? validateAndTransformRiskAnalysisTemplate(
+              purposeTemplateSeed.purposeRiskAnalysisForm,
+              purposeTemplate.data.targetTenantKind
+            )
+          : purposeTemplate.data.purposeRiskAnalysisForm;
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        ...purposeTemplateSeed,
+        purposeRiskAnalysisForm,
+      };
+
+      await cleanupAnnotationDocsForRemovedAnswers(
+        purposeTemplateSeed,
+        purposeTemplate.data,
+        fileManager,
+        logger
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateDraftUpdated({
+          purposeTemplate: updatedPurposeTemplate,
+          correlationId,
+          version: purposeTemplate.metadata.version,
+        })
+      );
+
+      return {
+        data: updatedPurposeTemplate,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
   };
 }

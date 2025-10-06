@@ -1,7 +1,6 @@
-import { pgSchema, uuid, varchar } from "drizzle-orm/pg-core";
+import { uuid, varchar } from "drizzle-orm/pg-core";
 import { InferSelectModel } from "drizzle-orm";
-
-export const userSchema = pgSchema("user");
+import { userSchema } from "./pgSchema.js";
 
 export const user = userSchema.table("user", {
   userId: uuid("user_id").primaryKey().notNull(),
@@ -10,7 +9,7 @@ export const user = userSchema.table("user", {
   name: varchar("name").notNull(),
   familyName: varchar("family_name").notNull(),
   email: varchar("email").notNull(),
-  productRole: varchar("product_role").notNull(),
+  productRoles: varchar("product_roles").array().notNull(),
 });
 
 export type UserDB = InferSelectModel<typeof user>;

@@ -1,16 +1,14 @@
 import { z } from "zod";
 import {
   CommonHTTPServiceConfig,
-  ReadModelDbConfig,
   EventStoreConfig,
   ApplicationAuditProducerConfig,
-  FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
 
 const TenantProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
-  .and(ReadModelDbConfig)
+  .and(ReadModelSQLDbConfig)
   .and(
     z
       .object({
@@ -23,9 +21,7 @@ const TenantProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
         delegationsAllowedOrigins: c.DELEGATIONS_ALLOWED_ORIGINS.split(","),
       }))
   )
-  .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagSQLConfig.optional())
-  .and(ReadModelSQLDbConfig.optional());
+  .and(ApplicationAuditProducerConfig);
 
 export type TenantProcessConfig = z.infer<typeof TenantProcessConfig>;
 

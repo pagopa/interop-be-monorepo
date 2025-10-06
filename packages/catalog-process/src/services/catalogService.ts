@@ -149,7 +149,6 @@ import {
   getLatestDescriptor,
   nextDescriptorVersion,
 } from "../utilities/versionGenerator.js";
-import { ReadModelService } from "./readModelService.js";
 import {
   assertDocumentDeletableDescriptorState,
   assertEServiceNotTemplateInstance,
@@ -174,10 +173,11 @@ import {
   hasRoleToAccessInactiveDescriptors,
   assertEServiceNameNotConflictingWithTemplate,
 } from "./validators.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<EService>> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (eservice === undefined) {
@@ -221,7 +221,7 @@ const retrieveDocument = (
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: Pick<ReadModelService, "getTenantById">
+  readModelService: Pick<ReadModelServiceSQL, "getTenantById">
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
@@ -264,7 +264,7 @@ const assertRequesterCanPublish = (
 
 const retrieveActiveProducerDelegation = async (
   eservice: EService,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Delegation | undefined> =>
   await readModelService.getLatestDelegation({
     eserviceId: eservice.id,
@@ -274,7 +274,7 @@ const retrieveActiveProducerDelegation = async (
 
 const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EServiceTemplate> => {
   const eserviceTemplate = await readModelService.getEServiceTemplateById(
     eserviceTemplateId
@@ -412,7 +412,7 @@ const replaceRiskAnalysis = (
 async function parseAndCheckAttributesOfKind(
   attributesSeedForKind: catalogApi.AttributeSeed[][],
   kind: AttributeKind,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EServiceAttribute[][]> {
   const parsedAttributesSeed = attributesSeedForKind.map((group) => {
     const groupAttributesIdsFound: Set<AttributeId> = new Set();
@@ -451,7 +451,7 @@ async function parseAndCheckAttributesOfKind(
 
 export async function parseAndCheckAttributes(
   attributesSeed: catalogApi.AttributesSeed,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EserviceAttributes> {
   const [certifiedAttributes, declaredAttributes, verifiedAttributes] =
     await Promise.all([
@@ -503,7 +503,7 @@ async function innerCreateEService(
         }
       | undefined;
   },
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   {
     authData,
     correlationId,
@@ -749,7 +749,7 @@ function createNextDescriptor(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, catalogEventToBinaryData);
@@ -2192,7 +2192,9 @@ export function catalogServiceBuilder(
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
-        tenant.kind
+        tenant.kind,
+        new Date() // [todo remove comment] risk analysis creation
+        // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
       );
 
       const newRiskAnalysis: RiskAnalysis =
@@ -2276,7 +2278,9 @@ export function catalogServiceBuilder(
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
-        tenant.kind
+        tenant.kind,
+        new Date() // [todo remove comment] risk analysis update
+        // drawback: the date of the risk analysis is replaced below in the function riskAnalysisValidatedFormToNewRiskAnalysis
       );
 
       const updatedRiskAnalysis: RiskAnalysis = {
@@ -2605,6 +2609,7 @@ export function catalogServiceBuilder(
         toCreateEventEServiceNameUpdated(
           eservice.metadata.version,
           updatedEservice,
+          eservice.data.name,
           correlationId
         )
       );
@@ -2894,6 +2899,7 @@ export function catalogServiceBuilder(
         toCreateEventEServiceNameUpdatedByTemplateUpdate(
           eservice.metadata.version,
           updatedEservice,
+          eservice.data.name,
           correlationId
         )
       );
@@ -3631,7 +3637,7 @@ async function createOpenApiInterfaceByTemplate(
 async function applyVisibilityToEService(
   eservice: EService,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EService> {
   if (authData.systemRole === authRole.INTERNAL_ROLE) {
     return eservice;
@@ -3694,7 +3700,7 @@ const deleteDescriptorInterfaceAndDocs = async (
 const processDescriptorPublication = async (
   eservice: EService,
   descriptor: Descriptor,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   logger: Logger
 ): Promise<EService> => {
   const currentActiveDescriptor = eservice.descriptors.find(
@@ -3831,7 +3837,7 @@ function evaluateTemplateVersionRef(
 async function extractEServiceRiskAnalysisFromTemplate(
   template: EServiceTemplate & { mode: typeof eserviceMode.receive },
   requester: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<RiskAnalysis[]> {
   const tenant = await retrieveTenant(requester, readModelService);
 
@@ -3891,7 +3897,7 @@ async function updateDraftEService(
         type: "patch";
         seed: catalogApi.PatchUpdateEServiceSeed;
       },
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   fileManager: FileManager,
   repository: ReturnType<typeof eventRepository<EServiceEvent>>,
   {
@@ -4031,7 +4037,7 @@ async function updateDraftDescriptor(
   seed:
     | catalogApi.UpdateEServiceDescriptorSeed
     | catalogApi.PatchUpdateEServiceDescriptorSeed,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   repository: ReturnType<typeof eventRepository<EServiceEvent>>,
   {
     authData,

@@ -1,12 +1,12 @@
 {
   "name": "pagopa-interop-tenant-process",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability service for tenant management",
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test:integration": "echo \"SQL readmodel\" && vitest --config vitest.integrationsql.config.ts",
-    "test:integration:old": "echo \"Old readmodel\" && vitest --config vitest.integration.config.ts ",
+    "test:integration": "vitest --config vitest.integration.config.ts",
     "test:api": "vitest --config vitest.api.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
@@ -17,8 +17,6 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/express": "4.17.21",
@@ -35,11 +33,10 @@
   "dependencies": {
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
-    "axios": "1.8.2",
+    "axios": "1.12.0",
     "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",
     "express": "4.20.0",
-    "mongodb": "6.7.0",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-commons": "workspace:*",

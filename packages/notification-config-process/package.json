@@ -1,6 +1,7 @@
 {
   "name": "pagopa-interop-notification-config-process",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability service for notification configuration",
   "main": "dist",
   "type": "module",
@@ -16,8 +17,6 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@protobuf-ts/runtime": "2.9.4",
@@ -36,7 +35,7 @@
   "dependencies": {
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
-    "axios": "1.8.2",
+    "axios": "1.12.0",
     "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",
     "express": "4.20.0",

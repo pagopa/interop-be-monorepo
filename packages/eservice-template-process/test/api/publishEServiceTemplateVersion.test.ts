@@ -111,7 +111,7 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
     {
       error: riskAnalysisValidationFailed([
         new RiskAnalysisValidationIssue({
-          code: "noRulesVersionFoundError",
+          code: "rulesVersionNotFoundError",
           detail: "no rule",
         }),
       ]),
