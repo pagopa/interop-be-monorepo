@@ -81,6 +81,12 @@ describe("API PUT /eservices/:eServiceId", () => {
         isClientAccessDelegable: "invalid",
       },
     },
+    {
+      body: {
+        ...mockUpdateEServiceSeed,
+        personalData: "invalid",
+      },
+    },
   ])(
     "Should return 400 if passed an invalid parameter",
     async ({ eServiceId, body }) => {
