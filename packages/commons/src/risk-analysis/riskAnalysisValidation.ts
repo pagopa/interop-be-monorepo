@@ -31,7 +31,8 @@ export function validateRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate,
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind,
-  dateForExpirationValidation: Date
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): RiskAnalysisValidationResult<RiskAnalysisValidatedForm> {
   const formRulesForValidation = getFormRulesByVersion(
     tenantKind,
@@ -91,6 +92,10 @@ export function validateRiskAnalysis(
         multiAnswers: [],
       }
     );
+
+    if (riskAnalysisForm.version === "3.1") {
+      console.log("TODO add actual check", personalDataInEService);
+    }
 
     return validResult({
       version: formRulesForValidation.version,
