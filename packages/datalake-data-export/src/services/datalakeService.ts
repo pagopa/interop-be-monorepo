@@ -5,11 +5,11 @@ import {
   getDataCountBucketKey,
   getNdjsonBucketKey,
 } from "../utils/helperUtils.js";
-import { ReadModelService } from "./readModelService.js";
 import { buildDataToExport } from "./dataBuilder.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function datalakeServiceBuilder(
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   fileManager: FileManager,
   logger: Logger
 ) {

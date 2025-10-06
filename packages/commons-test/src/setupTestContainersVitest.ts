@@ -10,7 +10,6 @@ import {
   FileManager,
   FileManagerConfig,
   RateLimiter,
-  ReadModelRepository,
   RedisRateLimiterConfig,
   S3Config,
   genericLogger,
@@ -47,7 +46,7 @@ import { PecEmailManagerConfigTest } from "./testConfig.js";
  * import { setupTestContainersVitest } from "pagopa-interop-commons-test";
  * import { inject, afterEach } from "vitest";
  *
- * export const { readModelRepository, postgresDB, fileManager, cleanup } =
+ * export const { postgresDB, fileManager, cleanup } =
  *   setupTestContainersVitest(inject("config"));
  *
  * afterEach(cleanup);
@@ -56,7 +55,6 @@ import { PecEmailManagerConfigTest } from "./testConfig.js";
 export function setupTestContainersVitest(
   eventStoreConfig?: EventStoreConfig
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   cleanup: () => Promise<void>;
 }>;
@@ -64,7 +62,6 @@ export function setupTestContainersVitest(
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   cleanup: () => Promise<void>;
@@ -118,7 +115,6 @@ export function setupTestContainersVitest(
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig
 ): Promise<{
-  readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
   pecEmailManager: EmailManagerPEC;
@@ -187,7 +183,6 @@ export async function setupTestContainersVitest(
   m2mEventDbConfig?: M2MEventSQLDbConfig,
   userDbConfig?: UserSQLDbConfig
 ): Promise<{
-  readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
   fileManager?: FileManager;
   pecEmailManager?: EmailManagerPEC;
@@ -200,7 +195,6 @@ export async function setupTestContainersVitest(
   userDB?: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }> {
-  let readModelRepository: ReadModelRepository | undefined;
   let postgresDB: DB | undefined;
   let fileManager: FileManager | undefined;
   let pecEmailManager: EmailManagerPEC | undefined;
@@ -310,7 +304,6 @@ export async function setupTestContainersVitest(
   }
 
   return {
-    readModelRepository,
     postgresDB,
     fileManager,
     pecEmailManager,
@@ -456,41 +449,27 @@ export async function setupTestContainersVitest(
       }
 
       if (m2mEventDB) {
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.eservice CASCADE");
         await m2mEventDB.execute(
-          "TRUNCATE TABLE m2m_event.eservice_m2m_event CASCADE"
+          "TRUNCATE TABLE m2m_event.eservice_template CASCADE"
+        );
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.agreement CASCADE");
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.purpose CASCADE");
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.tenant CASCADE");
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.attribute CASCADE");
+        await m2mEventDB.execute(
+          "TRUNCATE TABLE m2m_event.consumer_delegation CASCADE"
         );
         await m2mEventDB.execute(
-          "TRUNCATE TABLE m2m_event.eservice_template_m2m_event CASCADE"
+          "TRUNCATE TABLE m2m_event.producer_delegation CASCADE"
         );
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.client CASCADE");
         await m2mEventDB.execute(
-          "TRUNCATE TABLE m2m_event.agreement_m2m_event CASCADE"
+          "TRUNCATE TABLE m2m_event.producer_keychain CASCADE"
         );
+        await m2mEventDB.execute("TRUNCATE TABLE m2m_event.key CASCADE");
         await m2mEventDB.execute(
-          "TRUNCATE TABLE m2m_event.purpose_m2m_event CASCADE"
-        );
-        await m2mEventDB.execute(
-          "TRUNCATE TABLE m2m_event.tenant_m2m_event CASCADE"
-        );
-        await m2mEventDB.execute(
-          "TRUNCATE TABLE m2m_event.attribute_m2m_event CASCADE"
-        );
-        await m2mEventDB.execute(
-          "TRUNCATE TABLE m2m_event.consumer_delegation_m2m_event CASCADE"
-        );
-        await m2mEventDB.execute(
-          "TRUNCATE TABLE m2m_event.producer_delegation_m2m_event CASCADE"
-        );
-        await m2mEventDB.execute(
-          "TRUNCATE TABLE m2m_event.client_m2m_event CASCADE"
-        );
-        await m2mEventDB.execute(
-          "TRUNCATE TABLE m2m_event.producer_keychain_m2m_event CASCADE"
-        );
-        await m2mEventDB.execute(
-          "TRUNCATE TABLE m2m_event.key_m2m_event CASCADE"
-        );
-        await m2mEventDB.execute(
-          "TRUNCATE TABLE m2m_event.producer_key_m2m_event CASCADE"
+          "TRUNCATE TABLE m2m_event.producer_key CASCADE"
         );
       }
     },
