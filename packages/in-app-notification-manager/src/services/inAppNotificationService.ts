@@ -176,7 +176,8 @@ export function inAppNotificationServiceBuilder(
           and(
             eq(notification.entityId, entityId),
             eq(notification.userId, userId),
-            eq(notification.tenantId, organizationId)
+            eq(notification.tenantId, organizationId),
+            isNull(notification.readAt)
           )
         );
     },
