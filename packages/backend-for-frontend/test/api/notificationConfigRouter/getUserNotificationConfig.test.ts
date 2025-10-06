@@ -17,16 +17,52 @@ import { expectedUserIdAndOrganizationId } from "../../utils.js";
 describe("API GET /userNotificationConfigs", () => {
   const userId = mockTokenUserId;
   const tenantId = mockTokenOrganizationId;
-  const clientResponse: notificationConfigApi.UserNotificationConfig =
-    generateMock(notificationConfigApi.UserNotificationConfig);
-  const apiResponse: bffApi.UserNotificationConfig = {
+  const {
     inAppConfig: {
-      ...clientResponse.inAppConfig,
-      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers: false,
+      clientKeyAddedDeletedToClientUsers:
+        inAppClientKeyAddedDeletedToClientUsers,
+      producerKeychainKeyAddedDeletedToClientUsers:
+        inAppProducerKeychainKeyAddedDeletedToClientUsers,
+      ...inAppConfig
     },
     emailConfig: {
-      ...clientResponse.emailConfig,
-      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers: false,
+      clientKeyAddedDeletedToClientUsers:
+        emailClientKeyAddedDeletedToClientUsers,
+      producerKeychainKeyAddedDeletedToClientUsers:
+        emailProducerKeychainKeyAddedDeletedToClientUsers,
+      ...emailConfig
+    },
+  }: notificationConfigApi.UserNotificationConfig = generateMock(
+    notificationConfigApi.UserNotificationConfig
+  );
+  const clientResponse = {
+    inAppConfig: {
+      ...inAppConfig,
+      clientKeyAddedDeletedToClientUsers:
+        inAppClientKeyAddedDeletedToClientUsers,
+      producerKeychainKeyAddedDeletedToClientUsers:
+        inAppProducerKeychainKeyAddedDeletedToClientUsers,
+    },
+    emailConfig: {
+      ...emailConfig,
+      clientKeyAddedDeletedToClientUsers:
+        emailClientKeyAddedDeletedToClientUsers,
+      producerKeychainKeyAddedDeletedToClientUsers:
+        emailProducerKeychainKeyAddedDeletedToClientUsers,
+    },
+  };
+  const apiResponse: bffApi.UserNotificationConfig = {
+    inAppConfig: {
+      ...inAppConfig,
+      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+        inAppClientKeyAddedDeletedToClientUsers ||
+        inAppProducerKeychainKeyAddedDeletedToClientUsers,
+    },
+    emailConfig: {
+      ...emailConfig,
+      clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+        emailClientKeyAddedDeletedToClientUsers ||
+        emailProducerKeychainKeyAddedDeletedToClientUsers,
     },
   };
 
