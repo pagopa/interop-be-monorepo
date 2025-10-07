@@ -11,7 +11,6 @@ import { isAxiosError } from "axios";
 import { UsersEventPayload } from "../model/UsersEventPayload.js";
 import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
-import { UserServiceSQL } from "./userServiceSQL.js";
 
 function jsonSafeParse(json: string): unknown {
   try {
@@ -25,7 +24,6 @@ function jsonSafeParse(json: string): unknown {
 export async function processUserEvent(
   payload: UsersEventPayload,
   readModelServiceSQL: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL,
   notificationConfigProcessClient: ReturnType<
     typeof notificationConfigApi.createProcessApiClient
   >,
@@ -44,16 +42,6 @@ export async function processUserEvent(
       `Tenant not found for selfcareId: ${institutionId}`
     );
   }
-
-  const userData = {
-    userId,
-    tenantId,
-    institutionId,
-    name: payload.user.name,
-    familyName: payload.user.familyName,
-    email: payload.user.email,
-    productRoles: [payload.user.productRole],
-  };
 
   await match(payload.eventType)
     .with("add", async () => {
@@ -84,11 +72,11 @@ export async function processUserEvent(
           );
         }
       }
-      return userServiceSQL.insertUser(userData);
     })
     .with("update", async () => {
-      loggerInstance.info(`Update user id ${userId} from tenant ${tenantId}`);
-      return userServiceSQL.updateUser(userData);
+      loggerInstance.info(
+        `Ignoring update event for user id ${userId} from tenant ${tenantId}`
+      );
     })
     .with("delete", async () => {
       loggerInstance.info(`Removing user ${userId} from tenant ${tenantId}`);
@@ -118,14 +106,12 @@ export async function processUserEvent(
           );
         }
       }
-      return userServiceSQL.deleteUser(userId);
     })
     .exhaustive();
 }
 
 export function messageProcessorBuilder(
   readModelServiceSQL: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL,
   notificationConfigProcessClient: ReturnType<
     typeof notificationConfigApi.createProcessApiClient
   >,
@@ -169,7 +155,6 @@ export function messageProcessorBuilder(
         await processUserEvent(
           userEventPayload.data,
           readModelServiceSQL,
-          userServiceSQL,
           notificationConfigProcessClient,
           refreshableToken,
           loggerInstance,

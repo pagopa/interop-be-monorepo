@@ -15,17 +15,10 @@ import { AxiosError } from "axios";
 import { processUserEvent } from "../src/services/messageProcessor.js";
 import { UsersEventPayload } from "../src/model/UsersEventPayload.js";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
-import { UserServiceSQL } from "../src/services/userServiceSQL.js";
 
 describe("processUserEvent", () => {
   const mockReadModelServiceSQL: ReadModelServiceSQL = {
     getTenantIdBySelfcareId: vi.fn(),
-  };
-
-  const mockUserServiceSQL: UserServiceSQL = {
-    insertUser: vi.fn(),
-    updateUser: vi.fn(),
-    deleteUser: vi.fn(),
   };
 
   const mockNotificationConfigProcessClient = {
@@ -154,22 +147,11 @@ describe("processUserEvent", () => {
     await processUserEvent(
       addEvent,
       mockReadModelServiceSQL,
-      mockUserServiceSQL,
       mockNotificationConfigProcessClient,
       mockInteropTokenGenerator,
       mockLogger,
       correlationId
     );
-
-    expect(mockUserServiceSQL.insertUser).toHaveBeenCalledWith({
-      userId: unsafeBrandId(userId),
-      tenantId: unsafeBrandId(tenantId),
-      institutionId: unsafeBrandId(institutionId),
-      name: "John",
-      familyName: "Doe",
-      email: "john.doe@example.com",
-      productRoles: ["admin"],
-    });
 
     expect(
       mockNotificationConfigProcessClient.createUserDefaultNotificationConfig
@@ -196,22 +178,11 @@ describe("processUserEvent", () => {
     await processUserEvent(
       updateEvent,
       mockReadModelServiceSQL,
-      mockUserServiceSQL,
       mockNotificationConfigProcessClient,
       mockInteropTokenGenerator,
       mockLogger,
       correlationId
     );
-
-    expect(mockUserServiceSQL.updateUser).toHaveBeenCalledWith({
-      userId: unsafeBrandId(userId),
-      tenantId: unsafeBrandId(tenantId),
-      institutionId: unsafeBrandId(institutionId),
-      name: "John",
-      familyName: "Doe",
-      email: "john.doe@example.com",
-      productRoles: ["admin"],
-    });
   });
 
   it("should call deleteUser for 'delete' event", async () => {
@@ -223,15 +194,10 @@ describe("processUserEvent", () => {
     await processUserEvent(
       deleteEvent,
       mockReadModelServiceSQL,
-      mockUserServiceSQL,
       mockNotificationConfigProcessClient,
       mockInteropTokenGenerator,
       mockLogger,
       correlationId
-    );
-
-    expect(mockUserServiceSQL.deleteUser).toHaveBeenCalledWith(
-      unsafeBrandId(userId)
     );
 
     expect(
@@ -263,7 +229,6 @@ describe("processUserEvent", () => {
       processUserEvent(
         addEvent,
         mockReadModelServiceSQL,
-        mockUserServiceSQL,
         mockNotificationConfigProcessClient,
         mockInteropTokenGenerator,
         mockLogger,
@@ -290,7 +255,6 @@ describe("processUserEvent", () => {
       processUserEvent(
         addEvent,
         mockReadModelServiceSQL,
-        mockUserServiceSQL,
         mockNotificationConfigProcessClient,
         mockInteropTokenGenerator,
         mockLogger,
@@ -301,7 +265,6 @@ describe("processUserEvent", () => {
         `Error creating default notification config for user ${userId} and tenant ${tenantId}. Reason: ${apiError}`
       )
     );
-    expect(mockUserServiceSQL.insertUser).not.toHaveBeenCalled();
   });
 
   it("should not throw an error on 409 notification config creation for 'add' event", async () => {
@@ -320,14 +283,11 @@ describe("processUserEvent", () => {
     await processUserEvent(
       addEvent,
       mockReadModelServiceSQL,
-      mockUserServiceSQL,
       mockNotificationConfigProcessClient,
       mockInteropTokenGenerator,
       mockLogger,
       correlationId
     );
-
-    expect(mockUserServiceSQL.insertUser).toHaveBeenCalled();
   });
 
   it("should throw an error on notification config deletion error for 'delete' event", async () => {
@@ -346,7 +306,6 @@ describe("processUserEvent", () => {
       processUserEvent(
         deleteEvent,
         mockReadModelServiceSQL,
-        mockUserServiceSQL,
         mockNotificationConfigProcessClient,
         mockInteropTokenGenerator,
         mockLogger,
@@ -357,7 +316,6 @@ describe("processUserEvent", () => {
         `Error deleting default notification config for user ${userId} and tenant ${tenantId}. Reason: ${apiError}`
       )
     );
-    expect(mockUserServiceSQL.deleteUser).not.toHaveBeenCalled();
   });
 
   it("should not throw an error on 404 notification config deletion for 'delete' event", async () => {
@@ -376,13 +334,10 @@ describe("processUserEvent", () => {
     await processUserEvent(
       deleteEvent,
       mockReadModelServiceSQL,
-      mockUserServiceSQL,
       mockNotificationConfigProcessClient,
       mockInteropTokenGenerator,
       mockLogger,
       correlationId
     );
-
-    expect(mockUserServiceSQL.deleteUser).toHaveBeenCalled();
   });
 });
