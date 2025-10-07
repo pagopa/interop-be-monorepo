@@ -46,6 +46,7 @@ import {
   assertPurposeTemplateIsDraft,
   assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
+  assertRequesterCanRetrievePurposeTemplate,
   assertRequesterIsCreator,
   validateAndTransformRiskAnalysisTemplate,
   validateEservicesAssociations,
@@ -163,13 +164,25 @@ export function purposeTemplateServiceBuilder(
       });
     },
     async getPurposeTemplateById(
-      id: PurposeTemplateId,
+      purposeTemplateId: PurposeTemplateId,
       {
+        authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeTemplate>> {
-      logger.info(`Retrieving purpose template ${id}`);
-      return retrievePurposeTemplate(id, readModelService);
+      logger.info(`Retrieving purpose template ${purposeTemplateId}`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      await assertRequesterCanRetrievePurposeTemplate(
+        purposeTemplate.data,
+        authData
+      );
+
+      return purposeTemplate;
     },
     async linkEservicesToPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
@@ -381,7 +394,6 @@ export function purposeTemplateServiceBuilder(
     },
   };
 }
-
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;
