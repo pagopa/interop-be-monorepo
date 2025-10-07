@@ -25,8 +25,8 @@ import {
 import {
   toCompactDescriptor,
   toCompactEservice,
-  toBffCompactOrganization,
 } from "../api/catalogApiConverter.js";
+import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
