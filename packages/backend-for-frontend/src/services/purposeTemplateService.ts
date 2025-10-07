@@ -282,7 +282,6 @@ export function purposeTemplateServiceBuilder(
                 headers,
                 params: { id: eservice.producerId },
               }));
-
             producersById.set(eservice.producerId, producer);
 
             return toBffEServiceDescriptorsPurposeTemplate(
