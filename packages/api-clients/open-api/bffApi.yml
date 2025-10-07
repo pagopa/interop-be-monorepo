@@ -5949,8 +5949,9 @@ paths:
         - bearerAuth: []
       tags:
         - eservices
-      summary: Set personalData flag for published eservices
+      summary: Set personalData flag for an eservice after publication
       operationId: updateEServicePersonalDataFlagAfterPublication
+      description: Set personalData flag for an eservice after publication
       parameters:
         - name: eServiceId
           in: path
