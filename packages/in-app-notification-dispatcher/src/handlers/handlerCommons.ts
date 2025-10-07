@@ -9,6 +9,8 @@ import {
   EServiceId,
   PurposeId,
   Purpose,
+  EServiceTemplate,
+  EServiceTemplateVersion,
 } from "pagopa-interop-models";
 
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
@@ -43,6 +45,19 @@ export function retrieveLatestPublishedDescriptor(
     throw descriptorPublishedNotFound(eservice.id);
   }
   return latestDescriptor;
+}
+
+export function retrieveLatestPublishedEServiceTemplateVersion(
+  eserviceTemplate: EServiceTemplate
+): EServiceTemplateVersion {
+  const latestVersion = eserviceTemplate.versions
+    .filter((d) => d.state === descriptorState.published)
+    .sort((a, b) => Number(a.version) - Number(b.version))
+    .at(-1);
+  if (!latestVersion) {
+    throw descriptorPublishedNotFound(eserviceTemplate.id);
+  }
+  return latestVersion;
 }
 
 export async function retrieveEservice(
