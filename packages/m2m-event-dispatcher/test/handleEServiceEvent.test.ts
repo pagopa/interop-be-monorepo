@@ -24,6 +24,7 @@ import { handleEServiceEvent } from "../src/handlers/handleEServiceEvent.js";
 import {
   addOneDelegationToReadModel,
   getMockEventEnvelopeCommons,
+  retrieveAllEServiceM2MEvents,
   retrieveLastEServiceM2MEvent,
   testM2mEventWriterService,
   testReadModelService,
@@ -313,4 +314,43 @@ describe("handleEServiceEvent test", async () => {
           })
       )
   );
+
+  it("should not write the event if the same resource version is already present", async () => {
+    const eservice = getMockEService();
+
+    const message = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: eservice.id,
+      type: "EServiceAdded",
+      data: {
+        eservice: toEServiceV2(eservice),
+      },
+    } as EServiceEventEnvelopeV2;
+
+    const eventTimestamp = new Date();
+
+    // Insert the event for the first time
+    await handleEServiceEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService,
+      testReadModelService
+    );
+
+    // Try to insert the same event again
+    await handleEServiceEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService,
+      testReadModelService
+    );
+
+    expect(
+      testM2mEventWriterService.insertEServiceM2MEvent
+    ).toHaveBeenCalledTimes(2);
+
+    expect(await retrieveAllEServiceM2MEvents()).toHaveLength(1);
+  });
 });

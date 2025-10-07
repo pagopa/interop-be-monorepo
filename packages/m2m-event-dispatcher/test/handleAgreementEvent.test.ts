@@ -21,6 +21,7 @@ import { handleAgreementEvent } from "../src/handlers/handleAgreementEvent.js";
 import {
   addOneDelegationToReadModel,
   getMockEventEnvelopeCommons,
+  retrieveAllAgreementM2MEvents,
   retrieveLastAgreementM2MEvent,
   testM2mEventWriterService,
   testReadModelService,
@@ -177,4 +178,43 @@ describe("handleAgreementEvent test", async () => {
           )
       )
   );
+
+  it("should not write the event if the same resource version is already present", async () => {
+    const agreement = getMockAgreement();
+
+    const message = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: agreement.id,
+      type: "AgreementAdded",
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    } as AgreementEventEnvelopeV2;
+
+    const eventTimestamp = new Date();
+
+    // Insert the event for the first time
+    await handleAgreementEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService,
+      testReadModelService
+    );
+
+    // Try to insert the same event again
+    await handleAgreementEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService,
+      testReadModelService
+    );
+
+    expect(
+      testM2mEventWriterService.insertAgreementM2MEvent
+    ).toHaveBeenCalledTimes(2);
+
+    expect(await retrieveAllAgreementM2MEvents()).toHaveLength(1);
+  });
 });

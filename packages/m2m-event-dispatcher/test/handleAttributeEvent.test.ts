@@ -10,6 +10,7 @@ import { match } from "ts-pattern";
 import { handleAttributeEvent } from "../src/handlers/handleAttributeEvent.js";
 import {
   getMockEventEnvelopeCommons,
+  retrieveAllAttributeM2MEvents,
   retrieveLastAttributeM2MEvent,
   testM2mEventWriterService,
 } from "./utils.js";
@@ -67,4 +68,39 @@ describe("handleAttributeEvent test", async () => {
       }
     }
   );
+
+  it("should not write the event if the same resource version is already present", async () => {
+    const message = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: attribute.id,
+      type: "AttributeAdded",
+      data: {
+        attribute: toAttributeV1(attribute),
+      },
+    } as AttributeEventEnvelope;
+
+    const eventTimestamp = new Date();
+
+    // Insert the event for the first time
+    await handleAttributeEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService
+    );
+
+    // Try to insert the same event again
+    await handleAttributeEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService
+    );
+
+    expect(
+      testM2mEventWriterService.insertAttributeM2MEvent
+    ).toHaveBeenCalledTimes(2);
+
+    expect(await retrieveAllAttributeM2MEvents()).toHaveLength(1);
+  });
 });
