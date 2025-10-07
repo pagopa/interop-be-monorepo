@@ -14,11 +14,7 @@ import {
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import {
-  getCatalogPurposeTemplatesErrorMapper,
-  linkEServiceToPurposeTemplateErrorMapper,
-  unlinkEServicesFromPurposeTemplateErrorMapper,
-} from "../utilities/errorMappers.js";
+import { getCatalogPurposeTemplatesErrorMapper } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
@@ -121,7 +117,7 @@ const purposeTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            linkEServiceToPurposeTemplateErrorMapper,
+            emptyErrorMapper,
             ctx,
             `Error linking e-service ${req.body.eserviceId} to purpose template ${req.params.purposeTemplateId}`
           );
@@ -143,7 +139,7 @@ const purposeTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            unlinkEServicesFromPurposeTemplateErrorMapper,
+            emptyErrorMapper,
             ctx,
             `Error unlinking e-service ${req.body.eserviceId} from purpose template ${req.params.purposeTemplateId}`
           );

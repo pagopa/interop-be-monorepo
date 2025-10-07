@@ -53,14 +53,7 @@ export const errorCodes = {
   invalidInterfaceFile: "0045",
   eserviceTemplateInterfaceDataNotValid: "0046",
   invalidEserviceInterfaceFileDetected: "0047",
-  associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0048",
-  tooManyEServicesForPurposeTemplate: "0049",
-  associationEServicesForPurposeTemplateFailed: "0050",
-  purposeTemplateNotInValidState: "0051",
-  purposeTemplateNotFound: "0052",
-  operationForbidden: "0053",
-  disassociationEServicesFromPurposeTemplateFailed: "0054",
-  associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0055",
+  operationForbidden: "0048",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
