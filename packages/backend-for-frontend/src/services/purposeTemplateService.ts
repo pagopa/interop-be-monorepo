@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable max-params */
 import { randomUUID } from "crypto";
 import {
   bffApi,
@@ -23,7 +25,6 @@ import {
 } from "../api/purposeTemplateApiConverter.js";
 import { tenantNotFound } from "../model/errors.js";
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   purposeTemplateClient: PurposeTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
