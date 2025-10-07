@@ -2,11 +2,13 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   getMockContext,
+  getMockDescriptor,
   getMockEService,
   getMockEServiceTemplate,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  descriptorState,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
@@ -93,13 +95,13 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
     const eservice1 = getMockEService(
       generateId<EServiceId>(),
       producerId,
-      [],
+      [getMockDescriptor(descriptorState.published)],
       eserviceTemplate.id
     );
     const eservice2 = getMockEService(
       generateId<EServiceId>(),
       producerId,
-      [],
+      [getMockDescriptor(descriptorState.published)],
       eserviceTemplate.id
     );
     await addOneEService(eservice1);
@@ -136,14 +138,14 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
         tenantId: producerId,
         body,
         notificationType: "eserviceTemplateNameChangedToInstantiator",
-        entityId: eservice1.id,
+        entityId: `${eservice1.id}/${eservice1.descriptors[0].id}`,
       },
       {
         userId: user.userId,
         tenantId: producerId,
         body,
         notificationType: "eserviceTemplateNameChangedToInstantiator",
-        entityId: eservice2.id,
+        entityId: `${eservice2.id}/${eservice2.descriptors[0].id}`,
       },
     ]);
 
