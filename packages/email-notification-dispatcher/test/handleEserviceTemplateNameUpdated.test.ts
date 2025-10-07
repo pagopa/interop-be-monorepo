@@ -49,7 +49,7 @@ describe("handleEServiceTemplateNameUpdated", async () => {
     ...getMockEService(eserviceId),
     templateId: eserviceTemplateId,
     producerId: instantiatorId,
-    descriptors: [getMockDescriptorPublished()]
+    descriptors: [getMockDescriptorPublished()],
   };
 
   const creatorTenant = getMockTenant(creatorId);

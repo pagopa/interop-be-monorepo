@@ -71,7 +71,8 @@ export async function handleEServiceTemplateVersionSuspendedToCreator(
         title: "Hai sospeso un tuo template e-service",
         notificationType,
         entityId: EServiceTemplateIdEServiceTemplateVersionId.parse(
-          `${eserviceTemplate.id}/${retrieveLatestPublishedEServiceTemplateVersion(eserviceTemplate).id
+          `${eserviceTemplate.id}/${
+            retrieveLatestPublishedEServiceTemplateVersion(eserviceTemplate).id
           }`
         ),
         creatorName: creator.name,

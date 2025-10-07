@@ -50,7 +50,7 @@ describe("handleEServiceTemplateVersionPublished", async () => {
     ...getMockEService(eserviceId),
     templateId: eserviceTemplateId,
     producerId: instantiatorId,
-    descriptors: [getMockDescriptorPublished()]
+    descriptors: [getMockDescriptorPublished()],
   };
   const eserviceTemplateVersionId = eserviceTemplate.versions[0].id;
 

@@ -46,16 +46,18 @@ describe("handleEServiceTemplateVersionSuspendedToCreator", async () => {
   const eserviceTemplate: EServiceTemplate = {
     ...getMockEServiceTemplate(eserviceTemplateId),
     creatorId,
-    versions: [{
-      ...getMockEServiceTemplateVersion(),
-      state: descriptorState.published
-    }]
+    versions: [
+      {
+        ...getMockEServiceTemplateVersion(),
+        state: descriptorState.published,
+      },
+    ],
   };
   const eservice: EService = {
     ...getMockEService(eserviceId),
     templateId: eserviceTemplateId,
     producerId: instantiatorId,
-    descriptors: [getMockDescriptorPublished()]
+    descriptors: [getMockDescriptorPublished()],
   };
   const eserviceTemplateVersionId = eserviceTemplate.versions[0].id;
 
