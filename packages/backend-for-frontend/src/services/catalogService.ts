@@ -642,7 +642,7 @@ export function catalogServiceBuilder(
           updateEServiceSeed
         )}`
       );
-      const { id } = await catalogProcessClient.updateEServiceById(
+      const { id } = await catalogProcessClient.updateDraftEServiceById(
         updateEServiceSeed,
         {
           headers,
