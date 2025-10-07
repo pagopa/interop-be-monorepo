@@ -2,6 +2,7 @@ import {
   DescriptorId,
   EService,
   EServiceEventV2,
+  EServiceIdDescriptorId,
   fromEServiceV2,
   missingKafkaMessageDataError,
   NewNotification,
@@ -76,9 +77,17 @@ export async function handleEserviceStateChangedToConsumer(
       "eserviceStateChangedToConsumer"
     );
 
-  const { body, descriptorId } = getBodyAndDescriptorId(
+  const { body, descriptorId: descriptorIdFromEvent } = getBodyAndDescriptorId(
     eserviceV2Msg,
     eservice
+  );
+
+  const descriptorId = descriptorIdFromEvent
+    ? unsafeBrandId<DescriptorId>(descriptorIdFromEvent)
+    : retrieveLatestPublishedDescriptor(eservice).id;
+
+  const entityId = EServiceIdDescriptorId.parse(
+    `${eservice.id}/${descriptorId}`
   );
 
   return userNotificationConfigs.map(({ userId, tenantId }) => ({
@@ -86,9 +95,7 @@ export async function handleEserviceStateChangedToConsumer(
     tenantId,
     body,
     notificationType: "eserviceStateChangedToConsumer",
-    entityId: descriptorId
-      ? unsafeBrandId<DescriptorId>(descriptorId)
-      : retrieveLatestPublishedDescriptor(eservice).id,
+    entityId,
   }));
 }
 
