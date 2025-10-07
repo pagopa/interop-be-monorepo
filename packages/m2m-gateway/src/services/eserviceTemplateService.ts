@@ -166,7 +166,7 @@ export function eserviceTemplateServiceBuilder(
 
       return toM2MGatewayEServiceTemplateVersion(version);
     },
-    async createEserviceTemplateVersion(
+    async createEServiceTemplateVersion(
       templateId: EServiceTemplateId,
       seed: m2mGatewayApi.EServiceTemplateVersionCreationSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>

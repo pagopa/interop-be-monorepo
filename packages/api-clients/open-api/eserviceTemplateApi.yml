@@ -307,6 +307,9 @@ paths:
         required: true
       responses:
         "200":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: EService template version created.
           content:
             application/json:

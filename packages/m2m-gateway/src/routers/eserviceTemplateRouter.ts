@@ -327,14 +327,14 @@ const eserviceTemplateRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
         const version =
-          await eserviceTemplateService.createEserviceTemplateVersion(
+          await eserviceTemplateService.createEServiceTemplateVersion(
             unsafeBrandId(req.params.templateId),
             req.body,
             ctx
           );
 
         return res
-          .status(200)
+          .status(201)
           .send(m2mGatewayApi.EServiceTemplateVersion.parse(version));
       } catch (error) {
         const errorRes = makeApiProblem(

@@ -1387,6 +1387,10 @@ export function eserviceTemplateServiceBuilder(
       );
       assertPublishedEServiceTemplate(eserviceTemplate.data);
       assertNoDraftEServiceTemplateVersions(eserviceTemplate.data);
+      assertConsistentDailyCalls({
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.dailyCallsTotal,
+      });
 
       const previousVersion = eserviceTemplate.data.versions.reduce(
         (latestVersions, curr) =>
