@@ -27,24 +27,23 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
-  /hasUnreadNotifications:
+  /filterUnreadNotifications:
     get:
       tags:
         - notification
       summary: Get all unread notifications from a list of entity IDs
       description: Returns a subset of all entity IDs that have unread notifications
-      operationId: hasUnreadNotifications
+      operationId: filterUnreadNotifications
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
         - in: query
           name: entityIds
           description: Filter notifications by entity IDs
-          required: false
+          required: true
           schema:
             type: array
             items:
               $ref: "#/components/schemas/EntityId"
-            default: []
           explode: false
       responses:
         "200":

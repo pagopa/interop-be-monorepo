@@ -12,18 +12,29 @@ describe("hasUnreadNotification", () => {
   const userId: UserId = generateId();
   const tenantId: TenantId = generateId();
   const entityId = generateId();
-
-  const notificationsList = Array.from({ length: 2 }, (_, i) =>
+  const newUnreadNotification = (): ReturnType<typeof getMockNotification> =>
     getMockNotification({
       userId,
       tenantId,
-      body: `Notification ${i}`,
+      body: "New unread notification",
       readAt: undefined,
       entityId,
-    })
-  );
+    });
+
+  const newReadNotification = (): ReturnType<typeof getMockNotification> =>
+    getMockNotification({
+      userId,
+      tenantId,
+      body: "New read notification",
+      readAt: new Date(),
+      entityId,
+    });
   it("should return the list of entities that have unread notifications", async () => {
-    await addNotifications(notificationsList);
+    await addNotifications([
+      newUnreadNotification(),
+      newReadNotification(),
+      newReadNotification(),
+    ]);
     const entitiesWithUnread =
       await inAppNotificationService.hasUnreadNotification(
         [entityId],
@@ -40,15 +51,7 @@ describe("hasUnreadNotification", () => {
   });
 
   it("should return an empty list if there are no entities with unread notifications", async () => {
-    const notificationsList = Array.from({ length: 2 }, (_, i) =>
-      getMockNotification({
-        userId,
-        tenantId,
-        body: `Notification ${i}`,
-        readAt: new Date(),
-        entityId,
-      })
-    );
+    const notificationsList = [newReadNotification(), newReadNotification()];
     await addNotifications(notificationsList);
 
     const entitiesWithUnread =

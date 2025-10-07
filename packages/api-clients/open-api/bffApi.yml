@@ -25177,7 +25177,7 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
-        hasUnreadNotifications:
+        hasUnreadNotification:
           type: boolean
     CompactAttribute:
       type: object

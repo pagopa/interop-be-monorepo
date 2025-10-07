@@ -7,11 +7,11 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, inAppNotificationService } from "../vitest.api.setup.js";
 
-describe("API GET /hasUnreadNotifications", () => {
-  const entityIdsArray = [generateId(), generateId(), generateId()];
+describe("API GET /filterUnreadNotifications", () => {
+  const entityIdsArray: string[] = [generateId(), generateId(), generateId()];
   const makeRequest = async (token: string, entityIds: string[]) =>
     request(api)
-      .get("/hasUnreadNotifications")
+      .get("/filterUnreadNotifications")
       .query({ entityIds })
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
@@ -71,5 +71,18 @@ describe("API GET /hasUnreadNotifications", () => {
     const res = await makeRequest(token, entityIdsArray);
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
+  });
+  it("Should return a 4xx error if the input is malformed or empty", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const malformedResponse = await request(api)
+      .get("/filterUnreadNotifications")
+      .query([123, 456]) // not strings
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send();
+    expect(malformedResponse.status).toBe(400);
+
+    const emptyResponse = await makeRequest(token, []);
+    expect(emptyResponse.status).toBe(400);
   });
 });

@@ -36,17 +36,14 @@ export const notificationRouter = (
   const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE } = authRole;
 
   notificationRouter
-    .get("/hasUnreadNotifications", async (req, res) => {
+    .get("/filterUnreadNotifications", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       const { entityIds } = req.query;
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
 
-        const hasUnreadNotification: IDS[] =
-          await service.hasUnreadNotification(
-            entityIds.map(unsafeBrandId<IDS>),
-            ctx
-          );
+        const hasUnreadNotification: string[] =
+          await service.hasUnreadNotification(entityIds, ctx);
         return res.status(200).send(hasUnreadNotification);
       } catch (error) {
         const errorRes = makeApiProblem(

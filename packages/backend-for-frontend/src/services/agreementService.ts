@@ -657,7 +657,7 @@ async function enrichAgreementListEntry(
   const cachedTenants = new Map<string, tenantApi.Tenant>();
 
   const notificationsPromise: Promise<inAppNotificationApi.EntityId[]> =
-    clients.inAppNotificationManagerClient.hasUnreadNotifications({
+    clients.inAppNotificationManagerClient.filterUnreadNotifications({
       queries: {
         entityIds: agreements.map((a) => a.id),
       },
