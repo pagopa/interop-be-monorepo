@@ -70,6 +70,7 @@ export const EServiceM2MEvent = z.object({
   id: EServiceM2MEventId,
   eventType: EServiceM2MEventType,
   eventTimestamp: z.coerce.date(),
+  resourceVersion: z.number().int().min(0),
   eserviceId: EServiceId,
   descriptorId: DescriptorId.optional(),
   producerId: TenantId,

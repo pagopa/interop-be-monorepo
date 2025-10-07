@@ -1,3 +1,4 @@
+/* eslint-disable max-params */
 import {
   Delegation,
   Descriptor,
@@ -14,6 +15,7 @@ import { descriptorNotFoundInEService } from "../../models/errors.js";
 
 export async function createEServiceM2MEvent(
   eservice: EService,
+  resourceVersion: number,
   eventType: EServiceM2MEvent["eventType"],
   eventTimestamp: Date,
   producerDelegation: Delegation | undefined
@@ -21,6 +23,7 @@ export async function createEServiceM2MEvent(
   return createEServiceM2MEventHelper(
     eservice,
     undefined,
+    resourceVersion,
     eventType,
     eventTimestamp,
     producerDelegation
@@ -30,6 +33,7 @@ export async function createEServiceM2MEvent(
 export async function createEServiceDescriptorM2MEvent(
   eservice: EService,
   descriptorId: DescriptorId,
+  resourceVersion: number,
   eventType: EServiceM2MEvent["eventType"],
   eventTimestamp: Date,
   producerDelegation: Delegation | undefined
@@ -37,6 +41,7 @@ export async function createEServiceDescriptorM2MEvent(
   return createEServiceM2MEventHelper(
     eservice,
     descriptorId,
+    resourceVersion,
     eventType,
     eventTimestamp,
     producerDelegation
@@ -50,6 +55,7 @@ export async function createEServiceDescriptorM2MEvent(
 function createEServiceM2MEventHelper(
   eservice: EService,
   descriptorId: DescriptorId | undefined,
+  resourceVersion: number,
   eventType: EServiceM2MEvent["eventType"],
   eventTimestamp: Date,
   producerDelegation: Delegation | undefined
@@ -58,6 +64,7 @@ function createEServiceM2MEventHelper(
     id: generateM2MEventId(),
     eventType,
     eventTimestamp,
+    resourceVersion,
     eserviceId: eservice.id,
     descriptorId,
     producerId: eservice.producerId,
