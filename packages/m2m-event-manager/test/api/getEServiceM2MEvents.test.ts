@@ -35,6 +35,7 @@ describe("API /events/eservices test", () => {
           eventType: testToUpperSnakeCase(e.eventType),
           eserviceId: e.eserviceId,
           descriptorId: e.descriptorId,
+          producerDelegationId: e.producerDelegationId,
         } as m2mEventApi.EServiceM2MEvent)
     ),
   };

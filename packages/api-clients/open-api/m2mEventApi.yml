@@ -547,6 +547,9 @@ components:
         descriptorId:
           type: string
           format: uuid
+        producerDelegationId:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
@@ -575,6 +578,12 @@ components:
           type: string
           format: date-time
         agreementId:
+          type: string
+          format: uuid
+        consumerDelegationId:
+          type: string
+          format: uuid
+        producerDelegationId:
           type: string
           format: uuid
       required:
@@ -608,6 +617,12 @@ components:
           type: string
           format: uuid
         purposeVersionId:
+          type: string
+          format: uuid
+        consumerDelegationId:
+          type: string
+          format: uuid
+        producerDelegationId:
           type: string
           format: uuid
       required:

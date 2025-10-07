@@ -136,6 +136,7 @@ function toApiEServiceM2MEvent(
     eventTimestamp: event.eventTimestamp.toJSON(),
     eserviceId: event.eserviceId,
     descriptorId: event.descriptorId,
+    producerDelegationId: event.producerDelegationId,
   };
 }
 

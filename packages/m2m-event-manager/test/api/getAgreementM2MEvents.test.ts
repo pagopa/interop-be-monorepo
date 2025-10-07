@@ -37,6 +37,8 @@ describe("API /events/agreements test", () => {
           eventTimestamp: e.eventTimestamp.toJSON(),
           eventType: testToUpperSnakeCase(e.eventType),
           agreementId: e.agreementId,
+          consumerDelegationId: e.consumerDelegationId,
+          producerDelegationId: e.producerDelegationId,
         } as m2mEventApi.AgreementM2MEvent)
     ),
   };
