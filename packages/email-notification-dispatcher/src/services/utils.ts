@@ -33,6 +33,16 @@ export const eventMailTemplateType = {
   agreementSubmittedMailTemplate: "agreement-submitted-mail",
   agreementRejectedMailTemplate: "agreement-rejected-mail",
   agreementUpgradedMailTemplate: "agreement-upgraded-mail",
+  agreementSuspendedByConsumerMailTemplate:
+    "agreement-suspended-by-consumer-mail",
+  agreementSuspendedByPlatformMailTemplate:
+    "agreement-suspended-by-platform-mail",
+  agreementUnsuspendedByConsumerMailTemplate:
+    "agreement-unsuspended-by-consumer-mail",
+  agreementUnsuspendedByPlatformMailTemplate:
+    "agreement-unsuspended-by-platform-mail",
+  agreementArchivedByConsumerMailTemplate:
+    "agreement-archived-by-consumer-mail",
   clientPurposeAddedMailTemplate: "client-purpose-added-mail",
   clientPurposeRemovedMailTemplate: "client-purpose-removed-mail",
   purposeVersionSuspendedByConsumerMailTemplate:
