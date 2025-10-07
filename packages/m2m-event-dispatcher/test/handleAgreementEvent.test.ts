@@ -98,7 +98,8 @@ describe("handleAgreementEvent test", async () => {
                     "DraftAgreementUpdated",
                     "AgreementSetDraftByPlatform",
                     "AgreementSetMissingCertifiedAttributesByPlatform",
-                    "AgreementArchivedByRevokedDelegation"
+                    "AgreementConsumerDocumentAdded",
+                    "AgreementConsumerDocumentRemoved"
                   ),
                   async () => m2mEventVisibility.owner
                 )
@@ -117,8 +118,7 @@ describe("handleAgreementEvent test", async () => {
                     "AgreementUnsuspendedByPlatform",
                     "AgreementArchivedByConsumer",
                     "AgreementArchivedByUpgrade",
-                    "AgreementConsumerDocumentAdded",
-                    "AgreementConsumerDocumentRemoved"
+                    "AgreementArchivedByRevokedDelegation"
                   ),
                   async () => m2mEventVisibility.restricted
                 )
