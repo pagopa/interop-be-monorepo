@@ -16,7 +16,8 @@ import {
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
-const notificationType: NotificationType = "agreementManagementToProducer";
+const notificationType: NotificationType =
+  "agreementSuspendedUnsuspendedToProducer";
 
 export async function handleAgreementArchivedByConsumer(
   params: AgreementHandlerParams
