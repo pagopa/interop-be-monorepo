@@ -16,6 +16,8 @@ import {
   AgreementM2MEventSQL,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { eq } from "drizzle-orm";
+import { isResourceVersionPresent } from "../utils/m2mEventSQLUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function m2mEventWriterServiceSQLBuilder(
@@ -23,12 +25,32 @@ export function m2mEventWriterServiceSQLBuilder(
 ) {
   return {
     async insertEServiceM2MEvent(event: EServiceM2MEventSQL): Promise<void> {
-      await m2mEventDB.insert(eserviceInM2MEvent).values(event);
+      await m2mEventDB.transaction(async (tx) => {
+        const shouldWrite = !(await isResourceVersionPresent(
+          tx,
+          event.resourceVersion,
+          eserviceInM2MEvent,
+          eq(eserviceInM2MEvent.eserviceId, event.eserviceId)
+        ));
+
+        if (shouldWrite) {
+          await tx.insert(eserviceInM2MEvent).values(event);
+        }
+      });
     },
-    async insertAgreementM2MEvent(
-      agreement: AgreementM2MEventSQL
-    ): Promise<void> {
-      await m2mEventDB.insert(agreementInM2MEvent).values(agreement);
+    async insertAgreementM2MEvent(event: AgreementM2MEventSQL): Promise<void> {
+      await m2mEventDB.transaction(async (tx) => {
+        const shouldWrite = !(await isResourceVersionPresent(
+          tx,
+          event.resourceVersion,
+          agreementInM2MEvent,
+          eq(agreementInM2MEvent.agreementId, event.agreementId)
+        ));
+
+        if (shouldWrite) {
+          await tx.insert(agreementInM2MEvent).values(event);
+        }
+      });
     },
     async insertPurposeM2MEvent(): Promise<void> {
       await m2mEventDB.insert(purposeInM2MEvent).values([]);
@@ -58,7 +80,18 @@ export function m2mEventWriterServiceSQLBuilder(
       await m2mEventDB.insert(tenantInM2MEvent).values([]);
     },
     async insertAttributeM2MEvent(event: AttributeM2MEventSQL): Promise<void> {
-      await m2mEventDB.insert(attributeInM2MEvent).values(event);
+      await m2mEventDB.transaction(async (tx) => {
+        const shouldWrite = !(await isResourceVersionPresent(
+          tx,
+          event.resourceVersion,
+          attributeInM2MEvent,
+          eq(attributeInM2MEvent.attributeId, event.attributeId)
+        ));
+
+        if (shouldWrite) {
+          await tx.insert(attributeInM2MEvent).values(event);
+        }
+      });
     },
   };
 }

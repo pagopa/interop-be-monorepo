@@ -8,6 +8,7 @@ export function toEServiceM2MEventSQL(
     id: event.id,
     eventType: event.eventType,
     eventTimestamp: dateToString(event.eventTimestamp),
+    resourceVersion: event.resourceVersion,
     eserviceId: event.eserviceId,
     descriptorId: event.descriptorId ?? null,
     producerId: event.producerId,
