@@ -23763,6 +23763,26 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+    CompactPurposeTemplateEService:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - producer
+        - descriptor
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        producer:
+          $ref: "#/components/schemas/CompactOrganization"
+        descriptor:
+          $ref: "#/components/schemas/CompactDescriptor"
+        description:
+          type: string
     PurposeVersionSeed:
       type: object
       additionalProperties: false
@@ -26589,13 +26609,13 @@ components:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor"
+            $ref: "#/components/schemas/EServiceDescriptorPurposeTemplateWithCompactPurposeTemplateEService"
         pagination:
           $ref: "#/components/schemas/Pagination"
       required:
         - results
         - pagination
-    EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor:
+    EServiceDescriptorPurposeTemplateWithCompactPurposeTemplateEService:
       type: object
       additionalProperties: false
       properties:
@@ -26603,9 +26623,7 @@ components:
           type: string
           format: uuid
         eservice:
-          $ref: "#/components/schemas/CompactEService"
-        descriptor:
-          $ref: "#/components/schemas/CompactDescriptor"
+          $ref: "#/components/schemas/CompactPurposeTemplateEService"
         createdAt:
           type: string
           format: date-time
