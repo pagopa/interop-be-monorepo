@@ -282,10 +282,6 @@ export function readModelServiceBuilderSQL({
         purposeTemplateId
       );
     },
-    // TODO: remove if unused
-    async getTenantById(id: TenantId): Promise<Tenant | undefined> {
-      return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
-    },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
       purposeTemplateId: PurposeTemplateId,
       eserviceId: EServiceId
