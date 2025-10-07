@@ -63,6 +63,7 @@ describe("create eService from template", () => {
     const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [publishedVersion],
+      personalData: false,
     };
 
     const tenant: Tenant = {
@@ -184,6 +185,7 @@ describe("create eService from template", () => {
         validEServiceTemplateRiskAnalysisPrivate,
       ],
       versions: [publishedVersion],
+      personalData: false,
     };
 
     await addOneTenant(tenant);
@@ -258,6 +260,7 @@ describe("create eService from template", () => {
         validEServiceTemplateRiskAnalysisPrivate,
       ],
       versions: [publishedVersion],
+      personalData: false,
     };
 
     await addOneTenant(tenant);
@@ -337,6 +340,7 @@ describe("create eService from template", () => {
     const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [eserviceTemplatePublishedVersion],
+      personalData: false,
     };
 
     const tenant: Tenant = {
