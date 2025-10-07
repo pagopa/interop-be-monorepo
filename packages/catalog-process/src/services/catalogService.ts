@@ -100,6 +100,7 @@ import {
   templateMissingRequiredRiskAnalysis,
   checksumDuplicate,
   attributeDuplicatedInGroup,
+  eservicePersonalDataFlagCanOnlyBeSetOnce,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -144,6 +145,7 @@ import {
   toCreateEventEServiceUpdated,
   toCreateEventEServiceSignalhubFlagEnabled,
   toCreateEventEServiceSignalhubFlagDisabled,
+  toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -3537,6 +3539,48 @@ export function catalogServiceBuilder(
       await repository.createEvents(events);
 
       return updatedDescriptor;
+    },
+    async updateEServicePersonalDataFlagAfterPublication(
+      eserviceId: EServiceId,
+      personalData: boolean,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EService> {
+      logger.info(
+        `Setting personalData flag for E-Service ${eserviceId} to ${personalData}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      assertEServiceNotTemplateInstance(eserviceId, eservice.data.templateId);
+
+      assertEServiceUpdatableAfterPublish(eservice.data);
+
+      if (eservice.data.personalData !== undefined) {
+        throw eservicePersonalDataFlagCanOnlyBeSetOnce(eserviceId);
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        personalData,
+      };
+
+      const event =
+        toCreateEventEServicePersonalDataFlagUpdatedAfterPublication(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        );
+
+      await repository.createEvent(event);
+
+      return updatedEservice;
     },
   };
 }
