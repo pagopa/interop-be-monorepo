@@ -8,7 +8,7 @@ import {
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { fromBffAppContext } from "../utilities/context.js";
-import { InAppNotificationService } from "../services/inAppNotificationManagerService.js";
+import { InAppNotificationService } from "../services/inAppNotificationService.js";
 import {
   toBffApiNotification,
   toBffApiNotificationsCountBySection,
