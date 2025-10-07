@@ -6,14 +6,12 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeTemplateState,
-  Tenant,
   TenantId,
   TenantKind,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
   CatalogReadModelService,
-  TenantReadModelService,
   PurposeTemplateReadModelService,
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
@@ -158,12 +156,10 @@ const getPurposeTemplatesFilters = (
 export function readModelServiceBuilderSQL({
   readModelDB,
   catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   catalogReadModelServiceSQL: CatalogReadModelService;
-  tenantReadModelServiceSQL: TenantReadModelService;
   purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
 }) {
   return {

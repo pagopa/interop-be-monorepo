@@ -23,7 +23,6 @@ import {
 import {
   catalogReadModelServiceBuilder,
   purposeTemplateReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
   upsertEService,
@@ -51,16 +50,12 @@ afterEach(cleanup);
 export const catalogReadModelServiceSQL =
   catalogReadModelServiceBuilder(readModelDB);
 
-export const tenantReadModelServiceSQL =
-  tenantReadModelServiceBuilder(readModelDB);
-
 export const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
 });
 
