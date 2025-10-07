@@ -100,6 +100,7 @@ import {
   templateMissingRequiredRiskAnalysis,
   checksumDuplicate,
   attributeDuplicatedInGroup,
+  eservicePersonalDataFlagCanOnlyBeSetOnce,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -144,6 +145,7 @@ import {
   toCreateEventEServiceUpdated,
   toCreateEventEServiceSignalhubFlagEnabled,
   toCreateEventEServiceSignalhubFlagDisabled,
+  toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -550,6 +552,9 @@ async function innerCreateEService(
       .with(true, () => seed.isClientAccessDelegable)
       .exhaustive(),
     templateId: template?.id,
+    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
+      ? { personalData: seed.personalData }
+      : {}),
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -3535,6 +3540,48 @@ export function catalogServiceBuilder(
 
       return updatedDescriptor;
     },
+    async updateEServicePersonalDataFlagAfterPublication(
+      eserviceId: EServiceId,
+      personalData: boolean,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EService> {
+      logger.info(
+        `Setting personalData flag for E-Service ${eserviceId} to ${personalData}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      assertEServiceNotTemplateInstance(eserviceId, eservice.data.templateId);
+
+      assertEServiceUpdatableAfterPublish(eservice.data);
+
+      if (eservice.data.personalData !== undefined) {
+        throw eservicePersonalDataFlagCanOnlyBeSetOnce(eserviceId);
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        personalData,
+      };
+
+      const event =
+        toCreateEventEServicePersonalDataFlagUpdatedAfterPublication(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        );
+
+      await repository.createEvent(event);
+
+      return updatedEservice;
+    },
   };
 }
 
@@ -3864,12 +3911,10 @@ async function extractEServiceRiskAnalysisFromTemplate(
   return riskAnalysis;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 async function updateDraftEService(
   eserviceId: EServiceId,
-  {
-    seed,
-    type,
-  }:
+  typeAndSeed:
     | {
         type: "put";
         seed: catalogApi.UpdateEServiceSeed;
@@ -3906,10 +3951,7 @@ async function updateDraftEService(
     isSignalHubEnabled,
     isConsumerDelegable,
     isClientAccessDelegable,
-    ...rest
-  } = seed;
-  void (rest satisfies Record<string, never>);
-  // ^ To make sure we extract all the updated fields
+  } = typeAndSeed.seed;
 
   if (name && name !== eservice.data.name) {
     await assertEServiceNameAvailableForProducer(
@@ -3948,12 +3990,12 @@ async function updateDraftEService(
   const checkedRiskAnalysis =
     updatedMode === eserviceMode.receive ? eservice.data.riskAnalysis : [];
 
-  const updatedIsSignalHubEnabled = match(type)
+  const updatedIsSignalHubEnabled = match(typeAndSeed.type)
     .with("put", () => isSignalHubEnabled)
     .with("patch", () => isSignalHubEnabled ?? eservice.data.isSignalHubEnabled)
     .exhaustive();
 
-  const updatedIsConsumerDelegable = match(type)
+  const updatedIsConsumerDelegable = match(typeAndSeed.type)
     .with("put", () => isConsumerDelegable)
     .with(
       "patch",
@@ -3961,11 +4003,21 @@ async function updateDraftEService(
     )
     .exhaustive();
 
-  const updatedIsClientAccessDelegable = match(type)
+  const updatedIsClientAccessDelegable = match(typeAndSeed.type)
     .with("put", () => isClientAccessDelegable)
     .with(
       "patch",
       () => isClientAccessDelegable ?? eservice.data.isClientAccessDelegable
+    )
+    .exhaustive();
+
+  const updatedPersonalData = match(typeAndSeed)
+    .with({ type: "put" }, ({ seed }) => seed.personalData)
+    .with(
+      { type: "patch" },
+      ({ seed }) =>
+        seed.personalData ??
+        (seed.personalData === null ? undefined : eservice.data.personalData)
     )
     .exhaustive();
 
@@ -3998,6 +4050,9 @@ async function updateDraftEService(
       .with(false, () => false)
       .with(true, () => updatedIsClientAccessDelegable)
       .exhaustive(),
+    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
+      ? { personalData: updatedPersonalData }
+      : {}),
   };
 
   const event = await repository.createEvent(
