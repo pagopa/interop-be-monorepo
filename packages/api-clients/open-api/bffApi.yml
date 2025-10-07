@@ -25102,7 +25102,7 @@ components:
       required:
         - results
         - pagination
-    CatalogEService: #here
+    CatalogEService:
       type: object
       additionalProperties: false
       required:
@@ -25127,6 +25127,8 @@ components:
           type: boolean
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
+        hasUnreadNotifications:
+          type: boolean
     ClientKind:
       type: string
       enum:
@@ -25177,7 +25179,7 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
-        hasUnreadNotification:
+        hasUnreadNotifications:
           type: boolean
     CompactAttribute:
       type: object

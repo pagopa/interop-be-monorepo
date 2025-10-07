@@ -36,7 +36,7 @@ describe("hasUnreadNotification", () => {
       newReadNotification(),
     ]);
     const entitiesWithUnread =
-      await inAppNotificationService.hasUnreadNotification(
+      await inAppNotificationService.hasUnreadNotifications(
         [entityId],
         getMockContext({
           authData: {
@@ -55,7 +55,7 @@ describe("hasUnreadNotification", () => {
     await addNotifications(notificationsList);
 
     const entitiesWithUnread =
-      await inAppNotificationService.hasUnreadNotification(
+      await inAppNotificationService.hasUnreadNotifications(
         [entityId],
         getMockContext({
           authData: {

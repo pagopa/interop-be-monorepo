@@ -42,9 +42,9 @@ export const notificationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
 
-        const hasUnreadNotification: string[] =
-          await service.hasUnreadNotification(entityIds, ctx);
-        return res.status(200).send(hasUnreadNotification);
+        const filterUnreadNotifications: string[] =
+          await service.hasUnreadNotifications(entityIds, ctx);
+        return res.status(200).send(filterUnreadNotifications);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

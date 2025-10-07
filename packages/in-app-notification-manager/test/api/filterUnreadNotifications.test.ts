@@ -19,7 +19,7 @@ describe("API GET /filterUnreadNotifications", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    inAppNotificationService.hasUnreadNotification = vi
+    inAppNotificationService.hasUnreadNotifications = vi
       .fn()
       .mockResolvedValue(entityIdsArray);
   });
@@ -34,7 +34,7 @@ describe("API GET /filterUnreadNotifications", () => {
     authRole.SECURITY_ROLE,
   ];
   it.each(authorizedRoles)(
-    "Should return 200 with hasUnreadNotification for user with role %s",
+    "Should return 200 with hasUnreadNotifications for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, entityIdsArray);
@@ -42,7 +42,7 @@ describe("API GET /filterUnreadNotifications", () => {
       expect(res.status).toBe(200);
       expect(res.body.length).toBe(3);
       expect(
-        inAppNotificationService.hasUnreadNotification
+        inAppNotificationService.hasUnreadNotifications
       ).toHaveBeenCalledTimes(1);
     }
   );
@@ -57,14 +57,13 @@ describe("API GET /filterUnreadNotifications", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     await makeRequest(token, entityIdsArray);
 
-    expect(inAppNotificationService.hasUnreadNotification).toHaveBeenCalledWith(
-      entityIdsArray,
-      expect.any(Object)
-    );
+    expect(
+      inAppNotificationService.hasUnreadNotifications
+    ).toHaveBeenCalledWith(entityIdsArray, expect.any(Object));
   });
   it("Should return empty array when no unread notifications exist", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    inAppNotificationService.hasUnreadNotification = vi
+    inAppNotificationService.hasUnreadNotifications = vi
       .fn()
       .mockResolvedValue([]);
 
@@ -72,7 +71,7 @@ describe("API GET /filterUnreadNotifications", () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
-  it("Should return a 4xx error if the input is malformed or empty", async () => {
+  it("Should return a 400 error if the input is malformed or empty", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const malformedResponse = await request(api)
       .get("/filterUnreadNotifications")

@@ -34,7 +34,7 @@ export function inAppNotificationServiceBuilder(
 ) {
   return {
     // eslint-disable-next-line max-params
-    hasUnreadNotification: async (
+    hasUnreadNotifications: async (
       entityIds: string[],
       {
         logger,
