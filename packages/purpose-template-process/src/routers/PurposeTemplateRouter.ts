@@ -11,16 +11,12 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import {
-  emptyErrorMapper,
-  EServiceId,
-  TenantId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   createPurposeTemplateErrorMapper,
+  getPurposeTemplateErrorMapper,
   getPurposeTemplatesErrorMapper,
   linkEservicesToPurposeTemplateErrorMapper,
   unlinkEServicesFromPurposeTemplateErrorMapper,
@@ -59,8 +55,8 @@ const purposeTemplateRouter = (
         validateAuthorization(ctx, [
           ADMIN_ROLE,
           API_ROLE,
-          M2M_ROLE,
           M2M_ADMIN_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
         ]);
@@ -133,22 +129,35 @@ const purposeTemplateRouter = (
 
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
-          M2M_ROLE,
+          API_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
 
-        await purposeTemplateService.getPurposeTemplateById(
-          unsafeBrandId(req.params.id),
+        const { data: purposeTemplate, metadata } =
+          await purposeTemplateService.getPurposeTemplateById(
+            unsafeBrandId(req.params.id),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            purposeTemplateApi.PurposeTemplate.parse(
+              purposeTemplateToApiPurposeTemplate(purposeTemplate)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateErrorMapper,
           ctx
         );
-
-        return res.status(501).send(); // Not implemented
-      } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -190,12 +199,12 @@ const purposeTemplateRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
-          M2M_ROLE,
+          API_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
       } catch (error) {
         return res.status(501);
