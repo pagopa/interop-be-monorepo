@@ -301,6 +301,7 @@ describe("handleEServiceEvent test", async () => {
                 id: expect.any(String),
                 eventType,
                 eventTimestamp,
+                resourceVersion: message.version,
                 eserviceId: eservice.id,
                 descriptorId,
                 producerId: eservice.producerId,

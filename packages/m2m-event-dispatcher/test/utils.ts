@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { desc } from "drizzle-orm";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
@@ -41,7 +42,7 @@ export const testReadModelService = readModelServiceBuilderSQL({
 
 export const getMockEventEnvelopeCommons = () => ({
   sequence_num: 1,
-  version: 1,
+  version: randomInt(1, 1000),
   event_version: 2,
   log_date: new Date(),
 });

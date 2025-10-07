@@ -163,6 +163,7 @@ describe("handleAgreementEvent test", async () => {
                 id: expect.any(String),
                 eventType: message.type,
                 eventTimestamp,
+                resourceVersion: message.version,
                 agreementId: agreement.id,
                 consumerId: agreement.consumerId,
                 producerId: agreement.producerId,

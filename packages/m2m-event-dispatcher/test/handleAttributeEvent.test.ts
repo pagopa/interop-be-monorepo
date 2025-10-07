@@ -41,6 +41,7 @@ describe("handleAttributeEvent test", async () => {
           id: expect.any(String),
           eventType,
           eventTimestamp,
+          resourceVersion: message.version,
           attributeId: attribute.id,
         }))
         .with("MaintenanceAttributeDeleted", () => undefined)
