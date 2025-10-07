@@ -46,7 +46,8 @@ function getAgreementM2MEventVisibility(
         "DraftAgreementUpdated",
         "AgreementSetDraftByPlatform",
         "AgreementSetMissingCertifiedAttributesByPlatform",
-        "AgreementArchivedByRevokedDelegation"
+        "AgreementConsumerDocumentAdded",
+        "AgreementConsumerDocumentRemoved"
       ),
       () => m2mEventVisibility.owner
     )
@@ -65,8 +66,7 @@ function getAgreementM2MEventVisibility(
         "AgreementUnsuspendedByPlatform",
         "AgreementArchivedByConsumer",
         "AgreementArchivedByUpgrade",
-        "AgreementConsumerDocumentAdded",
-        "AgreementConsumerDocumentRemoved"
+        "AgreementArchivedByRevokedDelegation"
       ),
       () => m2mEventVisibility.restricted
     )
