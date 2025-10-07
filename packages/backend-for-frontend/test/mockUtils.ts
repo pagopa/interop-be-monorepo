@@ -19,6 +19,7 @@ import {
   generateId,
   PurposeId,
   PurposeVersionId,
+  PurposeTemplateId,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
@@ -368,6 +369,7 @@ export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
   isSignalHubEnabled: generateMock(z.boolean().optional()),
   isClientAccessDelegable: generateMock(z.boolean().optional()),
   isConsumerDelegable: generateMock(z.boolean().optional()),
+  personalData: generateMock(z.boolean().optional()),
 });
 
 export const getMockBffApiRejectDelegatedEServiceDescriptorSeed =
@@ -1035,4 +1037,25 @@ export const getMockBffApiCatalogPurposeTemplate =
     purposeTitle: generateMock(z.string()),
     purposeDescription: generateMock(z.string()),
     creator: generateMock(bffApi.CompactOrganization),
+  });
+
+export const getMockBffApiPurposeTemplateWithCompactCreator =
+  (): bffApi.PurposeTemplateWithCompactCreator & {
+    id: PurposeTemplateId;
+  } => ({
+    id: generateId(),
+    targetDescription:
+      "This is a valid target description that meets the minimum length requirement",
+    targetTenantKind: "PA" as bffApi.TenantKind,
+    creator: generateMock(bffApi.CompactOrganization),
+    state: generateMock(bffApi.PurposeTemplateState),
+    createdAt: new Date().toISOString(),
+    purposeTitle: "Valid Purpose Title",
+    purposeDescription:
+      "This is a valid purpose description that meets the minimum length requirement",
+    purposeRiskAnalysisForm: generateMock(bffApi.RiskAnalysisFormTemplate),
+    purposeIsFreeOfCharge: false,
+    annotationDocuments: generateMock(
+      z.array(bffApi.RiskAnalysisTemplateAnswerAnnotationDocument)
+    ),
   });

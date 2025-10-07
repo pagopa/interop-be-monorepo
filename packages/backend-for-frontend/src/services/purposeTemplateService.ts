@@ -20,6 +20,7 @@ import {
   toBffCreatorPurposeTemplate,
 } from "../api/purposeTemplateApiConverter.js";
 import { tenantNotFound } from "../model/errors.js";
+import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
@@ -255,6 +256,45 @@ export function purposeTemplateServiceBuilder(
       );
 
       return Buffer.from(documentBytes);
+    },
+    async getPurposeTemplate(
+      id: PurposeTemplateId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplateWithCompactCreator> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Retrieving Purpose Template ${id}`);
+
+      const result = await purposeTemplateClient.getPurposeTemplate({
+        params: {
+          id,
+        },
+        headers,
+      });
+
+      const creator = await tenantProcessClient.tenant.getTenant({
+        params: {
+          id: result.creatorId,
+        },
+        headers,
+      });
+      if (!creator) {
+        throw tenantNotFound(result.creatorId);
+      }
+
+      const riskAnalysisFormTemplateAnswers =
+        result.purposeRiskAnalysisForm?.answers;
+      const annotationDocuments = riskAnalysisFormTemplateAnswers
+        ? Object.values(riskAnalysisFormTemplateAnswers).flatMap(
+            (answer) => answer.annotation?.docs ?? []
+          )
+        : [];
+
+      return bffApi.PurposeTemplateWithCompactCreator.parse({
+        ...result,
+        creator: toBffCompactOrganization(creator),
+        annotationDocuments,
+      });
     },
     async updatePurposeTemplate(
       id: PurposeTemplateId,
