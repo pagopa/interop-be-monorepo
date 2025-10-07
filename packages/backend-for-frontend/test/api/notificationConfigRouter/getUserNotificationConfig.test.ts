@@ -18,6 +18,8 @@ describe("API GET /userNotificationConfigs", () => {
   const userId = mockTokenUserId;
   const tenantId = mockTokenOrganizationId;
   const {
+    inAppNotificationPreference,
+    emailNotificationPreference,
     inAppConfig: {
       clientKeyAddedDeletedToClientUsers:
         inAppClientKeyAddedDeletedToClientUsers,
@@ -36,6 +38,8 @@ describe("API GET /userNotificationConfigs", () => {
     notificationConfigApi.UserNotificationConfig
   );
   const clientResponse = {
+    inAppNotificationPreference,
+    emailNotificationPreference,
     inAppConfig: {
       ...inAppConfig,
       clientKeyAddedDeletedToClientUsers:
@@ -52,8 +56,8 @@ describe("API GET /userNotificationConfigs", () => {
     },
   };
   const apiResponse: bffApi.UserNotificationConfig = {
-    inAppNotificationPreference: clientResponse.inAppNotificationPreference,
-    emailNotificationPreference: clientResponse.emailNotificationPreference,
+    inAppNotificationPreference,
+    emailNotificationPreference,
     inAppConfig: {
       ...inAppConfig,
       clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:

@@ -73,6 +73,10 @@ describe("API POST /userNotificationConfigs", () => {
       clients.notificationConfigProcessClient.updateUserNotificationConfig
     ).toHaveBeenCalledWith(
       {
+        inAppNotificationPreference:
+          notificationConfigSeed.inAppNotificationPreference,
+        emailNotificationPreference:
+          notificationConfigSeed.emailNotificationPreference,
         inAppConfig: {
           ...restConfigMock,
           clientKeyAddedDeletedToClientUsers:
