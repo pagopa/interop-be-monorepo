@@ -14248,6 +14248,8 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
+        personalData:
+          type: boolean
       required:
         - id
         - creatorId
