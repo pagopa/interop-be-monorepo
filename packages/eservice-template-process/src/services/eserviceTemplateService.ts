@@ -1315,7 +1315,7 @@ export function eserviceTemplateServiceBuilder(
         createdAt: creationDate,
         riskAnalysis: [],
         isSignalHubEnabled: seed.isSignalHubEnabled,
-        ...(config.featureFlagEservicePersonalData
+        ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
           ? { personalData: seed.personalData }
           : {}),
       };
