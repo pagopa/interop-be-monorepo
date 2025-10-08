@@ -13,7 +13,6 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { toM2MGatewayApiEServiceDescriptorAttributes } from "../../../src/api/eserviceApiConverter.js";
 
 describe("getEserviceDescriptorCertifiedAttributes", () => {
   const mockDescriptor = getMockedApiEserviceDescriptor();
@@ -34,8 +33,16 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
   });
 
   it("Should succeed and perform service calls", async () => {
-    const expectedResponse = toM2MGatewayApiEServiceDescriptorAttributes(
-      mockDescriptor.attributes.certified
+    const expectedResponse = mockDescriptor.attributes.certified.flatMap(
+      (attributeGroup, groupIndex) =>
+        attributeGroup.map((attribute) => ({
+          attribute: {
+            id: attribute.id,
+            explicitAttributeVerification:
+              attribute.explicitAttributeVerification,
+          },
+          groupIndex,
+        }))
     );
 
     const result =

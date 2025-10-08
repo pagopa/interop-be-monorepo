@@ -777,9 +777,13 @@ const eserviceRouter = (
               unsafeBrandId(req.params.descriptorId),
               ctx
             );
-          return res
-            .status(200)
-            .send(m2mGatewayApi.EServiceDescriptorAttributes.parse(attributes));
+          const parsedAttributes = attributes.map((item) => ({
+            attribute: m2mGatewayApi.EServiceDescriptorAttribute.parse(
+              item.attribute
+            ),
+            groupIndex: item.groupIndex,
+          }));
+          return res.status(200).send(parsedAttributes);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

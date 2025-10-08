@@ -79,11 +79,36 @@ export function eserviceServiceBuilder(
     eservice: WithMaybeMetadata<catalogApi.EService>,
     descriptorId: DescriptorId,
     attributeKind: keyof catalogApi.Attributes
-  ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+  ): Promise<
+    Array<{
+      attribute: catalogApi.Attribute;
+      groupIndex: number;
+    }>
+  > {
     const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
 
-    return toM2MGatewayApiEServiceDescriptorAttributes(
-      descriptor.attributes[attributeKind]
+    // 1. Accedi alla struttura degli attributi (array di array)
+    const attributeGroups = descriptor.attributes[attributeKind];
+
+    // 2. Fai il flatMap
+    // 3. Il risultato è un array unico contenente tutti gli attributi con la proprietà 'groupIndex' annessa.
+    return attributeGroups.flatMap(
+      (group, groupIndex) =>
+        // 4. Per ogni gruppo, mappiamo ogni singolo attributo...
+        group.map((attribute) => ({
+          attribute, // 5. lo accoppiamo con l'indice del suo gruppo
+          groupIndex,
+        }))
+
+      /** 
+    il Risultato dovrebbe essere un oggetto che rappresenta un array di attributi filtrati per il kind con il loro indice di gruppo, ad esempio:
+    declared: [
+      { "attribute": "attributo1", "groupIndex": 0 },
+      { "attribute": "attributo2", "groupIndex": 0 },
+      { "attribute": "attributo3", "groupIndex": 1 },
+      { "attribute": "attributo4", "groupIndex": 1 }
+    ] 
+       */
     );
   }
 
@@ -826,7 +851,12 @@ export function eserviceServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+    ): Promise<
+      Array<{
+        attribute: catalogApi.Attribute;
+        groupIndex: number;
+      }>
+    > {
       logger.info(
         `Retrieving Certified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
@@ -840,7 +870,12 @@ export function eserviceServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+    ): Promise<
+      Array<{
+        attribute: catalogApi.Attribute;
+        groupIndex: number;
+      }>
+    > {
       logger.info(
         `Retrieving Declared Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
@@ -854,7 +889,12 @@ export function eserviceServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptorAttributes> {
+    ): Promise<
+      Array<{
+        attribute: catalogApi.Attribute;
+        groupIndex: number;
+      }>
+    > {
       logger.info(
         `Retrieving Verified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );

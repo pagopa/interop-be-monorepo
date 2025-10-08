@@ -6046,7 +6046,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptorAttributes"
+                type: array
+                items:
+                  type: object
+                properties:
+                  groupIndex:
+                    type: integer
+                    format: int32
+                    description: L'indice del gruppo a cui appartiene l'attributo.
+                  attributes: 
+                    $ref: "#/components/schemas/EServiceDescriptorAttributes"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"

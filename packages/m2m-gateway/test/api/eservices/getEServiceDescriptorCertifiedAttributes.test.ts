@@ -10,16 +10,29 @@ import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttributes router test", () => {
-  const mockDescriptorAttributes: m2mGatewayApi.EServiceDescriptorAttributes = {
-    attributes: [
-      [{ id: generateId() }],
-      [{ id: generateId() }, { id: generateId() }],
-    ],
-  };
+  const attributes = [
+    {
+      attribute: { id: generateId() },
+      groupIndex: 0,
+    },
+    {
+      attribute: { id: generateId() },
+      groupIndex: 0,
+    },
+    {
+      attribute: { id: generateId() },
+      groupIndex: 1,
+    },
+  ];
+
+  const parsedAttributes = attributes.map((item) => ({
+    attribute: m2mGatewayApi.EServiceDescriptorAttribute.parse(item.attribute),
+    groupIndex: item.groupIndex,
+  }));
 
   mockEserviceService.getEserviceDescriptorCertifiedAttributes = vi
     .fn()
-    .mockResolvedValue(mockDescriptorAttributes);
+    .mockResolvedValue(parsedAttributes);
 
   const makeRequest = async (
     token: string,
@@ -44,7 +57,7 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttrib
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockDescriptorAttributes);
+      expect(res.body).toEqual(parsedAttributes);
     }
   );
 
@@ -71,13 +84,13 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttrib
 
   it.each([
     {
-      attributes: [...mockDescriptorAttributes.attributes, [{ id: undefined }]],
+      attributes: [...parsedAttributes, [{ id: undefined }]],
     },
     {
-      attributes: [...mockDescriptorAttributes.attributes, [{ id: "invalid" }]],
+      attributes: [...parsedAttributes, [{ id: "invalid" }]],
     },
     {
-      attributes: [...mockDescriptorAttributes.attributes, [{}]],
+      attributes: [...parsedAttributes, [{}]],
     },
   ] as unknown as m2mGatewayApi.EServiceDescriptorAttributes[])(
     "Should return 500 when API model parsing fails for response",
