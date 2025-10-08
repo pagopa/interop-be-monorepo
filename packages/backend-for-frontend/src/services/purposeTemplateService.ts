@@ -15,11 +15,12 @@ import { config } from "../config/config.js";
 import {
   toBffCatalogPurposeTemplate,
   toBffCreatorPurposeTemplate,
-  toBffEServiceDescriptorsPurposeTemplate,
+  toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor,
   toCompactPurposeTemplateEService,
 } from "../api/purposeTemplateApiConverter.js";
 import { eserviceDescriptorNotFound, tenantNotFound } from "../model/errors.js";
 import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
+import { toCompactDescriptor } from "../api/catalogApiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
@@ -284,9 +285,10 @@ export function purposeTemplateServiceBuilder(
               }));
             producersById.set(eservice.producerId, producer);
 
-            return toBffEServiceDescriptorsPurposeTemplate(
+            return toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor(
               eserviceDescriptor,
-              toCompactPurposeTemplateEService(eservice, descriptor, producer)
+              toCompactPurposeTemplateEService(eservice, producer),
+              toCompactDescriptor(descriptor)
             );
           }
         )

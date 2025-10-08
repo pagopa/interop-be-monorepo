@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { bffApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { authRole } from "pagopa-interop-commons";
-import { getMockBffApiEServiceDescriptorPurposeTemplateWithCompactPurposeTemplateEService } from "../../mockUtils.js";
+import { getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor } from "../../mockUtils.js";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
@@ -17,15 +17,15 @@ import {
 describe("API GET /purposeTemplates/:purposeTemplateId/eservices", () => {
   const mockPurposeTemplateId = generateId<PurposeTemplateId>();
   const purposeTemplateEServiceDescriptor1 =
-    getMockBffApiEServiceDescriptorPurposeTemplateWithCompactPurposeTemplateEService(
+    getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor(
       mockPurposeTemplateId
     );
   const purposeTemplateEServiceDescriptor2 =
-    getMockBffApiEServiceDescriptorPurposeTemplateWithCompactPurposeTemplateEService(
+    getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor(
       mockPurposeTemplateId
     );
   const purposeTemplateEServiceDescriptor3 =
-    getMockBffApiEServiceDescriptorPurposeTemplateWithCompactPurposeTemplateEService(
+    getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor(
       mockPurposeTemplateId
     );
 
