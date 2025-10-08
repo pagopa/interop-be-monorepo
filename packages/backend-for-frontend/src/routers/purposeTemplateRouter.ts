@@ -16,6 +16,7 @@ import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   getPurposeTemplateErrorMapper,
+  getPurposeTemplateEServiceDescriptorsErrorMapper,
   linkEServiceToPurposeTemplateErrorMapper,
   unlinkEServicesFromPurposeTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -132,6 +133,32 @@ const purposeTemplateRouter = (
         }
       }
     )
+    .get("/purposeTemplates/:purposeTemplateId/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const { producerIds, eserviceIds, offset, limit } = req.query;
+        const response =
+          await purposeTemplateService.getPurposeTemplateEServiceDescriptors({
+            purposeTemplateId: req.params.purposeTemplateId,
+            producerIds,
+            eserviceIds,
+            offset,
+            limit,
+            ctx,
+          });
+        return res
+          .status(200)
+          .send(bffApi.EServiceDescriptorsPurposeTemplate.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateEServiceDescriptorsErrorMapper,
+          ctx,
+          "Error retrieving purpose template e-services"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/purposeTemplates/:purposeTemplateId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 

@@ -1,0 +1,28 @@
+meta {
+  name: Update published eservice template version quotas
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/versions/:versionId/quotas
+  body: json
+  auth: none
+}
+
+params:path {
+  templateId: {{templateId}}
+  versionId: {{versionId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+    {
+      "voucherLifespan": 86400,
+      "dailyCallsPerConsumer": 100,
+      "dailyCallsTotal": 200
+  }
+}

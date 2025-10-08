@@ -42,6 +42,7 @@ import {
 } from "../model/domain/toEvent.js";
 import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisDocUtils.js";
 import {
+  GetPurposeTemplateEServiceDescriptorsFilters,
   GetPurposeTemplatesFilters,
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
@@ -222,6 +223,31 @@ export function purposeTemplateServiceBuilder(
       }
 
       return annotationDocument;
+    },
+    async getPurposeTemplateEServiceDescriptors(
+      filters: GetPurposeTemplateEServiceDescriptorsFilters,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
+      const { purposeTemplateId } = filters;
+
+      logger.info(
+        `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with filters: ${JSON.stringify(
+          filters
+        )}`
+      );
+
+      await retrievePurposeTemplate(purposeTemplateId, readModelService);
+
+      return await readModelService.getPurposeTemplateEServiceDescriptors(
+        filters,
+        {
+          offset,
+          limit,
+        }
+      );
     },
     async linkEservicesToPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
