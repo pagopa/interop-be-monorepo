@@ -10,11 +10,15 @@ import {
   UserNotificationConfig,
   UserNotificationConfigCreatedV2,
   UserNotificationConfigDeletedV2,
+  UserNotificationConfigRoleAddedV2,
+  UserNotificationConfigRoleRemovedV2,
   UserNotificationConfigUpdatedV2,
   emailNotificationPreference,
   generateId,
   toTenantNotificationConfigV2,
   toUserNotificationConfigV2,
+  toUserRoleV2,
+  userRole,
 } from "pagopa-interop-models";
 import {
   getMockTenantNotificationConfig,
@@ -139,6 +143,7 @@ describe("database test", async () => {
         tenantId: generateId(),
         inAppNotificationPreference: true,
         emailNotificationPreference: emailNotificationPreference.enabled,
+        userRoles: [userRole.ADMIN_ROLE],
         inAppConfig: {
           agreementSuspendedUnsuspendedToProducer: false,
           agreementManagementToProducer: false,
@@ -246,6 +251,192 @@ describe("database test", async () => {
         stream_id: userNotificationConfig.id,
         version: 2,
         type: "UserNotificationConfigUpdated",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, notificationConfigReadModelWriteService);
+
+      const retrievedConfig =
+        await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+          userNotificationConfig.userId,
+          userNotificationConfig.tenantId
+        );
+
+      expect(retrievedConfig).toStrictEqual({
+        data: updatedUserNotificationConfig,
+        metadata: { version: 2 },
+      });
+    });
+
+    it("UserNotificationConfigRoleAdded", async () => {
+      const userNotificationConfig: UserNotificationConfig = {
+        id: generateId(),
+        userId: generateId(),
+        tenantId: generateId(),
+        inAppNotificationPreference: true,
+        emailNotificationPreference: emailNotificationPreference.enabled,
+        userRoles: [userRole.API_ROLE],
+        inAppConfig: {
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementManagementToProducer: false,
+          clientAddedRemovedToProducer: false,
+          purposeStatusChangedToProducer: false,
+          templateStatusChangedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
+          eserviceStateChangedToConsumer: false,
+          agreementActivatedRejectedToConsumer: false,
+          purposeActivatedRejectedToConsumer: false,
+          purposeSuspendedUnsuspendedToConsumer: false,
+          newEserviceTemplateVersionToInstantiator: false,
+          eserviceTemplateNameChangedToInstantiator: false,
+          eserviceTemplateStatusChangedToInstantiator: false,
+          delegationApprovedRejectedToDelegator: false,
+          eserviceNewVersionSubmittedToDelegator: false,
+          eserviceNewVersionApprovedRejectedToDelegate: false,
+          delegationSubmittedRevokedToDelegate: false,
+          certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
+          clientKeyAddedDeletedToClientUsers: false,
+        },
+        emailConfig: {
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementManagementToProducer: false,
+          clientAddedRemovedToProducer: false,
+          purposeStatusChangedToProducer: false,
+          templateStatusChangedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
+          eserviceStateChangedToConsumer: false,
+          agreementActivatedRejectedToConsumer: false,
+          purposeActivatedRejectedToConsumer: false,
+          purposeSuspendedUnsuspendedToConsumer: false,
+          newEserviceTemplateVersionToInstantiator: false,
+          eserviceTemplateNameChangedToInstantiator: false,
+          eserviceTemplateStatusChangedToInstantiator: false,
+          delegationApprovedRejectedToDelegator: false,
+          eserviceNewVersionSubmittedToDelegator: false,
+          eserviceNewVersionApprovedRejectedToDelegate: false,
+          delegationSubmittedRevokedToDelegate: false,
+          certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
+          clientKeyAddedDeletedToClientUsers: false,
+        },
+        createdAt: generateMock(z.coerce.date()),
+        updatedAt: generateMock(z.coerce.date().optional()),
+      };
+      await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
+        userNotificationConfig,
+        1
+      );
+
+      const updatedUserNotificationConfig: UserNotificationConfig = {
+        ...userNotificationConfig,
+        userRoles: [userRole.API_ROLE, userRole.SECURITY_ROLE],
+      };
+
+      const payload: UserNotificationConfigRoleAddedV2 = {
+        userNotificationConfig: toUserNotificationConfigV2(
+          updatedUserNotificationConfig
+        ),
+        userRole: toUserRoleV2(userRole.SECURITY_ROLE),
+      };
+
+      const message: NotificationConfigEventEnvelope = {
+        sequence_num: 1,
+        stream_id: userNotificationConfig.id,
+        version: 2,
+        type: "UserNotificationConfigRoleAdded",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, notificationConfigReadModelWriteService);
+
+      const retrievedConfig =
+        await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+          userNotificationConfig.userId,
+          userNotificationConfig.tenantId
+        );
+
+      expect(retrievedConfig).toStrictEqual({
+        data: updatedUserNotificationConfig,
+        metadata: { version: 2 },
+      });
+    });
+
+    it("UserNotificationConfigRoleRemoved", async () => {
+      const userNotificationConfig: UserNotificationConfig = {
+        id: generateId(),
+        userId: generateId(),
+        tenantId: generateId(),
+        inAppNotificationPreference: true,
+        emailNotificationPreference: emailNotificationPreference.enabled,
+        userRoles: [userRole.API_ROLE, userRole.SECURITY_ROLE],
+        inAppConfig: {
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementManagementToProducer: false,
+          clientAddedRemovedToProducer: false,
+          purposeStatusChangedToProducer: false,
+          templateStatusChangedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
+          eserviceStateChangedToConsumer: false,
+          agreementActivatedRejectedToConsumer: false,
+          purposeActivatedRejectedToConsumer: false,
+          purposeSuspendedUnsuspendedToConsumer: false,
+          newEserviceTemplateVersionToInstantiator: false,
+          eserviceTemplateNameChangedToInstantiator: false,
+          eserviceTemplateStatusChangedToInstantiator: false,
+          delegationApprovedRejectedToDelegator: false,
+          eserviceNewVersionSubmittedToDelegator: false,
+          eserviceNewVersionApprovedRejectedToDelegate: false,
+          delegationSubmittedRevokedToDelegate: false,
+          certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
+          clientKeyAddedDeletedToClientUsers: false,
+        },
+        emailConfig: {
+          agreementSuspendedUnsuspendedToProducer: false,
+          agreementManagementToProducer: false,
+          clientAddedRemovedToProducer: false,
+          purposeStatusChangedToProducer: false,
+          templateStatusChangedToProducer: false,
+          agreementSuspendedUnsuspendedToConsumer: false,
+          eserviceStateChangedToConsumer: false,
+          agreementActivatedRejectedToConsumer: false,
+          purposeActivatedRejectedToConsumer: false,
+          purposeSuspendedUnsuspendedToConsumer: false,
+          newEserviceTemplateVersionToInstantiator: false,
+          eserviceTemplateNameChangedToInstantiator: false,
+          eserviceTemplateStatusChangedToInstantiator: false,
+          delegationApprovedRejectedToDelegator: false,
+          eserviceNewVersionSubmittedToDelegator: false,
+          eserviceNewVersionApprovedRejectedToDelegate: false,
+          delegationSubmittedRevokedToDelegate: false,
+          certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
+          clientKeyAddedDeletedToClientUsers: false,
+        },
+        createdAt: generateMock(z.coerce.date()),
+        updatedAt: generateMock(z.coerce.date().optional()),
+      };
+      await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
+        userNotificationConfig,
+        1
+      );
+
+      const updatedUserNotificationConfig: UserNotificationConfig = {
+        ...userNotificationConfig,
+        userRoles: [userRole.API_ROLE],
+      };
+
+      const payload: UserNotificationConfigRoleRemovedV2 = {
+        userNotificationConfig: toUserNotificationConfigV2(
+          updatedUserNotificationConfig
+        ),
+        userRole: toUserRoleV2(userRole.SECURITY_ROLE),
+      };
+
+      const message: NotificationConfigEventEnvelope = {
+        sequence_num: 1,
+        stream_id: userNotificationConfig.id,
+        version: 2,
+        type: "UserNotificationConfigRoleRemoved",
         event_version: 2,
         data: payload,
         log_date: new Date(),
