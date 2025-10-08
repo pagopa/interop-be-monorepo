@@ -1,0 +1,44 @@
+meta {
+  name: Create EService Template
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host-m2m-gw}}/eserviceTemplates
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "name": "{{randomName}}",
+    "intendedTarget": "This is the description of the intended template target",
+    "description": "This is the description of the EService",
+    "technology": "REST",
+    "mode": "DELIVER",
+    "version": {
+      "description": "Version description",
+      "voucherLifespan": 100,
+      "dailyCallsPerConsumer": 100,
+      "dailyCallsTotal": 1000,
+      "agreementApprovalPolicy": "AUTOMATIC"
+    },
+    "isSignalHubEnabled": false
+  }
+}
+
+vars:post-response {
+  templateId: res.body.id
+  versionId: res.body.versions[0].id
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+
+  bru.setVar("randomName",`test name ${random}`)
+}
