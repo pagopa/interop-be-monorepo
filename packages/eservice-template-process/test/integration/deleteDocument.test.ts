@@ -76,14 +76,15 @@ describe("delete Document", () => {
         await fileManager.listFiles(config.s3Bucket, genericLogger)
       ).toContain(document.path);
 
-      await eserviceTemplateService.deleteDocument(
-        eserviceTemplate.id,
-        eserviceTemplateVersion.id,
-        document.id,
-        getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-        })
-      );
+      const deleteDocumentResponse =
+        await eserviceTemplateService.deleteDocument(
+          eserviceTemplate.id,
+          eserviceTemplateVersion.id,
+          document.id,
+          getMockContext({
+            authData: getMockAuthData(eserviceTemplate.creatorId),
+          })
+        );
       const writtenEvent = await readLastEserviceTemplateEvent(
         eserviceTemplate.id
       );
@@ -96,7 +97,7 @@ describe("delete Document", () => {
         payload: writtenEvent.data,
       });
 
-      const expectedEserviceTemplate = toEServiceTemplateV2({
+      const expectedEserviceTemplate = {
         ...eserviceTemplate,
         versions: [
           {
@@ -104,13 +105,18 @@ describe("delete Document", () => {
             docs: [],
           },
         ],
-      });
+      };
 
       expect(writtenPayload.eserviceTemplateVersionId).toEqual(
         eserviceTemplateVersion.id
       );
       expect(writtenPayload.documentId).toEqual(document.id);
-      expect(writtenPayload.eserviceTemplate).toEqual(expectedEserviceTemplate);
+
+      expect(writtenPayload).toEqual({
+        eserviceTemplateVersionId: eserviceTemplateVersion.id,
+        documentId: document.id,
+        eserviceTemplate: toEServiceTemplateV2(expectedEserviceTemplate),
+      });
 
       expect(fileManager.delete).toHaveBeenCalledWith(
         config.s3Bucket,
@@ -120,6 +126,13 @@ describe("delete Document", () => {
       expect(
         await fileManager.listFiles(config.s3Bucket, genericLogger)
       ).not.toContain(document.path);
+
+      expect(deleteDocumentResponse).toEqual({
+        data: expectedEserviceTemplate,
+        metadata: {
+          version: 1,
+        },
+      });
     }
   );
 
@@ -156,7 +169,7 @@ describe("delete Document", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
 
-    await eserviceTemplateService.deleteDocument(
+    const deleteDocumentResponse = await eserviceTemplateService.deleteDocument(
       eserviceTemplate.id,
       eserviceTemplateVersion.id,
       interfaceDocument.id,
@@ -176,7 +189,7 @@ describe("delete Document", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEserviceTemplate = toEServiceTemplateV2({
+    const expectedEserviceTemplate = {
       ...eserviceTemplate,
       versions: [
         {
@@ -184,13 +197,17 @@ describe("delete Document", () => {
           interface: undefined,
         },
       ],
-    });
+    };
 
     expect(writtenPayload.eserviceTemplateVersionId).toEqual(
       eserviceTemplateVersion.id
     );
     expect(writtenPayload.documentId).toEqual(interfaceDocument.id);
-    expect(writtenPayload.eserviceTemplate).toEqual(expectedEserviceTemplate);
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: eserviceTemplateVersion.id,
+      documentId: interfaceDocument.id,
+      eserviceTemplate: toEServiceTemplateV2(expectedEserviceTemplate),
+    });
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -200,6 +217,13 @@ describe("delete Document", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(interfaceDocument.path);
+
+    expect(deleteDocumentResponse).toEqual({
+      data: expectedEserviceTemplate,
+      metadata: {
+        version: 1,
+      },
+    });
   });
 
   it("should throw eserviceTemplateNotFound if the eservice doesn't exist", async () => {

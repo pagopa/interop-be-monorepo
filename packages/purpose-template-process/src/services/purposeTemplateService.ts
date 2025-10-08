@@ -37,6 +37,7 @@ import {
 } from "../model/domain/toEvent.js";
 import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisDocUtils.js";
 import {
+  GetPurposeTemplateEServiceDescriptorsFilters,
   GetPurposeTemplatesFilters,
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
@@ -46,6 +47,7 @@ import {
   assertPurposeTemplateIsDraft,
   assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
+  assertRequesterCanRetrievePurposeTemplate,
   assertRequesterIsCreator,
   validateAndTransformRiskAnalysisTemplate,
   validateEservicesAssociations,
@@ -163,13 +165,50 @@ export function purposeTemplateServiceBuilder(
       });
     },
     async getPurposeTemplateById(
-      id: PurposeTemplateId,
+      purposeTemplateId: PurposeTemplateId,
       {
+        authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeTemplate>> {
-      logger.info(`Retrieving purpose template ${id}`);
-      return retrievePurposeTemplate(id, readModelService);
+      logger.info(`Retrieving purpose template ${purposeTemplateId}`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      await assertRequesterCanRetrievePurposeTemplate(
+        purposeTemplate.data,
+        authData
+      );
+
+      return purposeTemplate;
+    },
+    async getPurposeTemplateEServiceDescriptors(
+      filters: GetPurposeTemplateEServiceDescriptorsFilters,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
+      const { purposeTemplateId } = filters;
+
+      logger.info(
+        `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with filters: ${JSON.stringify(
+          filters
+        )}`
+      );
+
+      await retrievePurposeTemplate(purposeTemplateId, readModelService);
+
+      return await readModelService.getPurposeTemplateEServiceDescriptors(
+        filters,
+        {
+          offset,
+          limit,
+        }
+      );
     },
     async linkEservicesToPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
@@ -381,7 +420,6 @@ export function purposeTemplateServiceBuilder(
     },
   };
 }
-
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;
