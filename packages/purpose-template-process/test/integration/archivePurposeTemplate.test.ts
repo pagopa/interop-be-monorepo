@@ -28,6 +28,7 @@ import {
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
 import {
+  purposeTemplateNotInExpectedStates,
   purposeTemplateStateConflict,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -143,24 +144,38 @@ describe("archivePurposeTemplate", () => {
     }).rejects.toThrowError(tenantNotAllowed(otherTenantId));
   });
 
-  it(`should throw purposeTemplateStateConflict if the purpose template is archived`, async () => {
-    const purposeTemplateWithUnexpectedState: PurposeTemplate = {
-      ...purposeTemplate,
+  it.each([
+    {
+      error: purposeTemplateStateConflict(
+        purposeTemplate.id,
+        purposeTemplateState.archived
+      ),
       state: purposeTemplateState.archived,
-    };
+    },
+    {
+      error: purposeTemplateNotInExpectedStates(
+        purposeTemplate.id,
+        purposeTemplateState.draft,
+        archivableInitialStates
+      ),
+      state: purposeTemplateState.draft,
+    },
+  ])(
+    `should throw $error.code if the purpose template is in $state state`,
+    async ({ error, state }) => {
+      const purposeTemplateWithUnexpectedState: PurposeTemplate = {
+        ...purposeTemplate,
+        state,
+      };
 
-    await addOnePurposeTemplate(purposeTemplateWithUnexpectedState);
+      await addOnePurposeTemplate(purposeTemplateWithUnexpectedState);
 
-    await expect(async () => {
-      await purposeTemplateService.archivePurposeTemplate(
-        purposeTemplateWithUnexpectedState.id,
-        getMockContext({ authData: getMockAuthData(creatorId) })
-      );
-    }).rejects.toThrowError(
-      purposeTemplateStateConflict(
-        purposeTemplateWithUnexpectedState.id,
-        purposeTemplateWithUnexpectedState.state
-      )
-    );
-  });
+      await expect(async () => {
+        await purposeTemplateService.archivePurposeTemplate(
+          purposeTemplateWithUnexpectedState.id,
+          getMockContext({ authData: getMockAuthData(creatorId) })
+        );
+      }).rejects.toThrowError(error);
+    }
+  );
 });

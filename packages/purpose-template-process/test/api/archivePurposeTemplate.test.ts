@@ -17,6 +17,7 @@ import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiC
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   purposeTemplateNotFound,
+  purposeTemplateNotInExpectedStates,
   purposeTemplateStateConflict,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -71,6 +72,14 @@ describe("API POST /purposeTemplates/{id}/archive", () => {
   });
 
   it.each([
+    {
+      error: purposeTemplateNotInExpectedStates(
+        purposeTemplate.id,
+        purposeTemplateState.draft,
+        [purposeTemplateState.archived]
+      ),
+      expectedStatus: 400,
+    },
     { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
     {
       error: purposeTemplateNotFound(generateId()),
@@ -95,7 +104,7 @@ describe("API POST /purposeTemplates/{id}/archive", () => {
     }
   );
 
-  it("Should return 400 if passed invalid data: %s", async () => {
+  it("Should return 400 if an invalid purpose template id is passed", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as PurposeTemplateId);
     expect(res.status).toBe(400);
