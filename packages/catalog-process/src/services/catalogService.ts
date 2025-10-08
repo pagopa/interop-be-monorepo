@@ -3330,7 +3330,7 @@ export function catalogServiceBuilder(
       );
 
       if (
-        config.featureFlagEservicePersonalData &&
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
         template.personalData === undefined
       ) {
         throw eServiceTemplateWithoutPersonalDataFlag(
