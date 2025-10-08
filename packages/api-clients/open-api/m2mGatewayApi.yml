@@ -3619,7 +3619,7 @@ paths:
             maximum: 50
         - in: query
           name: eservicesIds
-          description: Filter purposes by E-Service IDs. If not specified, return purposes for any E-Service
+          description: Filter Purposes by E-Service IDs. If not specified, return Purposes for any E-Service
           schema:
             type: array
             items:
@@ -3630,7 +3630,11 @@ paths:
           required: false
         - in: query
           name: states
-          description: Filter Versions by state. If not specified, return Versions in any state
+          description: >
+            Filter Purposes by states. If not specified, return Purposes for any state.
+            If "ARCHIVED" is included in the filter, only Purposes where all
+            their versions are in the "ARCHIVED" state will be returned,
+            excluding those that have versions in other states.
           schema:
             type: array
             items:
