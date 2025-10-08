@@ -2,21 +2,11 @@
 import {
   getMockCompleteRiskAnalysisFormTemplate,
   getMockPurposeTemplate,
-  getMockRiskAnalysisTemplateAnswerAnnotation,
-  getMockRiskAnalysisTemplateAnswerAnnotationDocument,
-  getMockValidRiskAnalysisFormTemplate,
   setupTestContainersVitest,
 } from "pagopa-interop-commons-test";
 import { inject, afterEach, expect } from "vitest";
 import { purposeTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
-import {
-  PurposeTemplate,
-  PurposeTemplateId,
-  RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisTemplateSingleAnswer,
-  tenantKind,
-} from "pagopa-interop-models";
+import { PurposeTemplate, PurposeTemplateId } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
   purposeTemplateInReadmodelPurposeTemplate,
