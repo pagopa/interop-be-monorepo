@@ -58,6 +58,8 @@ export async function handleEserviceStateChangedToConsumer(
 
   const eservice = fromEServiceV2(eserviceV2Msg.data.eservice);
 
+  const producer = await retrieveTenant(eservice.producerId, readModelService);
+
   const agreements = await readModelService.getAgreementsByEserviceId(
     eservice.id
   );
@@ -79,7 +81,8 @@ export async function handleEserviceStateChangedToConsumer(
 
   const { body, descriptorId: descriptorIdFromEvent } = getBodyAndDescriptorId(
     eserviceV2Msg,
-    eservice
+    eservice,
+    producer.name
   );
 
   const descriptorId = descriptorIdFromEvent
@@ -118,7 +121,8 @@ function getDocumentName(
 
 function getBodyAndDescriptorId(
   msg: EServiceStateChangedEvent,
-  eservice: EService
+  eservice: EService,
+  producerName: string
 ): {
   body: string;
   descriptorId?: string | undefined;
@@ -166,7 +170,9 @@ function getBodyAndDescriptorId(
       { type: "EServiceDescriptorPublished" },
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorPublishedToConsumer(
-          eservice.name
+          eservice.name,
+          eservice.descriptors.find((d) => d.id === descriptorId)?.version,
+          producerName
         ),
         descriptorId,
       })
@@ -175,7 +181,8 @@ function getBodyAndDescriptorId(
       { type: "EServiceDescriptorSuspended" },
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorSuspendedToConsumer(
-          eservice.name
+          eservice.name,
+          producerName
         ),
         descriptorId,
       })
@@ -184,7 +191,8 @@ function getBodyAndDescriptorId(
       { type: "EServiceDescriptorActivated" },
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorActivatedToConsumer(
-          eservice.name
+          eservice.name,
+          producerName
         ),
         descriptorId,
       })

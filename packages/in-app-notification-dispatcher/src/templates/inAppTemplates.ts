@@ -15,49 +15,74 @@ export const inAppTemplates = {
     } è stato rinominato in ${
       eservice.name
     } dall'ente erogatore. La tua richiesta di fruizione rimane attiva e non sono richieste azioni da parte tua.`,
-  eserviceDescriptionUpdatedToConsumer: (eserviceName: string): string =>
-    `La descrizione dell'e-service <strong>${eserviceName}</strong> è stata aggiornata.`,
+  eserviceDescriptionUpdatedToConsumer: (
+    eserviceName: string,
+    producerName: string
+  ): string =>
+    `L'ente erogatore <strong>${producerName}</strong> ha aggiornato la descrizione dell'e-service <strong>${eserviceName}</strong>.`,
   eserviceDescriptorAttributesUpdatedToConsumer: (
-    eserviceName: string
+    eserviceName: string,
+    producerName: string
   ): string =>
-    `Gli attributi dell'e-service <strong>${eserviceName}</strong> sono stati aggiornati.`,
-  eserviceDescriptorPublishedToConsumer: (eserviceName: string): string =>
-    `L'e-service <strong>${eserviceName}</strong> è stata pubblicata una nuova versione. Pertanto, ti consigliamo di procedere all'aggiornamento dell'e-service alla versione più recente.`,
-  eserviceDescriptorSuspendedToConsumer: (eserviceName: string): string =>
-    `L'e-service <strong>${eserviceName}</strong> è stata sospeso.`,
-  eserviceDescriptorActivatedToConsumer: (eserviceName: string): string =>
-    `L'e-service <strong>${eserviceName}</strong> è stato riattivato.`,
-  eserviceDescriptorQuotasUpdatedToConsumer: (eserviceName: string): string =>
-    `Le quote dell'e-service <strong>${eserviceName}</strong> sono state aggiornate.`,
+    `L'ente erogatore <strong>${producerName}</strong> ha aggiornato gli attributi dell'e-service <strong>${eserviceName}</strong>.`,
+  eserviceDescriptorPublishedToConsumer: (
+    eserviceName: string,
+    version: string | undefined,
+    producerName: string
+  ): string =>
+    `L'ente erogatore <strong>${producerName}</strong> ha pubblicato una nuova versione ${
+      version ?? ""
+    } per l'e-service <strong>${eserviceName}</strong>.`,
+  eserviceDescriptorSuspendedToConsumer: (
+    eserviceName: string,
+    producerName: string
+  ): string =>
+    `L'ente erogatore <strong>${producerName}</strong> ha sospeso l'e-service <strong>${eserviceName}</strong>.`,
+  eserviceDescriptorActivatedToConsumer: (
+    eserviceName: string,
+    producerName: string
+  ): string =>
+    `L'ente erogatore <strong>${producerName}</strong> ha riattivato l'e-service <strong>${eserviceName}</strong>.`,
+  eserviceDescriptorQuotasUpdatedToConsumer: (
+    eserviceName: string,
+    producerName: string
+  ): string =>
+    `L'ente erogatore <strong>${producerName}</strong> ha aggiornato le quote dell'e-service <strong>${eserviceName}</strong>.`,
   eserviceDescriptorAgreementApprovalPolicyUpdatedToConsumer: (
-    eserviceName: string
+    eserviceName: string,
+    producerName: string
   ): string =>
-    `La politica di approvazione dell'e-service <strong>${eserviceName}</strong> è stata aggiornata.`,
+    `L'ente erogatore <strong>${producerName}</strong> ha aggiornato la politica di approvazione dell'e-service <strong>${eserviceName}</strong>.`,
   eserviceDescriptorInterfaceAddedToConsumer: (
     eserviceName: string,
-    interfaceName = ""
+    interfaceName = "",
+    producerName: string
   ): string =>
-    `L'interfaccia <strong>${interfaceName}</strong> dell'e-service <strong>${eserviceName}</strong> è stata aggiunta.`,
+    `L'ente erogatore <strong>${producerName}</strong> ha aggiunto l'interfaccia <strong>${interfaceName}</strong> dell'e-service <strong>${eserviceName}</strong>.`,
   eserviceDescriptorDocumentAddedToConsumer: (
     eserviceName: string,
-    documentName = ""
+    documentName = "",
+    producerName: string
   ): string =>
-    `Il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong> è stato aggiunto.`,
+    `L'ente erogatore <strong>${producerName}</strong> ha aggiunto il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong>.`,
   eserviceDescriptorInterfaceUpdatedToConsumer: (
     eserviceName: string,
-    interfaceName = ""
+    interfaceName = "",
+    producerName: string
   ): string =>
-    `L'interfaccia <strong>${interfaceName}</strong> dell'e-service <strong>${eserviceName}</strong> è stata aggiornata.`,
+    `L'ente erogatore <strong>${producerName}</strong> ha aggiornato l'interfaccia <strong>${interfaceName}</strong> dell'e-service <strong>${eserviceName}</strong>.`,
   eserviceDescriptorDocumentUpdatedToConsumer: (
     eserviceName: string,
-    documentName = ""
+    documentName = "",
+    producerName: string
   ): string =>
-    `Il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong> è stato aggiornato.`,
+    `L'ente erogatore <strong>${producerName}</strong> ha aggiornato il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong>.`,
   eserviceDescriptorDocumentDeletedToConsumer: (
     eserviceName: string,
-    documentName = ""
+    documentName = "",
+    producerName: string
   ): string =>
-    `Il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong> è stato rimosso.`,
+    `L'ente erogatore <strong>${producerName}</strong> ha rimosso il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong>.`,
   agreementSuspendedUnsuspended: (
     action: "sospeso" | "riattivato" | "archiviato",
     subjectName: string,
