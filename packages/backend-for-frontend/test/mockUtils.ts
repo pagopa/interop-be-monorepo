@@ -19,6 +19,7 @@ import {
   generateId,
   PurposeId,
   PurposeVersionId,
+  PurposeTemplateId,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
@@ -1034,3 +1035,51 @@ export const toBffCompactEServiceLight = (
   id: compactEService.id,
   name: compactEService.name,
 });
+
+export const getMockBffApiCreatorPurposeTemplate =
+  (): bffApi.CreatorPurposeTemplate => ({
+    id: generateId(),
+    targetTenantKind: generateMock(bffApi.TenantKind),
+    purposeTitle: generateMock(z.string()),
+    state: generateMock(bffApi.PurposeTemplateState),
+  });
+
+export const getMockBffApiCatalogPurposeTemplate =
+  (): bffApi.CatalogPurposeTemplate => ({
+    id: generateId(),
+    targetTenantKind: generateMock(bffApi.TenantKind),
+    purposeTitle: generateMock(z.string()),
+    purposeDescription: generateMock(z.string()),
+    creator: generateMock(bffApi.CompactOrganization),
+  });
+
+export const getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor =
+  (
+    purposeTemplateId: PurposeTemplateId = generateId()
+  ): bffApi.EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor => ({
+    purposeTemplateId,
+    createdAt: generateMock(z.string().datetime({ offset: true })),
+    eservice: generateMock(bffApi.CompactPurposeTemplateEService),
+    descriptor: generateMock(bffApi.CompactDescriptor),
+  });
+
+export const getMockBffApiPurposeTemplateWithCompactCreator =
+  (): bffApi.PurposeTemplateWithCompactCreator & {
+    id: PurposeTemplateId;
+  } => ({
+    id: generateId(),
+    targetDescription:
+      "This is a valid target description that meets the minimum length requirement",
+    targetTenantKind: "PA" as bffApi.TenantKind,
+    creator: generateMock(bffApi.CompactOrganization),
+    state: generateMock(bffApi.PurposeTemplateState),
+    createdAt: new Date().toISOString(),
+    purposeTitle: "Valid Purpose Title",
+    purposeDescription:
+      "This is a valid purpose description that meets the minimum length requirement",
+    purposeRiskAnalysisForm: generateMock(bffApi.RiskAnalysisFormTemplate),
+    purposeIsFreeOfCharge: false,
+    annotationDocuments: generateMock(
+      z.array(bffApi.RiskAnalysisTemplateAnswerAnnotationDocument)
+    ),
+  });

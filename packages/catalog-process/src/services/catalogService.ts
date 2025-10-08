@@ -153,7 +153,6 @@ import {
   getLatestDescriptor,
   nextDescriptorVersion,
 } from "../utilities/versionGenerator.js";
-import { ReadModelService } from "./readModelService.js";
 import {
   assertDocumentDeletableDescriptorState,
   assertEServiceNotTemplateInstance,
@@ -178,10 +177,11 @@ import {
   hasRoleToAccessInactiveDescriptors,
   assertEServiceNameNotConflictingWithTemplate,
 } from "./validators.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<EService>> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (eservice === undefined) {
@@ -225,7 +225,7 @@ const retrieveDocument = (
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: Pick<ReadModelService, "getTenantById">
+  readModelService: Pick<ReadModelServiceSQL, "getTenantById">
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
@@ -268,7 +268,7 @@ const assertRequesterCanPublish = (
 
 const retrieveActiveProducerDelegation = async (
   eservice: EService,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Delegation | undefined> =>
   await readModelService.getLatestDelegation({
     eserviceId: eservice.id,
@@ -278,7 +278,7 @@ const retrieveActiveProducerDelegation = async (
 
 const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EServiceTemplate> => {
   const eserviceTemplate = await readModelService.getEServiceTemplateById(
     eserviceTemplateId
@@ -416,7 +416,7 @@ const replaceRiskAnalysis = (
 async function parseAndCheckAttributesOfKind(
   attributesSeedForKind: catalogApi.AttributeSeed[][],
   kind: AttributeKind,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EServiceAttribute[][]> {
   const parsedAttributesSeed = attributesSeedForKind.map((group) => {
     const groupAttributesIdsFound: Set<AttributeId> = new Set();
@@ -455,7 +455,7 @@ async function parseAndCheckAttributesOfKind(
 
 export async function parseAndCheckAttributes(
   attributesSeed: catalogApi.AttributesSeed,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EserviceAttributes> {
   const [certifiedAttributes, declaredAttributes, verifiedAttributes] =
     await Promise.all([
@@ -507,7 +507,7 @@ async function innerCreateEService(
         }
       | undefined;
   },
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   {
     authData,
     correlationId,
@@ -554,7 +554,7 @@ async function innerCreateEService(
       .with(true, () => seed.isClientAccessDelegable)
       .exhaustive(),
     templateId: template?.id,
-    ...(config.featureFlagEservicePersonalData
+    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: seed.personalData }
       : {}),
   };
@@ -756,7 +756,7 @@ function createNextDescriptor(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, catalogEventToBinaryData);
@@ -1633,7 +1633,7 @@ export function catalogServiceBuilder(
       }
 
       if (
-        config.featureFlagEservicePersonalData &&
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
         eservice.data.personalData === undefined
       ) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
@@ -2004,8 +2004,12 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.UpdateEServiceDescriptorQuotasSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -2041,16 +2045,20 @@ export function catalogServiceBuilder(
         updatedDescriptor
       );
 
-      const event = toCreateEventEServiceDescriptorQuotasUpdated(
-        eserviceId,
-        eservice.metadata.version,
-        descriptorId,
-        updatedEService,
-        correlationId
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorQuotasUpdated(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        )
       );
-      await repository.createEvent(event);
 
-      return updatedEService;
+      return {
+        data: updatedEService,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateTemplateInstanceDescriptor(
       eserviceId: EServiceId,
@@ -2630,8 +2638,12 @@ export function catalogServiceBuilder(
     async updateEServiceSignalHubFlag(
       eserviceId: EServiceId,
       isSignalHubEnabled: boolean,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Updating Signalhub flag for E-Service ${eserviceId} to ${isSignalHubEnabled}`
       );
@@ -2694,9 +2706,16 @@ export function catalogServiceBuilder(
         .exhaustive();
 
       if (event) {
-        await repository.createEvent(event);
+        const createdEvent = await repository.createEvent(event);
+
+        return {
+          data: updatedEservice,
+          metadata: {
+            version: createdEvent.newVersion,
+          },
+        };
       }
-      return updatedEservice;
+      return eservice;
     },
     async approveDelegatedEServiceDescriptor(
       eserviceId: EServiceId,
@@ -2722,7 +2741,7 @@ export function catalogServiceBuilder(
       }
 
       if (
-        config.featureFlagEservicePersonalData &&
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
         eservice.data.personalData === undefined
       ) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
@@ -3705,7 +3724,7 @@ async function createOpenApiInterfaceByTemplate(
 async function applyVisibilityToEService(
   eservice: EService,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EService> {
   if (authData.systemRole === authRole.INTERNAL_ROLE) {
     return eservice;
@@ -3768,7 +3787,7 @@ const deleteDescriptorInterfaceAndDocs = async (
 const processDescriptorPublication = async (
   eservice: EService,
   descriptor: Descriptor,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   logger: Logger
 ): Promise<EService> => {
   const currentActiveDescriptor = eservice.descriptors.find(
@@ -3905,7 +3924,7 @@ function evaluateTemplateVersionRef(
 async function extractEServiceRiskAnalysisFromTemplate(
   template: EServiceTemplate & { mode: typeof eserviceMode.receive },
   requester: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<RiskAnalysis[]> {
   const tenant = await retrieveTenant(requester, readModelService);
 
@@ -3951,12 +3970,10 @@ async function extractEServiceRiskAnalysisFromTemplate(
   return riskAnalysis;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 async function updateDraftEService(
   eserviceId: EServiceId,
-  {
-    seed,
-    type,
-  }:
+  typeAndSeed:
     | {
         type: "put";
         seed: catalogApi.UpdateEServiceSeed;
@@ -3965,7 +3982,7 @@ async function updateDraftEService(
         type: "patch";
         seed: catalogApi.PatchUpdateEServiceSeed;
       },
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   fileManager: FileManager,
   repository: ReturnType<typeof eventRepository<EServiceEvent>>,
   {
@@ -3993,11 +4010,7 @@ async function updateDraftEService(
     isSignalHubEnabled,
     isConsumerDelegable,
     isClientAccessDelegable,
-    personalData,
-    ...rest
-  } = seed;
-  void (rest satisfies Record<string, never>);
-  // ^ To make sure we extract all the updated fields
+  } = typeAndSeed.seed;
 
   if (name && name !== eservice.data.name) {
     await assertEServiceNameAvailableForProducer(
@@ -4036,12 +4049,12 @@ async function updateDraftEService(
   const checkedRiskAnalysis =
     updatedMode === eserviceMode.receive ? eservice.data.riskAnalysis : [];
 
-  const updatedIsSignalHubEnabled = match(type)
+  const updatedIsSignalHubEnabled = match(typeAndSeed.type)
     .with("put", () => isSignalHubEnabled)
     .with("patch", () => isSignalHubEnabled ?? eservice.data.isSignalHubEnabled)
     .exhaustive();
 
-  const updatedIsConsumerDelegable = match(type)
+  const updatedIsConsumerDelegable = match(typeAndSeed.type)
     .with("put", () => isConsumerDelegable)
     .with(
       "patch",
@@ -4049,7 +4062,7 @@ async function updateDraftEService(
     )
     .exhaustive();
 
-  const updatedIsClientAccessDelegable = match(type)
+  const updatedIsClientAccessDelegable = match(typeAndSeed.type)
     .with("put", () => isClientAccessDelegable)
     .with(
       "patch",
@@ -4057,9 +4070,14 @@ async function updateDraftEService(
     )
     .exhaustive();
 
-  const updatedPersonalData = match(type)
-    .with("put", () => personalData)
-    .with("patch", () => personalData ?? eservice.data.personalData)
+  const updatedPersonalData = match(typeAndSeed)
+    .with({ type: "put" }, ({ seed }) => seed.personalData)
+    .with(
+      { type: "patch" },
+      ({ seed }) =>
+        seed.personalData ??
+        (seed.personalData === null ? undefined : eservice.data.personalData)
+    )
     .exhaustive();
 
   const updatedEService: EService = {
@@ -4091,7 +4109,7 @@ async function updateDraftEService(
       .with(false, () => false)
       .with(true, () => updatedIsClientAccessDelegable)
       .exhaustive(),
-    ...(config.featureFlagEservicePersonalData
+    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: updatedPersonalData }
       : {}),
   };
@@ -4114,7 +4132,7 @@ async function updateDraftDescriptor(
   seed:
     | catalogApi.UpdateEServiceDescriptorSeed
     | catalogApi.PatchUpdateEServiceDescriptorSeed,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   repository: ReturnType<typeof eventRepository<EServiceEvent>>,
   {
     authData,

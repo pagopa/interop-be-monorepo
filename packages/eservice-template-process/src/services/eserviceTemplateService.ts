@@ -11,6 +11,8 @@ import {
   M2MAuthData,
   M2MAdminAuthData,
   riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
+  retrieveOriginFromAuthData,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -37,6 +39,9 @@ import {
   badRequestError,
   AttributeKind,
   attributeKind,
+  TenantId,
+  Tenant,
+  EServiceTemplateEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -49,6 +54,7 @@ import {
   instanceNameConflict,
   notValidEServiceTemplateVersionState,
   attributeDuplicatedInGroup,
+  tenantNotFound,
   missingPersonalDataFlag,
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
 } from "../model/domain/errors.js";
@@ -96,10 +102,7 @@ import {
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
-import {
-  GetEServiceTemplatesFilters,
-  ReadModelService,
-} from "./readModelService.js";
+import { GetEServiceTemplatesFilters } from "./readModelService.js";
 import {
   assertIsReceiveTemplate,
   assertIsDraftEServiceTemplate,
@@ -112,10 +115,11 @@ import {
   assertEServiceTemplateNameAvailable,
   assertRiskAnalysisIsValidForPublication,
 } from "./validators.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<EServiceTemplate>> => {
   const eserviceTemplate = await readModelService.getEServiceTemplateById(
     eserviceTemplateId
@@ -264,7 +268,7 @@ export function validateRiskAnalysisSchemaOrThrow(
 async function parseAndCheckAttributesOfKind(
   attributesSeedForKind: eserviceTemplateApi.AttributeSeed[][],
   kind: AttributeKind,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EServiceAttribute[][]> {
   const parsedAttributesSeed = attributesSeedForKind.map((group) => {
     const groupAttributesIdsFound: Set<AttributeId> = new Set();
@@ -303,7 +307,7 @@ async function parseAndCheckAttributesOfKind(
 
 export async function parseAndCheckAttributes(
   attributesSeed: eserviceTemplateApi.AttributesSeed,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EserviceAttributes> {
   const [certifiedAttributes, declaredAttributes, verifiedAttributes] =
     await Promise.all([
@@ -350,10 +354,21 @@ const retrieveDocument = (
   return document;
 };
 
+const retrieveTenant = async (
+  tenantId: TenantId,
+  readModelService: Pick<ReadModelServiceSQL, "getTenantById">
+): Promise<Tenant> => {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (tenant === undefined) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eserviceTemplateServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   fileManager: FileManager
 ) {
   const repository = eventRepository(
@@ -365,77 +380,43 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       seed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData>>
     ): Promise<EServiceTemplate> {
-      logger.info(
-        `Update draft e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
-      );
-
-      const eserviceTemplate = await retrieveEServiceTemplate(
+      const result = await updateDraftEServiceTemplateVersion(
         eserviceTemplateId,
-        readModelService
-      );
-
-      assertRequesterEServiceTemplateCreator(
-        eserviceTemplate.data.creatorId,
-        authData
-      );
-
-      const eserviceTemplateVersion = retrieveEServiceTemplateVersion(
         eserviceTemplateVersionId,
-        eserviceTemplate.data
+        { type: "post", seed },
+        readModelService,
+        repository,
+        ctx
       );
 
-      if (
-        eserviceTemplateVersion.state !== eserviceTemplateVersionState.draft
-      ) {
-        throw notValidEServiceTemplateVersionState(
-          eserviceTemplateVersionId,
-          eserviceTemplateVersion.state
-        );
-      }
-
-      assertConsistentDailyCalls(seed);
-
-      const parsedAttributes = await parseAndCheckAttributes(
-        seed.attributes,
-        readModelService
-      );
-
-      const updatedVersion: EServiceTemplateVersion = {
-        ...eserviceTemplateVersion,
-        agreementApprovalPolicy:
-          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.agreementApprovalPolicy
-          ),
-        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-        dailyCallsTotal: seed.dailyCallsTotal,
-        description: seed.description,
-        voucherLifespan: seed.voucherLifespan,
-        attributes: parsedAttributes,
-      };
-
-      const updatedEServiceTemplate = replaceEServiceTemplateVersion(
-        eserviceTemplate.data,
-        updatedVersion
-      );
-
-      const event = toCreateEventEServiceTemplateDraftVersionUpdated(
+      return result.data;
+    },
+    async patchUpdateDraftTemplateVersion(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      seed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed,
+      ctx: WithLogger<AppContext<M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
+      return await updateDraftEServiceTemplateVersion(
         eserviceTemplateId,
-        eserviceTemplate.metadata.version,
         eserviceTemplateVersionId,
-        updatedEServiceTemplate,
-        correlationId
+        { type: "patch", seed },
+        readModelService,
+        repository,
+        ctx
       );
-      await repository.createEvent(event);
-
-      return updatedEServiceTemplate;
     },
     async suspendEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Suspending e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
       );
@@ -474,7 +455,7 @@ export function eserviceTemplateServiceBuilder(
         updatedEServiceTemplateVersion
       );
 
-      const event = toCreateEventEServiceTemplateVersionSuspended(
+      const eventCreation = toCreateEventEServiceTemplateVersionSuspended(
         eserviceTemplateId,
         eserviceTemplate.metadata.version,
         eserviceTemplateVersionId,
@@ -482,14 +463,22 @@ export function eserviceTemplateServiceBuilder(
         correlationId
       );
 
-      await repository.createEvent(event);
+      const event = await repository.createEvent(eventCreation);
+      return {
+        data: updatedEServiceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async publishEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Publishing e-service template version ${eserviceTemplateVersionId} for EService ${eserviceTemplateId}`
       );
@@ -528,9 +517,8 @@ export function eserviceTemplateServiceBuilder(
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
         assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
       }
-
       if (
-        config.featureFlagEservicePersonalData &&
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
         eserviceTemplate.data.personalData === undefined
       ) {
         throw missingPersonalDataFlag(
@@ -558,7 +546,7 @@ export function eserviceTemplateServiceBuilder(
         ),
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateVersionPublished(
           eserviceTemplateId,
           eserviceTemplate.metadata.version,
@@ -567,13 +555,21 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         )
       );
+      return {
+        data: publishedTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async activateEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Activating e-service template version ${eserviceTemplateVersionId} for EService ${eserviceTemplateId}`
       );
@@ -612,7 +608,7 @@ export function eserviceTemplateServiceBuilder(
         updatedEServiceTemplateVersion
       );
 
-      const event = toCreateEventEServiceTemplateVersionActivated(
+      const eventCreation = toCreateEventEServiceTemplateVersionActivated(
         eserviceTemplateId,
         eserviceTemplate.metadata.version,
         eserviceTemplateVersionId,
@@ -620,14 +616,22 @@ export function eserviceTemplateServiceBuilder(
         correlationId
       );
 
-      await repository.createEvent(event);
+      const event = await repository.createEvent(eventCreation);
+      return {
+        data: updatedEServiceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async updateEServiceTemplateName(
       eserviceTemplateId: EServiceTemplateId,
       name: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(`Updating name of EService template ${eserviceTemplateId}`);
 
       const eserviceTemplate = await retrieveEServiceTemplate(
@@ -660,7 +664,7 @@ export function eserviceTemplateServiceBuilder(
         name,
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateNameUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
@@ -669,13 +673,20 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         )
       );
-      return updatedEserviceTemplate;
+      return {
+        data: updatedEserviceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateEServiceTemplateIntendedTarget(
       eserviceTemplateId: EServiceTemplateId,
       intendedTarget: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Updating intended target description of EService template ${eserviceTemplateId}`
       );
@@ -695,7 +706,7 @@ export function eserviceTemplateServiceBuilder(
         ...eserviceTemplate.data,
         intendedTarget,
       };
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateIntendedTargetUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
@@ -703,14 +714,21 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         )
       );
-      return updatedEserviceTemplate;
+      return {
+        data: updatedEserviceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async updateEServiceTemplateDescription(
       eserviceTemplateId: EServiceTemplateId,
       description: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Updating e-service description of EService template ${eserviceTemplateId}`
       );
@@ -730,7 +748,7 @@ export function eserviceTemplateServiceBuilder(
         ...eserviceTemplate.data,
         description,
       };
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateDescriptionUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
@@ -738,15 +756,22 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         )
       );
-      return updatedEserviceTemplate;
+      return {
+        data: updatedEserviceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async updateEServiceTemplateVersionQuotas(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       seed: eserviceTemplateApi.UpdateEServiceTemplateVersionQuotasSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Updating e-service template version quotas of EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`
       );
@@ -799,7 +824,7 @@ export function eserviceTemplateServiceBuilder(
           updatedEserviceTemplateVersion
         );
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventEServiceTemplateVersionQuotasUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
@@ -809,7 +834,10 @@ export function eserviceTemplateServiceBuilder(
         )
       );
 
-      return updatedEserviceTemplate;
+      return {
+        data: updatedEserviceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async getEServiceTemplateById(
       eserviceTemplateId: EServiceTemplateId,
@@ -817,20 +845,30 @@ export function eserviceTemplateServiceBuilder(
         authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<EServiceTemplate> {
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(`Retrieving EService template ${eserviceTemplateId}`);
 
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
         readModelService
       );
-      return applyVisibilityToEServiceTemplate(eserviceTemplate.data, authData);
+      return {
+        data: applyVisibilityToEServiceTemplate(
+          eserviceTemplate.data,
+          authData
+        ),
+        metadata: eserviceTemplate.metadata,
+      };
     },
     async deleteEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate> | undefined> {
       logger.info(
         `Deleting EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`
       );
@@ -878,6 +916,7 @@ export function eserviceTemplateServiceBuilder(
             correlationId
           )
         );
+        return undefined;
       } else {
         const updatedEserviceTemplate: EServiceTemplate = {
           ...eserviceTemplate.data,
@@ -886,7 +925,7 @@ export function eserviceTemplateServiceBuilder(
           ),
         };
 
-        await repository.createEvent(
+        const event = await repository.createEvent(
           toCreateEventEServiceTemplateDraftVersionDeleted(
             eserviceTemplate.data.id,
             eserviceTemplate.metadata.version,
@@ -895,13 +934,26 @@ export function eserviceTemplateServiceBuilder(
             correlationId
           )
         );
+        return {
+          data: updatedEserviceTemplate,
+          metadata: { version: event.newVersion },
+        };
       }
     },
     async createRiskAnalysis(
       id: EServiceTemplateId,
       createRiskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{
+        eserviceTemplate: EServiceTemplate;
+        createdRiskAnalysisId: RiskAnalysisId;
+      }>
+    > {
       logger.info(`Creating risk analysis for eServiceTemplateId: ${id}`);
 
       const template = await retrieveEServiceTemplate(id, readModelService);
@@ -936,21 +988,33 @@ export function eserviceTemplateServiceBuilder(
         riskAnalysis: [...template.data.riskAnalysis, newRiskAnalysis],
       };
 
-      const event = toCreateEventEServiceTemplateRiskAnalysisAdded(
-        template.data.id,
-        template.metadata.version,
-        generateId<RiskAnalysisId>(),
-        newTemplate,
-        correlationId
+      const event = await repository.createEvent(
+        toCreateEventEServiceTemplateRiskAnalysisAdded(
+          template.data.id,
+          template.metadata.version,
+          newRiskAnalysis.id,
+          newTemplate,
+          correlationId
+        )
       );
 
-      await repository.createEvent(event);
+      return {
+        data: {
+          eserviceTemplate: newTemplate,
+          createdRiskAnalysisId: newRiskAnalysis.id,
+        },
+        metadata: { version: event.newVersion },
+      };
     },
     async deleteRiskAnalysis(
       templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Deleting risk analysis with id: ${riskAnalysisId} from eServiceTemplate with id: ${templateId}`
       );
@@ -970,15 +1034,20 @@ export function eserviceTemplateServiceBuilder(
         ),
       };
 
-      const event = toCreateEventEServiceTemplateRiskAnalysisDeleted(
-        template.data.id,
-        template.metadata.version,
-        riskAnalysisId,
-        newTemplate,
-        correlationId
+      const event = await repository.createEvent(
+        toCreateEventEServiceTemplateRiskAnalysisDeleted(
+          template.data.id,
+          template.metadata.version,
+          riskAnalysisId,
+          newTemplate,
+          correlationId
+        )
       );
 
-      await repository.createEvent(event);
+      return {
+        data: newTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateRiskAnalysis(
       templateId: EServiceTemplateId,
@@ -1183,8 +1252,12 @@ export function eserviceTemplateServiceBuilder(
     },
     async createEServiceTemplate(
       seed: eserviceTemplateApi.EServiceTemplateSeed,
-      { logger, authData, correlationId }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        logger,
+        authData,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(`Creating EService template with name ${seed.name}`);
 
       if (seed.mode === eserviceTemplateApi.EServiceMode.Values.RECEIVE) {
@@ -1193,8 +1266,14 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
-      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
-        throw originNotCompliant(authData.externalId.origin);
+      const origin = await retrieveOriginFromAuthData(
+        authData,
+        readModelService,
+        retrieveTenant
+      );
+
+      if (!config.producerAllowedOrigins.includes(origin)) {
+        throw originNotCompliant(origin);
       }
 
       await assertEServiceTemplateNameAvailable(seed.name, readModelService);
@@ -1212,10 +1291,11 @@ export function eserviceTemplateServiceBuilder(
         voucherLifespan: seed.version.voucherLifespan,
         dailyCallsPerConsumer: seed.version.dailyCallsPerConsumer,
         dailyCallsTotal: seed.version.dailyCallsTotal,
-        agreementApprovalPolicy:
-          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.version.agreementApprovalPolicy
-          ),
+        agreementApprovalPolicy: seed.version.agreementApprovalPolicy
+          ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+              seed.version.agreementApprovalPolicy
+            )
+          : undefined,
         publishedAt: undefined,
         suspendedAt: undefined,
         deprecatedAt: undefined,
@@ -1223,7 +1303,7 @@ export function eserviceTemplateServiceBuilder(
         attributes: { certified: [], declared: [], verified: [] },
       };
 
-      const newEServiceTemplate: EServiceTemplate = {
+      const eserviceTemplate: EServiceTemplate = {
         id: generateId(),
         creatorId: authData.organizationId,
         name: seed.name,
@@ -1241,98 +1321,47 @@ export function eserviceTemplateServiceBuilder(
       };
 
       const eserviceTemplateCreationEvent = toCreateEventEServiceTemplateAdded(
-        newEServiceTemplate,
+        eserviceTemplate,
         correlationId
       );
 
-      await repository.createEvent(eserviceTemplateCreationEvent);
+      const event = await repository.createEvent(eserviceTemplateCreationEvent);
 
-      return newEServiceTemplate;
+      return {
+        data: eserviceTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateEServiceTemplate(
-      eserviceTemplateId: EServiceTemplateId,
+      templateId: EServiceTemplateId,
       eserviceTemplateSeed: eserviceTemplateApi.UpdateEServiceTemplateSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
-      logger.info(`Updating EService template ${eserviceTemplateId}`);
-
-      const eserviceTemplate = await retrieveEServiceTemplate(
-        eserviceTemplateId,
-        readModelService
+      ctx: WithLogger<AppContext<UIAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
+      ctx.logger.info(`Updating EService Template ${templateId}`);
+      return updateDraftEServiceTemplate(
+        templateId,
+        { type: "post", seed: eserviceTemplateSeed },
+        readModelService,
+        fileManager,
+        repository,
+        ctx
       );
+    },
 
-      assertRequesterEServiceTemplateCreator(
-        eserviceTemplate.data.creatorId,
-        authData
+    async patchUpdateEServiceTemplate(
+      templateId: EServiceTemplateId,
+      eserviceTemplateSeed: eserviceTemplateApi.PatchUpdateEServiceTemplateSeed,
+      ctx: WithLogger<AppContext<M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
+      ctx.logger.info(`Partially updating EService Template ${templateId}`);
+      return updateDraftEServiceTemplate(
+        templateId,
+        { type: "patch", seed: eserviceTemplateSeed },
+        readModelService,
+        fileManager,
+        repository,
+        ctx
       );
-
-      assertIsDraftEServiceTemplate(eserviceTemplate.data);
-
-      if (eserviceTemplateSeed.name !== eserviceTemplate.data.name) {
-        await assertEServiceTemplateNameAvailable(
-          eserviceTemplateSeed.name,
-          readModelService
-        );
-      }
-
-      const updatedTechnology = apiTechnologyToTechnology(
-        eserviceTemplateSeed.technology
-      );
-      const interfaceHasToBeDeleted =
-        updatedTechnology !== eserviceTemplate.data.technology;
-
-      if (interfaceHasToBeDeleted) {
-        await Promise.all(
-          eserviceTemplate.data.versions.map(async (d) => {
-            if (d.interface !== undefined) {
-              return await fileManager.delete(
-                config.s3Bucket,
-                d.interface.path,
-                logger
-              );
-            }
-          })
-        );
-      }
-
-      const updatedMode = apiEServiceModeToEServiceMode(
-        eserviceTemplateSeed.mode
-      );
-
-      const checkedRiskAnalysis =
-        updatedMode === eserviceMode.receive
-          ? eserviceTemplate.data.riskAnalysis
-          : [];
-
-      const updatedEServiceTemplate: EServiceTemplate = {
-        ...eserviceTemplate.data,
-        name: eserviceTemplateSeed.name,
-        intendedTarget: eserviceTemplateSeed.intendedTarget,
-        description: eserviceTemplateSeed.description,
-        technology: updatedTechnology,
-        mode: updatedMode,
-        riskAnalysis: checkedRiskAnalysis,
-        versions: interfaceHasToBeDeleted
-          ? eserviceTemplate.data.versions.map((d) => ({
-              ...d,
-              interface: undefined,
-            }))
-          : eserviceTemplate.data.versions,
-        isSignalHubEnabled: eserviceTemplateSeed.isSignalHubEnabled,
-        ...(config.featureFlagEservicePersonalData
-          ? { personalData: eserviceTemplateSeed.personalData }
-          : {}),
-      };
-
-      const event = toCreateEventEServiceTemplateDraftUpdated(
-        eserviceTemplateId,
-        eserviceTemplate.metadata.version,
-        updatedEServiceTemplate,
-        correlationId
-      );
-      await repository.createEvent(event);
-
-      return updatedEServiceTemplate;
     },
     async createEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
@@ -1485,8 +1514,12 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       document: eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EServiceTemplate> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Document>> {
       logger.info(
         `Creating EService Document ${document.documentId.toString()} of kind ${
           document.kind
@@ -1575,9 +1608,14 @@ export function eserviceTemplateServiceBuilder(
               correlationId
             );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return updatedEServiceTemplate;
+      return {
+        data: newDocument,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
 
     async getEServiceTemplateDocument(
@@ -1590,7 +1628,10 @@ export function eserviceTemplateServiceBuilder(
         eServiceTemplateVersionId: EServiceTemplateVersionId;
         documentId: EServiceDocumentId;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData | M2MAuthData>>
     ): Promise<Document> {
       logger.info(
         `Getting EService Document ${documentId.toString()} for EService Template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId}`
@@ -1721,8 +1762,12 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       documentId: EServiceDocumentId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(
         `Deleting Document ${documentId} of Version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
       );
@@ -1792,7 +1837,14 @@ export function eserviceTemplateServiceBuilder(
             correlationId
           );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: updatedEServiceTemplate,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async updateEServiceTemplatePersonalDataFlagAfterPublication(
       eserviceTemplateId: EServiceTemplateId,
@@ -1899,5 +1951,293 @@ export async function cloneEServiceTemplateDocument({
     path: clonedPath,
     checksum: doc.checksum,
     uploadDate: new Date(),
+  };
+}
+
+// eslint-disable-next-line max-params
+async function updateDraftEServiceTemplate(
+  eserviceTemplateId: EServiceTemplateId,
+  typeAndSeed:
+    | {
+        type: "post";
+        seed: eserviceTemplateApi.UpdateEServiceTemplateSeed;
+      }
+    | {
+        type: "patch";
+        seed: eserviceTemplateApi.PatchUpdateEServiceTemplateSeed;
+      },
+  readModelService: ReadModelServiceSQL,
+  fileManager: FileManager,
+  repository: ReturnType<typeof eventRepository<EServiceTemplateEvent>>,
+  {
+    authData,
+    correlationId,
+    logger,
+  }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+): Promise<WithMetadata<EServiceTemplate>> {
+  const eserviceTemplate = await retrieveEServiceTemplate(
+    eserviceTemplateId,
+    readModelService
+  );
+
+  assertRequesterEServiceTemplateCreator(
+    eserviceTemplate.data.creatorId,
+    authData
+  );
+
+  assertIsDraftEServiceTemplate(eserviceTemplate.data);
+
+  const {
+    name,
+    description,
+    technology,
+    mode,
+    isSignalHubEnabled,
+    intendedTarget,
+  } = typeAndSeed.seed;
+
+  if (name && name !== eserviceTemplate.data.name) {
+    await assertEServiceTemplateNameAvailable(name, readModelService);
+  }
+
+  const updatedTechnology = technology
+    ? apiTechnologyToTechnology(technology)
+    : eserviceTemplate.data.technology;
+
+  const interfaceHasToBeDeleted =
+    updatedTechnology !== eserviceTemplate.data.technology;
+
+  if (interfaceHasToBeDeleted) {
+    await Promise.all(
+      eserviceTemplate.data.versions.map(async (d) => {
+        if (d.interface !== undefined) {
+          return await fileManager.delete(
+            config.s3Bucket,
+            d.interface.path,
+            logger
+          );
+        }
+      })
+    );
+  }
+
+  const updatedMode = mode
+    ? apiEServiceModeToEServiceMode(mode)
+    : eserviceTemplate.data.mode;
+
+  const checkedRiskAnalysis =
+    updatedMode === eserviceMode.receive
+      ? eserviceTemplate.data.riskAnalysis
+      : [];
+
+  const updatedIsSignalHubEnabled = match(typeAndSeed.type)
+    .with("post", () => isSignalHubEnabled)
+    .with(
+      "patch",
+      () => isSignalHubEnabled ?? eserviceTemplate.data.isSignalHubEnabled
+    )
+    .exhaustive();
+
+  const updatedPersonalData = match(typeAndSeed)
+    .with({ type: "post" }, ({ seed }) => seed.personalData)
+    .with(
+      { type: "patch" },
+      ({ seed }) =>
+        seed.personalData ??
+        (seed.personalData === null
+          ? undefined
+          : eserviceTemplate.data.personalData)
+    )
+    .exhaustive();
+  const updatedEServiceTemplate: EServiceTemplate = {
+    ...eserviceTemplate.data,
+    name: name ?? eserviceTemplate.data.name,
+    intendedTarget: intendedTarget ?? eserviceTemplate.data.intendedTarget,
+    description: description ?? eserviceTemplate.data.description,
+    technology: updatedTechnology,
+    mode: updatedMode,
+    riskAnalysis: checkedRiskAnalysis,
+    versions: interfaceHasToBeDeleted
+      ? eserviceTemplate.data.versions.map((d) => ({
+          ...d,
+          interface: undefined,
+        }))
+      : eserviceTemplate.data.versions,
+    isSignalHubEnabled: updatedIsSignalHubEnabled,
+    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
+      ? { personalData: updatedPersonalData }
+      : {}),
+  };
+
+  const event = await repository.createEvent(
+    toCreateEventEServiceTemplateDraftUpdated(
+      eserviceTemplateId,
+      eserviceTemplate.metadata.version,
+      updatedEServiceTemplate,
+      correlationId
+    )
+  );
+  return {
+    data: updatedEServiceTemplate,
+    metadata: { version: event.newVersion },
+  };
+}
+
+function resolvePatchValue<T>(
+  value: T | null | undefined,
+  oldValue: T | undefined
+): T | undefined {
+  return value === null ? undefined : value === undefined ? oldValue : value;
+}
+
+// eslint-disable-next-line max-params
+async function updateDraftEServiceTemplateVersion(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId,
+  updateSeed:
+    | {
+        type: "post";
+        seed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed;
+      }
+    | {
+        type: "patch";
+        seed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed;
+      },
+  readModelService: ReadModelServiceSQL,
+  repository: ReturnType<typeof eventRepository<EServiceTemplateEvent>>,
+  {
+    authData,
+    correlationId,
+    logger,
+  }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+): Promise<WithMetadata<EServiceTemplate>> {
+  const { seed, type } = updateSeed;
+  logger.info(
+    `${type.toUpperCase()} update draft e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
+  );
+
+  const {
+    description,
+    voucherLifespan,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dailyCallsPerConsumer,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dailyCallsTotal,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    agreementApprovalPolicy,
+    attributes,
+    ...rest
+  } = seed;
+  void (rest satisfies Record<string, never>);
+  // ^ To make sure we extract all the updated fields.
+  // The eslint disables are needed because those fields are extracted
+  // but then not used directly, since they are handled in a different way.
+
+  const eserviceTemplate = await retrieveEServiceTemplate(
+    eserviceTemplateId,
+    readModelService
+  );
+  assertRequesterEServiceTemplateCreator(
+    eserviceTemplate.data.creatorId,
+    authData
+  );
+  const eserviceTemplateVersion = retrieveEServiceTemplateVersion(
+    eserviceTemplateVersionId,
+    eserviceTemplate.data
+  );
+
+  if (eserviceTemplateVersion.state !== eserviceTemplateVersionState.draft) {
+    throw notValidEServiceTemplateVersionState(
+      eserviceTemplateVersionId,
+      eserviceTemplateVersion.state
+    );
+  }
+
+  const updatedDailyCallsPerConsumer = match(updateSeed)
+    .with({ type: "post" }, ({ seed }) => seed.dailyCallsPerConsumer)
+    .with({ type: "patch" }, ({ seed }) =>
+      resolvePatchValue(
+        seed.dailyCallsPerConsumer,
+        eserviceTemplateVersion.dailyCallsPerConsumer
+      )
+    )
+    .exhaustive();
+
+  const updatedDailyCallsTotal = match(updateSeed)
+    .with({ type: "post" }, ({ seed }) => seed.dailyCallsTotal)
+    .with({ type: "patch" }, ({ seed }) =>
+      resolvePatchValue(
+        seed.dailyCallsTotal,
+        eserviceTemplateVersion.dailyCallsTotal
+      )
+    )
+    .exhaustive();
+
+  const updatedAgreementApprovalPolicy = match(updateSeed)
+    .with({ type: "post" }, ({ seed }) =>
+      seed.agreementApprovalPolicy
+        ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          )
+        : undefined
+    )
+    .with({ type: "patch" }, ({ seed }) =>
+      seed.agreementApprovalPolicy === null
+        ? undefined
+        : seed.agreementApprovalPolicy === undefined
+        ? eserviceTemplateVersion.agreementApprovalPolicy
+        : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          )
+    )
+    .exhaustive();
+
+  assertConsistentDailyCalls({
+    dailyCallsPerConsumer: updatedDailyCallsPerConsumer,
+    dailyCallsTotal: updatedDailyCallsTotal,
+  });
+
+  const parsedAttributes = attributes
+    ? await parseAndCheckAttributes(
+        {
+          declared:
+            attributes.declared ?? eserviceTemplateVersion.attributes.declared,
+          certified:
+            attributes.certified ??
+            eserviceTemplateVersion.attributes.certified,
+          verified:
+            attributes.verified ?? eserviceTemplateVersion.attributes.verified,
+        },
+        readModelService
+      )
+    : eserviceTemplateVersion.attributes;
+
+  const updatedVersion: EServiceTemplateVersion = {
+    ...eserviceTemplateVersion,
+    agreementApprovalPolicy: updatedAgreementApprovalPolicy,
+    dailyCallsPerConsumer: updatedDailyCallsPerConsumer,
+    dailyCallsTotal: updatedDailyCallsTotal,
+    description: description ?? eserviceTemplateVersion.description,
+    voucherLifespan: voucherLifespan ?? eserviceTemplateVersion.voucherLifespan,
+    attributes: parsedAttributes,
+  };
+
+  const updatedEServiceTemplate = replaceEServiceTemplateVersion(
+    eserviceTemplate.data,
+    updatedVersion
+  );
+
+  const eventToCreate = toCreateEventEServiceTemplateDraftVersionUpdated(
+    eserviceTemplateId,
+    eserviceTemplate.metadata.version,
+    eserviceTemplateVersionId,
+    updatedEServiceTemplate,
+    correlationId
+  );
+  const event = await repository.createEvent(eventToCreate);
+
+  return {
+    data: updatedEServiceTemplate,
+    metadata: { version: event.newVersion },
   };
 }

@@ -8,7 +8,7 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceNotFound } from "../../src/model/domain/errors.js";
 
-describe("API /internal/templates/eservices/{eServiceId}/personalDataFlag/set authorization test", () => {
+describe("API /internal/templates/eservices/{eServiceId}/personalDataFlag authorization test", () => {
   const mockEService: EService = getMockEService();
 
   catalogService.internalUpdateTemplateInstancePersonalDataFlag = vi
@@ -26,7 +26,7 @@ describe("API /internal/templates/eservices/{eServiceId}/personalDataFlag/set au
     body: catalogApi.EServicePersonalDataFlagUpdateSeed = mockEServicePersonalDataFlagUpdateSeed
   ) =>
     request(api)
-      .post(`/internal/templates/eservices/${eServiceId}/personalDataFlag/set`)
+      .post(`/internal/templates/eservices/${eServiceId}/personalDataFlag`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);

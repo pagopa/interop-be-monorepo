@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { UserNotificationConfig, generateId } from "pagopa-interop-models";
+import {
+  UserNotificationConfig,
+  emailNotificationPreference,
+  generateId,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockNotificationConfig,
@@ -20,6 +24,8 @@ describe("API POST /userNotificationConfigs test", () => {
   const tenantId = mockTokenOrganizationId;
   const notificationConfigSeed: notificationConfigApi.UserNotificationConfigUpdateSeed =
     {
+      inAppNotificationPreference: true,
+      emailNotificationPreference: "ENABLED",
       inAppConfig: getMockNotificationConfig(),
       emailConfig: getMockNotificationConfig(),
     };
@@ -28,6 +34,8 @@ describe("API POST /userNotificationConfigs test", () => {
     userId,
     tenantId,
     ...notificationConfigSeed,
+    emailNotificationPreference: emailNotificationPreference.enabled,
+    inAppNotificationPreference: true,
   };
   const apiResponse: notificationConfigApi.UserNotificationConfig =
     userNotificationConfigToApiUserNotificationConfig(serviceResponse);
