@@ -62,6 +62,7 @@ describe("Purpose Template splitter", () => {
       purposeRiskAnalysisForm: riskAnalysisFormTemplate,
       purposeFreeOfChargeReason: "Free of charge reason",
       purposeDailyCalls: 100,
+      personalData: false,
     };
 
     const eservicesDescriptors: EServiceDescriptorPurposeTemplate[] = [
@@ -112,6 +113,7 @@ describe("Purpose Template splitter", () => {
       purposeIsFreeOfCharge: purposeTemplate.purposeIsFreeOfCharge,
       purposeFreeOfChargeReason: purposeTemplate.purposeFreeOfChargeReason!,
       purposeDailyCalls: purposeTemplate.purposeDailyCalls!,
+      personalData: purposeTemplate.personalData!,
     };
 
     const expectedEServicesDescriptorsSQL: PurposeTemplateEServiceDescriptorSQL[] =
@@ -320,6 +322,7 @@ describe("Purpose Template splitter", () => {
       purposeIsFreeOfCharge: purposeTemplate.purposeIsFreeOfCharge,
       purposeFreeOfChargeReason: null,
       purposeDailyCalls: null,
+      personalData: null,
     };
 
     const expectedRiskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSQL =

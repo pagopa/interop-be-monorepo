@@ -140,6 +140,9 @@ export const aggregatePurposeTemplate = ({
     ...(purposeTemplateSQL.purposeDailyCalls
       ? { purposeDailyCalls: purposeTemplateSQL.purposeDailyCalls }
       : {}),
+    ...(purposeTemplateSQL.personalData !== null
+      ? { personalData: purposeTemplateSQL.personalData }
+      : {}),
   };
 
   return {

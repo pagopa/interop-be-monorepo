@@ -36,6 +36,7 @@ export const splitPurposeTemplateIntoObjectsSQL = (
     purposeIsFreeOfCharge,
     purposeFreeOfChargeReason,
     purposeDailyCalls,
+    personalData,
     ...rest
   }: PurposeTemplate,
   version: number
@@ -56,7 +57,12 @@ export const splitPurposeTemplateIntoObjectsSQL = (
     purposeIsFreeOfCharge,
     purposeFreeOfChargeReason: purposeFreeOfChargeReason ?? null,
     purposeDailyCalls: purposeDailyCalls ?? null,
+    personalData: personalData ?? null,
   };
+
+  process.stdout.write(
+    `Splitting template: personalData ${personalData} in\npersonalData ${purposeTemplateSQL.personalData} out\n`
+  );
 
   const splitPurposeRiskAnalysisSQL =
     splitRiskAnalysisTemplateFormIntoObjectsSQL(

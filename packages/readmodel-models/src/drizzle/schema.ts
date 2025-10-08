@@ -1848,6 +1848,7 @@ export const purposeTemplateInReadmodelPurposeTemplate =
       purposeIsFreeOfCharge: boolean("purpose_is_free_of_charge").notNull(),
       purposeFreeOfChargeReason: varchar("purpose_free_of_charge_reason"),
       purposeDailyCalls: integer("purpose_daily_calls"),
+      personalData: boolean("personal_data"),
     },
     (table) => [
       unique("purpose_template_id_metadata_version_key").on(
