@@ -833,7 +833,7 @@ describe("createPurposeVersion", () => {
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
       userId,
-      consumerId: mockPurpose.consumerId,
+      consumerId: consumer.id,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
