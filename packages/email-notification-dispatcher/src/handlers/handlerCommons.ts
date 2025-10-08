@@ -13,6 +13,7 @@ import {
   TenantId,
   tenantMailKind,
   TenantV2,
+  UserId,
 } from "pagopa-interop-models";
 import { getLatestTenantMailOfKind, Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
@@ -45,7 +46,22 @@ export type PurposeHandlerParams = HandlerCommonParams & {
   purposeV2Msg?: PurposeV2;
 };
 
-type EmailNotificationRecipient = { type: "Tenant" | "User"; address: string };
+type TenantEmailNotificationRecipient = {
+  type: "Tenant";
+  tenantId: TenantId;
+  address: string;
+};
+
+type UserEmailNotificationRecipient = {
+  type: "User";
+  userId: UserId;
+  tenantId: TenantId;
+  address: string;
+};
+
+type EmailNotificationRecipient =
+  | TenantEmailNotificationRecipient
+  | UserEmailNotificationRecipient;
 
 export async function getUserEmailsToNotify(
   tenantId: TenantId,
@@ -146,33 +162,41 @@ export const getRecipientsForTenants = async ({
       notificationType
     );
 
-  const userEmails: string[] = (
-    await userService.readUsers(tenantUsers.map((u) => u.userId))
-  ).map((u) => u.email);
+  const usersWithEmails = await userService.readUsers(
+    tenantUsers.map((u) => u.userId)
+  );
 
-  const tenantContactEmails = includeTenantContactEmails
-    ? (
-        await Promise.all(
-          tenants.map(
-            async (tenant) =>
-              await getTenantContactEmailIfEnabled(
+  const userRecipients: UserEmailNotificationRecipient[] = tenantUsers.flatMap(
+    ({ userId, tenantId }) => {
+      const user = usersWithEmails.find((u) => u.userId === userId);
+      if (!user) {
+        logger.warn(
+          `Could not retrieve email for user ${userId}, skipping notification`
+        );
+        return [];
+      }
+      return [{ type: "User" as const, userId, tenantId, address: user.email }];
+    }
+  );
+
+  const tenantRecipients: TenantEmailNotificationRecipient[] =
+    includeTenantContactEmails
+      ? (
+          await Promise.all(
+            tenants.map(async (tenant) => ({
+              type: "Tenant" as const,
+              tenantId: tenant.id,
+              address: await getTenantContactEmailIfEnabled(
                 tenant,
                 readModelService,
                 logger
-              )
+              ),
+            }))
           )
+        ).filter(
+          (t): t is TenantEmailNotificationRecipient => t.address !== undefined
         )
-      ).filter((email): email is string => email !== undefined)
-    : [];
+      : [];
 
-  return [
-    ...tenantContactEmails.map((tenantContactEmail) => ({
-      type: "Tenant" as const,
-      address: tenantContactEmail,
-    })),
-    ...userEmails.map((address) => ({
-      type: "User" as const,
-      address,
-    })),
-  ];
+  return [...userRecipients, ...tenantRecipients];
 };
