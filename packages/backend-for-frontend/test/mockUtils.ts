@@ -282,6 +282,7 @@ export const getMockCatalogApiEService = (): catalogApi.EService & {
   isConsumerDelegable: generateMock(z.boolean().optional()),
   isClientAccessDelegable: generateMock(z.boolean().optional()),
   templateId: generateMock(z.string().uuid().optional()),
+  personalData: generateMock(z.boolean().optional()),
 });
 
 export const getMockBffApiFileResource = (): bffApi.FileResource => ({
@@ -361,6 +362,11 @@ export const getMockBffApiInstanceEServiceSeed =
     isConsumerDelegable: generateMock(z.boolean().optional()),
   });
 
+export const getMockBffApiEServicePersonalDataFlagUpdateSeed =
+  (): bffApi.EServicePersonalDataFlagUpdateSeed => ({
+    personalData: generateMock(z.boolean()),
+  });
+
 export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
   name: generateMock(z.string()),
   description: generateMock(z.string()),
@@ -369,6 +375,7 @@ export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
   isSignalHubEnabled: generateMock(z.boolean().optional()),
   isClientAccessDelegable: generateMock(z.boolean().optional()),
   isConsumerDelegable: generateMock(z.boolean().optional()),
+  personalData: generateMock(z.boolean().optional()),
 });
 
 export const getMockBffApiRejectDelegatedEServiceDescriptorSeed =
@@ -1036,6 +1043,16 @@ export const getMockBffApiCatalogPurposeTemplate =
     purposeTitle: generateMock(z.string()),
     purposeDescription: generateMock(z.string()),
     creator: generateMock(bffApi.CompactOrganization),
+  });
+
+export const getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor =
+  (
+    purposeTemplateId: PurposeTemplateId = generateId()
+  ): bffApi.EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor => ({
+    purposeTemplateId,
+    createdAt: generateMock(z.string().datetime({ offset: true })),
+    eservice: generateMock(bffApi.CompactEService),
+    descriptor: generateMock(bffApi.CompactDescriptor),
   });
 
 export const getMockBffApiPurposeTemplateWithCompactCreator =
