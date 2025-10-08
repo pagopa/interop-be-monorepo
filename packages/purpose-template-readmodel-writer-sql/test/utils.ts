@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
+  getMockCompleteRiskAnalysisFormTemplate,
   getMockPurposeTemplate,
   getMockRiskAnalysisTemplateAnswerAnnotation,
   getMockRiskAnalysisTemplateAnswerAnnotationDocument,
@@ -50,30 +51,7 @@ export const purposeTemplateWriterService =
   purposeTemplateWriterServiceBuilder(readModelDB);
 
 export const getCompleteMockPurposeTemplate = (): PurposeTemplate => {
-  const incompleteRiskAnalysisFormTemplate =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
-  const riskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
-    ...incompleteRiskAnalysisFormTemplate,
-    singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
-      (a): RiskAnalysisTemplateSingleAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-        suggestedValues: ["a", "b"],
-      })
-    ),
-    multiAnswers: incompleteRiskAnalysisFormTemplate.multiAnswers.map(
-      (a): RiskAnalysisTemplateMultiAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-      })
-    ),
-  };
+  const riskAnalysisFormTemplate = getMockCompleteRiskAnalysisFormTemplate();
 
   return {
     ...getMockPurposeTemplate(),

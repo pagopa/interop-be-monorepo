@@ -2,17 +2,13 @@
 import {
   getMockPurposeTemplate,
   getMockValidRiskAnalysisFormTemplate,
-  getMockRiskAnalysisTemplateAnswerAnnotationDocument,
-  getMockRiskAnalysisTemplateAnswerAnnotation,
+  getMockCompleteRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test";
 import {
   EServiceDescriptorPurposeTemplate,
   generateId,
   PurposeTemplate,
   riskAnalysisAnswerKind,
-  RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisTemplateSingleAnswer,
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
@@ -32,30 +28,7 @@ import {
 describe("Purpose Template splitter", () => {
   it("should convert a complete purpose template into purpose template SQL objects", () => {
     const metadataVersion = 1;
-    const incompleteRiskAnalysisFormTemplate =
-      getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
-    const riskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
-      ...incompleteRiskAnalysisFormTemplate,
-      singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
-        (a): RiskAnalysisTemplateSingleAnswer => ({
-          ...a,
-          annotation: {
-            ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-            docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-          },
-          suggestedValues: ["a", "b"],
-        })
-      ),
-      multiAnswers: incompleteRiskAnalysisFormTemplate.multiAnswers.map(
-        (a): RiskAnalysisTemplateMultiAnswer => ({
-          ...a,
-          annotation: {
-            ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-            docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-          },
-        })
-      ),
-    };
+    const riskAnalysisFormTemplate = getMockCompleteRiskAnalysisFormTemplate();
     const purposeTemplate: PurposeTemplate = {
       ...getMockPurposeTemplate(),
       updatedAt: new Date(),
