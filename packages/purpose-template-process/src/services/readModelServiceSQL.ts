@@ -8,7 +8,6 @@ import {
   PurposeTemplateState,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  Tenant,
   TenantId,
   TenantKind,
   WithMetadata,
