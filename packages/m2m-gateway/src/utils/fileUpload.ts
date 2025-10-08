@@ -1,4 +1,9 @@
-import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import {
+  catalogApi,
+  eserviceTemplateApi,
+  m2mGatewayApi,
+} from "pagopa-interop-api-clients";
 import {
   FileManager,
   Logger,
@@ -7,7 +12,10 @@ import {
 import { generateId, technology } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
-import { CatalogProcessClient } from "../clients/clientsProvider.js";
+import {
+  CatalogProcessClient,
+  EServiceTemplateProcessClient,
+} from "../clients/clientsProvider.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { Headers } from "./context.js";
 
@@ -70,6 +78,72 @@ export async function uploadEServiceDocument({
           params: {
             eServiceId: eservice.id,
             descriptorId,
+          },
+        }
+      ),
+    logger
+  );
+}
+
+export async function uploadEServiceTemplateDocument({
+  eserviceTemplate,
+  versionId,
+  documentKind,
+  fileUpload,
+  eserviceTemplateProcessClient,
+  fileManager,
+  logger,
+  headers,
+}: {
+  eserviceTemplate: eserviceTemplateApi.EServiceTemplate;
+  versionId: string;
+  documentKind: eserviceTemplateApi.EServiceDocumentKind;
+  fileUpload: m2mGatewayApi.FileUploadMultipart;
+  eserviceTemplateProcessClient: EServiceTemplateProcessClient;
+  fileManager: FileManager;
+  logger: Logger;
+  headers: Headers;
+}): Promise<WithMaybeMetadata<eserviceTemplateApi.EServiceDoc>> {
+  return await verifyAndCreateDocument(
+    fileManager,
+    { id: eserviceTemplate.id, isEserviceTemplate: true },
+    match(eserviceTemplate.technology)
+      .with("REST", () => technology.rest)
+      .with("SOAP", () => technology.soap)
+      .exhaustive(),
+    documentKind,
+    fileUpload.file,
+    generateId(),
+    config.eserviceTemplateDocumentsContainer,
+    config.eserviceTemplateDocumentsPath,
+    fileUpload.prettyName,
+    async (
+      documentId,
+      fileName,
+      filePath,
+      prettyName,
+      kind,
+      serverUrls,
+      contentType,
+      checksum
+      // eslint-disable-next-line max-params
+    ) =>
+      await eserviceTemplateProcessClient.createEServiceTemplateDocument(
+        {
+          documentId,
+          prettyName,
+          fileName,
+          filePath,
+          kind,
+          contentType,
+          checksum,
+          serverUrls,
+        },
+        {
+          headers,
+          params: {
+            templateId: eserviceTemplate.id,
+            templateVersionId: versionId,
           },
         }
       ),

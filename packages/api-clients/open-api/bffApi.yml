@@ -5949,8 +5949,9 @@ paths:
         - bearerAuth: []
       tags:
         - eservices
-      summary: Set personalData flag for published eservices
+      summary: Set personalData flag for an eservice after publication
       operationId: updateEServicePersonalDataFlagAfterPublication
+      description: Set personalData flag for an eservice after publication
       parameters:
         - name: eServiceId
           in: path
@@ -10585,6 +10586,122 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposeTemplates/{purposeTemplateId}/eservices:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: producerIds
+        description: comma separated sequence of e-service producer IDs
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          default: []
+        explode: false
+      - in: query
+        name: eserviceIds
+        description: comma separated sequence of e-service IDs
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          default: []
+        explode: false
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - purposeTemplates
+      summary: Get Purpose Template E-Services
+      operationId: getPurposeTemplateEServices
+      description: Retrieve e-services linked to a purpose template
+      responses:
+        "200":
+          description: Purpose Template E-Services retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptorsPurposeTemplate"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /creators/purposeTemplates:
     get:
       tags:
@@ -10703,9 +10820,9 @@ paths:
     get:
       tags:
         - purposeTemplates
-      summary: Retrieves Catalog Purpose Templates
+      summary: Retrieve Catalog Purpose Templates
       operationId: getCatalogPurposeTemplates
-      description: Retrieves Catalog Purpose Templates
+      description: Retrieve Catalog Purpose Templates
       parameters:
         - in: query
           name: q
@@ -10834,6 +10951,57 @@ paths:
         schema:
           type: string
           format: uuid
+    get:
+      tags:
+        - purposeTemplates
+      summary: Retrieve Purpose Template
+      operationId: getPurposeTemplate
+      description: Retrieve a Purpose Template by its ID
+      responses:
+        "200":
+          description: Purpose Template retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplateWithCompactCreator"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose template not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     put:
       tags:
         - purposeTemplates
@@ -23844,6 +24012,23 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+    CompactPurposeTemplateEService:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - producer
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        producer:
+          $ref: "#/components/schemas/CompactOrganization"
+        description:
+          type: string
     PurposeVersionSeed:
       type: object
       additionalProperties: false
@@ -24268,6 +24453,57 @@ components:
         - DRAFT
         - SUSPENDED
         - ARCHIVED
+    PurposeTemplateWithCompactCreator:
+      type: object
+      description: a purpose template with its creator and a list for the answer annotation documents
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        targetDescription:
+          type: string
+        targetTenantKind:
+          $ref: "#/components/schemas/TenantKind"
+        creator:
+          $ref: "#/components/schemas/CompactOrganization"
+        state:
+          $ref: "#/components/schemas/PurposeTemplateState"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        purposeTitle:
+          type: string
+        purposeDescription:
+          type: string
+        purposeRiskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+        purposeIsFreeOfCharge:
+          type: boolean
+        purposeFreeOfChargeReason:
+          type: string
+        purposeDailyCalls:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        annotationDocuments:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+      required:
+        - id
+        - targetDescription
+        - targetTenantKind
+        - creator
+        - state
+        - createdAt
+        - purposeTitle
+        - purposeDescription
+        - purposeIsFreeOfCharge
     PurposeTemplateSeed:
       type: object
       additionalProperties: false
@@ -26626,6 +26862,38 @@ components:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
           $ref: "#/components/schemas/NotificationConfig"
+    EServiceDescriptorsPurposeTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor:
+      type: object
+      additionalProperties: false
+      properties:
+        purposeTemplateId:
+          type: string
+          format: uuid
+        eservice:
+          $ref: "#/components/schemas/CompactPurposeTemplateEService"
+        descriptor:
+          $ref: "#/components/schemas/CompactDescriptor"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - purposeTemplateId
+        - eservice
+        - descriptor
+        - createdAt
     NotificationsCountBySection:
       type: object
       additionalProperties: false
