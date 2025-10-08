@@ -1051,7 +1051,7 @@ export const getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAn
   ): bffApi.EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor => ({
     purposeTemplateId,
     createdAt: generateMock(z.string().datetime({ offset: true })),
-    eservice: generateMock(bffApi.CompactEService),
+    eservice: generateMock(bffApi.CompactPurposeTemplateEService),
     descriptor: generateMock(bffApi.CompactDescriptor),
   });
 
