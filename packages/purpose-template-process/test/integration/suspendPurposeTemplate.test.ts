@@ -159,7 +159,7 @@ describe("suspendPurposeTemplate", () => {
       state: purposeTemplateState.draft,
     },
   ])(
-    `should throw $error.code if the purpose template is in %s state`,
+    `should throw $error.code if the purpose template is in $state state`,
     async ({ error, state }) => {
       const purposeTemplateWithUnexpectedState: PurposeTemplate = {
         ...purposeTemplate,
