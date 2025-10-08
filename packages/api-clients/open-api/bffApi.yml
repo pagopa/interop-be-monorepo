@@ -23992,6 +23992,23 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+    CompactPurposeTemplateEService:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - producer
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        producer:
+          $ref: "#/components/schemas/CompactOrganization"
+        description:
+          type: string
     PurposeVersionSeed:
       type: object
       additionalProperties: false
@@ -26267,6 +26284,8 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
+        personalData:
+          type: boolean
         draftVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
     EServiceTemplateVersionDetails:
@@ -26387,6 +26406,8 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
+        personalData:
+          type: boolean
     EServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -26416,6 +26437,8 @@ components:
         version:
           $ref: "#/components/schemas/VersionSeedForEServiceTemplateCreation"
         isSignalHubEnabled:
+          type: boolean
+        personalData:
           type: boolean
     InstanceEServiceSeed:
       type: object
@@ -26873,7 +26896,7 @@ components:
           type: string
           format: uuid
         eservice:
-          $ref: "#/components/schemas/CompactEService"
+          $ref: "#/components/schemas/CompactPurposeTemplateEService"
         descriptor:
           $ref: "#/components/schemas/CompactDescriptor"
         createdAt:
