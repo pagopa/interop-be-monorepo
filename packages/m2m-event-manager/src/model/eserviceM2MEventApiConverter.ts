@@ -124,6 +124,10 @@ function toApiEServiceM2MEventType(
       "EServiceDescriptorInterfaceDeleted",
       () => "ESERVICE_DESCRIPTOR_INTERFACE_DELETED"
     )
+    .with(
+      "EServicePersonalDataFlagUpdatedAfterPublication",
+      () => "ESERVICE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION"
+    )
     .exhaustive();
 }
 

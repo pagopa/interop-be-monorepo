@@ -32,7 +32,7 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function assertRequesterEServiceTemplateCreator(
   creatorId: TenantId,
-  authData: UIAuthData
+  authData: UIAuthData | M2MAdminAuthData
 ): void {
   if (authData.organizationId !== creatorId) {
     throw operationForbidden;
