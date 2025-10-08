@@ -515,9 +515,8 @@ export function eserviceTemplateServiceBuilder(
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
         assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
       }
-
       if (
-        config.featureFlagEservicePersonalData &&
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
         eserviceTemplate.data.personalData === undefined
       ) {
         throw missingPersonalDataFlag(
