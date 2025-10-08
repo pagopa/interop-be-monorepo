@@ -6,6 +6,7 @@ import {
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   makeApiProblemBuilder,
+  TenantId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -34,7 +35,8 @@ export const errorCodes = {
   eserviceTemplateDocumentNotFound: "0025",
   riskAnalysisNotFound: "0026",
   attributeDuplicatedInGroup: "0027",
-  missingPersonalDataFlag: "0028",
+  tenantNotFound: "0028",
+  missingPersonalDataFlag: "0029",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -297,6 +299,14 @@ export function attributeDuplicatedInGroup(
     detail: `Attribute ${attributeId} is duplicated in attribute group`,
     code: "attributeDuplicatedInGroup",
     title: "Duplicated attribute in group",
+  });
+}
+
+export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
   });
 }
 

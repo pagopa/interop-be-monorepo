@@ -46,13 +46,14 @@ describe("update E-service signalhub flag for an already created E-service", asy
     await addOneEService(eservice);
     const newSignalhubFlagValue = true;
 
-    const returnedEService = await catalogService.updateEServiceSignalHubFlag(
-      eservice.id,
-      newSignalhubFlagValue,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
-    );
+    const updateSignalHubReturn =
+      await catalogService.updateEServiceSignalHubFlag(
+        eservice.id,
+        newSignalhubFlagValue,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
 
-    const updatedEservice: EService = {
+    const expectedEService: EService = {
       ...eservice,
       isSignalHubEnabled: newSignalhubFlagValue,
     };
@@ -69,8 +70,13 @@ describe("update E-service signalhub flag for an already created E-service", asy
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEservice));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(updateSignalHubReturn).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
 
   it("should write on event-store for the update of the E-service signalhub flag (true->false)", async () => {
@@ -88,13 +94,14 @@ describe("update E-service signalhub flag for an already created E-service", asy
     await addOneEService(eservice);
     const newSignalhubFlagValue = false;
 
-    const returnedEService = await catalogService.updateEServiceSignalHubFlag(
-      eservice.id,
-      newSignalhubFlagValue,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
-    );
+    const updateSignalHubReturn =
+      await catalogService.updateEServiceSignalHubFlag(
+        eservice.id,
+        newSignalhubFlagValue,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
 
-    const updatedEservice: EService = {
+    const expectedEService: EService = {
       ...eservice,
       isSignalHubEnabled: newSignalhubFlagValue,
     };
@@ -111,9 +118,15 @@ describe("update E-service signalhub flag for an already created E-service", asy
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEservice));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(updateSignalHubReturn).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
+
   it.each([
     [true, true],
     [false, false],
@@ -133,11 +146,12 @@ describe("update E-service signalhub flag for an already created E-service", asy
 
       await addOneEService(eservice);
 
-      const returnedEService = await catalogService.updateEServiceSignalHubFlag(
-        eservice.id,
-        newSignalhubFlagValue,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      );
+      const updateSignalHubReturn =
+        await catalogService.updateEServiceSignalHubFlag(
+          eservice.id,
+          newSignalhubFlagValue,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
 
@@ -155,7 +169,10 @@ describe("update E-service signalhub flag for an already created E-service", asy
         event_version: 2,
       });
 
-      expect(returnedEService).toEqual(eservice);
+      expect(updateSignalHubReturn).toEqual({
+        data: eservice,
+        metadata: { version: 0 },
+      });
     }
   );
 
@@ -180,13 +197,14 @@ describe("update E-service signalhub flag for an already created E-service", asy
     await addOneDelegation(delegation);
     const newSignalhubFlagValue = true;
 
-    const returnedEService = await catalogService.updateEServiceSignalHubFlag(
-      eservice.id,
-      newSignalhubFlagValue,
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
-    );
+    const updateSignalHubReturn =
+      await catalogService.updateEServiceSignalHubFlag(
+        eservice.id,
+        newSignalhubFlagValue,
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      );
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       isSignalHubEnabled: newSignalhubFlagValue,
     };
@@ -204,8 +222,13 @@ describe("update E-service signalhub flag for an already created E-service", asy
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(updateSignalHubReturn).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
 
   it.each([true, false])(

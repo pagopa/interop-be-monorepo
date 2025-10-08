@@ -157,7 +157,9 @@ const authorizationRouter = (
             filters: {
               name,
               userIds: userIds?.map(unsafeBrandId<UserId>),
-              consumerId: unsafeBrandId(consumerId),
+              consumerId: consumerId
+                ? unsafeBrandId<TenantId>(consumerId)
+                : undefined,
               purposeId: purposeId
                 ? unsafeBrandId<PurposeId>(purposeId)
                 : undefined,
@@ -204,7 +206,9 @@ const authorizationRouter = (
             filters: {
               name,
               userIds: userIds?.map(unsafeBrandId<UserId>),
-              consumerId: unsafeBrandId(consumerId),
+              consumerId: consumerId
+                ? unsafeBrandId<TenantId>(consumerId)
+                : undefined,
               purposeId: purposeId
                 ? unsafeBrandId<PurposeId>(purposeId)
                 : undefined,
@@ -671,7 +675,9 @@ const authorizationRouter = (
               filters: {
                 name,
                 userIds: userIds?.map(unsafeBrandId<UserId>),
-                producerId: unsafeBrandId<TenantId>(producerId),
+                producerId: producerId
+                  ? unsafeBrandId<TenantId>(producerId)
+                  : undefined,
                 eserviceId: eserviceId
                   ? unsafeBrandId<EServiceId>(eserviceId)
                   : undefined,
