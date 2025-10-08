@@ -26,3 +26,4 @@ export * from "./inAppNotificationDBConfig.js";
 export * from "./userSQLDbConfig.js";
 export * from "./m2mEventSQLDbConfig.js";
 export * from "./eventsSignerConfig.js";
+export * from "./notificationTypeBlocklist.js";
