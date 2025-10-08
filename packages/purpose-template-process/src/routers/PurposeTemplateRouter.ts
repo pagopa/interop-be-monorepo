@@ -11,20 +11,21 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import {
-  emptyErrorMapper,
-  EServiceId,
-  TenantId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   createPurposeTemplateErrorMapper,
+  getPurposeTemplateErrorMapper,
+  getPurposeTemplateEServiceDescriptorsErrorMapper,
   getPurposeTemplatesErrorMapper,
+  linkEservicesToPurposeTemplateErrorMapper,
+  unlinkEServicesFromPurposeTemplateErrorMapper,
+  updatePurposeTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   apiPurposeTemplateStateToPurposeTemplateState,
+  eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate,
   purposeTemplateToApiPurposeTemplate,
 } from "../model/domain/apiConverter.js";
 
@@ -42,10 +43,10 @@ const purposeTemplateRouter = (
   const {
     ADMIN_ROLE,
     API_ROLE,
-    SECURITY_ROLE,
-    M2M_ROLE,
-    SUPPORT_ROLE,
     M2M_ADMIN_ROLE,
+    M2M_ROLE,
+    SECURITY_ROLE,
+    SUPPORT_ROLE,
   } = authRole;
 
   purposeTemplateRouter
@@ -55,8 +56,8 @@ const purposeTemplateRouter = (
         validateAuthorization(ctx, [
           ADMIN_ROLE,
           API_ROLE,
-          M2M_ROLE,
           M2M_ADMIN_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
         ]);
@@ -129,33 +130,62 @@ const purposeTemplateRouter = (
 
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
-          M2M_ROLE,
+          API_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
 
-        await purposeTemplateService.getPurposeTemplateById(
-          unsafeBrandId(req.params.id),
+        const { data: purposeTemplate, metadata } =
+          await purposeTemplateService.getPurposeTemplateById(
+            unsafeBrandId(req.params.id),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            purposeTemplateApi.PurposeTemplate.parse(
+              purposeTemplateToApiPurposeTemplate(purposeTemplate)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateErrorMapper,
           ctx
         );
-
-        return res.status(501).send(); // Not implemented
-      } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/purposeTemplates/:id", async (req, res) => {
+    .put("/purposeTemplates/:id", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+        const updatedPurposeTemplate =
+          await purposeTemplateService.updatePurposeTemplate(
+            unsafeBrandId(req.params.id),
+            req.body,
+            ctx
+          );
+        setMetadataVersionHeader(res, updatedPurposeTemplate.metadata);
+        return res
+          .status(200)
+          .send(
+            purposeTemplateToApiPurposeTemplate(updatedPurposeTemplate.data)
+          );
       } catch (error) {
-        return res.status(501);
+        const errorRes = makeApiProblem(
+          error,
+          updatePurposeTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-      return res.status(501);
     })
     .delete("/purposeTemplates/:id", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -170,35 +200,95 @@ const purposeTemplateRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [
-          API_ROLE,
           ADMIN_ROLE,
-          M2M_ROLE,
+          API_ROLE,
           M2M_ADMIN_ROLE,
-          SUPPORT_ROLE,
+          M2M_ROLE,
           SECURITY_ROLE,
+          SUPPORT_ROLE,
         ]);
+
+        const { producerIds, eserviceIds, offset, limit } = req.query;
+        const purposeTemplateEServicesDescriptors =
+          await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
+            {
+              purposeTemplateId: unsafeBrandId(req.params.id),
+              producerIds: producerIds?.map(unsafeBrandId<TenantId>),
+              eserviceIds: eserviceIds?.map(unsafeBrandId<EServiceId>),
+            },
+            { offset, limit },
+            ctx
+          );
+        return res.status(200).send(
+          purposeTemplateApi.EServiceDescriptorsPurposeTemplate.parse({
+            results: purposeTemplateEServicesDescriptors.results.map(
+              (purposeTemplateEServiceDescriptor) =>
+                eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
+                  purposeTemplateEServiceDescriptor
+                )
+            ),
+            totalCount: purposeTemplateEServicesDescriptors.totalCount,
+          })
+        );
       } catch (error) {
-        return res.status(501);
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateEServiceDescriptorsErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-      return res.status(501);
     })
-    .post("/purposeTemplates/:id/eservices", async (req, res) => {
+    .post("/purposeTemplates/:id/linkEservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const eserviceDescriptorPurposeTemplates =
+          await purposeTemplateService.linkEservicesToPurposeTemplate(
+            unsafeBrandId(req.params.id),
+            req.body.eserviceIds.map(unsafeBrandId<EServiceId>),
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            eserviceDescriptorPurposeTemplates.map(
+              (eserviceDescriptorPurposeTemplate) =>
+                eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
+                  eserviceDescriptorPurposeTemplate
+                )
+            )
+          );
       } catch (error) {
-        return res.status(501);
+        const errorRes = makeApiProblem(
+          error,
+          linkEservicesToPurposeTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-      return res.status(501);
     })
-    .delete("/purposeTemplates/:id/eservices", async (req, res) => {
+    .post("/purposeTemplates/:id/unlinkEservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        await purposeTemplateService.unlinkEservicesFromPurposeTemplate(
+          unsafeBrandId(req.params.id),
+          req.body.eserviceIds.map(unsafeBrandId<EServiceId>),
+          ctx
+        );
+        return res.status(204).send();
       } catch (error) {
-        return res.status(501);
+        const errorRes = makeApiProblem(
+          error,
+          unlinkEServicesFromPurposeTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-      return res.status(501);
     })
     .post("/purposeTemplates/:id/suspend", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
