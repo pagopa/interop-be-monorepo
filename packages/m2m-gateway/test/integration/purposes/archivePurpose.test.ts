@@ -81,6 +81,7 @@ describe("archivePurposeVersion", () => {
       updatedAt: mockApiPurpose.data.updatedAt,
       currentVersion: mockApiPurposeVersion1,
       rejectedVersion: mockApiPurposeVersion2,
+      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
     };
 
     const purpose = await purposeService.archivePurpose(

@@ -45,12 +45,12 @@ describe("suspendPurposeVersion", () => {
     metadata: { version: 0 },
   };
 
-  const pollingTentatives = 2;
+  const pollingAttempts = 2;
   const mockSuspendPurposeVersion = vi
     .fn()
     .mockResolvedValue(suspendPurposeApiResponse);
   const mockGetPurpose = vi.fn(
-    mockPollingResponse(mockApiPurpose, pollingTentatives)
+    mockPollingResponse(mockApiPurpose, pollingAttempts)
   );
 
   mockInteropBeClients.purposeProcessClient = {
@@ -81,6 +81,7 @@ describe("suspendPurposeVersion", () => {
       updatedAt: mockApiPurpose.data.updatedAt,
       currentVersion: mockApiPurposeVersion1,
       rejectedVersion: mockApiPurposeVersion2,
+      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
     };
 
     const purpose = await purposeService.suspendPurpose(
@@ -104,7 +105,7 @@ describe("suspendPurposeVersion", () => {
     });
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
-    ).toHaveBeenCalledTimes(pollingTentatives + 1);
+    ).toHaveBeenCalledTimes(pollingAttempts + 1);
   });
 
   it("Should throw missingPurposeCurrentVersion in case of missing active version to suspend", async () => {

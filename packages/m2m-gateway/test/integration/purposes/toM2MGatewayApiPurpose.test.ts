@@ -74,6 +74,7 @@ describe("toM2MGatewayApiPurpose", () => {
         currentVersion: mockApiPurposeVersion2,
         rejectedVersion: mockApiPurposeVersion4,
         waitingForApprovalVersion: mockApiPurposeVersion3,
+        purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
       };
 
       const result = await purposeService.getPurpose(
@@ -121,6 +122,7 @@ describe("toM2MGatewayApiPurpose", () => {
       updatedAt: mockApiPurpose.data.updatedAt,
       currentVersion: mockApiPurposeVersion2,
       waitingForApprovalVersion: mockApiPurposeVersion3,
+      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
     };
 
     const result = await purposeService.getPurpose(
@@ -167,6 +169,7 @@ describe("toM2MGatewayApiPurpose", () => {
       updatedAt: mockApiPurpose.data.updatedAt,
       currentVersion: mockApiPurposeVersion2,
       rejectedVersion: mockApiPurposeVersion3,
+      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
     };
 
     const result = await purposeService.getPurpose(
@@ -206,6 +209,7 @@ describe("toM2MGatewayApiPurpose", () => {
       updatedAt: mockApiPurpose.data.updatedAt,
       waitingForApprovalVersion: mockApiPurposeVersion1,
       rejectedVersion: mockApiPurposeVersion2,
+      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
     };
 
     const result = await purposeService.getPurpose(
@@ -245,6 +249,7 @@ describe("toM2MGatewayApiPurpose", () => {
       updatedAt: mockApiPurpose.data.updatedAt,
       currentVersion: mockApiPurposeVersion1,
       rejectedVersion: mockApiPurposeVersion2,
+      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
     };
 
     const result = await purposeService.getPurpose(
@@ -284,6 +289,7 @@ describe("toM2MGatewayApiPurpose", () => {
       updatedAt: mockApiPurpose.data.updatedAt,
       currentVersion: mockApiPurposeVersion1,
       waitingForApprovalVersion: mockApiPurposeVersion2,
+      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
     };
 
     const result = await purposeService.getPurpose(
@@ -330,6 +336,7 @@ describe("toM2MGatewayApiPurpose", () => {
       updatedAt: mockApiPurpose.data.updatedAt,
       currentVersion: mockApiPurposeVersion1,
       waitingForApprovalVersion: mockApiPurposeVersion3,
+      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
     };
 
     const result = await purposeService.getPurpose(

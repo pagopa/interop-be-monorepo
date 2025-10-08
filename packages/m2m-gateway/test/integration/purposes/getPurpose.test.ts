@@ -44,6 +44,7 @@ describe("getPurpose", () => {
       suspendedByProducer: undefined,
       updatedAt: mockApiPurposeResponse.data.updatedAt,
       waitingForApprovalVersion: undefined,
+      purposeTemplateId: mockApiPurposeResponse.data.purposeTemplateId,
     };
 
     const result = await purposeService.getPurpose(
