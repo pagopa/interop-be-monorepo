@@ -39,6 +39,7 @@ export async function handlePurposeTemplateMessageV2(
         {
           type: P.union(
             "PurposeTemplateAdded",
+            "PurposeTemplateAnnotationDocumentAdded",
             "PurposeTemplateDraftUpdated",
             "PurposeTemplatePublished",
             "PurposeTemplateUnsuspended",
