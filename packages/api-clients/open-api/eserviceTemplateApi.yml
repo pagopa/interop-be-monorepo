@@ -1416,6 +1416,8 @@ components:
           $ref: "#/components/schemas/VersionSeedForEServiceTemplateCreation"
         isSignalHubEnabled:
           type: boolean
+        personalData:
+          type: boolean
     UpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -1444,6 +1446,8 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
+        personalData:
+          type: boolean
     PatchUpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -1465,6 +1469,8 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
+          type: boolean
+        personalData:
           type: boolean
     VersionSeedForEServiceTemplateCreation:
       required:
@@ -1765,6 +1771,8 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
+          type: boolean
+        personalData:
           type: boolean
     EServiceMode:
       type: string
