@@ -27,3 +27,13 @@ message UserNotificationConfigUpdatedV2 {
 message UserNotificationConfigDeletedV2 {
   UserNotificationConfigV2 userNotificationConfig = 1;
 }
+
+message UserNotificationConfigRoleAddedV2 {
+  UserNotificationConfigV2 userNotificationConfig = 1;
+  UserRoleV2 userRole = 2;
+}
+
+message UserNotificationConfigRoleRemovedV2 {
+  UserNotificationConfigV2 userNotificationConfig = 1;
+  UserRoleV2 userRole = 2;
+}

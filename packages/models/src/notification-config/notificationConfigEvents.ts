@@ -8,6 +8,8 @@ import {
   UserNotificationConfigCreatedV2,
   UserNotificationConfigUpdatedV2,
   UserNotificationConfigDeletedV2,
+  UserNotificationConfigRoleAddedV2,
+  UserNotificationConfigRoleRemovedV2,
 } from "../gen/v2/notification-config/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import { EventEnvelope } from "../events/events.js";
@@ -43,6 +45,16 @@ export const NotificationConfigEventV2 = z.discriminatedUnion("type", [
     type: z.literal("UserNotificationConfigDeleted"),
     data: protobufDecoder(UserNotificationConfigDeletedV2),
   }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("UserNotificationConfigRoleAdded"),
+    data: protobufDecoder(UserNotificationConfigRoleAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("UserNotificationConfigRoleRemoved"),
+    data: protobufDecoder(UserNotificationConfigRoleRemovedV2),
+  }),
 ]);
 
 export type NotificationConfigEventV2 = z.infer<
@@ -70,6 +82,12 @@ export function notificationConfigEventToBinaryDataV2(
     )
     .with({ type: "UserNotificationConfigDeleted" }, ({ data }) =>
       UserNotificationConfigDeletedV2.toBinary(data)
+    )
+    .with({ type: "UserNotificationConfigRoleAdded" }, ({ data }) =>
+      UserNotificationConfigRoleAddedV2.toBinary(data)
+    )
+    .with({ type: "UserNotificationConfigRoleRemoved" }, ({ data }) =>
+      UserNotificationConfigRoleRemovedV2.toBinary(data)
     )
     .exhaustive();
 }
