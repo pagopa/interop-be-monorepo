@@ -211,6 +211,7 @@ describe("updatePurposeTemplate", () => {
             })
           ),
         },
+        personalData: validPurposeTemplateSeed.personalData,
       };
 
       const writtenEvent = await readLastPurposeTemplateEvent(
