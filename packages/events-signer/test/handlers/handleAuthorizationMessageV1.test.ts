@@ -114,6 +114,7 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
       fileKind: "EVENT_JOURNAL",
       fileName: expect.stringMatching(/.ndjson.gz$/),
       correlationId: expect.any(String),
+      creationTimestamp: expect.any(Number),
     });
   });
 
@@ -163,6 +164,7 @@ describe("handleAuthorizationMessageV1 - Integration Test", () => {
       fileKind: "EVENT_JOURNAL",
       fileName: expect.stringMatching(/.ndjson.gz$/),
       correlationId: expect.any(String),
+      creationTimestamp: expect.any(Number),
     });
   });
 

@@ -96,6 +96,7 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
       fileKind: "EVENT_JOURNAL",
       fileName: expect.stringMatching(/.ndjson.gz$/),
       correlationId: expect.any(String),
+      creationTimestamp: expect.any(Number),
     });
   });
   it("should not process an AgreementAdded event", async () => {
