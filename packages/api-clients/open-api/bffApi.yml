@@ -25111,6 +25111,7 @@ components:
         - description
         - producer
         - isMine
+        - hasUnreadNotifications
       properties:
         id:
           type: string
@@ -25129,6 +25130,7 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
         hasUnreadNotifications:
           type: boolean
+          description: Indicates if there are unread notifications for this e-service template
     ClientKind:
       type: string
       enum:
@@ -25157,6 +25159,7 @@ components:
         - canBeUpgraded
         - state
         - descriptor
+        - hasUnreadNotifications
       properties:
         id:
           type: string
@@ -25181,6 +25184,7 @@ components:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
         hasUnreadNotifications:
           type: boolean
+          description: Indicates if there are unread notifications for this agreement
     CompactAttribute:
       type: object
       additionalProperties: false
@@ -25694,6 +25698,9 @@ components:
           maximum: 1000000000
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
+        hasUnreadNotifications:
+          type: boolean 
+          description: "Indicates if there are unread notifications for this purpose"
       required:
         - id
         - title
@@ -25706,6 +25713,7 @@ components:
         - isFreeOfCharge
         - dailyCallsPerConsumer
         - dailyCallsTotal
+        - hasUnreadNotifications
     PurposeAdditionDetailsSeed:
       type: object
       additionalProperties: false
@@ -27523,12 +27531,15 @@ components:
           $ref: "#/components/schemas/DelegationState"
         kind:
           $ref: "#/components/schemas/DelegationKind"
+        hasUnreadNotifications:
+          type: boolean
       required:
         - id
         - delegate
         - delegator
         - state
         - kind
+        - hasUnreadNotifications
     CompactDelegations:
       type: object
       additionalProperties: false
@@ -27912,6 +27923,7 @@ components:
         - id
         - name
         - mode
+        - hasUnreadNotifications
       properties:
         id:
           type: string
@@ -27924,6 +27936,9 @@ components:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
         draftVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
+        hasUnreadNotifications:
+          type: boolean
+          description: Indicates if there are unread notifications for this e-service template
     CatalogEServiceTemplates:
       type: object
       additionalProperties: false

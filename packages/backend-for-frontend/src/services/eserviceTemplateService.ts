@@ -34,6 +34,7 @@ import {
   AttributeProcessClient,
   CatalogProcessClient,
   EServiceTemplateProcessClient,
+  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
@@ -50,6 +51,7 @@ export function eserviceTemplateServiceBuilder(
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
   catalogProcessClient: CatalogProcessClient,
+  inAppNotificationManagerClient: InAppNotificationManagerClient,
   fileManager: FileManager
 ) {
   return {
@@ -433,9 +435,17 @@ export function eserviceTemplateServiceBuilder(
           },
         });
 
+      const notifications =
+        await inAppNotificationManagerClient.filterUnreadNotifications({
+          queries: {
+            entityIds: eserviceTemplatesResponse.results.map((a) => a.id),
+          },
+          headers,
+        });
+
       return {
-        results: eserviceTemplatesResponse.results.map(
-          toBffProducerEServiceTemplate
+        results: eserviceTemplatesResponse.results.map((template) =>
+          toBffProducerEServiceTemplate(template, notifications)
         ),
         pagination: {
           offset,

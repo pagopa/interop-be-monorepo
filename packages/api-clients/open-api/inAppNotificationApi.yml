@@ -43,7 +43,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/EntityId"
+              type: string
           explode: false
       responses:
         "200":
@@ -53,7 +53,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/EntityId"
+                  type: string
         "401":
           description: Unauthorized
           content:
@@ -87,7 +87,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/EntityId"
+              type: string
             default: []
           explode: false
         - in: query
@@ -436,12 +436,6 @@ components:
       schema:
         type: string
   schemas:
-    EntityId:
-      type: string
-      format: uuid
-      description: ID of the entity
-      schema:
-        type: string
     Notifications:
       type: object
       additionalProperties: false
@@ -478,7 +472,8 @@ components:
           type: string
           description: Type of the notification
         entityId:
-          $ref: "#/components/schemas/EntityId"
+          type: string
+          description: ID of the related entity
         readAt:
           type: string
           format: date-time

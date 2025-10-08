@@ -656,7 +656,7 @@ async function enrichAgreementListEntry(
 ): Promise<bffApi.AgreementListEntry[]> {
   const cachedTenants = new Map<string, tenantApi.Tenant>();
 
-  const notificationsPromise: Promise<inAppNotificationApi.EntityId[]> =
+  const notificationsPromise: Promise<string[]> =
     clients.inAppNotificationManagerClient.filterUnreadNotifications({
       queries: {
         entityIds: agreements.map((a) => a.id),

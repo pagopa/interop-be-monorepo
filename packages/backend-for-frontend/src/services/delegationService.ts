@@ -21,6 +21,7 @@ import {
 import {
   CatalogProcessClient,
   DelegationProcessClient,
+  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { delegationNotFound } from "../model/errors.js";
@@ -43,7 +44,8 @@ async function enhanceDelegation<
     eservice: catalogApi.EService | undefined,
     producer: tenantApi.Tenant
   ) => T,
-  cachedTenants: Map<string, tenantApi.Tenant> = new Map()
+  cachedTenants: Map<string, tenantApi.Tenant> = new Map(),
+  notifications?: string[] | undefined
 ): Promise<T> {
   const delegator = await getTenantById(
     tenantClient,
@@ -58,6 +60,11 @@ async function enhanceDelegation<
     delegation.delegateId,
     cachedTenants
   );
+
+  const delegationWithNotification = {
+    ...delegation,
+    hasUnreadNotifications: notifications?.includes(delegation.id) ?? false,
+  };
 
   return await match(delegation.kind)
     /**
@@ -81,7 +88,7 @@ async function enhanceDelegation<
         }
       })();
       return toApiConverter(
-        delegation,
+        delegationWithNotification,
         delegator,
         delegate,
         eservice,
@@ -104,7 +111,7 @@ async function enhanceDelegation<
       );
 
       return toApiConverter(
-        delegation,
+        delegationWithNotification,
         delegator,
         delegate,
         eservice,
@@ -194,6 +201,7 @@ export function delegationServiceBuilder(
   delegationClients: DelegationProcessClient,
   tenantClient: TenantProcessClient,
   catalogClient: CatalogProcessClient,
+  inAppNotificationManagerClient: InAppNotificationManagerClient,
   fileManager: FileManager
 ) {
   return {
@@ -252,11 +260,21 @@ export function delegationServiceBuilder(
         headers,
       });
 
+      const notificationsPromise: Promise<string[]> =
+        inAppNotificationManagerClient.filterUnreadNotifications({
+          queries: {
+            entityIds: delegations.results.map((a) => a.id),
+          },
+          headers,
+        });
+
       const involvedTenants = await getTenantsFromDelegation(
         tenantClient,
         delegations.results,
         headers
       );
+
+      const notifications = await notificationsPromise;
 
       const delegationEnanched = await Promise.all(
         delegations.results.map((delegation) =>
@@ -266,7 +284,8 @@ export function delegationServiceBuilder(
             delegation,
             headers,
             toBffDelegationApiCompactDelegation,
-            involvedTenants
+            involvedTenants,
+            notifications
           )
         )
       );

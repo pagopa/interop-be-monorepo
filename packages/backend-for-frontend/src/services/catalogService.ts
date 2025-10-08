@@ -47,6 +47,7 @@ import {
   CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
+  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
@@ -87,6 +88,7 @@ export const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
+  inAppNotificationManagerClient: InAppNotificationManagerClient,
   headers: Headers,
   requesterId: TenantId
 ): Promise<bffApi.CatalogEService[]> => {
@@ -94,6 +96,14 @@ export const enhanceCatalogEservices = async (
     ...eservices.map((e) => e.producerId),
     requesterId,
   ] as TenantId[]);
+
+  const notificationsPromise =
+    inAppNotificationManagerClient.filterUnreadNotifications({
+      queries: {
+        entityIds: eservices.map((a) => a.id),
+      },
+      headers,
+    });
 
   const cachedTenants = new Map(
     await Promise.all(
@@ -120,7 +130,8 @@ export const enhanceCatalogEservices = async (
     (
       agreementProcessClient: AgreementProcessClient,
       headers: Headers,
-      requesterId: TenantId
+      requesterId: TenantId,
+      notifications: string[]
     ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
     async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
       const producerTenant = getCachedTenant(eservice.producerId as TenantId);
@@ -134,10 +145,15 @@ export const enhanceCatalogEservices = async (
         headers
       );
 
+      const eserviceWithNotifications = {
+        ...eservice,
+        hasUnreadNotifications: notifications.includes(eservice.id),
+      };
+
       const isRequesterEqProducer = requesterId === eservice.producerId;
 
       return toBffCatalogApiEService(
-        eservice,
+        eserviceWithNotifications,
         producerTenant,
         isRequesterEqProducer,
         latestActiveDescriptor,
@@ -145,8 +161,17 @@ export const enhanceCatalogEservices = async (
       );
     };
 
+  const notifications = await notificationsPromise;
+
   return await Promise.all(
-    eservices.map(enhanceEService(agreementProcessClient, headers, requesterId))
+    eservices.map(
+      enhanceEService(
+        agreementProcessClient,
+        headers,
+        requesterId,
+        notifications
+      )
+    )
   );
 };
 
@@ -302,6 +327,7 @@ export function catalogServiceBuilder(
   attributeProcessClient: AttributeProcessClient,
   delegationProcessClient: DelegationProcessClient,
   eserviceTemplateProcessClient: EServiceTemplateProcessClient,
+  inAppNotificationManagerClient: InAppNotificationManagerClient,
   fileManager: FileManager,
   bffConfig: BffProcessConfig
 ) {
@@ -335,6 +361,7 @@ export function catalogServiceBuilder(
         eservicesResponse.results,
         tenantProcessClient,
         agreementProcessClient,
+        inAppNotificationManagerClient,
         headers,
         requesterId
       );
