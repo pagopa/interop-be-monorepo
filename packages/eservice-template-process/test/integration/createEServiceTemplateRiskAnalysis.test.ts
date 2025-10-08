@@ -89,13 +89,14 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
       buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
-    await eserviceTemplateService.createRiskAnalysis(
+    const creationResponse = await eserviceTemplateService.createRiskAnalysis(
       eserviceTemplate.id,
       riskAnalysisSeed,
       getMockContext({
         authData: getMockAuthData(eserviceTemplate.creatorId),
       })
     );
+
     const writtenEvent = await readLastEserviceTemplateEvent(
       eserviceTemplate.id
     );
@@ -110,7 +111,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       payload: writtenEvent.data,
     });
 
-    const updatedEServiceTemplate: EServiceTemplate = {
+    const expectedEServiceTemplate: EServiceTemplate = {
       ...eserviceTemplate,
       riskAnalysis: [
         {
@@ -151,9 +152,17 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       ],
     };
 
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(updatedEServiceTemplate)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(expectedEServiceTemplate),
+      riskAnalysisId: expectedEServiceTemplate.riskAnalysis[0].id,
+    });
+    expect(creationResponse).toEqual({
+      data: {
+        eserviceTemplate: expectedEServiceTemplate,
+        createdRiskAnalysisId: writtenPayload.riskAnalysisId,
+      },
+      metadata: { version: 1 },
+    });
   });
 
   it("should throw eserviceTemplateNotFound if the eservice doesn't exist", async () => {

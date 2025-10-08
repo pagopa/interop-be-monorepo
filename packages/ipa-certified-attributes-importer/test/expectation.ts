@@ -429,6 +429,12 @@ export const attributes = [
     origin: "IPA",
   },
   {
+    code: "f783a4ce0a0bab2fe1d648a240d2c69b7abc521684f12f0aa739ce9829994ca1",
+    description: "Societa' in Conto Economico Consolidato",
+    name: "Societa' in Conto Economico Consolidato - Tipologia IPA",
+    origin: "IPA",
+  },
+  {
     code: "Z1234ABC",
     description: "Municipality of Example City",
     name: "Municipality of Example City",
