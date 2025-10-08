@@ -112,3 +112,19 @@ export async function retrieveAllAgreementM2MEvents(): Promise<
     })
   );
 }
+
+export async function retrieveLastAgreementM2MEvent(): Promise<AgreementM2MEvent> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(agreementInM2MEvent)
+    .orderBy(desc(agreementInM2MEvent.id))
+    .limit(1);
+
+  return AgreementM2MEvent.parse({
+    ...sqlEvents[0],
+    consumerDelegationId: sqlEvents[0].consumerDelegationId ?? undefined,
+    consumerDelegateId: sqlEvents[0].consumerDelegateId ?? undefined,
+    producerDelegationId: sqlEvents[0].producerDelegationId ?? undefined,
+    producerDelegateId: sqlEvents[0].producerDelegateId ?? undefined,
+  });
+}
