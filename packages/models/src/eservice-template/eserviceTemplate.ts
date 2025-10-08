@@ -70,6 +70,7 @@ export const EServiceTemplate = z.object({
   technology: Technology,
   riskAnalysis: z.array(EServiceTemplateRiskAnalysis),
   mode: EServiceMode,
+  personalData: z.boolean().optional(),
 
   // Default values to be set in all e-service instances created from this template, unless the user provides a custom value
   isSignalHubEnabled: z.boolean().optional(),
