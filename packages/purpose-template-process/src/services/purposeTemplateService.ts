@@ -133,6 +133,7 @@ export function purposeTemplateServiceBuilder(
         purposeIsFreeOfCharge: seed.purposeIsFreeOfCharge,
         purposeFreeOfChargeReason: seed.purposeFreeOfChargeReason,
         purposeDailyCalls: seed.purposeDailyCalls,
+        personalData: seed.personalData,
       };
 
       const event = await repository.createEvent(

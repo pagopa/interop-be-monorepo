@@ -322,7 +322,7 @@ describe("Purpose Template splitter", () => {
       purposeIsFreeOfCharge: purposeTemplate.purposeIsFreeOfCharge,
       purposeFreeOfChargeReason: null,
       purposeDailyCalls: null,
-      personalData: null,
+      personalData: purposeTemplate.personalData,
     };
 
     const expectedRiskAnalysisFormTemplateSQL: PurposeTemplateRiskAnalysisFormSQL =

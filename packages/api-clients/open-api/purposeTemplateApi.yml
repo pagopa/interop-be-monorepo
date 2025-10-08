@@ -724,6 +724,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        personalData:
+          type: boolean
       required:
         - id
         - targetDescription
@@ -734,6 +736,7 @@ components:
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
+        - personalData
     PurposeTemplateSeed:
       type: object
       additionalProperties: false
@@ -763,12 +766,15 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        personalData:
+          type: boolean
       required:
         - targetDescription
         - targetTenantKind
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
+        - personalData
     PurposeTemplateState:
       type: string
       description: Purpose Template State
