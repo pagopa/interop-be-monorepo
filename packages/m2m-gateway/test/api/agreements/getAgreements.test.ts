@@ -14,7 +14,7 @@ import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter
 
 describe("GET /agreements route test", () => {
   const mockResponse: m2mGatewayApi.Agreements = {
-    results: [toM2MGatewayApiAgreement(getMockedApiAgreement())],
+    results: [toM2MGatewayApiAgreement(getMockedApiAgreement(), generateId())],
     pagination: {
       limit: 10,
       offset: 0,
