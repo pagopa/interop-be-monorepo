@@ -1,11 +1,13 @@
 import { desc } from "drizzle-orm";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
+  agreementInM2MEvent,
   attributeInM2MEvent,
   eserviceInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { afterEach, inject } from "vitest";
 import {
+  AgreementM2MEvent,
   AttributeM2MEvent,
   Delegation,
   EServiceM2MEvent,
@@ -70,6 +72,22 @@ export async function retrieveLastEServiceM2MEvent(): Promise<EServiceM2MEvent> 
   return EServiceM2MEvent.parse({
     ...sqlEvents[0],
     descriptorId: sqlEvents[0].descriptorId ?? undefined,
+    producerDelegationId: sqlEvents[0].producerDelegationId ?? undefined,
+    producerDelegateId: sqlEvents[0].producerDelegateId ?? undefined,
+  });
+}
+
+export async function retrieveLastAgreementM2MEvent(): Promise<AgreementM2MEvent> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(agreementInM2MEvent)
+    .orderBy(desc(agreementInM2MEvent.id))
+    .limit(1);
+
+  return AgreementM2MEvent.parse({
+    ...sqlEvents[0],
+    consumerDelegationId: sqlEvents[0].consumerDelegationId ?? undefined,
+    consumerDelegateId: sqlEvents[0].consumerDelegateId ?? undefined,
     producerDelegationId: sqlEvents[0].producerDelegationId ?? undefined,
     producerDelegateId: sqlEvents[0].producerDelegateId ?? undefined,
   });
