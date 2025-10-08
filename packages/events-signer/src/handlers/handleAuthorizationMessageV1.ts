@@ -3,7 +3,7 @@ import {
   FileManager,
   logger,
   SafeStorageService,
-  DbServiceBuilder,
+  SignatureServiceBuilder,
 } from "pagopa-interop-commons";
 import {
   AuthorizationEventV1,
@@ -21,7 +21,7 @@ export const handleAuthorizationMessageV1 = async (
     timestamp: string;
   }>,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
@@ -95,7 +95,7 @@ export const handleAuthorizationMessageV1 = async (
       allAuthorizationDataToStore,
       loggerInstance,
       fileManager,
-      dbService,
+      signatureService,
       safeStorage,
       correlationId
     );

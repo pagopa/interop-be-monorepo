@@ -6,7 +6,7 @@ import {
   SafeStorageApiConfig,
   SafeStorageService,
   FileCreationRequest,
-  DbServiceBuilder,
+  SignatureServiceBuilder,
   SignatureReference,
 } from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
@@ -18,7 +18,7 @@ export const archiveFileToSafeStorage = async (
     fileName: string;
   },
   logger: Logger,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService,
   config: SafeStorageApiConfig,
   correlationId: string
@@ -58,7 +58,7 @@ export const archiveFileToSafeStorage = async (
       correlationId,
     } as SignatureReference;
 
-    await dbService.saveSignatureReference(signatureReference);
+    await signatureService.saveSignatureReference(signatureReference);
     logger.info(`Safe Storage reference for ${fileName} saved in DynamoDB.`);
   } catch (error) {
     throw genericInternalError(

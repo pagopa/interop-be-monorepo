@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { FileManager, SafeStorageService } from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
-import { DbServiceBuilder } from "pagopa-interop-commons";
+import { SignatureServiceBuilder } from "pagopa-interop-commons";
 import { sqsMessageHandler } from "../src/handlers/sqsMessageHandler.js";
 
 vi.mock("../src/config/config.js", () => ({
@@ -16,10 +16,10 @@ const mockFileManager: Partial<FileManager> = {
   storeBytes: vi.fn(),
 };
 
-const mockDbService: DbServiceBuilder = {
-  deleteFromDynamo: vi.fn(),
+const mockDbService: SignatureServiceBuilder = {
   saveSignatureReference: vi.fn(),
   readSignatureReference: vi.fn(),
+  deleteSignatureReference: vi.fn(),
 };
 
 const mockSafeStorageService: SafeStorageService = {
@@ -74,7 +74,9 @@ describe("sqsMessageHandler", () => {
       mockFileContent
     );
     (mockFileManager.storeBytes as Mock).mockResolvedValueOnce(mockS3Key);
-    (mockDbService.deleteFromDynamo as Mock).mockResolvedValueOnce(void 0);
+    (mockDbService.deleteSignatureReference as Mock).mockResolvedValueOnce(
+      void 0
+    );
 
     await sqsMessageHandler(
       sqsMessagePayload,
@@ -97,7 +99,7 @@ describe("sqsMessageHandler", () => {
       expect.any(Object)
     );
 
-    expect(mockDbService.deleteFromDynamo).toHaveBeenCalledWith(
+    expect(mockDbService.deleteSignatureReference).toHaveBeenCalledWith(
       sqsMessageBody.id
     );
   });
@@ -118,6 +120,6 @@ describe("sqsMessageHandler", () => {
 
     expect(mockSafeStorageService.getFile).not.toHaveBeenCalled();
     expect(mockFileManager.storeBytes).not.toHaveBeenCalled();
-    expect(mockDbService.deleteFromDynamo).not.toHaveBeenCalled();
+    expect(mockDbService.deleteSignatureReference).not.toHaveBeenCalled();
   });
 });

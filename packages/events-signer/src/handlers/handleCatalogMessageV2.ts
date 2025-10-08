@@ -11,7 +11,7 @@ import {
   FileManager,
   logger,
   SafeStorageService,
-  DbServiceBuilder,
+  SignatureServiceBuilder,
 } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { CatalogEventData } from "../models/eventTypes.js";
@@ -23,7 +23,7 @@ export const handleCatalogMessageV2 = async (
     timestamp: string;
   }>,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
@@ -122,7 +122,7 @@ export const handleCatalogMessageV2 = async (
       allCatalogDataToStore,
       loggerInstance,
       fileManager,
-      dbService,
+      signatureService,
       safeStorage,
       correlationId
     );

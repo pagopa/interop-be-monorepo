@@ -5,8 +5,8 @@ import {
   logger,
   createSafeStorageApiClient,
   SafeStorageService,
-  DbServiceBuilder,
-  dbServiceBuilder,
+  SignatureServiceBuilder,
+  signatureServiceBuilder,
 } from "pagopa-interop-commons";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Message } from "@aws-sdk/client-sqs";
@@ -15,7 +15,10 @@ import { sqsMessageHandler } from "./handlers/sqsMessageHandler.js";
 
 const fileManager: FileManager = initFileManager(config);
 const dynamoDBClient: DynamoDBClient = new DynamoDBClient();
-const dbService: DbServiceBuilder = dbServiceBuilder(dynamoDBClient, config);
+const signatureService: SignatureServiceBuilder = signatureServiceBuilder(
+  dynamoDBClient,
+  config
+);
 const safeStorageService: SafeStorageService =
   createSafeStorageApiClient(config);
 
@@ -28,7 +31,7 @@ const handler = async (messagePayload: Message): Promise<void> => {
   await sqsMessageHandler(
     messagePayload,
     fileManager,
-    dbService,
+    signatureService,
     safeStorageService
   );
 };

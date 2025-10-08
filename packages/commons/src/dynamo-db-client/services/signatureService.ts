@@ -11,9 +11,10 @@ import { getUnixTime } from "date-fns";
 import { DynamoDBClientConfig } from "../config/config.js";
 import { formatError } from "../utils/errorFormatter.js";
 import { SignatureReference } from "../models/signatureReference.js";
+import { assertValidSignatureReferenceItem } from "../utils/assertSignatureIsValid.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function dbServiceBuilder(
+export function signatureServiceBuilder(
   dynamoDBClient: DynamoDBClient,
   config: DynamoDBClientConfig
 ) {
@@ -63,23 +64,19 @@ export function dbServiceBuilder(
         if (!data.Item) {
           return undefined;
         }
-        if (
-          !data.Item.safeStorageId?.S ||
-          !data.Item.correlationId?.S ||
-          !data.Item.fileKind?.S ||
-          !data.Item.fileName?.S ||
-          !data.Item.creationTimestamp?.N
-        ) {
-          throw genericInternalError(
-            `Malformed item in table '${config.signatureReferencesTableName}' for id='${id}'`
-          );
-        }
+
+        assertValidSignatureReferenceItem(
+          data.Item,
+          config.signatureReferencesTableName,
+          id
+        );
 
         const reference: SignatureReference = {
           safeStorageId: data.Item.safeStorageId.S,
           correlationId: data.Item.correlationId.S,
           fileKind: data.Item.fileKind.S,
           fileName: data.Item.fileName.S,
+          creationTimestamp: Number(data.Item.creationTimestamp.N),
         };
 
         return reference;
@@ -92,7 +89,7 @@ export function dbServiceBuilder(
       }
     },
 
-    deleteFromDynamo: async (id: string): Promise<void> => {
+    deleteSignatureReference: async (id: string): Promise<void> => {
       const FIFTEEN_DAYS = 15 * 24 * 60 * 60;
 
       const command = new UpdateItemCommand({
@@ -102,7 +99,7 @@ export function dbServiceBuilder(
         },
         UpdateExpression: "SET #ttl = :ttl, logicallyDeleted = :deleted",
         ExpressionAttributeNames: {
-          "#ttl": "ttl", // alias because ttl is a reserved word
+          "#ttl": "ttl",
         },
         ExpressionAttributeValues: {
           ":ttl": { N: (getUnixTime(new Date()) + FIFTEEN_DAYS).toString() },
@@ -123,4 +120,6 @@ export function dbServiceBuilder(
   };
 }
 
-export type DbServiceBuilder = ReturnType<typeof dbServiceBuilder>;
+export type SignatureServiceBuilder = ReturnType<
+  typeof signatureServiceBuilder
+>;

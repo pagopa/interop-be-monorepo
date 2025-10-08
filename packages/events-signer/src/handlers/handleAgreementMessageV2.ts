@@ -12,7 +12,7 @@ import {
   FileManager,
   logger,
   SafeStorageService,
-  DbServiceBuilder,
+  SignatureServiceBuilder,
 } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { AgreementEventData } from "../models/eventTypes.js";
@@ -24,7 +24,7 @@ export const handleAgreementMessageV2 = async (
     timestamp: string;
   }>,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
@@ -99,7 +99,7 @@ export const handleAgreementMessageV2 = async (
       allAgreementDataToStore,
       loggerInstance,
       fileManager,
-      dbService,
+      signatureService,
       safeStorage,
       correlationId
     );

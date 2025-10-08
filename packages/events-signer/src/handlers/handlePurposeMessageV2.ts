@@ -15,7 +15,7 @@ import {
   FileManager,
   logger,
   SafeStorageService,
-  DbServiceBuilder,
+  SignatureServiceBuilder,
 } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { PurposeEventData } from "../models/eventTypes.js";
@@ -23,7 +23,7 @@ import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 export const handlePurposeMessageV2 = async (
   eventsWithTimestamp: Array<{ purposeV2: PurposeEventV2; timestamp: string }>,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
@@ -161,7 +161,7 @@ export const handlePurposeMessageV2 = async (
       allPurposeDataToStore,
       loggerInstance,
       fileManager,
-      dbService,
+      signatureService,
       safeStorage,
       correlationId
     );

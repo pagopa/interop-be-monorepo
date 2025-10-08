@@ -17,8 +17,8 @@ import {
 import {
   SafeStorageService,
   createSafeStorageApiClient,
-  DbServiceBuilder,
-  dbServiceBuilder,
+  SignatureServiceBuilder,
+  signatureServiceBuilder,
 } from "pagopa-interop-commons";
 import { config } from "../../src/config/config.js";
 import { dynamoDBClient } from "../utils/utils.js";
@@ -27,7 +27,10 @@ import { handleAgreementMessageV2 } from "../../src/handlers/handleAgreementMess
 const fileManager: FileManager = initFileManager(config);
 const safeStorageService: SafeStorageService =
   createSafeStorageApiClient(config);
-const dbService: DbServiceBuilder = dbServiceBuilder(dynamoDBClient, config);
+const signatureService: SignatureServiceBuilder = signatureServiceBuilder(
+  dynamoDBClient,
+  config
+);
 
 const mockSafeStorageId = generateId();
 
@@ -80,11 +83,11 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     await handleAgreementMessageV2(
       eventsWithTimestamp,
       fileManager,
-      dbService,
+      signatureService,
       safeStorageService
     );
 
-    const retrievedReference = await dbService.readSignatureReference(
+    const retrievedReference = await signatureService.readSignatureReference(
       mockSafeStorageId
     );
 
@@ -123,14 +126,14 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     await handleAgreementMessageV2(
       eventsWithTimestamp,
       fileManager,
-      dbService,
+      signatureService,
       safeStorageService
     );
 
     expect(safeStorageCreateFileSpy).not.toHaveBeenCalled();
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
-    const retrievedReference = await dbService.readSignatureReference(
+    const retrievedReference = await signatureService.readSignatureReference(
       generateId()
     );
     expect(retrievedReference).toBeUndefined();
@@ -162,7 +165,7 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
       handleAgreementMessageV2(
         eventsWithTimestamp,
         fileManager,
-        dbService,
+        signatureService,
         safeStorageService
       )
     ).rejects.toThrow("Failed to process Safe Storage/DynamoDB for file");

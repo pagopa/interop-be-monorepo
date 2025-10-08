@@ -16,8 +16,8 @@ import {
   initFileManager,
   SafeStorageService,
   createSafeStorageApiClient,
-  DbServiceBuilder,
-  dbServiceBuilder,
+  SignatureServiceBuilder,
+  signatureServiceBuilder,
 } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
@@ -32,7 +32,10 @@ import { handleAuthorizationMessageV2 } from "../../src/handlers/handleAuthoriza
 const fileManager: FileManager = initFileManager(config);
 const safeStorageService: SafeStorageService =
   createSafeStorageApiClient(config);
-const dbService: DbServiceBuilder = dbServiceBuilder(dynamoDBClient, config);
+const signatureService: SignatureServiceBuilder = signatureServiceBuilder(
+  dynamoDBClient,
+  config
+);
 
 const mockSafeStorageId = generateId();
 
@@ -98,11 +101,11 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     await handleAuthorizationMessageV2(
       eventsWithTimestamp,
       fileManager,
-      dbService,
+      signatureService,
       safeStorageService
     );
 
-    const retrievedReference = await dbService.readSignatureReference(
+    const retrievedReference = await signatureService.readSignatureReference(
       mockSafeStorageId
     );
 
@@ -156,11 +159,11 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     await handleAuthorizationMessageV2(
       eventsWithTimestamp,
       fileManager,
-      dbService,
+      signatureService,
       safeStorageService
     );
 
-    const retrievedReference = await dbService.readSignatureReference(
+    const retrievedReference = await signatureService.readSignatureReference(
       mockSafeStorageId
     );
 
@@ -211,11 +214,11 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     await handleAuthorizationMessageV2(
       eventsWithTimestamp,
       fileManager,
-      dbService,
+      signatureService,
       safeStorageService
     );
 
-    const retrievedReference = await dbService.readSignatureReference(
+    const retrievedReference = await signatureService.readSignatureReference(
       mockSafeStorageId
     );
 
@@ -263,14 +266,14 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
     await handleAuthorizationMessageV2(
       eventsWithTimestamp,
       fileManager,
-      dbService,
+      signatureService,
       safeStorageService
     );
 
     expect(safeStorageCreateFileSpy).not.toHaveBeenCalled();
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
-    const retrievedReference = await dbService.readSignatureReference(
+    const retrievedReference = await signatureService.readSignatureReference(
       generateId()
     );
     expect(retrievedReference).toBeUndefined();
@@ -314,7 +317,7 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
       handleAuthorizationMessageV2(
         eventsWithTimestamp,
         fileManager,
-        dbService,
+        signatureService,
         safeStorageService
       )
     ).rejects.toThrow("Failed to process Safe Storage/DynamoDB for file");

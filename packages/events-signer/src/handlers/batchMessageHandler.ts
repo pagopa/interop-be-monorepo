@@ -18,7 +18,10 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { SafeStorageService, DbServiceBuilder } from "pagopa-interop-commons";
+import {
+  SafeStorageService,
+  SignatureServiceBuilder,
+} from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { handleAgreementMessageV2 } from "./handleAgreementMessageV2.js";
 import { handleAuthorizationMessageV1 } from "./handleAuthorizationMessageV1.js";
@@ -34,7 +37,7 @@ import { handlePurposeMessageV2 } from "./handlePurposeMessageV2.js";
  * @param {string} topic - The Kafka topic from which the messages originate.
  * @param {Logger} logger - The logger instance for logging messages.
  * @param {FileManager} fileManager - The file manager responsible for storing s3 files.
- * @param {DbServiceBuilder} dbService - The database service builder with dynamo configs.
+ * @param {SignatureServiceBuilder} signatureService - The database service builder with dynamo configs.
  * @param {SafeStorageService} safeStorageService - The safe storage api client.
  * @returns {Promise<void>} A promise that resolves when all messages have been processed.
  * @throws {Error} If the topic is unknown.
@@ -44,7 +47,7 @@ export async function executeTopicHandler(
   kafkaMessages: KafkaMessage[],
   topic: string,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorageService: SafeStorageService
 ): Promise<void> {
   await match(topic)
@@ -70,7 +73,7 @@ export async function executeTopicHandler(
         await handleCatalogMessageV2(
           eservicesV2WithTimestamp,
           fileManager,
-          dbService,
+          signatureService,
           safeStorageService
         );
       }
@@ -97,7 +100,7 @@ export async function executeTopicHandler(
         await handleAgreementMessageV2(
           agreementsV2WithTimestamp,
           fileManager,
-          dbService,
+          signatureService,
           safeStorageService
         );
       }
@@ -124,7 +127,7 @@ export async function executeTopicHandler(
         await handlePurposeMessageV2(
           purposesV2WithTimestamp,
           fileManager,
-          dbService,
+          signatureService,
           safeStorageService
         );
       }
@@ -160,7 +163,7 @@ export async function executeTopicHandler(
         await handleAuthorizationMessageV1(
           authorizationsV1WithTimestamp,
           fileManager,
-          dbService,
+          signatureService,
           safeStorageService
         );
       }
@@ -168,7 +171,7 @@ export async function executeTopicHandler(
         await handleAuthorizationMessageV2(
           authorizationsV2WithTimestamp,
           fileManager,
-          dbService,
+          signatureService,
           safeStorageService
         );
       }
@@ -194,7 +197,7 @@ export async function executeTopicHandler(
         await handleDelegationMessageV2(
           delegationsV2WithTimestamp,
           fileManager,
-          dbService,
+          signatureService,
           safeStorageService
         );
       }

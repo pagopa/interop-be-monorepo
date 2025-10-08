@@ -5,7 +5,7 @@ import {
   Logger,
   SafeStorageService,
   FileCreationRequest,
-  DbServiceBuilder,
+  SignatureServiceBuilder,
   formatError,
 } from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
@@ -22,7 +22,7 @@ import { calculateSha256Base64 } from "../utils/checksum.js";
 // eslint-disable-next-line max-params
 async function processMessage(
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   s3Key: string,
   safeStorageService: SafeStorageService,
   logger: Logger,
@@ -58,7 +58,7 @@ async function processMessage(
       checksum
     );
 
-    await dbService.saveSignatureReference({
+    await signatureService.saveSignatureReference({
       safeStorageId: key,
       fileKind: "VOUCHER_AUDIT",
       fileName,
@@ -73,7 +73,7 @@ async function processMessage(
 export const sqsMessageHandler = async (
   messagePayload: Message,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorageService: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
@@ -86,7 +86,7 @@ export const sqsMessageHandler = async (
     const s3Key = decodeSQSEventMessage(messagePayload);
     await processMessage(
       fileManager,
-      dbService,
+      signatureService,
       s3Key,
       safeStorageService,
       logInstance,

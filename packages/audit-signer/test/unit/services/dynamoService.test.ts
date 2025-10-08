@@ -2,17 +2,20 @@
 import "../setup.js";
 import { describe, it, beforeEach, expect, vi, Mock } from "vitest";
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
-import { dbServiceBuilder, SignatureReference } from "pagopa-interop-commons";
+import {
+  signatureServiceBuilder,
+  SignatureReference,
+} from "pagopa-interop-commons";
 import { config } from "../../../src/config/config.js";
 
-describe("dbServiceBuilder", () => {
+describe("signatureServiceBuilder", () => {
   let dynamoClient: DynamoDBClient;
-  let dbService: ReturnType<typeof dbServiceBuilder>;
+  let signatureService: ReturnType<typeof signatureServiceBuilder>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     dynamoClient = { send: vi.fn() } as unknown as DynamoDBClient;
-    dbService = dbServiceBuilder(dynamoClient, config);
+    signatureService = signatureServiceBuilder(dynamoClient, config);
   });
 
   it("saves record correctly", async () => {
@@ -23,7 +26,7 @@ describe("dbServiceBuilder", () => {
       correlationId: "correlation-1",
     };
 
-    await dbService.saveSignatureReference(mockReference);
+    await signatureService.saveSignatureReference(mockReference);
 
     const sentCommand = (dynamoClient.send as unknown as Mock).mock.calls[0][0];
     expect(sentCommand).toBeInstanceOf(PutItemCommand);
@@ -48,7 +51,7 @@ describe("dbServiceBuilder", () => {
     (dynamoClient.send as unknown as Mock).mockRejectedValue(sendError);
 
     await expect(
-      dbService.saveSignatureReference(mockReference)
+      signatureService.saveSignatureReference(mockReference)
     ).rejects.toThrow("Error saving record on table");
   });
 });

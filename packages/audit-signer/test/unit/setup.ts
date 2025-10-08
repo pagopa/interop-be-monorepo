@@ -34,7 +34,7 @@ export const mockFileManager: FileManager = {
 export const mockDbService = {
   saveSignatureReference: vi.fn(),
   readSignatureReference: vi.fn(),
-  deleteFromDynamo: vi.fn(),
+  deleteSignatureReference: vi.fn(),
 };
 
 export const mockSafeStorageService = {
