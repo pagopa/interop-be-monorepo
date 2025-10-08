@@ -14,6 +14,7 @@ import {
 } from "pagopa-interop-commons";
 import { PurposeTemplateId, TenantKind } from "pagopa-interop-models";
 import {
+  CatalogProcessClient,
   PurposeTemplateProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -22,12 +23,23 @@ import { config } from "../config/config.js";
 import {
   toBffCatalogPurposeTemplate,
   toBffCreatorPurposeTemplate,
+  toBffEServiceDescriptorsPurposeTemplate,
 } from "../api/purposeTemplateApiConverter.js";
-import { tenantNotFound } from "../model/errors.js";
+import {
+  eserviceDescriptorNotFound,
+  eServiceNotFound,
+  tenantNotFound,
+} from "../model/errors.js";
+import {
+  toCompactDescriptor,
+  toCompactEservice,
+} from "../api/catalogApiConverter.js";
+import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 
 export function purposeTemplateServiceBuilder(
   purposeTemplateClient: PurposeTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
+  catalogProcessClient: CatalogProcessClient,
   fileManager: FileManager
 ) {
   async function getTenantsFromPurposeTemplates(
@@ -46,6 +58,77 @@ export function purposeTemplateServiceBuilder(
     );
 
     return new Map(tenants.map((t) => [t.id, t]));
+  }
+
+  async function getEServicesDescriptorsFromPurposeTemplateEServiceDescriptors(
+    catalogClient: CatalogProcessClient,
+    tenantClient: TenantProcessClient,
+    purposeTemplateEServiceDescriptor: purposeTemplateApi.EServiceDescriptorPurposeTemplate[],
+    headers: BffAppContext["headers"]
+  ): Promise<{
+    compactEServicesMap: Map<string, bffApi.CompactEService | undefined>;
+    compactDescriptorsMap: Map<string, bffApi.CompactDescriptor | undefined>;
+  }> {
+    const eserviceDescriptorIds = new Map<string, string>();
+    for (const eserviceDescriptor of purposeTemplateEServiceDescriptor) {
+      eserviceDescriptorIds.set(
+        eserviceDescriptor.eserviceId,
+        eserviceDescriptor.descriptorId
+      );
+    }
+
+    const eservices = await Promise.all(
+      Array.from(eserviceDescriptorIds.entries()).map(
+        async ([eserviceId, descriptorId]) => {
+          const eservice = await catalogClient.getEServiceById({
+            headers,
+            params: { eServiceId: eserviceId },
+          });
+
+          return { eservice, descriptorId };
+        }
+      )
+    );
+
+    const compactDescriptorsMap = new Map<string, bffApi.CompactDescriptor>();
+    const compactEServicesMap = new Map<string, bffApi.CompactEService>();
+    const producersMap = new Map<string, tenantApi.Tenant>();
+    for (const { eservice, descriptorId } of eservices) {
+      if (!producersMap.has(eservice.producerId)) {
+        const producer = await tenantClient.tenant.getTenant({
+          headers,
+          params: { id: eservice.producerId },
+        });
+
+        producersMap.set(eservice.producerId, producer);
+      }
+
+      const producer = producersMap.get(eservice.producerId);
+      if (!producer) {
+        throw tenantNotFound(eservice.producerId);
+      }
+
+      compactEServicesMap.set(
+        eservice.id,
+        toCompactEservice(eservice, producer)
+      );
+
+      if (!compactDescriptorsMap.has(descriptorId)) {
+        const descriptor = eservice.descriptors.find(
+          (d) => d.id === descriptorId
+        );
+        if (!descriptor) {
+          throw eserviceDescriptorNotFound(eservice.id, descriptorId);
+        }
+
+        compactDescriptorsMap.set(
+          descriptorId,
+          toCompactDescriptor(descriptor)
+        );
+      }
+    }
+
+    return { compactEServicesMap, compactDescriptorsMap };
   }
 
   return {
@@ -204,14 +287,14 @@ export function purposeTemplateServiceBuilder(
       );
 
       const results = catalogPurposeTemplatesResponse.results.map(
-        (template) => {
-          const creator = creatorTenantsMap.get(template.creatorId);
+        (purposeTemplate) => {
+          const creator = creatorTenantsMap.get(purposeTemplate.creatorId);
 
           if (!creator) {
-            throw tenantNotFound(template.creatorId);
+            throw tenantNotFound(purposeTemplate.creatorId);
           }
 
-          return toBffCatalogPurposeTemplate(template, creator);
+          return toBffCatalogPurposeTemplate(purposeTemplate, creator);
         }
       );
 
@@ -223,6 +306,121 @@ export function purposeTemplateServiceBuilder(
           totalCount: catalogPurposeTemplatesResponse.totalCount,
         },
       };
+    },
+    async getPurposeTemplateEServiceDescriptors({
+      purposeTemplateId,
+      producerIds,
+      eserviceIds,
+      offset,
+      limit,
+      ctx,
+    }: {
+      purposeTemplateId: string;
+      producerIds: string[];
+      eserviceIds: string[];
+      offset: number;
+      limit: number;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<bffApi.EServiceDescriptorsPurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
+
+      logger.info(
+        `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with eserviceIds ${eserviceIds.toString()}, producerIds ${producerIds.toString()}, offset ${offset}, limit ${limit}`
+      );
+
+      const purposeTemplateEServiceDescriptorsResponse =
+        await purposeTemplateClient.getPurposeTemplateEServices({
+          headers,
+          params: {
+            id: purposeTemplateId,
+          },
+          queries: {
+            producerIds,
+            eserviceIds,
+            limit,
+            offset,
+          },
+        });
+
+      const { compactEServicesMap, compactDescriptorsMap } =
+        await getEServicesDescriptorsFromPurposeTemplateEServiceDescriptors(
+          catalogProcessClient,
+          tenantProcessClient,
+          purposeTemplateEServiceDescriptorsResponse.results,
+          headers
+        );
+
+      const results = purposeTemplateEServiceDescriptorsResponse.results.map(
+        (eserviceDescriptor) => {
+          const { eserviceId, descriptorId } = eserviceDescriptor;
+
+          const compactEService = compactEServicesMap.get(eserviceId);
+          if (!compactEService) {
+            throw eServiceNotFound(eserviceId);
+          }
+
+          const compactDescriptor = compactDescriptorsMap.get(descriptorId);
+          if (!compactDescriptor) {
+            throw eserviceDescriptorNotFound(eserviceId, descriptorId);
+          }
+
+          return toBffEServiceDescriptorsPurposeTemplate(
+            eserviceDescriptor,
+            compactEService,
+            compactDescriptor
+          );
+        }
+      );
+
+      return {
+        results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: purposeTemplateEServiceDescriptorsResponse.totalCount,
+        },
+      };
+    },
+    async getPurposeTemplate(
+      id: PurposeTemplateId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplateWithCompactCreator> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Retrieving Purpose Template ${id}`);
+
+      const result = await purposeTemplateClient.getPurposeTemplate({
+        params: {
+          id,
+        },
+        headers,
+      });
+
+      const creator = await tenantProcessClient.tenant.getTenant({
+        params: {
+          id: result.creatorId,
+        },
+        headers,
+      });
+      if (!creator) {
+        throw tenantNotFound(result.creatorId);
+      }
+
+      const riskAnalysisFormTemplateAnswers =
+        result.purposeRiskAnalysisForm?.answers;
+      const annotationDocuments = riskAnalysisFormTemplateAnswers
+        ? Object.values(riskAnalysisFormTemplateAnswers).flatMap(
+            (answer) => answer.annotation?.docs ?? []
+          )
+        : [];
+
+      return bffApi.PurposeTemplateWithCompactCreator.parse({
+        ...result,
+        creator: toBffCompactOrganization(creator),
+        annotationDocuments,
+      });
     },
     async updatePurposeTemplate(
       id: PurposeTemplateId,

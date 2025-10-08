@@ -199,12 +199,20 @@ paths:
       parameters:
         - in: query
           name: name
-          description: Filter for the client name
+          description: |
+            Filter by Client name.
+            If not specified, return Clients with any name.
+            If specified, since Client name is visible only to the owner (consumer),
+            the response will include only Clients owned by the requester.
           schema:
             type: string
         - in: query
           name: userIds
-          description: comma separated sequence of user IDs
+          description: |
+            Filter by Users associated with the Client.
+            If not specified, return Clients with any User association.
+            If specified, since Client Users are visible only to the owner (consumer),
+            the response will include only Clients owned by the requester.
           schema:
             type: array
             items:
@@ -214,20 +222,23 @@ paths:
           explode: false
         - name: consumerId
           in: query
-          description: ID of Consumer that MUST be related to the Client
-          required: true
+          description: Filter by Client consumer (the Client owner)
           schema:
             type: string
             format: uuid
         - name: purposeId
           in: query
-          description: ID of Purpose that MUST be related to the Client
+          description: |
+            Filter by Purposes associated with the Client.
+            If not specified, return Clients with any Purpose association.
+            If specified, since Client Purposes are visible only to the owner (consumer),
+            the response will include only Clients owned by the requester.
           schema:
             type: string
             format: uuid
         - name: kind
           in: query
-          description: type of Client to be retrieved
+          description: Filter by Client kind
           schema:
             $ref: "#/components/schemas/ClientKind"
         - in: query
@@ -247,7 +258,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: Clients found
+          description: Clients retrieved
           content:
             application/json:
               schema:
@@ -1138,12 +1149,20 @@ paths:
       parameters:
         - in: query
           name: name
-          description: Filter for the producer keychain name
+          description: |
+            Filter by Keychain name.
+            If not specified, return Keychains with any name.
+            If specified, since Keychain name is visible only to the owner (producer),
+            the response will include only Keychains owned by the requester.
           schema:
             type: string
         - in: query
           name: userIds
-          description: comma separated sequence of user IDs
+          description: |
+            Filter by Users associated with the Keychain.
+            If not specified, return Keychains with any User association.
+            If specified, since Keychain Users are visible only to the owner (producer),
+            the response will include only Keychains owned by the requester.
           schema:
             type: array
             items:
@@ -1153,14 +1172,17 @@ paths:
           explode: false
         - name: producerId
           in: query
-          description: ID of producer that MUST be related to the keychain
-          required: true
+          description: Filter by Keychain producer (the Keychain owner)
           schema:
             type: string
             format: uuid
         - name: eserviceId
           in: query
-          description: ID of e-service that MUST be related to the Client
+          description: |
+            Filter by E-Services associated with the Keychain.
+            If not specified, return Keychains with any E-Service association.
+            If specified, since Keychain E-Services are visible only to the owner (producer),
+            the response will include only Keychains owned by the requester.
           schema:
             type: string
             format: uuid
