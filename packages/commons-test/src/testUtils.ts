@@ -115,6 +115,7 @@ import {
   tenantKind,
   purposeTemplateState,
   PurposeTemplateState,
+  EmailNotificationPreference,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -226,7 +227,8 @@ export const getMockEServiceAttributes = (): EserviceAttributes => ({
 export const getMockEService = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   producerId: TenantId = generateId<TenantId>(),
-  descriptors: Descriptor[] = []
+  descriptors: Descriptor[] = [],
+  templateId?: EServiceTemplateId | undefined
 ): EService => ({
   id: eserviceId,
   name: "eService name",
@@ -237,6 +239,7 @@ export const getMockEService = (
   descriptors,
   riskAnalysis: [],
   mode: "Deliver",
+  ...(templateId && { templateId }),
 });
 
 export const getMockVerifiedTenantAttribute = (
@@ -1320,6 +1323,8 @@ export const getMockUserNotificationConfig = (): UserNotificationConfig => ({
   id: generateId(),
   userId: generateId(),
   tenantId: generateId(),
+  inAppNotificationPreference: generateMock(z.boolean()),
+  emailNotificationPreference: generateMock(EmailNotificationPreference),
   inAppConfig: getMockNotificationConfig(),
   emailConfig: getMockNotificationConfig(),
   createdAt: generateMock(z.coerce.date()),

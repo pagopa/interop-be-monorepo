@@ -10,12 +10,12 @@ import {
   DPoPConfig,
   EventStoreConfig,
   FileManagerConfig,
-  ReadModelDbConfig,
   ReadModelSQLDbConfig,
   RedisRateLimiterConfig,
   S3Config,
   TokenGenerationReadModelDbConfig,
   InAppNotificationDBConfig,
+  UserSQLDbConfig,
   M2MEventSQLDbConfig,
   EventsSignerConfig,
 } from "pagopa-interop-commons";
@@ -28,20 +28,19 @@ import {
   TEST_MAILPIT_HTTP_PORT,
   TEST_MAILPIT_SMTP_PORT,
   TEST_MINIO_PORT,
-  TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   TEST_REDIS_PORT,
   awsSESContainer,
   dynamoDBContainer,
   mailpitContainer,
   minioContainer,
-  mongoDBContainer,
   postgreSQLReadModelContainer,
   postgreSQLContainer,
   redisContainer,
   postgreSQLAnalyticsContainer,
   inAppNotificationDBContainer,
   TEST_IN_APP_NOTIFICATION_DB_PORT,
+  postgreSQLUserContainer,
   m2mEventDBContainer,
   TEST_M2M_EVENT_DB_PORT,
 } from "./containerTestUtils.js";
@@ -54,7 +53,6 @@ import {
 
 declare module "vitest" {
   export interface ProvidedContext {
-    readModelConfig?: ReadModelDbConfig;
     readModelSQLConfig?: ReadModelSQLDbConfig;
     tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
@@ -66,12 +64,13 @@ declare module "vitest" {
     dpopConfig?: EnhancedDPoPConfig;
     inAppNotificationDbConfig?: InAppNotificationDBConfig;
     m2mEventDbConfig?: M2MEventSQLDbConfig;
+    userSQLConfig?: UserSQLDbConfig;
     eventsSignerConfig?: EnhancedEventsSignerConfig;
   }
 }
 
 /**
- * This function is a global setup for vitest that starts and stops test containers for PostgreSQL, MongoDB and Minio.
+ * This function is a global setup for vitest that starts and stops test containers.
  * It must be called in a file that is used as a global setup in the vitest configuration.
  *
  * It provides the `config` object to the tests, via the `provide` function.
@@ -81,7 +80,6 @@ declare module "vitest" {
 export function setupTestContainersVitestGlobal() {
   dotenv();
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
-  const readModelConfig = ReadModelDbConfig.safeParse(process.env);
   const readModelSQLConfig = ReadModelSQLDbConfig.safeParse(process.env);
   const analyticsSQLConfig = AnalyticsSQLDbConfig.safeParse(process.env);
   const fileManagerConfig = FileManagerConfig.safeParse(process.env);
@@ -94,6 +92,7 @@ export function setupTestContainersVitestGlobal() {
   const inAppNotificationDbConfig = InAppNotificationDBConfig.safeParse(
     process.env
   );
+  const userSQLConfig = UserSQLDbConfig.safeParse(process.env);
   const eventsSignerConfig = EventsSignerConfig.safeParse(process.env);
   const m2mEventDbConfig = M2MEventSQLDbConfig.safeParse(process.env);
 
@@ -103,13 +102,13 @@ export function setupTestContainersVitestGlobal() {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
     let startedPostgreSqlReadModelContainer: StartedTestContainer | undefined;
     let startedPostgreSqlAnalyticsContainer: StartedTestContainer | undefined;
-    let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
     let startedRedisContainer: StartedTestContainer | undefined;
     let startedDynamoDbContainer: StartedTestContainer | undefined;
     let startedAWSSesContainer: StartedTestContainer | undefined;
     let startedInAppNotificationContainer: StartedTestContainer | undefined;
+    let startedPostgreSqlUserContainer: StartedTestContainer | undefined;
     let startedM2MEventSQLDbContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
@@ -163,18 +162,6 @@ export function setupTestContainersVitestGlobal() {
         );
 
       provide("analyticsSQLConfig", analyticsSQLConfig.data);
-    }
-
-    // Setting up the MongoDB container if the config is provided
-    if (readModelConfig.success) {
-      startedMongodbContainer = await mongoDBContainer(
-        readModelConfig.data
-      ).start();
-
-      readModelConfig.data.readModelDbPort =
-        startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
-
-      provide("readModelConfig", readModelConfig.data);
     }
 
     // Setting up the Minio container if the config is provided
@@ -258,6 +245,17 @@ export function setupTestContainersVitestGlobal() {
       });
     }
 
+    if (userSQLConfig.success) {
+      startedPostgreSqlUserContainer = await postgreSQLUserContainer(
+        userSQLConfig.data
+      ).start();
+
+      userSQLConfig.data.userSQLDbPort =
+        startedPostgreSqlUserContainer.getMappedPort(TEST_POSTGRES_DB_PORT);
+
+      provide("userSQLConfig", userSQLConfig.data);
+    }
+
     if (eventsSignerConfig.success) {
       startedDynamoDbContainer = await dynamoDBContainer().start();
 
@@ -284,7 +282,6 @@ export function setupTestContainersVitestGlobal() {
       await startedPostgreSqlContainer?.stop();
       await startedPostgreSqlReadModelContainer?.stop();
       await startedPostgreSqlAnalyticsContainer?.stop();
-      await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
       await startedDynamoDbContainer?.stop();
@@ -292,6 +289,7 @@ export function setupTestContainersVitestGlobal() {
       await startedAWSSesContainer?.stop();
       await startedInAppNotificationContainer?.stop();
       await startedM2MEventSQLDbContainer?.stop();
+      await startedPostgreSqlUserContainer?.stop();
     };
   };
 }

@@ -27,6 +27,7 @@ import {
   RiskAnalysisSingleAnswer,
   RiskAnalysisMultiAnswer,
   UserId,
+  TenantId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
@@ -103,6 +104,7 @@ export const riskAnalysisDocumentBuilder = (
         freeOfChargeReason: purpose.freeOfChargeReason,
         language,
         userId,
+        consumerId: purpose.consumerId,
       });
 
       const pdfBuffer: Buffer = await pdfGenerator.generate(
@@ -143,6 +145,7 @@ const getPdfPayload = ({
   freeOfChargeReason,
   language,
   userId,
+  consumerId,
 }: {
   riskAnalysisFormConfig: RiskAnalysisFormRules;
   riskAnalysisForm: PurposeRiskAnalysisForm;
@@ -152,6 +155,7 @@ const getPdfPayload = ({
   freeOfChargeReason?: string;
   language: Language;
   userId?: UserId;
+  consumerId: TenantId;
 }): RiskAnalysisDocumentPDFPayload => {
   const answers = formatAnswers(
     riskAnalysisFormConfig,
@@ -188,6 +192,7 @@ const getPdfPayload = ({
     consumerDelegateName: eserviceInfo.consumerDelegateName,
     consumerDelegateIpaCode: eserviceInfo.consumerDelegateIpaCode,
     userId,
+    consumerId,
   };
 };
 
