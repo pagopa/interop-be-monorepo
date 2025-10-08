@@ -13,6 +13,7 @@ export function toM2MGatewayEServiceTemplate(
     name: template.name,
     technology: template.technology,
     isSignalHubEnabled: template.isSignalHubEnabled,
+    personalData: template.personalData,
   };
 }
 
