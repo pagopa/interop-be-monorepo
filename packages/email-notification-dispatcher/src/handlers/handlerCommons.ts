@@ -46,10 +46,6 @@ export type DelegationHandlerParams = HandlerCommonParams & {
   delegationV2Msg?: DelegationV2;
 };
 
-export type PurposeHandlerParams = HandlerCommonParams & {
-  purposeV2Msg?: PurposeV2;
-};
-
 type TenantEmailNotificationRecipient = {
   type: "Tenant";
   tenantId: TenantId;
