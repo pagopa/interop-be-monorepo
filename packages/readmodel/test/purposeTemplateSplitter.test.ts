@@ -113,7 +113,7 @@ describe("Purpose Template splitter", () => {
       purposeIsFreeOfCharge: purposeTemplate.purposeIsFreeOfCharge,
       purposeFreeOfChargeReason: purposeTemplate.purposeFreeOfChargeReason!,
       purposeDailyCalls: purposeTemplate.purposeDailyCalls!,
-      personalData: purposeTemplate.personalData!,
+      personalData: purposeTemplate.personalData,
     };
 
     const expectedEServicesDescriptorsSQL: PurposeTemplateEServiceDescriptorSQL[] =
