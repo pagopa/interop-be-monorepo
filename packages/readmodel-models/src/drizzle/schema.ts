@@ -75,6 +75,7 @@ export const eserviceTemplateInReadmodelEserviceTemplate =
       }).notNull(),
       mode: varchar().notNull(),
       isSignalHubEnabled: boolean("is_signal_hub_enabled"),
+      personalData: boolean("personal_data"),
     },
     (table) => [
       unique("eservice_template_id_metadata_version_unique").on(
