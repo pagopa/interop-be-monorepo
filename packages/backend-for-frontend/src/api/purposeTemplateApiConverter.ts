@@ -28,3 +28,12 @@ export function toBffCatalogPurposeTemplate(
     creator: toBffCompactOrganization(creator),
   };
 }
+
+export function toCompactPurposeTemplate(
+  purposeTemplate: purposeTemplateApi.PurposeTemplate
+): bffApi.CompactPurposeTemplate {
+  return {
+    id: purposeTemplate.id,
+    purposeTitle: purposeTemplate.purposeTitle,
+  };
+}

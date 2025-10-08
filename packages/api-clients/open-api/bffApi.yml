@@ -23994,6 +23994,8 @@ components:
           maximum: 1000000000
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
+        purposeTemplate:
+          $ref: "#/components/schemas/CompactPurposeTemplate"
       required:
         - id
         - title
@@ -24015,6 +24017,19 @@ components:
           format: uuid
       required:
         - purposeId
+    CompactPurposeTemplate:
+      type: object
+      description: Contains some information about the purpose template
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        purposeTitle:
+          type: string
+      required:
+        - id
+        - purposeTitle
     PurposeTemplate:
       type: object
       description: Business representation of a purpose template
