@@ -6,6 +6,7 @@ import {
   UserId,
 } from "../brandedIds.js";
 import { NotificationType } from "../notification/notification.js";
+import { UserRole } from "../user/user.js";
 
 const notificationConfigShape = Object.fromEntries(
   NotificationType.options.map((key) => [key, z.boolean()])
@@ -40,6 +41,7 @@ export const UserNotificationConfig = z.object({
   id: UserNotificationConfigId,
   userId: UserId,
   tenantId: TenantId,
+  userRoles: z.array(UserRole).nonempty(),
   inAppNotificationPreference: z.boolean(),
   emailNotificationPreference: EmailNotificationPreference,
   inAppConfig: NotificationConfig,

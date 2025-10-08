@@ -1395,6 +1395,7 @@ export const getMockUserNotificationConfig = (): UserNotificationConfig => ({
   emailNotificationPreference: generateMock(EmailNotificationPreference),
   inAppConfig: getMockNotificationConfig(),
   emailConfig: getMockNotificationConfig(),
+  userRoles: [userRole.ADMIN_ROLE],
   createdAt: generateMock(z.coerce.date()),
   updatedAt: generateMock(z.coerce.date().optional()),
 });
