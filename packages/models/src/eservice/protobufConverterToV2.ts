@@ -29,7 +29,7 @@ import {
   technology,
 } from "./eservice.js";
 
-export const toAgreementApprovalPolicyV2 = (
+const toAgreementApprovalPolicyV2 = (
   input: AgreementApprovalPolicy | undefined
 ): AgreementApprovalPolicyV2 =>
   match(input)
