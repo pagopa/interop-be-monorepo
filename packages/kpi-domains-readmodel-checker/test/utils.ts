@@ -73,7 +73,6 @@ export const { cleanup, analyticsPostgresDB, readModelDB } =
     undefined,
     undefined,
     undefined,
-    undefined,
     inject("readModelSQLConfig"),
     inject("analyticsSQLConfig")
   );
