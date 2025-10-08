@@ -72,6 +72,7 @@ describe("Notification config splitters", () => {
         id: userNotificationConfig.id,
         userId: userNotificationConfig.userId,
         tenantId: userNotificationConfig.tenantId,
+        userRoles: userNotificationConfig.userRoles,
         metadataVersion: 1,
         createdAt: userNotificationConfig.createdAt.toISOString(),
         updatedAt: expectedUpdatedAt,
