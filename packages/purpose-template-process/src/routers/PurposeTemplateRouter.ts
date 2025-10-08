@@ -17,6 +17,7 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import {
   createPurposeTemplateErrorMapper,
   getPurposeTemplateErrorMapper,
+  getPurposeTemplateEServiceDescriptorsErrorMapper,
   getPurposeTemplatesErrorMapper,
   linkEservicesToPurposeTemplateErrorMapper,
   unlinkEServicesFromPurposeTemplateErrorMapper,
@@ -44,10 +45,10 @@ const purposeTemplateRouter = (
   const {
     ADMIN_ROLE,
     API_ROLE,
-    SECURITY_ROLE,
-    M2M_ROLE,
-    SUPPORT_ROLE,
     M2M_ADMIN_ROLE,
+    M2M_ROLE,
+    SECURITY_ROLE,
+    SUPPORT_ROLE,
   } = authRole;
 
   purposeTemplateRouter
@@ -208,10 +209,37 @@ const purposeTemplateRouter = (
           SECURITY_ROLE,
           SUPPORT_ROLE,
         ]);
+
+        const { producerIds, eserviceIds, offset, limit } = req.query;
+        const purposeTemplateEServicesDescriptors =
+          await purposeTemplateService.getPurposeTemplateEServiceDescriptors(
+            {
+              purposeTemplateId: unsafeBrandId(req.params.id),
+              producerIds: producerIds?.map(unsafeBrandId<TenantId>),
+              eserviceIds: eserviceIds?.map(unsafeBrandId<EServiceId>),
+            },
+            { offset, limit },
+            ctx
+          );
+        return res.status(200).send(
+          purposeTemplateApi.EServiceDescriptorsPurposeTemplate.parse({
+            results: purposeTemplateEServicesDescriptors.results.map(
+              (purposeTemplateEServiceDescriptor) =>
+                eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate(
+                  purposeTemplateEServiceDescriptor
+                )
+            ),
+            totalCount: purposeTemplateEServicesDescriptors.totalCount,
+          })
+        );
       } catch (error) {
-        return res.status(501);
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateEServiceDescriptorsErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-      return res.status(501);
     })
     .post("/purposeTemplates/:id/linkEservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
