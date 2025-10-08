@@ -1,18 +1,31 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { EServiceTemplateId, generateId } from "pagopa-interop-models";
+import {
+  EServiceTemplate,
+  EServiceTemplateId,
+  generateId,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockEServiceTemplate,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 import { eserviceTemplateNotFound } from "../../src/model/domain/errors.js";
 
 describe("API GET /templates/:templateId", () => {
-  const mockEserviceTemplate = getMockEServiceTemplate();
+  const mockEserviceTemplate: EServiceTemplate = getMockEServiceTemplate();
+
+  const apiEserviceTemplate: eserviceTemplateApi.EServiceTemplate =
+    eserviceTemplateApi.EServiceTemplate.parse(
+      eserviceTemplateToApiEServiceTemplate(mockEserviceTemplate)
+    );
+
+  const serviceResponse = getMockWithMetadata(mockEserviceTemplate);
 
   const makeRequest = async (
     token: string,
@@ -27,7 +40,7 @@ describe("API GET /templates/:templateId", () => {
   beforeEach(() => {
     eserviceTemplateService.getEServiceTemplateById = vi
       .fn()
-      .mockResolvedValue(mockEserviceTemplate);
+      .mockResolvedValue(serviceResponse);
   });
 
   const authorizedRoles: AuthRole[] = [
@@ -43,10 +56,7 @@ describe("API GET /templates/:templateId", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      const expected =
-        eserviceTemplateToApiEServiceTemplate(mockEserviceTemplate);
-
-      expect(res.body).toEqual(expected);
+      expect(res.body).toEqual(apiEserviceTemplate);
       expect(res.status).toBe(200);
     }
   );
