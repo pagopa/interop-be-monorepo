@@ -2,6 +2,7 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  assertFeatureFlagEnabled,
   authRole,
   ExpressContext,
   fromAppContext,
@@ -74,8 +75,10 @@ import {
   updateAgreementApprovalPolicyErrorMapper,
   updateEServiceSignalhubFlagErrorMapper,
   documentListErrorMapper,
+  updateEServicePersonalDataErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
+import { config } from "../config/config.js";
 
 const eservicesRouter = (
   ctx: ZodiosContext,
@@ -827,14 +830,18 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const updatedEService = await catalogService.updateDescriptor(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.descriptorId),
-            req.body,
-            ctx
-          );
+          const { data: updatedEService, metadata } =
+            await catalogService.updateDescriptor(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
           return res
             .status(200)
             .send(
@@ -1022,14 +1029,16 @@ const eservicesRouter = (
     .post("/eservices/:eServiceId/signalhub/update", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const updatedEService =
+        const { data: updatedEService, metadata } =
           await catalogService.updateEServiceSignalHubFlag(
             unsafeBrandId(req.params.eServiceId),
             req.body.isSignalHubEnabled,
             ctx
           );
+
+        setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
@@ -1468,7 +1477,35 @@ const eservicesRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/eservices/:eServiceId/personalDataFlag", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        assertFeatureFlagEnabled(config, "featureFlagEservicePersonalData");
+
+        const updatedEService =
+          await catalogService.updateEServicePersonalDataFlagAfterPublication(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.personalData,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateEServicePersonalDataErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return eservicesRouter;
 };
