@@ -4,7 +4,6 @@ import {
   GetItemCommand,
   PutItemCommand,
 } from "@aws-sdk/client-dynamodb";
-import { genericInternalError } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
 import {
   SignatureReference,
