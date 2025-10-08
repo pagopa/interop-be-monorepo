@@ -20,7 +20,7 @@ describe("getClientPurposes", () => {
   const mockParams: m2mGatewayApi.GetClientPurposesQueryParams = {
     offset: 0,
     limit: 10,
-    eservicesIds: [],
+    eserviceIds: [],
     states: [],
   };
 
@@ -241,7 +241,7 @@ describe("getClientPurposes", () => {
       unsafeBrandId(mockApiConsumerClient.id),
       {
         ...mockParams,
-        eservicesIds: [mockApiPurpose2.eserviceId],
+        eserviceIds: [mockApiPurpose2.eserviceId],
       },
       getMockM2MAdminAppContext()
     );
@@ -262,7 +262,7 @@ describe("getClientPurposes", () => {
       unsafeBrandId(mockApiConsumerClient.id),
       {
         ...mockParams,
-        eservicesIds: [mockApiPurpose2.eserviceId],
+        eserviceIds: [mockApiPurpose2.eserviceId],
         states: ["ACTIVE"],
       },
       getMockM2MAdminAppContext()

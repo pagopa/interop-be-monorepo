@@ -37,7 +37,7 @@ describe("GET /clients/:clientId/purposes router test", () => {
   const mockQueryParams: m2mGatewayApi.GetClientPurposesQueryParams = {
     offset: 0,
     limit: 10,
-    eservicesIds: [],
+    eserviceIds: [],
     states: [],
   };
 
@@ -79,7 +79,7 @@ describe("GET /clients/:clientId/purposes router test", () => {
     { ...mockQueryParams, limit: 100 },
     { ...mockQueryParams, offset: "invalidOffset" },
     { ...mockQueryParams, limit: "invalidLimit" },
-    { ...mockQueryParams, eservicesIds: ["INVALID_ID"] },
+    { ...mockQueryParams, eserviceIds: ["INVALID_ID"] },
     { ...mockQueryParams, states: ["INVALID_STATE"] },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
