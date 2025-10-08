@@ -222,6 +222,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
       userId: consumerUserId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -324,6 +325,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
       userId: undefined,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -739,6 +741,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
       userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -856,6 +859,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
       userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -1017,6 +1021,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
       userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -1156,6 +1161,7 @@ describe("activatePurposeVersion", () => {
       consumerDelegateName: producer.name,
       consumerDelegateIpaCode: producer.externalId.value,
       userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
