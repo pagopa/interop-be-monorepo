@@ -27,6 +27,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
       fileKind: "INTEROP_LEGAL_FACTS",
       fileName: "multa.pdf",
       correlationId: generateId(),
+      creationTimestamp: expect.any(Number),
     };
 
     await signatureService.saveSignatureReference(mockReference);
