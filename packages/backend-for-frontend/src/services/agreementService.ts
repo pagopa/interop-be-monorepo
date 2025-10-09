@@ -536,13 +536,27 @@ export function agreementServiceBuilder(
         headers,
       });
 
+      const notifications =
+        await clients.inAppNotificationManagerClient.filterUnreadNotifications({
+          queries: {
+            entityIds: producers.results.map((p) => p.id),
+          },
+          headers,
+        });
+
+      if (producerName && producerName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
       return {
         pagination: {
           limit,
           offset,
           totalCount: producers.totalCount,
         },
-        results: producers.results.map((p) => toBffCompactOrganization(p)),
+        results: producers.results.map((p) =>
+          toBffCompactOrganization(p, notifications.includes(p.id))
+        ),
       };
     },
 

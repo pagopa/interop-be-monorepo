@@ -23,7 +23,9 @@ describe("API GET /agreements/filter/producers", () => {
     totalCount: 3,
   };
   const mockApiCompactOrganizations = {
-    results: mockCompactOrganizations.results.map(toBffCompactOrganization),
+    results: mockCompactOrganizations.results.map((o) =>
+      toBffCompactOrganization(o)
+    ),
     pagination: {
       offset: defaultQuery.offset,
       limit: defaultQuery.limit,

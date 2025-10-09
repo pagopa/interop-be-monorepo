@@ -17,7 +17,11 @@ import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { assertClientVisibilityIsFull } from "./validators.js";
 
 export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
-  const { authorizationClient, selfcareV2UserClient } = apiClients;
+  const {
+    authorizationClient,
+    selfcareV2UserClient,
+    inAppNotificationManagerClient,
+  } = apiClients;
 
   return {
     async getClients(
@@ -51,6 +55,14 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
         headers,
       });
 
+      const notifications =
+        await inAppNotificationManagerClient.filterUnreadNotifications({
+          queries: {
+            entityIds: clients.results.map((c) => c.client.id),
+          },
+          headers,
+        });
+
       return {
         results: await Promise.all(
           clients.results.map((client) =>
@@ -58,7 +70,8 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
               selfcareV2UserClient,
               client,
               authData.selfcareId,
-              correlationId
+              correlationId,
+              notifications.includes(client.client.id)
             )
           )
         ),

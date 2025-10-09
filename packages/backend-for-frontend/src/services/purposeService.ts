@@ -196,11 +196,13 @@ export function purposeServiceBuilder(
       headers
     );
 
+    const hasNotifications = notifications.includes(purpose.id);
+
     return {
       id: purpose.id,
       title: purpose.title,
       description: purpose.description,
-      hasUnreadNotifications: notifications.includes(purpose.id),
+      hasUnreadNotifications: hasNotifications,
       consumer: {
         id: consumer.id,
         name: consumer.name,

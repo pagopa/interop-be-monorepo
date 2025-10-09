@@ -25447,6 +25447,8 @@ components:
           $ref: "#/components/schemas/TenantKind"
         contactMail:
           $ref: "#/components/schemas/Mail"
+        hasUnreadNotifications:
+          type: boolean
     TenantKind:
       type: string
       enum:
@@ -25594,6 +25596,8 @@ components:
         isTemplateInstance:
           type: boolean
         isNewTemplateVersionAvailable:
+          type: boolean
+        hasUnreadNotifications:
           type: boolean
     ProducerEServices:
       type: object
@@ -26240,6 +26244,8 @@ components:
           type: boolean
         admin:
           $ref: "#/components/schemas/CompactUser"
+        hasUnreadNotifications:
+          type: boolean
       required:
         - id
         - name

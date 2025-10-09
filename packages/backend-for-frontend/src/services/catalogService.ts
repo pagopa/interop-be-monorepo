@@ -195,7 +195,8 @@ const enhanceProducerEService = (
   requesterId: TenantId,
   delegations: delegationApi.Delegation[],
   delegationTenants: Map<string, tenantApi.Tenant>,
-  eserviceTemplates: eserviceTemplateApi.EServiceTemplate[]
+  eserviceTemplates: eserviceTemplateApi.EServiceTemplate[],
+  hasNotifications: boolean
 ): bffApi.ProducerEService => {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   const draftDescriptor = eservice.descriptors.find(isInvalidDescriptor);
@@ -257,6 +258,7 @@ const enhanceProducerEService = (
       eserviceTemplate !== undefined &&
       activeDescriptor !== undefined &&
       checkNewTemplateVersionAvailable(eserviceTemplate, activeDescriptor),
+    hasUnreadNotifications: hasNotifications,
   };
 };
 
@@ -839,6 +841,14 @@ export function catalogServiceBuilder(
         res.totalCount = totalCount;
       }
 
+      const notificationsPromise =
+        inAppNotificationManagerClient.filterUnreadNotifications({
+          queries: {
+            entityIds: res.results.map((a) => a.id),
+          },
+          headers,
+        });
+
       const delegations = await getAllDelegations(
         delegationProcessClient,
         headers,
@@ -874,6 +884,7 @@ export function catalogServiceBuilder(
             },
           })
       );
+      const notifications = await notificationsPromise;
 
       return {
         results: res.results.map((result) =>
@@ -882,7 +893,8 @@ export function catalogServiceBuilder(
             requesterId,
             delegations,
             delegationTenants,
-            eserviceTemplates
+            eserviceTemplates,
+            notifications.includes(result.id)
           )
         ),
         pagination: {
