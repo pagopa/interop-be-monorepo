@@ -42,10 +42,11 @@ async function enhanceDelegation<
     delegator: tenantApi.Tenant,
     delegate: tenantApi.Tenant,
     eservice: catalogApi.EService | undefined,
+    hasNotifications: boolean | undefined,
     producer: tenantApi.Tenant
   ) => T,
   cachedTenants: Map<string, tenantApi.Tenant> = new Map(),
-  notifications?: string[] | undefined
+  notifications: string[] | undefined
 ): Promise<T> {
   const delegator = await getTenantById(
     tenantClient,
@@ -61,10 +62,7 @@ async function enhanceDelegation<
     cachedTenants
   );
 
-  const delegationWithNotification = {
-    ...delegation,
-    hasUnreadNotifications: notifications?.includes(delegation.id) ?? false,
-  };
+  const hasNotifications = notifications?.includes(delegation.id) || false;
 
   return await match(delegation.kind)
     /**
@@ -88,10 +86,11 @@ async function enhanceDelegation<
         }
       })();
       return toApiConverter(
-        delegationWithNotification,
+        delegation,
         delegator,
         delegate,
         eservice,
+        hasNotifications,
         delegator
       );
     })
@@ -111,10 +110,11 @@ async function enhanceDelegation<
       );
 
       return toApiConverter(
-        delegationWithNotification,
+        delegation,
         delegator,
         delegate,
         eservice,
+        hasNotifications,
         producer
       );
     })
@@ -222,7 +222,9 @@ export function delegationServiceBuilder(
         catalogClient,
         delegation,
         headers,
-        toBffDelegationApiDelegation
+        toBffDelegationApiDelegation,
+        new Map(),
+        undefined
       );
     },
     async getDelegations(

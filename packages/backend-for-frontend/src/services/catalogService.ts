@@ -144,18 +144,14 @@ export const enhanceCatalogEservices = async (
         eservice,
         headers
       );
-
-      const eserviceWithNotifications = {
-        ...eservice,
-        hasUnreadNotifications: notifications.includes(eservice.id),
-      };
-
+      const hasNotifications = notifications.includes(eservice.id);
       const isRequesterEqProducer = requesterId === eservice.producerId;
 
       return toBffCatalogApiEService(
-        eserviceWithNotifications,
+        eservice,
         producerTenant,
         isRequesterEqProducer,
+        hasNotifications,
         latestActiveDescriptor,
         latestAgreement
       );

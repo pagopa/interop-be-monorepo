@@ -15,7 +15,11 @@ import { assertProducerKeychainVisibilityIsFull } from "./validators.js";
 export function producerKeychainServiceBuilder(
   apiClients: PagoPAInteropBeClients
 ) {
-  const { authorizationClient, selfcareV2UserClient } = apiClients;
+  const {
+    authorizationClient,
+    selfcareV2UserClient,
+    inAppNotificationManagerClient,
+  } = apiClients;
 
   return {
     async getProducerKeychains(
@@ -49,8 +53,21 @@ export function producerKeychainServiceBuilder(
           headers,
         });
 
+      const notifications =
+        await inAppNotificationManagerClient.filterUnreadNotifications({
+          queries: {
+            entityIds: producerKeychains.results.map((pk) => pk.id),
+          },
+          headers,
+        });
+
+      const enrichedKeychains = producerKeychains.results.map((pk) => ({
+        ...pk,
+        hasUnreadNotifications: notifications.includes(pk.id),
+      }));
+
       return {
-        results: producerKeychains.results.map(toBffApiCompactProducerKeychain),
+        results: enrichedKeychains.map(toBffApiCompactProducerKeychain),
         pagination: {
           limit,
           offset,

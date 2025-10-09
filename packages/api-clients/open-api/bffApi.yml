@@ -25111,7 +25111,6 @@ components:
         - description
         - producer
         - isMine
-        - hasUnreadNotifications
       properties:
         id:
           type: string
@@ -26275,6 +26274,8 @@ components:
         name:
           type: string
         hasKeys:
+          type: boolean
+        hasUnreadNotifications:
           type: boolean
       required:
         - id
@@ -27539,7 +27540,6 @@ components:
         - delegator
         - state
         - kind
-        - hasUnreadNotifications
     CompactDelegations:
       type: object
       additionalProperties: false
