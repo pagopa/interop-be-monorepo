@@ -2004,8 +2004,12 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.UpdateEServiceDescriptorQuotasSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -2041,16 +2045,20 @@ export function catalogServiceBuilder(
         updatedDescriptor
       );
 
-      const event = toCreateEventEServiceDescriptorQuotasUpdated(
-        eserviceId,
-        eservice.metadata.version,
-        descriptorId,
-        updatedEService,
-        correlationId
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorQuotasUpdated(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        )
       );
-      await repository.createEvent(event);
 
-      return updatedEService;
+      return {
+        data: updatedEService,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateTemplateInstanceDescriptor(
       eserviceId: EServiceId,
@@ -2632,8 +2640,12 @@ export function catalogServiceBuilder(
     async updateEServiceSignalHubFlag(
       eserviceId: EServiceId,
       isSignalHubEnabled: boolean,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Updating Signalhub flag for E-Service ${eserviceId} to ${isSignalHubEnabled}`
       );
@@ -2696,9 +2708,16 @@ export function catalogServiceBuilder(
         .exhaustive();
 
       if (event) {
-        await repository.createEvent(event);
+        const createdEvent = await repository.createEvent(event);
+
+        return {
+          data: updatedEservice,
+          metadata: {
+            version: createdEvent.newVersion,
+          },
+        };
       }
-      return updatedEservice;
+      return eservice;
     },
     async approveDelegatedEServiceDescriptor(
       eserviceId: EServiceId,

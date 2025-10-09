@@ -831,14 +831,18 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const updatedEService = await catalogService.updateDescriptor(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.descriptorId),
-            req.body,
-            ctx
-          );
+          const { data: updatedEService, metadata } =
+            await catalogService.updateDescriptor(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
           return res
             .status(200)
             .send(
@@ -1026,14 +1030,16 @@ const eservicesRouter = (
     .post("/eservices/:eServiceId/signalhub/update", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const updatedEService =
+        const { data: updatedEService, metadata } =
           await catalogService.updateEServiceSignalHubFlag(
             unsafeBrandId(req.params.eServiceId),
             req.body.isSignalHubEnabled,
             ctx
           );
+
+        setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)

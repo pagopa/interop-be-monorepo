@@ -1,4 +1,8 @@
+export const PUBLIC_ADMINISTRATIONS_TYPOLOGY = "Pubbliche Amministrazioni";
 export const PUBLIC_ADMINISTRATIONS_IDENTIFIER = "IPA";
 export const CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS = "SAG";
 export const PUBLIC_SERVICES_MANAGERS = "L37";
 export const SCP = "PDND_INFOCAMERE-SCP";
+
+// 'Societa' in Conto Economico Consolidato' (SCEC)
+export const ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER = "S01G";

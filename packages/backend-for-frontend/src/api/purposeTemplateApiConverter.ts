@@ -1,5 +1,6 @@
 import {
   bffApi,
+  catalogApi,
   purposeTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
@@ -26,5 +27,30 @@ export function toBffCatalogPurposeTemplate(
     purposeTitle: purposeTemplate.purposeTitle,
     purposeDescription: purposeTemplate.purposeDescription,
     creator: toBffCompactOrganization(creator),
+  };
+}
+
+export function toCompactPurposeTemplateEService(
+  eservice: catalogApi.EService,
+  producer: tenantApi.Tenant
+): bffApi.CompactPurposeTemplateEService {
+  return {
+    id: eservice.id,
+    name: eservice.name,
+    description: eservice.description,
+    producer: toBffCompactOrganization(producer),
+  };
+}
+
+export function toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor(
+  eserviceDescriptorPurposeTemplate: purposeTemplateApi.EServiceDescriptorPurposeTemplate,
+  eservice: bffApi.CompactPurposeTemplateEService,
+  descriptor: bffApi.CompactDescriptor
+): bffApi.EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor {
+  return {
+    purposeTemplateId: eserviceDescriptorPurposeTemplate.purposeTemplateId,
+    eservice,
+    descriptor,
+    createdAt: eserviceDescriptorPurposeTemplate.createdAt,
   };
 }

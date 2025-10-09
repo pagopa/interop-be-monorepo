@@ -369,14 +369,14 @@ describe("publishEServiceTemplateVersion", () => {
     await addOneEServiceTemplate(eserviceTemplate);
 
     expect(
-      await eserviceTemplateService.publishEServiceTemplateVersion(
+      eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
-    ).equal(undefined);
+    ).resolves.not.toThrowError();
   });
 
   it("shouldn't throw riskAnalysisValidationFailed if the eservice template mode isn't receive even if doesn't have a valid risk analysis", async () => {
@@ -415,14 +415,14 @@ describe("publishEServiceTemplateVersion", () => {
     await addOneEServiceTemplate(eserviceTemplate);
 
     expect(
-      await eserviceTemplateService.publishEServiceTemplateVersion(
+      eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
-    ).equal(undefined);
+    ).resolves.not.toThrowError();
   });
 
   it("should throw missingPersonalDataFlag if the template has personalData undefined", async () => {

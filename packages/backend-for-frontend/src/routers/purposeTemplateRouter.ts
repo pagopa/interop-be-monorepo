@@ -15,7 +15,8 @@ import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
-  getCatalogPurposeTemplatesErrorMapper,
+  getPurposeTemplateErrorMapper,
+  getPurposeTemplateEServiceDescriptorsErrorMapper,
   linkEServiceToPurposeTemplateErrorMapper,
   unlinkEServicesFromPurposeTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -97,9 +98,57 @@ const purposeTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getCatalogPurposeTemplatesErrorMapper,
+          getPurposeTemplateErrorMapper,
           ctx,
           "Error retrieving catalog purpose templates"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/purposeTemplates/:purposeTemplateId/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const { producerIds, eserviceIds, offset, limit } = req.query;
+        const response =
+          await purposeTemplateService.getPurposeTemplateEServiceDescriptors({
+            purposeTemplateId: req.params.purposeTemplateId,
+            producerIds,
+            eserviceIds,
+            offset,
+            limit,
+            ctx,
+          });
+        return res
+          .status(200)
+          .send(bffApi.EServiceDescriptorsPurposeTemplate.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateEServiceDescriptorsErrorMapper,
+          ctx,
+          "Error retrieving purpose template e-services"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/purposeTemplates/:purposeTemplateId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const response = await purposeTemplateService.getPurposeTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(bffApi.PurposeTemplateWithCompactCreator.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateErrorMapper,
+          ctx,
+          `Error retrieving purpose template ${req.params.purposeTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

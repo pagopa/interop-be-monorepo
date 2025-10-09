@@ -496,6 +496,28 @@ export function purposeServiceBuilder(
         repository
       );
     },
+    async patchUpdateReversePurpose(
+      purposeId: PurposeId,
+      reversePurposeUpdateContent: purposeApi.PatchReversePurposeUpdateContent,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<M2MAdminAuthData>>
+    ): Promise<UpdatePurposeReturn> {
+      logger.info(`Partially updating Purpose ${purposeId}`);
+      return await performUpdatePurpose(
+        purposeId,
+        {
+          updateContent: reversePurposeUpdateContent,
+          mode: eserviceMode.receive,
+        },
+        authData,
+        readModelService,
+        correlationId,
+        repository
+      );
+    },
     async deletePurpose(
       purposeId: PurposeId,
       {
@@ -1626,7 +1648,9 @@ const performUpdatePurpose = async (
       }
     | {
         mode: "Receive";
-        updateContent: purposeApi.ReversePurposeUpdateContent;
+        updateContent:
+          | purposeApi.ReversePurposeUpdateContent
+          | purposeApi.PatchReversePurposeUpdateContent;
       },
   authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelServiceSQL,
