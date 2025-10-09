@@ -1,5 +1,10 @@
 import { eq, inArray, SQL } from "drizzle-orm";
-import { Tenant, TenantId, WithMetadata } from "pagopa-interop-models";
+import {
+  Tenant,
+  TenantId,
+  unsafeBrandId,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   DrizzleReturnType,
   DrizzleTransactionType,
@@ -27,9 +32,12 @@ import { aggregateTenant, aggregateTenantArray } from "./tenant/aggregators.js";
 export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async getTenantById(
-      tenantId: TenantId
+      tenantId: TenantId,
+      tx?: DrizzleTransactionType
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return db.transaction(async (tx) => {
+      const executeInTransaction = async (
+        tx: DrizzleTransactionType
+      ): Promise<WithMetadata<Tenant> | undefined> => {
         const [
           tenantSQL,
           mailsSQL,
@@ -90,7 +98,10 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           verifiedAttributeRevokersSQL,
           featuresSQL,
         });
-      });
+      };
+      return tx
+        ? executeInTransaction(tx)
+        : db.transaction((tx) => executeInTransaction(tx));
     },
     async getTenantsByIds(
       tenantIds: string[],
@@ -155,6 +166,21 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+      });
+    },
+    async getTenantByCertifierId(
+      certifierId: string
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return db.transaction(async (tx) => {
+        const feature = await readTenantFeaturesSQL(
+          eq(tenantFeatureInReadmodelTenant.certifierId, certifierId),
+          tx
+        );
+        if (feature.length === 0) {
+          return undefined;
+        }
+        const tenantId = unsafeBrandId<TenantId>(feature[0].tenantId);
+        return this.getTenantById(tenantId, tx);
       });
     },
   };
