@@ -26,7 +26,7 @@ describe("updateDraftReversePurpose", () => {
   const mockPurpose = getMockedApiPurpose();
   const mockPurposeProcessGetResponse: WithMetadata<purposeApi.Purpose> =
     getMockWithMetadata({
-      ...getMockedApiPurpose(),
+      ...mockPurpose,
       purposeTemplateId: undefined,
     });
   const mockPurposeSeed: m2mGatewayApi.ReversePurposeDraftUpdateSeed = {
