@@ -62,7 +62,6 @@ describe("Purpose Template splitter", () => {
       purposeRiskAnalysisForm: riskAnalysisFormTemplate,
       purposeFreeOfChargeReason: "Free of charge reason",
       purposeDailyCalls: 100,
-      handlesPersonalData: false,
     };
 
     const eservicesDescriptors: EServiceDescriptorPurposeTemplate[] = [
