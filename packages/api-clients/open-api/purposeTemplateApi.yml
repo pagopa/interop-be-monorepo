@@ -98,6 +98,11 @@ paths:
             type: boolean
             default: true
         - in: query
+          name: handlesPersonalData
+          description: show purpose templates that handle personal data
+          schema:
+            type: boolean
+        - in: query
           name: offset
           required: true
           schema:
