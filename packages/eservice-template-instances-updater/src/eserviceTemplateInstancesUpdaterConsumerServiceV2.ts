@@ -338,7 +338,7 @@ export async function handleMessageV2({
         if (personalData === undefined) {
           throw missingKafkaMessageDataError(
             "eserviceTemplate.personalData",
-            "EServiceTemplatePersonalDataUpdatedAfterPublication"
+            "EServiceTemplatePersonalDataFlagUpdatedAfterPublication"
           );
         }
         const updateTemplateInstancePersonalData = async (
