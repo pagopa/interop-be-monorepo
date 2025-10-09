@@ -122,7 +122,7 @@ const suspendOrArchivePurposeTemplateErrorMapper = (
 
 export const suspendPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
-): number => suspendPurposeTemplateErrorMapper(error);
+): number => suspendOrArchivePurposeTemplateErrorMapper(error);
 
 export const archivePurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
