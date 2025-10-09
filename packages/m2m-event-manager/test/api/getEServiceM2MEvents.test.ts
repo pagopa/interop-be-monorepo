@@ -35,6 +35,7 @@ describe("API /events/eservices test", () => {
           eventType: testToUpperSnakeCase(e.eventType),
           eserviceId: e.eserviceId,
           descriptorId: e.descriptorId,
+          producerDelegationId: e.producerDelegationId,
         } as m2mEventApi.EServiceM2MEvent)
     ),
   };
@@ -42,6 +43,7 @@ describe("API /events/eservices test", () => {
   const mockQueryParams: m2mEventApi.GetEServiceM2MEventsQueryParams = {
     lastEventId: generateM2MEventId(),
     limit: 10,
+    delegationId: generateId(),
   };
 
   const makeRequest = async (
@@ -75,6 +77,7 @@ describe("API /events/eservices test", () => {
       expect(m2mEventService.getEServiceM2MEvents).toHaveBeenCalledWith(
         mockQueryParams.lastEventId,
         mockQueryParams.limit,
+        mockQueryParams.delegationId,
         expect.any(Object)
       );
     }
@@ -88,6 +91,18 @@ describe("API /events/eservices test", () => {
     expect(res.status).toBe(403);
   });
 
+  it.each([generateId(), null, undefined])(
+    "Should accept delegationId query param as %s",
+    async (delegationId) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, {
+        ...mockQueryParams,
+        delegationId,
+      });
+      expect(res.status).toBe(200);
+    }
+  );
+
   it.each([
     {},
     { ...mockQueryParams, limit: 0 },
@@ -96,6 +111,7 @@ describe("API /events/eservices test", () => {
     { ...mockQueryParams, limit: undefined },
     { ...mockQueryParams, lastEventId: -1 },
     { ...mockQueryParams, lastEventId: "invalidLastEventId" },
+    { ...mockQueryParams, delegationId: 1 },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
