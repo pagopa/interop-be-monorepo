@@ -1,4 +1,8 @@
-import { tenantKind, TenantKind } from "pagopa-interop-models";
+import {
+  genericInternalError,
+  tenantKind,
+  TenantKind,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
 import { pa1 } from "./PA/1.0.js";
@@ -27,7 +31,7 @@ export function buildLabel(kind: TenantKind, version: string): FormRules {
   const parsed = FormRules.safeParse(`${kindForRA}-${version}`);
 
   if (!parsed.success) {
-    throw new Error(
+    throw genericInternalError(
       `Unsupported ruleset for kind ${kind} and version ${version}`
     );
   }

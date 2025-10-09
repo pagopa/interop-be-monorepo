@@ -416,7 +416,7 @@ const validatePersonalDataFlag = ({
       match(personalDataInEService)
         .with(P.boolean, () => {
           if (personalDataInEService !== personalDataInRiskAnalysys) {
-            throw genericInternalError("");
+            throw genericInternalError("Incompatible personalData flag");
           }
         })
         .with(undefined, () => void 0)
