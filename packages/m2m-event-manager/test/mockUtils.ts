@@ -39,11 +39,13 @@ export function getMockedEServiceM2MEvent({
   visibility,
   producerId,
   producerDelegateId,
+  producerDelegationId,
 }: {
   eventType: EServiceM2MEvent["eventType"];
   visibility: EServiceM2MEvent["visibility"];
   producerId?: TenantId;
   producerDelegateId?: TenantId;
+  producerDelegationId?: DelegationId;
 }): EServiceM2MEvent {
   return {
     id: generateM2MEventId(),
@@ -54,9 +56,7 @@ export function getMockedEServiceM2MEvent({
     visibility,
     producerId: producerId ?? generateId<TenantId>(),
     producerDelegateId: producerDelegateId ?? generateId<TenantId>(),
-    producerDelegationId: producerDelegateId
-      ? generateId<DelegationId>()
-      : undefined,
+    producerDelegationId: producerDelegationId ?? generateId<DelegationId>(),
   };
 }
 
@@ -66,14 +66,18 @@ export function getMockedAgreementM2MEvent({
   consumerId,
   producerId,
   consumerDelegateId,
+  consumerDelegationId,
   producerDelegateId,
+  producerDelegationId,
 }: {
   eventType: AgreementM2MEvent["eventType"];
   visibility: AgreementM2MEvent["visibility"];
   consumerId?: TenantId;
   consumerDelegateId?: TenantId;
+  consumerDelegationId?: DelegationId;
   producerId?: TenantId;
   producerDelegateId?: TenantId;
+  producerDelegationId?: DelegationId;
 }): AgreementM2MEvent {
   return {
     id: generateM2MEventId(),
@@ -83,13 +87,9 @@ export function getMockedAgreementM2MEvent({
     visibility,
     consumerId: consumerId ?? generateId<TenantId>(),
     consumerDelegateId: consumerDelegateId ?? generateId<TenantId>(),
-    consumerDelegationId: consumerDelegateId
-      ? generateId<DelegationId>()
-      : undefined,
+    consumerDelegationId: consumerDelegationId ?? generateId<DelegationId>(),
     producerId: producerId ?? generateId<TenantId>(),
     producerDelegateId: producerDelegateId ?? generateId<TenantId>(),
-    producerDelegationId: producerDelegateId
-      ? generateId<DelegationId>()
-      : undefined,
+    producerDelegationId: producerDelegationId ?? generateId<DelegationId>(),
   };
 }

@@ -9,9 +9,11 @@ import {
   AgreementM2MEventId,
   AttributeM2MEvent,
   AttributeM2MEventId,
+  DelegationId,
   EServiceM2MEvent,
   EServiceM2MEventId,
 } from "pagopa-interop-models";
+import { DelegationIdParam } from "../model/types.js";
 import { M2MEventReaderServiceSQL } from "./m2mEventReaderServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -22,40 +24,45 @@ export function m2mEventServiceBuilder(
     async getEServiceM2MEvents(
       lastEventId: EServiceM2MEventId | undefined,
       limit: number,
+      delegationId: DelegationIdParam,
       {
         logger,
         authData,
       }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
     ): Promise<EServiceM2MEvent[]> {
       logger.info(
-        `Getting e-service M2M events with lastEventId=${lastEventId}, limit=${limit}`
+        `Getting e-service M2M events with lastEventId=${lastEventId}, limit=${limit}, delegationId=${delegationId}`
       );
       return m2mEventReaderService.getEServiceM2MEvents(
         lastEventId,
         limit,
+        delegationId,
         authData.organizationId
       );
     },
     async getAgreementM2MEvents(
       lastEventId: AgreementM2MEventId | undefined,
       limit: number,
+      delegationId: DelegationIdParam,
       {
         logger,
         authData,
       }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
     ): Promise<AgreementM2MEvent[]> {
       logger.info(
-        `Getting agreement M2M events with lastEventId=${lastEventId}, limit=${limit}`
+        `Getting agreement M2M events with lastEventId=${lastEventId}, limit=${limit}, delegationId=${delegationId}`
       );
       return m2mEventReaderService.getAgreementM2MEvents(
         lastEventId,
         limit,
+        delegationId,
         authData.organizationId
       );
     },
     async getPurposeM2MEvents(
       _lastEventId: string | undefined,
       _limit: number,
+      _delegationId: DelegationId | undefined,
       _ctx: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
     ): Promise<unknown[]> {
       return [];
