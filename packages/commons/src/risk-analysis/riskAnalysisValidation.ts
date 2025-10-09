@@ -100,12 +100,12 @@ export function validateRiskAnalysis(
         multiAnswers: [],
       }
     );
-    const personalDataInRiskAnalysys: boolean | undefined = true; // TODO retrieve actual value from answers
+    const personalDataInRiskAnalysis: boolean | undefined = true; // TODO retrieve actual value from answers
 
     validatePersonalDataFlag({
       tenantKind,
       version: formRulesForValidation.version,
-      personalDataInRiskAnalysys,
+      personalDataInRiskAnalysis,
       personalDataInEService,
     });
     return validResult({
@@ -399,30 +399,27 @@ export function validResult<T>(value: T): RiskAnalysisValidationResult<T> {
 const validatePersonalDataFlag = ({
   tenantKind,
   version,
-  personalDataInRiskAnalysys,
+  personalDataInRiskAnalysis,
   personalDataInEService,
 }: {
   tenantKind: TenantKind;
   version: string;
-  personalDataInRiskAnalysys: boolean | undefined;
+  personalDataInRiskAnalysis: boolean | undefined;
   personalDataInEService: boolean | undefined;
 }): void => {
   const label = buildLabel(tenantKind, version);
   match(label)
-    .with(formRules.PA_1_0, () => void 0)
-    .with(formRules.PA_2_0, () => void 0)
-    .with(formRules.PA_3_0, () => void 0)
+    .with(formRules.PA_1_0, formRules.PA_2_0, formRules.PA_3_0, () => void 0)
     .with(formRules.PA_3_1, () =>
       match(personalDataInEService)
         .with(P.boolean, () => {
-          if (personalDataInEService !== personalDataInRiskAnalysys) {
+          if (personalDataInEService !== personalDataInRiskAnalysis) {
             throw genericInternalError("Incompatible personalData flag");
           }
         })
         .with(undefined, () => void 0)
         .exhaustive()
     )
-    .with(formRules.PRIVATE_1_0, () => void 0)
-    .with(formRules.PRIVATE_2_0, () => void 0)
+    .with(formRules.PRIVATE_1_0, formRules.PRIVATE_2_0, () => void 0)
     .exhaustive();
 };
