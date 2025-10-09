@@ -24,5 +24,5 @@ export const getMockPurposeTemplateSeed = (
   purposeIsFreeOfCharge: true,
   purposeFreeOfChargeReason: "Test reason",
   purposeDailyCalls: 10,
-  personalData: true,
+  handlesPersonalData: false,
 });

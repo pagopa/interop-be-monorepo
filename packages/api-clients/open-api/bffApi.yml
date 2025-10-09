@@ -24305,7 +24305,7 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
-        personalData:
+        handlesPersonalData:
           type: boolean
       required:
         - id
@@ -24317,7 +24317,7 @@ components:
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
-        - personalData
+        - handlesPersonalData
     PurposeTemplateState:
       type: string
       description: Purpose Template State
@@ -24406,7 +24406,7 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
-        personalData:
+        handlesPersonalData:
           type: boolean
       required:
         - targetDescription
@@ -24414,7 +24414,7 @@ components:
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
-        - personalData
+        - handlesPersonalData
     RiskAnalysisFormTemplate:
       type: object
       additionalProperties: false

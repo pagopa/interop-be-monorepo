@@ -30,7 +30,7 @@ describe("API POST /purposeTemplates", () => {
     purposeTitle: "Purpose Template title",
     purposeDescription: "Purpose Template description",
     purposeIsFreeOfCharge: false,
-    personalData: false,
+    handlesPersonalData: false,
   };
 
   const purposeTemplateResponse = getMockWithMetadata(mockPurposeTemplate, 0);
