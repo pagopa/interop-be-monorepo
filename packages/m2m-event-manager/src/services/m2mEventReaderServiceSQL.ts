@@ -12,15 +12,18 @@ import {
   EServiceM2MEvent,
   EServiceM2MEventId,
   TenantId,
+  m2mEventVisibility,
 } from "pagopa-interop-models";
 import { and, asc, eq, or } from "drizzle-orm";
 import {
   afterEventIdFilter,
+  delegationIdFilter,
   visibilityFilter,
 } from "../utilities/m2mEventSQLUtils.js";
 import { fromAttributeM2MEventSQL } from "../model/attributeM2MEventAdapterSQL.js";
 import { fromEServiceM2MEventSQL } from "../model/eserviceM2MEventAdapterSQL.js";
 import { fromAgreementM2MEventSQL } from "../model/agreementM2MEventAdapterSQL.js";
+import { DelegationIdParam } from "../model/types.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function m2mEventReaderServiceSQLBuilder(
@@ -56,6 +59,7 @@ export function m2mEventReaderServiceSQLBuilder(
     async getEServiceM2MEvents(
       lastEventId: EServiceM2MEventId | undefined,
       limit: number,
+      delegationId: DelegationIdParam,
       requester: TenantId
     ): Promise<EServiceM2MEvent[]> {
       const sqlEvents = await m2mEventDB
@@ -70,6 +74,12 @@ export function m2mEventReaderServiceSQLBuilder(
                 eq(eserviceInM2MEvent.producerDelegateId, requester)
               ),
               restrictedFilter: undefined,
+            }),
+            delegationIdFilter(eserviceInM2MEvent, delegationId, {
+              nullFilter: or(
+                eq(eserviceInM2MEvent.visibility, m2mEventVisibility.public),
+                eq(eserviceInM2MEvent.producerId, requester)
+              ),
             })
           )
         )
@@ -82,6 +92,7 @@ export function m2mEventReaderServiceSQLBuilder(
     async getAgreementM2MEvents(
       lastEventId: AgreementM2MEventId | undefined,
       limit: number,
+      delegationId: DelegationIdParam,
       requester: TenantId
     ): Promise<AgreementM2MEvent[]> {
       const sqlEvents = await m2mEventDB
@@ -100,6 +111,12 @@ export function m2mEventReaderServiceSQLBuilder(
                 eq(agreementInM2MEvent.consumerDelegateId, requester),
                 eq(agreementInM2MEvent.producerId, requester),
                 eq(agreementInM2MEvent.producerDelegateId, requester)
+              ),
+            }),
+            delegationIdFilter(agreementInM2MEvent, delegationId, {
+              nullFilter: or(
+                eq(agreementInM2MEvent.producerId, requester),
+                eq(agreementInM2MEvent.consumerId, requester)
               ),
             })
           )

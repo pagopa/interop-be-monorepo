@@ -81,6 +81,8 @@ function toApiAgreementM2MEvent(
     eventType: toApiAgreementM2MEventType(event.eventType),
     eventTimestamp: event.eventTimestamp.toJSON(),
     agreementId: event.agreementId,
+    consumerDelegationId: event.consumerDelegationId,
+    producerDelegationId: event.producerDelegationId,
   };
 }
 
