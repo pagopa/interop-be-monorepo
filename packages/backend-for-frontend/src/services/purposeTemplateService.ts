@@ -160,6 +160,7 @@ export function purposeTemplateServiceBuilder(
       creatorIds,
       eserviceIds,
       excludeExpiredRiskAnalysis,
+      handlesPersonalData,
       offset,
       limit,
       ctx,
@@ -169,6 +170,7 @@ export function purposeTemplateServiceBuilder(
       creatorIds: string[];
       eserviceIds: string[];
       excludeExpiredRiskAnalysis: boolean;
+      handlesPersonalData: boolean | undefined;
       offset: number;
       limit: number;
       ctx: WithLogger<BffAppContext>;
@@ -190,6 +192,7 @@ export function purposeTemplateServiceBuilder(
             eserviceIds,
             states: [purposeTemplateApi.PurposeTemplateState.Enum.ACTIVE],
             excludeExpiredRiskAnalysis,
+            handlesPersonalData,
             limit,
             offset,
           },

@@ -17,6 +17,7 @@ describe("API GET /catalog/purposeTemplates", () => {
     creatorIds: `${generateId()},${generateId()}`,
     targetTenantKind: tenantKind.PA,
     excludeExpiredRiskAnalysis: true,
+    handlesPersonalData: true,
     offset: 0,
     limit: 5,
   };
@@ -78,6 +79,7 @@ describe("API GET /catalog/purposeTemplates", () => {
     { query: { ...defaultQuery, creatorIds: `${generateId()},invalid` } },
     { query: { ...defaultQuery, targetTenantKind: "invalid" } },
     { query: { ...defaultQuery, excludeExpiredRiskAnalysis: "invalid" } },
+    { query: { ...defaultQuery, handlesPersonalData: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof defaultQuery);
