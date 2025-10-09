@@ -31,13 +31,15 @@ describe("Risk Analysis Validation", () => {
       validRiskAnalysis3_0_Pa,
       false,
       "PA",
-      new Date()
+      new Date(),
+      undefined
     );
     const resultSchemaOnly = validateRiskAnalysis(
       validRiskAnalysis3_0_Pa,
       true,
       "PA",
-      new Date()
+      new Date(),
+      undefined
     );
     expect(result).toEqual({
       type: "valid",
@@ -55,13 +57,15 @@ describe("Risk Analysis Validation", () => {
       expiredRiskAnalysis2_0_Pa,
       false,
       "PA",
-      new Date()
+      new Date(),
+      undefined
     );
     const resultSchemaOnly = validateRiskAnalysis(
       expiredRiskAnalysis2_0_Pa,
       true,
       "PA",
-      new Date()
+      new Date(),
+      undefined
     );
     expect(result).toEqual({
       type: "valid",
@@ -82,7 +86,8 @@ describe("Risk Analysis Validation", () => {
       validSchemaOnlyRiskAnalysis3_0_Pa,
       true,
       "PA",
-      new Date()
+      new Date(),
+      undefined
     );
 
     expect(result).toEqual({
@@ -96,13 +101,15 @@ describe("Risk Analysis Validation", () => {
       validRiskAnalysis2_0_Private,
       false,
       "PRIVATE",
-      new Date()
+      new Date(),
+      undefined
     );
     const resultSchemaOnly = validateRiskAnalysis(
       validRiskAnalysis2_0_Private,
       true,
       "PRIVATE",
-      new Date()
+      new Date(),
+      undefined
     );
 
     expect(result).toEqual({
@@ -123,7 +130,8 @@ describe("Risk Analysis Validation", () => {
       validSchemaOnlyRiskAnalysis2_0_Private,
       true,
       "PRIVATE",
-      new Date()
+      new Date(),
+      undefined
     );
 
     expect(result).toEqual({
@@ -137,13 +145,15 @@ describe("Risk Analysis Validation", () => {
       validRiskAnalysis2_0_Private,
       false,
       "GSP",
-      new Date()
+      new Date(),
+      undefined
     );
     const resultSchemaOnly = validateRiskAnalysis(
       validRiskAnalysis2_0_Private,
       true,
       "GSP",
-      new Date()
+      new Date(),
+      undefined
     );
 
     expect(result).toEqual({
@@ -164,7 +174,8 @@ describe("Risk Analysis Validation", () => {
       validSchemaOnlyRiskAnalysis2_0_Private,
       true,
       "GSP",
-      new Date()
+      new Date(),
+      undefined
     );
 
     expect(result).toEqual({
@@ -181,7 +192,13 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(invalidRiskAnalysis, false, "PA", new Date())
+      validateRiskAnalysis(
+        invalidRiskAnalysis,
+        false,
+        "PA",
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [rulesVersionNotFoundError("PA", invalidVersionForPA)],
@@ -194,7 +211,13 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(invalidRiskAnalysis2, false, "PRIVATE", new Date())
+      validateRiskAnalysis(
+        invalidRiskAnalysis2,
+        false,
+        "PRIVATE",
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [rulesVersionNotFoundError("PRIVATE", invalidVersionForPrivate)],
@@ -209,7 +232,13 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(expiredRiskAnalysis, false, "PA", new Date())
+      validateRiskAnalysis(
+        expiredRiskAnalysis,
+        false,
+        "PA",
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [expiredRulesVersionError(expiredVersionForPA, tenantKind.PA)],
@@ -222,7 +251,13 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(expiredRiskAnalysis2, false, "PRIVATE", new Date())
+      validateRiskAnalysis(
+        expiredRiskAnalysis2,
+        false,
+        "PRIVATE",
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [expiredRulesVersionError(expiredVersionForPrivate, "PRIVATE")],
@@ -241,17 +276,17 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
-      {
-        type: "invalid",
-        issues: [
-          dependencyNotFoundError("reasonPolicyNotProvided", "policyProvided"),
-          dependencyNotFoundError("confirmedDoneDpia", "doneDpia"),
-          missingExpectedFieldError("policyProvided"),
-          missingExpectedFieldError("doneDpia"),
-        ],
-      }
-    );
+    expect(
+      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
+    ).toEqual({
+      type: "invalid",
+      issues: [
+        dependencyNotFoundError("reasonPolicyNotProvided", "policyProvided"),
+        dependencyNotFoundError("confirmedDoneDpia", "doneDpia"),
+        missingExpectedFieldError("policyProvided"),
+        missingExpectedFieldError("doneDpia"),
+      ],
+    });
   });
 
   it("should succeed schema only even if a provided answer depends on a missing field", () => {
@@ -265,7 +300,9 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, true, "PA", new Date())).toEqual({
+    expect(
+      validateRiskAnalysis(riskAnalysis, true, "PA", new Date(), undefined)
+    ).toEqual({
       type: "valid",
       value: {
         version: validRiskAnalysis3_0_Pa.version,
@@ -290,29 +327,29 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
-      {
-        type: "invalid",
-        issues: [
-          unexpectedDependencyValueError(
-            "legalBasisPublicInterest",
-            "legalBasis",
-            "PUBLIC_INTEREST"
-          ),
-          unexpectedDependencyValueError(
-            "ruleOfLawText",
-            "legalBasisPublicInterest",
-            "RULE_OF_LAW"
-          ),
-          unexpectedDependencyValueError(
-            "ruleOfLawText",
-            "legalBasis",
-            "PUBLIC_INTEREST"
-          ),
-          unexpectedDependencyValueError("otherPurpose", "purpose", "OTHER"),
-        ],
-      }
-    );
+    expect(
+      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
+    ).toEqual({
+      type: "invalid",
+      issues: [
+        unexpectedDependencyValueError(
+          "legalBasisPublicInterest",
+          "legalBasis",
+          "PUBLIC_INTEREST"
+        ),
+        unexpectedDependencyValueError(
+          "ruleOfLawText",
+          "legalBasisPublicInterest",
+          "RULE_OF_LAW"
+        ),
+        unexpectedDependencyValueError(
+          "ruleOfLawText",
+          "legalBasis",
+          "PUBLIC_INTEREST"
+        ),
+        unexpectedDependencyValueError("otherPurpose", "purpose", "OTHER"),
+      ],
+    });
   });
 
   it("should succeed schema only even if a provided answer depends on an existing field with an unexpected value", () => {
@@ -326,7 +363,9 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, true, "PA", new Date())).toEqual({
+    expect(
+      validateRiskAnalysis(riskAnalysis, true, "PA", new Date(), undefined)
+    ).toEqual({
       type: "valid",
       value: {
         version: riskAnalysis.version,
@@ -355,15 +394,15 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
-      {
-        type: "invalid",
-        issues: [
-          missingExpectedFieldError("deliveryMethod"),
-          missingExpectedFieldError("doneDpia"),
-        ],
-      }
-    );
+    expect(
+      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
+    ).toEqual({
+      type: "invalid",
+      issues: [
+        missingExpectedFieldError("deliveryMethod"),
+        missingExpectedFieldError("doneDpia"),
+      ],
+    });
   });
 
   it("should succeeed schema only even on missing expected answers", () => {
@@ -378,7 +417,9 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, true, "PA", new Date())).toEqual({
+    expect(
+      validateRiskAnalysis(riskAnalysis, true, "PA", new Date(), undefined)
+    ).toEqual({
       type: "valid",
       value: {
         version: riskAnalysis.version,
@@ -404,20 +445,22 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
-      validateRiskAnalysis(riskAnalysis, true, "PA", new Date())
+    expect(
+      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
+    ).toEqual(
+      validateRiskAnalysis(riskAnalysis, true, "PA", new Date(), undefined)
     );
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
-      {
-        type: "invalid",
-        issues: [
-          unexpectedFieldError("unexpectedFieldA"),
-          unexpectedFieldError("unexpectedFieldB"),
-          unexpectedFieldError("unexpectedFieldC"),
-        ],
-      }
-    );
+    expect(
+      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
+    ).toEqual({
+      type: "invalid",
+      issues: [
+        unexpectedFieldError("unexpectedFieldA"),
+        unexpectedFieldError("unexpectedFieldB"),
+        unexpectedFieldError("unexpectedFieldC"),
+      ],
+    });
   });
 
   it("should fail on unexpected field value both schema only and not", () => {
@@ -431,30 +474,32 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
-      validateRiskAnalysis(riskAnalysis, true, "PA", new Date())
+    expect(
+      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
+    ).toEqual(
+      validateRiskAnalysis(riskAnalysis, true, "PA", new Date(), undefined)
     );
 
-    expect(validateRiskAnalysis(riskAnalysis, false, "PA", new Date())).toEqual(
-      {
-        type: "invalid",
-        issues: [
-          unexpectedFieldValueError(
-            "purpose",
-            new Set(["INSTITUTIONAL", "OTHER"])
-          ),
-          unexpectedFieldValueError(
-            "legalBasis",
-            new Set([
-              "CONSENT",
-              "CONTRACT",
-              "LEGAL_OBLIGATION",
-              "SAFEGUARD",
-              "PUBLIC_INTEREST",
-            ])
-          ),
-        ],
-      }
-    );
+    expect(
+      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
+    ).toEqual({
+      type: "invalid",
+      issues: [
+        unexpectedFieldValueError(
+          "purpose",
+          new Set(["INSTITUTIONAL", "OTHER"])
+        ),
+        unexpectedFieldValueError(
+          "legalBasis",
+          new Set([
+            "CONSENT",
+            "CONTRACT",
+            "LEGAL_OBLIGATION",
+            "SAFEGUARD",
+            "PUBLIC_INTEREST",
+          ])
+        ),
+      ],
+    });
   });
 });
