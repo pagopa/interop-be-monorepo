@@ -14,7 +14,11 @@ import {
   retrieveHTMLTemplate,
   retrieveLatestPublishedDescriptor,
 } from "../../services/utils.js";
-import { EserviceTemplateNameUpdatedHandlerParams } from "../handlerCommons.js";
+import {
+  EserviceTemplateNameUpdatedHandlerParams,
+  getRecipientsForTenants,
+  UserEmailNotificationRecipient,
+} from "../handlerCommons.js";
 
 const notificationType: NotificationType = "templateStatusChangedToProducer";
 
@@ -25,6 +29,7 @@ export async function handleEServiceTemplateNameUpdated(
     eserviceTemplateV2Msg,
     oldName,
     readModelService,
+    logger,
     templateService,
     userService,
     correlationId,
@@ -54,32 +59,40 @@ export async function handleEServiceTemplateNameUpdated(
     }, new Map())
   );
 
-  const tenantIds: TenantId[] = Object.keys(instantiatorEserviceMap).map(
-    (tenantId) => unsafeBrandId(tenantId)
+  const instantiators = await readModelService.getTenantsById(
+    Object.keys(instantiatorEserviceMap).map((tenantId) =>
+      unsafeBrandId(tenantId)
+    )
   );
 
-  const instantiators = await readModelService.getTenantsById(tenantIds);
+  const targets = (
+    await getRecipientsForTenants({
+      tenants: instantiators,
+      notificationType,
+      readModelService,
+      userService,
+      logger,
+      includeTenantContactEmails: false,
+    })
+  ).filter(
+    (target): target is UserEmailNotificationRecipient => target.type === "User"
+  );
 
-  const tenantUsers =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      tenantIds,
-      notificationType
+  if (targets.length === 0) {
+    logger.info(
+      `No targets found for instantiator tenants. EService template ${eserviceTemplate.id}, no emails to dispatch.`
     );
+    return [];
+  }
 
-  const users = await userService.readUsers(
-    tenantUsers.map(({ userId }) => userId)
-  );
-
-  return tenantUsers.flatMap(({ userId, tenantId }) => {
+  return targets.flatMap(({ address, tenantId }) => {
     const tenantEServices = instantiatorEserviceMap[tenantId] || [];
-    const user = users.find((user) => user.userId === userId);
     const tenant = instantiators.find((tenant) => tenant.id === tenantId);
 
-    if (!user || !tenant) {
+    if (!tenant) {
       return [];
     }
 
-    const address = user.email;
     return tenantEServices.map((eservice) => ({
       correlationId: correlationId ?? generateId(),
       email: {

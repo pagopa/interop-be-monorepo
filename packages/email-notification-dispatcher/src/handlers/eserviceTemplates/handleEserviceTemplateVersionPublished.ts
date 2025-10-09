@@ -15,7 +15,11 @@ import {
   retrieveLatestPublishedDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
-import { EserviceTemplateHandlerParams } from "../handlerCommons.js";
+import {
+  EserviceTemplateHandlerParams,
+  getRecipientsForTenants,
+  UserEmailNotificationRecipient,
+} from "../handlerCommons.js";
 
 const notificationType: NotificationType =
   "newEserviceTemplateVersionToInstantiator";
@@ -50,30 +54,6 @@ export async function handleEServiceTemplateVersionPublished(
     readModelService.getEServicesByTemplateId(eserviceTemplate.id),
   ]);
 
-  const instantiatorEserviceMap = Object.fromEntries(
-    eservices.reduce<Map<TenantId, EService[]>>((acc, eservice) => {
-      const current = acc.get(eservice.producerId) ?? [];
-      acc.set(eservice.producerId, [...current, eservice]);
-      return acc;
-    }, new Map())
-  );
-
-  const tenantIds: TenantId[] = Object.keys(instantiatorEserviceMap).map(
-    (tenantId) => unsafeBrandId(tenantId)
-  );
-
-  const instantiators = await readModelService.getTenantsById(tenantIds);
-
-  const tenantUsers =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      tenantIds,
-      notificationType
-    );
-
-  const users = await userService.readUsers(
-    tenantUsers.map(({ userId }) => userId)
-  );
-
   const eserviceTemplateVersion = eserviceTemplate.versions.find(
     (version) => version.id === eserviceTemplateVersionId
   );
@@ -85,17 +65,49 @@ export async function handleEServiceTemplateVersionPublished(
     return [];
   }
 
-  return tenantUsers.flatMap(({ userId, tenantId }) => {
-    const eservices = instantiatorEserviceMap[tenantId] || [];
-    const user = users.find((user) => user.userId === userId);
+  const instantiatorEserviceMap = Object.fromEntries(
+    eservices.reduce<Map<TenantId, EService[]>>((acc, eservice) => {
+      const current = acc.get(eservice.producerId) ?? [];
+      acc.set(eservice.producerId, [...current, eservice]);
+      return acc;
+    }, new Map())
+  );
+
+  const instantiators = await readModelService.getTenantsById(
+    Object.keys(instantiatorEserviceMap).map((tenantId) =>
+      unsafeBrandId(tenantId)
+    )
+  );
+
+  const targets = (
+    await getRecipientsForTenants({
+      tenants: instantiators,
+      notificationType,
+      readModelService,
+      userService,
+      logger,
+      includeTenantContactEmails: false,
+    })
+  ).filter(
+    (target): target is UserEmailNotificationRecipient => target.type === "User"
+  );
+
+  if (targets.length === 0) {
+    logger.info(
+      `No targets found for instantiator tenants. EService template ${eserviceTemplate.id}, eservice template version ${eserviceTemplateVersionId}, no emails to dispatch.`
+    );
+    return [];
+  }
+
+  return targets.flatMap(({ address, tenantId }) => {
+    const tenantEServices = instantiatorEserviceMap[tenantId] || [];
     const tenant = instantiators.find((tenant) => tenant.id === tenantId);
 
-    if (!user || !tenant) {
+    if (!tenant) {
       return [];
     }
 
-    const address = user.email;
-    return eservices.map((eservice) => ({
+    return tenantEServices.map((eservice) => ({
       correlationId: correlationId ?? generateId(),
       email: {
         subject: `Nuova versione del template "${eserviceTemplate.name}"`,
