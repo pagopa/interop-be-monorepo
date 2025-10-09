@@ -49,7 +49,7 @@ export const fromUserNotificationConfigV2 = (
   }
   if (input.userRoles.length === 0) {
     throw genericError(
-      `Error while deserializing UserNotificationConfigV2 (${input.id}): roles is empty`
+      `Error while deserializing UserNotificationConfigV2 (${input.id}): userRoles is empty`
     );
   }
 
