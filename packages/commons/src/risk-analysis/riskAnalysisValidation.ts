@@ -100,7 +100,12 @@ export function validateRiskAnalysis(
         multiAnswers: [],
       }
     );
-    const personalDataInRiskAnalysis: boolean | undefined = true; // TODO retrieve actual value from answers
+    const personalDataInRiskAnalysis = match(
+      singleAnswers.find((a) => a.key === "usesPersonalData")?.value
+    )
+      .with("YES", () => true)
+      .with("NO", () => false)
+      .otherwise(() => undefined);
 
     validatePersonalDataFlag({
       tenantKind,
