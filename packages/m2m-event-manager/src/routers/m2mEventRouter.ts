@@ -9,6 +9,7 @@ import {
 import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import {
+  AgreementM2MEventId,
   AttributeM2MEventId,
   emptyErrorMapper,
   EServiceM2MEventId,
@@ -19,6 +20,7 @@ import { M2MEventService } from "../services/m2mEventService.js";
 import { makeApiProblem } from "../model/errors.js";
 import { toApiAttributeM2MEvents } from "../model/attributeM2MEventApiConverter.js";
 import { toApiEServiceM2MEvents } from "../model/eserviceM2MEventApiConverter.js";
+import { toApiAgreementM2MEvents } from "../model/agreementM2MEventApiConverter.js";
 
 export const m2mEventRouter = (
   zodiosCtx: ZodiosContext,
@@ -62,7 +64,21 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        return res.status(501);
+        const { lastEventId, limit } = req.query;
+        const events = await service.getAgreementM2MEvents(
+          lastEventId
+            ? unsafeBrandId<AgreementM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.AgreementM2MEvents.parse(
+              toApiAgreementM2MEvents(events)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
