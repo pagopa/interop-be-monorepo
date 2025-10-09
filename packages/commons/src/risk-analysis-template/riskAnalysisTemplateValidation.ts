@@ -114,6 +114,47 @@ export function validatePurposeTemplateRiskAnalysis(
   });
 }
 
+export function validateRiskAnalysisAnswer(
+  riskAnalysisAnswerKey: string,
+  riskAnalysisAnswerValue: RiskAnalysisTemplateAnswerToValidate,
+  tenantKind: TenantKind
+): RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer> {
+  const latestVersionFormRules = getLatestVersionFormRules(tenantKind);
+
+  if (latestVersionFormRules === undefined) {
+    return invalidTemplateResult([
+      noRiskAnalysisTemplateRulesVersionFoundError(tenantKind),
+    ]);
+  }
+
+  const validationRules = buildValidationRules(latestVersionFormRules);
+  const validationRule = validationRules.find(
+    (rule) => rule.fieldName === riskAnalysisAnswerKey
+  );
+
+  if (!validationRule) {
+    return invalidTemplateResult([
+      unexpectedRiskAnalysisTemplateFieldError(riskAnalysisAnswerKey),
+    ]);
+  }
+
+  // Validate only the value, NOT the dependencies
+  const valueValidationErrors = validateAnswerValue(
+    riskAnalysisAnswerValue,
+    validationRule
+  );
+
+  if (valueValidationErrors.length > 0) {
+    return invalidTemplateResult(valueValidationErrors);
+  }
+
+  return buildValidResultAnswer(
+    riskAnalysisAnswerKey,
+    riskAnalysisAnswerValue,
+    validationRule
+  );
+}
+
 function validateTemplateFormAnswers(
   answers: Record<string, RiskAnalysisTemplateAnswerToValidate>,
   validationRules: ValidationRule[]
