@@ -21,7 +21,7 @@ describe("API /events/eservices test", () => {
       }),
       getMockedEServiceM2MEvent({
         eventType,
-        visibility: m2mEventVisibility.restricted,
+        visibility: m2mEventVisibility.owner,
       }),
     ])
     .flat();

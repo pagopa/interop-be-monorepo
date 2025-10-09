@@ -6,6 +6,7 @@ import {
 import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
 import { PurposeTemplateId, TenantKind } from "pagopa-interop-models";
 import {
+  CatalogProcessClient,
   PurposeTemplateProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -14,14 +15,18 @@ import { config } from "../config/config.js";
 import {
   toBffCatalogPurposeTemplate,
   toBffCreatorPurposeTemplate,
+  toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor,
+  toCompactPurposeTemplateEService,
 } from "../api/purposeTemplateApiConverter.js";
-import { tenantNotFound } from "../model/errors.js";
+import { eserviceDescriptorNotFound, tenantNotFound } from "../model/errors.js";
 import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
+import { toCompactDescriptor } from "../api/catalogApiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   purposeTemplateClient: PurposeTemplateProcessClient,
-  tenantProcessClient: TenantProcessClient
+  tenantProcessClient: TenantProcessClient,
+  catalogProcessClient: CatalogProcessClient
 ) {
   async function getTenantsFromPurposeTemplates(
     tenantClient: TenantProcessClient,
@@ -197,14 +202,14 @@ export function purposeTemplateServiceBuilder(
       );
 
       const results = catalogPurposeTemplatesResponse.results.map(
-        (template) => {
-          const creator = creatorTenantsMap.get(template.creatorId);
+        (purposeTemplate) => {
+          const creator = creatorTenantsMap.get(purposeTemplate.creatorId);
 
           if (!creator) {
-            throw tenantNotFound(template.creatorId);
+            throw tenantNotFound(purposeTemplate.creatorId);
           }
 
-          return toBffCatalogPurposeTemplate(template, creator);
+          return toBffCatalogPurposeTemplate(purposeTemplate, creator);
         }
       );
 
@@ -214,6 +219,87 @@ export function purposeTemplateServiceBuilder(
           offset,
           limit,
           totalCount: catalogPurposeTemplatesResponse.totalCount,
+        },
+      };
+    },
+    async getPurposeTemplateEServiceDescriptors({
+      purposeTemplateId,
+      producerIds,
+      eserviceIds,
+      offset,
+      limit,
+      ctx,
+    }: {
+      purposeTemplateId: string;
+      producerIds: string[];
+      eserviceIds: string[];
+      offset: number;
+      limit: number;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<bffApi.EServiceDescriptorsPurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
+
+      logger.info(
+        `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with eserviceIds ${eserviceIds.toString()}, producerIds ${producerIds.toString()}, offset ${offset}, limit ${limit}`
+      );
+
+      const purposeTemplateEServiceDescriptorsResponse =
+        await purposeTemplateClient.getPurposeTemplateEServices({
+          headers,
+          params: {
+            id: purposeTemplateId,
+          },
+          queries: {
+            producerIds,
+            eserviceIds,
+            limit,
+            offset,
+          },
+        });
+
+      const producersById = new Map<string, tenantApi.Tenant>();
+      const results = await Promise.all(
+        purposeTemplateEServiceDescriptorsResponse.results.map(
+          async (eserviceDescriptor) => {
+            const { eserviceId, descriptorId } = eserviceDescriptor;
+
+            const eservice = await catalogProcessClient.getEServiceById({
+              headers,
+              params: { eServiceId: eserviceId },
+            });
+
+            const descriptor = eservice.descriptors.find(
+              (d) => d.id === descriptorId
+            );
+            if (!descriptor) {
+              throw eserviceDescriptorNotFound(eservice.id, descriptorId);
+            }
+
+            const producer =
+              producersById.get(eservice.producerId) ||
+              (await tenantProcessClient.tenant.getTenant({
+                headers,
+                params: { id: eservice.producerId },
+              }));
+            producersById.set(eservice.producerId, producer);
+
+            return toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor(
+              eserviceDescriptor,
+              toCompactPurposeTemplateEService(eservice, producer),
+              toCompactDescriptor(descriptor)
+            );
+          }
+        )
+      );
+
+      return {
+        results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: purposeTemplateEServiceDescriptorsResponse.totalCount,
         },
       };
     },

@@ -92,6 +92,7 @@ export function getMockedApiAgreement({
   consumerId,
   contract,
   consumerDocuments,
+  stamps,
 }: {
   state?: agreementApi.AgreementState;
   eserviceId?: string;
@@ -99,6 +100,7 @@ export function getMockedApiAgreement({
   consumerId?: string;
   contract?: agreementApi.Document;
   consumerDocuments?: agreementApi.Document[];
+  stamps?: agreementApi.AgreementStamps;
 } = {}): agreementApi.Agreement {
   return {
     id: generateId(),
@@ -114,6 +116,7 @@ export function getMockedApiAgreement({
     verifiedAttributes: generateMock(z.array(agreementApi.VerifiedAttribute)),
     createdAt: new Date().toISOString(),
     contract,
+    stamps: stamps ?? generateMock(agreementApi.AgreementStamps),
   };
 }
 

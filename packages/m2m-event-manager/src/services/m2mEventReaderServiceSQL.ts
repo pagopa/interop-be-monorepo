@@ -1,9 +1,12 @@
 import {
+  agreementInM2MEvent,
   attributeInM2MEvent,
   eserviceInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
+  AgreementM2MEvent,
+  AgreementM2MEventId,
   AttributeM2MEvent,
   AttributeM2MEventId,
   EServiceM2MEvent,
@@ -17,6 +20,7 @@ import {
 } from "../utilities/m2mEventSQLUtils.js";
 import { fromAttributeM2MEventSQL } from "../model/attributeM2MEventAdapterSQL.js";
 import { fromEServiceM2MEventSQL } from "../model/eserviceM2MEventAdapterSQL.js";
+import { fromAgreementM2MEventSQL } from "../model/agreementM2MEventAdapterSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function m2mEventReaderServiceSQLBuilder(
@@ -73,6 +77,37 @@ export function m2mEventReaderServiceSQLBuilder(
         .limit(limit);
 
       return sqlEvents.map(fromEServiceM2MEventSQL);
+    },
+
+    async getAgreementM2MEvents(
+      lastEventId: AgreementM2MEventId | undefined,
+      limit: number,
+      requester: TenantId
+    ): Promise<AgreementM2MEvent[]> {
+      const sqlEvents = await m2mEventDB
+        .select()
+        .from(agreementInM2MEvent)
+        .where(
+          and(
+            afterEventIdFilter(agreementInM2MEvent, lastEventId),
+            visibilityFilter(agreementInM2MEvent, {
+              ownerFilter: or(
+                eq(agreementInM2MEvent.consumerId, requester),
+                eq(agreementInM2MEvent.consumerDelegateId, requester)
+              ),
+              restrictedFilter: or(
+                eq(agreementInM2MEvent.consumerId, requester),
+                eq(agreementInM2MEvent.consumerDelegateId, requester),
+                eq(agreementInM2MEvent.producerId, requester),
+                eq(agreementInM2MEvent.producerDelegateId, requester)
+              ),
+            })
+          )
+        )
+        .orderBy(asc(agreementInM2MEvent.id))
+        .limit(limit);
+
+      return sqlEvents.map(fromAgreementM2MEventSQL);
     },
   };
 }
