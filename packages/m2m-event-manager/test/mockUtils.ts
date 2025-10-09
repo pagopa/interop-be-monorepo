@@ -86,6 +86,7 @@ export function getMockedAgreementM2MEvent({
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
+    resourceVersion: randomInt(1, 1000),
     agreementId: generateId<AgreementId>(),
     visibility,
     consumerId: consumerId ?? generateId<TenantId>(),
