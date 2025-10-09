@@ -1,4 +1,8 @@
-import { tenantKind, TenantKind } from "pagopa-interop-models";
+import {
+  genericInternalError,
+  tenantKind,
+  TenantKind,
+} from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
   RiskAnalysisFormToValidate,
@@ -25,7 +29,11 @@ import {
   RiskAnalysisFormRules,
   dataType,
 } from "./rules/riskAnalysisFormRules.js";
-import { riskAnalysisFormRules } from "./rules/riskAnalysisFormRulesProvider.js";
+import {
+  buildLabel,
+  formRules,
+  riskAnalysisFormRules,
+} from "./rules/riskAnalysisFormRulesProvider.js";
 
 export function validateRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate,
@@ -92,11 +100,14 @@ export function validateRiskAnalysis(
         multiAnswers: [],
       }
     );
+    const personalDataInRiskAnalysys: boolean | undefined = true; // TODO retrieve actual value from answers
 
-    if (riskAnalysisForm.version === "3.1") {
-      console.log("TODO add actual check", personalDataInEService);
-    }
-
+    validatePersonalDataFlag({
+      tenantKind,
+      version: formRulesForValidation.version,
+      personalDataInRiskAnalysys,
+      personalDataInEService,
+    });
     return validResult({
       version: formRulesForValidation.version,
       singleAnswers,
@@ -384,3 +395,34 @@ export function validResult<T>(value: T): RiskAnalysisValidationResult<T> {
     value,
   };
 }
+
+const validatePersonalDataFlag = ({
+  tenantKind,
+  version,
+  personalDataInRiskAnalysys,
+  personalDataInEService,
+}: {
+  tenantKind: TenantKind;
+  version: string;
+  personalDataInRiskAnalysys: boolean | undefined;
+  personalDataInEService: boolean | undefined;
+}): void => {
+  const label = buildLabel(tenantKind, version);
+  match(label)
+    .with(formRules.PA_1_0, () => void 0)
+    .with(formRules.PA_2_0, () => void 0)
+    .with(formRules.PA_3_0, () => void 0)
+    .with(formRules.PA_3_1, () =>
+      match(personalDataInEService)
+        .with(P.boolean, () => {
+          if (personalDataInEService !== personalDataInRiskAnalysys) {
+            throw genericInternalError("");
+          }
+        })
+        .with(undefined, () => void 0)
+        .exhaustive()
+    )
+    .with(formRules.PRIVATE_1_0, () => void 0)
+    .with(formRules.PRIVATE_2_0, () => void 0)
+    .exhaustive();
+};
