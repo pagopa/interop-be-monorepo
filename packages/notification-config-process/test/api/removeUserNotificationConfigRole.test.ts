@@ -91,9 +91,9 @@ describe("API DELETE /internal/userNotificationConfigs/tenantId/{tenantId}/userI
   );
 
   it.each([
-    { tenantId: "invalid" as TenantId, userId: defaultUserId, role: "ADMIN" },
-    { tenantId: defaultTenantId, userId: "invalid" as UserId, role: "ADMIN" },
-    { tenantId: defaultTenantId, userId: defaultUserId, role: "invalid" },
+    { tenantId: "invalid" as TenantId },
+    { userId: "invalid" as UserId },
+    { role: "invalid" },
   ])(
     "Should return 400 if passed invalid params: %s",
     async ({ tenantId, userId, role }) => {
