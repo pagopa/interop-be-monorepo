@@ -1,6 +1,8 @@
 import {
+  EService,
   EServiceId,
   InternalError,
+  PurposeTemplate,
   PurposeTemplateId,
 } from "pagopa-interop-models";
 
@@ -12,7 +14,8 @@ type PurposeTemplateValidationIssueCode =
   | "eserviceNotAssociated"
   | "missingDescriptor"
   | "invalidDescriptorState"
-  | "unexpectedUnassociationEServiceError";
+  | "unexpectedUnassociationEServiceError"
+  | "purposeTemplateEServicePersonalDataFlagMismatch";
 
 export class PurposeTemplateValidationIssue extends InternalError<PurposeTemplateValidationIssueCode> {
   constructor({
@@ -117,6 +120,16 @@ export function invalidDescriptorStateError(
     detail: `EService ${eserviceId} has no valid descriptors. Expected ${expectedStates.join(
       ", "
     )}.`,
+  });
+}
+
+export function purposeTemplateEServicePersonalDataFlagMismatch(
+  eservice: EService,
+  purposeTemplate: PurposeTemplate
+): PurposeTemplateValidationIssue {
+  return new PurposeTemplateValidationIssue({
+    code: "purposeTemplateEServicePersonalDataFlagMismatch",
+    detail: `EService ${eservice.id} personal data flag (${eservice.personalData}) does not match purpose template ${purposeTemplate.id} personal data flag (${purposeTemplate.handlesPersonalData}).`,
   });
 }
 

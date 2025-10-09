@@ -43,6 +43,7 @@ import {
   invalidDescriptorStateError,
   invalidPurposeTemplateResult,
   missingDescriptorError,
+  purposeTemplateEServicePersonalDataFlagMismatch,
   PurposeTemplateValidationIssue,
   PurposeTemplateValidationResult,
   unexpectedAssociationEServiceError,
@@ -250,7 +251,7 @@ export function assertPurposeTemplateHasRiskAnalysisForm(
 }
 
 /**
- * Validate the existence of the eservices
+ * Validate the existence of the eservices and check that their personal data flag matches the purpose template one
  * For each eservice id:
  * - Promise.fulfilled: return the eservice if found
  * - Promise.fulfilled: return validation issue with the eservice id if not found
@@ -258,11 +259,13 @@ export function assertPurposeTemplateHasRiskAnalysisForm(
  * Finally, return the validation issues and the valid eservices
  *
  * @param eserviceIds the list of eservice ids to validate
+ * @param purposeTemplate the purpose template to use
  * @param readModelService the read model service to use
  * @returns the validation issues and the valid eservices
  */
 async function validateEServiceExistence(
   eserviceIds: EServiceId[],
+  purposeTemplate: PurposeTemplate,
   readModelService: ReadModelServiceSQL
 ): Promise<{
   validationIssues: PurposeTemplateValidationIssue[];
@@ -284,6 +287,19 @@ async function validateEServiceExistence(
               validationIssues: [
                 ...acc.validationIssues,
                 eserviceNotFound(eserviceIds[index]),
+              ],
+            };
+          }
+
+          if (res.value.personalData !== purposeTemplate.handlesPersonalData) {
+            return {
+              ...acc,
+              validationIssues: [
+                ...acc.validationIssues,
+                purposeTemplateEServicePersonalDataFlagMismatch(
+                  res.value,
+                  purposeTemplate
+                ),
               ],
             };
           }
@@ -474,7 +490,7 @@ function validateEServiceDescriptors(validEservices: EService[]): {
 
 export async function validateEservicesAssociations(
   eserviceIds: EServiceId[],
-  purposeTemplateId: PurposeTemplateId,
+  purposeTemplate: PurposeTemplate,
   readModelService: ReadModelServiceSQL
 ): Promise<
   PurposeTemplateValidationResult<
@@ -483,6 +499,7 @@ export async function validateEservicesAssociations(
 > {
   const { validationIssues, validEservices } = await validateEServiceExistence(
     eserviceIds,
+    purposeTemplate,
     readModelService
   );
 
@@ -490,13 +507,13 @@ export async function validateEservicesAssociations(
     throw associationEServicesForPurposeTemplateFailed(
       validationIssues,
       eserviceIds,
-      purposeTemplateId
+      purposeTemplate.id
     );
   }
 
   const associationValidationIssues = await validateEServiceAssociations(
     validEservices,
-    purposeTemplateId,
+    purposeTemplate.id,
     readModelService
   );
 
@@ -504,7 +521,7 @@ export async function validateEservicesAssociations(
     throw associationBetweenEServiceAndPurposeTemplateAlreadyExists(
       associationValidationIssues,
       eserviceIds,
-      purposeTemplateId
+      purposeTemplate.id
     );
   }
 
@@ -522,7 +539,7 @@ export async function validateEservicesAssociations(
 
 export async function validateEservicesDisassociations(
   eserviceIds: EServiceId[],
-  purposeTemplateId: PurposeTemplateId,
+  purposeTemplate: PurposeTemplate,
   readModelService: ReadModelServiceSQL
 ): Promise<
   PurposeTemplateValidationResult<
@@ -531,6 +548,7 @@ export async function validateEservicesDisassociations(
 > {
   const { validationIssues, validEservices } = await validateEServiceExistence(
     eserviceIds,
+    purposeTemplate,
     readModelService
   );
 
@@ -538,13 +556,13 @@ export async function validateEservicesDisassociations(
     throw disassociationEServicesFromPurposeTemplateFailed(
       validationIssues,
       eserviceIds,
-      purposeTemplateId
+      purposeTemplate.id
     );
   }
 
   const disassociationValidationIssues = await validateEServiceDisassociations(
     validEservices,
-    purposeTemplateId,
+    purposeTemplate.id,
     readModelService
   );
 
@@ -552,7 +570,7 @@ export async function validateEservicesDisassociations(
     throw associationBetweenEServiceAndPurposeTemplateDoesNotExist(
       disassociationValidationIssues,
       eserviceIds,
-      purposeTemplateId
+      purposeTemplate.id
     );
   }
 
