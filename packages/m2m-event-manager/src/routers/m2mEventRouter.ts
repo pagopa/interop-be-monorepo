@@ -21,6 +21,7 @@ import { makeApiProblem } from "../model/errors.js";
 import { toApiAttributeM2MEvents } from "../model/attributeM2MEventApiConverter.js";
 import { toApiEServiceM2MEvents } from "../model/eserviceM2MEventApiConverter.js";
 import { toApiAgreementM2MEvents } from "../model/agreementM2MEventApiConverter.js";
+import { unsafeBrandDelegationIdParam } from "../model/types.js";
 
 export const m2mEventRouter = (
   zodiosCtx: ZodiosContext,
@@ -36,12 +37,13 @@ export const m2mEventRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
-        const { lastEventId, limit } = req.query;
+        const { lastEventId, limit, delegationId } = req.query;
         const events = await service.getEServiceM2MEvents(
           lastEventId
             ? unsafeBrandId<EServiceM2MEventId>(lastEventId)
             : undefined,
           limit,
+          unsafeBrandDelegationIdParam(delegationId),
           ctx
         );
         return res
@@ -64,12 +66,13 @@ export const m2mEventRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        const { lastEventId, limit } = req.query;
+        const { lastEventId, limit, delegationId } = req.query;
         const events = await service.getAgreementM2MEvents(
           lastEventId
             ? unsafeBrandId<AgreementM2MEventId>(lastEventId)
             : undefined,
           limit,
+          unsafeBrandDelegationIdParam(delegationId),
           ctx
         );
         return res
