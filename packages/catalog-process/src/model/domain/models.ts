@@ -29,6 +29,7 @@ export type ApiGetEServicesFilters = {
   isClientAccessDelegable?: boolean;
   delegated?: boolean;
   templatesIds: EServiceTemplateId[];
+  personalData?: boolean;
 };
 
 export type EServiceDocument = {

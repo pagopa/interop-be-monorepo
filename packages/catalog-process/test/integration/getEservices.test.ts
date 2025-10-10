@@ -71,6 +71,7 @@ describe("get eservices", () => {
       isSignalHubEnabled: true,
       isConsumerDelegable: true,
       isClientAccessDelegable: true,
+      personalData: true,
     };
     await addOneEService(eservice1);
 
@@ -87,6 +88,7 @@ describe("get eservices", () => {
       name: "eservice 002 test",
       descriptors: [descriptor2],
       producerId: organizationId1,
+      personalData: true,
     };
     await addOneEService(eservice2);
 
@@ -103,6 +105,7 @@ describe("get eservices", () => {
       name: "eservice 003 test",
       descriptors: [descriptor3],
       producerId: organizationId1,
+      personalData: false,
     };
     await addOneEService(eservice3);
 
@@ -120,6 +123,7 @@ describe("get eservices", () => {
       producerId: organizationId2,
       descriptors: [descriptor4],
       isConsumerDelegable: true,
+      personalData: false,
     };
     await addOneEService(eservice4);
 
@@ -1931,4 +1935,35 @@ describe("get eservices", () => {
       sortEServices([eservice4, eservice5])
     );
   });
+
+  it.each([true, false])(
+    "should get the eServices if they exist (parameters: personalData = %s)",
+    async (personalData) => {
+      const result = await catalogService.getEServices(
+        {
+          eservicesIds: [],
+          producersIds: [],
+          states: [],
+          agreementStates: [],
+          attributesIds: [],
+          templatesIds: [],
+          personalData,
+        },
+        0,
+        50,
+        getMockContext({
+          authData: getMockAuthData(organizationId3),
+        })
+      );
+
+      const expectedEServices = personalData
+        ? [eservice1, eservice2]
+        : [eservice3, eservice4];
+
+      expect(result.totalCount).toBe(2);
+      expect(sortEServices(result.results)).toEqual(
+        sortEServices(expectedEServices)
+      );
+    }
+  );
 });
