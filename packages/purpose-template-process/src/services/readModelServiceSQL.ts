@@ -7,6 +7,7 @@ import {
   PurposeTemplateId,
   PurposeTemplateState,
   RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
   TenantKind,
   WithMetadata,
@@ -279,6 +280,39 @@ export function readModelServiceBuilderSQL({
       return await purposeTemplateReadModelServiceSQL.getPurposeTemplateById(
         purposeTemplateId
       );
+    },
+    async getRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
+    ): Promise<
+      WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument> | undefined
+    > {
+      const queryResult = await readModelDB
+        .select()
+        .from(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.id,
+              documentId
+            )
+          )
+        );
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      return {
+        data: toRiskAnalysisTemplateAnswerAnnotationDocument(queryResult[0]),
+        metadata: { version: queryResult[0].metadataVersion },
+      };
     },
     async getRiskAnalysisTemplateAnswerAnnotationDocsByPurposeTemplateId(
       purposeTemplateId: PurposeTemplateId
