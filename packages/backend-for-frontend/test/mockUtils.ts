@@ -454,6 +454,11 @@ export const getMockBffApiEServiceNameUpdateSeed =
     name: generateMock(z.string()),
   });
 
+export const getMockBffApiEServiceTemplatePersonalDataFlagUpdateSeed =
+  (): bffApi.EServiceTemplatePersonalDataFlagUpdateSeed => ({
+    personalData: generateMock(z.boolean()),
+  });
+
 export const getMockBffApiUpdateEServiceTemplateInstanceSeed =
   // eslint-disable-next-line sonarjs/no-identical-functions
   (): bffApi.UpdateEServiceTemplateInstanceSeed => ({
@@ -651,8 +656,10 @@ export const getMockBffApiEServiceTemplateSeed =
     isSignalHubEnabled: generateMock(z.boolean().optional()),
   });
 
-export const getMockBffApiEServiceTemplateApiEServiceTemplate =
-  (): eserviceTemplateApi.EServiceTemplate => ({
+export const getMockBffApiEServiceTemplate =
+  (): eserviceTemplateApi.EServiceTemplate & {
+    id: EServiceTemplateId;
+  } => ({
     id: generateId(),
     creatorId: generateId(),
     name: generateMock(z.string()),
@@ -667,6 +674,7 @@ export const getMockBffApiEServiceTemplateApiEServiceTemplate =
     ),
     mode: generateMock(eserviceTemplateApi.EServiceMode),
     isSignalHubEnabled: generateMock(z.boolean().optional()),
+    personalData: generateMock(z.boolean().optional()),
   });
 
 export const getMockBffApiEServiceTemplateDetails =
