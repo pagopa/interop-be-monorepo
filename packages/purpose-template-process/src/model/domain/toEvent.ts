@@ -92,8 +92,8 @@ export function toCreateEventPurposeTemplateDraftUpdated(
 
 export function toCreateEventPurposeTemplateDraftDeleted(
   purposeTemplate: PurposeTemplate,
-  version: number,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  version: number
 ): CreateEvent<PurposeTemplateEventV2> {
   return {
     streamId: purposeTemplate.id,
