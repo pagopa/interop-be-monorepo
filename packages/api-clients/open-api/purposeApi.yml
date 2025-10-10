@@ -340,7 +340,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-    patch:
+      :
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
@@ -1024,6 +1024,62 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /templates/{purposeTemplateId}/purposes:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: the purpose template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purpose
+      operationId: createPurposeFromTemplate
+      description: Creates the Purpose from a Purpose Template
+      responses:
+        "200":
+          description: Purpose created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeCreateFromTemplateSeed"
+        required: true
 components:
   headers:
     MetadataVersionHeader:
@@ -1476,6 +1532,25 @@ components:
         - riskAnalysisId
         - description
         - isFreeOfCharge
+        - dailyCalls
+    PurposeCreateFromTemplateSeed:
+      type: object
+      additionalProperties: false
+      description: contains the expected payload for purpose creation from a purpose template
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
+        dailyCalls:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+      required:
+        - title
         - dailyCalls
     PurposeSeed:
       type: object
