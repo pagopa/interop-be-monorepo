@@ -96,6 +96,22 @@ export const updatePurposeTemplateErrorMapper = (
     .with("purposeTemplateNameConflict", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const createRiskAnalysisAnswerErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "riskAnalysisTemplateValidationFailed",
+      "hyperlinkDetectionError",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "purposeTemplateRiskAnalysisFormNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
