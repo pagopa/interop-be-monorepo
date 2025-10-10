@@ -6911,9 +6911,6 @@ packages:
   '@pagopa/interop-outbound-models@1.6.9':
     resolution: {integrity: sha512-sptbwh98g2h7rw62QkikfHG4RfXPR4vKUO5UmuohVdEisdUv4EpSfIyxFjoptnNmKg0LxrIsLNHkQ+x5F8pdBw==}
 
-  '@pagopa/interop-outbound-models@1.6.9':
-    resolution: {integrity: sha512-sptbwh98g2h7rw62QkikfHG4RfXPR4vKUO5UmuohVdEisdUv4EpSfIyxFjoptnNmKg0LxrIsLNHkQ+x5F8pdBw==}
-
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
@@ -13803,12 +13800,6 @@ snapshots:
       - supports-color
       - tsutils
       - typescript
-
-  '@pagopa/interop-outbound-models@1.6.9':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
 
   '@pagopa/interop-outbound-models@1.6.9':
     dependencies:
