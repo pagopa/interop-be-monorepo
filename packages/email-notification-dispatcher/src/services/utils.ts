@@ -4,6 +4,7 @@ import path from "path";
 import { z } from "zod";
 import {
   Agreement,
+  Delegation,
   Descriptor,
   descriptorState,
   EService,
@@ -14,6 +15,7 @@ import {
 import { dateAtRomeZone } from "pagopa-interop-commons";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 import {
+  activeProducerDelegationNotFound,
   agreementStampDateNotFound,
   descriptorNotFound,
   descriptorPublishedNotFound,
@@ -31,7 +33,55 @@ export const eventMailTemplateType = {
   agreementSubmittedMailTemplate: "agreement-submitted-mail",
   agreementRejectedMailTemplate: "agreement-rejected-mail",
   agreementUpgradedMailTemplate: "agreement-upgraded-mail",
+  agreementSuspendedByConsumerMailTemplate:
+    "agreement-suspended-by-consumer-mail",
+  agreementSuspendedByPlatformToConsumerMailTemplate:
+    "agreement-suspended-by-platform-to-consumer-mail",
+  agreementUnsuspendedByConsumerMailTemplate:
+    "agreement-unsuspended-by-consumer-mail",
+  agreementUnsuspendedByPlatformToConsumerMailTemplate:
+    "agreement-unsuspended-by-platform-to-consumer-mail",
+  agreementSuspendedByProducerMailTemplate:
+    "agreement-suspended-by-producer-mail",
+  agreementSuspendedByPlatformMailTemplate:
+    "agreement-suspended-by-platform-mail",
+  agreementUnsuspendedByProducerMailTemplate:
+    "agreement-unsuspended-by-producer-mail",
+  agreementUnsuspendedByPlatform: "agreement-unsuspended-by-platform-mail",
+  agreementUnsuspendedByPlatformMailTemplate:
+    "agreement-unsuspended-by-platform-mail",
+  agreementArchivedByConsumerMailTemplate:
+    "agreement-archived-by-consumer-mail",
+  clientPurposeAddedMailTemplate: "client-purpose-added-mail",
+  clientPurposeRemovedMailTemplate: "client-purpose-removed-mail",
+  purposeVersionSuspendedByConsumerMailTemplate:
+    "purpose-version-suspended-by-consumer-mail",
+  purposeVersionUnsuspendedByConsumerMailTemplate:
+    "purpose-version-unsuspended-by-consumer-mail",
+  purposeArchivedMailTemplate: "purpose-archived-mail",
+  purposeVersionActivatedMailTemplate: "purpose-version-activated-mail",
+  purposeVersionRejectedMailTemplate: "purpose-version-rejected-mail",
+  purposeVersionSuspendedByProducerMailTemplate:
+    "purpose-version-suspended-by-producer-mail",
+  purposeVersionUnsuspendedByProducerMailTemplate:
+    "purpose-version-unsuspended-by-producer-mail",
+  newPurposeVersionWaitingForApprovalMailTemplate:
+    "new-purpose-version-waiting-for-approval-mail",
   eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
+  consumerDelegationApprovedMailTemplate: "consumer-delegation-approved-mail",
+  consumerDelegationRejectedMailTemplate: "consumer-delegation-rejected-mail",
+  consumerDelegationRevokedMailTemplate: "consumer-delegation-revoked-mail",
+  consumerDelegationSubmittedMailTemplate: "consumer-delegation-submitted-mail",
+  eserviceDescriptorApprovedByDelegatorMailTemplate:
+    "eservice-descriptor-approved-by-delegator-mail",
+  eserviceDescriptorRejectedByDelegatorMailTemplate:
+    "eservice-descriptor-rejected-by-delegator-mail",
+  eserviceDescriptorSubmittedByDelegateMailTemplate:
+    "eservice-descriptor-submitted-by-delegate-mail",
+  producerDelegationApprovedMailTemplate: "producer-delegation-approved-mail",
+  producerDelegationRejectedMailTemplate: "producer-delegation-rejected-mail",
+  producerDelegationRevokedMailTemplate: "producer-delegation-revoked-mail",
+  producerDelegationSubmittedMailTemplate: "producer-delegation-submitted-mail",
   tenantCertifiedAttributeAssignedMailTemplate:
     "tenant-certified-attribute-assigned-mail",
   tenantCertifiedAttributeRevokedMailTemplate:
@@ -84,6 +134,20 @@ export const retrieveEService = async (
   }
   return eservice;
 };
+
+export async function retrieveProducerDelegation(
+  eservice: EService,
+  readModelService: ReadModelServiceSQL
+): Promise<Delegation> {
+  const delegation = await readModelService.getActiveProducerDelegation(
+    eservice.id,
+    eservice.producerId
+  );
+  if (!delegation) {
+    throw activeProducerDelegationNotFound(eservice.id);
+  }
+  return delegation;
+}
 
 export async function retrieveHTMLTemplate(
   templateKind: EventMailTemplateType

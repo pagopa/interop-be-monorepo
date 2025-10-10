@@ -40,13 +40,15 @@ export const errorCodes = {
   unexpectedClientKind: "0021",
   purposeAgreementNotFound: "0022",
   agreementContractNotFound: "0023",
-  notAnActiveConsumerDelegation: "0024",
   requesterIsNotTheDelegateConsumer: "0025",
   cannotEditDeclaredAttributesForTenant: "0026",
   tenantDeclaredAttributeNotFound: "0027",
   tenantVerifiedAttributeNotFound: "0028",
   cannotDeleteLastEServiceDescriptor: "0029",
   eserviceRiskAnalysisNotFound: "0030",
+  eserviceTemplateRiskAnalysisNotFound: "0031",
+  delegationEServiceMismatch: "0032",
+  cannotDeleteLastEServiceTemplateVersion: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -258,15 +260,14 @@ export function agreementContractNotFound(
   });
 }
 
-export function notAnActiveConsumerDelegation(
-  requesterTenantId: TenantId,
+export function delegationEServiceMismatch(
   eserviceId: string,
   delegation: delegationApi.Delegation
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Delegation ${delegation.id} is not an active consumer delegation for e-service ${eserviceId} and delegate ${requesterTenantId}`,
-    code: "notAnActiveConsumerDelegation",
-    title: "Not an active consumer delegation",
+    detail: `Delegation ${delegation.id} is not a delegation for e-service ${eserviceId}`,
+    code: "delegationEServiceMismatch",
+    title: "Delegation e-service mismatch",
   });
 }
 
@@ -336,5 +337,27 @@ export function cannotDeleteLastEServiceDescriptor(
     detail: `Cannot delete descriptor ${descriptorId} for e-service ${eserviceId} because it is the last remaining descriptor`,
     code: "cannotDeleteLastEServiceDescriptor",
     title: "Cannot delete last e-service descriptor",
+  });
+}
+
+export function cannotDeleteLastEServiceTemplateVersion(
+  templateId: EServiceTemplateId,
+  versionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot delete version ${versionId} for e-service template ${templateId} because it is the last remaining version`,
+    code: "cannotDeleteLastEServiceTemplateVersion",
+    title: "Cannot delete last e-service template version",
+  });
+}
+
+export function eserviceTemplateRiskAnalysisNotFound(
+  templateId: string,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis ${riskAnalysisId} not found for e-service template ${templateId}`,
+    code: "eserviceTemplateRiskAnalysisNotFound",
+    title: "E-Service Template risk analysis not found",
   });
 }

@@ -35,6 +35,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/DelegationId"
       responses:
         "200":
           description: E-Service events retrieved
@@ -72,6 +73,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/DelegationId"
       responses:
         "200":
           description: Agreement events retrieved
@@ -109,6 +111,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/DelegationId"
       responses:
         "200":
           description: Purpose events retrieved
@@ -504,6 +507,21 @@ components:
         format: int32
         minimum: 1
         maximum: 500
+    DelegationId:
+      in: query
+      name: delegationId
+      description: |
+        Filter events by delegation ID.
+        - Omitted: Return all events, both for delegated and non-delegated resources.
+        - Delegation UUID: Return only events for resources related to the specified delegation.
+        - null: Return only events for resources accessible without delegation
+            (public resources, resources accessible as consumer/producer, owned resources, etc.)
+      required: false
+      schema:
+        oneOf:
+          - type: "null"
+          - type: string
+            format: uuid
     CorrelationIdHeader:
       in: header
       name: X-Correlation-Id
@@ -529,6 +547,9 @@ components:
         descriptorId:
           type: string
           format: uuid
+        producerDelegationId:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
@@ -536,6 +557,9 @@ components:
         - eserviceId
     EServiceM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -556,6 +580,12 @@ components:
         agreementId:
           type: string
           format: uuid
+        consumerDelegationId:
+          type: string
+          format: uuid
+        producerDelegationId:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
@@ -563,6 +593,9 @@ components:
         - agreementId
     AgreementM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -586,6 +619,12 @@ components:
         purposeVersionId:
           type: string
           format: uuid
+        consumerDelegationId:
+          type: string
+          format: uuid
+        producerDelegationId:
+          type: string
+          format: uuid
       required:
         - id
         - eventType
@@ -593,6 +632,9 @@ components:
         - purposeId
     PurposeM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -620,6 +662,9 @@ components:
         - tenantId
     TenantM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -649,6 +694,9 @@ components:
         - attributeId
     AttributeM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -676,6 +724,9 @@ components:
         - delegationId
     ConsumerDelegationM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -703,6 +754,9 @@ components:
         - delegationId
     ProducerDelegationM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -730,6 +784,9 @@ components:
         - clientId
     ClientM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -757,6 +814,9 @@ components:
         - producerKeychainId
     ProducerKeychainM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -784,6 +844,9 @@ components:
         - kid
     KeyM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -811,6 +874,9 @@ components:
         - kid
     ProducerKeyM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array
@@ -841,6 +907,9 @@ components:
         - eserviceTemplateId
     EServiceTemplateM2MEvents:
       type: object
+      additionalProperties: false
+      required:
+        - events
       properties:
         events:
           type: array

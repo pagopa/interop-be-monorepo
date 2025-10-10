@@ -8,7 +8,7 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
-  getMockBffApiEServiceTemplateApiEServiceTemplate,
+  getMockBffApiEServiceTemplate,
   getMockBffApiEServiceTemplateSeed,
 } from "../../mockUtils.js";
 import { toBffCreatedEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
@@ -16,7 +16,7 @@ import { toBffCreatedEServiceTemplateVersion } from "../../../src/api/eserviceTe
 describe("API POST /eservices/templates", () => {
   const mockEServiceTemplateSeed = getMockBffApiEServiceTemplateSeed();
   const mockEServiceTemplateApiEServiceTemplate =
-    getMockBffApiEServiceTemplateApiEServiceTemplate();
+    getMockBffApiEServiceTemplate();
   const mockEServiceTemplate = toBffCreatedEServiceTemplateVersion(
     mockEServiceTemplateApiEServiceTemplate
   );

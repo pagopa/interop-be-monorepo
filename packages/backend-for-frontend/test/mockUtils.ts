@@ -19,6 +19,7 @@ import {
   generateId,
   PurposeId,
   PurposeVersionId,
+  PurposeTemplateId,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
@@ -281,6 +282,7 @@ export const getMockCatalogApiEService = (): catalogApi.EService & {
   isConsumerDelegable: generateMock(z.boolean().optional()),
   isClientAccessDelegable: generateMock(z.boolean().optional()),
   templateId: generateMock(z.string().uuid().optional()),
+  personalData: generateMock(z.boolean().optional()),
 });
 
 export const getMockBffApiFileResource = (): bffApi.FileResource => ({
@@ -360,6 +362,11 @@ export const getMockBffApiInstanceEServiceSeed =
     isConsumerDelegable: generateMock(z.boolean().optional()),
   });
 
+export const getMockBffApiEServicePersonalDataFlagUpdateSeed =
+  (): bffApi.EServicePersonalDataFlagUpdateSeed => ({
+    personalData: generateMock(z.boolean()),
+  });
+
 export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
   name: generateMock(z.string()),
   description: generateMock(z.string()),
@@ -368,6 +375,7 @@ export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
   isSignalHubEnabled: generateMock(z.boolean().optional()),
   isClientAccessDelegable: generateMock(z.boolean().optional()),
   isConsumerDelegable: generateMock(z.boolean().optional()),
+  personalData: generateMock(z.boolean().optional()),
 });
 
 export const getMockBffApiRejectDelegatedEServiceDescriptorSeed =
@@ -444,6 +452,11 @@ export const getMockBffApiEServiceDelegationFlagsUpdateSeed =
 export const getMockBffApiEServiceNameUpdateSeed =
   (): bffApi.EServiceNameUpdateSeed => ({
     name: generateMock(z.string()),
+  });
+
+export const getMockBffApiEServiceTemplatePersonalDataFlagUpdateSeed =
+  (): bffApi.EServiceTemplatePersonalDataFlagUpdateSeed => ({
+    personalData: generateMock(z.boolean()),
   });
 
 export const getMockBffApiUpdateEServiceTemplateInstanceSeed =
@@ -643,8 +656,10 @@ export const getMockBffApiEServiceTemplateSeed =
     isSignalHubEnabled: generateMock(z.boolean().optional()),
   });
 
-export const getMockBffApiEServiceTemplateApiEServiceTemplate =
-  (): eserviceTemplateApi.EServiceTemplate => ({
+export const getMockBffApiEServiceTemplate =
+  (): eserviceTemplateApi.EServiceTemplate & {
+    id: EServiceTemplateId;
+  } => ({
     id: generateId(),
     creatorId: generateId(),
     name: generateMock(z.string()),
@@ -659,6 +674,7 @@ export const getMockBffApiEServiceTemplateApiEServiceTemplate =
     ),
     mode: generateMock(eserviceTemplateApi.EServiceMode),
     isSignalHubEnabled: generateMock(z.boolean().optional()),
+    personalData: generateMock(z.boolean().optional()),
   });
 
 export const getMockBffApiEServiceTemplateDetails =
@@ -1019,3 +1035,51 @@ export const toBffCompactEServiceLight = (
   id: compactEService.id,
   name: compactEService.name,
 });
+
+export const getMockBffApiCreatorPurposeTemplate =
+  (): bffApi.CreatorPurposeTemplate => ({
+    id: generateId(),
+    targetTenantKind: generateMock(bffApi.TenantKind),
+    purposeTitle: generateMock(z.string()),
+    state: generateMock(bffApi.PurposeTemplateState),
+  });
+
+export const getMockBffApiCatalogPurposeTemplate =
+  (): bffApi.CatalogPurposeTemplate => ({
+    id: generateId(),
+    targetTenantKind: generateMock(bffApi.TenantKind),
+    purposeTitle: generateMock(z.string()),
+    purposeDescription: generateMock(z.string()),
+    creator: generateMock(bffApi.CompactOrganization),
+  });
+
+export const getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor =
+  (
+    purposeTemplateId: PurposeTemplateId = generateId()
+  ): bffApi.EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor => ({
+    purposeTemplateId,
+    createdAt: generateMock(z.string().datetime({ offset: true })),
+    eservice: generateMock(bffApi.CompactPurposeTemplateEService),
+    descriptor: generateMock(bffApi.CompactDescriptor),
+  });
+
+export const getMockBffApiPurposeTemplateWithCompactCreator =
+  (): bffApi.PurposeTemplateWithCompactCreator & {
+    id: PurposeTemplateId;
+  } => ({
+    id: generateId(),
+    targetDescription:
+      "This is a valid target description that meets the minimum length requirement",
+    targetTenantKind: "PA" as bffApi.TenantKind,
+    creator: generateMock(bffApi.CompactOrganization),
+    state: generateMock(bffApi.PurposeTemplateState),
+    createdAt: new Date().toISOString(),
+    purposeTitle: "Valid Purpose Title",
+    purposeDescription:
+      "This is a valid purpose description that meets the minimum length requirement",
+    purposeRiskAnalysisForm: generateMock(bffApi.RiskAnalysisFormTemplate),
+    purposeIsFreeOfCharge: false,
+    annotationDocuments: generateMock(
+      z.array(bffApi.RiskAnalysisTemplateAnswerAnnotationDocument)
+    ),
+  });

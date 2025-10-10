@@ -46,6 +46,7 @@ describe("E-service splitter", () => {
     const isClientAccessDelegable = true;
     const isConsumerDelegable = true;
     const templateId: EServiceTemplateId = generateId();
+    const personalData = true;
 
     const templateVersionRef: EServiceTemplateVersionRef = {
       id: generateId(),
@@ -84,6 +85,7 @@ describe("E-service splitter", () => {
       isClientAccessDelegable,
       isConsumerDelegable,
       templateId,
+      personalData,
     };
 
     const {
@@ -111,6 +113,7 @@ describe("E-service splitter", () => {
       isClientAccessDelegable,
       isConsumerDelegable,
       templateId,
+      personalData,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {
@@ -259,6 +262,7 @@ describe("E-service splitter", () => {
       isSignalHubEnabled: false,
       isClientAccessDelegable: undefined,
       isConsumerDelegable: undefined,
+      personalData: undefined,
     };
 
     const {
@@ -286,6 +290,7 @@ describe("E-service splitter", () => {
       isClientAccessDelegable: null,
       isConsumerDelegable: null,
       templateId: null,
+      personalData: null,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {
