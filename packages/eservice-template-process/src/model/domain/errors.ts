@@ -37,6 +37,7 @@ export const errorCodes = {
   attributeDuplicatedInGroup: "0027",
   tenantNotFound: "0028",
   missingPersonalDataFlag: "0029",
+  eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -318,5 +319,15 @@ export function missingPersonalDataFlag(
     detail: `Template version ${eserviceTemplateVersionId} in eserviceTemplate ${eserviceTemplateId} can't be published because personalData flag must be set`,
     code: "missingPersonalDataFlag",
     title: "EService Template personalData flag must be set before publication",
+  });
+}
+
+export function eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `PersonalData flag has already been set for eService Template ${eserviceTemplateId}`,
+    code: "eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce",
+    title: "EService Template personalData can only be set once",
   });
 }
