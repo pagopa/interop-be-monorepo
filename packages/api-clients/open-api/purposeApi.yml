@@ -340,7 +340,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-      :
+    patch:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
