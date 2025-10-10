@@ -21,6 +21,7 @@ import request from "supertest";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
   eserviceTemplateNotFound,
+  missingPersonalDataFlag,
   eserviceTemplateVersionNotFound,
   missingTemplateVersionInterface,
   notValidEServiceTemplateVersionState,
@@ -105,6 +106,13 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
       error: notValidEServiceTemplateVersionState(
         mockEserviceTemplate.versions[0].id,
         eserviceTemplateVersionState.draft
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: missingPersonalDataFlag(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id
       ),
       expectedStatus: 400,
     },
