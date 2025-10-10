@@ -1,5 +1,10 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { TenantNotificationConfig } from "pagopa-interop-models";
+import {
+  Delegation,
+  delegationKind,
+  delegationState,
+  TenantNotificationConfig,
+} from "pagopa-interop-models";
 import { WithMetadata } from "pagopa-interop-models";
 import {
   Attribute,
@@ -17,11 +22,13 @@ import {
   AgreementReadModelService,
   AttributeReadModelService,
   CatalogReadModelService,
+  DelegationReadModelService,
   NotificationConfigReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
+  delegationInReadmodelDelegation,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 
@@ -31,6 +38,7 @@ export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   attributeReadModelServiceSQL,
   catalogReadModelServiceSQL,
+  delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
 }: {
@@ -38,6 +46,7 @@ export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL: AgreementReadModelService;
   attributeReadModelServiceSQL: AttributeReadModelService;
   catalogReadModelServiceSQL: CatalogReadModelService;
+  delegationReadModelServiceSQL: DelegationReadModelService;
   tenantReadModelServiceSQL: TenantReadModelService;
   notificationConfigReadModelServiceSQL: NotificationConfigReadModelService;
 }) {
@@ -97,6 +106,24 @@ export function readModelServiceBuilderSQL({
         );
 
       return notificationConfig?.data;
+    },
+    async getActiveProducerDelegation(
+      eserviceId: EServiceId,
+      producerId: TenantId
+    ): Promise<Delegation | undefined> {
+      return (
+        await delegationReadModelServiceSQL.getDelegationByFilter(
+          and(
+            eq(delegationInReadmodelDelegation.eserviceId, eserviceId),
+            eq(delegationInReadmodelDelegation.delegatorId, producerId),
+            eq(
+              delegationInReadmodelDelegation.kind,
+              delegationKind.delegatedProducer
+            ),
+            eq(delegationInReadmodelDelegation.state, delegationState.active)
+          )
+        )
+      )?.data;
     },
     async getAttributeById(
       attributeId: AttributeId

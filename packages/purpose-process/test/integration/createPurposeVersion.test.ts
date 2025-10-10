@@ -176,6 +176,7 @@ describe("createPurposeVersion", () => {
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
       userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -308,6 +309,7 @@ describe("createPurposeVersion", () => {
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
       userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -428,6 +430,7 @@ describe("createPurposeVersion", () => {
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
       userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -648,6 +651,7 @@ describe("createPurposeVersion", () => {
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
       userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -829,6 +833,7 @@ describe("createPurposeVersion", () => {
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
       userId,
+      consumerId: consumer.id,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(

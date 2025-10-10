@@ -320,6 +320,28 @@ const eserviceTemplateRouter = (
         }
       }
     )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/personalDataFlag",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await eserviceTemplateService.updateEServiceTemplatePersonalDataFlag(
+            ctx,
+            unsafeBrandId(req.params.eServiceTemplateId),
+            req.body
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error setting personalData flag for eservice template ${req.params.eServiceTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get("/catalog/eservices/templates", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       const { q, creatorsIds, offset, limit } = req.query;

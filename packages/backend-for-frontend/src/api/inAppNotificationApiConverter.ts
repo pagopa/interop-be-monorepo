@@ -64,7 +64,7 @@ export function toBffApiNotification(
     tenantId: notification.tenantId,
     userId: notification.userId,
     body: notification.body,
-    deepLink: notificationTypeToUiSection[notificationType],
+    deepLink: `${notificationTypeToUiSection[notificationType]}/${notification.entityId}`,
     createdAt: notification.createdAt,
     readAt: notification.readAt,
   };
