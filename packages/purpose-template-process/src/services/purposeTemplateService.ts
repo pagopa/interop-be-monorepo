@@ -608,8 +608,8 @@ export function purposeTemplateServiceBuilder(
       await repository.createEvent(
         toCreateEventPurposeTemplateDraftDeleted(
           purposeTemplate.data,
-          purposeTemplate.metadata.version,
-          correlationId
+          correlationId,
+          purposeTemplate.metadata.version
         )
       );
     },
