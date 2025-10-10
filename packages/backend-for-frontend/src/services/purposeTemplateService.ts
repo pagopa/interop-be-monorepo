@@ -16,10 +16,10 @@ import {
   toBffCatalogPurposeTemplate,
   toBffCreatorPurposeTemplate,
   toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor,
+  toBffPurposeTemplateWithCompactCreator,
   toCompactPurposeTemplateEService,
 } from "../api/purposeTemplateApiConverter.js";
 import { eserviceDescriptorNotFound, tenantNotFound } from "../model/errors.js";
-import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import { toCompactDescriptor } from "../api/catalogApiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -336,11 +336,11 @@ export function purposeTemplateServiceBuilder(
           )
         : [];
 
-      return bffApi.PurposeTemplateWithCompactCreator.parse({
-        ...result,
-        creator: toBffCompactOrganization(creator),
-        annotationDocuments,
-      });
+      return toBffPurposeTemplateWithCompactCreator(
+        result,
+        creator,
+        annotationDocuments
+      );
     },
     async updatePurposeTemplate(
       id: PurposeTemplateId,
