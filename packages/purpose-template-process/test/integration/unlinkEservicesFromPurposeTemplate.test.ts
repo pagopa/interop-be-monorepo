@@ -67,6 +67,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
     ...getMockEService(),
     producerId: tenant.id,
     descriptors: [descriptor1],
+    personalData: false,
   };
 
   const eService2: EService = {
@@ -74,6 +75,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
     id: generateId<EServiceId>(),
     producerId: tenant.id,
     descriptors: [descriptor2],
+    personalData: false,
   };
 
   const purposeTemplate: PurposeTemplate = {
@@ -279,6 +281,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
       id: nonAssociatedEServiceId,
       producerId: tenant.id,
       descriptors: [getMockDescriptor()],
+      personalData: false,
     });
     await addOnePurposeTemplate(purposeTemplate);
 
