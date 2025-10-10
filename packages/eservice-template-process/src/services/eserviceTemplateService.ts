@@ -55,6 +55,7 @@ import {
   notValidEServiceTemplateVersionState,
   attributeDuplicatedInGroup,
   tenantNotFound,
+  missingPersonalDataFlag,
 } from "../model/domain/errors.js";
 import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
@@ -513,6 +514,15 @@ export function eserviceTemplateServiceBuilder(
 
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
         assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
+      }
+      if (
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
+        eserviceTemplate.data.personalData === undefined
+      ) {
+        throw missingPersonalDataFlag(
+          eserviceTemplateId,
+          eserviceTemplateVersionId
+        );
       }
 
       const publishedTemplate: EServiceTemplate = {
@@ -1303,7 +1313,7 @@ export function eserviceTemplateServiceBuilder(
         createdAt: creationDate,
         riskAnalysis: [],
         isSignalHubEnabled: seed.isSignalHubEnabled,
-        ...(config.featureFlagEservicePersonalData
+        ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
           ? { personalData: seed.personalData }
           : {}),
       };
