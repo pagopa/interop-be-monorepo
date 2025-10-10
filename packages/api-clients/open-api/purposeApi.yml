@@ -1039,9 +1039,77 @@ paths:
         - purpose
       operationId: createPurposeFromTemplate
       description: Creates the Purpose from a Purpose Template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeCreateFromTemplateSeed"
+        required: true
       responses:
         "200":
           description: Purpose created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/{purposeTemplateId}/purposes/{purposeId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: the purpose template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: purposeId
+        in: path
+        description: the purpose id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags:
+        - purpose
+      operationId: patchUpdatePurposeFromTemplate
+      description: Partially update a Purpose from a Purpose Template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchPurposeUpdateFromTemplateContent"
+        required: true
+      responses:
+        "200":
+          description: Purpose updated
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
@@ -1073,13 +1141,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PurposeCreateFromTemplateSeed"
-        required: true
 components:
   headers:
     MetadataVersionHeader:
@@ -1352,6 +1413,26 @@ components:
         freeOfChargeReason:
           type: string
           nullable: true
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+          description: |
+            Optional in the purpose model, but a purpose cannot exist without a risk analysis.
+            There is no practical use in letting the user remove it, we don't make it nullable.
+        dailyCalls:
+          description: Maximum number of daily calls that this version can perform
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+    PatchPurposeUpdateFromTemplateContent:
+      type: object
+      additionalProperties: false
+      description: Contains the expected payload for purpose update from template
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
           description: |
