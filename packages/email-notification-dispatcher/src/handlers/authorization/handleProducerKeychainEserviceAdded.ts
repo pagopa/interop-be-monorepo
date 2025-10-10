@@ -1,11 +1,8 @@
-/* eslint-disable functional/no-let */
-import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import {
   EmailNotificationMessagePayload,
+  EServiceIdDescriptorId,
   generateId,
-  CorrelationId,
   NotificationType,
-  EServiceId,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -13,24 +10,16 @@ import {
   retrieveLatestPublishedDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { getRecipientsForTenants } from "../handlerCommons.js";
-import { UserServiceSQL } from "../../services/userServiceSQL.js";
+import {
+  getRecipientsForTenants,
+  ProducerKeychainEServiceHandlerParams,
+} from "../handlerCommons.js";
 import { eServiceNotFound } from "../../models/errors.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
-export type ProductKeychainEServiceAddedData = {
-  eserviceId: EServiceId;
-  readModelService: ReadModelServiceSQL;
-  logger: Logger;
-  templateService: HtmlTemplateService;
-  userService: UserServiceSQL;
-  correlationId: CorrelationId;
-};
-
 export async function handleProducerKeychainEserviceAdded(
-  data: ProductKeychainEServiceAddedData
+  data: ProducerKeychainEServiceHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     eserviceId,
@@ -90,7 +79,9 @@ export async function handleProducerKeychainEserviceAdded(
       body: templateService.compileHtml(htmlTemplate, {
         title: `Nuovo livello di sicurezza per "${eservice.name}"`,
         notificationType,
-        entityId: descriptor.id,
+        entityId: EServiceIdDescriptorId.parse(
+          `${eservice.id}/${descriptor.id}`
+        ),
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza chiavi`,

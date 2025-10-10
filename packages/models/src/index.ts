@@ -126,6 +126,7 @@ export * from "./gen/v2/purpose-template/purpose-template.js";
 export * from "./gen/v2/authorization/client.js";
 export * from "./gen/v2/authorization/key.js";
 export * from "./gen/v2/authorization/events.js";
+export * from "./gen/v2/authorization/producer-keychain.js";
 export * from "./gen/v2/tenant/tenant.js";
 export * from "./gen/v2/tenant/events.js";
 export * from "./gen/v2/delegation/delegation.js";

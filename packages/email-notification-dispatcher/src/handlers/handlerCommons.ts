@@ -9,6 +9,7 @@ import {
   NotificationConfig,
   NotificationType,
   PurposeV2,
+  ProducerKeychainV2,
   Purpose,
   PurposeId,
   Tenant,
@@ -16,6 +17,7 @@ import {
   tenantMailKind,
   TenantV2,
   UserId,
+  EServiceId,
 } from "pagopa-interop-models";
 import { getLatestTenantMailOfKind, Logger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
@@ -57,6 +59,11 @@ export type TenantHandlerParams = HandlerCommonParams & {
 
 export type DelegationHandlerParams = HandlerCommonParams & {
   delegationV2Msg?: DelegationV2;
+};
+
+export type ProducerKeychainEServiceHandlerParams = HandlerCommonParams & {
+  producerKeychainV2Msg?: ProducerKeychainV2;
+  eserviceId: EServiceId;
 };
 
 type TenantEmailNotificationRecipient = {
