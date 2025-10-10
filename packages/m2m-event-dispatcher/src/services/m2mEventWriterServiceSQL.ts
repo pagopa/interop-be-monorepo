@@ -1,17 +1,19 @@
 import {
-  eserviceM2MEventInM2MEvent,
-  agreementM2MEventInM2MEvent,
-  purposeM2MEventInM2MEvent,
-  tenantM2MEventInM2MEvent,
-  attributeM2MEventInM2MEvent,
-  consumerDelegationM2MEventInM2MEvent,
-  producerDelegationM2MEventInM2MEvent,
-  clientM2MEventInM2MEvent,
-  keyM2MEventInM2MEvent,
-  producerKeyM2MEventInM2MEvent,
-  eserviceTemplateM2MEventInM2MEvent,
-  producerKeychainM2MEventInM2MEvent,
+  eserviceInM2MEvent,
+  agreementInM2MEvent,
+  purposeInM2MEvent,
+  tenantInM2MEvent,
+  attributeInM2MEvent,
+  consumerDelegationInM2MEvent,
+  producerDelegationInM2MEvent,
+  clientInM2MEvent,
+  keyInM2MEvent,
+  producerKeyInM2MEvent,
+  eserviceTemplateInM2MEvent,
+  producerKeychainInM2MEvent,
   AttributeM2MEventSQL,
+  EServiceM2MEventSQL,
+  AgreementM2MEventSQL,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 
@@ -20,41 +22,43 @@ export function m2mEventWriterServiceSQLBuilder(
   m2mEventDB: ReturnType<typeof drizzle>
 ) {
   return {
-    async insertEServiceM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(eserviceM2MEventInM2MEvent).values([]);
+    async insertEServiceM2MEvent(event: EServiceM2MEventSQL): Promise<void> {
+      await m2mEventDB.insert(eserviceInM2MEvent).values(event);
     },
-    async insertAgreementM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(agreementM2MEventInM2MEvent).values([]);
+    async insertAgreementM2MEvent(
+      agreement: AgreementM2MEventSQL
+    ): Promise<void> {
+      await m2mEventDB.insert(agreementInM2MEvent).values(agreement);
     },
     async insertPurposeM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(purposeM2MEventInM2MEvent).values([]);
+      await m2mEventDB.insert(purposeInM2MEvent).values([]);
     },
     async insertKeyM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(keyM2MEventInM2MEvent).values([]);
+      await m2mEventDB.insert(keyInM2MEvent).values([]);
     },
     async insertProducerKeyM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(producerKeyM2MEventInM2MEvent).values([]);
+      await m2mEventDB.insert(producerKeyInM2MEvent).values([]);
     },
     async insertConsumerDelegationM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(consumerDelegationM2MEventInM2MEvent).values([]);
+      await m2mEventDB.insert(consumerDelegationInM2MEvent).values([]);
     },
     async insertProducerDelegationM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(producerDelegationM2MEventInM2MEvent).values([]);
+      await m2mEventDB.insert(producerDelegationInM2MEvent).values([]);
     },
     async insertEServiceTemplateM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(eserviceTemplateM2MEventInM2MEvent).values([]);
+      await m2mEventDB.insert(eserviceTemplateInM2MEvent).values([]);
     },
     async insertClientM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(clientM2MEventInM2MEvent).values([]);
+      await m2mEventDB.insert(clientInM2MEvent).values([]);
     },
     async insertProducerKeychainM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(producerKeychainM2MEventInM2MEvent).values([]);
+      await m2mEventDB.insert(producerKeychainInM2MEvent).values([]);
     },
     async insertTenantM2MEvent(): Promise<void> {
-      await m2mEventDB.insert(tenantM2MEventInM2MEvent).values([]);
+      await m2mEventDB.insert(tenantInM2MEvent).values([]);
     },
     async insertAttributeM2MEvent(event: AttributeM2MEventSQL): Promise<void> {
-      await m2mEventDB.insert(attributeM2MEventInM2MEvent).values(event);
+      await m2mEventDB.insert(attributeInM2MEvent).values(event);
     },
   };
 }
