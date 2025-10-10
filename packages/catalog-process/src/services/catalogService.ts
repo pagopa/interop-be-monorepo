@@ -2958,7 +2958,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       if (eservice.data.personalData !== undefined) {
-        throw eservicePersonalDataFlagCanOnlyBeSetOnce(eserviceId);
+        return;
       }
 
       const updatedEservice: EService = {
