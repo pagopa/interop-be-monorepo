@@ -728,11 +728,11 @@ export function purposeTemplateServiceBuilder(
       };
 
       const event = await repository.createEvent(
-        toCreateEventPurposeTemplateDraftUpdated({
-          purposeTemplate: updatedPurposeTemplate,
-          version: purposeTemplate.metadata.version,
+        toCreateEventPurposeTemplateDraftUpdated(
+          updatedPurposeTemplate,
           correlationId,
-        })
+          purposeTemplate.metadata.version
+        )
       );
 
       return {
