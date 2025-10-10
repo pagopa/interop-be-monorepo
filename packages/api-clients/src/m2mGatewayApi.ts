@@ -154,4 +154,9 @@ export type GetProducerKeychainKeysQueryParams = QueryParametersByAlias<
   "getProducerKeychainKeys"
 >;
 
+export type GetEServiceCertifiedAttributesQueryParams = QueryParametersByAlias<
+  AttributeApi,
+  "getCertifiedAttributes"
+>;
+
 export * from "./generated/m2mGatewayApi.js";

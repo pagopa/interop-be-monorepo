@@ -1,9 +1,14 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
-import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  attributeRegistryApi,
+  catalogApi,
+  m2mGatewayApi,
+} from "pagopa-interop-api-clients";
 import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  ListResult,
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -20,6 +25,7 @@ import {
 } from "../api/eserviceApiConverter.js";
 import {
   cannotDeleteLastEServiceDescriptor,
+  eserviceDescriptorAttributeNotFound,
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
@@ -34,6 +40,7 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
+import { toM2MGatewayApiCertifiedAttribute } from "../api/attributeApiConverter.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -82,6 +89,103 @@ export function eserviceServiceBuilder(
 
     return riskAnalysis;
   };
+
+  // eslint-disable-next-line max-params
+  async function retrieveEServiceDescriptorAttributes(
+    eservice: WithMaybeMetadata<catalogApi.EService>,
+    descriptorId: DescriptorId,
+    attributeKind: keyof catalogApi.Attributes,
+    { offset, limit }: { offset: number; limit: number },
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<
+    ListResult<{
+      attribute: attributeRegistryApi.Attribute;
+      groupIndex: number;
+    }>
+  > {
+    const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
+    const localAttributeGroups = descriptor.attributes[attributeKind];
+    // 1.Flatten:Create the complete list of ALL ID attributes with their groupIndex.
+    /**
+     Flattens all attribute groups into a single array of objects, 
+     keeping the Attribute ID and its Group Index.
+     */
+    const allFlatLocalAttributes: Array<{
+      attributeId: string; // Take only the ID of the local attribute
+      groupIndex: number;
+    }> = localAttributeGroups.flatMap((group, groupIndex) =>
+      group.map((attribute) => ({
+        attributeId: attribute.id,
+        groupIndex,
+      }))
+    );
+
+    // 2. Extraction of IDs and Application of Pagination (on the final list)
+    // The external API will only resolve the IDs that fall within the requested page.
+    /**
+     * Applies pagination to the flat list.
+     * Extracts the Attribute IDs for only the current page,
+     *  which will be sent to the external API. Handles the empty result case.
+     */
+    const paginatedFlatLocalAttributes = allFlatLocalAttributes.slice(
+      offset,
+      offset + limit
+    );
+
+    const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
+      paginatedFlatLocalAttributes.map((item) => item.attributeId);
+
+    if (attributeIdsToResolve.length === 0) {
+      return {
+        results: [],
+        totalCount: allFlatLocalAttributes.length,
+      };
+    }
+
+    // 3. Resolve the complete details only for the attributes needed on the page.
+    // Here we call getBulkedAttributes to return the full attribute and not just the id
+    const bulkResult = await clients.attributeProcessClient.getBulkedAttributes(
+      attributeIdsToResolve,
+      {
+        headers,
+        queries: {
+          offset,
+          limit,
+        },
+      }
+    );
+
+    // Convert the result array into a Map for efficient lookup
+    const attributeMap: Map<string, attributeRegistryApi.Attribute> = new Map(
+      bulkResult.data.results.map((attr) => [attr.id, attr])
+    );
+
+    // 4. Recombination: Map the paginated flat list with the resolved complete details
+    /**
+     * Converts the bulk results into a Map for quick access.
+     * Recombines the paginated list (Step 2) with the full attribute details
+     * to form the final result set, maintaining the groupIndex.
+     */
+    const finalAttributes = paginatedFlatLocalAttributes.map((item) => {
+      const attributeDetailed = attributeMap.get(item.attributeId);
+
+      if (!attributeDetailed) {
+        throw eserviceDescriptorAttributeNotFound(descriptorId);
+      }
+
+      return {
+        attribute: attributeDetailed,
+        groupIndex: item.groupIndex,
+      };
+    });
+
+    // 5. Return with Pagination:
+    // We return the paginated result, using the totalCount from the initial list.
+    return {
+      results: finalAttributes,
+      totalCount: allFlatLocalAttributes.length,
+    };
+  }
 
   const pollEserviceUntilDeletion = (
     eserviceId: string,
@@ -883,6 +987,45 @@ export function eserviceServiceBuilder(
         });
 
       await pollEServiceById(eserviceId, metadata, headers);
+    },
+
+    async getEserviceDescriptorCertifiedAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { limit, offset }: m2mGatewayApi.GetCertifiedAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.CertifiedAttributesFlat> {
+      logger.info(
+        `Retrieving Certified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      const eserviceAttributes = await retrieveEServiceDescriptorAttributes(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId,
+        "certified",
+        { offset, limit },
+        headers
+      );
+
+      const paginated = eserviceAttributes.results.slice(
+        offset,
+        offset + limit
+      );
+
+      return {
+        results: paginated.map((item) => ({
+          groupIndex: item.groupIndex,
+          attribute: toM2MGatewayApiCertifiedAttribute({
+            attribute: item.attribute,
+            logger,
+          }),
+        })),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceAttributes.totalCount,
+        },
+      };
     },
   };
 }
