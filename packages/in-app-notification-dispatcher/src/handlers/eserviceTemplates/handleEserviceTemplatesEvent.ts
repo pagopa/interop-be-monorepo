@@ -79,7 +79,8 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionQuotasUpdated",
           "EServiceTemplateVersionAdded",
           "EServiceTemplateVersionAttributesUpdated",
-          "EServiceTemplateVersionActivated"
+          "EServiceTemplateVersionActivated",
+          "EServiceTemplatePersonalDataFlagUpdatedAfterPublication"
         ),
       },
       () => {
