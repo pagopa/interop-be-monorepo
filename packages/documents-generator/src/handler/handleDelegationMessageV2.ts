@@ -106,6 +106,7 @@ export async function handleDelegationMessageV2(
           "ConsumerDelegationSubmitted",
           "ProducerDelegationRejected",
           "ProducerDelegationSubmitted",
+          "DelegationContractAdded",
         ),
       },
       () => Promise.resolve(),

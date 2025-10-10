@@ -1,6 +1,10 @@
 import path from "path";
 import { fileURLToPath } from "url";
-import { genericLogger, getIpaCode } from "pagopa-interop-commons";
+import {
+  RefreshableInteropToken,
+  genericLogger,
+  getIpaCode,
+} from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockDescriptorPublished,
@@ -44,6 +48,7 @@ describe("handleDelegationMessageV2", () => {
     vi.clearAllMocks();
   });
   afterEach(cleanup);
+  let mockRefreshableToken: RefreshableInteropToken;
 
   it("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
     vi.spyOn(pdfGenerator, "generate");
@@ -116,7 +121,8 @@ describe("handleDelegationMessageV2", () => {
       pdfGenerator,
       fileManager,
       readModelService,
-      genericLogger
+      mockRefreshableToken,
+      genericLogger,
     );
     const expectedPdfPayload = {
       dailyCalls: mockPurposeVersion.dailyCalls.toString(),
@@ -145,9 +151,9 @@ describe("handleDelegationMessageV2", () => {
         path.dirname(fileURLToPath(import.meta.url)),
         "../../src",
         "resources/purpose",
-        "riskAnalysisTemplate.html"
+        "riskAnalysisTemplate.html",
       ),
-      expectedPdfPayload
+      expectedPdfPayload,
     );
   });
   it("should not process events that don't require contract generation and only log an info message", async () => {
@@ -178,8 +184,9 @@ describe("handleDelegationMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
-        genericLogger
-      )
+        mockRefreshableToken,
+        genericLogger,
+      ),
     ).resolves.toBeUndefined();
 
     expect(pdfGeneratorSpy).not.toHaveBeenCalled();
@@ -210,8 +217,9 @@ describe("handleDelegationMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
-        genericLogger
-      )
+        mockRefreshableToken,
+        genericLogger,
+      ),
     ).rejects.toThrow(eServiceNotFound(mockPurpose.eserviceId).message);
   });
   it("should throw tenantKindNotFound if tenantKind is not found", async () => {
@@ -257,8 +265,9 @@ describe("handleDelegationMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
-        genericLogger
-      )
+        mockRefreshableToken,
+        genericLogger,
+      ),
     ).rejects.toThrow(tenantKindNotFound(mockConsumer.id).message);
   });
 });

@@ -46,6 +46,7 @@ import {
   toCreateEventProducerDelegationRejected,
   toCreateEventProducerDelegationRevoked,
   toCreateEventProducerDelegationSubmitted,
+  toCreateEventDelegationContractAdded,
 } from "../model/domain/toEvent.js";
 import {
   activeDelegationStates,
@@ -440,6 +441,41 @@ export function delegationServiceBuilder(
     );
   }
 
+  async function addDelegationContract(
+    delegationId: DelegationId,
+    delegationContract: DelegationContractDocument,
+    {
+      logger,
+      correlationId,
+    }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+  ): Promise<WithMetadata<Delegation>> {
+    logger.info(`Adding delegation contract ${delegationId}`);
+    const { data: delegation, metadata } = await retrieveDelegationById(
+      {
+        delegationId,
+        kind: undefined,
+      },
+      readModelService
+    );
+
+    const delegationWithContract = {
+      ...delegation,
+      delegationContract,
+    };
+    const event = await repository.createEvent(
+      toCreateEventDelegationContractAdded(
+        { data: delegationWithContract, metadata },
+        correlationId
+      )
+    );
+    return {
+      data: delegation,
+      metadata: {
+        version: event.newVersion,
+      },
+    };
+  }
+
   return {
     async getDelegationById(
       delegationId: DelegationId,
@@ -679,6 +715,13 @@ export function delegationServiceBuilder(
         ...filters,
         delegateId: authData.organizationId,
       });
+    },
+    async addDelegationContract(
+      delegationId: DelegationId,
+      delegationContract: DelegationContractDocument,
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Delegation>> {
+      return await addDelegationContract(delegationId, delegationContract, ctx);
     },
   };
 }
