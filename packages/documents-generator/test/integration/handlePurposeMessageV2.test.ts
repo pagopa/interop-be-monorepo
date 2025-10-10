@@ -1,3 +1,5 @@
+/* eslint-disable functional/no-let */
+
 import path from "path";
 import { fileURLToPath } from "url";
 import {

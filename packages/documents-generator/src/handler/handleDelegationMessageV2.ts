@@ -75,7 +75,7 @@ export async function handleDelegationMessageV2(
           config,
           logger,
         });
-        sendContractMetadataToProcess(
+        await sendContractMetadataToProcess(
           contract,
           refreshableToken,
           delegation,
@@ -119,7 +119,7 @@ export async function handleDelegationMessageV2(
           logger,
         });
 
-        sendContractMetadataToProcess(
+        await sendContractMetadataToProcess(
           contract,
           refreshableToken,
           delegation,
@@ -148,14 +148,14 @@ async function sendContractMetadataToProcess(
   refreshableToken: RefreshableInteropToken,
   delegation: Delegation,
   correlationId: CorrelationId
-) {
+): Promise<void> {
   const contractWithIsoString = {
     ...contract,
     createdAt: contract.createdAt.toISOString(),
   };
   const token = (await refreshableToken.get()).serialized;
 
-  delegationProcessClient.delegation.addUnsignedDelegationContractMetadata(
+  await delegationProcessClient.delegation.addUnsignedDelegationContractMetadata(
     contractWithIsoString,
     {
       params: { delegationId: delegation.id },
