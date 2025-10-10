@@ -37,6 +37,11 @@ export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
 };
 
+export type EServiceNameUpdatedHandlerParams = HandlerCommonParams & {
+  eserviceV2Msg?: EServiceV2;
+  oldName?: string;
+};
+
 export type ClientPurposeHandlerParams = HandlerCommonParams & {
   purposeId: PurposeId;
 };

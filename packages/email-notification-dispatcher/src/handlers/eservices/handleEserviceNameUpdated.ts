@@ -10,17 +10,18 @@ import {
   retrieveHTMLTemplate,
 } from "../../services/utils.js";
 import {
-  EServiceHandlerParams,
+  EServiceNameUpdatedHandlerParams,
   getRecipientsForTenants,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
 export async function handleEserviceNameUpdated(
-  data: EServiceHandlerParams
+  data: EServiceNameUpdatedHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     eserviceV2Msg,
+    oldName,
     readModelService,
     logger,
     templateService,
@@ -66,19 +67,30 @@ export async function handleEserviceNameUpdated(
     return [];
   }
 
-  return targets.map(({ tenantName, address }) => ({
-    correlationId: correlationId ?? generateId(),
-    email: {
-      subject: `L'e-service <Vecchio Nome E-service> è stato rinominato`,
-      body: templateService.compileHtml(htmlTemplate, {
-        title: `L'e-service <Vecchio Nome E-service> è stato rinominato`,
-        notificationType,
-        entityId: eservice.id,
-        consumerName: tenantName,
-        oldEserviceName: "<Vecchio Nome EService>",
-        newEserviceName: eservice.name,
-      }),
-    },
-    address,
-  }));
+  return targets.flatMap(({ address, tenantId }) => {
+    const oldEserviceName = oldName ?? eservice.id;
+    const tenant = tenants.find((tenant) => tenant.id === tenantId);
+
+    if (!tenant) {
+      return [];
+    }
+
+    return [
+      {
+        correlationId: correlationId ?? generateId(),
+        email: {
+          subject: `L'e-service ${oldEserviceName} è stato rinominato`,
+          body: templateService.compileHtml(htmlTemplate, {
+            title: `L'e-service ${oldEserviceName} è stato rinominato`,
+            notificationType,
+            entityId: eservice.id,
+            consumerName: tenant.name,
+            oldEserviceName,
+            newEserviceName: eservice.name,
+          }),
+        },
+        address,
+      },
+    ];
+  });
 }

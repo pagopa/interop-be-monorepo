@@ -75,21 +75,31 @@ export async function handleEserviceDescriptorActivated(
     return [];
   }
 
-  return targets.map(({ tenantName, address }) => ({
-    correlationId: correlationId ?? generateId(),
-    email: {
-      subject: `Una versione di "${eservice.name}" è stata riattivata`,
-      body: templateService.compileHtml(htmlTemplate, {
-        title: `Una versione di "${eservice.name}" è stata riattivata`,
-        notificationType,
-        entityId: descriptor.id,
-        consumerName: tenantName,
-        producerName: producer.name,
-        eserviceName: eservice.name,
-        eserviceVersion: descriptor.version,
-        ctaLabel: `Visualizza e-service`,
-      }),
-    },
-    address,
-  }));
+  return targets.flatMap(({ address, tenantId }) => {
+    const tenant = tenants.find((tenant) => tenant.id === tenantId);
+
+    if (!tenant) {
+      return [];
+    }
+
+    return [
+      {
+        correlationId: correlationId ?? generateId(),
+        email: {
+          subject: `Una versione di "${eservice.name}" è stata riattivata`,
+          body: templateService.compileHtml(htmlTemplate, {
+            title: `Una versione di "${eservice.name}" è stata riattivata`,
+            notificationType,
+            entityId: descriptor.id,
+            consumerName: tenant.name,
+            producerName: producer.name,
+            eserviceName: eservice.name,
+            eserviceVersion: descriptor.version,
+            ctaLabel: `Visualizza e-service`,
+          }),
+        },
+        address,
+      },
+    ];
+  });
 }

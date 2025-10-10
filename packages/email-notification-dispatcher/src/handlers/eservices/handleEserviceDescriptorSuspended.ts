@@ -75,21 +75,31 @@ export async function handleEserviceDescriptorSuspended(
     return [];
   }
 
-  return targets.map(({ tenantName, address }) => ({
-    correlationId: correlationId ?? generateId(),
-    email: {
-      subject: `Una versione di "${eservice.name}" è stata sospesa`,
-      body: templateService.compileHtml(htmlTemplate, {
-        title: `Una versione di "${eservice.name}" è stata sospesa`,
-        notificationType,
-        entityId: descriptor.id,
-        consumerName: tenantName,
-        eserviceName: eservice.name,
-        producerName: producer.name,
-        eserviceVersion: descriptor.version,
-        ctaLabel: `Visualizza e-service`,
-      }),
-    },
-    address,
-  }));
+  return targets.flatMap(({ address, tenantId }) => {
+    const tenant = tenants.find((tenant) => tenant.id === tenantId);
+
+    if (!tenant) {
+      return [];
+    }
+
+    return [
+      {
+        correlationId: correlationId ?? generateId(),
+        email: {
+          subject: `Una versione di "${eservice.name}" è stata sospesa`,
+          body: templateService.compileHtml(htmlTemplate, {
+            title: `Una versione di "${eservice.name}" è stata sospesa`,
+            notificationType,
+            entityId: descriptor.id,
+            consumerName: tenant.name,
+            eserviceName: eservice.name,
+            producerName: producer.name,
+            eserviceVersion: descriptor.version,
+            ctaLabel: `Visualizza e-service`,
+          }),
+        },
+        address,
+      },
+    ];
+  });
 }

@@ -180,6 +180,7 @@ describe("handleEserviceNameUpdated", async () => {
   });
 
   it("should generate a complete and correct message", async () => {
+    const oldName = "Old name";
     const agreement: Agreement = {
       ...getMockAgreement(),
       state: agreementState.active,
@@ -193,6 +194,7 @@ describe("handleEserviceNameUpdated", async () => {
 
     const messages = await handleEserviceNameUpdated({
       eserviceV2Msg: toEServiceV2(eservice),
+      oldName,
       logger,
       templateService,
       userService,
@@ -204,11 +206,11 @@ describe("handleEserviceNameUpdated", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `L&#x27;e-service &lt;Vecchio Nome E-service&gt; è stato rinominato`
+        `L&#x27;e-service ${oldName} è stato rinominato`
       );
       expect(message.email.body).toContain(eservice.name);
       expect(message.email.body).toContain(consumerTenants[0].name);
-      expect(message.email.body).toContain("&lt;Vecchio Nome EService&gt;");
+      expect(message.email.body).toContain(oldName);
       expect(message.email.body).toContain(`Accedi per visualizzare`);
     });
   });

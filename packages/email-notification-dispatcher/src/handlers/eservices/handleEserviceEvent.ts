@@ -30,6 +30,7 @@ export async function handleEServiceEvent(
         logger,
         readModelService,
         templateService,
+        userService,
         correlationId,
       })
     )
@@ -96,9 +97,10 @@ export async function handleEServiceEvent(
           "EServiceNameUpdatedByTemplateUpdate"
         ),
       },
-      ({ data: { eservice } }) =>
+      ({ data: { eservice, oldName } }) =>
         handleEserviceNameUpdated({
           eserviceV2Msg: eservice,
+          oldName,
           logger,
           readModelService,
           templateService,

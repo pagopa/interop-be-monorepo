@@ -14,7 +14,6 @@ import {
 import {
   EServiceHandlerParams,
   getRecipientsForTenants,
-  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
@@ -76,22 +75,31 @@ export async function handleEserviceDescriptorPublished(
     return [];
   }
 
-  return targets.map((t) => ({
-    correlationId: correlationId ?? generateId(),
-    email: {
-      subject: `Nuova versione disponibile per "${eservice.name}"`,
-      body: templateService.compileHtml(htmlTemplate, {
-        title: `Nuova versione disponibile per "${eservice.name}"`,
-        notificationType,
-        entityId: descriptor.id,
-        ...(t.type === "Tenant" ? { recipientName: "aderente" } : {}),
-        eserviceName: eservice.name,
-        eserviceVersion: descriptor.version,
-        producerName: producer.name,
-        ctaLabel: `Visualizza e-service`,
-      }),
-    },
-    tenantId: t.tenantId,
-    ...mapRecipientToEmailPayload(t),
-  }));
+  return targets.flatMap((t) => {
+    const tenant = tenants.find((tenant) => tenant.id === t.tenantId);
+
+    if (!tenant) {
+      return [];
+    }
+
+    return [
+      {
+        correlationId: correlationId ?? generateId(),
+        email: {
+          subject: `Nuova versione disponibile per "${eservice.name}"`,
+          body: templateService.compileHtml(htmlTemplate, {
+            title: `Nuova versione disponibile per "${eservice.name}"`,
+            notificationType,
+            entityId: descriptor.id,
+            ...(t.type === "Tenant" ? { recipientName: "aderente" } : {}),
+            eserviceName: eservice.name,
+            eserviceVersion: descriptor.version,
+            producerName: producer.name,
+            ctaLabel: `Visualizza e-service`,
+          }),
+        },
+        address: t.address,
+      },
+    ];
+  });
 }
