@@ -17,8 +17,6 @@ import { fromBffAppContext } from "../utilities/context.js";
 import {
   getPurposeTemplateErrorMapper,
   getPurposeTemplateEServiceDescriptorsErrorMapper,
-  linkEServiceToPurposeTemplateErrorMapper,
-  unlinkEServicesFromPurposeTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
@@ -170,7 +168,7 @@ const purposeTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            linkEServiceToPurposeTemplateErrorMapper,
+            emptyErrorMapper,
             ctx,
             `Error linking e-service ${req.body.eserviceId} to purpose template ${req.params.purposeTemplateId}`
           );
@@ -192,7 +190,7 @@ const purposeTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            unlinkEServicesFromPurposeTemplateErrorMapper,
+            emptyErrorMapper,
             ctx,
             `Error unlinking e-service ${req.body.eserviceId} from purpose template ${req.params.purposeTemplateId}`
           );
@@ -221,7 +219,32 @@ const purposeTemplateRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .post(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result = await purposeTemplateService.createRiskAnalysisAnswer(
+            unsafeBrandId(req.params.purposeTemplateId),
+            req.body,
+            ctx
+          );
+          return res
+            .status(200)
+            .send(bffApi.RiskAnalysisTemplateAnswerResponse.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            "Error creating risk analysis answer for purpose template"
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return purposeTemplateRouter;
 };
