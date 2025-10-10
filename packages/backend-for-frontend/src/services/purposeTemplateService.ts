@@ -354,6 +354,25 @@ export function purposeTemplateServiceBuilder(
         params: { id },
       });
     },
+    async createRiskAnalysisAnswer(
+      purposeTemplateId: PurposeTemplateId,
+      seed: bffApi.RiskAnalysisTemplateAnswerRequest,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisTemplateAnswerResponse> {
+      logger.info(
+        `Creating risk analysis answer for purpose template ${purposeTemplateId}`
+      );
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+      return await purposeTemplateClient.addRiskAnalysisAnswerForPurposeTemplate(
+        seed,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+    },
   };
 }
 export type PurposeTemplateService = ReturnType<
