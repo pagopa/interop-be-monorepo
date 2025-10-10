@@ -33,6 +33,10 @@ export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
 };
 
+export type PurposeHandlerParams = HandlerCommonParams & {
+  purposeV2Msg?: PurposeV2;
+};
+
 export type TenantHandlerParams = HandlerCommonParams & {
   tenantV2Msg?: TenantV2;
   attributeId: AttributeId;
@@ -40,10 +44,6 @@ export type TenantHandlerParams = HandlerCommonParams & {
 
 export type DelegationHandlerParams = HandlerCommonParams & {
   delegationV2Msg?: DelegationV2;
-};
-
-export type PurposeHandlerParams = HandlerCommonParams & {
-  purposeV2Msg?: PurposeV2;
 };
 
 type TenantEmailNotificationRecipient = {
