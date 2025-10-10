@@ -144,6 +144,7 @@ export function readModelServiceBuilderSQL(
         isClientAccessDelegable,
         delegated,
         templatesIds,
+        personalData,
       } = filters;
 
       return await readmodelDB.transaction(async (tx) => {
@@ -234,6 +235,9 @@ export function readModelServiceBuilderSQL(
                 // templateIds filter
                 templatesIds.length > 0
                   ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
+                  : undefined,
+                personalData !== undefined
+                  ? eq(eserviceInReadmodelCatalog.personalData, personalData)
                   : undefined
               )
             )
