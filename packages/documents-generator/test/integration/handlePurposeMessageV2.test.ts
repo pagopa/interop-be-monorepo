@@ -137,6 +137,7 @@ describe("handleDelegationMessageV2", () => {
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
       userId: mockUserId,
+      consumerId: mockConsumer.id,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(

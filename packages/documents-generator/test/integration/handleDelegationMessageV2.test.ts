@@ -89,7 +89,7 @@ describe("handleDelegationMessageV2", () => {
     vi.spyOn(pdfGenerator, "generate").mockResolvedValue(
       Buffer.from("mock pdf content")
     );
-    vi.spyOn(fileManager, "storeBytes").mockResolvedValue(
+    vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
       `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
     );
 
@@ -102,8 +102,8 @@ describe("handleDelegationMessageV2", () => {
     );
 
     expect(pdfGenerator.generate).toHaveBeenCalledOnce();
-    expect(fileManager.storeBytes).toHaveBeenCalledOnce();
-    expect(fileManager.storeBytes).toHaveBeenCalledWith(
+    expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledOnce();
+    expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.s3Bucket,
         path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
@@ -217,7 +217,7 @@ describe("handleDelegationMessageV2", () => {
     vi.spyOn(pdfGenerator, "generate").mockResolvedValue(
       Buffer.from("mock pdf content")
     );
-    vi.spyOn(fileManager, "storeBytes").mockResolvedValue(
+    vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
       `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
     );
 
@@ -369,7 +369,7 @@ describe("handleDelegationMessageV2", () => {
       log_date: new Date(),
     };
     const pdfGeneratorSpy = vi.spyOn(pdfGenerator, "generate");
-    const fileManagerSpy = vi.spyOn(fileManager, "storeBytes");
+    const fileManagerSpy = vi.spyOn(fileManager, "resumeOrStoreBytes");
 
     await expect(
       handleDelegationMessageV2(

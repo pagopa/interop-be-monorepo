@@ -139,7 +139,7 @@ export const contractBuilder = {
       activationContractPayload
     );
 
-    const documentPath = await fileManager.storeBytes(
+    const documentPath = await fileManager.resumeOrStoreBytes(
       {
         bucket: config.s3Bucket,
         path: `${config.delegationDocumentPath}/${delegation.id}`,

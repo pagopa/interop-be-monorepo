@@ -27,6 +27,7 @@ import {
   RiskAnalysisSingleAnswer,
   RiskAnalysisMultiAnswer,
   UserId,
+  TenantId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -101,6 +102,7 @@ export const riskAnalysisDocumentBuilder = (
         dailyCalls,
         eserviceInfo,
         userId,
+        consumerId: purpose.consumerId,
         isFreeOfCharge: purpose.isFreeOfCharge,
         freeOfChargeReason: purpose.freeOfChargeReason,
         language,
@@ -114,7 +116,7 @@ export const riskAnalysisDocumentBuilder = (
       const documentId = generateId<PurposeVersionDocumentId>();
       const documentName = createRiskAnalysisDocumentName();
 
-      const documentPath = await fileManager.storeBytes(
+      const documentPath = await fileManager.resumeOrStoreBytes(
         {
           bucket: config.s3Bucket,
           path: config.riskAnalysisDocumentsPath,
@@ -141,6 +143,7 @@ const getPdfPayload = ({
   dailyCalls,
   eserviceInfo,
   userId,
+  consumerId,
   isFreeOfCharge,
   freeOfChargeReason,
   language,
@@ -150,6 +153,7 @@ const getPdfPayload = ({
   dailyCalls: number;
   eserviceInfo: PurposeDocumentEServiceInfo;
   userId: UserId | undefined;
+  consumerId: TenantId;
   isFreeOfCharge: boolean;
   freeOfChargeReason?: string;
   language: Language;
@@ -189,6 +193,7 @@ const getPdfPayload = ({
     consumerDelegateName: eserviceInfo.consumerDelegateName,
     consumerDelegateIpaCode: eserviceInfo.consumerDelegateIpaCode,
     userId,
+    consumerId,
   };
 };
 
