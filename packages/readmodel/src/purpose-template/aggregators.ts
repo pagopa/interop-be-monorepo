@@ -393,14 +393,14 @@ export const toPurposeTemplateAggregatorArray = (
 };
 
 export const toRiskAnalysisTemplateAnswerAnnotationDocument = (
-  docSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL
+  annotationDocumentSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL
 ): RiskAnalysisTemplateAnswerAnnotationDocument => ({
-  id: unsafeBrandId(docSQL.id),
-  name: docSQL.name,
-  prettyName: docSQL.prettyName,
-  contentType: docSQL.contentType,
-  path: docSQL.path,
-  createdAt: stringToDate(docSQL.createdAt),
+  id: unsafeBrandId(annotationDocumentSQL.id),
+  name: annotationDocumentSQL.name,
+  prettyName: annotationDocumentSQL.prettyName,
+  contentType: annotationDocumentSQL.contentType,
+  path: annotationDocumentSQL.path,
+  createdAt: stringToDate(annotationDocumentSQL.createdAt),
 });
 
 export const toRiskAnalysisTemplateAnswerAggregator = (

@@ -238,14 +238,13 @@ export const addEServiceInterfaceByTemplateErrorMapper = (
     .with(
       "eserviceTemplateIsNotPublished",
       "eserviceIsNotDraft",
-      "eserviceDescriptorDraftNotFound",
-      "eserviceTemplateNotFound",
-      "eserviceTemplateInterfaceNotFound",
-      "eserviceTemplateInterfaceDataNotValid",
-      "invalidContentTypeDetected",
-      "invalidEserviceInterfaceFileDetected",
       "interfaceExtractingInfoError",
-      "templateDataNotFound",
+      "eserviceTemplateNotFound",
+      "invalidEserviceInterfaceFileDetected",
+      "eserviceTemplateInterfaceNotFound",
+      "invalidContentTypeDetected",
+      "eserviceTemplateInterfaceDataNotValid",
+      "invalidInterfaceFile",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
@@ -272,40 +271,6 @@ export const getPurposeTemplateErrorMapper = (
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const linkEServiceToPurposeTemplateErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with(
-      "associationEServicesForPurposeTemplateFailed",
-      "tooManyEServicesForPurposeTemplate",
-      "purposeTemplateNotInValidState",
-      () => HTTP_STATUS_BAD_REQUEST
-    )
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "associationBetweenEServiceAndPurposeTemplateAlreadyExists",
-      () => HTTP_STATUS_CONFLICT
-    )
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const unlinkEServicesFromPurposeTemplateErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with(
-      "disassociationEServicesFromPurposeTemplateFailed",
-      "tooManyEServicesForPurposeTemplate",
-      "purposeTemplateNotInValidState",
-      () => HTTP_STATUS_BAD_REQUEST
-    )
-    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "associationBetweenEServiceAndPurposeTemplateDoesNotExist",
-      () => HTTP_STATUS_CONFLICT
-    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
