@@ -606,11 +606,11 @@ export function purposeTemplateServiceBuilder(
       });
 
       await repository.createEvent(
-        toCreateEventPurposeTemplateDraftDeleted({
-          purposeTemplate: purposeTemplate.data,
-          version: purposeTemplate.metadata.version,
-          correlationId,
-        })
+        toCreateEventPurposeTemplateDraftDeleted(
+          purposeTemplate.data,
+          purposeTemplate.metadata.version,
+          correlationId
+        )
       );
     },
   };
