@@ -150,8 +150,6 @@ export const purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation
         }
       : undefined;
 
-
-
 export const eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate =
   (
     eserviceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate
