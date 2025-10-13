@@ -11,11 +11,12 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   toGetEServicesQueryParams,
-  toM2MGatewayApiDocument,
   toM2MGatewayApiEService,
   toM2MGatewayApiEServiceDescriptor,
   toCatalogApiEServiceDescriptorSeed,
   toM2MGatewayApiEServiceRiskAnalysis,
+  toCatalogApiPatchUpdateEServiceDescriptorSeed,
+  toM2MGatewayApiDocument,
 } from "../api/eserviceApiConverter.js";
 import {
   cannotDeleteLastEServiceDescriptor,
@@ -115,13 +116,8 @@ export function eserviceServiceBuilder(
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EService> {
       logger.info(`Retrieving eservice with id ${eserviceId}`);
-
-      const { data: eservice } = await retrieveEServiceById(
-        headers,
-        eserviceId
-      );
-
-      return toM2MGatewayApiEService(eservice);
+      const response = await retrieveEServiceById(headers, eserviceId);
+      return toM2MGatewayApiEService(response.data);
     },
     async getEServices(
       params: m2mGatewayApi.GetEServicesQueryParams,
@@ -372,6 +368,36 @@ export function eserviceServiceBuilder(
 
       return toM2MGatewayApiEServiceDescriptor(createdDescriptor);
     },
+
+    async updateDraftEServiceDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApi.EServiceDescriptorDraftUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
+      logger.info(
+        `Updating draft descriptor ${descriptorId} for eservice ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.patchUpdateDraftDescriptor(
+          toCatalogApiPatchUpdateEServiceDescriptorSeed(seed),
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+
+      await pollEService(response, headers);
+
+      const updatedDescriptor = retrieveEServiceDescriptorById(
+        response,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(updatedDescriptor);
+    },
+
     async deleteDraftEServiceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -423,7 +449,7 @@ export function eserviceServiceBuilder(
       logger.info(`Updating draft EService with id ${eserviceId}`);
 
       const response =
-        await clients.catalogProcessClient.patchUpdateEServiceById(seed, {
+        await clients.catalogProcessClient.patchUpdateDraftEServiceById(seed, {
           params: { eServiceId: eserviceId },
           headers,
         });
@@ -441,6 +467,98 @@ export function eserviceServiceBuilder(
         headers,
       });
       await pollEserviceUntilDeletion(eserviceId, headers);
+    },
+
+    async updatePublishedEServiceDelegation(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceDelegationUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating delegation configurations for published E-Service with id ${eserviceId}`
+      );
+
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateEServiceDelegationFlags(
+          {
+            isConsumerDelegable:
+              seed.isConsumerDelegable ?? Boolean(eservice.isConsumerDelegable),
+            isClientAccessDelegable:
+              seed.isClientAccessDelegable ??
+              Boolean(eservice.isClientAccessDelegable),
+          },
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async updatePublishedEServiceDescription(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceDescriptionUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating description for published E-Service with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateEServiceDescription(seed, {
+          params: { eServiceId: eserviceId },
+          headers,
+        });
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async updatePublishedEServiceName(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceNameUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating name for published E-Service with id ${eserviceId}`
+      );
+
+      const response = await clients.catalogProcessClient.updateEServiceName(
+        seed,
+        {
+          params: { eServiceId: eserviceId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async updatePublishedEServiceSignalHub(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServiceSignalHubUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Updating Signal Hub flag for published E-Service with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateEServiceSignalHubFlag(seed, {
+          params: { eServiceId: eserviceId },
+          headers,
+        });
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
     },
 
     async suspendDescriptor(
@@ -668,6 +786,44 @@ export function eserviceServiceBuilder(
       );
 
       return toM2MGatewayApiEServiceRiskAnalysis(createdRiskAnalysis);
+    },
+
+    async updatePublishedEServiceDescriptorQuotas(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApi.EServiceDescriptorQuotasUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
+      logger.info(
+        `Updating Descriptor Quotas for published E-Service with id ${eserviceId}`
+      );
+
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId
+      );
+
+      const response = await clients.catalogProcessClient.updateDescriptor(
+        {
+          voucherLifespan: seed.voucherLifespan ?? descriptor.voucherLifespan,
+          dailyCallsPerConsumer:
+            seed.dailyCallsPerConsumer ?? descriptor.dailyCallsPerConsumer,
+          dailyCallsTotal: seed.dailyCallsTotal ?? descriptor.dailyCallsTotal,
+        },
+        {
+          params: { eServiceId: eserviceId, descriptorId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollEService(response, headers);
+
+      return toM2MGatewayApiEServiceDescriptor(
+        retrieveEServiceDescriptorById(
+          polledResource,
+          unsafeBrandId(descriptorId)
+        )
+      );
     },
 
     async getEServiceRiskAnalyses(

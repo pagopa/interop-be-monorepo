@@ -21,6 +21,7 @@ import {
 } from "../../../src/model/errors.js";
 import { buildRiskAnalysisSeed } from "../../mockUtils.js";
 import { toM2MGatewayApiEServiceRiskAnalysis } from "../../../src/api/eserviceApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
   const mockRiskAnalysisSeed: m2mGatewayApi.EServiceRiskAnalysisSeed =
@@ -45,7 +46,7 @@ describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
+    "Should return 201 and perform service calls for user with role %s",
     async (role) => {
       mockEserviceService.createEServiceRiskAnalysis = vi
         .fn()
@@ -88,7 +89,10 @@ describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
 
   it.each([
     missingMetadata(),
-    pollingMaxRetriesExceeded(3, 10),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
     eserviceRiskAnalysisNotFound(unsafeBrandId(mockEService.id), generateId()),
   ])("Should return 500 in case of $code error", async (error) => {
     mockEserviceService.createEServiceRiskAnalysis = vi

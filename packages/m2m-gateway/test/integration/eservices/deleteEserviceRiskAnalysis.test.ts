@@ -25,13 +25,12 @@ describe("deleteEserviceRiskAnalysis", () => {
   const mockRiskAnalysis: catalogApi.EServiceRiskAnalysis =
     mockEService.riskAnalysis[0]!;
 
-  const mockDeleteRiskAnalysis = vi
-    .fn()
-    .mockResolvedValue(getMockWithMetadata({}));
+  const mockEServiceResponse = getMockWithMetadata(mockEService);
+  const mockGetEService = vi.fn(mockPollingResponse(mockEServiceResponse, 2));
 
-  const mockGetEService = vi.fn(
-    mockPollingResponse(getMockWithMetadata(mockEService), 2)
-  );
+  const mockDeleteRiskAnalysis = vi.fn().mockResolvedValue({
+    metadata: mockEServiceResponse.metadata,
+  });
 
   mockInteropBeClients.catalogProcessClient = {
     getEServiceById: mockGetEService,

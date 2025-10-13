@@ -60,7 +60,7 @@ const eserviceRouter = (
 
         const eservice = await eserviceService.createEService(req.body, ctx);
 
-        return res.status(200).send(m2mGatewayApi.EService.parse(eservice));
+        return res.status(201).send(m2mGatewayApi.EService.parse(eservice));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -132,6 +132,100 @@ const eserviceRouter = (
           emptyErrorMapper,
           ctx,
           `Error deleting eservice with id ${req.params.eserviceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/eservices/:eserviceId/delegation", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const eservice =
+          await eserviceService.updatePublishedEServiceDelegation(
+            unsafeBrandId(req.params.eserviceId),
+            req.body,
+            ctx
+          );
+
+        return res.status(200).send(m2mGatewayApi.EService.parse(eservice));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating delegation configurations of eservice with id ${req.params.eserviceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/eservices/:eserviceId/description", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const eservice =
+          await eserviceService.updatePublishedEServiceDescription(
+            unsafeBrandId(req.params.eserviceId),
+            req.body,
+            ctx
+          );
+
+        return res.status(200).send(m2mGatewayApi.EService.parse(eservice));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating description of eservice with id ${req.params.eserviceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/eservices/:eserviceId/name", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const eservice = await eserviceService.updatePublishedEServiceName(
+          unsafeBrandId(req.params.eserviceId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.EService.parse(eservice));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating name of eservice with id ${req.params.eserviceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/eservices/:eserviceId/signalHub", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const eservice = await eserviceService.updatePublishedEServiceSignalHub(
+          unsafeBrandId(req.params.eserviceId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.EService.parse(eservice));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating Signal Hub flag for eservice with id ${req.params.eserviceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -214,6 +308,35 @@ const eserviceRouter = (
         }
       }
     )
+    .patch(
+      "/eservices/:eserviceId/descriptors/:descriptorId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const eservice = await eserviceService.updateDraftEServiceDescriptor(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceDescriptor.parse(eservice));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating eservice descriptor with id ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete(
       "/eservices/:eserviceId/descriptors/:descriptorId",
       async (req, res) => {
@@ -234,6 +357,36 @@ const eserviceRouter = (
             deleteDraftEServiceDescriptorErrorMapper,
             ctx,
             `Error deleting descriptor with id ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .patch(
+      "/eservices/:eserviceId/descriptors/:descriptorId/quotas",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const eservice =
+            await eserviceService.updatePublishedEServiceDescriptorQuotas(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceDescriptor.parse(eservice));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating quotas for eservice descriptor with id ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

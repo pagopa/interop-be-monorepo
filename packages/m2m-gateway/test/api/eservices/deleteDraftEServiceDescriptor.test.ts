@@ -9,6 +9,7 @@ import {
   cannotDeleteLastEServiceDescriptor,
   missingMetadata,
 } from "../../../src/model/errors.js";
+import { config } from "../../../src/config/config.js";
 
 describe("DELETE /eservices/:eServiceId/descriptors/:descriptorId router test", () => {
   const makeRequest = async (
@@ -20,8 +21,7 @@ describe("DELETE /eservices/:eServiceId/descriptors/:descriptorId router test", 
       .delete(
         `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}`
       )
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+      .set("Authorization", `Bearer ${token}`);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
@@ -67,16 +67,19 @@ describe("DELETE /eservices/:eServiceId/descriptors/:descriptorId router test", 
     expect(res.status).toBe(409);
   });
 
-  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockEserviceService.deleteDraftEServiceDescriptor = vi
-        .fn()
-        .mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, generateId(), generateId());
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockEserviceService.deleteDraftEServiceDescriptor = vi
+      .fn()
+      .mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId(), generateId());
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 });

@@ -12,7 +12,6 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
-  tenantEnabledNotificationInReadmodelNotificationConfig,
   tenantNotificationConfigInReadmodelNotificationConfig,
   userEnabledEmailNotificationInReadmodelNotificationConfig,
   userEnabledInAppNotificationInReadmodelNotificationConfig,
@@ -46,7 +45,7 @@ export function notificationConfigReadModelWriteServiceBuilder(
               tenantNotificationConfig.id
             )
           );
-        const { tenantNotificationConfigSQL, enabledNotificationsSQL } =
+        const tenantNotificationConfigSQL =
           splitTenantNotificationConfigIntoObjectsSQL(
             tenantNotificationConfig,
             metadataVersion
@@ -54,11 +53,6 @@ export function notificationConfigReadModelWriteServiceBuilder(
         await tx
           .insert(tenantNotificationConfigInReadmodelNotificationConfig)
           .values(tenantNotificationConfigSQL);
-        if (enabledNotificationsSQL.length > 0) {
-          await tx
-            .insert(tenantEnabledNotificationInReadmodelNotificationConfig)
-            .values(enabledNotificationsSQL);
-        }
       });
     },
 

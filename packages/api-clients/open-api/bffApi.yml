@@ -2647,7 +2647,7 @@ paths:
             type: integer
             format: int32
             minimum: 1
-            maximum: 50
+            maximum: 200
       responses:
         "200":
           description: A list of EServices
@@ -20160,28 +20160,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "404":
-          description: Notification not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
           content:
@@ -24613,12 +24591,72 @@ components:
       type: object
       additionalProperties: false
       required:
-        - newEServiceVersionPublished
+        - agreementSuspendedUnsuspendedToProducer
+        - agreementManagementToProducer
+        - clientAddedRemovedToProducer
+        - purposeStatusChangedToProducer
+        - templateStatusChangedToProducer
+        - agreementSuspendedUnsuspendedToConsumer
+        - eserviceStateChangedToConsumer
+        - agreementActivatedRejectedToConsumer
+        - purposeActivatedRejectedToConsumer
+        - purposeSuspendedUnsuspendedToConsumer
+        - newEserviceTemplateVersionToInstantiator
+        - eserviceTemplateNameChangedToInstantiator
+        - eserviceTemplateStatusChangedToInstantiator
+        - delegationApprovedRejectedToDelegator
+        - eserviceNewVersionSubmittedToDelegator
+        - eserviceNewVersionApprovedRejectedToDelegate
+        - delegationSubmittedRevokedToDelegate
+        - certifiedVerifiedAttributeAssignedRevokedToAssignee
+        - clientKeyAddedDeletedToClientUsers
       properties:
-        newEServiceVersionPublished:
+        agreementSuspendedUnsuspendedToProducer:
+          type: boolean
+        agreementManagementToProducer:
+          type: boolean
+        clientAddedRemovedToProducer:
+          type: boolean
+        purposeStatusChangedToProducer:
+          type: boolean
+        templateStatusChangedToProducer:
+          type: boolean
+        agreementSuspendedUnsuspendedToConsumer:
+          type: boolean
+        eserviceStateChangedToConsumer:
+          type: boolean
+        agreementActivatedRejectedToConsumer:
+          type: boolean
+        purposeActivatedRejectedToConsumer:
+          type: boolean
+        purposeSuspendedUnsuspendedToConsumer:
+          type: boolean
+        newEserviceTemplateVersionToInstantiator:
+          type: boolean
+        eserviceTemplateNameChangedToInstantiator:
+          type: boolean
+        eserviceTemplateStatusChangedToInstantiator:
+          type: boolean
+        delegationApprovedRejectedToDelegator:
+          type: boolean
+        eserviceNewVersionSubmittedToDelegator:
+          type: boolean
+        eserviceNewVersionApprovedRejectedToDelegate:
+          type: boolean
+        delegationSubmittedRevokedToDelegate:
+          type: boolean
+        certifiedVerifiedAttributeAssignedRevokedToAssignee:
+          type: boolean
+        clientKeyAddedDeletedToClientUsers:
           type: boolean
     TenantNotificationConfig:
-      $ref: "#/components/schemas/NotificationConfig"
+      type: object
+      additionalProperties: false
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
     UserNotificationConfig:
       type: object
       additionalProperties: false
@@ -24631,7 +24669,13 @@ components:
         emailConfig:
           $ref: "#/components/schemas/NotificationConfig"
     TenantNotificationConfigUpdateSeed:
-      $ref: "#/components/schemas/NotificationConfig"
+      type: object
+      additionalProperties: false
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
     UserNotificationConfigUpdateSeed:
       type: object
       additionalProperties: false

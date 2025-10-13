@@ -30,6 +30,14 @@ export type GetCertifiedAttributesQueryParams = QueryParametersByAlias<
   AttributeApi,
   "getCertifiedAttributes"
 >;
+export type GetDeclaredAttributesQueryParams = QueryParametersByAlias<
+  AttributeApi,
+  "getDeclaredAttributes"
+>;
+export type GetVerifiedAttributesQueryParams = QueryParametersByAlias<
+  AttributeApi,
+  "getVerifiedAttributes"
+>;
 
 export type GetEServicesQueryParams = QueryParametersByAlias<
   EServiceApi,
@@ -99,6 +107,22 @@ export type GetEServiceTemplateVersionsQueryParams = QueryParametersByAlias<
   EServiceTemplateApi,
   "getEServiceTemplateVersions"
 >;
+
+export type GetEServiceTemplateRiskAnalysesQueryParams = QueryParametersByAlias<
+  EServiceTemplateApi,
+  "getEServiceTemplateRiskAnalyses"
+>;
+
+export type GetEServiceTemplatesQueryParams = QueryParametersByAlias<
+  EServiceTemplateApi,
+  "getEServiceTemplates"
+>;
+
+export type GetEServiceTemplateVersionDocumentsQueryParams =
+  QueryParametersByAlias<
+    EServiceTemplateApi,
+    "getEServiceTemplateVersionDocuments"
+  >;
 
 export type GetClientsQueryParams = QueryParametersByAlias<
   ClientApi,
