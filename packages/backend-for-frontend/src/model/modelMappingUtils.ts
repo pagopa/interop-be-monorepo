@@ -65,6 +65,7 @@ export type UiSection =
   | "/aderente"
   | "/aderente/deleghe"
   | "/aderente/anagrafica"
+  | "/gestione-client"
   | "/gestione-client/api-e-service";
 
 export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
