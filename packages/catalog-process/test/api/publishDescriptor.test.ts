@@ -23,6 +23,7 @@ import {
   eServiceDescriptorNotFound,
   eServiceDescriptorWithoutInterface,
   eServiceNotFound,
+  missingPersonalDataFlag,
   eServiceRiskAnalysisIsRequired,
   notValidDescriptorState,
   riskAnalysisNotValid,
@@ -118,6 +119,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/publish authori
     },
     {
       error: audienceCannotBeEmpty(descriptor.id),
+      expectedStatus: 400,
+    },
+    {
+      error: missingPersonalDataFlag(mockEService.id, descriptor.id),
       expectedStatus: 400,
     },
   ])(

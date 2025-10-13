@@ -4,6 +4,7 @@ import {
   missingKafkaMessageDataError,
   fromEServiceV2,
   DescriptorId,
+  EServiceIdDescriptorId,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -61,11 +62,15 @@ export async function handleEserviceNewVersionSubmittedToDelegator(
     eservice.name
   );
 
+  const entityId = EServiceIdDescriptorId.parse(
+    `${eservice.id}/${descriptorId}`
+  );
+
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
     notificationType: "eserviceNewVersionSubmittedToDelegator",
-    entityId: descriptorId,
+    entityId,
   }));
 }
