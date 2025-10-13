@@ -49,7 +49,7 @@ import {
   Logger,
   RateLimiter,
   RateLimiterStatus,
-  secondsToMilliseconds,
+  timestampToMilliseconds,
   WithLogger,
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
@@ -400,7 +400,7 @@ export const publishAudit = async ({
   const messageBody: GeneratedTokenAuditDetails = {
     jwtId: generatedToken.payload.jti,
     correlationId,
-    issuedAt: secondsToMilliseconds(generatedToken.payload.iat),
+    issuedAt: timestampToMilliseconds(generatedToken.payload.iat),
     clientId: clientAssertion.payload.sub,
     organizationId: key.consumerId,
     agreementId: key.agreementId,
@@ -412,14 +412,14 @@ export const publishAudit = async ({
     keyId: generatedToken.header.kid,
     audience: [generatedToken.payload.aud].flat().join(","),
     subject: generatedToken.payload.sub,
-    notBefore: secondsToMilliseconds(generatedToken.payload.nbf),
-    expirationTime: secondsToMilliseconds(generatedToken.payload.exp),
+    notBefore: timestampToMilliseconds(generatedToken.payload.nbf),
+    expirationTime: timestampToMilliseconds(generatedToken.payload.exp),
     issuer: generatedToken.payload.iss,
     clientAssertion: {
       algorithm: clientAssertion.header.alg,
       audience: [clientAssertion.payload.aud].flat().join(","),
-      expirationTime: secondsToMilliseconds(clientAssertion.payload.exp),
-      issuedAt: secondsToMilliseconds(clientAssertion.payload.iat),
+      expirationTime: timestampToMilliseconds(clientAssertion.payload.exp),
+      issuedAt: timestampToMilliseconds(clientAssertion.payload.iat),
       issuer: clientAssertion.payload.iss,
       jwtId: clientAssertion.payload.jti,
       keyId: clientAssertion.header.kid,
@@ -433,7 +433,7 @@ export const publishAudit = async ({
             jwk: dpop.header.jwk,
             htm: dpop.payload.htm,
             htu: dpop.payload.htu,
-            iat: secondsToMilliseconds(dpop.payload.iat),
+            iat: timestampToMilliseconds(dpop.payload.iat),
             jti: dpop.payload.jti,
           },
         }
