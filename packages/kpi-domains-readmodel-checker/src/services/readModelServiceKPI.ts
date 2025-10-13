@@ -232,6 +232,10 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         PurposeDbTable.purpose_version_document
       );
+      const versionStampsSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version_stamp
+      );
 
       return aggregatePurposeArray({
         purposesSQL,
@@ -242,6 +246,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         })),
         versionsSQL,
         versionDocumentsSQL,
+        versionStampsSQL,
       });
     },
 
