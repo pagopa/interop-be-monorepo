@@ -1,4 +1,6 @@
 import {
+  EServiceDescriptorPurposeTemplate,
+  EServiceId,
   generateId,
   PurposeTemplate,
   PurposeTemplateId,
@@ -6,8 +8,10 @@ import {
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
   ListResult,
-  EServiceDescriptorPurposeTemplate,
-  EServiceId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisMultiAnswerId,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
@@ -29,8 +33,9 @@ import {
 import { match } from "ts-pattern";
 import {
   associationEServicesForPurposeTemplateFailed,
-  purposeTemplateNotFound,
   disassociationEServicesFromPurposeTemplateFailed,
+  purposeTemplateNotFound,
+  riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   ruleSetNotFoundError,
 } from "../model/domain/errors.js";
 import {
@@ -191,6 +196,40 @@ export function purposeTemplateServiceBuilder(
       );
 
       return purposeTemplate;
+    },
+    async getRiskAnalysisTemplateAnswerAnnotationDocument(
+      {
+        purposeTemplateId,
+        answerId,
+        documentId,
+      }: {
+        purposeTemplateId: PurposeTemplateId;
+        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+        documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+      },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
+      logger.info(
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      const annotationDocument =
+        await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocument(
+          purposeTemplateId,
+          documentId
+        );
+
+      if (!annotationDocument) {
+        throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
+          purposeTemplateId,
+          answerId,
+          documentId
+        );
+      }
+
+      return annotationDocument;
     },
     async getPurposeTemplateEServiceDescriptors(
       filters: GetPurposeTemplateEServiceDescriptorsFilters,

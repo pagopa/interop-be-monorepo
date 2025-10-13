@@ -50,7 +50,8 @@ export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind,
-  dateForExpirationValidation: Date
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): boolean => {
   if (riskAnalysisForm === undefined) {
     return false;
@@ -60,7 +61,8 @@ export const isRiskAnalysisFormValid = (
         riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
         schemaOnlyValidation,
         tenantKind,
-        dateForExpirationValidation
+        dateForExpirationValidation,
+        personalDataInEService
       ).type === "valid"
     );
   }
@@ -117,17 +119,20 @@ export function validateRiskAnalysisOrThrow({
   schemaOnlyValidation,
   tenantKind,
   dateForExpirationValidation,
+  personalDataInEService,
 }: {
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
   schemaOnlyValidation: boolean;
   tenantKind: TenantKind;
   dateForExpirationValidation: Date;
+  personalDataInEService: boolean | undefined;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
     tenantKind,
-    dateForExpirationValidation
+    dateForExpirationValidation,
+    personalDataInEService
   );
   return match(result)
     .with({ type: "invalid" }, ({ issues }) => {
@@ -141,7 +146,8 @@ export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind,
-  dateForExpirationValidation: Date
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
@@ -151,6 +157,7 @@ export function validateAndTransformRiskAnalysis(
     schemaOnlyValidation,
     tenantKind,
     dateForExpirationValidation,
+    personalDataInEService,
   });
 
   return {

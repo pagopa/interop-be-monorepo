@@ -290,7 +290,8 @@ export function purposeServiceBuilder(
             purpose.data.riskAnalysisForm,
             false,
             tenantKind,
-            purpose.data.createdAt
+            purpose.data.createdAt,
+            eservice.personalData
           )
         : true;
 
@@ -873,7 +874,8 @@ export function purposeServiceBuilder(
             purpose.data.riskAnalysisForm,
             false,
             tenantKind,
-            new Date()
+            new Date(),
+            eservice.personalData
           )
         : true;
 
@@ -1027,6 +1029,7 @@ export function purposeServiceBuilder(
           schemaOnlyValidation: false,
           tenantKind,
           dateForExpirationValidation: new Date(),
+          personalDataInEService: eservice.personalData,
         });
       }
 
@@ -1260,11 +1263,13 @@ export function purposeServiceBuilder(
 
       const createdAt = new Date();
 
+      const eservice = await retrieveEService(eserviceId, readModelService);
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         purposeSeed.riskAnalysisForm,
         false,
         await retrieveTenantKind(authData.organizationId, readModelService),
-        createdAt
+        createdAt,
+        eservice.personalData
       );
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
@@ -1364,6 +1369,7 @@ export function purposeServiceBuilder(
         schemaOnlyValidation: false,
         tenantKind: producerKind,
         dateForExpirationValidation: createdAt,
+        personalDataInEService: eservice.personalData,
       });
 
       const newVersion: PurposeVersion = {
@@ -1476,9 +1482,10 @@ export function purposeServiceBuilder(
           ? `${title}${suffix}`
           : `${title.slice(0, prefixLengthAllowance)}${dots}${suffix}`;
 
+      const eserviceId = unsafeBrandId<EServiceId>(seed.eserviceId);
       await assertPurposeTitleIsNotDuplicated({
         readModelService,
-        eserviceId: unsafeBrandId(seed.eserviceId),
+        eserviceId,
         consumerId: organizationId,
         title: clonedPurposeTitle,
       });
@@ -1497,6 +1504,8 @@ export function purposeServiceBuilder(
         delegationId: purposeToClone.data.delegationId,
       };
 
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
       const isRiskAnalysisValid = clonedRiskAnalysisForm
         ? validateRiskAnalysis(
             riskAnalysisFormToRiskAnalysisFormToValidate(
@@ -1504,7 +1513,8 @@ export function purposeServiceBuilder(
             ),
             false,
             tenantKind,
-            currentDate
+            currentDate,
+            eservice.personalData
           ).type === "valid"
         : false;
 
@@ -1705,7 +1715,8 @@ const performUpdatePurpose = async (
           riskAnalysisForm,
           true,
           tenantKind,
-          new Date()
+          new Date(),
+          eservice.personalData
         )
       : purpose.data.riskAnalysisForm;
 
@@ -1749,7 +1760,8 @@ const performUpdatePurpose = async (
         updatedPurpose.riskAnalysisForm,
         false,
         tenantKind,
-        new Date()
+        new Date(),
+        eservice.personalData
       ),
     },
     metadata: { version: createdEvent.newVersion },

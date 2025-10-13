@@ -103,6 +103,34 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result =
+            await purposeTemplateService.getRiskAnalysisTemplateAnswerAnnotationDocument(
+              {
+                purposeTemplateId: req.params.purposeTemplateId,
+                answerId: req.params.answerId,
+                documentId: req.params.documentId,
+                ctx,
+              }
+            );
+
+          return res.status(200).send(result);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error downloading risk analysis template answer annotation document ${req.params.documentId} for purpose template ${req.params.purposeTemplateId} and answer ${req.params.answerId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get("/purposeTemplates/:purposeTemplateId/eservices", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {

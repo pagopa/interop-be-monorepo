@@ -2208,8 +2208,9 @@ export function catalogServiceBuilder(
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         tenant.kind,
-        new Date() // [todo remove comment] risk analysis creation
+        new Date(), // [todo remove comment] risk analysis creation
         // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
+        eservice.data.personalData
       );
 
       const newRiskAnalysis: RiskAnalysis =
@@ -2294,8 +2295,9 @@ export function catalogServiceBuilder(
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         tenant.kind,
-        new Date() // [todo remove comment] risk analysis update
+        new Date(), // [todo remove comment] risk analysis update
         // drawback: the date of the risk analysis is replaced below in the function riskAnalysisValidatedFormToNewRiskAnalysis
+        eservice.data.personalData
       );
 
       const updatedRiskAnalysis: RiskAnalysis = {

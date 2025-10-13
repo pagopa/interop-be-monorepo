@@ -203,13 +203,15 @@ export function assertHasNoDraftOrWaitingForApprovalDescriptor(
 export function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: catalogApi.EServiceRiskAnalysisSeed["riskAnalysisForm"],
   tenantKind: TenantKind,
-  dateForExpirationValidation: Date
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
     tenantKind,
-    dateForExpirationValidation
+    dateForExpirationValidation,
+    personalDataInEService
   );
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
@@ -233,7 +235,8 @@ export function assertRiskAnalysisIsValidForPublication(
       ),
       false,
       tenantKind,
-      new Date()
+      new Date(),
+      eservice.personalData
     );
 
     if (result.type === "invalid") {
