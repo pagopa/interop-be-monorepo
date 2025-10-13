@@ -414,8 +414,14 @@ const validatePersonalDataFlag = ({
 }): void => {
   const label = buildLabel(tenantKind, version);
   match(label)
-    .with(formRules.PA_1_0, formRules.PA_2_0, formRules.PA_3_0, () => void 0)
-    .with(formRules.PA_3_1, () =>
+    .with(
+      formRules.PA_1_0,
+      formRules.PA_2_0,
+      formRules.PA_3_0,
+      formRules.PRIVATE_1_0,
+      () => void 0
+    )
+    .with(formRules.PA_3_1, formRules.PRIVATE_2_0, () =>
       match(personalDataInEService)
         .with(P.boolean, () => {
           if (personalDataInEService !== personalDataInRiskAnalysis) {
@@ -425,6 +431,5 @@ const validatePersonalDataFlag = ({
         .with(undefined, () => void 0)
         .exhaustive()
     )
-    .with(formRules.PRIVATE_1_0, formRules.PRIVATE_2_0, () => void 0)
     .exhaustive();
 };
