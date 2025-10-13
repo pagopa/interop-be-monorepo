@@ -36,6 +36,8 @@ export const errorCodes = {
   annotationDocumentLimitExceeded: "0019",
   purposeTemplateIsNotDraft: "0020",
   conflictDuplicatedDocument: "0021",
+  hyperlinkDetectionError: "0022",
+  purposeTemplateNotInValidState: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -175,7 +177,7 @@ export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
   documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No Risk Analysis Template Answer Annotation Document found for Purpose Template ${purposeTemplateId}, Answer ${answerId} and Document ${documentId}`,
+    detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId} and answer ${answerId}`,
     code: "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
     title: "Risk Analysis Template Answer Annotation Document Not Found",
   });
@@ -269,5 +271,23 @@ export function conflictDuplicatedDocument(
     detail: `Conflict: annotation document with checksum '${checksum}' is duplicated for answer with id '${answerId}'`,
     code: "conflictDuplicatedDocument",
     title: "Conflict: annotation document with checksum already exists",
+  });
+}
+export function purposeTemplateNotInValidState(
+  state: PurposeTemplateState,
+  validStates: PurposeTemplateState[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose template state is: ${state} but valid states are: ${validStates}`,
+    code: "purposeTemplateNotInValidState",
+    title: "Purpose template not in valid state",
+  });
+}
+
+export function hyperlinkDetectionError(text: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Hyperlink detection error for text ${text}`,
+    code: "hyperlinkDetectionError",
+    title: "Hyperlink detection error",
   });
 }

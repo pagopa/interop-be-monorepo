@@ -9,6 +9,7 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
@@ -412,6 +413,18 @@ export const toPurposeTemplateAggregatorArray = (
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
   };
 };
+
+export const toRiskAnalysisTemplateAnswerAnnotationDocument = (
+  annotationDocumentSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL
+): RiskAnalysisTemplateAnswerAnnotationDocument => ({
+  id: unsafeBrandId(annotationDocumentSQL.id),
+  name: annotationDocumentSQL.name,
+  prettyName: annotationDocumentSQL.prettyName,
+  contentType: annotationDocumentSQL.contentType,
+  path: annotationDocumentSQL.path,
+  createdAt: stringToDate(annotationDocumentSQL.createdAt),
+  checksum: annotationDocumentSQL.checksum,
+});
 
 export const aggregatePurposeTemplateEServiceDescriptorArray = (
   purposeTemplateEServiceDescriptor: PurposeTemplateEServiceDescriptorSQL[]

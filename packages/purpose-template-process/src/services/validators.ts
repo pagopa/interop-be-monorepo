@@ -12,23 +12,28 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
   TenantKind,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import {
   M2MAdminAuthData,
   M2MAuthData,
   RiskAnalysisTemplateValidatedForm,
+  RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   UIAuthData,
   validatePurposeTemplateRiskAnalysis,
+  validateRiskAnalysisAnswer,
+  validateNoHyperlinks,
 } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import {
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
   associationEServicesForPurposeTemplateFailed,
   annotationDocumentLimitExceeded,
   conflictDocumentPrettyNameDuplicate,
   conflictDuplicatedDocument,
+  hyperlinkDetectionError,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInExpectedStates,
@@ -187,6 +192,33 @@ export function validateRiskAnalysisTemplateOrThrow({
     .exhaustive();
 }
 
+export function validateRiskAnalysisAnswerOrThrow({
+  riskAnalysisAnswer,
+  tenantKind,
+}: {
+  riskAnalysisAnswer: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest;
+  tenantKind: TenantKind;
+}): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {
+  if (riskAnalysisAnswer.answerData.annotation) {
+    validateNoHyperlinks(
+      riskAnalysisAnswer.answerData.annotation.text,
+      hyperlinkDetectionError(riskAnalysisAnswer.answerData.annotation.text)
+    );
+  }
+
+  const result = validateRiskAnalysisAnswer(
+    riskAnalysisAnswer.answerKey,
+    riskAnalysisAnswer.answerData,
+    tenantKind
+  );
+
+  if (result.type === "invalid") {
+    throw riskAnalysisTemplateValidationFailed(result.issues);
+  }
+
+  return result.value;
+}
+
 export const assertPurposeTemplateIsDraft = (
   purposeTemplate: PurposeTemplate
 ): void => {
@@ -283,9 +315,20 @@ export const assertArchivableState = (
 
 export function assertPurposeTemplateHasRiskAnalysisForm(
   purposeTemplate: PurposeTemplate
-): void {
+): asserts purposeTemplate is PurposeTemplate & {
+  purposeRiskAnalysisForm: RiskAnalysisFormTemplate;
+} {
   if (!purposeTemplate.purposeRiskAnalysisForm) {
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
+  }
+}
+
+export function assertRequesterPurposeTemplateCreator(
+  creatorId: TenantId,
+  authData: UIAuthData | M2MAdminAuthData
+): void {
+  if (authData.organizationId !== creatorId) {
+    throw operationForbidden;
   }
 }
 
