@@ -1365,15 +1365,20 @@ export function eserviceTemplateServiceBuilder(
     },
     async createEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
-      seed: eserviceTemplateApi.VersionSeedForEServiceTemplateCreation,
+      seed: eserviceTemplateApi.EServiceTemplateVersionSeed,
       {
         authData,
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<EServiceTemplateVersion>> {
+    ): Promise<
+      WithMetadata<{
+        eserviceTemplate: EServiceTemplate;
+        createdEServiceTemplateVersionId: EServiceTemplateVersionId;
+      }>
+    > {
       logger.info(
-        `Creating new eservice template version for EService template ${eserviceTemplateId}`
+        `Creating version for EService template ${eserviceTemplateId}`
       );
 
       const eserviceTemplate = await retrieveEServiceTemplate(
@@ -1386,11 +1391,18 @@ export function eserviceTemplateServiceBuilder(
         authData
       );
       assertPublishedEServiceTemplate(eserviceTemplate.data);
+
       assertNoDraftEServiceTemplateVersions(eserviceTemplate.data);
+
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed.attributes,
+        readModelService
+      );
       assertConsistentDailyCalls({
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
       });
+      const eserviceTemplateVersion = eserviceTemplate.metadata.version;
 
       const previousVersion = eserviceTemplate.data.versions.reduce(
         (latestVersions, curr) =>
@@ -1398,20 +1410,10 @@ export function eserviceTemplateServiceBuilder(
         eserviceTemplate.data.versions[0]
       );
 
-      const newVersion = previousVersion.version + 1;
-
-      const newEServiceTemplateVersionId: EServiceTemplateVersionId =
-        generateId();
-
-      const parsedAttributes = {
-        declared: [],
-        certified: [],
-        verified: [],
-      };
       const newEServiceTemplateVersion: EServiceTemplateVersion = {
-        id: newEServiceTemplateVersionId,
+        id: generateId(),
         description: seed.description,
-        version: newVersion,
+        version: previousVersion.version + 1,
         interface: undefined,
         docs: [],
         state: eserviceTemplateVersionState.draft,
@@ -1430,7 +1432,7 @@ export function eserviceTemplateServiceBuilder(
         attributes: parsedAttributes,
       };
 
-      const newEServiceTemplate: EServiceTemplate = {
+      const updatedEServiceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
         versions: [
           ...eserviceTemplate.data.versions,
@@ -1442,56 +1444,72 @@ export function eserviceTemplateServiceBuilder(
         toCreateEventEServiceTemplateVersionAdded(
           eserviceTemplateId,
           eserviceTemplate.metadata.version,
-          newEServiceTemplateVersionId,
-          newEServiceTemplate,
-          correlationId
-        );
-
-      const eserviceTemplateVersion = eserviceTemplate.metadata.version;
-
-      const events = [eserviceTemplateVersionCreationEvent];
-      // eslint-disable-next-line functional/no-let
-      let eserviceTemplateVersionWithDocs: EServiceTemplateVersion =
-        newEServiceTemplateVersion;
-
-      for (const [index, doc] of previousVersion.docs.entries()) {
-        const newDocument = await cloneEServiceTemplateDocument({
-          doc,
-          fileManager,
-          logger,
-        });
-
-        eserviceTemplateVersionWithDocs = {
-          ...eserviceTemplateVersionWithDocs,
-          docs: [...eserviceTemplateVersionWithDocs.docs, newDocument],
-        };
-
-        const updatedEServiceTemplate = replaceEServiceTemplateVersion(
-          newEServiceTemplate,
-          eserviceTemplateVersionWithDocs
-        );
-
-        const version = eserviceTemplateVersion + index + 1;
-        const documentEvent = toCreateEventEServiceTemplateVersionDocumentAdded(
-          eserviceTemplateId,
-          version,
-          newEServiceTemplateVersionId,
-          newDocument.id,
+          newEServiceTemplateVersion.id,
           updatedEServiceTemplate,
           correlationId
         );
 
-        // eslint-disable-next-line functional/immutable-data
-        events.push(documentEvent);
-      }
+      const { events, updatedEServiceTemplateWithDocs } = seed.docs.reduce(
+        (acc, doc, index) => {
+          const newDocument: Document = {
+            id: unsafeBrandId(doc.documentId),
+            name: doc.fileName,
+            contentType: doc.contentType,
+            prettyName: doc.prettyName,
+            path: doc.filePath,
+            checksum: doc.checksum,
+            uploadDate: new Date(),
+          };
 
-      const event = await repository.createEvents(events);
+          const currentEserviceTemplateVersion =
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            acc.updatedEServiceTemplateWithDocs.versions.find(
+              (v) => v.id === newEServiceTemplateVersion.id
+            )!;
 
-      return {
-        data: eserviceTemplateVersionWithDocs,
-        metadata: {
-          version: event[0].newVersion,
+          const updatedEServiceTemplateWithDocs =
+            replaceEServiceTemplateVersion(
+              acc.updatedEServiceTemplateWithDocs,
+              {
+                ...currentEserviceTemplateVersion,
+                docs: [...currentEserviceTemplateVersion.docs, newDocument],
+              }
+            );
+          const version = eserviceTemplateVersion + index + 1;
+
+          const documentEvent =
+            toCreateEventEServiceTemplateVersionDocumentAdded(
+              eserviceTemplateId,
+              version,
+              newEServiceTemplateVersion.id,
+              newDocument.id,
+              updatedEServiceTemplateWithDocs,
+              correlationId
+            );
+
+          return {
+            events: [...acc.events, documentEvent],
+            updatedEServiceTemplateWithDocs,
+          };
         },
+        {
+          events: [eserviceTemplateVersionCreationEvent],
+          updatedEServiceTemplateWithDocs: updatedEServiceTemplate,
+        }
+      );
+
+      const createdEvents = await repository.createEvents(events);
+
+      const newVersion = Math.max(
+        0,
+        ...createdEvents.map((event) => event.newVersion)
+      );
+      return {
+        data: {
+          eserviceTemplate: updatedEServiceTemplateWithDocs,
+          createdEServiceTemplateVersionId: newEServiceTemplateVersion.id,
+        },
+        metadata: { version: newVersion },
       };
     },
     async getEServiceTemplates(
@@ -1946,6 +1964,7 @@ function applyVisibilityToEServiceTemplate(
   throw eserviceTemplateNotFound(eserviceTemplate.id);
 }
 
+// TODO: we may remove this, i don't see any other usage but my finder in folder some times doesn't return all occurrences in large repositories
 export async function cloneEServiceTemplateDocument({
   doc,
   fileManager,

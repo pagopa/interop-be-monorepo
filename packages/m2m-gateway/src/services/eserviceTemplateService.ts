@@ -15,6 +15,7 @@ import {
   toM2MGatewayEServiceTemplateVersion,
   toGetEServiceTemplatesQueryParams,
   toM2MGatewayApiDocument,
+  toEServiceTemplateApiEServiceTemplateVersionSeed,
 } from "../api/eserviceTemplateApiConverter.js";
 import {
   cannotDeleteLastEServiceTemplateVersion,
@@ -168,30 +169,34 @@ export function eserviceTemplateServiceBuilder(
     },
     async createEServiceTemplateVersion(
       templateId: EServiceTemplateId,
-      seed: m2mGatewayApi.EServiceTemplateVersionCreationSeed,
+      seed: m2mGatewayApi.EServiceTemplateVersionSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
       logger.info(`Creating Version for E-Service Template ${templateId}`);
-      const response =
+
+      const {
+        data: { eserviceTemplate, createdEServiceTemplateId },
+        metadata,
+      } =
         await clients.eserviceTemplateProcessClient.createEServiceTemplateVersion(
-          seed,
+          toEServiceTemplateApiEServiceTemplateVersionSeed(seed),
           {
             params: { templateId },
             headers,
           }
         );
-      const polledResource = await pollEServiceTemplateById(
-        templateId,
-        response.metadata,
+      await pollEServiceTemplate(
+        {
+          data: eserviceTemplate,
+          metadata,
+        },
         headers
       );
-
-      return toM2MGatewayEServiceTemplateVersion(
-        retrieveEServiceTemplateVersionById(
-          polledResource,
-          unsafeBrandId(response.data.id)
-        )
+      const createdVersion = retrieveEServiceTemplateVersionById(
+        { data: eserviceTemplate, metadata },
+        unsafeBrandId(createdEServiceTemplateId)
       );
+      return toM2MGatewayEServiceTemplateVersion(createdVersion);
     },
     async createEServiceTemplateRiskAnalysis(
       templateId: EServiceTemplateId,

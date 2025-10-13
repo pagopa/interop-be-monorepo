@@ -40,10 +40,11 @@ import { config } from "../config/config.js";
 import {
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
-  noVersionInEserviceTemplate,
+  noVersionInEServiceTemplate,
   tenantNotFound,
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
+import { cloneEServiceTemplateDocument } from "../utilities/fileUtils.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 export function eserviceTemplateServiceBuilder(
@@ -510,7 +511,7 @@ export function eserviceTemplateServiceBuilder(
         });
 
       if (eserviceTemplate.versions.length === 0) {
-        throw noVersionInEserviceTemplate(eserviceTemplate.id);
+        throw noVersionInEServiceTemplate(eserviceTemplate.id);
       }
 
       const previousVersion = eserviceTemplate.versions.reduce(
@@ -519,17 +520,38 @@ export function eserviceTemplateServiceBuilder(
         eserviceTemplate.versions[0]
       );
 
-      const { id } = await eserviceTemplateClient.createEServiceTemplateVersion(
-        previousVersion,
-        {
-          headers,
-          params: {
-            templateId,
-          },
-        }
+      const clonedDocumentsCalls = previousVersion.docs.map((doc) =>
+        cloneEServiceTemplateDocument({
+          doc,
+          documentsContainer: config.eserviceTemplateDocumentsContainer,
+          documentsPath: config.eserviceTemplateDocumentsPath,
+          fileManager,
+          logger,
+        })
       );
 
-      return { id };
+      const clonedDocuments = await Promise.all(clonedDocumentsCalls);
+
+      const response =
+        await eserviceTemplateClient.createEServiceTemplateVersion(
+          {
+            description: previousVersion.description,
+            voucherLifespan: previousVersion.voucherLifespan,
+            dailyCallsPerConsumer: previousVersion.dailyCallsPerConsumer,
+            dailyCallsTotal: previousVersion.dailyCallsTotal,
+            agreementApprovalPolicy: previousVersion.agreementApprovalPolicy,
+            attributes: previousVersion.attributes,
+            docs: clonedDocuments,
+          },
+          {
+            headers,
+            params: {
+              templateId,
+            },
+          }
+        );
+
+      return { id: response.createdEServiceTemplateId };
     },
     getEServiceTemplateCreators: async (
       {

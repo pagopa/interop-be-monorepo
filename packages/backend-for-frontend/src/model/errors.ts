@@ -67,7 +67,6 @@ export const errorCodes = {
   operationForbidden: "0063",
   disassociationEServicesFromPurposeTemplateFailed: "0064",
   associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0065",
-  noVersionInEserviceTemplate: "0066",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -277,12 +276,12 @@ export function noDescriptorInEservice(
     title: "No descriptor found in Eservice",
   });
 }
-export function noVersionInEserviceTemplate(
+export function noVersionInEServiceTemplate(
   eserviceTemplateId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `No version found in Eservice template ${eserviceTemplateId}`,
-    code: "noVersionInEserviceTemplate",
+    code: "noVersionInEServiceTemplate",
     title: "No version found in Eservice template",
   });
 }

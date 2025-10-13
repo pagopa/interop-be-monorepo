@@ -303,18 +303,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/VersionSeedForEServiceTemplateCreation"
+              $ref: "#/components/schemas/EServiceTemplateVersionSeed"
         required: true
       responses:
         "200":
+          description: EService template version created.
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          description: EService template version created.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceTemplateVersion"
+                $ref: "#/components/schemas/CreatedEServiceTemplateVersion"
         "400":
           description: Invalid input
           content:
@@ -1572,6 +1572,43 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+    EServiceTemplateVersionSeed:
+      required:
+        - voucherLifespan
+        - attributes
+        - docs
+      type: object
+      additionalProperties: false
+      properties:
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        voucherLifespan:
+          type: integer
+          format: int32
+          minimum: 60
+          maximum: 86400
+        dailyCallsPerConsumer:
+          description: "maximum number of daily calls that this descriptor can afford."
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        dailyCallsTotal:
+          description: "total daily calls available for this e-service."
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
+        docs:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateEServiceTemplateVersionDocumentSeed"
     UpdateEServiceTemplateVersionSeed:
       required:
         - voucherLifespan
@@ -2018,6 +2055,18 @@ components:
           maxLength: 60
       required:
         - name
+    CreatedEServiceTemplateVersion:
+      type: object
+      additionalProperties: false
+      required:
+        - eserviceTemplate
+        - createdEServiceTemplateId
+      properties:
+        eserviceTemplate:
+          $ref: "#/components/schemas/EServiceTemplate"
+        createdEServiceTemplateId:
+          type: string
+          format: uuid
     EServiceTemplateVersion:
       type: object
       additionalProperties: false

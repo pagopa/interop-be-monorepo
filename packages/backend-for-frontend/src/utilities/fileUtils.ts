@@ -3,9 +3,14 @@
 /* eslint-disable max-params */
 import path from "path";
 import AdmZip from "adm-zip";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { DescriptorId, genericError } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceDocumentId,
+  generateId,
+  genericError,
+} from "pagopa-interop-models";
 import { missingInterface } from "../model/errors.js";
 import { verifyExportEligibility } from "../services/validators.js";
 import { retrieveEserviceDescriptor } from "../services/catalogService.js";
@@ -228,6 +233,41 @@ export async function cloneEServiceDocument({
     logger
   );
 
+  return {
+    documentId: clonedDocumentId,
+    kind: "DOCUMENT",
+    contentType: doc.contentType,
+    prettyName: doc.prettyName,
+    fileName: doc.name,
+    filePath: clonedPath,
+    checksum: doc.checksum,
+    serverUrls: [],
+  };
+}
+
+export async function cloneEServiceTemplateDocument({
+  doc,
+  documentsContainer,
+  documentsPath,
+  fileManager,
+  logger,
+}: {
+  doc: eserviceTemplateApi.EServiceDoc;
+  documentsContainer: string;
+  documentsPath: string;
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed> {
+  const clonedDocumentId: EServiceDocumentId = generateId();
+
+  const clonedPath = await fileManager.copy(
+    documentsContainer,
+    doc.path,
+    documentsPath,
+    clonedDocumentId,
+    doc.name,
+    logger
+  );
   return {
     documentId: clonedDocumentId,
     kind: "DOCUMENT",

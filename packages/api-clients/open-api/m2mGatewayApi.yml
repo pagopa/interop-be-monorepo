@@ -8914,15 +8914,16 @@ paths:
     post:
       tags:
         - eserviceTemplates
-      summary: Adds a version to the specified e-service template
-      description: Adds a new Draft version to the specified E-Service template
+      summary: Create a new E-Service Template Version
+      description: |
+        Create a new E-Service Template Version.
+        This E-Service Template must not already have a Version in a Draft state.
       operationId: createEServiceTemplateVersion
       requestBody:
-        description: An E-Service template version seed
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceTemplateVersionCreationSeed"
+              $ref: "#/components/schemas/EServiceTemplateVersionSeed"
         required: true
       responses:
         "201":
@@ -8979,19 +8980,6 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
-        "409":
-          description: Name Conflict
           content:
             application/problem+json:
               schema:
@@ -14962,9 +14950,7 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
-    EServiceTemplateVersionCreationSeed:
-      required:
-        - voucherLifespan
+    EServiceTemplateVersionSeed:
       type: object
       additionalProperties: false
       properties:
@@ -14978,19 +14964,21 @@ components:
           minimum: 60
           maximum: 86400
         dailyCallsPerConsumer:
-          description: "maximum number of daily calls that this descriptor can afford."
+          description: Maximum number of daily calls that this descriptor can afford per consumer
           type: integer
           format: int32
           minimum: 1
           maximum: 1000000000
         dailyCallsTotal:
-          description: "total daily calls available for this e-service."
+          description: Total daily calls available for this E-Service
           type: integer
           format: int32
           minimum: 1
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+      required:
+        - voucherLifespan
     EServiceTemplateVersionDraftUpdateSeed:
       type: object
       additionalProperties: false
