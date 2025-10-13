@@ -16,7 +16,7 @@ import {
 } from "../../../src/model/errors.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
-describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttributes router test", () => {
+describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttributes router test", () => {
   const attribute1: catalogApi.Attribute = {
     id: generateId(),
     explicitAttributeVerification: false,
@@ -31,39 +31,33 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttrib
     id: generateId(),
     explicitAttributeVerification: false,
   };
-  const bulkAttribute1: m2mGatewayApi.CertifiedAttribute = {
-    code: "code1",
+  const bulkAttribute1: m2mGatewayApi.VerifiedAttribute = {
     id: attribute1.id,
     name: "Attribute Name 1",
     createdAt: new Date().toISOString(),
     description: "Description 1",
-    origin: "Origin 1",
   };
 
-  const bulkAttribute2: m2mGatewayApi.CertifiedAttribute = {
-    code: "code2",
+  const bulkAttribute2: m2mGatewayApi.VerifiedAttribute = {
     id: attribute2.id,
     name: "Attribute Name 2",
     createdAt: new Date().toISOString(),
     description: "Description 2",
-    origin: "Origin 2",
   };
 
-  const bulkAttribute3: m2mGatewayApi.CertifiedAttribute = {
-    code: "code3",
+  const bulkAttribute3: m2mGatewayApi.VerifiedAttribute = {
     id: attribute3.id,
     name: "Attribute Name 3",
     createdAt: new Date().toISOString(),
     description: "Description 3",
-    origin: "Origin 3",
   };
 
   const descriptor: catalogApi.EServiceDescriptor = {
     ...getMockedApiEserviceDescriptor(),
     attributes: {
-      certified: [[attribute1, attribute2], [attribute3]],
-      verified: [],
+      verified: [[attribute1, attribute2], [attribute3]],
       declared: [],
+      certified: [],
     },
   };
 
@@ -72,7 +66,7 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttrib
     descriptors: [descriptor],
   };
 
-  const results: m2mGatewayApi.EServiceDescriptorCertifiedAttribute[] = [
+  const results: m2mGatewayApi.EServiceDescriptorVerifiedAttribute[] = [
     {
       groupIndex: 0,
       attribute: bulkAttribute1,
@@ -87,30 +81,30 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttrib
     },
   ];
 
-  const mockM2MEserviceCertifiedAttributesResponse: m2mGatewayApi.EServiceDescriptorCertifiedAttributes =
+  const mockM2MEserviceVerifiedAttributesResponse: m2mGatewayApi.EServiceDescriptorVerifiedAttributes =
     {
       pagination: { offset: 0, limit: 10, totalCount: 3 },
       results,
     };
 
-  const mockQueryParams: m2mGatewayApi.GetCertifiedAttributesQueryParams = {
+  const mockQueryParams: m2mGatewayApi.GetVerifiedAttributesQueryParams = {
     offset: 0,
     limit: 10,
   };
 
-  mockEserviceService.getEserviceDescriptorCertifiedAttributes = vi
+  mockEserviceService.getEserviceDescriptorVerifiedAttributes = vi
     .fn()
-    .mockResolvedValue(mockM2MEserviceCertifiedAttributesResponse);
+    .mockResolvedValue(mockM2MEserviceVerifiedAttributesResponse);
 
   const makeRequest = async (
     token: string,
     eserviceId: string = eservice.id,
     descriptorId: string = descriptor.id,
-    query: m2mGatewayApi.GetCertifiedAttributesQueryParams = mockQueryParams
+    query: m2mGatewayApi.GetVerifiedAttributesQueryParams = mockQueryParams
   ) =>
     request(api)
       .get(
-        `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/certifiedAttributes`
+        `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/verifiedAttributes`
       )
       .set("Authorization", `Bearer ${token}`)
       .query(query)
@@ -125,7 +119,7 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttrib
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockM2MEserviceCertifiedAttributesResponse);
+      expect(res.body).toEqual(mockM2MEserviceVerifiedAttributesResponse);
     }
   );
 
@@ -148,7 +142,7 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttrib
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      mockEserviceService.getEserviceDescriptorCertifiedAttributes = vi
+      mockEserviceService.getEserviceDescriptorVerifiedAttributes = vi
         .fn()
         .mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -169,7 +163,7 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttrib
       token,
       generateId(),
       generateId(),
-      query as m2mGatewayApi.GetCertifiedAttributesQueryParams
+      query as m2mGatewayApi.GetVerifiedAttributesQueryParams
     );
 
     expect(res.status).toBe(400);
@@ -177,25 +171,25 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttrib
 
   it.each([
     {
-      ...mockM2MEserviceCertifiedAttributesResponse,
+      ...mockM2MEserviceVerifiedAttributesResponse,
       results: [
         {
-          ...mockM2MEserviceCertifiedAttributesResponse.results[0],
+          ...mockM2MEserviceVerifiedAttributesResponse.results[0],
           id: "invalid",
         },
       ],
     },
     {
-      ...mockM2MEserviceCertifiedAttributesResponse,
+      ...mockM2MEserviceVerifiedAttributesResponse,
       results: [
         {
-          ...mockM2MEserviceCertifiedAttributesResponse.results[0],
+          ...mockM2MEserviceVerifiedAttributesResponse.results[0],
           createdAt: undefined,
         },
       ],
     },
     {
-      ...mockM2MEserviceCertifiedAttributesResponse,
+      ...mockM2MEserviceVerifiedAttributesResponse,
       pagination: {
         offset: "invalidOffset",
         limit: "invalidLimit",
@@ -203,28 +197,28 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttrib
       },
     },
     {
-      ...mockM2MEserviceCertifiedAttributesResponse,
+      ...mockM2MEserviceVerifiedAttributesResponse,
       results: [
         {
-          ...mockM2MEserviceCertifiedAttributesResponse.results[0],
+          ...mockM2MEserviceVerifiedAttributesResponse.results[0],
           groupIndex: undefined,
         },
       ],
     },
     // {
-    //   ...mockM2MEserviceCertifiedAttributesResponse,
+    //   ...mockM2MEserviceVerifiedAttributesResponse,
     //   results: [
     //     {
-    //       ...mockM2MEserviceCertifiedAttributesResponse.results[0],
+    //       ...mockM2MEserviceVerifiedAttributesResponse.results[0],
     //       groupIndex: -1,
     //     },
     //   ],
     // }, it should be fail, IDK why it pass
     {
-      ...mockM2MEserviceCertifiedAttributesResponse,
+      ...mockM2MEserviceVerifiedAttributesResponse,
       results: [
         {
-          ...mockM2MEserviceCertifiedAttributesResponse.results[0],
+          ...mockM2MEserviceVerifiedAttributesResponse.results[0],
           groupIndex: "a string",
         },
       ],
@@ -232,7 +226,7 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttrib
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockEserviceService.getEserviceDescriptorCertifiedAttributes = vi
+      mockEserviceService.getEserviceDescriptorVerifiedAttributes = vi
         .fn()
         .mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);

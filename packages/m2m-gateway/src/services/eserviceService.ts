@@ -40,7 +40,11 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
-import { toM2MGatewayApiCertifiedAttribute } from "../api/attributeApiConverter.js";
+import {
+  toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiDeclaredAttribute,
+  toM2MGatewayApiVerifiedAttribute,
+} from "../api/attributeApiConverter.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -104,29 +108,17 @@ export function eserviceServiceBuilder(
     }>
   > {
     const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
-    const localAttributeGroups = descriptor.attributes[attributeKind];
-    // 1.Flatten:Create the complete list of ALL ID attributes with their groupIndex.
-    /**
-     Flattens all attribute groups into a single array of objects, 
-     keeping the Attribute ID and its Group Index.
-     */
+    const kindAttributeGroups = descriptor.attributes[attributeKind];
     const allFlatLocalAttributes: Array<{
-      attributeId: string; // Take only the ID of the local attribute
+      attributeId: string;
       groupIndex: number;
-    }> = localAttributeGroups.flatMap((group, groupIndex) =>
+    }> = kindAttributeGroups.flatMap((group, groupIndex) =>
       group.map((attribute) => ({
         attributeId: attribute.id,
         groupIndex,
       }))
     );
 
-    // 2. Extraction of IDs and Application of Pagination (on the final list)
-    // The external API will only resolve the IDs that fall within the requested page.
-    /**
-     * Applies pagination to the flat list.
-     * Extracts the Attribute IDs for only the current page,
-     *  which will be sent to the external API. Handles the empty result case.
-     */
     const paginatedFlatLocalAttributes = allFlatLocalAttributes.slice(
       offset,
       offset + limit
@@ -138,12 +130,11 @@ export function eserviceServiceBuilder(
     if (attributeIdsToResolve.length === 0) {
       return {
         results: [],
-        totalCount: allFlatLocalAttributes.length,
+        totalCount: attributeIdsToResolve.length,
       };
     }
 
-    // 3. Resolve the complete details only for the attributes needed on the page.
-    // Here we call getBulkedAttributes to return the full attribute and not just the id
+    // Resolve the complete details only for the attributes needed on the page.
     const bulkResult = await clients.attributeProcessClient.getBulkedAttributes(
       attributeIdsToResolve,
       {
@@ -160,12 +151,7 @@ export function eserviceServiceBuilder(
       bulkResult.data.results.map((attr) => [attr.id, attr])
     );
 
-    // 4. Recombination: Map the paginated flat list with the resolved complete details
-    /**
-     * Converts the bulk results into a Map for quick access.
-     * Recombines the paginated list (Step 2) with the full attribute details
-     * to form the final result set, maintaining the groupIndex.
-     */
+    // Recombination: Map the paginated flat list with the resolved complete details
     const finalAttributes = paginatedFlatLocalAttributes.map((item) => {
       const attributeDetailed = attributeMap.get(item.attributeId);
 
@@ -179,11 +165,9 @@ export function eserviceServiceBuilder(
       };
     });
 
-    // 5. Return with Pagination:
-    // We return the paginated result, using the totalCount from the initial list.
     return {
       results: finalAttributes,
-      totalCount: allFlatLocalAttributes.length,
+      totalCount: finalAttributes.length,
     };
   }
 
@@ -994,7 +978,7 @@ export function eserviceServiceBuilder(
       descriptorId: DescriptorId,
       { limit, offset }: m2mGatewayApi.GetCertifiedAttributesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.CertifiedAttributesFlat> {
+    ): Promise<m2mGatewayApi.EServiceDescriptorCertifiedAttributes> {
       logger.info(
         `Retrieving Certified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
@@ -1007,15 +991,78 @@ export function eserviceServiceBuilder(
         headers
       );
 
-      const paginated = eserviceAttributes.results.slice(
-        offset,
-        offset + limit
+      return {
+        results: eserviceAttributes.results.map((item) => ({
+          groupIndex: item.groupIndex,
+          attribute: toM2MGatewayApiCertifiedAttribute({
+            attribute: item.attribute,
+            logger,
+          }),
+        })),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceAttributes.totalCount,
+        },
+      };
+    },
+
+    async getEserviceDescriptorDeclaredAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { limit, offset }: m2mGatewayApi.GetDeclaredAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorDeclaredAttributes> {
+      logger.info(
+        `Retrieving Declared Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      const eserviceAttributes = await retrieveEServiceDescriptorAttributes(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId,
+        "declared",
+        { offset, limit },
+        headers
       );
 
       return {
-        results: paginated.map((item) => ({
+        results: eserviceAttributes.results.map((item) => ({
           groupIndex: item.groupIndex,
-          attribute: toM2MGatewayApiCertifiedAttribute({
+          attribute: toM2MGatewayApiDeclaredAttribute({
+            attribute: item.attribute,
+            logger,
+          }),
+        })),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceAttributes.totalCount,
+        },
+      };
+    },
+
+    async getEserviceDescriptorVerifiedAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { limit, offset }: m2mGatewayApi.GetVerifiedAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorVerifiedAttributes> {
+      logger.info(
+        `Retrieving Verified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      const eserviceAttributes = await retrieveEServiceDescriptorAttributes(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId,
+        "verified",
+        { offset, limit },
+        headers
+      );
+
+      return {
+        results: eserviceAttributes.results.map((item) => ({
+          groupIndex: item.groupIndex,
+          attribute: toM2MGatewayApiVerifiedAttribute({
             attribute: item.attribute,
             logger,
           }),
