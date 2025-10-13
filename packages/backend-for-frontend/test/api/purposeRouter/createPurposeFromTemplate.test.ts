@@ -8,7 +8,6 @@ import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockPurposeFromTemplateSeed } from "../../mockUtils.js";
-import { purposeTemplateNotFound } from "../../../src/model/errors.js";
 
 describe("API POST /purposeTemplates/{purposeTemplateId}/purposes", () => {
   const mockPurposeFromTemplateSeed = getMockPurposeFromTemplateSeed();
@@ -69,21 +68,4 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/purposes", () => {
       expect(res.status).toBe(400);
     }
   );
-
-  it("Should return 404 if templateId is not found", async () => {
-    const newTemplateId: PurposeTemplateId = generateId();
-    const rejected = purposeTemplateNotFound(newTemplateId);
-    clients.purposeProcessClient.createPurposeFromTemplate = vi
-      .fn()
-      .mockRejectedValue(rejected);
-
-    const token = generateToken(authRole.ADMIN_ROLE);
-
-    const res = await makeRequest(
-      token,
-      newTemplateId,
-      mockPurposeFromTemplateSeed
-    );
-    expect(res.status).toBe(404);
-  });
 });

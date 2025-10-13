@@ -453,13 +453,3 @@ export function templateInstanceNotAllowed(
     title: "TemplateId must be undefined",
   });
 }
-
-export function purposeTemplateNotFound(
-  purposeTemplateId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose Template with id ${purposeTemplateId} not found`,
-    code: "purposeTemplateNotFound",
-    title: "Purpose Template not found",
-  });
-}

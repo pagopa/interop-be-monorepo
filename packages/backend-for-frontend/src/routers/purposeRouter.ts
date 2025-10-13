@@ -17,7 +17,6 @@ import {
   getPurposesErrorMapper,
   reversePurposeUpdateErrorMapper,
   getPurposeErrorMapper,
-  createPurposeFromTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
@@ -470,10 +469,9 @@ const purposeRouter = (
 
         return res.status(200).send(bffApi.CreatedResource.parse(result));
       } catch (error) {
-        ctx.logger.error(error);
         const errorRes = makeApiProblem(
           error,
-          createPurposeFromTemplateErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error creating Purpose from template ${req.params.purposeTemplateId} and consumer ${req.body.consumerId}`
         );
