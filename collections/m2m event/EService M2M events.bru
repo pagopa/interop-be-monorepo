@@ -5,13 +5,14 @@ meta {
 }
 
 get {
-  url: {{host-m2m-event-manager}}/events/eservices?limit=10
+  url: {{host-m2m-event-manager}}/events/eservices?limit=10&delegationId=null
   body: none
   auth: none
 }
 
 params:query {
   limit: 10
+  delegationId: null
   ~lastEventId: 
 }
 
