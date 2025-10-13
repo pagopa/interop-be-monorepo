@@ -35,8 +35,8 @@ export function dateToSeconds(date: Date): number {
 
 export const timestampToMilliseconds = (timestamp: number): number => {
   const truncatedTimestamp = Math.trunc(timestamp);
-  const nowSec = Math.floor(Date.now() / 1000);
-  const ratio = truncatedTimestamp / nowSec;
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const ratio = truncatedTimestamp / nowSeconds;
 
   if (ratio > 1_000_000) {
     // nanoseconds -> milliseconds
