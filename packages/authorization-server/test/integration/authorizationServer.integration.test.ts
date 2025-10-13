@@ -44,7 +44,7 @@ import {
   dateToSeconds,
   formatDateyyyyMMdd,
   genericLogger,
-  secondsToMilliseconds,
+  timestampToMilliseconds,
   systemRole,
 } from "pagopa-interop-commons";
 import {
@@ -868,7 +868,7 @@ describe("authorization server tests", () => {
     const expectedMessageBody: GeneratedTokenAuditDetails = {
       jwtId: generateId(),
       correlationId,
-      issuedAt: secondsToMilliseconds(parsedDecodedFileContent.issuedAt),
+      issuedAt: timestampToMilliseconds(parsedDecodedFileContent.issuedAt),
       clientId,
       organizationId: tokenClientKidPurposeEntry.consumerId!,
       agreementId: unsafeBrandId<AgreementId>(
@@ -886,16 +886,16 @@ describe("authorization server tests", () => {
       keyId: config.generatedInteropTokenKid,
       audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
-      notBefore: secondsToMilliseconds(parsedDecodedFileContent.notBefore),
-      expirationTime: secondsToMilliseconds(
+      notBefore: timestampToMilliseconds(parsedDecodedFileContent.notBefore),
+      expirationTime: timestampToMilliseconds(
         parsedDecodedFileContent.expirationTime
       ),
       issuer: config.generatedInteropTokenIssuer,
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
+        expirationTime: timestampToMilliseconds(clientAssertion.payload.exp!),
+        issuedAt: timestampToMilliseconds(clientAssertion.payload.iat!),
         issuer: clientAssertion.payload.iss!,
         jwtId: clientAssertion.payload.jti!,
         keyId: clientAssertion.header.kid!,
@@ -1012,7 +1012,7 @@ describe("authorization server tests", () => {
     const expectedMessageBody: GeneratedTokenAuditDetails = {
       jwtId: generateId(),
       correlationId,
-      issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
+      issuedAt: timestampToMilliseconds(parsedAuditSent.issuedAt),
       clientId,
       organizationId: tokenClientPurposeEntry.consumerId!,
       agreementId: unsafeBrandId<AgreementId>(
@@ -1030,14 +1030,14 @@ describe("authorization server tests", () => {
       keyId: config.generatedInteropTokenKid,
       audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
-      notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
-      expirationTime: secondsToMilliseconds(parsedAuditSent.expirationTime),
+      notBefore: timestampToMilliseconds(parsedAuditSent.notBefore),
+      expirationTime: timestampToMilliseconds(parsedAuditSent.expirationTime),
       issuer: config.generatedInteropTokenIssuer,
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
+        expirationTime: timestampToMilliseconds(clientAssertion.payload.exp!),
+        issuedAt: timestampToMilliseconds(clientAssertion.payload.iat!),
         issuer: clientAssertion.payload.iss!,
         jwtId: clientAssertion.payload.jti!,
         keyId: clientAssertion.header.kid!,
@@ -1137,7 +1137,7 @@ describe("authorization server tests", () => {
     const expectedMessageBody: GeneratedTokenAuditDetails = {
       jwtId: generateId(),
       correlationId,
-      issuedAt: secondsToMilliseconds(parsedDecodedFileContent.issuedAt),
+      issuedAt: timestampToMilliseconds(parsedDecodedFileContent.issuedAt),
       clientId,
       organizationId: tokenClientKidPurposeEntry.consumerId!,
       agreementId: unsafeBrandId<AgreementId>(
@@ -1155,16 +1155,16 @@ describe("authorization server tests", () => {
       keyId: config.generatedInteropTokenKid,
       audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
-      notBefore: secondsToMilliseconds(parsedDecodedFileContent.notBefore),
-      expirationTime: secondsToMilliseconds(
+      notBefore: timestampToMilliseconds(parsedDecodedFileContent.notBefore),
+      expirationTime: timestampToMilliseconds(
         parsedDecodedFileContent.expirationTime
       ),
       issuer: config.generatedInteropTokenIssuer,
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
+        expirationTime: timestampToMilliseconds(clientAssertion.payload.exp!),
+        issuedAt: timestampToMilliseconds(clientAssertion.payload.iat!),
         issuer: clientAssertion.payload.iss!,
         jwtId: clientAssertion.payload.jti!,
         keyId: clientAssertion.header.kid!,
@@ -1176,7 +1176,7 @@ describe("authorization server tests", () => {
         jwk: dpopProofJWT.header.jwk,
         htm: dpopProofJWT.payload.htm,
         htu: dpopProofJWT.payload.htu,
-        iat: secondsToMilliseconds(dpopProofJWT.payload.iat),
+        iat: timestampToMilliseconds(dpopProofJWT.payload.iat),
         jti: dpopProofJWT.payload.jti,
       },
     };
@@ -1298,7 +1298,7 @@ describe("authorization server tests", () => {
     const expectedMessageBody: GeneratedTokenAuditDetails = {
       jwtId: generateId(),
       correlationId,
-      issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
+      issuedAt: timestampToMilliseconds(parsedAuditSent.issuedAt),
       clientId,
       organizationId: tokenClientPurposeEntry.consumerId!,
       agreementId: unsafeBrandId<AgreementId>(
@@ -1316,14 +1316,14 @@ describe("authorization server tests", () => {
       keyId: config.generatedInteropTokenKid,
       audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
-      notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
-      expirationTime: secondsToMilliseconds(parsedAuditSent.expirationTime),
+      notBefore: timestampToMilliseconds(parsedAuditSent.notBefore),
+      expirationTime: timestampToMilliseconds(parsedAuditSent.expirationTime),
       issuer: config.generatedInteropTokenIssuer,
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
+        expirationTime: timestampToMilliseconds(clientAssertion.payload.exp!),
+        issuedAt: timestampToMilliseconds(clientAssertion.payload.iat!),
         issuer: clientAssertion.payload.iss!,
         jwtId: clientAssertion.payload.jti!,
         keyId: clientAssertion.header.kid!,
@@ -1335,7 +1335,7 @@ describe("authorization server tests", () => {
         jwk: dpopProofJWT.header.jwk,
         htm: dpopProofJWT.payload.htm,
         htu: dpopProofJWT.payload.htu,
-        iat: secondsToMilliseconds(dpopProofJWT.payload.iat),
+        iat: timestampToMilliseconds(dpopProofJWT.payload.iat),
         jti: dpopProofJWT.payload.jti,
       },
     };
