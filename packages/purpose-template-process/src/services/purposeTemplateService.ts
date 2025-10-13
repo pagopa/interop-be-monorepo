@@ -440,6 +440,9 @@ export function purposeTemplateServiceBuilder(
         ...purposeTemplate.data,
         ...purposeTemplateSeed,
         purposeRiskAnalysisForm,
+        ...(!purposeTemplateSeed.purposeIsFreeOfCharge && {
+          purposeFreeOfChargeReason: undefined,
+        }),
       };
 
       await cleanupAnnotationDocsForRemovedAnswers(
