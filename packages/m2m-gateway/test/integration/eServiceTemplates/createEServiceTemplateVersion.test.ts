@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   EServiceTemplateId,
   pollingMaxRetriesExceeded,
@@ -20,10 +20,9 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
 
 describe("createEserviceTemplateVersion", () => {
-  const versionSeed: m2mGatewayApi.EServiceTemplateVersionCreationSeed = {
+  const versionSeed: m2mGatewayApi.EServiceTemplateVersionSeed = {
     description: "Test Version",
     voucherLifespan: 100,
     dailyCallsPerConsumer: 10,
@@ -36,9 +35,11 @@ describe("createEserviceTemplateVersion", () => {
     versions: [mockVersion],
   });
 
-  const mockCreateResponseData =
-    toM2MGatewayEServiceTemplateVersion(mockVersion);
-
+  const mockCreateResponseData: eserviceTemplateApi.CreatedEServiceTemplateVersion =
+    {
+      eserviceTemplate: mockEServiceTemplate,
+      createdEServiceTemplateId: mockEServiceTemplate.versions[0].id,
+    };
   const mockCreateVersion = vi.fn().mockResolvedValue({
     data: mockCreateResponseData,
     metadata: { version: 0 },
@@ -86,7 +87,15 @@ describe("createEserviceTemplateVersion", () => {
         mockInteropBeClients.eserviceTemplateProcessClient
           .createEServiceTemplateVersion,
       params: { templateId: mockEServiceTemplate.id },
-      body: versionSeed,
+      body: {
+        ...versionSeed,
+        attributes: {
+          certified: [],
+          declared: [],
+          verified: [],
+        },
+        docs: [],
+      },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
