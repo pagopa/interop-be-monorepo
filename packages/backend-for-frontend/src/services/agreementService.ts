@@ -536,6 +536,10 @@ export function agreementServiceBuilder(
         headers,
       });
 
+      if (producerName && producerName.length < 3) {
+        return emptyPagination(offset, limit);
+      }
+
       const notifications =
         await clients.inAppNotificationManagerClient.filterUnreadNotifications({
           queries: {
@@ -543,10 +547,6 @@ export function agreementServiceBuilder(
           },
           headers,
         });
-
-      if (producerName && producerName.length < 3) {
-        return emptyPagination(offset, limit);
-      }
 
       return {
         pagination: {

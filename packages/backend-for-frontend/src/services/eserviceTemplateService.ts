@@ -541,7 +541,7 @@ export function eserviceTemplateServiceBuilder(
       });
 
       return {
-        results: res.results.map(toBffCompactOrganization),
+        results: res.results.map((r) => toBffCompactOrganization(r)),
         pagination: {
           offset,
           limit,

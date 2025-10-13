@@ -553,7 +553,7 @@ components:
             certifiedVerifiedAttributeAssignedRevokedToAssignee:
               type: integer
               format: int32
-            clientKeyAddedDeletedToClientUsers:
+            producerKeychainKeyAddedDeletedToClientUsers:
               type: integer
               format: int32
             producerKeychainKeyAddedDeletedToClientUsers:

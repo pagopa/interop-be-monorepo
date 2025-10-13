@@ -37,6 +37,9 @@ describe("API GET /agreements/filter/producers", () => {
     clients.agreementProcessClient.getAgreementsProducers = vi
       .fn()
       .mockResolvedValue(mockCompactOrganizations);
+    clients.inAppNotificationManagerClient.filterUnreadNotifications = vi
+      .fn()
+      .mockResolvedValue([]);
   });
 
   const makeRequest = async (
