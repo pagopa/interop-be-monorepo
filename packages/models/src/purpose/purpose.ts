@@ -7,6 +7,7 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   TenantId,
+  UserId,
 } from "../brandedIds.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
 
@@ -32,6 +33,20 @@ export const PurposeVersionDocument = z.object({
 });
 export type PurposeVersionDocument = z.infer<typeof PurposeVersionDocument>;
 
+export const PurposeVersionStamp = z.object({
+  who: UserId,
+  when: z.coerce.date(),
+});
+export type PurposeVersionStamp = z.infer<typeof PurposeVersionStamp>;
+
+export const PurposeVersionStamps = z.object({
+  creation: PurposeVersionStamp,
+});
+export type PurposeVersionStamps = z.infer<typeof PurposeVersionStamps>;
+
+export const PurposeVersionStampKind = PurposeVersionStamps.keyof();
+export type PurposeVersionStampKind = z.infer<typeof PurposeVersionStampKind>;
+
 export const PurposeVersion = z.object({
   id: PurposeVersionId,
   state: PurposeVersionState,
@@ -42,6 +57,7 @@ export const PurposeVersion = z.object({
   updatedAt: z.coerce.date().optional(),
   firstActivationAt: z.coerce.date().optional(),
   suspendedAt: z.coerce.date().optional(),
+  stamps: PurposeVersionStamps.optional(),
 });
 export type PurposeVersion = z.infer<typeof PurposeVersion>;
 
