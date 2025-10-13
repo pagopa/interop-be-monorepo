@@ -41,6 +41,7 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
       "inconsistentDailyCalls",
       "eServiceTemplateWithoutPublishedVersion",
       "templateMissingRequiredRiskAnalysis",
+      "eServiceTemplateWithoutPersonalDataFlag",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -561,10 +562,6 @@ export const updateTemplateInstancePersonalDataErrorMapper = (
 ): number =>
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "eservicePersonalDataFlagCanOnlyBeSetOnce",
-      () => HTTP_STATUS_CONFLICT
-    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateTemplateInstanceDescriptorVoucherLifespanErrorMapper = (

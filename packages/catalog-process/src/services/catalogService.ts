@@ -102,6 +102,7 @@ import {
   attributeDuplicatedInGroup,
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
+  eServiceTemplateWithoutPersonalDataFlag,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -2960,7 +2961,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       if (eservice.data.personalData !== undefined) {
-        throw eservicePersonalDataFlagCanOnlyBeSetOnce(eserviceId);
+        return;
       }
 
       const updatedEservice: EService = {
@@ -3329,6 +3330,16 @@ export function catalogServiceBuilder(
         ctx.authData.organizationId,
         readModelService
       );
+
+      if (
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
+        template.personalData === undefined
+      ) {
+        throw eServiceTemplateWithoutPersonalDataFlag(
+          template.id,
+          publishedVersion.id
+        );
+      }
 
       const { eService: createdEService, events } = await innerCreateEService(
         {
