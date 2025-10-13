@@ -10864,7 +10864,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Purpose created
+          description: Purpose updated
           headers:
             "X-Rate-Limit-Limit":
               schema:
