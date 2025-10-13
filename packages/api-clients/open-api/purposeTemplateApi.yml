@@ -1146,6 +1146,8 @@ components:
           type: string
         path:
           type: string
+        checksum:
+          type: string
         createdAt:
           type: string
           format: date-time
@@ -1155,6 +1157,7 @@ components:
         - contentType
         - prettyName
         - path
+        - checksum
         - createdAt
     RiskAnalysisTemplateAnswerRequest:
       type: object
