@@ -43,7 +43,8 @@ export async function handlePurposeTemplateMessageV2(
             "PurposeTemplatePublished",
             "PurposeTemplateUnsuspended",
             "PurposeTemplateSuspended",
-            "PurposeTemplateArchived"
+            "PurposeTemplateArchived",
+            "PurposeTemplateAnnotationDocumentDeleted"
           ),
         },
         (msg) => {
