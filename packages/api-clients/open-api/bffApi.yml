@@ -24562,6 +24562,9 @@ components:
       additionalProperties: false
       description: contains the expected payload for purpose creation from a purpose template
       properties:
+        eserviceId:
+          type: string
+          format: uuid
         consumerId:
           type: string
           format: uuid
@@ -24575,6 +24578,7 @@ components:
           minimum: 1
           maximum: 1000000000
       required:
+        - eserviceId
         - consumerId
         - title
         - dailyCalls
