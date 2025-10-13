@@ -1619,6 +1619,13 @@ components:
       additionalProperties: false
       description: contains the expected payload for purpose creation from a purpose template
       properties:
+        consumerId:
+          description: |
+            The ID of the tenant that will consume the e-service. It can be:
+            - the ID of your tenant
+            - the ID of a tenant for which you are the consumer delegate
+          type: string
+          format: uuid
         title:
           type: string
           minLength: 5
@@ -1631,6 +1638,7 @@ components:
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
       required:
+        - consumerId
         - title
         - dailyCalls
     PurposeSeed:
