@@ -81,6 +81,7 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
       contentType: validAnnotationDocumentSeed.contentType,
       prettyName: validAnnotationDocumentSeed.prettyName,
       path: validAnnotationDocumentSeed.path,
+      checksum: validAnnotationDocumentSeed.checksum,
       createdAt: mockDate.toISOString(),
     };
 
@@ -90,8 +91,11 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
     purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument = vi
       .fn()
       .mockResolvedValue({
-        data: annotationDocumentResponse,
-        metadata: annotationDocumentResponse.metadata,
+        ...annotationDocumentResponse,
+        data: {
+          ...annotationDocumentResponse.data,
+          createdAt: mockDate,
+        },
       });
   });
 
@@ -120,7 +124,7 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
         validAnnotationDocumentSeed
       );
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(annotationDocumentResponse);
+      expect(res.body).toEqual(annotationDocumentResponse.data);
       expect(res.headers["x-metadata-version"]).toBe(
         annotationDocumentResponse.metadata.version.toString()
       );
