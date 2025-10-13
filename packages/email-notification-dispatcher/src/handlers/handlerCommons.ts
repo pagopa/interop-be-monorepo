@@ -9,6 +9,8 @@ import {
   NotificationConfig,
   NotificationType,
   PurposeV2,
+  Purpose,
+  PurposeId,
   Tenant,
   TenantId,
   tenantMailKind,
@@ -23,6 +25,7 @@ import {
   attributeNotFound,
   certifierTenantNotFound,
   eServiceNotFound,
+  purposeNotFound,
 } from "../models/errors.js";
 
 export type AgreementHandlerParams = HandlerCommonParams & {
@@ -33,6 +36,14 @@ export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
 };
 
+export type ClientPurposeHandlerParams = HandlerCommonParams & {
+  purposeId: PurposeId;
+};
+
+export type PurposeHandlerParams = HandlerCommonParams & {
+  purposeV2Msg?: PurposeV2;
+};
+
 export type TenantHandlerParams = HandlerCommonParams & {
   tenantV2Msg?: TenantV2;
   attributeId: AttributeId;
@@ -40,10 +51,6 @@ export type TenantHandlerParams = HandlerCommonParams & {
 
 export type DelegationHandlerParams = HandlerCommonParams & {
   delegationV2Msg?: DelegationV2;
-};
-
-export type PurposeHandlerParams = HandlerCommonParams & {
-  purposeV2Msg?: PurposeV2;
 };
 
 type TenantEmailNotificationRecipient = {
@@ -92,6 +99,17 @@ export async function retrieveAgreementEservice(
   }
 
   return eservice;
+}
+
+export async function retrievePurpose(
+  purposeId: PurposeId,
+  readModelService: ReadModelServiceSQL
+): Promise<Purpose> {
+  const purpose = await readModelService.getPurposeById(purposeId);
+  if (!purpose) {
+    throw purposeNotFound(purposeId);
+  }
+  return purpose;
 }
 
 export async function retrieveAttribute(

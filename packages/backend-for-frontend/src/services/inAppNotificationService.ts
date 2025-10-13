@@ -36,6 +36,75 @@ export function inAppNotificationServiceBuilder(
         headers,
       });
     },
+    markNotificationsAsRead: (
+      ids: string[],
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
+      logger.info("Marking notifications as read");
+      return inAppNotificationManagerClient.markNotificationsAsRead(
+        { ids },
+        { headers }
+      );
+    },
+    markNotificationAsRead: (
+      notificationId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
+      logger.info(`Marking notification ${notificationId} as read`);
+      return inAppNotificationManagerClient.markNotificationAsRead(undefined, {
+        params: { notificationId },
+        headers,
+      });
+    },
+    markNotificationAsUnread: (
+      notificationId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
+      logger.info(`Marking notification ${notificationId} as unread`);
+      return inAppNotificationManagerClient.markNotificationAsUnread(
+        undefined,
+        {
+          params: { notificationId },
+          headers,
+        }
+      );
+    },
+    markNotificationsAsUnread: (
+      ids: string[],
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
+      logger.info("Marking notifications as unread");
+      return inAppNotificationManagerClient.markNotificationsAsUnread(
+        { ids },
+        { headers }
+      );
+    },
+    deleteNotifications: (
+      ids: string[],
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
+      logger.info("Deleting notifications");
+      return inAppNotificationManagerClient.deleteNotifications(
+        { ids },
+        { headers }
+      );
+    },
+    deleteNotification: (
+      notificationId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
+      logger.info(`Deleting notification ${notificationId}`);
+      return inAppNotificationManagerClient.deleteNotification(undefined, {
+        params: { notificationId },
+        headers,
+      });
+    },
   };
 }
 

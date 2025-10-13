@@ -60,6 +60,7 @@ export const publishEServiceTemplateVersionErrorMapper = (
     .with(
       "notValidEServiceTemplateVersionState",
       "riskAnalysisValidationFailed",
+      "missingPersonalDataFlag",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -309,4 +310,17 @@ export const getEServiceTemplatesErrorMapper = (
 ): number =>
   match(error.code)
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateEServiceTemplatePersonalDataErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "eserviceTemplateWithoutPublishedVersion",
+      "eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

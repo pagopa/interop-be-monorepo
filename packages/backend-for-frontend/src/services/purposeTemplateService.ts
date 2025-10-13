@@ -3,7 +3,11 @@ import {
   purposeTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
+import {
+  assertFeatureFlagEnabled,
+  FileManager,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { PurposeTemplateId, TenantKind } from "pagopa-interop-models";
 import {
   CatalogProcessClient,
@@ -16,17 +20,18 @@ import {
   toBffCatalogPurposeTemplate,
   toBffCreatorPurposeTemplate,
   toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor,
+  toBffPurposeTemplateWithCompactCreator,
   toCompactPurposeTemplateEService,
 } from "../api/purposeTemplateApiConverter.js";
 import { eserviceDescriptorNotFound, tenantNotFound } from "../model/errors.js";
-import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import { toCompactDescriptor } from "../api/catalogApiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   purposeTemplateClient: PurposeTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
-  catalogProcessClient: CatalogProcessClient
+  catalogProcessClient: CatalogProcessClient,
+  fileManager: FileManager
 ) {
   async function getTenantsFromPurposeTemplates(
     tenantClient: TenantProcessClient,
@@ -303,6 +308,41 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
+    async getRiskAnalysisTemplateAnswerAnnotationDocument({
+      purposeTemplateId,
+      answerId,
+      documentId,
+      ctx,
+    }: {
+      purposeTemplateId: string;
+      answerId: string;
+      documentId: string;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<Buffer> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
+
+      logger.info(
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      const riskAnalysisTemplateAnswerAnnotationDocument =
+        await purposeTemplateClient.getRiskAnalysisTemplateAnswerAnnotationDocument(
+          {
+            params: { purposeTemplateId, answerId, documentId },
+            headers,
+          }
+        );
+
+      const documentBytes = await fileManager.get(
+        config.purposeTemplateDocumentsContainer,
+        riskAnalysisTemplateAnswerAnnotationDocument.path,
+        logger
+      );
+
+      return Buffer.from(documentBytes);
+    },
     async getPurposeTemplate(
       id: PurposeTemplateId,
       { headers, logger }: WithLogger<BffAppContext>
@@ -336,11 +376,11 @@ export function purposeTemplateServiceBuilder(
           )
         : [];
 
-      return bffApi.PurposeTemplateWithCompactCreator.parse({
-        ...result,
-        creator: toBffCompactOrganization(creator),
-        annotationDocuments,
-      });
+      return toBffPurposeTemplateWithCompactCreator(
+        result,
+        creator,
+        annotationDocuments
+      );
     },
     async updatePurposeTemplate(
       id: PurposeTemplateId,
@@ -353,6 +393,25 @@ export function purposeTemplateServiceBuilder(
         headers,
         params: { id },
       });
+    },
+    async createRiskAnalysisAnswer(
+      purposeTemplateId: PurposeTemplateId,
+      seed: bffApi.RiskAnalysisTemplateAnswerRequest,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisTemplateAnswerResponse> {
+      logger.info(
+        `Creating risk analysis answer for purpose template ${purposeTemplateId}`
+      );
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+      return await purposeTemplateClient.addRiskAnalysisAnswerForPurposeTemplate(
+        seed,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
     },
   };
 }
