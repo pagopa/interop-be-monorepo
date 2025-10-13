@@ -17,6 +17,7 @@ import {
   getPurposesErrorMapper,
   reversePurposeUpdateErrorMapper,
   getPurposeErrorMapper,
+  createPurposeFromTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
@@ -456,7 +457,29 @@ const purposeRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/purposeTemplates/:purposeTemplateId/purposes", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await purposeService.createPurposeFromTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
+      } catch (error) {
+        ctx.logger.error(error);
+        const errorRes = makeApiProblem(
+          error,
+          createPurposeFromTemplateErrorMapper,
+          ctx,
+          `Error creating Purpose from template ${req.params.purposeTemplateId} and consumer ${req.body.consumerId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return purposeRouter;
 };

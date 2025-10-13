@@ -534,6 +534,14 @@ export const getMockPurposeSeed = (): bffApi.PurposeSeed => ({
   dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
 });
 
+export const getMockPurposeFromTemplateSeed =
+  (): bffApi.PurposeFromTemplateSeed => ({
+    consumerId: generateId(),
+    title: generateMock(z.string()),
+    dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
+    riskAnalysisForm: undefined,
+  });
+
 export const getMockPurposeTemplateSeed = (): bffApi.PurposeTemplateSeed => ({
   targetDescription:
     "This is a valid target description that meets the minimum length requirement",

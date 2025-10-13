@@ -9,6 +9,7 @@ import {
   DelegationId,
   EServiceId,
   PurposeId,
+  PurposeTemplateId,
   PurposeVersionDocumentId,
   PurposeVersionId,
   RiskAnalysisId,
@@ -368,6 +369,24 @@ export function purposeServiceBuilder(
         }
       );
       return { id };
+    },
+    async createPurposeFromTemplate(
+      templateId: PurposeTemplateId,
+      seed: bffApi.PurposeFromTemplateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      logger.info(
+        `Creating purpose from template ${templateId} and consumer ${seed.consumerId}`
+      );
+
+      const { id: purposeId } =
+        await purposeProcessClient.createPurposeFromTemplate(seed, {
+          params: {
+            purposeTemplateId: templateId,
+          },
+          headers,
+        });
+      return { id: purposeId };
     },
     async reversePurposeUpdate(
       id: PurposeId,

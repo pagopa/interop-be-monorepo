@@ -1,0 +1,80 @@
+meta {
+  name: create Purpose from Purpose Template
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/purposeTemplates/:purposeTemplateId/purposes
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "consumerId": "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
+    "title": "{{randomLoremWord}} test",
+    "dailyCalls": {{randomInt}},
+    "riskAnalysisForm": {
+      "version": "3.0",
+      "answers": {
+              "purpose": ["INSTITUTIONAL"],
+      "institutionalPurpose": ["MyPurpose"],
+      "personalDataTypes": ["OTHER"],
+      "otherPersonalDataTypes": ["MyDataTypes"],
+      "legalBasis": ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
+      "legalObligationReference": ["somethingLegal"],
+      "legalBasisPublicInterest": ["RULE_OF_LAW"],
+      "ruleOfLawText": ["TheLaw"],
+      "knowsDataQuantity": ["NO"],
+      "dataQuantity": [],
+      "deliveryMethod": ["ANONYMOUS"],
+      "policyProvided": ["NO"],
+      "confirmPricipleIntegrityAndDiscretion": ["true"],
+      "reasonPolicyNotProvided": ["Because"],
+      "doneDpia": ["NO"],
+      "dataDownload": ["YES"],
+      "confirmDataRetentionPeriod": ["true"],
+      "purposePursuit": ["MERE_CORRECTNESS"],
+      "checkedExistenceMereCorrectnessInteropCatalogue": ["true"],
+      "usesThirdPartyData": ["NO"],
+      "declarationConfirmGDPR": ["true"]
+           }
+    }
+  }
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+script:pre-request {
+  const randomInt = Math.round(Math.random() * 10000);
+  bru.setVar("randomInt", randomInt);
+  
+  const loremWords = ["example", "random", "data", "sample", "api", "bruno", "mock", "testing", "validation", "service", "response", "request"];
+  const randomLoremWord = loremWords[Math.floor(Math.random() * loremWords.length)];
+  bru.setVar("randomLoremWord", randomLoremWord);
+  
+  let randomLoremWords = "";
+  while (randomLoremWords.length < 10) {
+    randomLoremWords = loremWords
+      .sort(() => 0.5 - Math.random()) // Mescola l'array
+      .slice(0, Math.floor(Math.random() * 5) + 2) // Prendi almeno 2-6 parole
+      .join(" ");
+  }
+  
+  bru.setVar("randomLoremWords", randomLoremWords);
+}
+
+vars:post-response {
+  purposeId: res.body.id
+}
+
+docs {
+  Creates the Purpose
+}
