@@ -6915,9 +6915,6 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@pagopa/interop-outbound-models@1.6.5':
-    resolution: {integrity: sha512-ZK70eCsHcgQdBSkJykB0kv8VGkW+xjMt68wv0vBz1TYfl2tH/5sItK4KigoVhmNkaPzuQL1FfVetuf+Y9y1t/w==}
-
   '@protobuf-ts/plugin-framework@2.9.4':
     resolution: {integrity: sha512-9nuX1kjdMliv+Pes8dQCKyVhjKgNNfwxVHg+tx3fLXSfZZRcUHMc1PMwB9/vTvc6gBKt9QGz5ERqSqZc0++E9A==}
 
