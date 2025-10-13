@@ -55,6 +55,8 @@ import {
   notValidEServiceTemplateVersionState,
   attributeDuplicatedInGroup,
   tenantNotFound,
+  missingPersonalDataFlag,
+  eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
 } from "../model/domain/errors.js";
 import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
@@ -92,6 +94,7 @@ import {
   toCreateEventEServiceTemplateVersionDocumentUpdated,
   toCreateEventEServiceTemplateVersionDocumentDeleted,
   toCreateEventEServiceTemplateVersionInterfaceDeleted,
+  toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -513,6 +516,15 @@ export function eserviceTemplateServiceBuilder(
 
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
         assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
+      }
+      if (
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
+        eserviceTemplate.data.personalData === undefined
+      ) {
+        throw missingPersonalDataFlag(
+          eserviceTemplateId,
+          eserviceTemplateVersionId
+        );
       }
 
       const publishedTemplate: EServiceTemplate = {
@@ -1303,7 +1315,7 @@ export function eserviceTemplateServiceBuilder(
         createdAt: creationDate,
         riskAnalysis: [],
         isSignalHubEnabled: seed.isSignalHubEnabled,
-        ...(config.featureFlagEservicePersonalData
+        ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
           ? { personalData: seed.personalData }
           : {}),
       };
@@ -1833,6 +1845,49 @@ export function eserviceTemplateServiceBuilder(
           version: createdEvent.newVersion,
         },
       };
+    },
+    async updateEServiceTemplatePersonalDataFlagAfterPublication(
+      eserviceTemplateId: EServiceTemplateId,
+      personalData: boolean,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EServiceTemplate> {
+      logger.info(
+        `Setting personalData flag for EServiceTemplate ${eserviceTemplateId} to ${personalData}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      assertPublishedEServiceTemplate(eserviceTemplate.data);
+
+      if (eserviceTemplate.data.personalData !== undefined) {
+        throw eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce(
+          eserviceTemplateId
+        );
+      }
+
+      const updatedEServiceTemplate: EServiceTemplate = {
+        ...eserviceTemplate.data,
+        personalData,
+      };
+
+      const event =
+        toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication(
+          eserviceTemplate.metadata.version,
+          updatedEServiceTemplate,
+          correlationId
+        );
+
+      await repository.createEvent(event);
+
+      return updatedEServiceTemplate;
     },
   };
 }
