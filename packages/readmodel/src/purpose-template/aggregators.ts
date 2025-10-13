@@ -9,6 +9,7 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
@@ -18,13 +19,13 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  PurposeTemplateEServiceDescriptorSQL,
   PurposeTemplateRiskAnalysisAnswerSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL,
   PurposeTemplateRiskAnalysisFormSQL,
   PurposeTemplateItemsSQL,
   PurposeTemplateSQL,
-  PurposeTemplateEServiceDescriptorSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 import { throwIfMultiple } from "../utils.js";
@@ -411,6 +412,24 @@ export const toPurposeTemplateAggregatorArray = (
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
   };
 };
+
+export const toRiskAnalysisTemplateAnswerAnnotationDocument = (
+  annotationDocumentSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL
+): RiskAnalysisTemplateAnswerAnnotationDocument => ({
+  id: unsafeBrandId(annotationDocumentSQL.id),
+  name: annotationDocumentSQL.name,
+  prettyName: annotationDocumentSQL.prettyName,
+  contentType: annotationDocumentSQL.contentType,
+  path: annotationDocumentSQL.path,
+  createdAt: stringToDate(annotationDocumentSQL.createdAt),
+});
+
+export const aggregatePurposeTemplateEServiceDescriptorArray = (
+  purposeTemplateEServiceDescriptor: PurposeTemplateEServiceDescriptorSQL[]
+): Array<WithMetadata<EServiceDescriptorPurposeTemplate>> =>
+  purposeTemplateEServiceDescriptor.map(
+    aggregatePurposeTemplateEServiceDescriptor
+  );
 
 export const aggregatePurposeTemplateEServiceDescriptor = ({
   purposeTemplateId,

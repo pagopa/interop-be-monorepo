@@ -1,4 +1,6 @@
 import {
+  EServiceDescriptorPurposeTemplate,
+  EServiceId,
   generateId,
   PurposeTemplate,
   PurposeTemplateId,
@@ -6,11 +8,11 @@ import {
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
   ListResult,
-  EServiceDescriptorPurposeTemplate,
-  EServiceId,
-  RiskAnalysisFormTemplate,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisMultiAnswerId,
+  RiskAnalysisFormTemplate,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
   RiskAnalysisTemplateAnswerAnnotation,
@@ -33,8 +35,9 @@ import {
 import { match } from "ts-pattern";
 import {
   associationEServicesForPurposeTemplateFailed,
-  purposeTemplateNotFound,
   disassociationEServicesFromPurposeTemplateFailed,
+  purposeTemplateNotFound,
+  riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   ruleSetNotFoundError,
   riskAnalysisAnswerNotFound,
 } from "../model/domain/errors.js";
@@ -46,6 +49,7 @@ import {
 } from "../model/domain/toEvent.js";
 import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisDocUtils.js";
 import {
+  GetPurposeTemplateEServiceDescriptorsFilters,
   GetPurposeTemplatesFilters,
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
@@ -57,6 +61,7 @@ import {
   assertPurposeTemplateHasRiskAnalysisForm,
   validateRiskAnalysisAnswerAnnotationOrThrow,
   assertPurposeTemplateTitleIsNotDuplicated,
+  assertRequesterCanRetrievePurposeTemplate,
   assertRequesterIsCreator,
   assertRequesterPurposeTemplateCreator,
   validateAndTransformRiskAnalysisTemplate,
@@ -204,13 +209,84 @@ export function purposeTemplateServiceBuilder(
       });
     },
     async getPurposeTemplateById(
-      id: PurposeTemplateId,
+      purposeTemplateId: PurposeTemplateId,
       {
+        authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeTemplate>> {
-      logger.info(`Retrieving purpose template ${id}`);
-      return retrievePurposeTemplate(id, readModelService);
+      logger.info(`Retrieving purpose template ${purposeTemplateId}`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      await assertRequesterCanRetrievePurposeTemplate(
+        purposeTemplate.data,
+        authData
+      );
+
+      return purposeTemplate;
+    },
+    async getRiskAnalysisTemplateAnswerAnnotationDocument(
+      {
+        purposeTemplateId,
+        answerId,
+        documentId,
+      }: {
+        purposeTemplateId: PurposeTemplateId;
+        answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+        documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+      },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
+      logger.info(
+        `Retrieving risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      const annotationDocument =
+        await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocument(
+          purposeTemplateId,
+          documentId
+        );
+
+      if (!annotationDocument) {
+        throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
+          purposeTemplateId,
+          answerId,
+          documentId
+        );
+      }
+
+      return annotationDocument;
+    },
+    async getPurposeTemplateEServiceDescriptors(
+      filters: GetPurposeTemplateEServiceDescriptorsFilters,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
+      const { purposeTemplateId } = filters;
+
+      logger.info(
+        `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with filters: ${JSON.stringify(
+          filters
+        )}`
+      );
+
+      await retrievePurposeTemplate(purposeTemplateId, readModelService);
+
+      return await readModelService.getPurposeTemplateEServiceDescriptors(
+        filters,
+        {
+          offset,
+          limit,
+        }
+      );
     },
     async linkEservicesToPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
@@ -446,6 +522,91 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateState.draft,
       ]);
 
+      // Check if the requester is the creator of the purpose template
+      assertRequesterPurposeTemplateCreator(
+        purposeTemplate.data.creatorId,
+        authData
+      );
+
+      const validatedAnswer = validateRiskAnalysisAnswerOrThrow({
+        riskAnalysisAnswer: riskAnalysisTemplateAnswerRequest,
+        tenantKind: purposeTemplate.data.targetTenantKind,
+      });
+
+      const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
+
+      const { purposeRiskAnalysisForm, answer } = match(validatedAnswer)
+        .with({ type: "single" }, (a) => {
+          const singleAnswer =
+            riskAnalysisValidatedAnswerToRiskAnalysisAnswer(a);
+          return {
+            purposeRiskAnalysisForm: {
+              ...riskAnalysisForm,
+              singleAnswers: [...riskAnalysisForm.singleAnswers, singleAnswer],
+            },
+            answer: singleAnswer,
+          };
+        })
+        .with({ type: "multi" }, (a) => {
+          const multiAnswer =
+            riskAnalysisValidatedAnswerToRiskAnalysisAnswer(a);
+          return {
+            purposeRiskAnalysisForm: {
+              ...riskAnalysisForm,
+              multiAnswers: [...riskAnalysisForm.multiAnswers, multiAnswer],
+            },
+            answer: multiAnswer,
+          };
+        })
+        .exhaustive();
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        updatedAt: new Date(),
+        purposeRiskAnalysisForm,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateDraftUpdated(
+          updatedPurposeTemplate,
+          correlationId,
+          purposeTemplate.metadata.version
+        )
+      );
+
+      return {
+        data: answer,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async createRiskAnalysisAnswer(
+      purposeTemplateId: PurposeTemplateId,
+      riskAnalysisTemplateAnswerRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<
+        RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+      >
+    > {
+      logger.info(`Creating risk analysis answer`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
+
+      assertPurposeTemplateStateIsValid(purposeTemplate.data, [
+        purposeTemplateState.draft,
+      ]);
+
       assertRequesterPurposeTemplateCreator(
         purposeTemplate.data.creatorId,
         authData
@@ -596,7 +757,6 @@ export function purposeTemplateServiceBuilder(
     },
   };
 }
-
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;

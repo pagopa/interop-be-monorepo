@@ -30,6 +30,21 @@ export const createPurposeTemplateErrorMapper = (
 export const getPurposeTemplatesErrorMapper = (): number =>
   HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
+export const getPurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const linkEservicesToPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -94,6 +109,16 @@ export const createRiskAnalysisAnswerErrorMapper = (
     .with(
       "purposeTemplateRiskAnalysisFormNotFound",
       () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
+      () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

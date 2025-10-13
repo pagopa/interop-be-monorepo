@@ -164,7 +164,7 @@ export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
   documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No Risk Analysis Template Answer Annotation Document found for Purpose Template ${purposeTemplateId}, Answer ${answerId} and Document ${documentId}`,
+    detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId} and answer ${answerId}`,
     code: "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
     title: "Risk Analysis Template Answer Annotation Document Not Found",
   });
