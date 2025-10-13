@@ -5,6 +5,7 @@ import {
   NotificationType,
   fromTenantV2,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
@@ -77,7 +78,7 @@ export async function handleTenantCertifiedAttributeAssigned(
     : (await retrieveTenantByCertifierId(attribute.origin, readModelService))
         .name;
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Hai ricevuto un nuovo attributo certificato`,
@@ -90,6 +91,16 @@ export async function handleTenantCertifiedAttributeAssigned(
         attributeName: attribute.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...match(t)
+      .with({ type: "User" }, ({ type, userId }) => ({
+        type,
+        userId,
+      }))
+      .with({ type: "Tenant" }, ({ type, address }) => ({
+        type,
+        address,
+      }))
+      .exhaustive(),
   }));
 }

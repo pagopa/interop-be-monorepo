@@ -5,6 +5,7 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
@@ -60,7 +61,7 @@ export async function handleAgreementActivatedToProducer(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Richiesta di fruizione accettata automaticamente`,
@@ -73,6 +74,16 @@ export async function handleAgreementActivatedToProducer(
         ctaLabel: `Visualizza richiesta`,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...match(t)
+      .with({ type: "User" }, ({ type, userId }) => ({
+        type,
+        userId,
+      }))
+      .with({ type: "Tenant" }, ({ type, address }) => ({
+        type,
+        address,
+      }))
+      .exhaustive(),
   }));
 }

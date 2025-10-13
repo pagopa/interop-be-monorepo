@@ -5,6 +5,7 @@ import {
   NotificationType,
   fromDelegationV2,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   eventMailTemplateType,
   retrieveEService,
@@ -65,7 +66,7 @@ export async function handleConsumerDelegationRevoked(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Una delega che gestivi è stata revocata`,
@@ -78,6 +79,16 @@ export async function handleConsumerDelegationRevoked(
         eserviceName: eservice.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...match(t)
+      .with({ type: "User" }, ({ type, userId }) => ({
+        type,
+        userId,
+      }))
+      .with({ type: "Tenant" }, ({ type, address }) => ({
+        type,
+        address,
+      }))
+      .exhaustive(),
   }));
 }

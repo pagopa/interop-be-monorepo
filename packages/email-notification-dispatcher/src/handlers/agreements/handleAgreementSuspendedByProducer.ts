@@ -5,6 +5,7 @@ import {
   fromAgreementV2,
   NotificationType,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
@@ -58,7 +59,7 @@ export async function handleAgreementSuspendedByProducer(
     includeTenantContactEmails: false,
   });
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Sospensione richiesta di fruizione per "${eservice.name}"`,
@@ -71,6 +72,16 @@ export async function handleAgreementSuspendedByProducer(
         eserviceName: eservice.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...match(t)
+      .with({ type: "User" }, ({ type, userId }) => ({
+        type,
+        userId,
+      }))
+      .with({ type: "Tenant" }, ({ type, address }) => ({
+        type,
+        address,
+      }))
+      .exhaustive(),
   }));
 }

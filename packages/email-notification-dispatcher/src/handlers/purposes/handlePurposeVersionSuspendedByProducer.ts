@@ -7,6 +7,7 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   getRecipientsForTenants,
   PurposeHandlerParams,
@@ -68,7 +69,7 @@ export async function handlePurposeVersionSuspendedByProducer(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Sospensione della finalità "${purpose.title}"`,
@@ -82,6 +83,16 @@ export async function handlePurposeVersionSuspendedByProducer(
         purposeTitle: purpose.title,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...match(t)
+      .with({ type: "User" }, ({ type, userId }) => ({
+        type,
+        userId,
+      }))
+      .with({ type: "Tenant" }, ({ type, address }) => ({
+        type,
+        address,
+      }))
+      .exhaustive(),
   }));
 }

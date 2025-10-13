@@ -14,6 +14,7 @@ import {
 } from "pagopa-interop-models";
 import { dateAtRomeZone } from "pagopa-interop-commons";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   activeProducerDelegationNotFound,
   agreementStampDateNotFound,
@@ -200,6 +201,13 @@ export function encodeEmailEvent(
       subject: event.email.subject,
       body: event.email.body,
     },
-    address: event.address,
+    tenantId: event.tenantId,
+    ...match(event)
+      .with({ type: "User" }, (user) => ({ type: "User", userId: user.userId }))
+      .with({ type: "Tenant" }, (tenant) => ({
+        type: "Tenant",
+        address: tenant.address,
+      }))
+      .exhaustive(),
   });
 }

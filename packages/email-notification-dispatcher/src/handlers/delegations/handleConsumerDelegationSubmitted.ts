@@ -1,3 +1,4 @@
+import { match } from "ts-pattern";
 import {
   EmailNotificationMessagePayload,
   generateId,
@@ -65,7 +66,7 @@ export async function handleConsumerDelegationSubmitted(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Hai ricevuto una richiesta di delega`,
@@ -79,6 +80,16 @@ export async function handleConsumerDelegationSubmitted(
         ctaLabel: `Visualizza richiesta di delega`,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...match(t)
+      .with({ type: "User" }, ({ type, userId }) => ({
+        type,
+        userId,
+      }))
+      .with({ type: "Tenant" }, ({ type, address }) => ({
+        type,
+        address,
+      }))
+      .exhaustive(),
   }));
 }

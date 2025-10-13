@@ -7,6 +7,7 @@ import {
   VerifiedTenantAttribute,
   tenantAttributeType,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
@@ -90,7 +91,7 @@ export async function handleTenantVerifiedAttributeAssigned(
 
   const verifierTenant = await retrieveTenant(verifierId, readModelService);
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Hai ricevuto un nuovo attributo verificato`,
@@ -103,6 +104,16 @@ export async function handleTenantVerifiedAttributeAssigned(
         attributeName: attribute.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...match(t)
+      .with({ type: "User" }, ({ type, userId }) => ({
+        type,
+        userId,
+      }))
+      .with({ type: "Tenant" }, ({ type, address }) => ({
+        type,
+        address,
+      }))
+      .exhaustive(),
   }));
 }
