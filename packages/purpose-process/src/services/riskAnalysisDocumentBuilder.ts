@@ -26,6 +26,8 @@ import {
   eserviceMode,
   RiskAnalysisSingleAnswer,
   RiskAnalysisMultiAnswer,
+  UserId,
+  TenantId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
@@ -59,12 +61,14 @@ export const riskAnalysisDocumentBuilder = (
   const dirname = path.dirname(filename);
 
   return {
+    // eslint-disable-next-line max-params
     createRiskAnalysisDocument: async (
       purpose: Purpose,
       dailyCalls: number,
       eserviceInfo: PurposeDocumentEServiceInfo,
       tenantKind: TenantKind,
-      language: Language
+      language: Language,
+      userId?: UserId
     ): Promise<PurposeVersionDocument> => {
       const templateFilePath = path.resolve(
         dirname,
@@ -99,6 +103,8 @@ export const riskAnalysisDocumentBuilder = (
         isFreeOfCharge: purpose.isFreeOfCharge,
         freeOfChargeReason: purpose.freeOfChargeReason,
         language,
+        userId,
+        consumerId: purpose.consumerId,
       });
 
       const pdfBuffer: Buffer = await pdfGenerator.generate(
@@ -138,6 +144,8 @@ const getPdfPayload = ({
   isFreeOfCharge,
   freeOfChargeReason,
   language,
+  userId,
+  consumerId,
 }: {
   riskAnalysisFormConfig: RiskAnalysisFormRules;
   riskAnalysisForm: PurposeRiskAnalysisForm;
@@ -146,6 +154,8 @@ const getPdfPayload = ({
   isFreeOfCharge: boolean;
   freeOfChargeReason?: string;
   language: Language;
+  userId?: UserId;
+  consumerId: TenantId;
 }): RiskAnalysisDocumentPDFPayload => {
   const answers = formatAnswers(
     riskAnalysisFormConfig,
@@ -181,6 +191,8 @@ const getPdfPayload = ({
     consumerDelegationId: eserviceInfo.consumerDelegationId,
     consumerDelegateName: eserviceInfo.consumerDelegateName,
     consumerDelegateIpaCode: eserviceInfo.consumerDelegateIpaCode,
+    userId,
+    consumerId,
   };
 };
 
