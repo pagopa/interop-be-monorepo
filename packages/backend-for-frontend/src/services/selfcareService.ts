@@ -61,7 +61,7 @@ export function selfcareServiceBuilder({
       }: WithLogger<BffAppContext>
     ): Promise<bffApi.User> {
       logger.info(
-        `Retrieving User with with istitution id ${institutionId}, user ${userId}`
+        `Retrieving User with institution id ${institutionId}, user ${userId}`
       );
 
       const users: selfcareV2ClientApi.UserResource[] =
