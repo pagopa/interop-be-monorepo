@@ -48,7 +48,7 @@ export const timestampToMilliseconds = (timestamp: number): number => {
     // milliseconds
     return truncatedTimestamp;
   } else {
-    // seconds → milliseconds
+    // seconds -> milliseconds
     return truncatedTimestamp * 1_000;
   }
 };
