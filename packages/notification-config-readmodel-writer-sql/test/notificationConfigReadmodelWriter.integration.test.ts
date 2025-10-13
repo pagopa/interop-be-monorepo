@@ -1,5 +1,3 @@
-import { z } from "zod";
-import { generateMock } from "@anatine/zod-mock";
 import { describe, expect, it } from "vitest";
 import {
   NotificationConfigEventEnvelope,
@@ -13,8 +11,6 @@ import {
   UserNotificationConfigRoleAddedV2,
   UserNotificationConfigRoleRemovedV2,
   UserNotificationConfigUpdatedV2,
-  emailNotificationPreference,
-  generateId,
   toTenantNotificationConfigV2,
   toUserNotificationConfigV2,
   toUserRoleV2,
@@ -137,106 +133,99 @@ describe("database test", async () => {
     });
 
     it("UserNotificationConfigUpdated", async () => {
-      const userNotificationConfig: UserNotificationConfig = {
-        id: generateId(),
-        userId: generateId(),
-        tenantId: generateId(),
-        inAppNotificationPreference: true,
-        emailNotificationPreference: emailNotificationPreference.enabled,
-        userRoles: [userRole.ADMIN_ROLE],
-        inAppConfig: {
-          agreementSuspendedUnsuspendedToProducer: false,
-          agreementManagementToProducer: false,
-          clientAddedRemovedToProducer: false,
-          purposeStatusChangedToProducer: false,
-          templateStatusChangedToProducer: false,
-          agreementSuspendedUnsuspendedToConsumer: false,
-          eserviceStateChangedToConsumer: false,
-          agreementActivatedRejectedToConsumer: false,
-          purposeActivatedRejectedToConsumer: false,
-          purposeSuspendedUnsuspendedToConsumer: false,
-          newEserviceTemplateVersionToInstantiator: false,
-          eserviceTemplateNameChangedToInstantiator: false,
-          eserviceTemplateStatusChangedToInstantiator: false,
-          delegationApprovedRejectedToDelegator: false,
-          eserviceNewVersionSubmittedToDelegator: false,
-          eserviceNewVersionApprovedRejectedToDelegate: false,
-          delegationSubmittedRevokedToDelegate: false,
-          certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-          clientKeyAddedDeletedToClientUsers: false,
-        },
-        emailConfig: {
-          agreementSuspendedUnsuspendedToProducer: false,
-          agreementManagementToProducer: false,
-          clientAddedRemovedToProducer: false,
-          purposeStatusChangedToProducer: false,
-          templateStatusChangedToProducer: false,
-          agreementSuspendedUnsuspendedToConsumer: false,
-          eserviceStateChangedToConsumer: false,
-          agreementActivatedRejectedToConsumer: false,
-          purposeActivatedRejectedToConsumer: false,
-          purposeSuspendedUnsuspendedToConsumer: false,
-          newEserviceTemplateVersionToInstantiator: false,
-          eserviceTemplateNameChangedToInstantiator: false,
-          eserviceTemplateStatusChangedToInstantiator: false,
-          delegationApprovedRejectedToDelegator: false,
-          eserviceNewVersionSubmittedToDelegator: false,
-          eserviceNewVersionApprovedRejectedToDelegate: false,
-          delegationSubmittedRevokedToDelegate: false,
-          certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-          clientKeyAddedDeletedToClientUsers: false,
-        },
-        createdAt: generateMock(z.coerce.date()),
-        updatedAt: generateMock(z.coerce.date().optional()),
-      };
+      const userNotificationConfig: UserNotificationConfig =
+        getMockUserNotificationConfig();
       await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
         userNotificationConfig,
         1
       );
 
+      const {
+        inAppConfig: initialInAppConfig,
+        emailConfig: initialEmailConfig,
+      } = userNotificationConfig;
+
       const updatedUserNotificationConfig: UserNotificationConfig = {
         ...userNotificationConfig,
         inAppConfig: {
-          agreementSuspendedUnsuspendedToProducer: true,
-          agreementManagementToProducer: true,
-          clientAddedRemovedToProducer: true,
-          purposeStatusChangedToProducer: true,
-          templateStatusChangedToProducer: true,
-          agreementSuspendedUnsuspendedToConsumer: true,
-          eserviceStateChangedToConsumer: true,
-          agreementActivatedRejectedToConsumer: true,
-          purposeActivatedRejectedToConsumer: true,
-          purposeSuspendedUnsuspendedToConsumer: true,
-          newEserviceTemplateVersionToInstantiator: true,
-          eserviceTemplateNameChangedToInstantiator: true,
-          eserviceTemplateStatusChangedToInstantiator: true,
-          delegationApprovedRejectedToDelegator: true,
-          eserviceNewVersionSubmittedToDelegator: true,
-          eserviceNewVersionApprovedRejectedToDelegate: true,
-          delegationSubmittedRevokedToDelegate: true,
-          certifiedVerifiedAttributeAssignedRevokedToAssignee: true,
-          clientKeyAddedDeletedToClientUsers: true,
+          agreementSuspendedUnsuspendedToProducer:
+            !initialInAppConfig.agreementSuspendedUnsuspendedToProducer,
+          agreementManagementToProducer:
+            !initialInAppConfig.agreementManagementToProducer,
+          clientAddedRemovedToProducer:
+            !initialInAppConfig.clientAddedRemovedToProducer,
+          purposeStatusChangedToProducer:
+            !initialInAppConfig.purposeStatusChangedToProducer,
+          templateStatusChangedToProducer:
+            !initialInAppConfig.templateStatusChangedToProducer,
+          agreementSuspendedUnsuspendedToConsumer:
+            !initialInAppConfig.agreementSuspendedUnsuspendedToConsumer,
+          eserviceStateChangedToConsumer:
+            !initialInAppConfig.eserviceStateChangedToConsumer,
+          agreementActivatedRejectedToConsumer:
+            !initialInAppConfig.agreementActivatedRejectedToConsumer,
+          purposeActivatedRejectedToConsumer:
+            !initialInAppConfig.purposeActivatedRejectedToConsumer,
+          purposeSuspendedUnsuspendedToConsumer:
+            !initialInAppConfig.purposeSuspendedUnsuspendedToConsumer,
+          newEserviceTemplateVersionToInstantiator:
+            !initialInAppConfig.newEserviceTemplateVersionToInstantiator,
+          eserviceTemplateNameChangedToInstantiator:
+            !initialInAppConfig.eserviceTemplateNameChangedToInstantiator,
+          eserviceTemplateStatusChangedToInstantiator:
+            !initialInAppConfig.eserviceTemplateStatusChangedToInstantiator,
+          delegationApprovedRejectedToDelegator:
+            !initialInAppConfig.delegationApprovedRejectedToDelegator,
+          eserviceNewVersionSubmittedToDelegator:
+            !initialInAppConfig.eserviceNewVersionSubmittedToDelegator,
+          eserviceNewVersionApprovedRejectedToDelegate:
+            !initialInAppConfig.eserviceNewVersionApprovedRejectedToDelegate,
+          delegationSubmittedRevokedToDelegate:
+            !initialInAppConfig.delegationSubmittedRevokedToDelegate,
+          certifiedVerifiedAttributeAssignedRevokedToAssignee:
+            !initialInAppConfig.certifiedVerifiedAttributeAssignedRevokedToAssignee,
+          clientKeyAddedDeletedToClientUsers:
+            !initialInAppConfig.clientKeyAddedDeletedToClientUsers,
         },
         emailConfig: {
-          agreementSuspendedUnsuspendedToProducer: true,
-          agreementManagementToProducer: true,
-          clientAddedRemovedToProducer: true,
-          purposeStatusChangedToProducer: true,
-          templateStatusChangedToProducer: true,
-          agreementSuspendedUnsuspendedToConsumer: true,
-          eserviceStateChangedToConsumer: true,
-          agreementActivatedRejectedToConsumer: true,
-          purposeActivatedRejectedToConsumer: true,
-          purposeSuspendedUnsuspendedToConsumer: true,
-          newEserviceTemplateVersionToInstantiator: true,
-          eserviceTemplateNameChangedToInstantiator: true,
-          eserviceTemplateStatusChangedToInstantiator: true,
-          delegationApprovedRejectedToDelegator: true,
-          eserviceNewVersionSubmittedToDelegator: true,
-          eserviceNewVersionApprovedRejectedToDelegate: true,
-          delegationSubmittedRevokedToDelegate: true,
-          certifiedVerifiedAttributeAssignedRevokedToAssignee: true,
-          clientKeyAddedDeletedToClientUsers: true,
+          agreementSuspendedUnsuspendedToProducer:
+            !initialEmailConfig.agreementSuspendedUnsuspendedToProducer,
+          agreementManagementToProducer:
+            !initialEmailConfig.agreementManagementToProducer,
+          clientAddedRemovedToProducer:
+            !initialEmailConfig.clientAddedRemovedToProducer,
+          purposeStatusChangedToProducer:
+            !initialEmailConfig.purposeStatusChangedToProducer,
+          templateStatusChangedToProducer:
+            !initialEmailConfig.templateStatusChangedToProducer,
+          agreementSuspendedUnsuspendedToConsumer:
+            !initialEmailConfig.agreementSuspendedUnsuspendedToConsumer,
+          eserviceStateChangedToConsumer:
+            !initialEmailConfig.eserviceStateChangedToConsumer,
+          agreementActivatedRejectedToConsumer:
+            !initialEmailConfig.agreementActivatedRejectedToConsumer,
+          purposeActivatedRejectedToConsumer:
+            !initialEmailConfig.purposeActivatedRejectedToConsumer,
+          purposeSuspendedUnsuspendedToConsumer:
+            !initialEmailConfig.purposeSuspendedUnsuspendedToConsumer,
+          newEserviceTemplateVersionToInstantiator:
+            !initialEmailConfig.newEserviceTemplateVersionToInstantiator,
+          eserviceTemplateNameChangedToInstantiator:
+            !initialEmailConfig.eserviceTemplateNameChangedToInstantiator,
+          eserviceTemplateStatusChangedToInstantiator:
+            !initialEmailConfig.eserviceTemplateStatusChangedToInstantiator,
+          delegationApprovedRejectedToDelegator:
+            !initialEmailConfig.delegationApprovedRejectedToDelegator,
+          eserviceNewVersionSubmittedToDelegator:
+            !initialEmailConfig.eserviceNewVersionSubmittedToDelegator,
+          eserviceNewVersionApprovedRejectedToDelegate:
+            !initialEmailConfig.eserviceNewVersionApprovedRejectedToDelegate,
+          delegationSubmittedRevokedToDelegate:
+            !initialEmailConfig.delegationSubmittedRevokedToDelegate,
+          certifiedVerifiedAttributeAssignedRevokedToAssignee:
+            !initialEmailConfig.certifiedVerifiedAttributeAssignedRevokedToAssignee,
+          clientKeyAddedDeletedToClientUsers:
+            !initialEmailConfig.clientKeyAddedDeletedToClientUsers,
         },
       };
 
@@ -271,56 +260,8 @@ describe("database test", async () => {
 
     it("UserNotificationConfigRoleAdded", async () => {
       const userNotificationConfig: UserNotificationConfig = {
-        id: generateId(),
-        userId: generateId(),
-        tenantId: generateId(),
-        inAppNotificationPreference: true,
-        emailNotificationPreference: emailNotificationPreference.enabled,
+        ...getMockUserNotificationConfig(),
         userRoles: [userRole.API_ROLE],
-        inAppConfig: {
-          agreementSuspendedUnsuspendedToProducer: false,
-          agreementManagementToProducer: false,
-          clientAddedRemovedToProducer: false,
-          purposeStatusChangedToProducer: false,
-          templateStatusChangedToProducer: false,
-          agreementSuspendedUnsuspendedToConsumer: false,
-          eserviceStateChangedToConsumer: false,
-          agreementActivatedRejectedToConsumer: false,
-          purposeActivatedRejectedToConsumer: false,
-          purposeSuspendedUnsuspendedToConsumer: false,
-          newEserviceTemplateVersionToInstantiator: false,
-          eserviceTemplateNameChangedToInstantiator: false,
-          eserviceTemplateStatusChangedToInstantiator: false,
-          delegationApprovedRejectedToDelegator: false,
-          eserviceNewVersionSubmittedToDelegator: false,
-          eserviceNewVersionApprovedRejectedToDelegate: false,
-          delegationSubmittedRevokedToDelegate: false,
-          certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-          clientKeyAddedDeletedToClientUsers: false,
-        },
-        emailConfig: {
-          agreementSuspendedUnsuspendedToProducer: false,
-          agreementManagementToProducer: false,
-          clientAddedRemovedToProducer: false,
-          purposeStatusChangedToProducer: false,
-          templateStatusChangedToProducer: false,
-          agreementSuspendedUnsuspendedToConsumer: false,
-          eserviceStateChangedToConsumer: false,
-          agreementActivatedRejectedToConsumer: false,
-          purposeActivatedRejectedToConsumer: false,
-          purposeSuspendedUnsuspendedToConsumer: false,
-          newEserviceTemplateVersionToInstantiator: false,
-          eserviceTemplateNameChangedToInstantiator: false,
-          eserviceTemplateStatusChangedToInstantiator: false,
-          delegationApprovedRejectedToDelegator: false,
-          eserviceNewVersionSubmittedToDelegator: false,
-          eserviceNewVersionApprovedRejectedToDelegate: false,
-          delegationSubmittedRevokedToDelegate: false,
-          certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-          clientKeyAddedDeletedToClientUsers: false,
-        },
-        createdAt: generateMock(z.coerce.date()),
-        updatedAt: generateMock(z.coerce.date().optional()),
       };
       await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
         userNotificationConfig,
@@ -364,56 +305,8 @@ describe("database test", async () => {
 
     it("UserNotificationConfigRoleRemoved", async () => {
       const userNotificationConfig: UserNotificationConfig = {
-        id: generateId(),
-        userId: generateId(),
-        tenantId: generateId(),
-        inAppNotificationPreference: true,
-        emailNotificationPreference: emailNotificationPreference.enabled,
+        ...getMockUserNotificationConfig(),
         userRoles: [userRole.API_ROLE, userRole.SECURITY_ROLE],
-        inAppConfig: {
-          agreementSuspendedUnsuspendedToProducer: false,
-          agreementManagementToProducer: false,
-          clientAddedRemovedToProducer: false,
-          purposeStatusChangedToProducer: false,
-          templateStatusChangedToProducer: false,
-          agreementSuspendedUnsuspendedToConsumer: false,
-          eserviceStateChangedToConsumer: false,
-          agreementActivatedRejectedToConsumer: false,
-          purposeActivatedRejectedToConsumer: false,
-          purposeSuspendedUnsuspendedToConsumer: false,
-          newEserviceTemplateVersionToInstantiator: false,
-          eserviceTemplateNameChangedToInstantiator: false,
-          eserviceTemplateStatusChangedToInstantiator: false,
-          delegationApprovedRejectedToDelegator: false,
-          eserviceNewVersionSubmittedToDelegator: false,
-          eserviceNewVersionApprovedRejectedToDelegate: false,
-          delegationSubmittedRevokedToDelegate: false,
-          certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-          clientKeyAddedDeletedToClientUsers: false,
-        },
-        emailConfig: {
-          agreementSuspendedUnsuspendedToProducer: false,
-          agreementManagementToProducer: false,
-          clientAddedRemovedToProducer: false,
-          purposeStatusChangedToProducer: false,
-          templateStatusChangedToProducer: false,
-          agreementSuspendedUnsuspendedToConsumer: false,
-          eserviceStateChangedToConsumer: false,
-          agreementActivatedRejectedToConsumer: false,
-          purposeActivatedRejectedToConsumer: false,
-          purposeSuspendedUnsuspendedToConsumer: false,
-          newEserviceTemplateVersionToInstantiator: false,
-          eserviceTemplateNameChangedToInstantiator: false,
-          eserviceTemplateStatusChangedToInstantiator: false,
-          delegationApprovedRejectedToDelegator: false,
-          eserviceNewVersionSubmittedToDelegator: false,
-          eserviceNewVersionApprovedRejectedToDelegate: false,
-          delegationSubmittedRevokedToDelegate: false,
-          certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
-          clientKeyAddedDeletedToClientUsers: false,
-        },
-        createdAt: generateMock(z.coerce.date()),
-        updatedAt: generateMock(z.coerce.date().optional()),
       };
       await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
         userNotificationConfig,
