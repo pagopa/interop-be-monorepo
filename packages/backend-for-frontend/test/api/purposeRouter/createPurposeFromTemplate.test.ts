@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, PurposeTemplateId, TenantId } from "pagopa-interop-models";
+import { generateId, PurposeTemplateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
@@ -47,7 +47,13 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/purposes", () => {
     {
       body: {
         ...mockPurposeFromTemplateSeed,
-        consumerId: "invalid" as TenantId,
+        consumerId: "invalid",
+      },
+    },
+    {
+      body: {
+        ...mockPurposeFromTemplateSeed,
+        eserviceId: "invalid",
       },
     },
     {

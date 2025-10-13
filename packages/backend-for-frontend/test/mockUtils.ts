@@ -536,6 +536,7 @@ export const getMockPurposeSeed = (): bffApi.PurposeSeed => ({
 
 export const getMockPurposeFromTemplateSeed =
   (): bffApi.PurposeFromTemplateSeed => ({
+    eserviceId: generateId(),
     consumerId: generateId(),
     title: generateMock(z.string()),
     dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
