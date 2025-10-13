@@ -1528,6 +1528,7 @@ components:
           type: boolean
         personalData:
           type: boolean
+          nullable: true
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan
