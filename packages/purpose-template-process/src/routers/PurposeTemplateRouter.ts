@@ -68,6 +68,7 @@ const purposeTemplateRouter = (
           creatorIds,
           eserviceIds,
           states,
+          targetTenantKind,
           excludeExpiredRiskAnalysis,
           offset,
           limit,
@@ -77,7 +78,7 @@ const purposeTemplateRouter = (
           await purposeTemplateService.getPurposeTemplates(
             {
               purposeTitle,
-              targetTenantKind: req.query.targetTenantKind,
+              targetTenantKind,
               creatorIds: creatorIds?.map(unsafeBrandId<TenantId>),
               eserviceIds: eserviceIds?.map(unsafeBrandId<EServiceId>),
               states: states?.map(
