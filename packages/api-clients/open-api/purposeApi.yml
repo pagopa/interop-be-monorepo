@@ -1043,7 +1043,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PurposeCreateFromTemplateSeed"
+              $ref: "#/components/schemas/PurposeFromTemplateSeed"
         required: true
       responses:
         "200":
@@ -1614,7 +1614,7 @@ components:
         - description
         - isFreeOfCharge
         - dailyCalls
-    PurposeCreateFromTemplateSeed:
+    PurposeFromTemplateSeed:
       type: object
       additionalProperties: false
       description: contains the expected payload for purpose creation from a purpose template
