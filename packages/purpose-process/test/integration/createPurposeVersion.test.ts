@@ -624,7 +624,9 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id, userId) })
+      getMockContext({
+        authData: getMockAuthData(consumerDelegate.id, userId),
+      })
     );
 
     const createdPurposeVersion =
@@ -806,7 +808,9 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id, userId) })
+      getMockContext({
+        authData: getMockAuthData(consumerDelegate.id, userId),
+      })
     );
 
     const createdPurposeVersion =

@@ -27,7 +27,8 @@ export const NotificationType = z.enum([
   "eserviceNewVersionApprovedRejectedToDelegate", // 22: Accettazione o rifiuto pubblicazione nuova versione e-service
   "delegationSubmittedRevokedToDelegate", // 23: Stato delle deleghe ricevute
   "certifiedVerifiedAttributeAssignedRevokedToAssignee", // 24: Conferimento o revoca di attributi certificati o verificati
-  "clientKeyAddedDeletedToClientUsers", // 25: Variazioni sullo stato delle chiavi collegate ad un client
+  "clientKeyAddedDeletedToClientUsers", // 25: Variazioni sullo stato delle chiavi collegate ad un client (ClientKey)
+  "producerKeychainKeyAddedDeletedToClientUsers", // 25: Variazioni sullo stato delle chiavi collegate ad un client (ProducerKeychain)
 ]);
 export type NotificationType = z.infer<typeof NotificationType>;
 
