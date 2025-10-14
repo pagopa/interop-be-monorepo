@@ -91,6 +91,9 @@ describe("updateUserNotificationConfig", () => {
         clientKeyAddedDeletedToClientUsers:
           !userNotificationConfig.inAppConfig
             .clientKeyAddedDeletedToClientUsers,
+        producerKeychainKeyAddedDeletedToClientUsers:
+          !userNotificationConfig.inAppConfig
+            .producerKeychainKeyAddedDeletedToClientUsers,
       },
       emailConfig: getMockNotificationConfig(),
     };

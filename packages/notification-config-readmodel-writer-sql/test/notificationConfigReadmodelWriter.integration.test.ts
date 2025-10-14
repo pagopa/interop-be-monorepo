@@ -186,6 +186,8 @@ describe("database test", async () => {
             !initialInAppConfig.certifiedVerifiedAttributeAssignedRevokedToAssignee,
           clientKeyAddedDeletedToClientUsers:
             !initialInAppConfig.clientKeyAddedDeletedToClientUsers,
+          producerKeychainKeyAddedDeletedToClientUsers:
+            !initialInAppConfig.producerKeychainKeyAddedDeletedToClientUsers,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer:
@@ -226,6 +228,8 @@ describe("database test", async () => {
             !initialEmailConfig.certifiedVerifiedAttributeAssignedRevokedToAssignee,
           clientKeyAddedDeletedToClientUsers:
             !initialEmailConfig.clientKeyAddedDeletedToClientUsers,
+          producerKeychainKeyAddedDeletedToClientUsers:
+            !initialEmailConfig.producerKeychainKeyAddedDeletedToClientUsers,
         },
       };
 

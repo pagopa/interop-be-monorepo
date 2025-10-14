@@ -104,6 +104,7 @@ describe("Notification config splitters", () => {
             "delegationSubmittedRevokedToDelegate",
             "certifiedVerifiedAttributeAssignedRevokedToAssignee",
             "clientKeyAddedDeletedToClientUsers",
+            "producerKeychainKeyAddedDeletedToClientUsers",
           ] as const
         )
           .filter(
@@ -137,6 +138,7 @@ describe("Notification config splitters", () => {
             "delegationSubmittedRevokedToDelegate",
             "certifiedVerifiedAttributeAssignedRevokedToAssignee",
             "clientKeyAddedDeletedToClientUsers",
+            "producerKeychainKeyAddedDeletedToClientUsers",
           ] as const
         )
           .filter(
