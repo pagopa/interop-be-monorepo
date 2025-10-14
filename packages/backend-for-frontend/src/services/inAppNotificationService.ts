@@ -83,6 +83,22 @@ export function inAppNotificationServiceBuilder(
         { headers }
       );
     },
+    markAsReadByEntityId: (
+      entityId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
+      logger.info("Marking in-app notifications as read by entity id");
+      return inAppNotificationManagerClient.markNotificationsAsReadByEntityId(
+        undefined,
+        {
+          headers,
+          params: {
+            entityId,
+          },
+        }
+      );
+    },
     deleteNotifications: (
       ids: string[],
       { headers, logger }: WithLogger<BffAppContext>
