@@ -7,9 +7,9 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   PurposeHandlerParams,
 } from "../handlerCommons.js";
 import {
@@ -84,15 +84,6 @@ export async function handlePurposeVersionSuspendedByProducer(
       }),
     },
     tenantId: t.tenantId,
-    ...match(t)
-      .with({ type: "User" }, ({ type, userId }) => ({
-        type,
-        userId,
-      }))
-      .with({ type: "Tenant" }, ({ type, address }) => ({
-        type,
-        address,
-      }))
-      .exhaustive(),
+    ...mapRecipientToEmailPayload(t),
   }));
 }

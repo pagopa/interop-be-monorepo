@@ -1,4 +1,3 @@
-import { match } from "ts-pattern";
 import {
   EmailNotificationMessagePayload,
   generateId,
@@ -15,6 +14,7 @@ import {
 import {
   DelegationHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
@@ -81,15 +81,6 @@ export async function handleConsumerDelegationSubmitted(
       }),
     },
     tenantId: t.tenantId,
-    ...match(t)
-      .with({ type: "User" }, ({ type, userId }) => ({
-        type,
-        userId,
-      }))
-      .with({ type: "Tenant" }, ({ type, address }) => ({
-        type,
-        address,
-      }))
-      .exhaustive(),
+    ...mapRecipientToEmailPayload(t),
   }));
 }

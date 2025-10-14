@@ -5,7 +5,6 @@ import {
   NotificationType,
   fromDelegationV2,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   eventMailTemplateType,
   retrieveEService,
@@ -15,6 +14,7 @@ import {
 import {
   DelegationHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
@@ -80,15 +80,6 @@ export async function handleProducerDelegationRejected(
       }),
     },
     tenantId: t.tenantId,
-    ...match(t)
-      .with({ type: "User" }, ({ type, userId }) => ({
-        type,
-        userId,
-      }))
-      .with({ type: "Tenant" }, ({ type, address }) => ({
-        type,
-        address,
-      }))
-      .exhaustive(),
+    ...mapRecipientToEmailPayload(t),
   }));
 }

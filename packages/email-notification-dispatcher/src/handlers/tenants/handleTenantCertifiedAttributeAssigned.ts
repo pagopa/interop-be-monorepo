@@ -5,16 +5,16 @@ import {
   NotificationType,
   fromTenantV2,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
 } from "../../services/utils.js";
 import {
-  TenantHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   retrieveAttribute,
   retrieveTenantByCertifierId,
+  TenantHandlerParams,
 } from "../handlerCommons.js";
 import { certifierDatabaseOriginNames } from "../../config/constants.js";
 
@@ -92,15 +92,6 @@ export async function handleTenantCertifiedAttributeAssigned(
       }),
     },
     tenantId: t.tenantId,
-    ...match(t)
-      .with({ type: "User" }, ({ type, userId }) => ({
-        type,
-        userId,
-      }))
-      .with({ type: "Tenant" }, ({ type, address }) => ({
-        type,
-        address,
-      }))
-      .exhaustive(),
+    ...mapRecipientToEmailPayload(t),
   }));
 }
