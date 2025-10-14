@@ -1,3 +1,4 @@
+import { match } from "ts-pattern";
 import {
   getMockContext,
   getMockAuthData,
@@ -5,6 +6,7 @@ import {
   getMockNotificationConfig,
   getMockUserNotificationConfig,
 } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   generateId,
@@ -14,6 +16,8 @@ import {
   UserNotificationConfigUpdatedV2,
   toUserNotificationConfigV2,
   emailNotificationPreference,
+  NotificationType,
+  UserRole,
   userRole,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi } from "vitest";
@@ -22,7 +26,10 @@ import {
   notificationConfigService,
   readLastNotificationConfigEvent,
 } from "../integrationUtils.js";
-import { userNotificationConfigNotFound } from "../../src/model/domain/errors.js";
+import {
+  notificationConfigNotAllowedForUserRoles,
+  userNotificationConfigNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("updateUserNotificationConfig", () => {
   const userId: UserId = generateId();
@@ -160,6 +167,50 @@ describe("updateUserNotificationConfig", () => {
           })
         )
       ).rejects.toThrowError(userNotificationConfigNotFound(userId, tenantId));
+    }
+  );
+
+  it.each<[UserRole[], NotificationType, "inApp" | "email"]>([
+    [
+      [authRole.API_ROLE],
+      "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+      "inApp",
+    ],
+    [[authRole.SECURITY_ROLE], "templateStatusChangedToProducer", "email"],
+    [
+      [authRole.API_ROLE, authRole.SECURITY_ROLE],
+      "delegationApprovedRejectedToDelegator",
+      "inApp",
+    ],
+  ])(
+    "should throw notificationConfigNotAllowedForUserRoles if a user with %s roles enables the not allowed notification type %s for %s notifications",
+    async (userRoles, notificationType, notificationChannel) => {
+      const seed = match(notificationChannel)
+        .with("inApp", () => ({
+          ...userNotificationConfigSeed,
+          inAppConfig: {
+            ...userNotificationConfigSeed.inAppConfig,
+            [notificationType]: true,
+          },
+        }))
+        .with("email", () => ({
+          ...userNotificationConfigSeed,
+          emailConfig: {
+            ...userNotificationConfigSeed.emailConfig,
+            [notificationType]: true,
+          },
+        }))
+        .exhaustive();
+      expect(
+        notificationConfigService.updateUserNotificationConfig(
+          seed,
+          getMockContext({
+            authData: getMockAuthData(tenantId, userId, userRoles),
+          })
+        )
+      ).rejects.toThrowError(
+        notificationConfigNotAllowedForUserRoles(userId, tenantId)
+      );
     }
   );
 });
