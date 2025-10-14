@@ -504,7 +504,11 @@ export function purposeTemplateServiceBuilder(
       assertPurposeTemplateIsDraft(purposeTemplate.data);
       assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
 
-      if (purposeTemplateSeed.purposeTitle) {
+      if (
+        purposeTemplateSeed.purposeTitle &&
+        purposeTemplateSeed.purposeTitle.toLowerCase() !==
+          purposeTemplate.data.purposeTitle.toLowerCase()
+      ) {
         await assertPurposeTemplateTitleIsNotDuplicated({
           readModelService,
           title: purposeTemplateSeed.purposeTitle,
