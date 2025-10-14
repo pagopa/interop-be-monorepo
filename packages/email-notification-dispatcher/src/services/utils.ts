@@ -203,11 +203,8 @@ export function encodeEmailEvent(
     },
     tenantId: event.tenantId,
     ...match(event)
-      .with({ type: "User" }, (user) => ({ type: "User", userId: user.userId }))
-      .with({ type: "Tenant" }, (tenant) => ({
-        type: "Tenant",
-        address: tenant.address,
-      }))
+      .with({ type: "User" }, ({ type, userId }) => ({ type, userId }))
+      .with({ type: "Tenant" }, ({ type, address }) => ({ type, address }))
       .exhaustive(),
   });
 }
