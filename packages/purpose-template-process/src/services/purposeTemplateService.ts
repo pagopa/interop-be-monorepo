@@ -62,6 +62,8 @@ import {
 import {
   assertConsistentFreeOfCharge,
   assertEServiceIdsCountIsBelowThreshold,
+  assertPurposeTemplateStateIsValid,
+  assertPurposeTemplateIsDraft,
   assertPurposeTemplateHasRiskAnalysisForm,
   validateRiskAnalysisAnswerAnnotationOrThrow,
   assertPurposeTemplateTitleIsNotDuplicated,
@@ -73,8 +75,6 @@ import {
   validateEservicesDisassociations,
   validateRiskAnalysisAnswerOrThrow,
   assertPurposeTemplateObjectsAreDeletable,
-  assertPurposeTemplateStateIsValid,
-  assertPurposeTemplateIsDraft,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -980,7 +980,7 @@ export function purposeTemplateServiceBuilder(
       const { logger, correlationId, authData } = ctx;
 
       logger.info(
-        `Deleting risk analysis template answer annotation for purpose template ${purposeTemplateId}, answer ${answerId}`
+        `Deleting risk analysis template answer annotation for purpose template ${purposeTemplateId} and answer ${answerId}`
       );
 
       const {
