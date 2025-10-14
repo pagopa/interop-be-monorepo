@@ -33,7 +33,10 @@ describe("API GET /eservices/templates/:eServiceTemplateId", () => {
     expect(res.body).toEqual(mockEServiceTemplate);
   });
 
-  it.each([{ eServiceTemplateId: "invalid" as EServiceTemplateId }])(
+  it.each([
+    { eServiceTemplateId: "invalid" as EServiceTemplateId },
+    { personalData: "invalid" },
+  ])(
     "Should return 400 if passed invalid data: %s",
     async ({ eServiceTemplateId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
