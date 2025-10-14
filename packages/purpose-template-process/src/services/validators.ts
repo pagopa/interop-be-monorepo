@@ -143,6 +143,12 @@ export function validateAndTransformRiskAnalysisTemplate(
   );
 }
 
+export function validateRiskAnalysisAnswerAnnotationOrThrow(
+  text: string
+): void {
+  validateNoHyperlinks(text, hyperlinkDetectionError(text));
+}
+
 export function validateRiskAnalysisTemplateOrThrow({
   riskAnalysisFormTemplate,
   tenantKind,
@@ -171,9 +177,8 @@ export function validateRiskAnalysisAnswerOrThrow({
   tenantKind: TenantKind;
 }): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {
   if (riskAnalysisAnswer.answerData.annotation) {
-    validateNoHyperlinks(
-      riskAnalysisAnswer.answerData.annotation.text,
-      hyperlinkDetectionError(riskAnalysisAnswer.answerData.annotation.text)
+    validateRiskAnalysisAnswerAnnotationOrThrow(
+      riskAnalysisAnswer.answerData.annotation.text
     );
   }
 

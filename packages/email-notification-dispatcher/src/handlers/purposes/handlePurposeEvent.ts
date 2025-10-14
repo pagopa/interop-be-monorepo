@@ -4,6 +4,9 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
+import { handlePurposeVersionSuspendedByConsumer } from "./handlePurposeVersionSuspendedByConsumer.js";
+import { handlePurposeVersionUnsuspendedByConsumer } from "./handlePurposeVersionUnsuspendedByConsumer.js";
+import { handlePurposeArchived } from "./handlePurposeArchived.js";
 import { handlePurposeVersionActivated } from "./handlePurposeVersionActivated.js";
 import { handlePurposeVersionRejected } from "./handlePurposeVersionRejected.js";
 import { handlePurposeVersionSuspendedByProducer } from "./handlePurposeVersionSuspendedByProducer.js";
@@ -54,6 +57,18 @@ export async function handlePurposeEvent(
         })
     )
     .with(
+      { type: "PurposeVersionSuspendedByConsumer" },
+      ({ data: { purpose } }) =>
+        handlePurposeVersionSuspendedByConsumer({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })
+    )
+    .with(
       { type: "PurposeVersionUnsuspendedByProducer" },
       ({ data: { purpose } }) =>
         handlePurposeVersionUnsuspendedByProducer({
@@ -66,6 +81,28 @@ export async function handlePurposeEvent(
         })
     )
     .with(
+      { type: "PurposeVersionUnsuspendedByConsumer" },
+      ({ data: { purpose } }) =>
+        handlePurposeVersionUnsuspendedByConsumer({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })
+    )
+    .with({ type: "PurposeArchived" }, ({ data: { purpose } }) =>
+      handlePurposeArchived({
+        purposeV2Msg: purpose,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
+    .with(
       {
         type: P.union(
           "NewPurposeVersionWaitingForApproval",
@@ -75,10 +112,7 @@ export async function handlePurposeEvent(
           "PurposeAdded",
           "DraftPurposeUpdated",
           "PurposeActivated",
-          "PurposeArchived",
           "PurposeVersionOverQuotaUnsuspended",
-          "PurposeVersionSuspendedByConsumer",
-          "PurposeVersionUnsuspendedByConsumer",
           "WaitingForApprovalPurposeVersionDeleted",
           "NewPurposeVersionActivated",
           "PurposeCloned",

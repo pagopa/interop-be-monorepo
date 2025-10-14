@@ -11460,6 +11460,107 @@ paths:
         schema:
           type: string
           format: uuid
+    put:
+      tags:
+        - purposeTemplates
+      summary: Add Risk Analysis Answer Annotation for a Purpose Template Risk Analysis
+      description: Add a risk analysis answer annotation for the specified purpose template risk analysis.
+      operationId: addPurposeTemplateRiskAnalysisAnswerAnnotation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationText"
+      responses:
+        "200":
+          description: Purpose Template Risk Analysis Answer Annotation added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotation"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose Template or Answer Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     delete:
       tags:
         - purposeTemplates
@@ -22167,15 +22268,20 @@ paths:
       summary: "Mark a list of notifications as unread"
       description: "Mark a list of notifications as unread"
       operationId: markNotificationsAsUnread
-      parameters:
-        - name: ids
-          in: body
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
       responses:
         "204":
           description: successful operation
@@ -22279,6 +22385,104 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/inAppNotifications/markAsReadByEntityId/:entityId":
+    post:
+      tags:
+        - inAppNotifications
+      summary: "Mark all notifications with the given entity ID as read"
+      description: "Mark all notifications with the given entity ID as read"
+      operationId: markNotificationsAsReadByEntityId
+      parameters:
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: successful operation
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/inAppNotifications/:notificationId":
     delete:
       tags:
@@ -25049,6 +25253,16 @@ components:
         - text
         - id
         - docs
+    RiskAnalysisTemplateAnswerAnnotationText:
+      type: object
+      additionalProperties: false
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 250
+      required:
+        - text
     RiskAnalysisTemplateAnswerAnnotationSeed:
       type: object
       additionalProperties: false
@@ -27209,7 +27423,7 @@ components:
         - eserviceNewVersionApprovedRejectedToDelegate
         - delegationSubmittedRevokedToDelegate
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
-        - clientKeyAddedDeletedToClientUsers
+        - clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -27247,7 +27461,7 @@ components:
           type: boolean
         certifiedVerifiedAttributeAssignedRevokedToAssignee:
           type: boolean
-        clientKeyAddedDeletedToClientUsers:
+        clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
           type: boolean
     TenantNotificationConfig:
       type: object
@@ -27347,6 +27561,7 @@ components:
         - fruizione
         - "catalogo-e-service"
         - aderente
+        - "gestione-client"
         - totalCount
       properties:
         erogazione:
@@ -27420,6 +27635,19 @@ components:
           required:
             - deleghe
             - anagrafica
+            - totalCount
+        "gestione-client":
+          type: object
+          additionalProperties: false
+          properties:
+            "api-e-service":
+              type: integer
+              format: int32
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - "api-e-service"
             - totalCount
         totalCount:
           type: integer

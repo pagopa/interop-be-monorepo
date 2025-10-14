@@ -25,14 +25,16 @@ export const errorCodes = {
   purposeTemplateStateConflict: "0008",
   purposeTemplateRiskAnalysisFormNotFound: "0009",
   riskAnalysisTemplateAnswerNotFound: "0010",
-  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0011",
-  associationEServicesForPurposeTemplateFailed: "0012",
-  associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0013",
-  tooManyEServicesForPurposeTemplate: "0014",
-  disassociationEServicesFromPurposeTemplateFailed: "0015",
-  associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0016",
-  hyperlinkDetectionError: "0017",
-  purposeTemplateNotInValidState: "0018",
+  riskAnalysisTemplateAnswerAnnotationNotFound: "0011",
+  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0012",
+  associationEServicesForPurposeTemplateFailed: "0013",
+  associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0014",
+  tooManyEServicesForPurposeTemplate: "0015",
+  disassociationEServicesFromPurposeTemplateFailed: "0016",
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0017",
+  hyperlinkDetectionError: "0018",
+  purposeTemplateNotInValidState: "0019",
+  riskAnalysisAnswerNotFound: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -232,5 +234,15 @@ export function hyperlinkDetectionError(text: string): ApiError<ErrorCodes> {
     detail: `Hyperlink detection error for text ${text}`,
     code: "hyperlinkDetectionError",
     title: "Hyperlink detection error",
+  });
+}
+
+export function riskAnalysisAnswerNotFound(
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis answer not found for ID ${answerId}`,
+    code: "riskAnalysisAnswerNotFound",
+    title: "Risk analysis answer not found",
   });
 }
