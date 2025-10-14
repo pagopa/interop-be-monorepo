@@ -60,3 +60,19 @@ export async function cleanupAnnotationDocsForRemovedAnswers(
     }
   });
 }
+
+export async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
+  annotationDocumentsToRemove,
+  fileManager,
+  logger,
+}: {
+  annotationDocumentsToRemove: RiskAnalysisTemplateAnswerAnnotationDocument[];
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<void> {
+  await Promise.all(
+    annotationDocumentsToRemove.map(async (doc) => {
+      await fileManager.delete(config.s3Bucket, doc.path, logger);
+    })
+  );
+}
