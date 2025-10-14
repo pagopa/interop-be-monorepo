@@ -1,0 +1,24 @@
+meta {
+  name: Get Creator Purpose Templates
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-bff}}/creators/purposeTemplates?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~q: 
+  ~eserviceIds: 
+  ~states: 
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

@@ -26,7 +26,7 @@ import {
 import { catalogApi } from "pagopa-interop-api-clients";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { config } from "./config/config.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const { catalogProcess } = getInteropBeClients();
 
@@ -42,7 +42,7 @@ export async function handleMessageV2({
   refreshableToken: RefreshableInteropToken;
   partition: number;
   offset: string;
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   fileManager: FileManager;
 }): Promise<void> {
   const correlationId = decodedKafkaMessage.correlation_id
@@ -345,6 +345,7 @@ export async function handleMessageV2({
       { type: "EServiceTemplateVersionInterfaceUpdated" },
       { type: "EServiceTemplateVersionPublished" },
       { type: "EServiceTemplateVersionSuspended" },
+      { type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication" },
       () => Promise.resolve
     )
     .exhaustive();
@@ -409,7 +410,7 @@ async function commitUpdateToTemplateInstances(
   msg: EServiceTemplateEventEnvelope,
   refreshableToken: RefreshableInteropToken,
   correlationId: CorrelationId,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   action: (eservice: EService, headers: InteropHeaders) => Promise<void>
 ): Promise<void> {
   const token = (await refreshableToken.get()).serialized;

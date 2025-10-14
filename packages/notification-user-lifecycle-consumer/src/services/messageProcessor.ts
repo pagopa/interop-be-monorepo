@@ -52,7 +52,7 @@ export async function processUserEvent(
     name: payload.user.name,
     familyName: payload.user.familyName,
     email: payload.user.email,
-    productRole: payload.user.productRole,
+    productRoles: [payload.user.productRole],
   };
 
   await match(payload.eventType)

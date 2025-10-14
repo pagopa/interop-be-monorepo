@@ -18,7 +18,6 @@ import { m2mTestToken } from "./mockUtils.js";
 
 export const { cleanup, fileManager } = await setupTestContainersVitest(
   undefined,
-  undefined,
   inject("fileManagerConfig")
 );
 
@@ -141,8 +140,10 @@ export const purposeService = purposeServiceBuilder(
 );
 export const tenantService = tenantServiceBuilder(mockInteropBeClients);
 export const attributeService = attributeServiceBuilder(mockInteropBeClients);
-export const eserviceTemplateService =
-  eserviceTemplateServiceBuilder(mockInteropBeClients);
+export const eserviceTemplateService = eserviceTemplateServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
 export const clientService = clientServiceBuilder(mockInteropBeClients);
 export const agreementService = agreementServiceBuilder(
   mockInteropBeClients,

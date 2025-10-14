@@ -17,11 +17,12 @@ import {
   purposeVersionInReadmodelPurpose,
   PurposeVersionDocumentSQL,
   purposeVersionDocumentInReadmodelPurpose,
+  PurposeVersionStampSQL,
+  purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import { purposeWriterServiceBuilder } from "../src/purposeWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
-  undefined,
   undefined,
   undefined,
   undefined,
@@ -53,6 +54,8 @@ export const checkCompletePurpose = async (
   );
   const retrievedPurposeVersionDocumentsSQL =
     await retrievePurposeVersionDocumentsSQLById(purpose.id, readModelDB);
+  const retrievedPurposeVersionStampsSQL =
+    await retrievePurposeVersionStampsSQLById(purpose.id, readModelDB);
 
   expect(retrievedPurposeSQL).toBeDefined();
   expect(retrievedRiskAnalysisFormSQL).toBeDefined();
@@ -64,6 +67,7 @@ export const checkCompletePurpose = async (
   expect(retrievedPurposeVersionDocumentsSQL).toHaveLength(
     purpose.versions.length
   );
+  expect(retrievedPurposeVersionStampsSQL).toHaveLength(1);
 
   return {
     purposeSQL: retrievedPurposeSQL!,
@@ -71,6 +75,7 @@ export const checkCompletePurpose = async (
     riskAnalysisAnswersSQL: retrievedRiskAnalysisAnswersSQL,
     versionsSQL: retrievedPurposeVersionsSQL,
     versionDocumentsSQL: retrievedPurposeVersionDocumentsSQL,
+    versionStampsSQL: retrievedPurposeVersionStampsSQL,
   };
 };
 
@@ -126,3 +131,12 @@ export const retrievePurposeVersionDocumentsSQLById = async (
     .select()
     .from(purposeVersionDocumentInReadmodelPurpose)
     .where(eq(purposeVersionDocumentInReadmodelPurpose.purposeId, purposeId));
+
+export const retrievePurposeVersionStampsSQLById = async (
+  purposeId: PurposeId,
+  db: DrizzleReturnType
+): Promise<PurposeVersionStampSQL[]> =>
+  await db
+    .select()
+    .from(purposeVersionStampInReadmodelPurpose)
+    .where(eq(purposeVersionStampInReadmodelPurpose.purposeId, purposeId));

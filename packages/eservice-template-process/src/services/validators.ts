@@ -28,11 +28,11 @@ import {
   missingRiskAnalysis,
   riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function assertRequesterEServiceTemplateCreator(
   creatorId: TenantId,
-  authData: UIAuthData
+  authData: UIAuthData | M2MAdminAuthData
 ): void {
   if (authData.organizationId !== creatorId) {
     throw operationForbidden;
@@ -138,7 +138,7 @@ export function hasRoleToAccessDraftTemplateVersions(
 
 export async function assertEServiceTemplateNameAvailable(
   name: string,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> {
   const isEServiceTemplateNameAvailable =
     await readModelService.isEServiceTemplateNameAvailable({
