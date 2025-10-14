@@ -6,11 +6,7 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeTemplateState,
-  RiskAnalysisMultiAnswerId,
-  RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocument,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisTemplateSingleAnswer,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
   TenantKind,
@@ -24,7 +20,6 @@ import {
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
   toRiskAnalysisTemplateAnswerAnnotationDocument,
-  toRiskAnalysisTemplateAnswerAggregator,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
