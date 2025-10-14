@@ -513,6 +513,13 @@ export const getMockBffApiPurposeUpdateContent =
     dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
   });
 
+export const getMockBffApiPatchPurposeUpdateFromTemplateContent =
+  (): bffApi.PatchPurposeUpdateFromTemplateContent => ({
+    title: generateMock(z.string()),
+    dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
+    riskAnalysisForm: undefined,
+  });
+
 export const getMockBffApiPurposeVersionResource = (
   purposeId: PurposeId = generateId(),
   versionId: PurposeVersionId = generateId()

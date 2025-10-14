@@ -677,6 +677,28 @@ export function purposeServiceBuilder(
         versionId: updatedPurpose.versions[0].id,
       };
     },
+    async patchUpdatePurposeFromTemplate(
+      templateId: PurposeTemplateId,
+      id: PurposeId,
+      seed: bffApi.PatchPurposeUpdateFromTemplateContent,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeVersionResource> {
+      logger.info(`Updating Purpose ${id} created from template ${templateId}`);
+
+      const updatedPurpose =
+        await purposeProcessClient.patchUpdatePurposeFromTemplate(seed, {
+          params: {
+            purposeTemplateId: templateId,
+            purposeId: id,
+          },
+          headers,
+        });
+
+      return {
+        purposeId: id,
+        versionId: updatedPurpose.versions[0].id,
+      };
+    },
     async getPurpose(
       id: PurposeId,
       { headers, authData, logger, correlationId }: WithLogger<BffAppContext>
