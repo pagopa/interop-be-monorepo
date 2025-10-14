@@ -440,6 +440,7 @@ export function purposeTemplateServiceBuilder(
         ...purposeTemplate.data,
         ...purposeTemplateSeed,
         purposeRiskAnalysisForm,
+        updatedAt: new Date(),
         ...(!purposeTemplateSeed.purposeIsFreeOfCharge && {
           purposeFreeOfChargeReason: undefined,
         }),

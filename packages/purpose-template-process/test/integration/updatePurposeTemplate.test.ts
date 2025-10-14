@@ -167,6 +167,7 @@ describe("updatePurposeTemplate", () => {
       const expectedPurposeTemplate: PurposeTemplate = {
         id: unsafeBrandId(updatedPurposeTemplateResponse.data.id),
         createdAt: mockDate,
+        updatedAt: mockDate,
         targetDescription: validPurposeTemplateSeed.targetDescription,
         targetTenantKind: validPurposeTemplateSeed.targetTenantKind,
         creatorId: unsafeBrandId(existingPurposeTemplate.creatorId),
