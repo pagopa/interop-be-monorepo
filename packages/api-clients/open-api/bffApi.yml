@@ -24589,8 +24589,6 @@ components:
       properties:
         title:
           type: string
-          minLength: 5
-          maxLength: 60
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
           description: |
