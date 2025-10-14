@@ -6,7 +6,7 @@ import {
   getMockNotificationConfig,
   getMockUserNotificationConfig,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
+import { authRole, notificationAdmittedRoles } from "pagopa-interop-commons";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   generateId,
@@ -185,6 +185,10 @@ describe("updateUserNotificationConfig", () => {
   ])(
     "should throw notificationConfigNotAllowedForUserRoles if a user with %s roles enables the not allowed notification type %s for %s notifications",
     async (userRoles, notificationType, notificationChannel) => {
+      // For safety in case the admitted roles change in the future
+      userRoles.forEach((role) =>
+        expect(notificationAdmittedRoles[notificationType][role]).toBe(false)
+      );
       const seed = match(notificationChannel)
         .with("inApp", () => ({
           ...userNotificationConfigSeed,
