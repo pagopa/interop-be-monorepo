@@ -11,8 +11,10 @@ import {
   Purpose,
   EServiceTemplate,
   EServiceTemplateVersion,
+  NotificationType,
+  UserId,
 } from "pagopa-interop-models";
-
+import { Logger, notificationAdmittedRoles } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import {
   attributeNotFound,
@@ -22,6 +24,32 @@ import {
   purposeNotFound,
   tenantNotFound,
 } from "../models/errors.js";
+
+export async function getNotificationRecipients(
+  tenantIds: TenantId[],
+  notificationType: NotificationType,
+  readModelService: ReadModelServiceSQL,
+  logger: Logger
+): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
+  const usersWithNotifications =
+    await readModelService.getTenantUsersWithNotificationEnabled(
+      tenantIds,
+      notificationType
+    );
+  return usersWithNotifications.filter(({ userId, tenantId, userRoles }) => {
+    const userCanReceiveNotification = userRoles.some(
+      (r) => notificationAdmittedRoles[notificationType][r]
+    );
+    if (!userCanReceiveNotification) {
+      logger.info(
+        `Discarding notification for user ${userId} in ${tenantId} due to missing roles (notification type: ${notificationType}, user roles: ${userRoles.join(
+          ", "
+        )})`
+      );
+    }
+    return userCanReceiveNotification;
+  });
+}
 
 export async function retrieveTenant(
   tenantId: TenantId,
