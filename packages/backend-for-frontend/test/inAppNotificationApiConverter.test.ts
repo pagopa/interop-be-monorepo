@@ -21,7 +21,7 @@ describe("toBffApiNotificationsCountBySection", () => {
         eserviceTemplateNameChangedToInstantiator: 2,
         eserviceTemplateStatusChangedToInstantiator: 1,
         // Erogazione - portachiavi
-        clientKeyAddedDeletedToClientUsers: 7,
+        clientKeyAddedDeletedToClientUsers: 3,
         // Fruizione - richieste
         agreementActivatedRejectedToConsumer: 8,
         agreementSuspendedUnsuspendedToConsumer: 2,
@@ -37,6 +37,7 @@ describe("toBffApiNotificationsCountBySection", () => {
         delegationSubmittedRevokedToDelegate: 3,
         // Aderente - anagrafica
         certifiedVerifiedAttributeAssignedRevokedToAssignee: 6,
+        producerKeychainKeyAddedDeletedToClientUsers: 4,
       },
     };
 
@@ -48,8 +49,8 @@ describe("toBffApiNotificationsCountBySection", () => {
         finalita: 6, // 2 + 4
         "template-eservice": 1,
         "e-service": 9, // 6 + 2 + 1
-        portachiavi: 7,
-        totalCount: 31, // 8 + 6 + 1 + 9 + 7
+        portachiavi: 4,
+        totalCount: 28, // 8 + 6 + 1 + 9 + 4
       },
       fruizione: {
         richieste: 10, // 8 + 2
@@ -63,6 +64,10 @@ describe("toBffApiNotificationsCountBySection", () => {
         deleghe: 10, // 4 + 2 + 1 + 3
         anagrafica: 6,
         totalCount: 16, // 10 + 6
+      },
+      "gestione-client": {
+        "api-e-service": 3,
+        totalCount: 3,
       },
       totalCount: 100,
     };
@@ -100,6 +105,10 @@ describe("toBffApiNotificationsCountBySection", () => {
         anagrafica: 0,
         totalCount: 0,
       },
+      "gestione-client": {
+        "api-e-service": 0,
+        totalCount: 0,
+      },
       totalCount: 0,
     };
 
@@ -134,6 +143,10 @@ describe("toBffApiNotificationsCountBySection", () => {
       aderente: {
         deleghe: 0,
         anagrafica: 0,
+        totalCount: 0,
+      },
+      "gestione-client": {
+        "api-e-service": 0,
         totalCount: 0,
       },
       totalCount: 0,
@@ -178,6 +191,10 @@ describe("toBffApiNotificationsCountBySection", () => {
         anagrafica: 0,
         totalCount: 7,
       },
+      "gestione-client": {
+        "api-e-service": 0,
+        totalCount: 0,
+      },
       totalCount: 25,
     };
 
@@ -220,46 +237,11 @@ describe("toBffApiNotificationsCountBySection", () => {
         anagrafica: 0,
         totalCount: 0,
       },
+      "gestione-client": {
+        "api-e-service": 0,
+        totalCount: 0,
+      },
       totalCount: 15,
-    };
-
-    expect(result).toEqual(expected);
-  });
-
-  it("should handle shared notification types correctly", () => {
-    // clientKeyAddedDeletedToClientUsers appears in both erogazione.portachiavi
-    const input: inAppNotificationApi.NotificationsByType = {
-      totalCount: 20,
-      results: {
-        clientKeyAddedDeletedToClientUsers: 20,
-      },
-    };
-
-    const result = toBffApiNotificationsCountBySection(input);
-
-    const expected: bffApi.NotificationsCountBySection = {
-      erogazione: {
-        richieste: 0,
-        finalita: 0,
-        "template-eservice": 0,
-        "e-service": 0,
-        portachiavi: 20,
-        totalCount: 20,
-      },
-      fruizione: {
-        richieste: 0,
-        finalita: 0,
-        totalCount: 0,
-      },
-      "catalogo-e-service": {
-        totalCount: 0,
-      },
-      aderente: {
-        deleghe: 0,
-        anagrafica: 0,
-        totalCount: 0,
-      },
-      totalCount: 20,
     };
 
     expect(result).toEqual(expected);

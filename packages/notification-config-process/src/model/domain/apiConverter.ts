@@ -60,6 +60,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
     certifiedVerifiedAttributeAssignedRevokedToAssignee:
       certifiedVerifiedAttributeAssignedRevokedToAssigneeInApp,
     clientKeyAddedDeletedToClientUsers: clientKeyAddedDeletedToClientUsersInApp,
+    producerKeychainKeyAddedDeletedToClientUsers:
+      producerKeychainKeyAddedDeletedToClientUsersInApp,
   },
   emailConfig: {
     agreementSuspendedUnsuspendedToProducer:
@@ -93,6 +95,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
     certifiedVerifiedAttributeAssignedRevokedToAssignee:
       certifiedVerifiedAttributeAssignedRevokedToAssigneeEmail,
     clientKeyAddedDeletedToClientUsers: clientKeyAddedDeletedToClientUsersEmail,
+    producerKeychainKeyAddedDeletedToClientUsers:
+      producerKeychainKeyAddedDeletedToClientUsersEmail,
   },
   createdAt,
   updatedAt,
@@ -141,6 +145,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
         certifiedVerifiedAttributeAssignedRevokedToAssigneeInApp,
       clientKeyAddedDeletedToClientUsers:
         clientKeyAddedDeletedToClientUsersInApp,
+      producerKeychainKeyAddedDeletedToClientUsers:
+        producerKeychainKeyAddedDeletedToClientUsersInApp,
     },
     emailConfig: {
       agreementSuspendedUnsuspendedToProducer:
@@ -176,6 +182,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
         certifiedVerifiedAttributeAssignedRevokedToAssigneeEmail,
       clientKeyAddedDeletedToClientUsers:
         clientKeyAddedDeletedToClientUsersEmail,
+      producerKeychainKeyAddedDeletedToClientUsers:
+        producerKeychainKeyAddedDeletedToClientUsersEmail,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),
