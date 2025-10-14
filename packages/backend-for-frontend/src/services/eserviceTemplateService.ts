@@ -551,7 +551,7 @@ export function eserviceTemplateServiceBuilder(
           }
         );
 
-      return { id: response.createdEServiceTemplateId };
+      return { id: response.createdEServiceTemplateVersionId };
     },
     getEServiceTemplateCreators: async (
       {

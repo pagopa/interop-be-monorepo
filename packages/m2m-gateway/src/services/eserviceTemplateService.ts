@@ -175,7 +175,7 @@ export function eserviceTemplateServiceBuilder(
       logger.info(`Creating Version for E-Service Template ${templateId}`);
 
       const {
-        data: { eserviceTemplate, createdEServiceTemplateId },
+        data: { eserviceTemplate, createdEServiceTemplateVersionId },
         metadata,
       } =
         await clients.eserviceTemplateProcessClient.createEServiceTemplateVersion(
@@ -194,7 +194,7 @@ export function eserviceTemplateServiceBuilder(
       );
       const createdVersion = retrieveEServiceTemplateVersionById(
         { data: eserviceTemplate, metadata },
-        unsafeBrandId(createdEServiceTemplateId)
+        unsafeBrandId(createdEServiceTemplateVersionId)
       );
       return toM2MGatewayEServiceTemplateVersion(createdVersion);
     },

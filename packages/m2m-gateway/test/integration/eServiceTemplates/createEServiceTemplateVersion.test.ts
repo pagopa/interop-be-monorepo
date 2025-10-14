@@ -21,7 +21,7 @@ import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("createEserviceTemplateVersion", () => {
+describe("createEServiceTemplateVersion", () => {
   const versionSeed: m2mGatewayApi.EServiceTemplateVersionSeed = {
     description: "Test Version",
     voucherLifespan: 100,
@@ -38,7 +38,7 @@ describe("createEserviceTemplateVersion", () => {
   const mockCreateResponseData: eserviceTemplateApi.CreatedEServiceTemplateVersion =
     {
       eserviceTemplate: mockEServiceTemplate,
-      createdEServiceTemplateId: mockEServiceTemplate.versions[0].id,
+      createdEServiceTemplateVersionId: mockEServiceTemplate.versions[0].id,
     };
   const mockCreateVersion = vi.fn().mockResolvedValue({
     data: mockCreateResponseData,

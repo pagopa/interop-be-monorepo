@@ -2060,11 +2060,11 @@ components:
       additionalProperties: false
       required:
         - eserviceTemplate
-        - createdEServiceTemplateId
+        - createdEServiceTemplateVersionId
       properties:
         eserviceTemplate:
           $ref: "#/components/schemas/EServiceTemplate"
-        createdEServiceTemplateId:
+        createdEServiceTemplateVersionId:
           type: string
           format: uuid
     EServiceTemplateVersion:

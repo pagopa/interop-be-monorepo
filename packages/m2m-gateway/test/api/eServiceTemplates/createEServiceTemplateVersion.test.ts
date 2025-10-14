@@ -18,7 +18,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
 
 describe("POST /eserviceTemplates/:templateId/versions router test", () => {
-  const versionSeed: m2mGatewayApi.EServiceTemplateVersionCreationSeed = {
+  const versionSeed: m2mGatewayApi.EServiceTemplateVersionSeed = {
     description: "Test Version",
     voucherLifespan: 100,
     dailyCallsPerConsumer: 10,
@@ -29,14 +29,14 @@ describe("POST /eserviceTemplates/:templateId/versions router test", () => {
   const mockM2MEserviceTemplateVersionResponse: m2mGatewayApi.EServiceTemplateVersion =
     toM2MGatewayEServiceTemplateVersion(getMockedApiEserviceTemplateVersion());
 
-  mockEServiceTemplateService.createEserviceTemplateVersion = vi
+  mockEServiceTemplateService.createEServiceTemplateVersion = vi
     .fn()
     .mockResolvedValue(mockM2MEserviceTemplateVersionResponse);
 
   const makeRequest = async (
     token: string,
     templateId: string = generateId(),
-    body: m2mGatewayApi.EServiceTemplateVersionCreationSeed = versionSeed
+    body: m2mGatewayApi.EServiceTemplateVersionSeed = versionSeed
   ) =>
     request(api)
       .post(`${appBasePath}/eserviceTemplates/${templateId}/versions`)
@@ -89,7 +89,7 @@ describe("POST /eserviceTemplates/:templateId/versions router test", () => {
       const res = await makeRequest(
         token,
         generateId(),
-        body as m2mGatewayApi.EServiceTemplateVersionCreationSeed
+        body as m2mGatewayApi.EServiceTemplateVersionSeed
       );
 
       expect(res.status).toBe(400);
@@ -104,7 +104,7 @@ describe("POST /eserviceTemplates/:templateId/versions router test", () => {
       config.defaultPollingRetryDelay
     ),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockEServiceTemplateService.createEserviceTemplateVersion = vi
+    mockEServiceTemplateService.createEServiceTemplateVersion = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
