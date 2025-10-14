@@ -112,6 +112,17 @@ export const assertEServiceIdsCountIsBelowThreshold = (
   }
 };
 
+export function assertPurposeTemplateObjectsAreDeletable(
+  purposeTemplate: PurposeTemplate,
+  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">
+): asserts purposeTemplate is PurposeTemplate & {
+  purposeRiskAnalysisForm: RiskAnalysisFormTemplate;
+} {
+  assertRequesterIsCreator(purposeTemplate.creatorId, authData);
+  assertPurposeTemplateIsDraft(purposeTemplate);
+  assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate);
+}
+
 export function validateAndTransformRiskAnalysisTemplate(
   riskAnalysisFormTemplate:
     | purposeTemplateApi.RiskAnalysisFormTemplateSeed

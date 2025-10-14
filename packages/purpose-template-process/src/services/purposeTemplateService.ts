@@ -24,7 +24,6 @@ import {
   eventRepository,
   FileManager,
   getLatestVersionFormRules,
-  Logger,
   M2MAdminAuthData,
   M2MAuthData,
   riskAnalysisValidatedAnswerToRiskAnalysisAnswer,
@@ -35,7 +34,6 @@ import { match } from "ts-pattern";
 import {
   associationEServicesForPurposeTemplateFailed,
   disassociationEServicesFromPurposeTemplateFailed,
-  purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   ruleSetNotFoundError,
@@ -47,8 +45,10 @@ import {
   toCreateEventPurposeTemplateEServiceLinked,
   toCreateEventPurposeTemplateEServiceUnlinked,
 } from "../model/domain/toEvent.js";
-import { config } from "../config/config.js";
-import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisDocUtils.js";
+import {
+  cleanupAnnotationDocsForRemovedAnswers,
+  deleteRiskAnalysisTemplateAnswerAnnotationDocuments,
+} from "../utilities/riskAnalysisDocUtils.js";
 import {
   GetPurposeTemplateEServiceDescriptorsFilters,
   GetPurposeTemplatesFilters,
@@ -68,6 +68,7 @@ import {
   validateEservicesAssociations,
   validateEservicesDisassociations,
   validateRiskAnalysisAnswerOrThrow,
+  assertPurposeTemplateObjectsAreDeletable,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -95,33 +96,6 @@ function getDefaultRiskAnalysisFormTemplate(
     singleAnswers: [],
     multiAnswers: [],
   };
-}
-
-async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
-  purposeTemplate,
-  fileManager,
-  readModelService,
-  logger,
-}: {
-  purposeTemplate: PurposeTemplate;
-  fileManager: FileManager;
-  readModelService: ReadModelServiceSQL;
-  logger: Logger;
-}): Promise<void> {
-  if (!purposeTemplate.purposeRiskAnalysisForm) {
-    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
-  }
-
-  const annotationDocuments =
-    await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocsByPurposeTemplateId(
-      purposeTemplate.id
-    );
-
-  await Promise.all(
-    annotationDocuments.map(async (doc) => {
-      await fileManager.delete(config.s3Bucket, doc.path, logger);
-    })
-  );
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -595,13 +569,19 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
-      assertPurposeTemplateIsDraft(purposeTemplate.data);
+      assertPurposeTemplateObjectsAreDeletable(purposeTemplate.data, authData);
+
+      const annotationDocumentsToRemove: RiskAnalysisTemplateAnswerAnnotationDocument[] =
+        [
+          ...purposeTemplate.data.purposeRiskAnalysisForm.singleAnswers,
+          ...purposeTemplate.data.purposeRiskAnalysisForm.multiAnswers,
+        ]
+          .filter((a) => a.annotation)
+          .flatMap((a) => a.annotation?.docs || []);
 
       await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
-        purposeTemplate: purposeTemplate.data,
+        annotationDocumentsToRemove,
         fileManager,
-        readModelService,
         logger,
       });
 
