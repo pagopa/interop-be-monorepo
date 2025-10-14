@@ -20,7 +20,6 @@ export type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorApprovedByDelegator"
   | "EServiceDescriptorRejectedByDelegator";
 
-// eslint-disable-next-line max-params
 export async function handleEserviceNewVersionApprovedRejectedToDelegate(
   eserviceV2Msg: EServiceV2 | undefined,
   descriptorId: DescriptorId,

@@ -30,7 +30,6 @@ type CertifiedVerifiedAttributeAssignedRevokedEventType =
   | "TenantVerifiedAttributeAssigned"
   | "TenantVerifiedAttributeRevoked";
 
-// eslint-disable-next-line max-params
 export async function handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
   tenantV2Msg: TenantV2 | undefined,
   attributeId: AttributeId,
