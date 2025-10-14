@@ -61,7 +61,7 @@ export function notificationConfigServiceBuilder(
       );
     },
     updateUserNotificationConfig: async (
-      seed: notificationConfigApi.UserNotificationConfigUpdateSeed,
+      seed: bffApi.UserNotificationConfigUpdateSeed,
       {
         authData: { userId, organizationId },
         logger,
@@ -72,9 +72,41 @@ export function notificationConfigServiceBuilder(
       logger.info(
         `Updating notification configuration for user ${userId} in tenant ${organizationId}`
       );
-      await notificationConfigClient.updateUserNotificationConfig(seed, {
-        headers,
-      });
+      const {
+        inAppConfig: {
+          clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+            inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+          ...restInAppConfig
+        },
+        emailConfig: {
+          clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+            emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+          ...restEmailConfig
+        },
+        ...restSeed
+      } = seed;
+      await notificationConfigClient.updateUserNotificationConfig(
+        {
+          ...restSeed,
+          inAppConfig: {
+            ...restInAppConfig,
+            clientKeyAddedDeletedToClientUsers:
+              inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+            producerKeychainKeyAddedDeletedToClientUsers:
+              inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+          },
+          emailConfig: {
+            ...restEmailConfig,
+            clientKeyAddedDeletedToClientUsers:
+              emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+            producerKeychainKeyAddedDeletedToClientUsers:
+              emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
+          },
+        },
+        {
+          headers,
+        }
+      );
     },
   };
 }
