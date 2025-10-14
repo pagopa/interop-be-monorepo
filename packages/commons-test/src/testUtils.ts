@@ -121,8 +121,6 @@ import {
   RiskAnalysisTemplateSingleAnswerV2,
   RiskAnalysisTemplateMultiAnswerV2,
   EmailNotificationPreference,
-  RiskAnalysisTemplateAnswerAnnotationDocument,
-  RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -605,18 +603,6 @@ export const getMockDelegationDocument = (
   contentType: "json",
   path: "path",
   createdAt: new Date(),
-});
-
-export const getMockAnnotationDocument = (
-  id?: RiskAnalysisTemplateAnswerAnnotationDocumentId
-): RiskAnalysisTemplateAnswerAnnotationDocument => ({
-  id: id ?? generateId(),
-  name: "A Document",
-  prettyName: "A Document prettified",
-  contentType: "application/pdf",
-  path: "/annotation/documents",
-  createdAt: new Date(),
-  checksum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 });
 
 export const getMockTokenGenStatesConsumerClient = (
