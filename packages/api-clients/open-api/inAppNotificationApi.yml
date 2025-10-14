@@ -469,6 +469,7 @@ components:
         - delegationSubmittedRevokedToDelegate
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
         - clientKeyAddedDeletedToClientUsers
+        - producerKeychainKeyAddedDeletedToClientUsers
     NotificationsByType:
       type: object
       additionalProperties: false

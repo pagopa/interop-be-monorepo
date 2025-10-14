@@ -121,6 +121,7 @@ export const notificationTypeToCategory: Record<NotificationType, Category> = {
   eserviceNewVersionApprovedRejectedToDelegate: "Delegations",
   delegationSubmittedRevokedToDelegate: "Delegations",
   certifiedVerifiedAttributeAssignedRevokedToAssignee: "AttributesAndKeys",
+  producerKeychainKeyAddedDeletedToClientUsers: "AttributesAndKeys",
 };
 
 export const categoryToNotificationTypes: Record<Category, NotificationType[]> =
