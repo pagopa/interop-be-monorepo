@@ -224,6 +224,7 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
                     name: doc.name,
                     prettyName: doc.prettyName,
                     contentType: doc.contentType,
+                    checksum: doc.checksum,
                     path: doc.path,
                     createdAt: stringToDate(doc.createdAt),
                   }))
@@ -422,6 +423,7 @@ export const toRiskAnalysisTemplateAnswerAnnotationDocument = (
   contentType: annotationDocumentSQL.contentType,
   path: annotationDocumentSQL.path,
   createdAt: stringToDate(annotationDocumentSQL.createdAt),
+  checksum: annotationDocumentSQL.checksum,
 });
 
 export const aggregatePurposeTemplateEServiceDescriptorArray = (

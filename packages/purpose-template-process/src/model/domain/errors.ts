@@ -32,8 +32,13 @@ export const errorCodes = {
   tooManyEServicesForPurposeTemplate: "0015",
   disassociationEServicesFromPurposeTemplateFailed: "0016",
   associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0017",
-  hyperlinkDetectionError: "0018",
-  purposeTemplateNotInValidState: "0019",
+  conflictDocumentPrettyNameDuplicate: "0018",
+  annotationDocumentLimitExceeded: "0019",
+  purposeTemplateIsNotDraft: "0020",
+  conflictDuplicatedDocument: "0021",
+  hyperlinkDetectionError: "0022",
+  purposeTemplateNotInValidState: "0023",
+  riskAnalysisAnswerNotFound: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -66,6 +71,16 @@ export function purposeTemplateNotFound(
     detail: `No Purpose Template found for ID ${purposeTemplateId}`,
     code: "purposeTemplateNotFound",
     title: "Purpose Template Not Found",
+  });
+}
+
+export function purposeTemplateStateNotDraft(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template with ID ${purposeTemplateId} is not in draft state`,
+    code: "purposeTemplateIsNotDraft",
+    title: "Purpose Template State Not Draft",
   });
 }
 
@@ -228,6 +243,37 @@ export function associationBetweenEServiceAndPurposeTemplateDoesNotExist(
   });
 }
 
+export function conflictDocumentPrettyNameDuplicate(
+  answerId: string,
+  prettyName: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Conflict: annotation document with pretty name '${prettyName}' is duplicated for answer with id '${answerId}'`,
+    code: "conflictDocumentPrettyNameDuplicate",
+    title: "Annotation document with pretty name already exists",
+  });
+}
+
+export function annotationDocumentLimitExceeded(
+  answerId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Annotation document limit exceeded for answer with id '${answerId}'`,
+    code: "annotationDocumentLimitExceeded",
+    title: "Annotation document limit exceeded",
+  });
+}
+
+export function conflictDuplicatedDocument(
+  answerId: string,
+  checksum: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Conflict: annotation document with checksum '${checksum}' is duplicated for answer with id '${answerId}'`,
+    code: "conflictDuplicatedDocument",
+    title: "Conflict: annotation document with checksum already exists",
+  });
+}
 export function purposeTemplateNotInValidState(
   state: PurposeTemplateState,
   validStates: PurposeTemplateState[]
@@ -244,5 +290,15 @@ export function hyperlinkDetectionError(text: string): ApiError<ErrorCodes> {
     detail: `Hyperlink detection error for text ${text}`,
     code: "hyperlinkDetectionError",
     title: "Hyperlink detection error",
+  });
+}
+
+export function riskAnalysisAnswerNotFound(
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis answer not found for ID ${answerId}`,
+    code: "riskAnalysisAnswerNotFound",
+    title: "Risk analysis answer not found",
   });
 }

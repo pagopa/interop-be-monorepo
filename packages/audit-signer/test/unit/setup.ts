@@ -29,6 +29,7 @@ export const mockFileManager: FileManager = {
   listFiles: vi.fn(),
   generateGetPresignedUrl: vi.fn(),
   generatePutPresignedUrl: vi.fn(),
+  resumeOrStoreBytes: vi.fn(),
 };
 
 export const mockDbService = { saveSignatureReference: vi.fn() };

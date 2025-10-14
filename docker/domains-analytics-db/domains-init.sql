@@ -692,5 +692,6 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template_risk_analysis_answer_annotat
   path VARCHAR(2048) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
+  checksum VARCHAR NOT NULL,
   PRIMARY KEY (id)
 );
