@@ -1,13 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   Attribute,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersion,
   generateId,
-  operationForbidden,
 } from "pagopa-interop-models";
 import {
   generateToken,
@@ -19,20 +17,8 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
-import {
-  eserviceTemplateToApiEServiceTemplate,
-  eserviceTemplateVersionToApiEServiceTemplateVersion,
-} from "../../src/model/domain/apiConverter.js";
-import {
-  draftEServiceTemplateVersionAlreadyExists,
-  eserviceTemplateNotFound,
-  eserviceTemplateWithoutPublishedVersion,
-  inconsistentDailyCalls,
-} from "../../src/model/domain/errors.js";
-import {
-  eserviceTemplateToApiEServiceTemplateSeed,
-  buildCreateVersionSeed,
-} from "../mockUtils.js";
+import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
+import { buildCreateVersionSeed } from "../mockUtils.js";
 
 describe("API POST /templates/:templateId/versions", () => {
   const mockVersion = getMockEServiceTemplateVersion();
