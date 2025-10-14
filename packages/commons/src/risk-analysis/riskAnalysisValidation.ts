@@ -1,8 +1,4 @@
-import {
-  genericInternalError,
-  tenantKind,
-  TenantKind,
-} from "pagopa-interop-models";
+import { tenantKind, TenantKind } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
   RiskAnalysisFormToValidate,
@@ -17,6 +13,7 @@ import {
   RiskAnalysisValidationIssue,
   dependencyNotFoundError,
   expiredRulesVersionError,
+  incompatiblePersonalDataError,
   missingExpectedFieldError,
   rulesVersionNotFoundError,
   unexpectedDependencyValueError,
@@ -24,6 +21,7 @@ import {
   unexpectedFieldFormatError,
   unexpectedFieldValueError,
 } from "./riskAnalysisValidationErrors.js";
+
 import {
   FormQuestionRules,
   RiskAnalysisFormRules,
@@ -107,12 +105,16 @@ export function validateRiskAnalysis(
       .with("NO", () => false)
       .otherwise(() => undefined);
 
-    validatePersonalDataFlag({
+    const personalDataFlagValidation = validatePersonalDataFlag({
       tenantKind,
       version: formRulesForValidation.version,
       personalDataInRiskAnalysis,
       personalDataInEService,
     });
+
+    if (personalDataFlagValidation.length > 0) {
+      return invalidResult(personalDataFlagValidation);
+    }
     return validResult({
       version: formRulesForValidation.version,
       singleAnswers,
@@ -411,24 +413,25 @@ const validatePersonalDataFlag = ({
   version: string;
   personalDataInRiskAnalysis: boolean | undefined;
   personalDataInEService: boolean | undefined;
-}): void => {
+}): RiskAnalysisValidationIssue[] => {
   const label = buildLabel(tenantKind, version);
-  match(label)
+  return match(label)
     .with(
       formRules.PA_1_0,
       formRules.PA_2_0,
       formRules.PA_3_0,
       formRules.PRIVATE_1_0,
-      () => void 0
+      () => []
     )
     .with(formRules.PA_3_1, formRules.PRIVATE_2_0, () =>
       match(personalDataInEService)
         .with(P.boolean, () => {
           if (personalDataInEService !== personalDataInRiskAnalysis) {
-            throw genericInternalError("Incompatible personalData flag");
+            return [incompatiblePersonalDataError()];
           }
+          return [];
         })
-        .with(undefined, () => void 0)
+        .with(undefined, () => [])
         .exhaustive()
     )
     .exhaustive();
