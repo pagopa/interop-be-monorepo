@@ -10,11 +10,14 @@ import {
   SendingPausedException,
   TooManyRequestsException,
 } from "@aws-sdk/client-sesv2";
+import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
+import { TenantReadModelService } from "pagopa-interop-readmodel";
 import { emailSenderProcessorBuilder } from "../src/services/emailSenderProcessor.js";
 import {
-  correctEventPayload,
-  kafkaMessagePayload,
-  kafkaMessagePayloadWithValue,
+  correctTenantEventPayload,
+  kafkaMessagePayloadTenant,
+  kafkaMessagePayloadUser,
+  kafkaMessagePayloadWithValueTenant,
 } from "./utils.js";
 
 describe("emailSenderProcessor", () => {
@@ -28,11 +31,28 @@ describe("emailSenderProcessor", () => {
     label: "mock sender",
     mail: "sender@mock.com",
   };
+  const mockSelfcareV2InstitutionClient = {
+    getInstitutionUsersByProductUsingGET: vi.fn().mockResolvedValue([
+      {
+        email: "user@mock.com",
+      },
+    ]),
+  } as unknown as SelfcareV2InstitutionClient;
+  const mockTenantReadModelService = {
+    getTenantById: vi.fn().mockResolvedValue({
+      data: {
+        selfcareId: "mock-selfcare-id",
+        email: "tenant@mock.com",
+      },
+    }),
+  } as unknown as TenantReadModelService;
 
   beforeAll(async () => {
     emailSenderProcessor = emailSenderProcessorBuilder(
       mockSESSender,
-      mockSESEmailManager
+      mockSESEmailManager,
+      mockSelfcareV2InstitutionClient,
+      mockTenantReadModelService
     );
   });
 
@@ -40,8 +60,14 @@ describe("emailSenderProcessor", () => {
     vi.clearAllMocks();
   });
 
-  it("should send email when message has subject, address and body", async () => {
-    const message = kafkaMessagePayload;
+  it("should send email when message has subject, address and body for tenant", async () => {
+    const message = kafkaMessagePayloadTenant;
+    await emailSenderProcessor.processMessage(message);
+    expect(mockSESEmailManager.send).toHaveBeenCalledOnce();
+  });
+
+  it("should send email when message has subject, address and body for user", async () => {
+    const message = kafkaMessagePayloadUser;
     await emailSenderProcessor.processMessage(message);
     expect(mockSESEmailManager.send).toHaveBeenCalledOnce();
   });
@@ -52,51 +78,51 @@ describe("emailSenderProcessor", () => {
     },
     {
       eventPayload: {
-        ...correctEventPayload,
-        email: { ...correctEventPayload.email, subject: undefined },
+        ...correctTenantEventPayload,
+        email: { ...correctTenantEventPayload.email, subject: undefined },
       },
     },
     {
       eventPayload: {
-        ...correctEventPayload,
-        email: { ...correctEventPayload.email, body: undefined },
+        ...correctTenantEventPayload,
+        email: { ...correctTenantEventPayload.email, body: undefined },
       },
     },
     {
-      eventPayload: { ...correctEventPayload, address: undefined },
+      eventPayload: { ...correctTenantEventPayload, address: undefined },
     },
     {
-      eventPayload: { ...correctEventPayload, correlationId: undefined },
+      eventPayload: { ...correctTenantEventPayload, correlationId: undefined },
     },
     {
-      eventPayload: { ...correctEventPayload, correlationId: undefined },
+      eventPayload: { ...correctTenantEventPayload, correlationId: undefined },
     },
     {
-      eventPayload: { ...correctEventPayload, address: "invalid" },
+      eventPayload: { ...correctTenantEventPayload, address: "invalid" },
     },
     {
-      eventPayload: { ...correctEventPayload, correlationId: "invalid" },
+      eventPayload: { ...correctTenantEventPayload, correlationId: "invalid" },
     },
     {
       eventPayload: {
-        ...correctEventPayload,
-        email: { ...correctEventPayload.email, subject: "" },
+        ...correctTenantEventPayload,
+        email: { ...correctTenantEventPayload.email, subject: "" },
       },
     },
     {
       eventPayload: {
-        ...correctEventPayload,
-        email: { ...correctEventPayload.email, body: "" },
+        ...correctTenantEventPayload,
+        email: { ...correctTenantEventPayload.email, body: "" },
       },
     },
   ])("should skip if message is malformed: %s", async ({ eventPayload }) => {
-    const message = kafkaMessagePayloadWithValue({ eventPayload });
+    const message = kafkaMessagePayloadWithValueTenant({ eventPayload });
     await emailSenderProcessor.processMessage(message);
     expect(mockSESEmailManager.send).toHaveBeenCalledTimes(0);
   });
 
   it("should attempt to send the email again when api throttles", async () => {
-    const message = kafkaMessagePayload;
+    const message = kafkaMessagePayloadTenant;
     // eslint-disable-next-line functional/immutable-data
     mockSESEmailManager.send = vi.fn().mockRejectedValueOnce(
       new TooManyRequestsException({
@@ -124,7 +150,7 @@ describe("emailSenderProcessor", () => {
   ])(
     "should throw error when the send fails because of error %s",
     async ({ error }) => {
-      const message = kafkaMessagePayload;
+      const message = kafkaMessagePayloadTenant;
       // eslint-disable-next-line functional/immutable-data
       mockSESEmailManager.send = vi.fn().mockRejectedValueOnce(error);
       await expect(() =>
