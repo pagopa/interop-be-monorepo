@@ -1,0 +1,26 @@
+meta {
+  name: Get Purpose Templates
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-purpose-template}}/purposeTemplates?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~states: ["DRAFT", "ACTIVE"]
+  ~eserviceIds: ["{{eserviceId}}"]
+  ~creatorIds: ["{{tenantId}}"]
+  ~purposeTitle: title
+  ~targetTenantKind: PA
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

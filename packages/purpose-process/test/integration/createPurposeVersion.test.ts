@@ -149,12 +149,12 @@ describe("createPurposeVersion", () => {
       },
       getMockContext({
         authData: getMockAuthData(mockPurpose.consumerId, userId),
-      })
+      }),
     );
 
     const createdPurposeVersion =
       purposeVersionResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionResponse.data.createdVersionId
+        (v) => v.id === purposeVersionResponse.data.createdVersionId,
       )!;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
@@ -176,6 +176,7 @@ describe("createPurposeVersion", () => {
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
       userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -183,19 +184,19 @@ describe("createPurposeVersion", () => {
         path.dirname(fileURLToPath(import.meta.url)),
         "../../src",
         "resources/templates/documents",
-        "riskAnalysisTemplate.html"
+        "riskAnalysisTemplate.html",
       ),
-      expectedPdfPayload
+      expectedPdfPayload,
     );
 
     expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
+      await fileManager.listFiles(config.s3Bucket, genericLogger),
     ).toContain(createdPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
       "purpose",
-      postgresDB
+      postgresDB,
     );
 
     expect(writtenEvent).toMatchObject({
@@ -235,7 +236,7 @@ describe("createPurposeVersion", () => {
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
+      toPurposeV2(expectedPurpose),
     );
     expect({
       ...purposeVersionResponse,
@@ -281,12 +282,12 @@ describe("createPurposeVersion", () => {
       },
       getMockContext({
         authData: getMockAuthData(mockPurpose.consumerId, userId),
-      })
+      }),
     );
 
     const createdPurposeVersion =
       purposeVersionResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionResponse.data.createdVersionId
+        (v) => v.id === purposeVersionResponse.data.createdVersionId,
       )!;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
@@ -308,6 +309,7 @@ describe("createPurposeVersion", () => {
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
       userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -315,19 +317,19 @@ describe("createPurposeVersion", () => {
         path.dirname(fileURLToPath(import.meta.url)),
         "../../src",
         "resources/templates/documents",
-        "riskAnalysisTemplate.html"
+        "riskAnalysisTemplate.html",
       ),
-      expectedPdfPayload
+      expectedPdfPayload,
     );
 
     expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
+      await fileManager.listFiles(config.s3Bucket, genericLogger),
     ).toContain(createdPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
       "purpose",
-      postgresDB
+      postgresDB,
     );
 
     expect(writtenEvent).toMatchObject({
@@ -367,7 +369,7 @@ describe("createPurposeVersion", () => {
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
+      toPurposeV2(expectedPurpose),
     );
     expect({
       ...purposeVersionResponse,
@@ -401,12 +403,12 @@ describe("createPurposeVersion", () => {
       },
       getMockContext({
         authData: getMockAuthData(mockPurpose.consumerId, userId),
-      })
+      }),
     );
 
     const createdPurposeVersion =
       purposeVersionResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionResponse.data.createdVersionId
+        (v) => v.id === purposeVersionResponse.data.createdVersionId,
       )!;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
@@ -428,6 +430,7 @@ describe("createPurposeVersion", () => {
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
       userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -435,19 +438,19 @@ describe("createPurposeVersion", () => {
         path.dirname(fileURLToPath(import.meta.url)),
         "../../src",
         "resources/templates/documents",
-        "riskAnalysisTemplate.html"
+        "riskAnalysisTemplate.html",
       ),
-      expectedPdfPayload
+      expectedPdfPayload,
     );
 
     expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
+      await fileManager.listFiles(config.s3Bucket, genericLogger),
     ).toContain(createdPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
       "purpose",
-      postgresDB
+      postgresDB,
     );
 
     expect(writtenEvent).toMatchObject({
@@ -487,7 +490,7 @@ describe("createPurposeVersion", () => {
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
+      toPurposeV2(expectedPurpose),
     );
     expect({
       ...purposeVersionResponse,
@@ -523,18 +526,18 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 30,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) }),
     );
 
     const createdPurposeVersion =
       purposeVersionResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionResponse.data.createdVersionId
+        (v) => v.id === purposeVersionResponse.data.createdVersionId,
       )!;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
       "purpose",
-      postgresDB
+      postgresDB,
     );
 
     expect(writtenEvent).toMatchObject({
@@ -563,11 +566,11 @@ describe("createPurposeVersion", () => {
     });
 
     expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
+      toPurposeV2(expectedPurpose),
     );
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(createdPurposeVersion.state).toEqual(
-      purposeVersionState.waitingForApproval
+      purposeVersionState.waitingForApproval,
     );
     expect({
       ...purposeVersionResponse,
@@ -621,12 +624,14 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id, userId) })
+      getMockContext({
+        authData: getMockAuthData(consumerDelegate.id, userId),
+      }),
     );
 
     const createdPurposeVersion =
       purposeVersionResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionResponse.data.createdVersionId
+        (v) => v.id === purposeVersionResponse.data.createdVersionId,
       )!;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
@@ -648,6 +653,7 @@ describe("createPurposeVersion", () => {
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
       userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -655,19 +661,19 @@ describe("createPurposeVersion", () => {
         path.dirname(fileURLToPath(import.meta.url)),
         "../../src",
         "resources/templates/documents",
-        "riskAnalysisTemplate.html"
+        "riskAnalysisTemplate.html",
       ),
-      expectedPdfPayload
+      expectedPdfPayload,
     );
 
     expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
+      await fileManager.listFiles(config.s3Bucket, genericLogger),
     ).toContain(createdPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       purpose.id,
       "purpose",
-      postgresDB
+      postgresDB,
     );
 
     expect(writtenEvent).toMatchObject({
@@ -707,7 +713,7 @@ describe("createPurposeVersion", () => {
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
+      toPurposeV2(expectedPurpose),
     );
     expect({
       ...purposeVersionResponse,
@@ -802,12 +808,14 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id, userId) })
+      getMockContext({
+        authData: getMockAuthData(consumerDelegate.id, userId),
+      }),
     );
 
     const createdPurposeVersion =
       purposeVersionResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionResponse.data.createdVersionId
+        (v) => v.id === purposeVersionResponse.data.createdVersionId,
       )!;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
@@ -829,6 +837,7 @@ describe("createPurposeVersion", () => {
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
       userId,
+      consumerId: consumer.id,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -836,19 +845,19 @@ describe("createPurposeVersion", () => {
         path.dirname(fileURLToPath(import.meta.url)),
         "../../src",
         "resources/templates/documents",
-        "riskAnalysisTemplate.html"
+        "riskAnalysisTemplate.html",
       ),
-      expectedPdfPayload
+      expectedPdfPayload,
     );
 
     expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
+      await fileManager.listFiles(config.s3Bucket, genericLogger),
     ).toContain(createdPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       delegatePurpose.id,
       "purpose",
-      postgresDB
+      postgresDB,
     );
 
     expect(writtenEvent).toMatchObject({
@@ -888,7 +897,7 @@ describe("createPurposeVersion", () => {
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
+      toPurposeV2(expectedPurpose),
     );
     expect({
       ...purposeVersionResponse,
@@ -922,8 +931,8 @@ describe("createPurposeVersion", () => {
           },
           getMockContext({
             authData: getMockAuthData(mockPurpose.consumerId),
-          })
-        )
+          }),
+        ),
     ).rejects.toThrowError(unchangedDailyCalls(mockPurpose.id));
   });
 
@@ -940,7 +949,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 1000,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) }),
       );
     }).rejects.toThrowError(tenantIsNotTheConsumer(mockEService.producerId));
   });
@@ -957,7 +966,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) }),
       );
     }).rejects.toThrowError(eserviceNotFound(mockEService.id));
   });
@@ -978,7 +987,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(anotherTenant.id) })
+        getMockContext({ authData: getMockAuthData(anotherTenant.id) }),
       );
     }).rejects.toThrowError(tenantIsNotTheConsumer(anotherTenant.id));
   });
@@ -995,10 +1004,10 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) }),
       );
     }).rejects.toThrowError(
-      agreementNotFound(mockEService.id, mockConsumer.id)
+      agreementNotFound(mockEService.id, mockConsumer.id),
     );
   });
 
@@ -1028,12 +1037,12 @@ describe("createPurposeVersion", () => {
           },
           getMockContext({
             authData: getMockAuthData(mockPurpose.consumerId),
-          })
+          }),
         );
       }).rejects.toThrowError(
-        agreementNotFound(mockEService.id, mockConsumer.id)
+        agreementNotFound(mockEService.id, mockConsumer.id),
       );
-    }
+    },
   );
 
   it("should throw tenantNotFound if the purpose consumer is not found in the readmodel", async () => {
@@ -1048,7 +1057,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) }),
       );
     }).rejects.toThrowError(tenantNotFound(mockConsumer.id));
   });
@@ -1065,7 +1074,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) }),
       );
     }).rejects.toThrowError(tenantNotFound(mockProducer.id));
   });
@@ -1089,7 +1098,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) }),
       );
     }).rejects.toThrowError(tenantKindNotFound(consumer.id));
   });
@@ -1113,7 +1122,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) }),
       );
     }).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
@@ -1136,7 +1145,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) }),
       );
     }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
   });
@@ -1170,10 +1179,10 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData })
+        getMockContext({ authData }),
       );
     }).rejects.toThrowError(
-      tenantIsNotTheDelegatedConsumer(authData.organizationId, delegation.id)
+      tenantIsNotTheDelegatedConsumer(authData.organizationId, delegation.id),
     );
   });
   it("should throw purposeDelegationNotFound when the requester is the Consumer, is creating a purpose version for a purpose created by a delegate, but the delegation cannot be found", async () => {
@@ -1194,11 +1203,11 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData })
+        getMockContext({ authData }),
       );
     }).rejects.toThrowError(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      purposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
+      purposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!),
     );
   });
 
@@ -1229,7 +1238,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) }),
       );
     }).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
   });
@@ -1273,13 +1282,13 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) }),
       );
     }).rejects.toThrowError(
       tenantIsNotTheDelegatedConsumer(
         delegation.delegateId,
-        mockPurpose.delegationId
-      )
+        mockPurpose.delegationId,
+      ),
     );
   });
   it("should throw purposeCannotBeUpdated if the purpose is in archived (archived version)", async () => {
@@ -1299,7 +1308,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 1000,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) }),
       );
     }).rejects.toThrowError(purposeCannotBeUpdated(mockPurpose.id));
   });

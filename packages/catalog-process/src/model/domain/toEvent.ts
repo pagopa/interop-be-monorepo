@@ -860,3 +860,20 @@ export const toCreateEventEServiceSignalhubFlagDisabled = (
   },
   correlationId,
 });
+
+export const toCreateEventEServicePersonalDataFlagUpdatedAfterPublication = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServicePersonalDataFlagUpdatedAfterPublication",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
