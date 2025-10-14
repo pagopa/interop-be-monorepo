@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-
 import {
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
@@ -11,6 +10,7 @@ import {
   validateRiskAnalysis,
   rulesVersionNotFoundError,
   expiredRulesVersionError,
+  incompatiblePersonalDataError,
 } from "pagopa-interop-commons";
 import { tenantKind } from "pagopa-interop-models";
 import {
@@ -502,4 +502,53 @@ describe("Risk Analysis Validation", () => {
       ],
     });
   });
+
+  it("should fail if the risk analysis is PRIVATE 2.0 and the eservice has different personalData", () => {
+    const riskAnalysisForm: RiskAnalysisFormToValidate = {
+      ...validRiskAnalysis2_0_Private,
+      answers: {
+        usesPersonalData: ["YES"],
+        ...validRiskAnalysis2_0_Private.answers,
+      },
+    };
+    expect(
+      validateRiskAnalysis(riskAnalysisForm, false, "GSP", new Date(), false)
+    ).toEqual({
+      type: "invalid",
+      issues: [incompatiblePersonalDataError()],
+    });
+  });
+
+  it("should succeed if the risk analysis is PRIVATE 2.0 and the eservice doesn't have the personalData flag", () => {
+    expect(
+      validateRiskAnalysis(
+        validRiskAnalysis2_0_Private,
+        false,
+        "GSP",
+        new Date(),
+        undefined
+      )
+    ).toEqual({
+      type: "valid",
+      value: validatedRiskAnalysis2_0_Private,
+    });
+  });
+
+  it.each([true, false])(
+    "should succeed if the risk analysis is PA 3.0 and the eservice has any personalData flag",
+    (personalDataInEService) => {
+      expect(
+        validateRiskAnalysis(
+          validRiskAnalysis3_0_Pa,
+          false,
+          "PA",
+          new Date(),
+          personalDataInEService
+        )
+      ).toEqual({
+        type: "valid",
+        value: validatedRiskAnalysis3_0_Pa,
+      });
+    }
+  );
 });
