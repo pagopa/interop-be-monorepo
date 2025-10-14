@@ -39,7 +39,6 @@ import {
   riskAnalysisTemplateAnswerNotFound,
 } from "../../src/model/domain/errors.js";
 import { ANNOTATION_DOCUMENTS_LIMIT } from "../../src/services/validators.js";
-import { check } from "drizzle-orm/mysql-core";
 
 describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   const mockValidRiskAnalysisTemplateForm =
