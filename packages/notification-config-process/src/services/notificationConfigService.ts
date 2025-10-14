@@ -7,7 +7,7 @@ import {
   UIAuthData,
   InternalAuthData,
   overrideNotificationConfigByAdmittedRoles,
-  notificationConfigIsAllowedForUserRoles,
+  isNotificationConfigAllowedForUserRoles,
 } from "pagopa-interop-commons";
 import {
   notificationConfigEventToBinaryDataV2,
@@ -204,8 +204,8 @@ export function notificationConfigServiceBuilder(
       );
 
       if (
-        !notificationConfigIsAllowedForUserRoles(seed.inAppConfig, userRoles) ||
-        !notificationConfigIsAllowedForUserRoles(seed.emailConfig, userRoles)
+        !isNotificationConfigAllowedForUserRoles(seed.inAppConfig, userRoles) ||
+        !isNotificationConfigAllowedForUserRoles(seed.emailConfig, userRoles)
       ) {
         throw notificationConfigNotAllowedForUserRoles(userId, organizationId);
       }
