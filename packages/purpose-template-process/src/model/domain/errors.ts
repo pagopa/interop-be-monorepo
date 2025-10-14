@@ -34,6 +34,7 @@ export const errorCodes = {
   associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0017",
   hyperlinkDetectionError: "0018",
   purposeTemplateNotInValidState: "0019",
+  riskAnalysisAnswerNotFound: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -244,5 +245,15 @@ export function hyperlinkDetectionError(text: string): ApiError<ErrorCodes> {
     detail: `Hyperlink detection error for text ${text}`,
     code: "hyperlinkDetectionError",
     title: "Hyperlink detection error",
+  });
+}
+
+export function riskAnalysisAnswerNotFound(
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis answer not found for ID ${answerId}`,
+    code: "riskAnalysisAnswerNotFound",
+    title: "Risk analysis answer not found",
   });
 }
