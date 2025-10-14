@@ -12,7 +12,12 @@ import {
   validateAndStorePDFDocument,
   WithLogger,
 } from "pagopa-interop-commons";
-import { PurposeTemplateId, TenantKind } from "pagopa-interop-models";
+import {
+  PurposeTemplateId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  TenantKind,
+} from "pagopa-interop-models";
 import {
   CatalogProcessClient,
   PurposeTemplateProcessClient,
@@ -460,6 +465,27 @@ export function purposeTemplateServiceBuilder(
         {
           params: {
             id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+    },
+    async addRiskAnalysisAnswerAnnotation(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      seed: bffApi.RiskAnalysisTemplateAnswerAnnotationText,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotation> {
+      logger.info(
+        `Adding risk analysis answer annotation for purpose template ${purposeTemplateId}`
+      );
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+      return await purposeTemplateClient.addRiskAnalysisAnswerAnnotationForPurposeTemplate(
+        seed,
+        {
+          params: {
+            purposeTemplateId,
+            answerId,
           },
           headers,
         }

@@ -38,6 +38,7 @@ export const errorCodes = {
   conflictDuplicatedDocument: "0021",
   hyperlinkDetectionError: "0022",
   purposeTemplateNotInValidState: "0023",
+  riskAnalysisAnswerNotFound: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -289,5 +290,15 @@ export function hyperlinkDetectionError(text: string): ApiError<ErrorCodes> {
     detail: `Hyperlink detection error for text ${text}`,
     code: "hyperlinkDetectionError",
     title: "Hyperlink detection error",
+  });
+}
+
+export function riskAnalysisAnswerNotFound(
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis answer not found for ID ${answerId}`,
+    code: "riskAnalysisAnswerNotFound",
+    title: "Risk analysis answer not found",
   });
 }
