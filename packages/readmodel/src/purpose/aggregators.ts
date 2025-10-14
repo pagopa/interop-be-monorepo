@@ -8,6 +8,8 @@ import {
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionId,
+  PurposeVersionStamp,
+  PurposeVersionStampKind,
   PurposeVersionState,
   RiskAnalysisAnswerKind,
   riskAnalysisAnswerKind,
@@ -27,6 +29,7 @@ import {
   PurposeVersionDocumentSQL,
   PurposeRiskAnalysisFormSQL,
   PurposeItemsSQL,
+  PurposeVersionStampSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
@@ -37,12 +40,14 @@ export const aggregatePurposeArray = ({
   riskAnalysisAnswersSQL,
   versionsSQL,
   versionDocumentsSQL,
+  versionStampsSQL,
 }: {
   purposesSQL: PurposeSQL[];
   riskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[];
   riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
   versionsSQL: PurposeVersionSQL[];
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
+  versionStampsSQL: PurposeVersionStampSQL[];
 }): Array<WithMetadata<Purpose>> => {
   const riskAnalysisFormsSQLByPurposeId =
     createPurposeSQLPropertyMap(riskAnalysisFormsSQL);
@@ -52,15 +57,19 @@ export const aggregatePurposeArray = ({
   const versionsSQLByPurposeId = createPurposeSQLPropertyMap(versionsSQL);
   const versionDocumentsSQLByPurposeId =
     createPurposeSQLPropertyMap(versionDocumentsSQL);
+  const versionStampsSQLByPurposeId =
+    createPurposeSQLPropertyMap(versionStampsSQL);
 
   return purposesSQL.map((purposeSQL) => {
     const purposeId = unsafeBrandId<PurposeId>(purposeSQL.id);
+
     return aggregatePurpose({
       purposeSQL,
       riskAnalysisFormSQL: riskAnalysisFormsSQLByPurposeId.get(purposeId)?.[0],
       riskAnalysisAnswersSQL: riskAnalysisAnswersSQLByPurposeId.get(purposeId),
       versionsSQL: versionsSQLByPurposeId.get(purposeId) || [],
       versionDocumentsSQL: versionDocumentsSQLByPurposeId.get(purposeId) || [],
+      versionStampsSQL: versionStampsSQLByPurposeId.get(purposeId) || [],
     });
   });
 };
@@ -71,6 +80,7 @@ const createPurposeSQLPropertyMap = <
     | PurposeRiskAnalysisAnswerSQL
     | PurposeVersionSQL
     | PurposeVersionDocumentSQL
+    | PurposeVersionStampSQL
 >(
   items: T[]
 ): Map<PurposeId, T[]> =>
@@ -90,7 +100,9 @@ export const aggregatePurpose = ({
   riskAnalysisAnswersSQL,
   versionsSQL,
   versionDocumentsSQL,
-}: PurposeItemsSQL): WithMetadata<Purpose> => {
+  versionStampsSQL,
+}: // eslint-disable-next-line sonarjs/cognitive-complexity
+PurposeItemsSQL): WithMetadata<Purpose> => {
   const riskAnalysisForm = purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm(
     riskAnalysisFormSQL,
     riskAnalysisAnswersSQL
@@ -121,6 +133,22 @@ export const aggregatePurpose = ({
           }
         : undefined;
 
+    const { creation: creationStampSQL } = versionStampsSQL
+      .filter((s) => s.purposeVersionId === versionSQL.id)
+      .reduce(
+        (
+          acc: { [key in PurposeVersionStampKind]?: PurposeVersionStampSQL },
+          stamp
+        ) =>
+          match(PurposeVersionStampKind.parse(stamp.kind))
+            .with(PurposeVersionStampKind.enum.creation, () => ({
+              ...acc,
+              creation: stamp,
+            }))
+            .exhaustive(),
+        {}
+      );
+
     const version: PurposeVersion = {
       id: unsafeBrandId(versionSQL.id),
       state: PurposeVersionState.parse(versionSQL.state),
@@ -141,6 +169,14 @@ export const aggregatePurpose = ({
           }
         : {}),
       ...(versionDocument ? { riskAnalysis: versionDocument } : {}),
+      ...(creationStampSQL
+        ? {
+            stamps: {
+              creation:
+                purposeVersionStampSQLtoPurposeVersionStamp(creationStampSQL),
+            },
+          }
+        : {}),
     };
 
     return [...acc, version];
@@ -261,6 +297,13 @@ const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
   };
 };
 
+const purposeVersionStampSQLtoPurposeVersionStamp = (
+  stampSQL: PurposeVersionStampSQL
+): PurposeVersionStamp => ({
+  who: unsafeBrandId(stampSQL.who),
+  when: stringToDate(stampSQL.when),
+});
+
 export const toPurposeAggregator = (
   queryRes: Array<{
     purpose: PurposeSQL;
@@ -268,6 +311,7 @@ export const toPurposeAggregator = (
     purposeRiskAnalysisAnswer: PurposeRiskAnalysisAnswerSQL | null;
     purposeVersion: PurposeVersionSQL | null;
     purposeVersionDocument: PurposeVersionDocumentSQL | null;
+    purposeVersionStamp: PurposeVersionStampSQL | null;
   }>
 ): PurposeItemsSQL => {
   const {
@@ -276,6 +320,7 @@ export const toPurposeAggregator = (
     riskAnalysisAnswersSQL,
     versionsSQL,
     versionDocumentsSQL,
+    versionStampsSQL,
   } = toPurposeAggregatorArray(queryRes);
 
   throwIfMultiple(purposesSQL, "purpose");
@@ -286,6 +331,7 @@ export const toPurposeAggregator = (
     riskAnalysisAnswersSQL,
     versionsSQL,
     versionDocumentsSQL,
+    versionStampsSQL,
   };
 };
 
@@ -296,6 +342,7 @@ export const toPurposeAggregatorArray = (
     purposeRiskAnalysisAnswer: PurposeRiskAnalysisAnswerSQL | null;
     purposeVersion: PurposeVersionSQL | null;
     purposeVersionDocument: PurposeVersionDocumentSQL | null;
+    purposeVersionStamp: PurposeVersionStampSQL | null;
   }>
 ): {
   purposesSQL: PurposeSQL[];
@@ -303,6 +350,7 @@ export const toPurposeAggregatorArray = (
   riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
   versionsSQL: PurposeVersionSQL[];
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
+  versionStampsSQL: PurposeVersionStampSQL[];
 } => {
   const purposeIdSet = new Set<string>();
   const purposesSQL: PurposeSQL[] = [];
@@ -319,6 +367,9 @@ export const toPurposeAggregatorArray = (
   const purposeVersionDocumentIdSet = new Set<string>();
   const purposeVersionDocumentsSQL: PurposeVersionDocumentSQL[] = [];
 
+  const purposeVersionStampIdSet = new Set<string>();
+  const purposeVersionStampsSQL: PurposeVersionStampSQL[] = [];
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   queryRes.forEach((row) => {
     const purposeSQL = row.purpose;
     if (!purposeIdSet.has(purposeSQL.id)) {
@@ -383,6 +434,23 @@ export const toPurposeAggregatorArray = (
         // eslint-disable-next-line functional/immutable-data
         purposeVersionDocumentsSQL.push(purposeVersionDocumentSQL);
       }
+
+      const purposeVersionStampSQL = row.purposeVersionStamp;
+      const purposeVersionStampPK = purposeVersionStampSQL
+        ? makeUniqueKey([
+            purposeVersionStampSQL.purposeVersionId,
+            purposeVersionStampSQL.kind,
+          ])
+        : undefined;
+      if (
+        purposeVersionStampSQL &&
+        purposeVersionStampPK &&
+        !purposeVersionStampIdSet.has(purposeVersionStampPK)
+      ) {
+        purposeVersionStampIdSet.add(purposeVersionStampPK);
+        // eslint-disable-next-line functional/immutable-data
+        purposeVersionStampsSQL.push(purposeVersionStampSQL);
+      }
     }
   });
 
@@ -392,5 +460,6 @@ export const toPurposeAggregatorArray = (
     riskAnalysisAnswersSQL: purposeRiskAnalysisAnswersSQL,
     versionsSQL: purposeVersionsSQL,
     versionDocumentsSQL: purposeVersionDocumentsSQL,
+    versionStampsSQL: purposeVersionStampsSQL,
   };
 };
