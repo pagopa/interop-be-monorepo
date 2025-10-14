@@ -2314,7 +2314,7 @@ importers:
         version: 2.9.4
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.8.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.12.0)(zod@3.23.8)
       connection-string:
         specifier: 4.4.0
         version: 4.4.0
@@ -6999,9 +6999,6 @@ packages:
   '@pagopa/interop-outbound-models@1.6.9':
     resolution: {integrity: sha512-sptbwh98g2h7rw62QkikfHG4RfXPR4vKUO5UmuohVdEisdUv4EpSfIyxFjoptnNmKg0LxrIsLNHkQ+x5F8pdBw==}
 
-  '@pagopa/interop-outbound-models@1.6.9':
-    resolution: {integrity: sha512-sptbwh98g2h7rw62QkikfHG4RfXPR4vKUO5UmuohVdEisdUv4EpSfIyxFjoptnNmKg0LxrIsLNHkQ+x5F8pdBw==}
-
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
@@ -10510,7 +10507,6 @@ packages:
   puppeteer@22.11.2:
     resolution: {integrity: sha512-8fjdQSgW0sq7471ftca24J7sXK+jXZ7OW7Gx+NEBFNyXrcTiBfukEI46gNq6hiMhbLEDT30NeylK/1ZoPdlKSA==}
     engines: {node: '>=18'}
-    deprecated: < 24.15.0 is no longer supported
     hasBin: true
 
   qs@6.11.0:
@@ -14038,12 +14034,6 @@ snapshots:
       - supports-color
       - tsutils
       - typescript
-
-  '@pagopa/interop-outbound-models@1.6.9':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
 
   '@pagopa/interop-outbound-models@1.6.9':
     dependencies:

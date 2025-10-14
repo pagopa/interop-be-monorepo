@@ -55,7 +55,7 @@ export const riskAnalysisDocumentBuilder = (
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   config: PurposeProcessConfig,
-  logger: Logger,
+  logger: Logger
 ) => {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
@@ -68,13 +68,13 @@ export const riskAnalysisDocumentBuilder = (
       eserviceInfo: PurposeDocumentEServiceInfo,
       tenantKind: TenantKind,
       language: Language,
-      userId?: UserId,
+      userId?: UserId
     ): Promise<PurposeVersionDocument> => {
       const templateFilePath = path.resolve(
         dirname,
         "..",
         "resources/templates/documents",
-        "riskAnalysisTemplate.html",
+        "riskAnalysisTemplate.html"
       );
 
       if (!purpose.riskAnalysisForm) {
@@ -85,13 +85,13 @@ export const riskAnalysisDocumentBuilder = (
 
       const riskAnalysisFormConfig = getFormRulesByVersion(
         tenantKind,
-        riskAnalysisVersion,
+        riskAnalysisVersion
       );
 
       if (!riskAnalysisFormConfig) {
         throw riskAnalysisConfigVersionNotFound(
           riskAnalysisVersion,
-          tenantKind,
+          tenantKind
         );
       }
 
@@ -109,7 +109,7 @@ export const riskAnalysisDocumentBuilder = (
 
       const pdfBuffer: Buffer = await pdfGenerator.generate(
         templateFilePath,
-        pdfPayload,
+        pdfPayload
       );
 
       const documentId = generateId<PurposeVersionDocumentId>();
@@ -123,7 +123,7 @@ export const riskAnalysisDocumentBuilder = (
           name: documentName,
           content: pdfBuffer,
         },
-        logger,
+        logger
       );
 
       return {
@@ -160,11 +160,11 @@ const getPdfPayload = ({
   const answers = formatAnswers(
     riskAnalysisFormConfig,
     riskAnalysisForm,
-    language,
+    language
   );
   const { freeOfChargeHtml, freeOfChargeReasonHtml } = formatFreeOfCharge(
     isFreeOfCharge,
-    freeOfChargeReason,
+    freeOfChargeReason
   );
   const eServiceMode = match({ mode: eserviceInfo.mode, language })
     .with({ mode: eserviceMode.receive, language: "it" }, () => "Riceve")
@@ -206,7 +206,7 @@ function getLocalizedLabel(text: LocalizedText, language: Language): string {
 function formatAnswers(
   formConfig: RiskAnalysisFormRules,
   riskAnalysisForm: PurposeRiskAnalysisForm,
-  language: Language,
+  language: Language
 ): string {
   return formConfig.questions
     .flatMap((questionRules) => {
@@ -224,7 +224,7 @@ function formatAnswers(
 function getSingleAnswerText(
   language: Language,
   questionRules: FormQuestionRules,
-  answer: RiskAnalysisSingleAnswer,
+  answer: RiskAnalysisSingleAnswer
 ): string {
   return match(questionRules)
     .with({ dataType: dataType.freeText }, (questionConfig) => {
@@ -238,7 +238,7 @@ function getSingleAnswerText(
         throw unexpectedEmptyAnswerError(questionConfig.id);
       }
       const labeledValue = questionConfig.options.find(
-        (q) => q.value === answer.value,
+        (q) => q.value === answer.value
       );
       if (!labeledValue) {
         throw answerNotFoundInConfigError(questionConfig.id, questionRules.id);
@@ -254,7 +254,7 @@ function getSingleAnswerText(
 function getMultiAnswerText(
   language: Language,
   questionRules: FormQuestionRules,
-  answer: RiskAnalysisMultiAnswer,
+  answer: RiskAnalysisMultiAnswer
 ): string {
   return match(questionRules)
     .returnType<string>()
@@ -262,23 +262,23 @@ function getMultiAnswerText(
       { dataType: P.union(dataType.freeText, dataType.single) },
       (questionConfig) => {
         throw incompatibleConfigError(questionConfig.id, questionRules.id);
-      },
+      }
     )
     .with({ dataType: dataType.multi }, (questionConfig) =>
       answer.values
         .map((value) => {
           const labeledValue = questionConfig.options.find(
-            (q) => q.value === value,
+            (q) => q.value === value
           );
           if (!labeledValue) {
             throw answerNotFoundInConfigError(
               questionConfig.id,
-              questionRules.id,
+              questionRules.id
             );
           }
           return getLocalizedLabel(labeledValue.label, language);
         })
-        .join(", "),
+        .join(", ")
     )
     .exhaustive();
 }
@@ -286,26 +286,26 @@ function getMultiAnswerText(
 function formatSingleAnswer(
   questionRules: FormQuestionRules,
   singleAnswer: RiskAnalysisSingleAnswer,
-  language: Language,
+  language: Language
 ): string {
   return formatAnswer(
     questionRules,
     singleAnswer,
     language,
-    getSingleAnswerText.bind(null, language),
+    getSingleAnswerText.bind(null, language)
   );
 }
 
 function formatMultiAnswer(
   questionRules: FormQuestionRules,
   multiAnswer: RiskAnalysisMultiAnswer,
-  language: Language,
+  language: Language
 ): string {
   return formatAnswer(
     questionRules,
     multiAnswer,
     language,
-    getMultiAnswerText.bind(null, language),
+    getMultiAnswerText.bind(null, language)
   );
 }
 
@@ -313,7 +313,7 @@ function formatAnswer<T>(
   questionRules: FormQuestionRules,
   answer: T,
   language: Language,
-  getAnswerText: (questionRules: FormQuestionRules, answer: T) => string,
+  getAnswerText: (questionRules: FormQuestionRules, answer: T) => string
 ): string {
   const questionLabel = getLocalizedLabel(questionRules.label, language);
   const infoLabel =
@@ -330,7 +330,7 @@ function formatAnswer<T>(
 
 function formatFreeOfCharge(
   isFreeOfCharge: boolean,
-  freeOfChargeReason?: string,
+  freeOfChargeReason?: string
 ): { freeOfChargeHtml: string; freeOfChargeReasonHtml: string } {
   const freeOfChargeHtml = `<div class="item">
   <div class="label">Indicare se l'accesso ai dati messi a disposizione con la fruizione del presente e-service è a titolo gratuito</div>
