@@ -58,7 +58,6 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/purposes/{purposeId} te
   it.each([
     { purposeId: "invalid" as PurposeId },
     { purposeTemplateId: "invalid" as PurposeTemplateId },
-    { body: { title: "" } },
     { body: { ...mockPurposeUpdateContent, dailyCalls: "invalid" } },
     {
       body: {

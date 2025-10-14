@@ -517,7 +517,6 @@ export const getMockBffApiPatchPurposeUpdateFromTemplateContent =
   (): bffApi.PatchPurposeUpdateFromTemplateContent => ({
     title: generateMock(z.string()),
     dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
-    riskAnalysisForm: undefined,
   });
 
 export const getMockBffApiPurposeVersionResource = (
@@ -547,7 +546,6 @@ export const getMockPurposeFromTemplateSeed =
     consumerId: generateId(),
     title: generateMock(z.string()),
     dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
-    riskAnalysisForm: undefined,
   });
 
 export const getMockPurposeTemplateSeed = (): bffApi.PurposeTemplateSeed => ({
