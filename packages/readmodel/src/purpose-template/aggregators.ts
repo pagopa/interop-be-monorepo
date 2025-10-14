@@ -403,69 +403,6 @@ export const toRiskAnalysisTemplateAnswerAnnotationDocument = (
   createdAt: stringToDate(annotationDocumentSQL.createdAt),
 });
 
-export const toRiskAnalysisTemplateAnswerAggregator = (
-  queryRes: Array<{
-    purposeRiskAnalysisTemplateAnswer: PurposeTemplateRiskAnalysisAnswerSQL;
-    purposeRiskAnalysisTemplateAnswerAnnotation: PurposeTemplateRiskAnalysisAnswerAnnotationSQL | null;
-    purposeRiskAnalysisTemplateAnswerAnnotationDocument: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL | null;
-  }>
-): {
-  riskAnalysisTemplateAnswerSQL: PurposeTemplateRiskAnalysisAnswerSQL;
-  riskAnalysisTemplateAnswerAnnotationSQL:
-    | PurposeTemplateRiskAnalysisAnswerAnnotationSQL
-    | undefined;
-  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
-} => {
-  const annotationDocumentIdsSet = new Set<string>();
-  const annotationDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[] =
-    [];
-
-  queryRes.forEach((row) => {
-    const documentSQL = row.purposeRiskAnalysisTemplateAnswerAnnotationDocument;
-    if (documentSQL && !annotationDocumentIdsSet.has(documentSQL.id)) {
-      annotationDocumentIdsSet.add(documentSQL.id);
-      // eslint-disable-next-line functional/immutable-data
-      annotationDocumentsSQL.push(documentSQL);
-    }
-  });
-
-  return {
-    riskAnalysisTemplateAnswerSQL:
-      queryRes[0].purposeRiskAnalysisTemplateAnswer,
-    riskAnalysisTemplateAnswerAnnotationSQL:
-      queryRes[0].purposeRiskAnalysisTemplateAnswerAnnotation || undefined,
-    riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: annotationDocumentsSQL,
-  };
-};
-
-export const aggregateRiskAnalysisTemplateAnswer = ({
-  riskAnalysisTemplateAnswerSQL,
-  riskAnalysisTemplateAnswerAnnotationSQL,
-  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
-}: {
-  riskAnalysisTemplateAnswerSQL: PurposeTemplateRiskAnalysisAnswerSQL;
-  riskAnalysisTemplateAnswerAnnotationSQL:
-    | PurposeTemplateRiskAnalysisAnswerAnnotationSQL
-    | undefined;
-  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
-}): RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer =>
-  match(RiskAnalysisAnswerKind.parse(riskAnalysisTemplateAnswerSQL.kind))
-    .with(riskAnalysisAnswerKind.single, () =>
-      aggregateRiskAnalysisTemplateSingleAnswer({
-        riskAnalysisTemplateAnswerSQL,
-        riskAnalysisTemplateAnswerAnnotationSQL,
-        riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
-      })
-    )
-    .with(riskAnalysisAnswerKind.multi, () =>
-      aggregateRiskAnalysisTemplateMultiAnswer({
-        riskAnalysisTemplateAnswerSQL,
-        riskAnalysisTemplateAnswerAnnotationSQL,
-        riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
-      })
-    )
-    .exhaustive();
-
 export const aggregateRiskAnalysisTemplateAnswerAnnotation = ({
   riskAnalysisTemplateAnswerAnnotationSQL,
   riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,

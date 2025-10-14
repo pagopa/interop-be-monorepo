@@ -53,7 +53,6 @@ export const deleteRiskAnalysisTemplateAnswerAnnotationErrorMapper = (
     .with(
       "purposeTemplateNotFound",
       "riskAnalysisTemplateAnswerNotFound",
-      "riskAnalysisTemplateAnswerAnnotationNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)

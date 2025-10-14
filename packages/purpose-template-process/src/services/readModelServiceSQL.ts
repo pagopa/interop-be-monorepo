@@ -10,8 +10,6 @@ import {
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisTemplateSingleAnswer,
   TenantId,
   TenantKind,
   WithMetadata,
@@ -24,8 +22,6 @@ import {
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
   toRiskAnalysisTemplateAnswerAnnotationDocument,
-  aggregateRiskAnalysisTemplateAnswer,
-  toRiskAnalysisTemplateAnswerAggregator,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
@@ -444,59 +440,6 @@ export function readModelServiceBuilderSQL({
           (eserviceDescriptor) => eserviceDescriptor.data
         ),
         queryResult[0]?.totalCount
-      );
-    },
-    async getRiskAnalysisTemplateAnswer(
-      purposeTemplateId: PurposeTemplateId,
-      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
-    ): Promise<
-      | RiskAnalysisTemplateSingleAnswer
-      | RiskAnalysisTemplateMultiAnswer
-      | undefined
-    > {
-      const queryResult = await readModelDB
-        .select({
-          purposeRiskAnalysisTemplateAnswer:
-            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-          purposeRiskAnalysisTemplateAnswerAnnotation:
-            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-          purposeRiskAnalysisTemplateAnswerAnnotationDocument:
-            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-        })
-        .from(purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate)
-        .leftJoin(
-          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
-            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
-          )
-        )
-        .leftJoin(
-          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
-            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
-          )
-        )
-        .where(
-          and(
-            eq(
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.purposeTemplateId,
-              purposeTemplateId
-            ),
-            eq(
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
-              answerId
-            )
-          )
-        );
-
-      if (queryResult.length === 0) {
-        return undefined;
-      }
-
-      return aggregateRiskAnalysisTemplateAnswer(
-        toRiskAnalysisTemplateAnswerAggregator(queryResult)
       );
     },
   };
