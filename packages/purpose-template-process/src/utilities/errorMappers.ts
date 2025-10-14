@@ -45,20 +45,6 @@ export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const deleteRiskAnalysisTemplateAnswerAnnotationErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_CONFLICT)
-    .with(
-      "purposeTemplateNotFound",
-      "riskAnalysisTemplateAnswerNotFound",
-      "riskAnalysisTemplateAnswerAnnotationNotFound",
-      () => HTTP_STATUS_NOT_FOUND
-    )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const linkEservicesToPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -142,5 +128,18 @@ export const deletePurposeTemplateErrorMapper = (
   match(error.code)
     .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_CONFLICT)
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteRiskAnalysisTemplateAnswerAnnotationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "purposeTemplateNotFound",
+      "riskAnalysisTemplateAnswerNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

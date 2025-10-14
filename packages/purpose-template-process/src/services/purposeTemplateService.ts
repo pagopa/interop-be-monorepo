@@ -70,6 +70,7 @@ import {
   validateEservicesAssociations,
   validateEservicesDisassociations,
   validateRiskAnalysisAnswerOrThrow,
+  assertPurposeTemplateObjectsAreDeletable,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -99,79 +100,20 @@ function getDefaultRiskAnalysisFormTemplate(
   };
 }
 
-/*
-Deletes all the annotations documents associated to the purpose template
-*/
-async function deleteAllRiskAnalysisTemplateAnswerAnnotationDocuments({
-  purposeTemplate,
+async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
+  annotationDocumentsToRemove,
   fileManager,
-  readModelService,
   logger,
 }: {
-  purposeTemplate: PurposeTemplate;
+  annotationDocumentsToRemove: RiskAnalysisTemplateAnswerAnnotationDocument[];
   fileManager: FileManager;
-  readModelService: ReadModelServiceSQL;
   logger: Logger;
 }): Promise<void> {
-  if (!purposeTemplate.purposeRiskAnalysisForm) {
-    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
-  }
-
-  const annotationDocuments =
-    await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocsByPurposeTemplateId(
-      purposeTemplate.id
-    );
-
   await Promise.all(
-    annotationDocuments.map(async (doc) => {
+    annotationDocumentsToRemove.map(async (doc) => {
       await fileManager.delete(config.s3Bucket, doc.path, logger);
     })
   );
-}
-
-/*
-Deletes all the documents associated to one purpose template answer annotation
-*/
-async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
-  purposeTemplateId,
-  answerId,
-  fileManager,
-  readModelService,
-  logger,
-}: {
-  purposeTemplateId: PurposeTemplateId;
-  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
-  fileManager: FileManager;
-  readModelService: ReadModelServiceSQL;
-  logger: Logger;
-}): Promise<
-  RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
-> {
-  const answer = await readModelService.getRiskAnalysisTemplateAnswer(
-    purposeTemplateId,
-    answerId
-  );
-  if (!answer) {
-    throw riskAnalysisTemplateAnswerNotFound(purposeTemplateId, answerId);
-  }
-
-  if (!answer.annotation) {
-    throw riskAnalysisTemplateAnswerAnnotationNotFound(
-      purposeTemplateId,
-      answerId
-    );
-  }
-
-  await Promise.all(
-    answer.annotation.docs.map(async (doc) => {
-      await fileManager.delete(config.s3Bucket, doc.path, logger);
-    })
-  );
-
-  return {
-    ...answer,
-    annotation: undefined,
-  };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -645,13 +587,19 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
-      assertPurposeTemplateIsDraft(purposeTemplate.data);
+      assertPurposeTemplateObjectsAreDeletable(purposeTemplate.data, authData);
 
-      await deleteAllRiskAnalysisTemplateAnswerAnnotationDocuments({
-        purposeTemplate: purposeTemplate.data,
+      const annotationDocumentsToRemove: RiskAnalysisTemplateAnswerAnnotationDocument[] =
+        [
+          ...purposeTemplate.data.purposeRiskAnalysisForm.singleAnswers,
+          ...purposeTemplate.data.purposeRiskAnalysisForm.multiAnswers,
+        ]
+          .filter((a) => a.annotation)
+          .flatMap((a) => a.annotation?.docs || []);
+
+      await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
+        annotationDocumentsToRemove,
         fileManager,
-        readModelService,
         logger,
       });
 
@@ -676,7 +624,7 @@ export function purposeTemplateServiceBuilder(
         RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
       >
     > {
-      const { authData, logger, correlationId } = ctx;
+      const { logger, correlationId, authData } = ctx;
 
       logger.info(
         `Deleting risk analysis template answer annotation for purpose template ${purposeTemplateId} and answer ${answerId}`
@@ -687,45 +635,22 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      const purposeRiskAnalysisTemplateForm =
-        purposeTemplate.data.purposeRiskAnalysisForm;
-      if (!purposeRiskAnalysisTemplateForm) {
-        throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId);
-      }
+      const {
+        updatedPurposeTemplate,
+        updatedAnswer,
+        annotationDocumentsToRemove,
+      } = await updatePurposeTemplateWithoutAnnotation(
+        purposeTemplateId,
+        answerId,
+        authData,
+        readModelService
+      );
 
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
-      assertPurposeTemplateIsDraft(purposeTemplate.data);
-
-      const answerWithDeletedAnnotation =
-        await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
-          purposeTemplateId,
-          answerId,
-          fileManager,
-          readModelService,
-          logger,
-        });
-
-      const updateAnswerWithoutAnnotation = <
-        T extends
-          | RiskAnalysisTemplateSingleAnswer
-          | RiskAnalysisTemplateMultiAnswer
-      >(
-        answer: T
-      ): T =>
-        answer.id === answerId ? { ...answer, annotation: undefined } : answer;
-
-      const updatedPurposeTemplate: PurposeTemplate = {
-        ...purposeTemplate.data,
-        purposeRiskAnalysisForm: {
-          ...purposeRiskAnalysisTemplateForm,
-          singleAnswers: purposeRiskAnalysisTemplateForm.singleAnswers.map(
-            updateAnswerWithoutAnnotation
-          ),
-          multiAnswers: purposeRiskAnalysisTemplateForm.multiAnswers.map(
-            updateAnswerWithoutAnnotation
-          ),
-        },
-      };
+      await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
+        annotationDocumentsToRemove,
+        fileManager,
+        logger,
+      });
 
       const event = await repository.createEvent(
         toCreateEventPurposeTemplateDraftUpdated(
@@ -736,7 +661,7 @@ export function purposeTemplateServiceBuilder(
       );
 
       return {
-        data: answerWithDeletedAnnotation,
+        data: updatedAnswer,
         metadata: {
           version: event.newVersion,
         },

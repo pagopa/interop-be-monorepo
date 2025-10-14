@@ -25,15 +25,14 @@ export const errorCodes = {
   purposeTemplateStateConflict: "0008",
   purposeTemplateRiskAnalysisFormNotFound: "0009",
   riskAnalysisTemplateAnswerNotFound: "0010",
-  riskAnalysisTemplateAnswerAnnotationNotFound: "0011",
-  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0012",
-  associationEServicesForPurposeTemplateFailed: "0013",
-  associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0014",
-  tooManyEServicesForPurposeTemplate: "0015",
-  disassociationEServicesFromPurposeTemplateFailed: "0016",
-  associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0017",
-  hyperlinkDetectionError: "0018",
-  purposeTemplateNotInValidState: "0019",
+  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0011",
+  associationEServicesForPurposeTemplateFailed: "0012",
+  associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0013",
+  tooManyEServicesForPurposeTemplate: "0014",
+  disassociationEServicesFromPurposeTemplateFailed: "0015",
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0016",
+  hyperlinkDetectionError: "0017",
+  purposeTemplateNotInValidState: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -143,17 +142,6 @@ export function riskAnalysisTemplateAnswerNotFound(
     detail: `No Risk Analysis Template Answer found for Purpose Template ${purposeTemplateId} and Answer ${answerId}`,
     code: "riskAnalysisTemplateAnswerNotFound",
     title: "Risk Analysis Template Answer Not Found",
-  });
-}
-
-export function riskAnalysisTemplateAnswerAnnotationNotFound(
-  purposeTemplateId: PurposeTemplateId,
-  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `No Risk Analysis Template Answer Annotation found for Purpose Template ${purposeTemplateId} and Answer ${answerId}`,
-    code: "riskAnalysisTemplateAnswerAnnotationNotFound",
-    title: "Risk Analysis Template Answer Annotation Not Found",
   });
 }
 
