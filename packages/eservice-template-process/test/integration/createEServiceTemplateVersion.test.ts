@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
@@ -19,7 +18,6 @@ import {
   EServiceTemplate,
   Attribute,
   generateId,
-  EService,
   EServiceTemplateVersionDocumentAddedV2,
   AttributeId,
 } from "pagopa-interop-models";
@@ -39,10 +37,7 @@ import {
   addOneAttribute,
   postgresDB,
 } from "../integrationUtils.js";
-import {
-  eserviceTemplateToApiEServiceTemplateSeed,
-  buildCreateVersionSeed,
-} from "../mockUtils.js";
+import { buildCreateVersionSeed } from "../mockUtils.js";
 
 describe("createEServiceTemplateVersion", async () => {
   beforeAll(() => {
