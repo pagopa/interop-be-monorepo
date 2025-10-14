@@ -39,6 +39,7 @@ import {
   riskAnalysisTemplateAnswerNotFound,
 } from "../../src/model/domain/errors.js";
 import { ANNOTATION_DOCUMENTS_LIMIT } from "../../src/services/validators.js";
+import { check } from "drizzle-orm/mysql-core";
 
 describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   const mockValidRiskAnalysisTemplateForm =
@@ -463,7 +464,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       formAnswer: "multiAnswers" as const,
     },
   ])(
-    "should throw assertDocumentsLimitsNotReached error when exceed the maximum number of annotation documents in $formAnswer",
+    "should throw annotationDocumentLimitExceeded error when exceed the maximum number of annotation documents in $formAnswer",
     async ({ subjectAnswerId, formAnswer }) => {
       const purposeTemplateWithAllAvailableAnnotationDocs: PurposeTemplate = {
         ...existentPurposeTemplate,
@@ -479,8 +480,10 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
                     ...a.annotation,
                     docs: Array.from(
                       { length: ANNOTATION_DOCUMENTS_LIMIT },
-                      (_) =>
-                        getMockRiskAnalysisTemplateAnswerAnnotationDocument()
+                      (_) => ({
+                        ...getMockRiskAnalysisTemplateAnswerAnnotationDocument(),
+                        checksum: generateId(),
+                      })
                     ),
                   },
                 }
