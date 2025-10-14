@@ -459,7 +459,7 @@ const purposeTemplateRouter = (
 
           await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation(
             {
-              purposeTemplateId: unsafeBrandId(req.params.id),
+              purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
               answerId: unsafeBrandId(req.params.answerId),
               ctx,
             }
