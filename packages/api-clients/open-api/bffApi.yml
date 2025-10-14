@@ -24225,6 +24225,8 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
         mode:
           $ref: "#/components/schemas/EServiceMode"
+        personalData:
+          type: boolean
     CompactPurposeTemplateEService:
       type: object
       additionalProperties: false
