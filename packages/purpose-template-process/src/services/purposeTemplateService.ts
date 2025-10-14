@@ -15,6 +15,8 @@ import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
+  RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationId,
   TenantKind,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
@@ -24,7 +26,6 @@ import {
   eventRepository,
   FileManager,
   getLatestVersionFormRules,
-  Logger,
   M2MAdminAuthData,
   M2MAuthData,
   riskAnalysisValidatedAnswerToRiskAnalysisAnswer,
@@ -39,6 +40,7 @@ import {
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   riskAnalysisTemplateAnswerNotFound,
   ruleSetNotFoundError,
+  riskAnalysisAnswerNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
@@ -48,8 +50,10 @@ import {
   toCreateEventPurposeTemplateEServiceLinked,
   toCreateEventPurposeTemplateEServiceUnlinked,
 } from "../model/domain/toEvent.js";
-import { config } from "../config/config.js";
-import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisDocUtils.js";
+import {
+  cleanupAnnotationDocsForRemovedAnswers,
+  deleteRiskAnalysisTemplateAnswerAnnotationDocuments,
+} from "../utilities/riskAnalysisDocUtils.js";
 import {
   GetPurposeTemplateEServiceDescriptorsFilters,
   GetPurposeTemplatesFilters,
@@ -59,9 +63,7 @@ import {
   assertConsistentFreeOfCharge,
   assertEServiceIdsCountIsBelowThreshold,
   assertPurposeTemplateHasRiskAnalysisForm,
-  assertPurposeTemplateIsDraft,
-  assertPurposeTemplateObjectsAreDeletable,
-  assertPurposeTemplateStateIsValid,
+  validateRiskAnalysisAnswerAnnotationOrThrow,
   assertPurposeTemplateTitleIsNotDuplicated,
   assertRequesterCanRetrievePurposeTemplate,
   assertRequesterIsCreator,
@@ -70,6 +72,9 @@ import {
   validateEservicesAssociations,
   validateEservicesDisassociations,
   validateRiskAnalysisAnswerOrThrow,
+  assertPurposeTemplateObjectsAreDeletable,
+  assertPurposeTemplateStateIsValid,
+  assertPurposeTemplateIsDraft,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -99,49 +104,6 @@ function getDefaultRiskAnalysisFormTemplate(
   };
 }
 
-// Deletes all the annotations documents associated to the purpose template
-async function deleteAllRiskAnalysisTemplateAnswerAnnotationDocuments({
-  purposeTemplate,
-  fileManager,
-  readModelService,
-  logger,
-}: {
-  purposeTemplate: PurposeTemplate;
-  fileManager: FileManager;
-  readModelService: ReadModelServiceSQL;
-  logger: Logger;
-}): Promise<void> {
-  assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate);
-
-  const annotationDocuments =
-    await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocsByPurposeTemplateId(
-      purposeTemplate.id
-    );
-
-  await Promise.all(
-    annotationDocuments.map(async (doc) => {
-      await fileManager.delete(config.s3Bucket, doc.path, logger);
-    })
-  );
-}
-
-// Deletes the documents associated to one purpose template answer annotation
-async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
-  removedDocuments,
-  fileManager,
-  logger,
-}: {
-  removedDocuments: RiskAnalysisTemplateAnswerAnnotationDocument[];
-  fileManager: FileManager;
-  logger: Logger;
-}): Promise<void> {
-  await Promise.all(
-    removedDocuments.map(async (doc) => {
-      await fileManager.delete(config.s3Bucket, doc.path, logger);
-    })
-  );
-}
-
 const updatePurposeTemplateWithoutAnnotation = async (
   purposeTemplateId: PurposeTemplateId,
   answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
@@ -152,7 +114,7 @@ const updatePurposeTemplateWithoutAnnotation = async (
   updatedAnswer:
     | RiskAnalysisTemplateSingleAnswer
     | RiskAnalysisTemplateMultiAnswer;
-  removedAnnotationDocuments: RiskAnalysisTemplateAnswerAnnotationDocument[];
+  annotationDocumentsToRemove: RiskAnalysisTemplateAnswerAnnotationDocument[];
 }> => {
   const purposeTemplate = await retrievePurposeTemplate(
     purposeTemplateId,
@@ -175,7 +137,7 @@ const updatePurposeTemplateWithoutAnnotation = async (
       | RiskAnalysisTemplateSingleAnswer
       | RiskAnalysisTemplateMultiAnswer
       | undefined;
-    removedAnnotationDocuments: RiskAnalysisTemplateAnswerAnnotationDocument[];
+    annotationDocumentsToRemove: RiskAnalysisTemplateAnswerAnnotationDocument[];
   } {
     return answers.reduce(
       (
@@ -185,7 +147,7 @@ const updatePurposeTemplateWithoutAnnotation = async (
             | RiskAnalysisTemplateSingleAnswer
             | RiskAnalysisTemplateMultiAnswer
             | undefined;
-          removedAnnotationDocuments: RiskAnalysisTemplateAnswerAnnotationDocument[];
+          annotationDocumentsToRemove: RiskAnalysisTemplateAnswerAnnotationDocument[];
         },
         answer
       ) => {
@@ -195,7 +157,7 @@ const updatePurposeTemplateWithoutAnnotation = async (
           return {
             updatedAnswers: [...acc.updatedAnswers, updatedAnswer],
             updatedAnswer,
-            removedAnnotationDocuments: answer.annotation?.docs || [],
+            annotationDocumentsToRemove: answer.annotation?.docs || [],
           };
         } else {
           return {
@@ -207,7 +169,7 @@ const updatePurposeTemplateWithoutAnnotation = async (
       {
         updatedAnswers: [],
         updatedAnswer: undefined,
-        removedAnnotationDocuments: [],
+        annotationDocumentsToRemove: [],
       }
     );
   }
@@ -215,12 +177,12 @@ const updatePurposeTemplateWithoutAnnotation = async (
   const {
     updatedAnswers: updatedSingleAnswers,
     updatedAnswer: updatedSingleAnswer,
-    removedAnnotationDocuments: removedAnnotationDocumentsFromSingleAnswer,
+    annotationDocumentsToRemove: annotationDocumentsToRemoveFromSingleAnswer,
   } = removeAnnotation(purposeTemplateRiskAnalysisForm.singleAnswers, answerId);
   const {
     updatedAnswers: updatedMultiAnswers,
     updatedAnswer: updatedMultiAnswer,
-    removedAnnotationDocuments: removedAnnotationDocumentsFromMultiAnswer,
+    annotationDocumentsToRemove: annotationDocumentsToRemoveFromMultiAnswer,
   } = removeAnnotation(purposeTemplateRiskAnalysisForm.multiAnswers, answerId);
 
   const updatedAnswer = updatedSingleAnswer || updatedMultiAnswer;
@@ -228,9 +190,9 @@ const updatePurposeTemplateWithoutAnnotation = async (
     throw riskAnalysisTemplateAnswerNotFound(purposeTemplate.data.id, answerId);
   }
 
-  const removedAnnotationDocuments = [
-    ...removedAnnotationDocumentsFromSingleAnswer,
-    ...removedAnnotationDocumentsFromMultiAnswer,
+  const annotationDocumentsToRemove = [
+    ...annotationDocumentsToRemoveFromSingleAnswer,
+    ...annotationDocumentsToRemoveFromMultiAnswer,
   ];
 
   return {
@@ -246,7 +208,7 @@ const updatePurposeTemplateWithoutAnnotation = async (
       metadata: purposeTemplate.metadata,
     },
     updatedAnswer,
-    removedAnnotationDocuments,
+    annotationDocumentsToRemove,
   };
 };
 
@@ -387,6 +349,34 @@ const updatePurposeTemplateWithoutAnnotationDocument = async (
     removedAnnotationDocument,
   };
 };
+
+function findAnswerAndAnnotation(
+  riskAnalysisForm: RiskAnalysisFormTemplate,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): {
+  answer: RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer;
+  annotation: RiskAnalysisTemplateAnswerAnnotation | undefined;
+} {
+  const { singleAnswers, multiAnswers } = riskAnalysisForm;
+
+  const singleAnswer = singleAnswers.find((answer) => answer.id === answerId);
+  if (singleAnswer) {
+    return {
+      answer: singleAnswer,
+      annotation: singleAnswer.annotation,
+    };
+  }
+
+  const multiAnswer = multiAnswers.find((answer) => answer.id === answerId);
+  if (multiAnswer) {
+    return {
+      answer: multiAnswer,
+      annotation: multiAnswer.annotation,
+    };
+  }
+
+  throw riskAnalysisAnswerNotFound(answerId);
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
@@ -845,6 +835,96 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
+    async addRiskAnalysisAnswerAnnotation(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      riskAnalysisTemplateAnswerAnnotationRequest: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationText,
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotation>> {
+      logger.info(`Add risk analysis answer annotation`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertRequesterPurposeTemplateCreator(
+        purposeTemplate.data.creatorId,
+        authData
+      );
+
+      assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
+
+      assertPurposeTemplateStateIsValid(purposeTemplate.data, [
+        purposeTemplateState.draft,
+      ]);
+
+      const riskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
+
+      const answerAndAnnotation = findAnswerAndAnnotation(
+        riskAnalysisForm,
+        answerId
+      );
+
+      if (answerAndAnnotation.annotation) {
+        validateRiskAnalysisAnswerAnnotationOrThrow(
+          answerAndAnnotation.annotation.text
+        );
+      }
+
+      const newAnnotation: RiskAnalysisTemplateAnswerAnnotation =
+        answerAndAnnotation.annotation
+          ? {
+              id: answerAndAnnotation.annotation.id,
+              text: riskAnalysisTemplateAnswerAnnotationRequest.text,
+              docs: answerAndAnnotation.annotation.docs,
+            }
+          : {
+              id: generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
+              text: riskAnalysisTemplateAnswerAnnotationRequest.text,
+              docs: [],
+            };
+
+      const updateAnswerWithAnnotation = <T extends { id: string }>(
+        answer: T
+      ): (T & { annotation: RiskAnalysisTemplateAnswerAnnotation }) | T =>
+        answer.id === answerId
+          ? { ...answer, annotation: newAnnotation }
+          : answer;
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        updatedAt: new Date(),
+        purposeRiskAnalysisForm: {
+          ...riskAnalysisForm,
+          singleAnswers: riskAnalysisForm.singleAnswers.map(
+            updateAnswerWithAnnotation
+          ),
+          multiAnswers: riskAnalysisForm.multiAnswers.map(
+            updateAnswerWithAnnotation
+          ),
+        },
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateDraftUpdated(
+          updatedPurposeTemplate,
+          correlationId,
+          purposeTemplate.metadata.version
+        )
+      );
+
+      return {
+        data: newAnnotation,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
     async deletePurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       {
@@ -862,10 +942,17 @@ export function purposeTemplateServiceBuilder(
 
       assertPurposeTemplateObjectsAreDeletable(purposeTemplate.data, authData);
 
-      await deleteAllRiskAnalysisTemplateAnswerAnnotationDocuments({
-        purposeTemplate: purposeTemplate.data,
+      const annotationDocumentsToRemove: RiskAnalysisTemplateAnswerAnnotationDocument[] =
+        [
+          ...purposeTemplate.data.purposeRiskAnalysisForm.singleAnswers,
+          ...purposeTemplate.data.purposeRiskAnalysisForm.multiAnswers,
+        ]
+          .filter((a) => a.annotation)
+          .flatMap((a) => a.annotation?.docs || []);
+
+      await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
+        annotationDocumentsToRemove,
         fileManager,
-        readModelService,
         logger,
       });
 
@@ -899,7 +986,7 @@ export function purposeTemplateServiceBuilder(
       const {
         updatedPurposeTemplate,
         updatedAnswer,
-        removedAnnotationDocuments,
+        annotationDocumentsToRemove,
       } = await updatePurposeTemplateWithoutAnnotation(
         purposeTemplateId,
         answerId,
@@ -908,7 +995,7 @@ export function purposeTemplateServiceBuilder(
       );
 
       await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
-        removedDocuments: removedAnnotationDocuments,
+        annotationDocumentsToRemove,
         fileManager,
         logger,
       });
@@ -955,7 +1042,7 @@ export function purposeTemplateServiceBuilder(
         );
 
       await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
-        removedDocuments: [removedAnnotationDocument],
+        annotationDocumentsToRemove: [removedAnnotationDocument],
         fileManager,
         logger,
       });

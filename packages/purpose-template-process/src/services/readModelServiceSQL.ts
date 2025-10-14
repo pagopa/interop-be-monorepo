@@ -6,8 +6,6 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeTemplateState,
-  RiskAnalysisMultiAnswerId,
-  RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
@@ -335,23 +333,6 @@ export function readModelServiceBuilderSQL({
           version: riskAnalysisAnswerAnnotationDocument.metadataVersion,
         },
       };
-    },
-    async getRiskAnalysisTemplateAnswerAnnotationDocsByPurposeTemplateId(
-      purposeTemplateId: PurposeTemplateId
-    ): Promise<RiskAnalysisTemplateAnswerAnnotationDocument[]> {
-      const queryResult = await readModelDB
-        .select()
-        .from(
-          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
-        )
-        .where(
-          eq(
-            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
-            purposeTemplateId
-          )
-        );
-
-      return queryResult.map(toRiskAnalysisTemplateAnswerAnnotationDocument);
     },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
       purposeTemplateId: PurposeTemplateId,
