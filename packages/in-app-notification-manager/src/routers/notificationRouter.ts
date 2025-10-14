@@ -154,6 +154,27 @@ export const notificationRouter = (
         }
       }
     )
+    .post(
+      "/notifications/markAsReadByEntityId/:entityId",
+      async function (req, res) {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+
+          const { entityId } = req.params;
+          await service.markNotificationsAsReadByEntityId(entityId, ctx);
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            "Error marking notifications as read by entity ID"
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete("/notifications", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
