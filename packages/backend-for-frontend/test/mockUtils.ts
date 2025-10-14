@@ -1137,6 +1137,10 @@ export const getMockBffApiNotificationsCountBySection =
       anagrafica: generateMock(z.number().int()),
       totalCount: generateMock(z.number().int()),
     },
+    "gestione-client": {
+      "api-e-service": generateMock(z.number().int()),
+      totalCount: generateMock(z.number().int()),
+    },
     totalCount: generateMock(z.number().int()),
   });
 

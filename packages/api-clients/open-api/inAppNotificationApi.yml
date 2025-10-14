@@ -502,6 +502,9 @@ components:
             clientKeyAddedDeletedToClientUsers:
               type: integer
               format: int32
+            producerKeychainKeyAddedDeletedToClientUsers:
+              type: integer
+              format: int32
         totalCount:
           type: integer
           format: int32
