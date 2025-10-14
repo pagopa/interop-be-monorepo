@@ -122,6 +122,12 @@ export const notificationAdmittedRoles = {
     [SECURITY_ROLE]: true,
     [SUPPORT_ROLE]: false,
   },
+  producerKeychainKeyAddedDeletedToClientUsers: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: true,
+    [SUPPORT_ROLE]: false,
+  },
 } as const satisfies Record<NotificationType, Record<UserRole, boolean>> &
   Record<NotificationType, Record<typeof SUPPORT_ROLE, false>>; // To ensure that SUPPORT_ROLE cannot receive any notification
 
@@ -224,5 +230,9 @@ export const mapNotificationConfig =
     clientKeyAddedDeletedToClientUsers: f(
       "clientKeyAddedDeletedToClientUsers",
       c.clientKeyAddedDeletedToClientUsers
+    ),
+    producerKeychainKeyAddedDeletedToClientUsers: f(
+      "producerKeychainKeyAddedDeletedToClientUsers",
+      c.producerKeychainKeyAddedDeletedToClientUsers
     ),
   });
