@@ -41,7 +41,7 @@ export async function getNotificationRecipients(
       (r) => notificationAdmittedRoles[notificationType][r]
     );
     if (!userCanReceiveNotification) {
-      logger.info(
+      logger.warn(
         `Discarding notification for user ${userId} in ${tenantId} due to missing roles (notification type: ${notificationType}, user roles: ${userRoles.join(
           ", "
         )})`
