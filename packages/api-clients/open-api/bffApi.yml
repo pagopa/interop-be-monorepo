@@ -27255,7 +27255,7 @@ components:
         - eserviceNewVersionApprovedRejectedToDelegate
         - delegationSubmittedRevokedToDelegate
         - certifiedVerifiedAttributeAssignedRevokedToAssignee
-        - clientKeyAddedDeletedToClientUsers
+        - clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -27293,7 +27293,7 @@ components:
           type: boolean
         certifiedVerifiedAttributeAssignedRevokedToAssignee:
           type: boolean
-        clientKeyAddedDeletedToClientUsers:
+        clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
           type: boolean
     TenantNotificationConfig:
       type: object
@@ -27393,6 +27393,7 @@ components:
         - fruizione
         - "catalogo-e-service"
         - aderente
+        - "gestione-client"
         - totalCount
       properties:
         erogazione:
@@ -27466,6 +27467,19 @@ components:
           required:
             - deleghe
             - anagrafica
+            - totalCount
+        "gestione-client":
+          type: object
+          additionalProperties: false
+          properties:
+            "api-e-service":
+              type: integer
+              format: int32
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - "api-e-service"
             - totalCount
         totalCount:
           type: integer
