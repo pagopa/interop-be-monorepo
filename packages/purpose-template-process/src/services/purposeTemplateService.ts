@@ -36,9 +36,7 @@ import {
   associationEServicesForPurposeTemplateFailed,
   disassociationEServicesFromPurposeTemplateFailed,
   purposeTemplateNotFound,
-  purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
-  riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
   ruleSetNotFoundError,
 } from "../model/domain/errors.js";
@@ -115,6 +113,114 @@ async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
     })
   );
 }
+
+const updatePurposeTemplateWithoutAnnotation = async (
+  purposeTemplateId: PurposeTemplateId,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">,
+  readModelService: ReadModelServiceSQL
+): Promise<{
+  updatedPurposeTemplate: WithMetadata<PurposeTemplate>;
+  updatedAnswer:
+    | RiskAnalysisTemplateSingleAnswer
+    | RiskAnalysisTemplateMultiAnswer;
+  removedAnnotationDocuments: RiskAnalysisTemplateAnswerAnnotationDocument[];
+}> => {
+  const purposeTemplate = await retrievePurposeTemplate(
+    purposeTemplateId,
+    readModelService
+  );
+
+  assertPurposeTemplateObjectsAreDeletable(purposeTemplate.data, authData);
+
+  const purposeTemplateRiskAnalysisForm =
+    purposeTemplate.data.purposeRiskAnalysisForm;
+
+  function removeAnnotation<
+    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+  >(
+    answers: T[],
+    answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+  ): {
+    updatedAnswers: T[];
+    updatedAnswer:
+      | RiskAnalysisTemplateSingleAnswer
+      | RiskAnalysisTemplateMultiAnswer
+      | undefined;
+    removedAnnotationDocuments: RiskAnalysisTemplateAnswerAnnotationDocument[];
+  } {
+    return answers.reduce(
+      (
+        acc: {
+          updatedAnswers: T[];
+          updatedAnswer:
+            | RiskAnalysisTemplateSingleAnswer
+            | RiskAnalysisTemplateMultiAnswer
+            | undefined;
+          removedAnnotationDocuments: RiskAnalysisTemplateAnswerAnnotationDocument[];
+        },
+        answer
+      ) => {
+        if (answer.id === answerId) {
+          const updatedAnswer = { ...answer, annotation: undefined };
+
+          return {
+            updatedAnswers: [...acc.updatedAnswers, updatedAnswer],
+            updatedAnswer,
+            removedAnnotationDocuments: answer.annotation?.docs || [],
+          };
+        } else {
+          return {
+            ...acc,
+            updatedAnswers: [...acc.updatedAnswers, answer],
+          };
+        }
+      },
+      {
+        updatedAnswers: [],
+        updatedAnswer: undefined,
+        removedAnnotationDocuments: [],
+      }
+    );
+  }
+
+  const {
+    updatedAnswers: updatedSingleAnswers,
+    updatedAnswer: updatedSingleAnswer,
+    removedAnnotationDocuments: removedAnnotationDocumentsFromSingleAnswer,
+  } = removeAnnotation(purposeTemplateRiskAnalysisForm.singleAnswers, answerId);
+  const {
+    updatedAnswers: updatedMultiAnswers,
+    updatedAnswer: updatedMultiAnswer,
+    removedAnnotationDocuments: removedAnnotationDocumentsFromMultiAnswer,
+  } = removeAnnotation(purposeTemplateRiskAnalysisForm.multiAnswers, answerId);
+
+  const updatedAnswer = updatedSingleAnswer || updatedMultiAnswer;
+  if (!updatedAnswer) {
+    throw riskAnalysisTemplateAnswerNotFound(purposeTemplate.data.id, answerId);
+  }
+
+  const removedAnnotationDocuments = [
+    ...removedAnnotationDocumentsFromSingleAnswer,
+    ...removedAnnotationDocumentsFromMultiAnswer,
+  ];
+
+  return {
+    updatedPurposeTemplate: {
+      data: {
+        ...purposeTemplate.data,
+        purposeRiskAnalysisForm: {
+          ...purposeTemplateRiskAnalysisForm,
+          singleAnswers: updatedSingleAnswers,
+          multiAnswers: updatedMultiAnswers,
+        },
+      },
+      metadata: purposeTemplate.metadata,
+    },
+    updatedAnswer,
+    removedAnnotationDocuments,
+  };
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
