@@ -12,6 +12,7 @@ import {
   getIpaCode,
   Logger,
   PDFGenerator,
+  RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import {
   retrieveEService,
@@ -30,6 +31,7 @@ export async function handlePurposeMessageV2(
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
+  refreshableToken: RefreshableInteropToken,
   logger: Logger,
 ): Promise<void> {
   await match(decodedMessage)
