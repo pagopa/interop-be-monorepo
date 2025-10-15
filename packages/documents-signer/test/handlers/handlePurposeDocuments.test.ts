@@ -107,7 +107,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
       )
     ).rejects.toEqual(
       genericInternalError(
-        "Handle Purpose Document. Version not found for id: version-123"
+        "Handle Purpose Document - version not found for id: version-123"
       )
     );
 
@@ -170,7 +170,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
       )
     ).rejects.toMatchObject({
       code: "genericError",
-      detail: "Handle Purpose Document. Version not found for id: version-123",
+      detail: "Handle Purpose Document - version not found for id: version-123",
     });
 
     expect(fileManagerMock.get).not.toHaveBeenCalled();

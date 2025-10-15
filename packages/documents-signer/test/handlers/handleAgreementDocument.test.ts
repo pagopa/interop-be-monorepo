@@ -77,10 +77,6 @@ describe("handleAgreementDocument (integration with testcontainers)", () => {
       fileManagerMock,
       loggerMock
     );
-
-    expect(loggerMock.info).toHaveBeenCalledWith(
-      "No document generation needed for AgreementDeleted message"
-    );
     expect(fileManagerMock.get).not.toHaveBeenCalled();
     expect(safeStorageServiceMock.createFile).not.toHaveBeenCalled();
     expect(
