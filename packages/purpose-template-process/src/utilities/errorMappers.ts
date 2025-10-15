@@ -121,3 +121,23 @@ export const getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addRiskAnalysisAnswerAnnotationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "riskAnalysisTemplateValidationFailed",
+      "hyperlinkDetectionError",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "purposeTemplateNotFound",
+      "riskAnalysisAnswerNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "purposeTemplateRiskAnalysisFormNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
