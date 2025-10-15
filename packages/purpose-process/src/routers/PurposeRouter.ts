@@ -12,6 +12,7 @@ import {
 import {
   DelegationId,
   EServiceId,
+  PurposeId,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -80,6 +81,7 @@ const purposeRouter = (
           eservicesIds,
           consumersIds,
           producersIds,
+          purposesIds,
           states,
           excludeDraft,
           offset,
@@ -91,6 +93,7 @@ const purposeRouter = (
             eservicesIds: eservicesIds?.map(unsafeBrandId<EServiceId>),
             consumersIds: consumersIds?.map(unsafeBrandId<TenantId>),
             producersIds: producersIds?.map(unsafeBrandId<TenantId>),
+            purposesIds: purposesIds?.map(unsafeBrandId<PurposeId>),
             states: states?.map(apiPurposeVersionStateToPurposeVersionState),
             excludeDraft,
           },

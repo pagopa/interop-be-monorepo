@@ -61,6 +61,7 @@ export type GetPurposesFilters = {
   eservicesIds: EServiceId[];
   consumersIds: TenantId[];
   producersIds: TenantId[];
+  purposesIds: PurposeId[];
   states: PurposeVersionState[];
   excludeDraft: boolean | undefined;
 };
@@ -108,6 +109,11 @@ const addDelegationJoins = <T extends PgSelect>(query: T) =>
         eq(purposeInReadmodelPurpose.delegationId, activeConsumerDelegations.id)
       )
     );
+
+const getPurposesIdsFilter = (purposesIds: PurposeId[]): SQL | undefined =>
+  purposesIds.length > 0
+    ? inArray(purposeInReadmodelPurpose.id, purposesIds)
+    : undefined;
 
 const getProducerIdsFilter = (producersIds: TenantId[]): SQL | undefined =>
   producersIds.length > 0
@@ -236,7 +242,8 @@ export function readModelServiceBuilderSQL({
       filters: GetPurposesFilters,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<Purpose>> {
-      const { producersIds, consumersIds, ...otherFilters } = filters;
+      const { producersIds, consumersIds, purposesIds, ...otherFilters } =
+        filters;
 
       const subquery = addDelegationJoins(
         readModelDB
@@ -265,6 +272,7 @@ export function readModelServiceBuilderSQL({
               getProducerIdsFilter(producersIds),
               getConsumerIdsFilter(consumersIds),
               getVisibilityFilter(requesterId),
+              getPurposesIdsFilter(purposesIds),
               ...getPurposesFilters(readModelDB, otherFilters)
             )
           )

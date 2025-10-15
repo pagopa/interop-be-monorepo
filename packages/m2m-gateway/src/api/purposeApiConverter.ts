@@ -17,9 +17,28 @@ export function toGetPurposesApiQueryParams(
     offset: params.offset,
     consumersIds: params.consumerIds,
     producersIds: [],
+    purposesIds: [],
     states: params.states,
     excludeDraft: false,
     name: params.title,
+  };
+}
+
+export function toGetPurposesApiQueryParamsForClient(
+  params: {
+    purposesIds: string[];
+  } & m2mGatewayApi.GetClientPurposesQueryParams
+): purposeApi.GetPurposesQueryParams {
+  return {
+    eservicesIds: params.eserviceIds,
+    limit: params.limit,
+    offset: params.offset,
+    consumersIds: [],
+    producersIds: [],
+    purposesIds: params.purposesIds,
+    states: params.states,
+    excludeDraft: false,
+    name: "",
   };
 }
 

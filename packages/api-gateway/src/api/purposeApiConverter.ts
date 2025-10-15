@@ -16,6 +16,7 @@ export function toPurposeProcessGetPurposesQueryParams(
     producersIds: [],
     consumersIds: consumerId ? [consumerId] : [],
     eservicesIds: eserviceId ? [eserviceId] : [],
+    purposesIds: [],
     states: allowedPurposeStates,
     excludeDraft: false,
   };

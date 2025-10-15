@@ -162,6 +162,16 @@ paths:
             default: []
           explode: false
         - in: query
+          name: purposesIds
+          description: comma separated sequence of purposes IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: states
           description: comma separated sequence of states
           schema:
