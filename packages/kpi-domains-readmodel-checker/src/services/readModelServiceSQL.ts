@@ -11,6 +11,7 @@ import {
   ProducerJWKKey,
   ProducerKeychain,
   Purpose,
+  PurposeTemplate,
   Tenant,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -33,6 +34,8 @@ import {
   toDelegationAggregatorArray,
   aggregateEServiceTemplateArray,
   toEServiceTemplateAggregatorArray,
+  aggregatePurposeTemplateArray,
+  toPurposeTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
   agreementAttributeInReadmodelAgreement,
@@ -74,6 +77,11 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  purposeTemplateInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
@@ -519,6 +527,58 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
 
       return aggregateDelegationsArray(
         toDelegationAggregatorArray(queryResult)
+      );
+    },
+    async getAllPurposeTemplates(): Promise<
+      Array<WithMetadata<PurposeTemplate>>
+    > {
+      const queryResult = await readModelDB
+        .select({
+          purposeTemplate: purposeTemplateInReadmodelPurposeTemplate,
+          purposeRiskAnalysisFormTemplate:
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswer:
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswerAnnotation:
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswerAnnotationDocument:
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+        })
+        .from(purposeTemplateInReadmodelPurposeTemplate)
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+          )
+        )
+        .orderBy(
+          ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
+        );
+
+      return aggregatePurposeTemplateArray(
+        toPurposeTemplateAggregatorArray(queryResult)
       );
     },
   };

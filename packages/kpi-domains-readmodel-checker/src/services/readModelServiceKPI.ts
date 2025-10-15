@@ -7,6 +7,7 @@ import {
   EServiceTemplate,
   ProducerKeychain,
   Purpose,
+  PurposeTemplate,
   Tenant,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -20,6 +21,7 @@ import {
   aggregateProducerKeychainArray,
   aggregateDelegationsArray,
   aggregateEServiceTemplateArray,
+  aggregatePurposeTemplateArray,
 } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { IConnected, IMain } from "pg-promise";
@@ -38,6 +40,7 @@ import { DelegationDbTable } from "../model/db/delegation.js";
 import { EserviceTemplateDbTable } from "../model/db/eserviceTemplate.js";
 import { PurposeDbTable } from "../model/db/purpose.js";
 import { DomainDbTable, DomainDbTableSchemas } from "../model/db/index.js";
+import { PurposeTemplateDbTable } from "../model/db/purposeTemplate.js";
 
 export type DBConnection = IConnected<unknown, IClient>;
 export type DBContext = {
@@ -347,6 +350,45 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         delegationsSQL,
         contractDocumentsSQL,
         stampsSQL,
+      });
+    },
+
+    async getAllPurposeTemplates(): Promise<
+      Array<WithMetadata<PurposeTemplate>>
+    > {
+      const purposeTemplatesSQL = await getManyFromDb(
+        dbContext,
+        PurposeTemplateDbTable.purpose_template
+      );
+      const riskAnalysisFormTemplatesSQL = await getManyFromDb(
+        dbContext,
+        PurposeTemplateDbTable.purpose_template_risk_analysis_form
+      );
+      const riskAnalysisTemplateAnswersSQL = await getManyFromDb(
+        dbContext,
+        PurposeTemplateDbTable.purpose_template_risk_analysis_answer
+      );
+      const riskAnalysisTemplateAnswerAnnotationsSQL = await getManyFromDb(
+        dbContext,
+        PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation
+      );
+      const riskAnalysisTemplateAnswerAnnotationDocumentsSQL =
+        await getManyFromDb(
+          dbContext,
+          PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document
+        );
+
+      return aggregatePurposeTemplateArray({
+        purposeTemplatesSQL,
+        riskAnalysisFormTemplatesSQL,
+        riskAnalysisTemplateAnswersSQL: riskAnalysisTemplateAnswersSQL.map(
+          (ra) => ({
+            ...ra,
+            value: JSON.parse(ra.value),
+          })
+        ),
+        riskAnalysisTemplateAnswerAnnotationsSQL,
+        riskAnalysisTemplateAnswerAnnotationDocumentsSQL,
       });
     },
   };
