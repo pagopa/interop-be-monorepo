@@ -1,51 +1,52 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { generateId } from "pagopa-interop-models";
+import { signatureServiceBuilder } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
 } from "pagopa-interop-commons-test";
-import { generateId } from "pagopa-interop-models";
-import { readSignatureReference } from "../utils/dbServiceUtils.js";
-import { dbServiceBuilder } from "../../src/services/dbService.js";
 import { dynamoDBClient } from "../utils/utils.js";
+import { config } from "../../src/config/config.js";
 
-describe("dbServiceBuilder - Integration Tests", () => {
+describe("signatureServiceBuilder - Integration Tests", () => {
   beforeEach(async () => {
+    vi.clearAllMocks();
     await buildDynamoDBTables(dynamoDBClient);
   });
+
   afterEach(async () => {
     await deleteDynamoDBTables(dynamoDBClient);
   });
 
   it("should successfully save a signature reference and retrieve it", async () => {
     const safeStorageId = generateId();
-    const dbService = dbServiceBuilder(dynamoDBClient);
+    const signatureService = signatureServiceBuilder(dynamoDBClient, config);
     const mockReference = {
       safeStorageId,
       fileKind: "INTEROP_LEGAL_FACTS",
       fileName: "multa.pdf",
       correlationId: generateId(),
+      creationTimestamp: expect.any(Number),
     };
 
-    await dbService.saveSignatureReference(mockReference);
+    await signatureService.saveSignatureReference(mockReference);
 
-    const retrievedItem = await readSignatureReference(
-      mockReference.safeStorageId,
-      dynamoDBClient
+    const retrievedItem = await signatureService.readSignatureReference(
+      mockReference.safeStorageId
     );
 
     expect(retrievedItem).toEqual({
       ...mockReference,
-      PK: mockReference.safeStorageId,
+      safeStorageId: mockReference.safeStorageId,
     });
   });
 
   it("should return undefined if a signature reference does not exist", async () => {
     const nonExistentId = generateId();
-
-    const retrievedItem = await readSignatureReference(
-      nonExistentId,
-      dynamoDBClient
+    const signatureService = signatureServiceBuilder(dynamoDBClient, config);
+    const retrievedItem = await signatureService.readSignatureReference(
+      nonExistentId
     );
 
     expect(retrievedItem).toBeUndefined();
@@ -60,9 +61,12 @@ describe("dbServiceBuilder - Integration Tests", () => {
         secretAccessKey: "test",
       },
     });
-
+    const signatureService = signatureServiceBuilder(
+      brokenDynamoDBClient,
+      config
+    );
     await expect(
-      readSignatureReference(generateId(), brokenDynamoDBClient)
+      signatureService.readSignatureReference(generateId())
     ).rejects.toThrow();
   });
 });

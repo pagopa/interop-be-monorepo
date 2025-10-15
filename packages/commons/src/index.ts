@@ -33,3 +33,5 @@ export * from "./sqs/index.js";
 export * from "./utils/regexpUtils.js";
 export * from "./repositories/dbHelper.js";
 export * from "./utils/retrieveOriginFromAuthData.js";
+export * from "./safe-storage/index.js";
+export * from "./dynamo-db-client/index.js";
