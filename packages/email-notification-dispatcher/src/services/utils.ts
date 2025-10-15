@@ -39,7 +39,6 @@ export const eventMailTemplateType = {
   eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
   producerKeychainEserviceAddedMailTemplate:
     "producer-keychain-eservice-added-mail",
-  eserviceNameUpdatedMailTemplate: "eservice-name-updated-mail",
   agreementSuspendedByConsumerMailTemplate:
     "agreement-suspended-by-consumer-mail",
   agreementSuspendedByPlatformToConsumerMailTemplate:
@@ -84,6 +83,7 @@ export const eventMailTemplateType = {
     "eservice-descriptor-rejected-by-delegator-mail",
   eserviceDescriptorSubmittedByDelegateMailTemplate:
     "eservice-descriptor-submitted-by-delegate-mail",
+  eserviceStateChangedMailTemplate: "eservice-state-changed-mail",
   producerDelegationApprovedMailTemplate: "producer-delegation-approved-mail",
   producerDelegationRejectedMailTemplate: "producer-delegation-rejected-mail",
   producerDelegationRevokedMailTemplate: "producer-delegation-revoked-mail",

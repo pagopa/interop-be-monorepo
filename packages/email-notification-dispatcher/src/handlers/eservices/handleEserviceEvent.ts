@@ -10,7 +10,7 @@ import { handleEserviceDescriptorApprovedByDelegator } from "./handleEserviceDes
 import { handleEserviceDescriptorRejectedByDelegator } from "./handleEserviceDescriptorRejectedByDelegator.js";
 import { handleEserviceDescriptorActivated } from "./handleEserviceDescriptorActivated.js";
 import { handleEserviceDescriptorSuspended } from "./handleEserviceDescriptorSuspended.js";
-import { handleEserviceNameUpdated } from "./handleEserviceNameUpdated.js";
+import { handleEserviceStateChanged } from "./handleEserviceStateChanged.js";
 
 export async function handleEServiceEvent(
   params: HandlerParams<typeof EServiceEventV2>
@@ -94,13 +94,18 @@ export async function handleEServiceEvent(
       {
         type: P.union(
           "EServiceNameUpdated",
-          "EServiceNameUpdatedByTemplateUpdate"
+          "EServiceNameUpdatedByTemplateUpdate",
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
         ),
       },
-      ({ data: { eservice, oldName } }) =>
-        handleEserviceNameUpdated({
-          eserviceV2Msg: eservice,
-          oldName,
+      (payload) =>
+        handleEserviceStateChanged({
+          payload,
           logger,
           readModelService,
           templateService,
@@ -111,8 +116,6 @@ export async function handleEServiceEvent(
     .with(
       {
         type: P.union(
-          "EServiceDescriptorQuotasUpdated",
-          "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceAdded",
           "EServiceCloned",
           "EServiceDeleted",
@@ -120,31 +123,27 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAdded",
           "EServiceDraftDescriptorDeleted",
           "EServiceDraftDescriptorUpdated",
-          "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorDocumentUpdated",
-          "EServiceDescriptorDocumentDeleted",
-          "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorInterfaceDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
           "EServiceRiskAnalysisDeleted",
-          "EServiceDescriptorAttributesUpdated",
-          "EServiceDescriptionUpdated",
           "EServiceIsConsumerDelegableEnabled",
           "EServiceIsConsumerDelegableDisabled",
           "EServiceIsClientAccessDelegableEnabled",
           "EServiceIsClientAccessDelegableDisabled",
-          "EServiceDescriptionUpdatedByTemplateUpdate",
-          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
-          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
-          "EServiceDescriptorDocumentAddedByTemplateUpdate",
-          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
           "EServicePersonalDataFlagUpdatedAfterPublication",
-          "EServiceDescriptorArchived"
+          "EServiceDescriptorArchived",
+          "EServiceDescriptionUpdated",
+          "EServiceDescriptionUpdatedByTemplateUpdate",
+          "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorAgreementApprovalPolicyUpdated",
+          "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate"
         ),
       },
       () => {
