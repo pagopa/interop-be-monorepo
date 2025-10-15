@@ -1,5 +1,5 @@
 import { describe, beforeAll, vi, afterEach, it, expect } from "vitest";
-import { EmailManagerSES } from "pagopa-interop-commons";
+import { EmailManagerSES, HtmlTemplateService } from "pagopa-interop-commons";
 import {
   AccountSuspendedException,
   BadRequestException,
@@ -35,6 +35,8 @@ describe("emailSenderProcessor", () => {
     getInstitutionUsersByProductUsingGET: vi.fn().mockResolvedValue([
       {
         email: "user@mock.com",
+        name: "John",
+        surname: "Doe",
       },
     ]),
   } as unknown as SelfcareV2InstitutionClient;
@@ -46,13 +48,17 @@ describe("emailSenderProcessor", () => {
       },
     }),
   } as unknown as TenantReadModelService;
+  const mockTemplateService = {
+    compileHtml: vi.fn((body: string) => body),
+  } as unknown as HtmlTemplateService;
 
   beforeAll(async () => {
     emailSenderProcessor = emailSenderProcessorBuilder(
       mockSESSender,
       mockSESEmailManager,
       mockSelfcareV2InstitutionClient,
-      mockTenantReadModelService
+      mockTenantReadModelService,
+      mockTemplateService
     );
   });
 
