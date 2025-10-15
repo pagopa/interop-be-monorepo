@@ -1,44 +1,45 @@
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
-  EService,
-  EServiceMode,
-  Purpose,
-  PurposeVersion,
-  PurposeRiskAnalysisForm,
-  RiskAnalysisForm,
-  TenantId,
-  TenantKind,
-  purposeVersionState,
-  EServiceId,
-  delegationKind,
-  Delegation,
-  delegationState,
-  DelegationId,
-} from "pagopa-interop-models";
-import {
-  validateRiskAnalysis,
+  M2MAdminAuthData,
+  Ownership,
+  ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
-  M2MAdminAuthData,
-  Ownership,
-  ownership,
+  validateRiskAnalysis,
 } from "pagopa-interop-commons";
-import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  Delegation,
+  DelegationId,
+  delegationKind,
+  delegationState,
+  DescriptorState,
+  EService,
+  EServiceId,
+  EServiceMode,
+  Purpose,
+  PurposeRiskAnalysisForm,
+  PurposeVersion,
+  purposeVersionState,
+  RiskAnalysisForm,
+  TenantId,
+  TenantKind,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
+  purposeNotInDraftState,
+  riskAnalysisValidationFailed,
   tenantIsNotTheConsumer,
+  tenantIsNotTheDelegate,
   tenantIsNotTheDelegatedConsumer,
   tenantIsNotTheDelegatedProducer,
   tenantIsNotTheProducer,
   tenantNotAllowed,
-  purposeNotInDraftState,
-  riskAnalysisValidationFailed,
-  tenantIsNotTheDelegate,
 } from "../model/domain/errors.js";
 import {
   retrieveActiveAgreement,
@@ -481,3 +482,12 @@ export const getOrganizationRole = async ({
     }
   }
 };
+
+export function assertValidEserviceState(
+  eservice: EService,
+  validStates: DescriptorState[]
+): void {
+  if (eservice.descriptors.some((d) => validStates.includes(d.state))) {
+    throw (eservice.id);
+  }
+}

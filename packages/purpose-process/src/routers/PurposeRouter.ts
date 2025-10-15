@@ -12,6 +12,7 @@ import {
 import {
   DelegationId,
   EServiceId,
+  PurposeTemplateId,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -695,7 +696,30 @@ const purposeRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/templates/:purposeTemplateId/purposes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const {
+          data: { purpose },
+          metadata,
+        } = await purposeService.createPurposeFromTemplate(
+          unsafeBrandId<PurposeTemplateId>(req.params.purposeTemplateId),
+          req.body,
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res.status(200).send(purposeApi.Purpose.parse(purpose));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, createPurposeErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return purposeRouter;
 };

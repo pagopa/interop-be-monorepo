@@ -21,6 +21,9 @@ import {
   Delegation,
   delegationKind,
   DelegationId,
+  PurposeTemplateId,
+  PurposeTemplate,
+  EServiceDescriptorPurposeTemplate,
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
@@ -40,6 +43,7 @@ import {
   CatalogReadModelService,
   DelegationReadModelService,
   PurposeReadModelService,
+  PurposeTemplateReadModelService,
   TenantReadModelService,
   toPurposeAggregatorArray,
 } from "pagopa-interop-readmodel";
@@ -198,6 +202,7 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
+  purposeTemplateReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   purposeReadModelServiceSQL: PurposeReadModelService;
@@ -205,6 +210,7 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL: TenantReadModelService;
   agreementReadModelServiceSQL: AgreementReadModelService;
   delegationReadModelServiceSQL: DelegationReadModelService;
+  purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -434,6 +440,29 @@ export function readModelServiceBuilderSQL({
           )
         )
       )?.data;
+    },
+    async getPurposeTemplateById(
+      purposeTemplateId: PurposeTemplateId
+    ): Promise<WithMetadata<PurposeTemplate> | undefined> {
+      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateById(
+        purposeTemplateId
+      );
+    },
+    async getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
+      purposeTemplateId: PurposeTemplateId
+    ): Promise<EServiceDescriptorPurposeTemplate[] | undefined> {
+      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
+        purposeTemplateId
+      );
+    },
+    async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceId: EServiceId
+    ): Promise<EServiceDescriptorPurposeTemplate | undefined> {
+      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
+        purposeTemplateId,
+        eserviceId
+      );
     },
   };
 }

@@ -5,6 +5,7 @@ import {
   EServiceId,
   EServiceMode,
   PurposeId,
+  PurposeTemplateId,
   PurposeVersionDocumentId,
   PurposeVersionId,
   PurposeVersionState,
@@ -47,11 +48,23 @@ export const errorCodes = {
   purposeDelegationNotFound: "0029",
   purposeCannotBeUpdated: "0030",
   tenantIsNotTheDelegate: "0031",
+  purposeTemplateNotFound: "0032",
+  eserviceNotLinkedToPurposeTemplate: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+
+export function purposeTemplateNotFound(
+  templateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template ${templateId} not found`,
+    code: "purposeTemplateNotFound",
+    title: "Purpose Template not found",
+  });
+}
 
 export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({
@@ -375,5 +388,16 @@ export function tenantIsNotTheDelegate(
     detail: `Tenant ${tenantId} is not allowed to perform the operation: operation is restricted to delegate, but delegation ID parameter is missing`,
     code: "tenantIsNotTheDelegate",
     title: "Missing delegation ID",
+  });
+}
+
+export function eserviceNotLinkedToPurpose(
+  eserviceId: EServiceId,
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is not linked to Purpose template ${purposeTemplateId}`,
+    code: "eserviceNotLinkedToPurposeTemplate",
+    title: "EService not linked to Purpose template",
   });
 }
