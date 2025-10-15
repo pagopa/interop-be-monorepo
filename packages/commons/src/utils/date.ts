@@ -34,21 +34,18 @@ export function dateToSeconds(date: Date): number {
 }
 
 export const timestampToMilliseconds = (timestamp: number): number => {
-  const truncatedTimestamp = Math.trunc(timestamp);
-  const nowSeconds = Math.floor(Date.now() / 1_000);
-  const ratio = truncatedTimestamp / nowSeconds;
-
-  if (ratio > 1_000_000) {
-    // nanoseconds -> milliseconds
-    return Math.trunc(truncatedTimestamp / 1_000_000);
-  } else if (ratio > 1_000) {
-    // microseconds -> milliseconds
-    return Math.trunc(truncatedTimestamp / 1_000);
-  } else if (ratio > 1) {
-    // milliseconds
-    return truncatedTimestamp;
-  } else {
-    // seconds -> milliseconds
-    return truncatedTimestamp * 1_000;
+  // ns -> ms
+  if (timestamp > 1e17) {
+    return Math.trunc(timestamp / 1_000_000);
   }
+  // µs -> ms
+  if (timestamp > 1e14) {
+    return Math.trunc(timestamp / 1_000);
+  }
+  // ms -> ms
+  if (timestamp > 1e12) {
+    return Math.trunc(timestamp);
+  }
+  // s -> ms
+  return Math.trunc(timestamp * 1_000);
 };
