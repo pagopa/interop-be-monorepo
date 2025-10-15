@@ -13,12 +13,14 @@ import {
 import {
   DrizzleReturnType,
   DrizzleTransactionType,
+  purposeTemplateChildTables,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+  purposeTemplateTables,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
 
@@ -29,15 +31,6 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
     purposeTemplateId: PurposeTemplateId,
     newMetadataVersion: number
   ): Promise<void> => {
-    const purposeTemplateTables = [
-      purposeTemplateInReadmodelPurposeTemplate,
-      purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
-      purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
-      purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-      purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-      purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-    ];
-
     for (const table of purposeTemplateTables) {
       await tx
         .update(table)
@@ -71,11 +64,16 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
           return;
         }
 
-        await tx
-          .delete(purposeTemplateInReadmodelPurposeTemplate)
-          .where(
-            eq(purposeTemplateInReadmodelPurposeTemplate.id, purposeTemplate.id)
-          );
+        for (const table of purposeTemplateChildTables) {
+          if (
+            table !==
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+          ) {
+            await tx
+              .delete(table)
+              .where(eq(table.purposeTemplateId, purposeTemplate.id));
+          }
+        }
 
         const {
           purposeTemplateSQL,
@@ -90,7 +88,11 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
 
         await tx
           .insert(purposeTemplateInReadmodelPurposeTemplate)
-          .values(purposeTemplateSQL);
+          .values(purposeTemplateSQL)
+          .onConflictDoUpdate({
+            target: purposeTemplateInReadmodelPurposeTemplate.id,
+            set: purposeTemplateSQL,
+          });
 
         if (riskAnalysisFormTemplateSQL) {
           await tx
@@ -203,28 +205,36 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
       descriptorId: DescriptorId;
       metadataVersion: number;
     }): Promise<void> {
-      await db
-        .delete(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
-        .where(
-          and(
-            eq(
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
-              eserviceId
-            ),
-            eq(
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.descriptorId,
-              descriptorId
-            ),
-            eq(
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
-              purposeTemplateId
-            ),
-            lte(
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.metadataVersion,
-              metadataVersion
+      await db.transaction(async (tx) => {
+        await tx
+          .delete(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+          .where(
+            and(
+              eq(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+                eserviceId
+              ),
+              eq(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.descriptorId,
+                descriptorId
+              ),
+              eq(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+                purposeTemplateId
+              ),
+              lte(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.metadataVersion,
+                metadataVersion
+              )
             )
-          )
+          );
+
+        await updateMetadataVersionInPurposeTemplateTables(
+          tx,
+          purposeTemplateId,
+          metadataVersion
         );
+      });
     },
   };
 }
