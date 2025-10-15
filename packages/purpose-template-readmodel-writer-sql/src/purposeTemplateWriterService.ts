@@ -205,28 +205,36 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
       descriptorId: DescriptorId;
       metadataVersion: number;
     }): Promise<void> {
-      await db
-        .delete(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
-        .where(
-          and(
-            eq(
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
-              eserviceId
-            ),
-            eq(
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.descriptorId,
-              descriptorId
-            ),
-            eq(
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
-              purposeTemplateId
-            ),
-            lte(
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.metadataVersion,
-              metadataVersion
+      await db.transaction(async (tx) => {
+        await tx
+          .delete(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+          .where(
+            and(
+              eq(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+                eserviceId
+              ),
+              eq(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.descriptorId,
+                descriptorId
+              ),
+              eq(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+                purposeTemplateId
+              ),
+              lte(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.metadataVersion,
+                metadataVersion
+              )
             )
-          )
+          );
+
+        await updateMetadataVersionInPurposeTemplateTables(
+          tx,
+          purposeTemplateId,
+          metadataVersion
         );
+      });
     },
   };
 }
