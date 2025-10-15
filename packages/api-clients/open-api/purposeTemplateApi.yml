@@ -703,6 +703,68 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/documents:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Add Document to Risk Analysis Answer Annotation
+      description: Add Answer Annotation Document to Risk Analysis of Purpose Template
+      operationId: addRiskAnalysisTemplateAnswerAnnotationDocument
+      tags:
+        - purposeTemplate
+      requestBody:
+        required: true
+        description: Annotation Document
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocumentSeed"
+      responses:
+        "200":
+          description: OK - Request successful. The response contains the created resource metadata (not the file)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+          $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+          $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+          $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+          $ref: "#/components/schemas/Problem"
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1066,15 +1128,22 @@ components:
       type: object
       additionalProperties: false
       properties:
-        name:
+        documentId:
           type: string
-        contentType:
+          format: uuid
+        name:
           type: string
         prettyName:
           type: string
         path:
           type: string
+        contentType:
+          type: string
+        checksum:
+          type: string
       required:
+        - documentId
+        - checksum
         - name
         - contentType
         - prettyName
@@ -1139,6 +1208,8 @@ components:
           type: string
         path:
           type: string
+        checksum:
+          type: string
         createdAt:
           type: string
           format: date-time
@@ -1148,6 +1219,7 @@ components:
         - contentType
         - prettyName
         - path
+        - checksum
         - createdAt
     RiskAnalysisTemplateAnswerRequest:
       type: object

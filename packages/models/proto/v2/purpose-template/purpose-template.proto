@@ -64,4 +64,5 @@ message RiskAnalysisTemplateAnswerAnnotationDocumentV2 {
   string contentType = 4;
   string path = 5;
   int64 createdAt = 6;
+  string checksum = 7;
 }

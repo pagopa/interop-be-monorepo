@@ -159,6 +159,7 @@ describe("database test", async () => {
           delegationSubmittedRevokedToDelegate: false,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
           clientKeyAddedDeletedToClientUsers: false,
+          producerKeychainKeyAddedDeletedToClientUsers: false,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer: false,
@@ -180,6 +181,7 @@ describe("database test", async () => {
           delegationSubmittedRevokedToDelegate: false,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
           clientKeyAddedDeletedToClientUsers: false,
+          producerKeychainKeyAddedDeletedToClientUsers: false,
         },
         createdAt: generateMock(z.coerce.date()),
         updatedAt: generateMock(z.coerce.date().optional()),
@@ -211,6 +213,7 @@ describe("database test", async () => {
           delegationSubmittedRevokedToDelegate: true,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: true,
           clientKeyAddedDeletedToClientUsers: true,
+          producerKeychainKeyAddedDeletedToClientUsers: true,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer: true,
@@ -232,6 +235,7 @@ describe("database test", async () => {
           delegationSubmittedRevokedToDelegate: true,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: true,
           clientKeyAddedDeletedToClientUsers: true,
+          producerKeychainKeyAddedDeletedToClientUsers: true,
         },
       };
 

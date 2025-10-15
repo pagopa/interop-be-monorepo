@@ -102,6 +102,7 @@ describe("processUserEvent", () => {
         delegationSubmittedRevokedToDelegate: false,
         certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
         clientKeyAddedDeletedToClientUsers: false,
+        producerKeychainKeyAddedDeletedToClientUsers: false,
       },
       emailConfig: {
         agreementSuspendedUnsuspendedToProducer: false,
@@ -123,6 +124,7 @@ describe("processUserEvent", () => {
         delegationSubmittedRevokedToDelegate: false,
         certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
         clientKeyAddedDeletedToClientUsers: false,
+        producerKeychainKeyAddedDeletedToClientUsers: false,
       },
     });
 
