@@ -150,13 +150,6 @@ export const purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation
         }
       : undefined;
 
-export const annotationDocumentToApiAnnotationDocument = (
-  annotationDocument: RiskAnalysisTemplateAnswerAnnotationDocument
-): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument => ({
-  ...annotationDocument,
-  createdAt: annotationDocument.createdAt.toJSON(),
-});
-
 export const eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate =
   (
     eserviceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate
@@ -164,3 +157,10 @@ export const eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemp
     ...eserviceDescriptorPurposeTemplate,
     createdAt: eserviceDescriptorPurposeTemplate.createdAt.toJSON(),
   });
+
+export const annotationDocumentToApiAnnotationDocument = (
+  annotationDocument: RiskAnalysisTemplateAnswerAnnotationDocument
+): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument => ({
+  ...annotationDocument,
+  createdAt: annotationDocument.createdAt.toJSON(),
+});

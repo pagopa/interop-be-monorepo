@@ -16,6 +16,7 @@ export const RiskAnalysisTemplateAnswerAnnotationDocument = z.object({
   contentType: z.string(),
   path: z.string(),
   createdAt: z.coerce.date(),
+  checksum: z.string(),
 });
 export type RiskAnalysisTemplateAnswerAnnotationDocument = z.infer<
   typeof RiskAnalysisTemplateAnswerAnnotationDocument
@@ -48,6 +49,26 @@ export const RiskAnalysisTemplateMultiAnswer = RiskAnalysisMultiAnswer.extend({
 
 export type RiskAnalysisTemplateMultiAnswer = z.infer<
   typeof RiskAnalysisTemplateMultiAnswer
+>;
+
+/* 
+  This type represents a generic persisted risk analysis template answer,
+  which can be either single or multi but its quickly identifiable by the "type" field.
+  This is useful when dealing with existent answers in a generic way,
+  the approach is similar to RiskAnalysisValidatedSingleOrMultiAnswer.
+*/
+export const RiskAnalysisTemplateAnswer = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("single"),
+    answer: RiskAnalysisTemplateSingleAnswer,
+  }),
+  z.object({
+    type: z.literal("multi"),
+    answer: RiskAnalysisTemplateMultiAnswer,
+  }),
+]);
+export type RiskAnalysisTemplateAnswer = z.infer<
+  typeof RiskAnalysisTemplateAnswer
 >;
 
 export const RiskAnalysisFormTemplate = z.object({
