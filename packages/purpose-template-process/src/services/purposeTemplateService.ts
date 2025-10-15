@@ -884,11 +884,11 @@ export function purposeTemplateServiceBuilder(
       };
 
       const createdEvent = await repository.createEvent(
-        toCreateEventPurposeTemplatePublished({
-          purposeTemplate: updatedPurposeTemplate,
-          version: purposeTemplate.metadata.version,
-          correlationId,
-        })
+        toCreateEventPurposeTemplatePublished(
+          updatedPurposeTemplate,
+          purposeTemplate.metadata.version,
+          correlationId
+        )
       );
 
       return {
