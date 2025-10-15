@@ -124,7 +124,7 @@ describe("handleDelegationMessageV2", () => {
       fileManager,
       readModelService,
       mockRefreshableToken,
-      genericLogger
+      genericLogger,
     );
     const expectedPdfPayload = {
       dailyCalls: mockPurposeVersion.dailyCalls.toString(),
@@ -153,9 +153,9 @@ describe("handleDelegationMessageV2", () => {
         path.dirname(fileURLToPath(import.meta.url)),
         "../../src",
         "resources/purpose",
-        "riskAnalysisTemplate.html"
+        "riskAnalysisTemplate.html",
       ),
-      expectedPdfPayload
+      expectedPdfPayload,
     );
   });
   it("should not process events that don't require contract generation and only log an info message", async () => {
@@ -187,8 +187,8 @@ describe("handleDelegationMessageV2", () => {
         fileManager,
         readModelService,
         mockRefreshableToken,
-        genericLogger
-      )
+        genericLogger,
+      ),
     ).resolves.toBeUndefined();
 
     expect(pdfGeneratorSpy).not.toHaveBeenCalled();
@@ -220,8 +220,8 @@ describe("handleDelegationMessageV2", () => {
         fileManager,
         readModelService,
         mockRefreshableToken,
-        genericLogger
-      )
+        genericLogger,
+      ),
     ).rejects.toThrow(eServiceNotFound(mockPurpose.eserviceId).message);
   });
   it("should throw tenantKindNotFound if tenantKind is not found", async () => {
@@ -268,8 +268,8 @@ describe("handleDelegationMessageV2", () => {
         fileManager,
         readModelService,
         mockRefreshableToken,
-        genericLogger
-      )
+        genericLogger,
+      ),
     ).rejects.toThrow(tenantKindNotFound(mockConsumer.id).message);
   });
 });

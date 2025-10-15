@@ -139,4 +139,7 @@ export * from "./gen/v2/notification-config/events.js";
 export * from "./user/user.js";
 
 // M2M Event model
+export * from "./m2m-event/m2mEventVisibility.js";
 export * from "./m2m-event/attributeM2MEvent.js";
+export * from "./m2m-event/eserviceM2MEvent.js";
+export * from "./m2m-event/agreementM2MEvent.js";

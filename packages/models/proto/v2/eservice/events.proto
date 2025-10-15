@@ -211,5 +211,6 @@ message EServiceSignalHubDisabledV2 {
     EServiceV2 eservice = 1;
 }
 
-
-
+message EServicePersonalDataFlagUpdatedAfterPublicationV2 {
+    EServiceV2 eservice = 1;
+}

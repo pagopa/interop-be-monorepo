@@ -115,6 +115,11 @@ import {
   tenantKind,
   purposeTemplateState,
   PurposeTemplateState,
+  PurposeTemplateV2,
+  RiskAnalysisTemplateSingleAnswer,
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswerV2,
+  RiskAnalysisTemplateMultiAnswerV2,
   EmailNotificationPreference,
 } from "pagopa-interop-models";
 import {
@@ -1066,6 +1071,75 @@ export const sortPurpose = <
               ),
               multiAnswers: [...purpose.riskAnalysisForm.multiAnswers].sort(
                 sortBy((answer) => answer.key)
+              ),
+            },
+          }
+        : {}),
+    };
+  }
+};
+
+const sortRiskAnalysisTemplateAnswers = <
+  T extends
+    | RiskAnalysisTemplateSingleAnswer
+    | RiskAnalysisTemplateSingleAnswerV2
+    | RiskAnalysisTemplateMultiAnswer
+    | RiskAnalysisTemplateMultiAnswerV2
+>(
+  answers: T[]
+): T[] =>
+  [...answers]
+    .map((answer) => ({
+      ...answer,
+      ...(answer.annotation && {
+        annotation: {
+          ...answer.annotation,
+          docs: [...answer.annotation.docs].sort(sortBy((doc) => doc.id)),
+        },
+      }),
+      ...("suggestedValues" in answer &&
+        answer.suggestedValues && {
+          suggestedValues: [...answer.suggestedValues].sort(),
+        }),
+    }))
+    .sort(sortBy((a) => a.key));
+
+export const sortPurposeTemplate = <
+  T extends
+    | PurposeTemplate
+    | PurposeTemplateV2
+    | WithMetadata<PurposeTemplate>
+    | undefined
+>(
+  purposeTemplate: T
+): T => {
+  if (!purposeTemplate) {
+    return purposeTemplate;
+  } else if ("data" in purposeTemplate) {
+    return {
+      ...purposeTemplate,
+      data: sortPurposeTemplate(purposeTemplate.data),
+    };
+  } else {
+    return {
+      ...purposeTemplate,
+      ...(purposeTemplate.purposeRiskAnalysisForm
+        ? {
+            purposeRiskAnalysisForm: {
+              ...purposeTemplate.purposeRiskAnalysisForm,
+              singleAnswers: sortRiskAnalysisTemplateAnswers(
+                purposeTemplate.purposeRiskAnalysisForm.singleAnswers.map(
+                  (answer) => ({
+                    ...answer,
+                  })
+                )
+              ),
+              multiAnswers: sortRiskAnalysisTemplateAnswers(
+                purposeTemplate.purposeRiskAnalysisForm.multiAnswers.map(
+                  (answer) => ({
+                    ...answer,
+                  })
+                )
               ),
             },
           }

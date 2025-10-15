@@ -1,4 +1,5 @@
 import {
+  EServiceDescriptorPurposeTemplate,
   PurposeTemplate,
   PurposeTemplateId,
   PurposeTemplateState,
@@ -8,6 +9,7 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
@@ -17,6 +19,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  PurposeTemplateEServiceDescriptorSQL,
   PurposeTemplateRiskAnalysisAnswerSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL,
@@ -221,6 +224,7 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
                     name: doc.name,
                     prettyName: doc.prettyName,
                     contentType: doc.contentType,
+                    checksum: doc.checksum,
                     path: doc.path,
                     createdAt: stringToDate(doc.createdAt),
                   }))
@@ -407,5 +411,47 @@ export const toPurposeTemplateAggregatorArray = (
     riskAnalysisTemplateAnswersSQL,
     riskAnalysisTemplateAnswersAnnotationsSQL,
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+  };
+};
+
+export const toRiskAnalysisTemplateAnswerAnnotationDocument = (
+  annotationDocumentSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL
+): RiskAnalysisTemplateAnswerAnnotationDocument => ({
+  id: unsafeBrandId(annotationDocumentSQL.id),
+  name: annotationDocumentSQL.name,
+  prettyName: annotationDocumentSQL.prettyName,
+  contentType: annotationDocumentSQL.contentType,
+  path: annotationDocumentSQL.path,
+  createdAt: stringToDate(annotationDocumentSQL.createdAt),
+  checksum: annotationDocumentSQL.checksum,
+});
+
+export const aggregatePurposeTemplateEServiceDescriptorArray = (
+  purposeTemplateEServiceDescriptor: PurposeTemplateEServiceDescriptorSQL[]
+): Array<WithMetadata<EServiceDescriptorPurposeTemplate>> =>
+  purposeTemplateEServiceDescriptor.map(
+    aggregatePurposeTemplateEServiceDescriptor
+  );
+
+export const aggregatePurposeTemplateEServiceDescriptor = ({
+  purposeTemplateId,
+  eserviceId,
+  descriptorId,
+  createdAt,
+  metadataVersion,
+  ...rest
+}: PurposeTemplateEServiceDescriptorSQL): WithMetadata<EServiceDescriptorPurposeTemplate> => {
+  void (rest satisfies Record<string, never>);
+
+  return {
+    data: {
+      purposeTemplateId: unsafeBrandId(purposeTemplateId),
+      eserviceId: unsafeBrandId(eserviceId),
+      descriptorId: unsafeBrandId(descriptorId),
+      createdAt: stringToDate(createdAt),
+    },
+    metadata: {
+      version: metadataVersion,
+    },
   };
 };

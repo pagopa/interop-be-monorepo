@@ -246,6 +246,12 @@ describe("getCatalogEServiceDescriptor", () => {
     declaredAttributes: [],
     consumerDocuments: [],
     createdAt: "2023-01-01T00:00:00.000Z",
+    stamps: {
+      activation: {
+        who: generateId(),
+        when: "2023-02-02T00:00:00.000Z",
+      },
+    },
   });
 
   vi.spyOn(

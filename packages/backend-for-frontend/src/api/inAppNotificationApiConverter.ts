@@ -49,6 +49,13 @@ export function toBffApiNotificationsCountBySection({
       anagrafica: getNotificationTypesCount(results, "/aderente/anagrafica"),
       totalCount: getNotificationTypesCount(results, "/aderente"),
     },
+    "gestione-client": {
+      "api-e-service": getNotificationTypesCount(
+        results,
+        "/gestione-client/api-e-service"
+      ),
+      totalCount: getNotificationTypesCount(results, "/gestione-client"),
+    },
     totalCount,
   };
 }
@@ -64,7 +71,7 @@ export function toBffApiNotification(
     tenantId: notification.tenantId,
     userId: notification.userId,
     body: notification.body,
-    deepLink: notificationTypeToUiSection[notificationType],
+    deepLink: `${notificationTypeToUiSection[notificationType]}/${notification.entityId}`,
     createdAt: notification.createdAt,
     readAt: notification.readAt,
   };

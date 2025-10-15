@@ -3,9 +3,11 @@ import { describe, it, expect, vi } from "vitest";
 import {
   getMockContext,
   getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  eserviceTemplateVersionState,
   generateId,
   missingKafkaMessageDataError,
   TenantId,
@@ -20,7 +22,12 @@ import {
 } from "./utils.js";
 
 describe("handleTemplateStatusChangedToProducer", async () => {
-  const eserviceTemplate = getMockEServiceTemplate();
+  const eserviceTemplate = getMockEServiceTemplate(undefined, undefined, [
+    getMockEServiceTemplateVersion(
+      undefined,
+      eserviceTemplateVersionState.published
+    ),
+  ]);
   const { logger } = getMockContext({});
   await addOneEServiceTemplate(eserviceTemplate);
 
@@ -76,7 +83,7 @@ describe("handleTemplateStatusChangedToProducer", async () => {
       tenantId: creatorId,
       body,
       notificationType: "templateStatusChangedToProducer",
-      entityId: eserviceTemplate.id,
+      entityId: `${eserviceTemplate.id}/${eserviceTemplate.versions[0].id}`,
     }));
     expect(notifications).toHaveLength(users.length);
     expect(notifications).toEqual(

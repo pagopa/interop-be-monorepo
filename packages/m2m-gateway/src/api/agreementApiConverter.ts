@@ -1,11 +1,13 @@
 import {
   agreementApi,
+  delegationApi,
   m2mGatewayApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
 
 export function toM2MGatewayApiAgreement(
-  agreement: agreementApi.Agreement
+  agreement: agreementApi.Agreement,
+  delegationId: delegationApi.Delegation["id"] | undefined
 ): m2mGatewayApi.Agreement {
   return {
     id: agreement.id,
@@ -13,6 +15,7 @@ export function toM2MGatewayApiAgreement(
     descriptorId: agreement.descriptorId,
     producerId: agreement.producerId,
     consumerId: agreement.consumerId,
+    delegationId,
     state: agreement.state,
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
@@ -40,18 +43,6 @@ export function toGetAgreementsApiQueryParams(
   };
 }
 
-export function toM2MGatewayApiDocument(
-  document: agreementApi.Document
-): m2mGatewayApi.Document {
-  return {
-    id: document.id,
-    name: document.name,
-    prettyName: document.prettyName,
-    createdAt: document.createdAt,
-    contentType: document.contentType,
-  };
-}
-
 export function toGetPurposesApiQueryParamsForAgreement(
   agreement: agreementApi.Agreement,
   params: m2mGatewayApi.GetAgreementPurposesQueryParams
@@ -65,5 +56,17 @@ export function toGetPurposesApiQueryParamsForAgreement(
     states: [],
     excludeDraft: false,
     name: undefined,
+  };
+}
+
+export function toM2MGatewayApiDocument(
+  document: agreementApi.Document
+): m2mGatewayApi.Document {
+  return {
+    id: document.id,
+    name: document.name,
+    prettyName: document.prettyName,
+    createdAt: document.createdAt,
+    contentType: document.contentType,
   };
 }

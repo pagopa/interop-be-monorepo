@@ -118,6 +118,9 @@ paths:
       responses:
         "200":
           description: EService template created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -143,6 +146,13 @@ paths:
   /templates/{templateId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: templateId
+        in: path
+        description: The E-Service template id
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       security:
         - bearerAuth: []
@@ -151,14 +161,6 @@ paths:
       summary: Get an e-service template
       operationId: getEServiceTemplateById
       description: Retrieves an E-Service template by its ID
-      parameters:
-        - name: templateId
-          in: path
-          description: The E-Service template id
-          required: true
-          schema:
-            type: string
-            format: uuid
       responses:
         "200":
           description: E-Service template retrieved
@@ -190,17 +192,10 @@ paths:
       tags:
         - process
       summary: Updates e-service template general information
-      operationId: updateEServiceTemplate
-      description: Updates the general information of an E-Service template
-      parameters:
-        - name: templateId
-          in: path
-          description: The E-Service id to update
-          required: true
-          schema:
-            type: string
+      operationId: updateDraftEServiceTemplate
+      description: Updates the general information of an Draft E-Service template
       requestBody:
-        description: An E-Service template update seed containing the possible updatable fields
+        description: A Draft E-Service template update seed containing the possible updatable fields
         required: true
         content:
           application/json:
@@ -227,6 +222,54 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Partially updates Draft E-Service Template general information
+      operationId: patchUpdateDraftEServiceTemplate
+      description: Partially updates the general information of the specified Draft E-Service Template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUpdateEServiceTemplateSeed"
+      responses:
+        "200":
+          description: E-Service Template updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplate"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: E-Service Template not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name Conflict
           content:
             application/problem+json:
               schema:
@@ -303,6 +346,9 @@ paths:
             format: uuid
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: The E-Service template version deleted
         "400":
           description: Bad Request
@@ -377,6 +423,61 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Partially updates a draft template version
+      operationId: patchUpdateDraftTemplateVersion
+      description: Partially updates a draft version of the specified E-Service template
+      parameters:
+        - name: templateId
+          in: path
+          description: The E-Service template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: templateVersionId
+          in: path
+          description: The E-Service template version Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A partial E-Service template version seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUpdateEServiceTemplateVersionSeed"
+        required: true
+      responses:
+        "200":
+          description: Template draft version patched.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplate"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions/{templateVersionId}/publish:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -406,6 +507,9 @@ paths:
       responses:
         "204":
           description: E-Service Template version published
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "400":
           description: Invalid input
           content:
@@ -453,6 +557,9 @@ paths:
       responses:
         "204":
           description: E-Service Template version suspended
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "400":
           description: Invalid input
           content:
@@ -500,6 +607,9 @@ paths:
       responses:
         "204":
           description: Template version activated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "400":
           description: Invalid input
           content:
@@ -554,6 +664,9 @@ paths:
       responses:
         "200":
           description: EService template version updated.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -612,10 +725,13 @@ paths:
       responses:
         "200":
           description: EService Template Document created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceTemplate"
+                $ref: "#/components/schemas/EServiceDoc"
         "400":
           description: Invalid input
           content:
@@ -723,8 +839,15 @@ paths:
             type: string
             format: uuid
       responses:
-        "204":
+        "200":
           description: Document deleted.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplate"
         "404":
           description: E-Service template document not found
           content:
@@ -835,8 +958,15 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
-        "204":
-          description: EService Template Risk Analysis created.
+        "200":
+          description: EService Template Risk Analysis created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedEServiceTemplateRiskAnalysis"
         "403":
           description: Forbidden
           content:
@@ -934,6 +1064,9 @@ paths:
             format: uuid
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: EService Template Risk Analysis deleted.
         "403":
           description: Forbidden
@@ -986,6 +1119,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "403":
           description: Forbidden
           content:
@@ -1037,6 +1173,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "403":
           description: Forbidden
           content:
@@ -1088,6 +1227,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "403":
           description: Forbidden
           content:
@@ -1170,6 +1312,62 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /templates/{templateId}/personalDataFlag:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Set personalData flag for published e-service templates
+      operationId: updateEServiceTemplatePersonalDataFlagAfterPublication
+      parameters:
+        - name: templateId
+          in: path
+          description: the eservice template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: EService template personalData flag updated
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceTemplatePersonalDataFlagUpdateSeed"
+      responses:
+        "200":
+          description: EService template personalData flag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplate"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/creators":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1229,6 +1427,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  headers:
+    MetadataVersionHeader:
+      description: The version number of the resource in the read model
+      schema:
+        type: integer
+        format: int32
   parameters:
     CorrelationIdHeader:
       in: header
@@ -1268,6 +1472,8 @@ components:
           $ref: "#/components/schemas/VersionSeedForEServiceTemplateCreation"
         isSignalHubEnabled:
           type: boolean
+        personalData:
+          type: boolean
     UpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -1295,6 +1501,32 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
+          type: boolean
+        personalData:
+          type: boolean
+    PatchUpdateEServiceTemplateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 60
+        intendedTarget:
+          type: string
+          minLength: 10
+          maxLength: 250
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        technology:
+          $ref: "#/components/schemas/EServiceTechnology"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
+        personalData:
           type: boolean
     VersionSeedForEServiceTemplateCreation:
       required:
@@ -1357,6 +1589,37 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+    PatchUpdateEServiceTemplateVersionSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        voucherLifespan:
+          type: integer
+          format: int32
+          minimum: 60
+          maximum: 86400
+        dailyCallsPerConsumer:
+          description: "maximum number of daily calls that this descriptor can afford."
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+          nullable: true
+        dailyCallsTotal:
+          description: "total daily calls available for this e-service."
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+          nullable: true
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicyNullable"
+        attributes:
+          $ref: "#/components/schemas/PatchAttributesSeed"
     UpdateEServiceTemplateVersionQuotasSeed:
       type: object
       additionalProperties: false
@@ -1420,6 +1683,14 @@ components:
           type: string
           minLength: 5
           maxLength: 60
+    EServiceTemplatePersonalDataFlagUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        personalData:
+          type: boolean
+      required:
+        - personalData
     AttributesSeed:
       additionalProperties: false
       properties:
@@ -1445,6 +1716,26 @@ components:
         - certified
         - declared
         - verified
+    PatchAttributesSeed:
+      properties:
+        certified:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
+        declared:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
+        verified:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
     AttributeSeed:
       type: object
       additionalProperties: false
@@ -1463,6 +1754,13 @@ components:
         EService Descriptor policy for new Agreements approval.
         AUTOMATIC - the agreement will be automatically approved if Consumer attributes are met
         MANUAL - the Producer must approve every agreement for this Descriptor.
+      enum:
+        - AUTOMATIC
+        - MANUAL
+    AgreementApprovalPolicyNullable:
+      type: string
+      description: E-Service Descriptor policy for new Agreements approval
+      nullable: true
       enum:
         - AUTOMATIC
         - MANUAL
@@ -1538,6 +1836,8 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
+        personalData:
+          type: boolean
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -1566,6 +1866,18 @@ components:
         createdAt:
           type: string
           format: date-time
+    CreatedEServiceTemplateRiskAnalysis:
+      type: object
+      additionalProperties: false
+      required:
+        - eserviceTemplate
+        - createdRiskAnalysisId
+      properties:
+        eserviceTemplate:
+          $ref: "#/components/schemas/EServiceTemplate"
+        createdRiskAnalysisId:
+          type: string
+          format: uuid
     EServiceRiskAnalysisForm:
       type: object
       additionalProperties: false

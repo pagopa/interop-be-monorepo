@@ -59,6 +59,7 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
       { type: "EServiceSignalHubEnabled" },
       { type: "EServiceSignalHubDisabled" },
+      { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       async (message) => {
         const eservice = message.data.eservice;
         if (!eservice) {

@@ -1221,6 +1221,8 @@ components:
         suspendedAt:
           type: string
           format: date-time
+        stamps:
+          $ref: "#/components/schemas/AgreementStamps"
       required:
         - id
         - eserviceId
@@ -1233,7 +1235,45 @@ components:
         - declaredAttributes
         - consumerDocuments
         - createdAt
+        - stamps
       description: business representation of an agreement
+    AgreementStamps:
+      type: object
+      additionalProperties: false
+      properties:
+        submission:
+          $ref: "#/components/schemas/AgreementStamp"
+        activation:
+          $ref: "#/components/schemas/AgreementStamp"
+        rejection:
+          $ref: "#/components/schemas/AgreementStamp"
+        suspensionByProducer:
+          $ref: "#/components/schemas/AgreementStamp"
+        suspensionByConsumer:
+          $ref: "#/components/schemas/AgreementStamp"
+        upgrade:
+          $ref: "#/components/schemas/AgreementStamp"
+        archiving:
+          $ref: "#/components/schemas/AgreementStamp"
+    AgreementStamp:
+      type: object
+      additionalProperties: false
+      properties:
+        who:
+          description: identifier of the user that performed the action
+          type: string
+          format: uuid
+        when:
+          description: timestamp of when the action was performed
+          type: string
+          format: date-time
+        delegationId:
+          description: identifier of the delegation related to the action, if any
+          type: string
+          format: uuid
+      required:
+        - who
+        - when
     AgreementRejectionPayload:
       type: object
       additionalProperties: false

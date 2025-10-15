@@ -4,9 +4,12 @@ import {
 } from "pagopa-interop-commons";
 import {
   generateId,
+  PurposeTemplateId,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  RiskAnalysisTemplateAnswerAnnotationId,
   TenantKind,
   tenantKind,
 } from "pagopa-interop-models";
@@ -278,19 +281,37 @@ export const getMockValidRiskAnalysisFormTemplate = (
     )
     .exhaustive();
 
-export const getMockRiskAnalysisTemplateAnswerAnnotationDocument =
-  (): RiskAnalysisTemplateAnswerAnnotationDocument => ({
-    id: generateId(),
-    name: "fileName",
-    prettyName: "prettyName",
-    contentType: "json",
-    path: "filePath",
-    createdAt: new Date(),
-  });
+export const getMockRiskAnalysisTemplateAnswerAnnotationDocument = (
+  id: RiskAnalysisTemplateAnswerAnnotationDocumentId = generateId(),
+  purposeTemplateId: PurposeTemplateId = generateId(),
+  basePath: string = "purposeTemplateAnnotationsPath",
+  name: string = `Document-${id}`
+): RiskAnalysisTemplateAnswerAnnotationDocument => ({
+  id,
+  name,
+  path: `${basePath}/${purposeTemplateId}/${id}/${name}`,
+  prettyName: "prettyName",
+  contentType: "application/pdf",
+  createdAt: new Date(),
+  checksum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+});
 
-export const getMockRiskAnalysisTemplateAnswerAnnotation =
-  (): RiskAnalysisTemplateAnswerAnnotation => ({
-    id: generateId(),
-    text: "Risk analysis template answer annotation text",
-    docs: [],
-  });
+export const getMockRiskAnalysisTemplateAnswerAnnotation = (
+  id: RiskAnalysisTemplateAnswerAnnotationId = generateId(),
+  docNumber: number = 0
+): RiskAnalysisTemplateAnswerAnnotation => ({
+  id,
+  text: "Annotation text in answer",
+  docs: Array.from({ length: docNumber }, () =>
+    getMockRiskAnalysisTemplateAnswerAnnotationDocument()
+  ),
+});
+
+export const getMockRiskAnalysisTemplateAnswerAnnotationWithDocs = (
+  id: RiskAnalysisTemplateAnswerAnnotationId = generateId(),
+  docs: RiskAnalysisTemplateAnswerAnnotationDocument[]
+): RiskAnalysisTemplateAnswerAnnotation => ({
+  id,
+  text: "Annotation text in answer",
+  docs,
+});

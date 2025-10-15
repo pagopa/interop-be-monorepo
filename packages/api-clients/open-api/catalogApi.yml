@@ -242,7 +242,7 @@ paths:
       tags:
         - process
       summary: Updates Draft E-Service general information
-      operationId: updateEServiceById
+      operationId: updateDraftEServiceById
       description: Updates the general information of the specified Draft E-Service
       requestBody:
         description: An E-Service update seed containing the possible updatable fields
@@ -288,7 +288,7 @@ paths:
       tags:
         - process
       summary: Partially updates Draft E-Service general information
-      operationId: patchUpdateEServiceById
+      operationId: patchUpdateDraftEServiceById
       description: Partially updates the general information of the specified Draft E-Service
       requestBody:
         required: true
@@ -1081,6 +1081,9 @@ paths:
       responses:
         "200":
           description: EService descriptor updated.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1934,12 +1937,72 @@ paths:
         description: A payload containing a boolean that describes if SignalHub will be enabled or disabled
         required: true
         content:
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           application/json:
             schema:
               $ref: "#/components/schemas/EServiceSignalHubUpdateSeed"
       responses:
         "200":
           description: EService SignalHub flag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/personalDataFlag:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Set personalData flag for an eservice after publication
+      operationId: updateEServicePersonalDataFlagAfterPublication
+      description: Set personalData flag for an eservice after publication
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing a boolean that describes the personalData flag
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
+      responses:
+        "200":
+          description: EService personalData flag updated
           content:
             application/json:
               schema:
@@ -2609,6 +2672,8 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        personalData:
+          type: boolean
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2636,6 +2701,8 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        personalData:
+          type: boolean
     PatchUpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2658,6 +2725,9 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        personalData:
+          type: boolean
+          nullable: true
     UpdateEServiceTemplateInstanceSeed:
       type: object
       additionalProperties: false
@@ -3130,6 +3200,9 @@ components:
         templateId:
           type: string
           format: uuid
+        personalData:
+          type: boolean
+
     CreatedEServiceRiskAnalysis:
       type: object
       additionalProperties: false
@@ -3413,6 +3486,14 @@ components:
           type: boolean
       required:
         - isSignalHubEnabled
+    EServicePersonalDataFlagUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        personalData:
+          type: boolean
+      required:
+        - personalData
     EServiceDescriptor:
       type: object
       additionalProperties: false

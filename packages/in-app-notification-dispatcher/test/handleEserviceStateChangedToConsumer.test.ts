@@ -170,7 +170,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
           tenantId: consumerId,
           body,
           notificationType: "eserviceStateChangedToConsumer",
-          entityId: eservice.descriptors[0].id,
+          entityId: `${eservice.id}/${eservice.descriptors[0].id}`,
         }));
         expect(notifications).toEqual(
           expect.arrayContaining(expectedNotifications)
@@ -489,7 +489,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         tenantId: consumerId,
         body: expectedBody,
         notificationType: "eserviceStateChangedToConsumer",
-        entityId: msg.data.eservice.descriptors[0].id,
+        entityId: `${msg.data.eservice.id}/${msg.data.eservice.descriptors[0].id}`,
       }));
       expect(notifications).toEqual(
         expect.arrayContaining(expectedNotifications)

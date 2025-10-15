@@ -1,4 +1,5 @@
 import {
+  EServiceTemplateIdEServiceTemplateVersionId,
   EServiceTemplateV2,
   fromEServiceTemplateV2,
   missingKafkaMessageDataError,
@@ -7,6 +8,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
+import { retrieveLatestPublishedEServiceTemplateVersion } from "../handlerCommons.js";
 
 export async function handleTemplateStatusChangedToProducer(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
@@ -35,11 +37,16 @@ export async function handleTemplateStatusChangedToProducer(
   const body = inAppTemplates.templateStatusChangedToProducer(
     eserviceTemplate.name
   );
+  const entityId = EServiceTemplateIdEServiceTemplateVersionId.parse(
+    `${eserviceTemplate.id}/${
+      retrieveLatestPublishedEServiceTemplateVersion(eserviceTemplate).id
+    }`
+  );
   return userNotificationConfigs.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
     notificationType: "templateStatusChangedToProducer",
-    entityId: eserviceTemplate.id,
+    entityId,
   }));
 }

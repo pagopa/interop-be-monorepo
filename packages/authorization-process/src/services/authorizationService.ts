@@ -7,6 +7,7 @@ import {
   Delegation,
   Descriptor,
   DescriptorId,
+  emptyListResult,
   EService,
   EServiceId,
   generateId,
@@ -298,6 +299,30 @@ export function authorizationServiceBuilder(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
       );
 
+      // Some filters apply only to clients owned by the caller
+      // (i.e., where the caller is the consumer of the client).
+      // That's because they filter fields that are only visible to the owner.
+      const areOwnerFiltersSet =
+        (filters.userIds && filters.userIds.length > 0) ||
+        filters.purposeId ||
+        filters.name;
+
+      if (
+        areOwnerFiltersSet &&
+        filters.consumerId &&
+        filters.consumerId !== authData.organizationId
+      ) {
+        // consumer filter (owner) differs from the caller,
+        // cannot apply owner-specific filters -> return empty list
+        return emptyListResult;
+      }
+
+      const consumerId = areOwnerFiltersSet
+        ? authData.organizationId
+        : filters.consumerId;
+      // ^ If owner-specific filters are set,
+      // we restrict the results to clients with the caller as the consumer (owner).
+
       const userIds =
         isUiAuthData(authData) &&
         hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
@@ -305,7 +330,13 @@ export function authorizationServiceBuilder(
           : filters.userIds;
 
       return await readModelService.getClients(
-        { ...filters, userIds },
+        {
+          name: filters.name,
+          kind: filters.kind,
+          purposeId: filters.purposeId,
+          userIds,
+          consumerId,
+        },
         {
           offset,
           limit,
@@ -913,6 +944,31 @@ export function authorizationServiceBuilder(
       logger.info(
         `Retrieving producer keychains by name ${filters.name}, userIds ${filters.userIds}, producerId ${filters.producerId}, eserviceId ${filters.eserviceId}`
       );
+
+      // Some filters apply only to keychains owned by the caller
+      // (i.e., where the caller is the producer of the keychain).
+      // That's because they filter fields that are only visible to the owner.
+      const areOwnerFiltersSet =
+        (filters.userIds && filters.userIds.length > 0) ||
+        filters.eserviceId ||
+        filters.name;
+
+      if (
+        areOwnerFiltersSet &&
+        filters.producerId &&
+        filters.producerId !== authData.organizationId
+      ) {
+        // producer filter (owner) differs from the caller,
+        // cannot apply owner-specific filters -> return empty list
+        return emptyListResult;
+      }
+
+      const producerId = areOwnerFiltersSet
+        ? authData.organizationId
+        : filters.producerId;
+      // ^ If owner-specific filters are set,
+      // we restrict the results to keychains with the caller as the producer (owner).
+
       const userIds =
         isUiAuthData(authData) &&
         hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
@@ -920,7 +976,12 @@ export function authorizationServiceBuilder(
           : filters.userIds;
 
       return await readModelService.getProducerKeychains(
-        { ...filters, userIds },
+        {
+          eserviceId: filters.eserviceId,
+          name: filters.name,
+          userIds,
+          producerId,
+        },
         {
           offset,
           limit,

@@ -1,0 +1,28 @@
+meta {
+  name: Update published eservice descriptor quotas
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/{{descriptorId}}/quotas
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+      "voucherLifespan": 15000,
+      "dailyCallsPerConsumer": 700,
+      "dailyCallsTotal": 1000
+  }
+}

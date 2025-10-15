@@ -126,7 +126,7 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
     });
 
     expect(storedTenant?.id).toBe(mockTenant.id);
-    expect(storedTenant?.onboardedAt).toStrictEqual(mockTenant.onboardedAt);
+    expect(storedTenant?.onboardedAt).toStrictEqual(mockTenant.createdAt);
 
     const storedTenantMails = await getManyFromDb(
       dbContext,

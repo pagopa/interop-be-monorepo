@@ -1,6 +1,7 @@
 import { RiskAnalysisTemplateValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
+  EServiceId,
   makeApiProblemBuilder,
   PurposeTemplateId,
   PurposeTemplateState,
@@ -11,6 +12,7 @@ import {
   TenantId,
   TenantKind,
 } from "pagopa-interop-models";
+import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
 
 export const errorCodes = {
   missingFreeOfChargeReason: "0001",
@@ -25,6 +27,18 @@ export const errorCodes = {
   riskAnalysisTemplateAnswerNotFound: "0010",
   riskAnalysisTemplateAnswerAnnotationNotFound: "0011",
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0012",
+  associationEServicesForPurposeTemplateFailed: "0013",
+  associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0014",
+  tooManyEServicesForPurposeTemplate: "0015",
+  disassociationEServicesFromPurposeTemplateFailed: "0016",
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0017",
+  conflictDocumentPrettyNameDuplicate: "0018",
+  annotationDocumentLimitExceeded: "0019",
+  purposeTemplateIsNotDraft: "0020",
+  conflictDuplicatedDocument: "0021",
+  hyperlinkDetectionError: "0022",
+  purposeTemplateNotInValidState: "0023",
+  riskAnalysisAnswerNotFound: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -57,6 +71,16 @@ export function purposeTemplateNotFound(
     detail: `No Purpose Template found for ID ${purposeTemplateId}`,
     code: "purposeTemplateNotFound",
     title: "Purpose Template Not Found",
+  });
+}
+
+export function purposeTemplateStateNotDraft(
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template with ID ${purposeTemplateId} is not in draft state`,
+    code: "purposeTemplateIsNotDraft",
+    title: "Purpose Template State Not Draft",
   });
 }
 
@@ -154,8 +178,127 @@ export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
   documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No Risk Analysis Template Answer Annotation Document found for Purpose Template ${purposeTemplateId}, Answer ${answerId} and Document ${documentId}`,
+    detail: `Risk analysis template answer annotation document ${documentId} not found for purpose template ${purposeTemplateId} and answer ${answerId}`,
     code: "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
     title: "Risk Analysis Template Answer Annotation Document Not Found",
+  });
+}
+
+export function associationEServicesForPurposeTemplateFailed(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Association of e-services to purpose template failed. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "associationEServicesForPurposeTemplateFailed",
+    title: "Association of e-services to purpose template failed",
+  });
+}
+
+export function associationBetweenEServiceAndPurposeTemplateAlreadyExists(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Association between e-services and purpose template failed. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "associationBetweenEServiceAndPurposeTemplateAlreadyExists",
+    title: "Association between e-service and purpose template already exists",
+  });
+}
+
+export function tooManyEServicesForPurposeTemplate(
+  actualCount: number,
+  maxCount: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Too many e-services provided. Maximum allowed: ${maxCount}, provided: ${actualCount}`,
+    code: "tooManyEServicesForPurposeTemplate",
+    title: "Too Many E-Services for Purpose Template",
+  });
+}
+
+export function disassociationEServicesFromPurposeTemplateFailed(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Disassociation of e-services from purpose template failed. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "disassociationEServicesFromPurposeTemplateFailed",
+    title: "Disassociation of e-services from purpose template failed",
+  });
+}
+
+export function associationBetweenEServiceAndPurposeTemplateDoesNotExist(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceIds: EServiceId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Association between e-services and purpose template does not exist. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
+    code: "associationBetweenEServiceAndPurposeTemplateDoesNotExist",
+    title: "Association between e-services and purpose template does not exist",
+  });
+}
+
+export function conflictDocumentPrettyNameDuplicate(
+  answerId: string,
+  prettyName: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Conflict: annotation document with pretty name '${prettyName}' is duplicated for answer with id '${answerId}'`,
+    code: "conflictDocumentPrettyNameDuplicate",
+    title: "Annotation document with pretty name already exists",
+  });
+}
+
+export function annotationDocumentLimitExceeded(
+  answerId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Annotation document limit exceeded for answer with id '${answerId}'`,
+    code: "annotationDocumentLimitExceeded",
+    title: "Annotation document limit exceeded",
+  });
+}
+
+export function conflictDuplicatedDocument(
+  answerId: string,
+  checksum: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Conflict: annotation document with checksum '${checksum}' is duplicated for answer with id '${answerId}'`,
+    code: "conflictDuplicatedDocument",
+    title: "Conflict: annotation document with checksum already exists",
+  });
+}
+export function purposeTemplateNotInValidState(
+  state: PurposeTemplateState,
+  validStates: PurposeTemplateState[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose template state is: ${state} but valid states are: ${validStates}`,
+    code: "purposeTemplateNotInValidState",
+    title: "Purpose template not in valid state",
+  });
+}
+
+export function hyperlinkDetectionError(text: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Hyperlink detection error for text ${text}`,
+    code: "hyperlinkDetectionError",
+    title: "Hyperlink detection error",
+  });
+}
+
+export function riskAnalysisAnswerNotFound(
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis answer not found for ID ${answerId}`,
+    code: "riskAnalysisAnswerNotFound",
+    title: "Risk analysis answer not found",
   });
 }

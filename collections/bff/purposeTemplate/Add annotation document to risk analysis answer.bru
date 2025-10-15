@@ -1,0 +1,26 @@
+meta {
+  name: Add new e-service template document copy
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host-bff}}/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents
+  body: multipartForm
+  auth: none
+}
+
+params:path {
+  answerId: {{answerId}}
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  ~Content-Type: multipart/form-data
+}
+
+body:multipart-form {
+  prettyName: purposeTemplate1
+  doc: @file()
+}

@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { UserId, TenantId, NotificationId, IDS } from "../brandedIds.js";
+import {
+  UserId,
+  TenantId,
+  NotificationId,
+  IDS,
+  EServiceIdDescriptorId,
+  EServiceTemplateIdEServiceTemplateVersionId,
+} from "../brandedIds.js";
 
 export const NotificationType = z.enum([
   "agreementSuspendedUnsuspendedToProducer", // 04: Variazione dello stato di una richiesta di fruizione
@@ -20,7 +27,8 @@ export const NotificationType = z.enum([
   "eserviceNewVersionApprovedRejectedToDelegate", // 22: Accettazione o rifiuto pubblicazione nuova versione e-service
   "delegationSubmittedRevokedToDelegate", // 23: Stato delle deleghe ricevute
   "certifiedVerifiedAttributeAssignedRevokedToAssignee", // 24: Conferimento o revoca di attributi certificati o verificati
-  "clientKeyAddedDeletedToClientUsers", // 25: Variazioni sullo stato delle chiavi collegate ad un client
+  "clientKeyAddedDeletedToClientUsers", // 25: Variazioni sullo stato delle chiavi collegate ad un client (ClientKey)
+  "producerKeychainKeyAddedDeletedToClientUsers", // 25: Variazioni sullo stato delle chiavi collegate ad un client (ProducerKeychain)
 ]);
 export type NotificationType = z.infer<typeof NotificationType>;
 
@@ -30,7 +38,11 @@ export const Notification = z.object({
   tenantId: TenantId,
   body: z.string(),
   notificationType: NotificationType,
-  entityId: IDS,
+  entityId: z.union([
+    IDS,
+    EServiceIdDescriptorId,
+    EServiceTemplateIdEServiceTemplateVersionId,
+  ]),
   readAt: z.date().optional(),
   createdAt: z.date(),
 });

@@ -91,7 +91,8 @@ export async function handleEServiceEvent(
           "EServiceIsClientAccessDelegableEnabled",
           "EServiceIsClientAccessDelegableDisabled",
           "EServiceSignalHubEnabled",
-          "EServiceSignalHubDisabled"
+          "EServiceSignalHubDisabled",
+          "EServicePersonalDataFlagUpdatedAfterPublication"
         ),
       },
       () => {

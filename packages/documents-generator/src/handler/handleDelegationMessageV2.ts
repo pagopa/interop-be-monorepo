@@ -35,14 +35,14 @@ export async function handleDelegationMessageV2(
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
   refreshableToken: RefreshableInteropToken,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> {
   await match(decodedMessage)
     .with(
       {
         type: P.union(
           "ProducerDelegationApproved",
-          "ConsumerDelegationApproved"
+          "ConsumerDelegationApproved",
         ),
       },
       async (msg): Promise<void> => {
@@ -79,11 +79,11 @@ export async function handleDelegationMessageV2(
           contract,
           refreshableToken,
           delegation,
-          correlationId
+          correlationId,
         );
 
         logger.info(`Delegation event ${msg.type} handled successfully`);
-      }
+      },
     )
     .with(
       {
@@ -123,10 +123,10 @@ export async function handleDelegationMessageV2(
           contract,
           refreshableToken,
           delegation,
-          correlationId
+          correlationId,
         );
         logger.info(`Delegation event ${msg.type} handled successfully`);
-      }
+      },
     )
     .with(
       {
@@ -135,10 +135,10 @@ export async function handleDelegationMessageV2(
           "ConsumerDelegationSubmitted",
           "ProducerDelegationRejected",
           "ProducerDelegationSubmitted",
-          "DelegationContractAdded"
+          "DelegationContractAdded",
         ),
       },
-      () => Promise.resolve()
+      () => Promise.resolve(),
     )
     .exhaustive();
 }
@@ -147,7 +147,7 @@ async function sendContractMetadataToProcess(
   contract: DelegationContractDocument,
   refreshableToken: RefreshableInteropToken,
   delegation: Delegation,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
 ): Promise<void> {
   const contractWithIsoString = {
     ...contract,
@@ -163,6 +163,6 @@ async function sendContractMetadataToProcess(
         token,
         correlationId,
       }),
-    }
+    },
   );
 }
