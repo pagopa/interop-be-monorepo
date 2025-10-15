@@ -161,12 +161,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
     },
   ])(
     "should handle $eventType event correctly",
-    async ({
-      eventType,
-      expectedAudience,
-      expectedAction,
-      expectedSubject,
-    }) => {
+    async ({ eventType, expectedAudience, expectedSubject }) => {
       const producerUsers = [
         { userId: generateId(), tenantId: producerId },
         { userId: generateId(), tenantId: producerId },
@@ -210,8 +205,24 @@ describe("handleAgreementSuspendedUnsuspended", () => {
 
       expect(notifications).toHaveLength(expectedUsers.length);
 
-      const expectedBody = inAppTemplates.agreementSuspendedUnsuspended(
-        expectedAction,
+      // Use the same template function as the implementation for each event type
+      const templateMap = {
+        AgreementSuspendedByConsumer:
+          inAppTemplates.agreementSuspendedToProducer,
+        AgreementUnsuspendedByConsumer:
+          inAppTemplates.agreementUnsuspendedByConsumerToProducer,
+        AgreementSuspendedByProducer:
+          inAppTemplates.agreementSuspendedByProducerToConsumer,
+        AgreementUnsuspendedByProducer:
+          inAppTemplates.agreementUnsuspendedByProducerToConsumer,
+        AgreementSuspendedByPlatform:
+          inAppTemplates.agreementSuspendedByPlatformToProducer,
+        AgreementUnsuspendedByPlatform:
+          inAppTemplates.agreementUnsuspendedByPlatformToProducer,
+        AgreementArchivedByConsumer:
+          inAppTemplates.agreementArchivedByConsumerToProducer,
+      };
+      const expectedBody = templateMap[eventType](
         expectedSubject,
         eservice.name
       );

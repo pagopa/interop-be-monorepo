@@ -148,7 +148,8 @@ function getBodyAndDescriptorId(
       },
       () => ({
         body: inAppTemplates.eserviceDescriptionUpdatedToConsumer(
-          eservice.name
+          eservice.name,
+          producerName
         ),
       })
     )
@@ -161,7 +162,8 @@ function getBodyAndDescriptorId(
       },
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorAttributesUpdatedToConsumer(
-          eservice.name
+          eservice.name,
+          producerName
         ),
         descriptorId,
       })
@@ -206,7 +208,8 @@ function getBodyAndDescriptorId(
       },
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(
-          eservice.name
+          eservice.name,
+          producerName
         ),
         descriptorId,
       })
@@ -215,7 +218,8 @@ function getBodyAndDescriptorId(
       { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorAgreementApprovalPolicyUpdatedToConsumer(
-          eservice.name
+          eservice.name,
+          producerName
         ),
         descriptorId,
       })
@@ -227,7 +231,8 @@ function getBodyAndDescriptorId(
         return {
           body: inAppTemplates.eserviceDescriptorInterfaceAddedToConsumer(
             eservice.name,
-            interfaceName
+            interfaceName,
+            producerName
           ),
           descriptorId,
         };
@@ -249,7 +254,8 @@ function getBodyAndDescriptorId(
         return {
           body: inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
             eservice.name,
-            documentName
+            documentName,
+            producerName
           ),
           descriptorId,
         };
@@ -271,7 +277,8 @@ function getBodyAndDescriptorId(
         return {
           body: inAppTemplates.eserviceDescriptorDocumentDeletedToConsumer(
             eservice.name,
-            documentName
+            documentName,
+            producerName
           ),
           descriptorId,
         };
@@ -284,7 +291,8 @@ function getBodyAndDescriptorId(
         return {
           body: inAppTemplates.eserviceDescriptorInterfaceUpdatedToConsumer(
             eservice.name,
-            interfaceName
+            interfaceName,
+            producerName
           ),
           descriptorId,
         };
@@ -306,7 +314,8 @@ function getBodyAndDescriptorId(
         return {
           body: inAppTemplates.eserviceDescriptorDocumentUpdatedToConsumer(
             eservice.name,
-            documentName
+            documentName,
+            producerName
           ),
           descriptorId,
         };

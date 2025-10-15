@@ -5,7 +5,6 @@ import {
   missingKafkaMessageDataError,
   NewNotification,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import { retrieveTenant, retrieveEservice } from "../handlerCommons.js";
@@ -44,14 +43,18 @@ export async function handleAgreementManagementToProducer(
     readModelService
   );
 
-  const body = inAppTemplates.agreementManagementToProducer(
+  const NOTIFICATION_BODY_BUILDERS: Record<
+    "AgreementActivated" | "AgreementSubmitted" | "AgreementUpgraded",
+    (consumerName: string, eserviceName: string) => string
+  > = {
+    AgreementActivated: inAppTemplates.agreementActivatedToProducer,
+    AgreementSubmitted: inAppTemplates.agreementSubmittedToProducer,
+    AgreementUpgraded: inAppTemplates.agreementUpgradedToProducer,
+  };
+
+  const body = NOTIFICATION_BODY_BUILDERS[eventType](
     consumer.name,
-    eservice.name,
-    match(eventType)
-      .with("AgreementActivated", () => "attivato" as const)
-      .with("AgreementSubmitted", () => "creato" as const)
-      .with("AgreementUpgraded", () => "aggiornato" as const)
-      .exhaustive()
+    eservice.name
   );
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({

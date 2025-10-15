@@ -6,6 +6,64 @@ import { DelegationSubmittedRevokedToDelegateEventType } from "../handlers/deleg
 import { EserviceNewVersionApprovedRejectedToDelegateEventType } from "../handlers/eservices/handleEserviceNewVersionApprovedRejectedToDelegate.js";
 
 export const inAppTemplates = {
+  agreementSubmittedToProducer: (
+    consumerName: string,
+    eserviceName: string
+  ): string =>
+    `Hai ricevuto una nuova richiesta di fruizione per l'e-service <strong>${eserviceName}</strong> formulata da parte di ${consumerName}.`,
+  agreementActivatedToProducer: (
+    consumerName: string,
+    eserviceName: string
+  ): string =>
+    `È stata accettata automaticamente una richiesta di fruizione per l'e-service <strong>${eserviceName}</strong> formulata da parte di ${consumerName}.`,
+  agreementUpgradedToProducer: (
+    consumerName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${consumerName} ha aggiornato la propria richiesta di fruizione per l'e-service <strong>${eserviceName}</strong> alla versione più recente.`,
+  agreementSuspendedToProducer: (
+    consumerName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${consumerName} ha sospeso la propria richiesta di fruizione per l'e-service <strong>${eserviceName}</strong>.`,
+  agreementSuspendedByPlatformToProducer: (
+    consumerName: string,
+    eserviceName: string
+  ): string =>
+    `La Piattaforma PDND ha sospeso la richiesta di fruizione del fruitore ${consumerName} per il tuo e-service <strong>${eserviceName}</strong>, in quanto l'ente fruitore non dispone più dei requisiti per poter fruire di questi dati.`,
+  agreementUnsuspendedByConsumerToProducer: (
+    consumerName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${consumerName} ha riattivato la propria richiesta di fruizione per il tuo e-service <strong>${eserviceName}</strong>, precedentemente sospesa.`,
+  agreementUnsuspendedByPlatformToProducer: (
+    consumerName: string,
+    eserviceName: string
+  ): string =>
+    `La Piattaforma PDND ha riattivato la richiesta di fruizione del fruitore ${consumerName} per il tuo e-service <strong>${eserviceName}</strong>, precedentemente sospesa.`,
+  agreementArchivedByConsumerToProducer: (
+    consumerName: string,
+    eserviceName: string
+  ): string =>
+    `Ti informiamo che il fruitore ${consumerName} ha archiviato la sua richiesta di fruizione per il tuo e-service <strong>${eserviceName}</strong>.`,
+  // agreements - fruizione
+  agreementSuspendedByProducerToConsumer: (
+    producerName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente erogatore ${producerName} ha sospeso la tua richiesta di fruizione per l'e-service <strong>${eserviceName}</strong>. Non potrai utilizzare i voucher associati fino alla riattivazione.`,
+  agreementUnsuspendedByProducerToConsumer: (
+    producerName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente erogatore ${producerName} ha riattivato la tua richiesta di fruizione per l'e-service <strong>${eserviceName}</strong>, precedentemente sospesa. Puoi nuovamente utilizzare i voucher associati.`,
+  agreementActivatedToConsumer: (
+    producerName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente erogatore ${producerName} ha accettato la tua richiesta di fruizione per l'e-service <strong>${eserviceName}</strong>. Puoi ora procedere alla creazione dei voucher per iniziare a interrogare le API.`,
+  agreementRejectedToConsumer: (eserviceName: string): string =>
+    `La tua richiesta di fruizione per l'e-service <strong>${eserviceName}</strong> è stata rifiutata dall'ente erogatore.`,
   eserviceNameUpdatedToConsumer: (
     eservice: EService,
     oldName: string | undefined
@@ -83,24 +141,6 @@ export const inAppTemplates = {
     producerName: string
   ): string =>
     `L'ente erogatore <strong>${producerName}</strong> ha rimosso il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong>.`,
-  agreementSuspendedUnsuspended: (
-    action: "sospeso" | "riattivato" | "archiviato",
-    subjectName: string,
-    eserviceName: string
-  ): string =>
-    `${subjectName} ha ${action} la richiesta di fruizione relativa all'e-service <strong>${eserviceName}</strong>.`,
-  agreementManagementToProducer: (
-    consumerName: string,
-    eserviceName: string,
-    action: "attivato" | "creato" | "aggiornato"
-  ): string =>
-    `${consumerName} ha ${action} la richiesta di fruizione relativa all'e-service <strong>${eserviceName}</strong>.`,
-  agreementActivatedRejectedToConsumer: (
-    producerName: string,
-    eserviceName: string,
-    action: "attivato" | "rifiutato"
-  ): string =>
-    `${producerName} ha ${action} la richiesta di fruizione relativa all'e-service <strong>${eserviceName}</strong>.`,
   delegationApprovedRejectedToDelegator: (
     delegateName: string,
     eventType: DelegationApprovedRejectedToDelegatorEventType,

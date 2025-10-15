@@ -61,10 +61,26 @@ export async function handleAgreementSuspendedUnsuspended(
     getSubjectName(agreement, eventType, readModelService),
   ]);
 
-  const action: "sospeso" | "riattivato" | "archiviato" =
-    getActionPerformed(eventType);
-  const body = inAppTemplates.agreementSuspendedUnsuspended(
-    action,
+  const NOTIFICATION_BODY_BUILDERS: Record<
+    AgreementSuspendedUnsuspendedEventType,
+    (subjectName: string, eserviceName: string) => string
+  > = {
+    AgreementSuspendedByConsumer: inAppTemplates.agreementSuspendedToProducer,
+    AgreementSuspendedByPlatform:
+      inAppTemplates.agreementSuspendedByPlatformToProducer,
+    AgreementUnsuspendedByConsumer:
+      inAppTemplates.agreementUnsuspendedByConsumerToProducer,
+    AgreementUnsuspendedByPlatform:
+      inAppTemplates.agreementUnsuspendedByPlatformToProducer,
+    AgreementArchivedByConsumer:
+      inAppTemplates.agreementArchivedByConsumerToProducer,
+    AgreementSuspendedByProducer:
+      inAppTemplates.agreementSuspendedByProducerToConsumer,
+    AgreementUnsuspendedByProducer:
+      inAppTemplates.agreementUnsuspendedByProducerToConsumer,
+  };
+
+  const body = NOTIFICATION_BODY_BUILDERS[eventType](
     subjectName,
     eservice.name
   );
@@ -128,29 +144,6 @@ function getAudiencesToNotify(
     .with("AgreementSuspendedByPlatform", () => ["consumer", "producer"])
     .with("AgreementUnsuspendedByPlatform", () => ["consumer", "producer"])
     .with("AgreementArchivedByConsumer", () => ["producer"])
-    .exhaustive();
-}
-
-function getActionPerformed(
-  eventType: AgreementSuspendedUnsuspendedEventType
-): "sospeso" | "riattivato" | "archiviato" {
-  return match<
-    AgreementSuspendedUnsuspendedEventType,
-    "sospeso" | "riattivato" | "archiviato"
-  >(eventType)
-    .with(
-      "AgreementSuspendedByConsumer",
-      "AgreementSuspendedByProducer",
-      "AgreementSuspendedByPlatform",
-      () => "sospeso"
-    )
-    .with(
-      "AgreementUnsuspendedByConsumer",
-      "AgreementUnsuspendedByProducer",
-      "AgreementUnsuspendedByPlatform",
-      () => "riattivato"
-    )
-    .with("AgreementArchivedByConsumer", () => "archiviato")
     .exhaustive();
 }
 
