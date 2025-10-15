@@ -12,6 +12,7 @@ import { DynamoDBClientConfig } from "../config/config.js";
 import { formatError } from "../utils/errorFormatter.js";
 import { SignatureReference } from "../models/signatureReference.js";
 import { assertValidSignatureReferenceItem } from "../utils/assertSignatureIsValid.js";
+import { DocumentSignatureReference } from "../models/documentSignatureReference.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function signatureServiceBuilder(
@@ -41,6 +42,38 @@ export function signatureServiceBuilder(
           `Error saving record on table '${
             config.signatureReferencesTableName
           }' id='${reference.safeStorageId}': ${formatError(error)}`
+        );
+      }
+    },
+
+    saveDocumentSignatureReference: async (
+      reference: DocumentSignatureReference
+    ): Promise<void> => {
+      const item: DocumentSignatureReference = reference;
+      const input: PutItemInput = {
+        TableName: config.signatureReferencesTableName,
+        Item: {
+          safeStorageId: { S: item.safeStorageId },
+          fileKind: { S: item.fileKind },
+          streamId: { S: item.streamId },
+          subObjectId: { S: item.subObjectId },
+          fileName: { S: item.fileName },
+          version: { N: String(item.version) },
+        },
+        ReturnValues: "NONE",
+      };
+
+      const command = new PutItemCommand(input);
+
+      try {
+        await dynamoDBClient.send(command);
+      } catch (error) {
+        throw genericInternalError(
+          `Error saving document signature with id: '${
+            item.safeStorageId
+          }' on table '${config.signatureReferencesTableName}': ${formatError(
+            error
+          )}`
         );
       }
     },

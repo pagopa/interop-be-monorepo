@@ -16,7 +16,7 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
 
   let fileManagerMock: any;
   let safeStorageServiceMock: any;
-  let dbServiceMock: any;
+  let signatureServiceMock: any;
   let loggerMock: any;
 
   beforeEach(() => {
@@ -25,8 +25,8 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
       createFile: vi.fn().mockResolvedValue({ uploadUrl, secret, key }),
       uploadFileContent: vi.fn().mockResolvedValue(undefined),
     };
-    dbServiceMock = {
-      saveDocumentReference: vi.fn().mockResolvedValue(undefined),
+    signatureServiceMock = {
+      saveDocumentSignatureReference: vi.fn().mockResolvedValue(undefined),
     };
     loggerMock = { info: vi.fn() };
   });
@@ -45,7 +45,7 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
 
     await handleDelegationDocument(
       event,
-      dbServiceMock,
+      signatureServiceMock,
       safeStorageServiceMock,
       fileManagerMock,
       loggerMock
@@ -72,9 +72,11 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
       secret,
       "fake-checksum"
     );
-    expect(dbServiceMock.saveDocumentReference).toHaveBeenCalledWith(
+    expect(
+      signatureServiceMock.saveDocumentSignatureReference
+    ).toHaveBeenCalledWith(
       expect.objectContaining({
-        safeStorageKey: key,
+        safeStorageId: key,
         fileKind: "DELEGATION_CONTRACT",
         streamId: "delegation-id",
         fileName: "delegation.pdf",
@@ -91,7 +93,7 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
 
     await handleDelegationDocument(
       event,
-      dbServiceMock,
+      signatureServiceMock,
       safeStorageServiceMock,
       fileManagerMock,
       loggerMock
@@ -102,7 +104,9 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
     );
     expect(fileManagerMock.get).not.toHaveBeenCalled();
     expect(safeStorageServiceMock.createFile).not.toHaveBeenCalled();
-    expect(dbServiceMock.saveDocumentReference).not.toHaveBeenCalled();
+    expect(
+      signatureServiceMock.saveDocumentSignatureReference
+    ).not.toHaveBeenCalled();
   });
 
   it("should do nothing when activationContract is missing", async () => {
@@ -118,7 +122,7 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
 
     await handleDelegationDocument(
       event,
-      dbServiceMock,
+      signatureServiceMock,
       safeStorageServiceMock,
       fileManagerMock,
       loggerMock
@@ -127,6 +131,8 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
     expect(fileManagerMock.get).not.toHaveBeenCalled();
     expect(safeStorageServiceMock.createFile).not.toHaveBeenCalled();
     expect(safeStorageServiceMock.uploadFileContent).not.toHaveBeenCalled();
-    expect(dbServiceMock.saveDocumentReference).not.toHaveBeenCalled();
+    expect(
+      signatureServiceMock.saveDocumentSignatureReference
+    ).not.toHaveBeenCalled();
   });
 });

@@ -1,16 +1,13 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { genericInternalError } from "pagopa-interop-models";
 import { inject } from "vitest";
 
-const config = inject("tokenGenerationReadModelConfig");
+export const dynamoDBClientConfig = inject("dynamoDBClientConfig");
 
-if (!config) {
-  throw new Error("config is not defined");
+if (!dynamoDBClientConfig) {
+  throw genericInternalError("Invalid DynamoDBClientConfig config");
 }
+
 export const dynamoDBClient = new DynamoDBClient({
-  endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-  region: "eu-south-1",
-  credentials: {
-    accessKeyId: "dummy",
-    secretAccessKey: "dummy",
-  },
+  endpoint: `http://localhost:${dynamoDBClientConfig.dynamoDbTestPort}`,
 });

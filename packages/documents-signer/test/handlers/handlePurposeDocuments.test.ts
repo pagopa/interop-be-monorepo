@@ -17,7 +17,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
 
   let fileManagerMock: any;
   let safeStorageServiceMock: any;
-  let dbServiceMock: any;
+  let signatureServiceMock: any;
   let loggerMock: any;
 
   beforeEach(() => {
@@ -26,8 +26,8 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
       createFile: vi.fn().mockResolvedValue({ uploadUrl, secret, key }),
       uploadFileContent: vi.fn().mockResolvedValue(undefined),
     };
-    dbServiceMock = {
-      saveDocumentReference: vi.fn().mockResolvedValue(undefined),
+    signatureServiceMock = {
+      saveDocumentSignatureReference: vi.fn().mockResolvedValue(undefined),
     };
     loggerMock = { info: vi.fn() };
   });
@@ -52,7 +52,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
 
     await handlePurposeDocument(
       event,
-      dbServiceMock,
+      signatureServiceMock,
       safeStorageServiceMock,
       fileManagerMock,
       loggerMock
@@ -68,7 +68,9 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
     );
     expect(safeStorageServiceMock.createFile).toHaveBeenCalled();
     expect(safeStorageServiceMock.uploadFileContent).toHaveBeenCalled();
-    expect(dbServiceMock.saveDocumentReference).toHaveBeenCalledWith(
+    expect(
+      signatureServiceMock.saveDocumentSignatureReference
+    ).toHaveBeenCalledWith(
       expect.objectContaining({
         fileKind: "RISK_ANALYSIS_DOCUMENT",
         streamId: "purpose-id",
@@ -98,7 +100,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
     await expect(
       handlePurposeDocument(
         event,
-        dbServiceMock,
+        signatureServiceMock,
         safeStorageServiceMock,
         fileManagerMock,
         loggerMock
@@ -111,7 +113,9 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
 
     expect(fileManagerMock.get).not.toHaveBeenCalled();
     expect(safeStorageServiceMock.createFile).not.toHaveBeenCalled();
-    expect(dbServiceMock.saveDocumentReference).not.toHaveBeenCalled();
+    expect(
+      signatureServiceMock.saveDocumentSignatureReference
+    ).not.toHaveBeenCalled();
   });
 
   it("should log info for irrelevant events", async () => {
@@ -122,7 +126,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
 
     await handlePurposeDocument(
       event,
-      dbServiceMock,
+      signatureServiceMock,
       safeStorageServiceMock,
       fileManagerMock,
       loggerMock
@@ -133,7 +137,9 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
     );
     expect(fileManagerMock.get).not.toHaveBeenCalled();
     expect(safeStorageServiceMock.createFile).not.toHaveBeenCalled();
-    expect(dbServiceMock.saveDocumentReference).not.toHaveBeenCalled();
+    expect(
+      signatureServiceMock.saveDocumentSignatureReference
+    ).not.toHaveBeenCalled();
   });
 
   it("should throw if versionId does not match any version", async () => {
@@ -157,7 +163,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
     await expect(
       handlePurposeDocument(
         event,
-        dbServiceMock,
+        signatureServiceMock,
         safeStorageServiceMock,
         fileManagerMock,
         loggerMock
@@ -169,6 +175,8 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
 
     expect(fileManagerMock.get).not.toHaveBeenCalled();
     expect(safeStorageServiceMock.createFile).not.toHaveBeenCalled();
-    expect(dbServiceMock.saveDocumentReference).not.toHaveBeenCalled();
+    expect(
+      signatureServiceMock.saveDocumentSignatureReference
+    ).not.toHaveBeenCalled();
   });
 });

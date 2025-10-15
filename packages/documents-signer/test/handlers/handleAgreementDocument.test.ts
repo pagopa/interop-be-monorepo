@@ -11,7 +11,7 @@ describe("handleAgreementDocument (integration with testcontainers)", () => {
 
   let fileManagerMock: any;
   let safeStorageServiceMock: any;
-  let dbServiceMock: any;
+  let signatureServiceMock: any;
   let loggerMock: any;
 
   beforeEach(() => {
@@ -20,8 +20,8 @@ describe("handleAgreementDocument (integration with testcontainers)", () => {
       createFile: vi.fn().mockResolvedValue({ uploadUrl, secret, key }),
       uploadFileContent: vi.fn().mockResolvedValue(undefined),
     };
-    dbServiceMock = {
-      saveDocumentReference: vi.fn().mockResolvedValue(undefined),
+    signatureServiceMock = {
+      saveDocumentSignatureReference: vi.fn().mockResolvedValue(undefined),
     };
     loggerMock = { info: vi.fn() };
   });
@@ -39,7 +39,7 @@ describe("handleAgreementDocument (integration with testcontainers)", () => {
 
     await handleAgreementDocument(
       event,
-      dbServiceMock,
+      signatureServiceMock,
       safeStorageServiceMock,
       fileManagerMock,
       loggerMock
@@ -52,9 +52,11 @@ describe("handleAgreementDocument (integration with testcontainers)", () => {
     );
     expect(safeStorageServiceMock.createFile).toHaveBeenCalled();
     expect(safeStorageServiceMock.uploadFileContent).toHaveBeenCalled();
-    expect(dbServiceMock.saveDocumentReference).toHaveBeenCalledWith(
+    expect(
+      signatureServiceMock.saveDocumentSignatureReference
+    ).toHaveBeenCalledWith(
       expect.objectContaining({
-        safeStorageKey: key,
+        safeStorageId: key,
         fileKind: "AGREEMENT_CONTRACT",
         streamId: "agreement-id",
         fileName: "contract.pdf",
@@ -70,7 +72,7 @@ describe("handleAgreementDocument (integration with testcontainers)", () => {
 
     await handleAgreementDocument(
       event,
-      dbServiceMock,
+      signatureServiceMock,
       safeStorageServiceMock,
       fileManagerMock,
       loggerMock
@@ -81,6 +83,8 @@ describe("handleAgreementDocument (integration with testcontainers)", () => {
     );
     expect(fileManagerMock.get).not.toHaveBeenCalled();
     expect(safeStorageServiceMock.createFile).not.toHaveBeenCalled();
-    expect(dbServiceMock.saveDocumentReference).not.toHaveBeenCalled();
+    expect(
+      signatureServiceMock.saveDocumentSignatureReference
+    ).not.toHaveBeenCalled();
   });
 });

@@ -4,13 +4,16 @@ import {
   PurposeEventEnvelopeV2,
   PurposeV2,
 } from "pagopa-interop-models";
-import { FileManager, Logger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  Logger,
+  SignatureServiceBuilder,
+  SafeStorageService,
+  FileCreationRequest,
+} from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
-import { DbServiceBuilder } from "../services/dbService.js";
-import { SafeStorageService } from "../services/safeStorageService.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
-import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
-import { config, safeStorageApiConfig } from "../config/config.js";
+import { config } from "../config/config.js";
 
 export async function handlePurposeDocument(
   decodedMessage:
@@ -22,7 +25,7 @@ export async function handlePurposeDocument(
         version: number;
         stream_id: string;
       }, // TO DO: Remove once implemented the type
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorageService: SafeStorageService,
   fileManager: FileManager,
   logger: Logger
@@ -51,8 +54,8 @@ export async function handlePurposeDocument(
 
         const safeStorageRequest: FileCreationRequest = {
           contentType: "application/gzip",
-          documentType: safeStorageApiConfig.safeStorageDocType,
-          status: safeStorageApiConfig.safeStorageDocStatus,
+          documentType: config.safeStorageDocType,
+          status: config.safeStorageDocStatus,
           checksumValue: checksum,
         };
 
@@ -68,8 +71,8 @@ export async function handlePurposeDocument(
           checksum
         );
 
-        await dbService.saveDocumentReference({
-          safeStorageKey: key,
+        await signatureService.saveDocumentSignatureReference({
+          safeStorageId: key,
           fileKind: "RISK_ANALYSIS_DOCUMENT",
           streamId: event.data.purpose.id,
           subObjectId: event.data.versionId,

@@ -17,11 +17,11 @@ import {
   initFileManager,
   logger,
   PurposeTopicConfig,
+  createSafeStorageApiClient,
+  signatureServiceBuilder,
 } from "pagopa-interop-commons";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { config, safeStorageApiConfig } from "./config/config.js";
-import { createSafeStorageApiClient } from "./services/safeStorageService.js";
-import { dbServiceBuilder } from "./services/dbService.js";
+import { config } from "./config/config.js";
 import { handleAgreementDocument } from "./handlers/handleAgreementDocument.js";
 import { handleDelegationDocument } from "./handlers/handleDelegationDocument.js";
 import { handlePurposeDocument } from "./handlers/handlePurposeDocument.js";
@@ -31,8 +31,8 @@ const fileManager = initFileManager({
   s3CustomServer: false,
 });
 const dynamoDBClient = new DynamoDBClient();
-const dbService = dbServiceBuilder(dynamoDBClient);
-const safeStorageService = createSafeStorageApiClient(safeStorageApiConfig);
+const signatureService = signatureServiceBuilder(dynamoDBClient, config);
+const safeStorageService = createSafeStorageApiClient(config);
 
 function processMessage(
   agreementTopicConfig: AgreementTopicConfig,
@@ -60,7 +60,7 @@ function processMessage(
 
         await handleAgreementDocument(
           decodedMessage,
-          dbService,
+          signatureService,
           safeStorageService,
           fileManager,
           loggerInstance
@@ -84,7 +84,7 @@ function processMessage(
 
         await handleDelegationDocument(
           decodedMessage,
-          dbService,
+          signatureService,
           safeStorageService,
           fileManager,
           loggerInstance
@@ -107,7 +107,7 @@ function processMessage(
         });
         await handlePurposeDocument(
           decodedMessage,
-          dbService,
+          signatureService,
           safeStorageService,
           fileManager,
           loggerInstance

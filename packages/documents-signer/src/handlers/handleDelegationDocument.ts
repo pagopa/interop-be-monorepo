@@ -1,16 +1,19 @@
 import path from "path";
-import { FileManager, Logger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  Logger,
+  SafeStorageService,
+  SignatureServiceBuilder,
+  FileCreationRequest,
+} from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { DelegationEventV2 } from "pagopa-interop-models";
-import { SafeStorageService } from "../services/safeStorageService.js";
-import { DbServiceBuilder } from "../services/dbService.js";
-import { config, safeStorageApiConfig } from "../config/config.js";
+import { config } from "../config/config.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
-import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
 
 export async function handleDelegationDocument(
   decodedMessage: DelegationEventV2,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorageService: SafeStorageService,
   fileManager: FileManager,
   logger: Logger
@@ -37,8 +40,8 @@ export async function handleDelegationDocument(
 
           const safeStorageRequest: FileCreationRequest = {
             contentType: "application/gzip",
-            documentType: safeStorageApiConfig.safeStorageDocType,
-            status: safeStorageApiConfig.safeStorageDocStatus,
+            documentType: config.safeStorageDocType,
+            status: config.safeStorageDocStatus,
             checksumValue: checksum,
           };
 
@@ -53,8 +56,8 @@ export async function handleDelegationDocument(
             checksum
           );
 
-          await dbService.saveDocumentReference({
-            safeStorageKey: key,
+          await signatureService.saveDocumentSignatureReference({
+            safeStorageId: key,
             fileKind: "DELEGATION_CONTRACT",
             streamId: event.data.delegation.id,
             subObjectId: "",
