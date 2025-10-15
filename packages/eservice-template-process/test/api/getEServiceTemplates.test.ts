@@ -81,7 +81,7 @@ describe("API GET /templates", () => {
     { limit: -1 },
     { offset: -1 },
     { limit: 51 },
-    { personalData: "invalid" },
+    { ...queryParams, personalData: "invalid" },
   ])("Should return 400 if passed invalid params: %s", async (query) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
