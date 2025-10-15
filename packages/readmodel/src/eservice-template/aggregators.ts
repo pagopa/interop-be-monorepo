@@ -188,6 +188,11 @@ export const aggregateEServiceTemplate = ({
     ...(eserviceTemplateSQL.isSignalHubEnabled !== null
       ? { isSignalHubEnabled: eserviceTemplateSQL.isSignalHubEnabled }
       : {}),
+    ...(eserviceTemplateSQL.personalData !== null
+      ? {
+          personalData: eserviceTemplateSQL.personalData,
+        }
+      : {}),
   };
   return {
     data: eserviceTemplate,

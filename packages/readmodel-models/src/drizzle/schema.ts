@@ -75,6 +75,7 @@ export const eserviceTemplateInReadmodelEserviceTemplate =
       }).notNull(),
       mode: varchar().notNull(),
       isSignalHubEnabled: boolean("is_signal_hub_enabled"),
+      personalData: boolean("personal_data"),
     },
     (table) => [
       unique("eservice_template_id_metadata_version_unique").on(
@@ -949,6 +950,42 @@ export const purposeVersionDocumentInReadmodelPurpose = readmodelPurpose.table(
     unique("purpose_version_document_purpose_version_id_key").on(
       table.purposeVersionId
     ),
+  ]
+);
+
+export const purposeVersionStampInReadmodelPurpose = readmodelPurpose.table(
+  "purpose_version_stamp",
+  {
+    purposeId: uuid("purpose_id").notNull(),
+    purposeVersionId: uuid("purpose_version_id").notNull(),
+    metadataVersion: integer("metadata_version").notNull(),
+    who: uuid().notNull(),
+    when: timestamp({ withTimezone: true, mode: "string" }).notNull(),
+    kind: varchar().notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.purposeId],
+      foreignColumns: [purposeInReadmodelPurpose.id],
+      name: "purpose_version_stamp_purpose_id_fkey",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.purposeVersionId],
+      foreignColumns: [purposeVersionInReadmodelPurpose.id],
+      name: "purpose_version_stamp_purpose_version_id_fkey",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.purposeId, table.metadataVersion],
+      foreignColumns: [
+        purposeInReadmodelPurpose.id,
+        purposeInReadmodelPurpose.metadataVersion,
+      ],
+      name: "purpose_version_stamp_purpose_id_metadata_version_fkey",
+    }),
+    primaryKey({
+      columns: [table.purposeVersionId, table.kind],
+      name: "purpose_version_stamp_pkey",
+    }),
   ]
 );
 
@@ -1935,6 +1972,7 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurpo
       prettyName: varchar("pretty_name").notNull(),
       contentType: varchar("content_type").notNull(),
       path: varchar().notNull(),
+      checksum: varchar().notNull(),
       createdAt: timestamp("created_at", {
         withTimezone: true,
         mode: "string",

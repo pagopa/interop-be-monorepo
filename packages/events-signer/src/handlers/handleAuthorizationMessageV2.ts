@@ -6,11 +6,14 @@ import {
   generateId,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
-import { FileManager, logger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  logger,
+  SafeStorageService,
+  SignatureServiceBuilder,
+} from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { AuthorizationEventData } from "../models/eventTypes.js";
-import { DbServiceBuilder } from "../services/dbService.js";
-import { SafeStorageService } from "../services/safeStorageService.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleAuthorizationMessageV2 = async (
@@ -19,7 +22,7 @@ export const handleAuthorizationMessageV2 = async (
     timestamp: string;
   }>,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
@@ -114,7 +117,7 @@ export const handleAuthorizationMessageV2 = async (
       allAuthorizationDataToStore,
       loggerInstance,
       fileManager,
-      dbService,
+      signatureService,
       safeStorage,
       correlationId
     );
