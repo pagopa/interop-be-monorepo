@@ -22,6 +22,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
 import { handleProducerDelegationRejected } from "../src/handlers/delegations/handleProducerDelegationRejected.js";
 import {
@@ -266,9 +267,18 @@ describe("handleProducerDelegationRejected", async () => {
       expect(message.email.body).toContain(
         `La tua richiesta di delega è stata rifiutata`
       );
-      expect(message.email.body).toContain(delegatorTenant.name);
-      expect(message.email.body).toContain(delegateTenant.name);
-      expect(message.email.body).toContain(eservice.name);
+      match(message.type)
+        .with("User", () => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+          expect(message.email.body).toContain(delegateTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(delegatorTenant.name);
+          expect(message.email.body).toContain(delegateTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .exhaustive();
     });
   });
 });
