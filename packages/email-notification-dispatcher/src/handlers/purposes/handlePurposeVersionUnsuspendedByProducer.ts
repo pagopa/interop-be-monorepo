@@ -77,7 +77,7 @@ export async function handlePurposeVersionUnsuspendedByProducer(
         title: `Riattivazione della finalità "${purpose.title}"`,
         notificationType,
         entityId: purpose.id,
-        consumerName: consumer.name,
+        recipientName: consumer.name,
         producerName: producer.name,
         eserviceName: eservice.name,
         purposeTitle: purpose.title,

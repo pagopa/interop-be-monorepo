@@ -74,7 +74,7 @@ export async function handleAgreementUnsuspendedByProducer(
         title: `La tua richiesta per "${eservice.name}" è stata riattivata`,
         notificationType,
         entityId: agreement.id,
-        consumerName: consumer.name,
+        recipientName: consumer.name,
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza la richiesta`,

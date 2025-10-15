@@ -74,7 +74,7 @@ export async function handleAgreementUnsuspendedByPlatformToConsumer(
         title: `Riattivazione richiesta da parte della Piattaforma`,
         notificationType,
         entityId: agreement.id,
-        consumerName: consumer.name,
+        recipientName: consumer.name,
         eserviceName: eservice.name,
       }),
     },

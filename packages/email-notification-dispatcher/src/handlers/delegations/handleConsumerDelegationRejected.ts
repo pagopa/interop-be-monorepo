@@ -74,7 +74,7 @@ export async function handleConsumerDelegationRejected(
         title: `La tua richiesta di delega è stata rifiutata`,
         notificationType,
         entityId: delegation.id,
-        delegatorName: delegator.name,
+        recipientName: delegator.name,
         delegateName: delegate.name,
         eserviceName: eservice.name,
       }),

@@ -67,7 +67,7 @@ export async function handleAgreementSuspendedByProducer(
         title: `Sospensione richiesta di fruizione per "${eservice.name}"`,
         notificationType,
         entityId: agreement.id,
-        consumerName: consumer.name,
+        recipientName: consumer.name,
         producerName: producer.name,
         eserviceName: eservice.name,
       }),
