@@ -76,6 +76,7 @@ import {
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeVersionStampInReadmodelPurpose,
+  purposeTemplateChildTables,
 } from "pagopa-interop-readmodel-models";
 import { and, eq } from "drizzle-orm";
 import {
@@ -767,11 +768,15 @@ export const upsertPurposeTemplate = async (
       return;
     }
 
-    await tx
-      .delete(purposeTemplateInReadmodelPurposeTemplate)
-      .where(
-        eq(purposeTemplateInReadmodelPurposeTemplate.id, purposeTemplate.id)
-      );
+    for (const table of purposeTemplateChildTables) {
+      if (
+        table !== purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+      ) {
+        await tx
+          .delete(table)
+          .where(eq(table.purposeTemplateId, purposeTemplate.id));
+      }
+    }
 
     const {
       purposeTemplateSQL,
@@ -783,7 +788,11 @@ export const upsertPurposeTemplate = async (
 
     await tx
       .insert(purposeTemplateInReadmodelPurposeTemplate)
-      .values(purposeTemplateSQL);
+      .values(purposeTemplateSQL)
+      .onConflictDoUpdate({
+        target: purposeTemplateInReadmodelPurposeTemplate.id,
+        set: purposeTemplateSQL,
+      });
 
     if (riskAnalysisFormTemplateSQL) {
       await tx
