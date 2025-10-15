@@ -139,6 +139,17 @@ async function main(): Promise<void> {
     loggerInstance,
   });
 
+  // PURPOSE TEMPLATE
+  const purposeTemplates = await readModelServiceKPI.getAllPurposeTemplates();
+  const purposeTemplatesPostgres =
+    await readModelServiceSQL.getAllPurposeTemplates();
+  compare({
+    kpiItems: purposeTemplates,
+    postgresItems: purposeTemplatesPostgres,
+    schema: "purpose templates",
+    loggerInstance,
+  });
+
   process.exit();
 }
 
