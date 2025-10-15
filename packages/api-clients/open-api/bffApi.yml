@@ -11526,6 +11526,121 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposeTemplates 
+      summary: Add Document to Risk Analysis Answer Annotation
+      description: Add Answer Annotation Document to Risk Analysis of Purpose Template
+      operationId: addRiskAnalysisTemplateAnswerAnnotationDocument
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: 
+                - prettyName
+                - doc 
+              properties:
+                prettyName:
+                  type: string
+                doc:
+                  type: string
+                  format: binary
+      responses:
+          "200":
+            description: OK - Request successful. The response contains the created resource metadata (not the file)
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+            headers:
+              "X-Rate-Limit-Limit":
+                schema:
+                  type: integer
+                  format: int32
+                description: Max allowed requests within time interval
+              "X-Rate-Limit-Remaining":
+                schema:
+                  type: integer
+                  format: int32
+                description: Remaining requests within time interval
+              "X-Rate-Limit-Interval":
+                schema:
+                  type: integer
+                  format: int32
+                description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          "400":
+            description: Invalid input
+            content:
+              application/problem+json:
+                schema:
+                  $ref: "#/components/schemas/Problem"
+            headers:
+              "X-Rate-Limit-Limit":
+                schema:
+                  type: integer
+                  format: int32
+                description: Max allowed requests within time interval
+              "X-Rate-Limit-Remaining":
+                schema:
+                  type: integer
+                  format: int32
+                description: Remaining requests within time interval
+              "X-Rate-Limit-Interval":
+                schema:
+                  type: integer
+                  format: int32
+                description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          "403":
+            description: Forbidden
+            content:
+              application/problem+json:
+                schema:
+            $ref: "#/components/schemas/Problem"
+          "404":
+            description: Not Found
+            content:
+              application/problem+json:
+                schema:
+            $ref: "#/components/schemas/Problem"
+          "429":
+            description: Too Many Requests
+            content:
+              application/problem+json:
+                schema:
+                  $ref: "#/components/schemas/Problem"
+            headers:
+              "X-Rate-Limit-Limit":
+                schema:
+                  type: integer
+                  format: int32
+                description: Max allowed requests within time interval
+              "X-Rate-Limit-Remaining":
+                schema:
+                  type: integer
+                  format: int32
+                description: Remaining requests within time interval
+              "X-Rate-Limit-Interval":
+                schema:
+                  type: integer
+                  format: int32
+                description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available  
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}:
     parameters:
       - name: purposeTemplateId
@@ -25410,19 +25525,30 @@ components:
       type: object
       additionalProperties: false
       properties:
+        documentId:
+          type: string
+          format: uuid
         name:
           type: string
         contentType:
+          type: string
+        checksum:
           type: string
         prettyName:
           type: string
         path:
           type: string
+        createdAt:
+          type: string
+          format: date-time
       required:
+        - documentId
         - name
         - contentType
+        - checksum
         - prettyName
         - path
+        - createdAt
     EServiceDescriptorPurposeTemplate:
       type: object
       additionalProperties: false

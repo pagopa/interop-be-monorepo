@@ -2,14 +2,18 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockPurposeTemplate,
+  getMockRiskAnalysisTemplateAnswerAnnotationDocument,
+  getMockValidRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import {
   dateToBigInt,
   EService,
   EServiceDescriptorPurposeTemplate,
+  generateId,
   PurposeTemplate,
   PurposeTemplateAddedV2,
+  PurposeTemplateAnnotationDocumentAddedV2,
   PurposeTemplateArchivedV2,
   PurposeTemplateDraftDeletedV2,
   PurposeTemplateDraftUpdatedV2,
@@ -20,6 +24,8 @@ import {
   purposeTemplateState,
   PurposeTemplateSuspendedV2,
   PurposeTemplateUnsuspendedV2,
+  RiskAnalysisTemplateAnswerAnnotationId,
+  tenantKind,
   toEServiceV2,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
@@ -433,6 +439,95 @@ describe("Integration tests", async () => {
           createdAt,
         } satisfies EServiceDescriptorPurposeTemplate,
       ]);
+    });
+
+    it("PurposeTemplateAnnotationDocumentAdded", async () => {
+      const metadataVersion = 1;
+
+      const mockValidRiskAnalysisTemplateForm =
+        getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+
+      const answerToUpdateWithAnnotationDoc =
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        mockValidRiskAnalysisTemplateForm.singleAnswers.find(
+          (a) => a.key === "purpose"
+        )!;
+
+      const riskAnalysisWithAnnotation = {
+        ...mockValidRiskAnalysisTemplateForm,
+        singleAnswers: mockValidRiskAnalysisTemplateForm.singleAnswers.map(
+          (a) =>
+            a.id === answerToUpdateWithAnnotationDoc.id
+              ? {
+                  ...a,
+                  annotation: {
+                    id: generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
+                    text: "Annotation text",
+                    docs: [],
+                  },
+                }
+              : a
+        ),
+      };
+
+      const existentPurposeTemplate: PurposeTemplate = {
+        ...getMockPurposeTemplate(),
+        purposeRiskAnalysisForm: riskAnalysisWithAnnotation,
+      };
+
+      await purposeTemplateWriterService.upsertPurposeTemplate(
+        existentPurposeTemplate,
+        0
+      );
+
+      const annotationDocument =
+        getMockRiskAnalysisTemplateAnswerAnnotationDocument();
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...existentPurposeTemplate,
+        purposeRiskAnalysisForm: {
+          ...existentPurposeTemplate.purposeRiskAnalysisForm!,
+          singleAnswers:
+            existentPurposeTemplate.purposeRiskAnalysisForm!.singleAnswers.map(
+              (a) =>
+                a.id === answerToUpdateWithAnnotationDoc.id
+                  ? {
+                      ...a,
+                      annotation: {
+                        ...a.annotation!,
+                        docs: [...a.annotation!.docs, annotationDocument],
+                      },
+                    }
+                  : a
+            ),
+        },
+      };
+
+      const payload: PurposeTemplateAnnotationDocumentAddedV2 = {
+        purposeTemplate: toPurposeTemplateV2(updatedPurposeTemplate),
+        documentId: annotationDocument.id,
+      };
+
+      const message: PurposeTemplateEventEnvelope = {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: metadataVersion,
+        type: "PurposeTemplateAnnotationDocumentAdded",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, purposeTemplateWriterService);
+
+      const retrievedPurposeTemplate =
+        await purposeTemplateReadModelService.getPurposeTemplateById(
+          updatedPurposeTemplate.id
+        );
+
+      expect(retrievedPurposeTemplate).toStrictEqual({
+        data: updatedPurposeTemplate,
+        metadata: { version: metadataVersion },
+      });
     });
   });
 });
