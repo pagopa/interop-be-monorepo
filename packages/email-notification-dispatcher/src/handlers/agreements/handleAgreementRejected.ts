@@ -68,7 +68,7 @@ export async function handleAgreementRejected(
         title: `La tua richiesta per "${eservice.name}" è stata rifiutata`,
         notificationType,
         entityId: agreement.id,
-        recipientName: consumer.name,
+        ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
       }),

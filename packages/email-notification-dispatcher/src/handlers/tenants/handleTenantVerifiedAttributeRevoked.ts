@@ -99,7 +99,7 @@ export async function handleTenantVerifiedAttributeRevoked(
         title: `Un tuo attributo verificato è stato revocato`,
         notificationType,
         entityId: tenant.id,
-        recipientName: tenant.name,
+        ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         verifierName: verifierTenant.name,
         attributeName: attribute.name,
       }),

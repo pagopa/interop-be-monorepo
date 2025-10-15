@@ -74,7 +74,7 @@ export async function handleProducerDelegationSubmitted(
         title: `Hai ricevuto una richiesta di delega`,
         notificationType,
         entityId: delegation.id,
-        recipientName: delegate.name,
+        ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta di delega`,

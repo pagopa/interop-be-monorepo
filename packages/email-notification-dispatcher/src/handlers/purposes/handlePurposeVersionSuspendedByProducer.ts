@@ -77,7 +77,7 @@ export async function handlePurposeVersionSuspendedByProducer(
         title: `Sospensione della finalità "${purpose.title}"`,
         notificationType,
         entityId: purpose.id,
-        recipientName: consumer.name,
+        ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         producerName: producer.name,
         eserviceName: eservice.name,
         purposeTitle: purpose.title,

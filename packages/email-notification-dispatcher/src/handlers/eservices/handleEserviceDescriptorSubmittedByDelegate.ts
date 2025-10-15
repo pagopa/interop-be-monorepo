@@ -77,7 +77,7 @@ export async function handleEserviceDescriptorSubmittedByDelegate(
         title: `Richiesta di approvazione per una nuova versione`,
         notificationType,
         entityId: eservice.id,
-        recipientName: delegator.name,
+        ...(t.type === "Tenant" ? { recipientName: delegator.name } : {}),
         delegateName: delegate.name,
         eserviceName: eservice.name,
         ctaLabel: "Valuta la richiesta",

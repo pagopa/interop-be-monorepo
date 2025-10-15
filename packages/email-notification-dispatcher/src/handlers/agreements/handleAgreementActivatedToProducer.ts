@@ -69,7 +69,7 @@ export async function handleAgreementActivatedToProducer(
         title: "Richiesta di fruizione accettata automaticamente",
         notificationType,
         entityId: agreement.id,
-        recipientName: producer.name,
+        ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
       }),

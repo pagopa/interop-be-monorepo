@@ -71,7 +71,7 @@ export async function handleAgreementActivatedToConsumer(
         title: `La tua richiesta per "${eservice.name}" è stata accettata`,
         notificationType,
         entityId: agreement.id,
-        recipientName: consumer.name,
+        ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,

@@ -74,7 +74,7 @@ export async function handleConsumerDelegationApproved(
         title: `La tua richiesta di delega è stata accettata`,
         notificationType,
         entityId: delegation.id,
-        recipientName: delegator.name,
+        ...(t.type === "Tenant" ? { recipientName: delegator.name } : {}),
         delegateName: delegate.name,
         eserviceName: eservice.name,
       }),

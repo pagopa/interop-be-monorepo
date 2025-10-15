@@ -68,7 +68,7 @@ export async function handleAgreementSubmitted(
         title: `Nuova richiesta di fruizione per un tuo e-service`,
         notificationType,
         entityId: agreement.id,
-        recipientName: producer.name,
+        ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         consumerName: consumer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,

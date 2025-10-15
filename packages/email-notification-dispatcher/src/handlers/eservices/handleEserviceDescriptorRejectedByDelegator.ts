@@ -77,7 +77,7 @@ export async function handleEserviceDescriptorRejectedByDelegator(
         title: `Rifiutata la pubblicazione della nuova versione`,
         notificationType,
         entityId: eservice.id,
-        recipientName: delegate.name,
+        ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
         eserviceName: eservice.name,
       }),

@@ -86,7 +86,7 @@ export async function handleTenantCertifiedAttributeAssigned(
         title: `Hai ricevuto un nuovo attributo certificato`,
         notificationType,
         entityId: tenant.id,
-        recipientName: tenant.name,
+        ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         certifierName,
         attributeName: attribute.name,
       }),

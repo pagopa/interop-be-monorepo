@@ -86,7 +86,7 @@ export async function handleTenantCertifiedAttributeRevoked(
         title: `Un tuo attributo certificato è stato revocato`,
         notificationType,
         entityId: tenant.id,
-        recipientName: tenant.name,
+        ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         certifierName,
         attributeName: attribute.name,
       }),

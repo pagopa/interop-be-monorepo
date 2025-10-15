@@ -74,7 +74,7 @@ export async function handleProducerDelegationRevoked(
         title: `Una delega che gestivi è stata revocata`,
         notificationType,
         entityId: delegation.id,
-        recipientName: delegate.name,
+        ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
         eserviceName: eservice.name,
       }),

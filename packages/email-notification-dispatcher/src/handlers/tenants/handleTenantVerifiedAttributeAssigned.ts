@@ -101,7 +101,7 @@ export async function handleTenantVerifiedAttributeAssigned(
         title: `Hai ricevuto un nuovo attributo verificato`,
         notificationType,
         entityId: tenant.id,
-        recipientName: tenant.name,
+        ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         verifierName: verifierTenant.name,
         attributeName: attribute.name,
       }),
