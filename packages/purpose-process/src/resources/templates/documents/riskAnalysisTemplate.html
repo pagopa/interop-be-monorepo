@@ -75,7 +75,17 @@
         </div>
       </div>
 
-      {{#if consumerDelegationId}}
+      {{#if userId}}
+      <div class="item">
+        <div class="label">ID operatore</div>
+        <div class="value">{{userId}}</div>
+      </div>
+      {{else}}
+      <div class="item">
+        <div class="label">ID fruitore</div>
+        <div class="value">{{consumerId}}</div>
+      </div>
+      {{/if}} {{#if consumerDelegationId}}
       <div class="item">
         <div class="label">Ente delegato alla fruizione</div>
         <div class="value">
