@@ -52,7 +52,21 @@ RUN pnpm build && \
 
 FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:f8f6771d949ff351c061de64ef9cbfbc5949015883fb3b016b34aca6d0e5b8cc AS final
 
+# Install dependencies for Puppeteer
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    chromium \
+    ca-certificates 
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+RUN groupadd -r app && useradd -rm -g app -G audio,video app
+
 COPY --from=build /out /app
+
+RUN chown -R app:app /app
+RUN chmod -R 700 /app
+USER app
 
 WORKDIR /app/packages/documents-generator
 EXPOSE 3000
