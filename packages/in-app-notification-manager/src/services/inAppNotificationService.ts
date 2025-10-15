@@ -64,7 +64,6 @@ export function inAppNotificationServiceBuilder(
     // eslint-disable-next-line max-params
     getNotifications: async (
       q: string | undefined,
-      entityIds: string[],
       unread: boolean | undefined,
       limit: number,
       offset: number,
@@ -81,7 +80,8 @@ export function inAppNotificationServiceBuilder(
           and(
             eq(notification.userId, userId),
             eq(notification.tenantId, organizationId),
-            q ? ilike(notification.body, `%${escapeRegExp(q)}%`) : undefined
+            q ? ilike(notification.body, `%${escapeRegExp(q)}%`) : undefined,
+            unread ? isNull(notification.readAt) : undefined
           )
         )
         .orderBy(desc(notification.createdAt))

@@ -25129,7 +25129,7 @@ components:
           $ref: "#/components/schemas/CompactDescriptor"
         hasUnreadNotifications:
           type: boolean
-          description: Indicates if there are unread notifications for this e-service template
+          description: Indicates if there are unread notifications for this e-service
     ClientKind:
       type: string
       enum:
@@ -25449,6 +25449,7 @@ components:
           $ref: "#/components/schemas/Mail"
         hasUnreadNotifications:
           type: boolean
+          description: Indicates if there are unread notifications for this organization
     TenantKind:
       type: string
       enum:
@@ -25599,6 +25600,7 @@ components:
           type: boolean
         hasUnreadNotifications:
           type: boolean
+          description: Indicates if there are unread notifications for this e-service
     ProducerEServices:
       type: object
       additionalProperties: false
@@ -25703,7 +25705,7 @@ components:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
         hasUnreadNotifications:
           type: boolean 
-          description: "Indicates if there are unread notifications for this purpose"
+          description: Indicates if there are unread notifications for this purpose
       required:
         - id
         - title
@@ -26246,6 +26248,7 @@ components:
           $ref: "#/components/schemas/CompactUser"
         hasUnreadNotifications:
           type: boolean
+          description: Indicates if there are unread notifications for this client
       required:
         - id
         - name
@@ -26283,6 +26286,7 @@ components:
           type: boolean
         hasUnreadNotifications:
           type: boolean
+          description: Indicates if there are unread notifications for this keychain
       required:
         - id
         - name
@@ -27540,6 +27544,7 @@ components:
           $ref: "#/components/schemas/DelegationKind"
         hasUnreadNotifications:
           type: boolean
+          description: Indicates if there are unread notifications for this delegation
       required:
         - id
         - delegate

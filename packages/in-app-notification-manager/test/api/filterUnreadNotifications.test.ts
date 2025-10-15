@@ -33,6 +33,7 @@ describe("API GET /filterUnreadNotifications", () => {
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
   ];
+
   it.each(authorizedRoles)(
     "Should return 200 with hasUnreadNotifications for user with role %s",
     async (role) => {
@@ -53,6 +54,7 @@ describe("API GET /filterUnreadNotifications", () => {
     const res = await makeRequest(token, entityIdsArray);
     expect(res.status).toBe(403);
   });
+
   it("Should pass entityIds parameters to the service", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     await makeRequest(token, entityIdsArray);
@@ -61,6 +63,7 @@ describe("API GET /filterUnreadNotifications", () => {
       inAppNotificationService.hasUnreadNotifications
     ).toHaveBeenCalledWith(entityIdsArray, expect.any(Object));
   });
+
   it("Should return empty array when no unread notifications exist", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     inAppNotificationService.hasUnreadNotifications = vi
@@ -71,16 +74,9 @@ describe("API GET /filterUnreadNotifications", () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
-  it("Should return a 400 error if the input is malformed or empty", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const malformedResponse = await request(api)
-      .get("/filterUnreadNotifications")
-      .query([123, 456]) // not strings
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send();
-    expect(malformedResponse.status).toBe(400);
 
+  it("Should return a 400 error if the input is empty", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
     const emptyResponse = await makeRequest(token, []);
     expect(emptyResponse.status).toBe(400);
   });

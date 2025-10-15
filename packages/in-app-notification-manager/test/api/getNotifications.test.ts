@@ -85,7 +85,6 @@ describe("API GET /notifications", () => {
 
     expect(inAppNotificationService.getNotifications).toHaveBeenCalledWith(
       queryParams.q,
-      [], // entityIds
       false, // unread
       Number(queryParams.limit),
       Number(queryParams.offset),

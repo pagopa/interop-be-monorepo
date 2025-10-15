@@ -251,7 +251,7 @@ export function purposeServiceBuilder(
       rejectedVersion:
         rejectedVersion && toBffApiPurposeVersion(rejectedVersion),
       delegation,
-    } as bffApi.Purpose;
+    };
   };
 
   const getPurposes = async (

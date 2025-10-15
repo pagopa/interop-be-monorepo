@@ -81,16 +81,6 @@ paths:
           schema:
             type: string
         - in: query
-          name: entityIds
-          description: Filter notifications by entity IDs
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-            default: []
-          explode: false
-        - in: query
           name: unread
           required: false
           schema:

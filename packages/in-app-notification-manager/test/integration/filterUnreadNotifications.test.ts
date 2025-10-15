@@ -30,10 +30,18 @@ describe("hasUnreadNotification", () => {
       entityId,
     });
   it("should return the list of entities that have unread notifications", async () => {
+    const differentEntityNotification = getMockNotification({
+      userId,
+      tenantId,
+      body: "New read notification",
+      readAt: new Date(),
+      entityId: generateId(),
+    });
     await addNotifications([
       newUnreadNotification(),
       newReadNotification(),
       newReadNotification(),
+      differentEntityNotification,
     ]);
     const entitiesWithUnread =
       await inAppNotificationService.hasUnreadNotifications(
