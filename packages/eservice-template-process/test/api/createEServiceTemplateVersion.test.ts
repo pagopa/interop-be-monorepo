@@ -6,6 +6,7 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   generateId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import {
   generateToken,
@@ -19,10 +20,17 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 import { buildCreateVersionSeed } from "../mockUtils.js";
+import {
+  attributeDuplicatedInGroup,
+  attributeNotFound,
+  draftEServiceTemplateVersionAlreadyExists,
+  eserviceTemplateNotFound,
+  eserviceTemplateWithoutPublishedVersion,
+  inconsistentDailyCalls,
+} from "../../src/model/domain/errors.js";
 
 describe("API POST /templates/:templateId/versions", () => {
   const mockVersion = getMockEServiceTemplateVersion();
-
   const attribute: Attribute = {
     name: "Attribute name",
     id: generateId(),
@@ -98,6 +106,87 @@ describe("API POST /templates/:templateId/versions", () => {
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
       );
+    }
+  );
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(token, eserviceTemplate.id);
+    expect(res.status).toBe(403);
+  });
+
+  it.each([
+    {
+      error: eserviceTemplateNotFound(eserviceTemplate.id),
+      expectedStatus: 404,
+    },
+    // {
+    //   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    //   error: templateInstanceNotAllowed(eservice.id, eservice.templateId!),
+    //   expectedStatus: 403,
+    // },
+    {
+      error: eserviceTemplateWithoutPublishedVersion(eserviceTemplate.id),
+      expectedStatus: 409,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: draftEServiceTemplateVersionAlreadyExists(eserviceTemplate.id),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeNotFound(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDuplicatedInGroup(generateId()),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      eserviceTemplateService.createEServiceTemplateVersion = vi
+        .fn()
+        .mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eserviceTemplate.id);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+  it("Should return 400 if passed invalid query param", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "111" as EServiceTemplateId);
+    expect(res.status).toBe(400);
+  });
+
+  it.each([
+    [{}, eserviceTemplate.id],
+    [{ ...versionSeed, voucherLifespan: "invalid" }, eserviceTemplate.id],
+    [{ ...versionSeed, agreementApprovalPolicy: null }, eserviceTemplate.id],
+    [{ ...versionSeed, dailyCallsTotal: -1 }, eserviceTemplate.id],
+    [{ ...versionSeed, attributes: undefined }, eserviceTemplate.id],
+    [{ ...versionSeed, docs: [{}] }, eserviceTemplate.id],
+    [{}, "invalidId"],
+  ])(
+    "Should return 400 if passed invalid version params: %s (eserviceTemplateId: %s)",
+    async (body, eserviceTemplateId) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eserviceTemplateId as EServiceTemplateId,
+        body as eserviceTemplateApi.EServiceTemplateVersionSeed
+      );
+
+      expect(res.status).toBe(400);
     }
   );
 });

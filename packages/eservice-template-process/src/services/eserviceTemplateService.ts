@@ -6,7 +6,6 @@ import {
   WithLogger,
   eventRepository,
   validateRiskAnalysis,
-  Logger,
   UIAuthData,
   M2MAuthData,
   M2MAdminAuthData,
@@ -1402,18 +1401,19 @@ export function eserviceTemplateServiceBuilder(
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
       });
-      const eserviceTemplateVersion = eserviceTemplate.metadata.version;
+      const eserviceTemplateMetadataVersion = eserviceTemplate.metadata.version;
 
-      const previousVersion = eserviceTemplate.data.versions.reduce(
-        (latestVersions, curr) =>
-          curr.version > latestVersions.version ? curr : latestVersions,
-        eserviceTemplate.data.versions[0]
-      );
+      const nextTemplateVersion =
+        eserviceTemplate.data.versions.reduce(
+          (latestVersions, curr) =>
+            curr.version > latestVersions.version ? curr : latestVersions,
+          eserviceTemplate.data.versions[0]
+        ).version + 1;
 
       const newEServiceTemplateVersion: EServiceTemplateVersion = {
         id: generateId(),
         description: seed.description,
-        version: previousVersion.version + 1,
+        version: nextTemplateVersion,
         interface: undefined,
         docs: [],
         state: eserviceTemplateVersionState.draft,
@@ -1475,12 +1475,12 @@ export function eserviceTemplateServiceBuilder(
                 docs: [...currentEserviceTemplateVersion.docs, newDocument],
               }
             );
-          const version = eserviceTemplateVersion + index + 1;
+          const metadataVersion = eserviceTemplateMetadataVersion + index + 1;
 
           const documentEvent =
             toCreateEventEServiceTemplateVersionDocumentAdded(
               eserviceTemplateId,
-              version,
+              metadataVersion,
               newEServiceTemplateVersion.id,
               newDocument.id,
               updatedEServiceTemplateWithDocs,
@@ -1962,38 +1962,6 @@ function applyVisibilityToEServiceTemplate(
   }
 
   throw eserviceTemplateNotFound(eserviceTemplate.id);
-}
-
-// TODO: we may remove this, i don't see any other usage but my finder in folder some times doesn't return all occurrences in large repositories
-export async function cloneEServiceTemplateDocument({
-  doc,
-  fileManager,
-  logger,
-}: {
-  doc: Document;
-  fileManager: FileManager;
-  logger: Logger;
-}): Promise<Document> {
-  const clonedDocumentId: EServiceDocumentId = generateId();
-
-  const clonedPath = await fileManager.copy(
-    config.s3Bucket,
-    doc.path,
-    config.eserviceTemplateDocumentsPath,
-    clonedDocumentId,
-    doc.name,
-    logger
-  );
-
-  return {
-    id: clonedDocumentId,
-    contentType: doc.contentType,
-    prettyName: doc.prettyName,
-    name: doc.name,
-    path: clonedPath,
-    checksum: doc.checksum,
-    uploadDate: new Date(),
-  };
 }
 
 // eslint-disable-next-line max-params

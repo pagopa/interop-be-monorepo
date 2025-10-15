@@ -108,7 +108,7 @@ describe("createEServiceTemplateVersion", () => {
     ).toHaveBeenCalledTimes(2);
   });
 
-  it("Should throw missingMetadata in case the attribute returned by the creation POST call has no metadata", async () => {
+  it("Should throw missingMetadata in case the payload returned by the creation POST call has no metadata", async () => {
     mockCreateVersion.mockResolvedValueOnce({
       data: mockCreateResponseData,
       metadata: undefined,
@@ -123,7 +123,7 @@ describe("createEServiceTemplateVersion", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw missingMetadata in case the attribute returned by the polling GET call has no metadata", async () => {
+  it("Should throw missingMetadata in case the payload returned by the polling GET call has no metadata", async () => {
     mockGetEServiceTemplate.mockResolvedValueOnce({
       data: mockEServiceTemplate,
       metadata: undefined,

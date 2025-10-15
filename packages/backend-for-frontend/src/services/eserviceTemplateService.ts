@@ -44,7 +44,7 @@ import {
   tenantNotFound,
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
-import { cloneEServiceTemplateDocument } from "../utilities/fileUtils.js";
+import { cloneEServiceDocument } from "../utilities/fileUtils.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 export function eserviceTemplateServiceBuilder(
@@ -521,7 +521,7 @@ export function eserviceTemplateServiceBuilder(
       );
 
       const clonedDocumentsCalls = previousVersion.docs.map((doc) =>
-        cloneEServiceTemplateDocument({
+        cloneEServiceDocument({
           doc,
           documentsContainer: config.eserviceTemplateDocumentsContainer,
           documentsPath: config.eserviceTemplateDocumentsPath,

@@ -209,6 +209,23 @@ export async function createDescriptorDocumentZipFile(
 
   return zip.toBuffer();
 }
+
+export async function cloneEServiceDocument(params: {
+  doc: eserviceTemplateApi.EServiceDoc;
+  documentsContainer: string;
+  documentsPath: string;
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed>;
+
+export async function cloneEServiceDocument(params: {
+  doc: catalogApi.EServiceDoc;
+  documentsContainer: string;
+  documentsPath: string;
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<catalogApi.CreateEServiceDescriptorDocumentSeed>;
+
 export async function cloneEServiceDocument({
   doc,
   documentsContainer,
@@ -216,48 +233,15 @@ export async function cloneEServiceDocument({
   fileManager,
   logger,
 }: {
-  doc: catalogApi.EServiceDoc;
+  doc: eserviceTemplateApi.EServiceDoc | catalogApi.EServiceDoc;
   documentsContainer: string;
   documentsPath: string;
   fileManager: FileManager;
   logger: Logger;
-}): Promise<catalogApi.CreateEServiceDescriptorDocumentSeed> {
-  const clonedDocumentId = crypto.randomUUID();
-
-  const clonedPath = await fileManager.copy(
-    documentsContainer,
-    doc.path,
-    documentsPath,
-    clonedDocumentId,
-    doc.name,
-    logger
-  );
-
-  return {
-    documentId: clonedDocumentId,
-    kind: "DOCUMENT",
-    contentType: doc.contentType,
-    prettyName: doc.prettyName,
-    fileName: doc.name,
-    filePath: clonedPath,
-    checksum: doc.checksum,
-    serverUrls: [],
-  };
-}
-
-export async function cloneEServiceTemplateDocument({
-  doc,
-  documentsContainer,
-  documentsPath,
-  fileManager,
-  logger,
-}: {
-  doc: eserviceTemplateApi.EServiceDoc;
-  documentsContainer: string;
-  documentsPath: string;
-  fileManager: FileManager;
-  logger: Logger;
-}): Promise<eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed> {
+}): Promise<
+  | eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed
+  | catalogApi.CreateEServiceDescriptorDocumentSeed
+> {
   const clonedDocumentId: EServiceDocumentId = generateId();
 
   const clonedPath = await fileManager.copy(
@@ -268,6 +252,7 @@ export async function cloneEServiceTemplateDocument({
     doc.name,
     logger
   );
+
   return {
     documentId: clonedDocumentId,
     kind: "DOCUMENT",
