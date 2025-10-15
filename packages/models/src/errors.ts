@@ -306,6 +306,7 @@ export const commonErrorCodes = {
   decodeSQSMessageError: "10024",
   pollingMaxRetriesExceeded: "10025",
   invalidServerUrl: "10026",
+  hyperlinkDetectionError: "10027",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -401,6 +402,15 @@ export function tokenGenerationError(
   return new InternalError({
     code: "tokenGenerationError",
     detail: `Error during token generation: ${parseErrorMessage(error)}`,
+  });
+}
+
+export function hyperlinkDetectionError(
+  text: string
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "hyperlinkDetectionError",
+    detail: `Hyperlink detection error for text ${text}`,
   });
 }
 

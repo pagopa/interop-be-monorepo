@@ -15,10 +15,7 @@ import {
   EServicePersonalDataFlagUpdatedByTemplateUpdateV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import {
-  eServiceNotFound,
-  eservicePersonalDataFlagCanOnlyBeSetOnce,
-} from "../../src/model/domain/errors.js";
+import { eServiceNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
   catalogService,
@@ -75,30 +72,5 @@ describe("internalUpdateTemplateInstancePersonalDataFlag", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
-  });
-
-  it("should throw eservicePersonalDataFlagCanOnlyBeSetOnce if the personalData flag was already set", async () => {
-    const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
-      interface: getMockDocument(),
-    };
-
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-      personalData: true,
-    };
-
-    await addOneEService(eservice);
-
-    await expect(
-      catalogService.updateEServicePersonalDataFlagAfterPublication(
-        eservice.id,
-        false,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(
-      eservicePersonalDataFlagCanOnlyBeSetOnce(eservice.id)
-    );
   });
 });

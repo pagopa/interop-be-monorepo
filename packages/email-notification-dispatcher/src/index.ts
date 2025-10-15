@@ -30,6 +30,7 @@ import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { z } from "zod";
@@ -67,6 +68,7 @@ const delegationReadModelServiceSQL =
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -76,6 +78,7 @@ const readModelService = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
+  purposeReadModelServiceSQL,
 });
 
 const pool = new pg.Pool({

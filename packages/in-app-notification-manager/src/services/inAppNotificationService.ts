@@ -160,6 +160,27 @@ export function inAppNotificationServiceBuilder(
         throw notificationNotFound(notificationId);
       }
     },
+    markNotificationsAsReadByEntityId: async (
+      entityId: string,
+      {
+        logger,
+        authData: { userId, organizationId },
+      }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> => {
+      logger.info(`Marking notifications for entity ${entityId} as read`);
+
+      await db
+        .update(notification)
+        .set({ readAt: new Date().toISOString() })
+        .where(
+          and(
+            eq(notification.entityId, entityId),
+            eq(notification.userId, userId),
+            eq(notification.tenantId, organizationId),
+            isNull(notification.readAt)
+          )
+        );
+    },
     deleteNotifications: async (
       notificationIds: NotificationId[],
       {

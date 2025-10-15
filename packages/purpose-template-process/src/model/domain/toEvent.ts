@@ -73,15 +73,11 @@ export function toCreateEventPurposeTemplateEServiceUnlinked(
   };
 }
 
-export function toCreateEventPurposeTemplateDraftUpdated({
-  purposeTemplate,
-  correlationId,
-  version,
-}: {
-  purposeTemplate: PurposeTemplate;
-  correlationId: CorrelationId;
-  version: number;
-}): CreateEvent<PurposeTemplateEventV2> {
+export function toCreateEventPurposeTemplateDraftUpdated(
+  purposeTemplate: PurposeTemplate,
+  correlationId: CorrelationId,
+  version: number
+): CreateEvent<PurposeTemplateEventV2> {
   return {
     streamId: purposeTemplate.id,
     version,
