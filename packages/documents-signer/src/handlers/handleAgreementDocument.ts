@@ -94,11 +94,7 @@ export async function handleAgreementDocument(
           "AgreementRejected"
         ),
       },
-      () => {
-        logger.info(
-          `No document generation needed for ${decodedMessage.type} message`
-        );
-      }
+      () => Promise.resolve()
     )
     .exhaustive();
 }

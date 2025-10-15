@@ -33,13 +33,21 @@ export async function handlePurposeDocument(
   await match(decodedMessage)
     .with({ type: "RiskAnalysisDocumentAdded" }, async (event) => {
       if (event.data.purpose.versions) {
-        const s3Key = event.data.purpose.versions.find(
+        const purposeVersion = event.data.purpose.versions.find(
           (v) => v.id === event.data.versionId
-        )?.riskAnalysis?.path;
+        );
+
+        if (!purposeVersion) {
+          throw genericInternalError(
+            `Handle Purpose Document - version not found for id: ${event.data.versionId}`
+          );
+        }
+
+        const s3Key = purposeVersion.riskAnalysis?.path;
 
         if (!s3Key) {
           throw genericInternalError(
-            `Handle Purpose Document. Version not found for id: ${event.data.versionId}`
+            `Handle Purpose Document - riskAnalysis path not found for id: ${event.data.versionId}`
           );
         }
 
