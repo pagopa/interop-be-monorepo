@@ -74,6 +74,7 @@ export const purposeTables: PurposeDbTable[] = [
   PurposeDbTable.purpose,
   PurposeDbTable.purpose_version,
   PurposeDbTable.purpose_version_document,
+  PurposeDbTable.purpose_version_stamp,
   PurposeDbTable.purpose_risk_analysis_form,
   PurposeDbTable.purpose_risk_analysis_answer,
 ];
