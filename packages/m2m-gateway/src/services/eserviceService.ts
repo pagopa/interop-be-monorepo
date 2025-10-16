@@ -109,7 +109,7 @@ export function eserviceServiceBuilder(
   > {
     const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
     const kindAttributeGroups = descriptor.attributes[attributeKind];
-    const allFlatLocalAttributes: Array<{
+    const allFlatKindAttributes: Array<{
       attributeId: string;
       groupIndex: number;
     }> = kindAttributeGroups.flatMap((group, groupIndex) =>
@@ -119,13 +119,13 @@ export function eserviceServiceBuilder(
       }))
     );
 
-    const paginatedFlatLocalAttributes = allFlatLocalAttributes.slice(
+    const paginatedFlatKindAttributes = allFlatKindAttributes.slice(
       offset,
       offset + limit
     );
 
     const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
-      paginatedFlatLocalAttributes.map((item) => item.attributeId);
+      paginatedFlatKindAttributes.map((item) => item.attributeId);
 
     if (attributeIdsToResolve.length === 0) {
       return {
@@ -152,7 +152,7 @@ export function eserviceServiceBuilder(
     );
 
     // Recombination: Map the paginated flat list with the resolved complete details
-    const finalAttributes = paginatedFlatLocalAttributes.map((item) => {
+    const attributesToReturn = paginatedFlatKindAttributes.map((item) => {
       const attributeDetailed = attributeMap.get(item.attributeId);
 
       if (!attributeDetailed) {
@@ -166,8 +166,8 @@ export function eserviceServiceBuilder(
     });
 
     return {
-      results: finalAttributes,
-      totalCount: finalAttributes.length,
+      results: attributesToReturn,
+      totalCount: allFlatKindAttributes.length,
     };
   }
 

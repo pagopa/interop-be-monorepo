@@ -205,15 +205,15 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/declaredAttribu
         },
       ],
     },
-    // {
-    //   ...mockM2MEserviceDeclaredAttributesResponse,
-    //   results: [
-    //     {
-    //       ...mockM2MEserviceDeclaredAttributesResponse.results[0],
-    //       groupIndex: -1,
-    //     },
-    //   ],
-    // }, it should be fail, IDK why it pass
+    {
+      ...mockM2MEserviceDeclaredAttributesResponse,
+      results: [
+        {
+          ...mockM2MEserviceDeclaredAttributesResponse.results[0],
+          groupIndex: -1,
+        },
+      ],
+    },
     {
       ...mockM2MEserviceDeclaredAttributesResponse,
       results: [

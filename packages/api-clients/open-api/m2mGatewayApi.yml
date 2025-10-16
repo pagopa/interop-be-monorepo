@@ -13848,8 +13848,8 @@ components:
         groupIndex:
           type: integer
           format: int32
+          minimum: 0
           description: The index of the group to which the attribute belongs.
-          example: 0
         attribute:
           $ref: "#/components/schemas/CertifiedAttribute"
       required:
@@ -13862,8 +13862,8 @@ components:
         groupIndex:
           type: integer
           format: int32
+          minimum: 0
           description: The index of the group to which the attribute belongs.
-          example: 0
         attribute:
           $ref: "#/components/schemas/DeclaredAttribute"
       required:
@@ -13876,8 +13876,8 @@ components:
         groupIndex:
           type: integer
           format: int32
+          minimum: 0
           description: The index of the group to which the attribute belongs.
-          example: 0
         attribute:
           $ref: "#/components/schemas/VerifiedAttribute"
       required:

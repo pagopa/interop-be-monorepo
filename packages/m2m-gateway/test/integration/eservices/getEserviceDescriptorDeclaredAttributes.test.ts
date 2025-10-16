@@ -39,6 +39,22 @@ describe("getEserviceDescriptorDeclaredAttributes", () => {
     id: generateId(),
     explicitAttributeVerification: false,
   };
+
+  const attribute4: catalogApi.Attribute = {
+    id: generateId(),
+    explicitAttributeVerification: false,
+  };
+
+  const attribute5: catalogApi.Attribute = {
+    id: generateId(),
+    explicitAttributeVerification: false,
+  };
+
+  const attribute6: catalogApi.Attribute = {
+    id: generateId(),
+    explicitAttributeVerification: false,
+  };
+
   const bulkAttribute1: attributeRegistryApi.Attribute = {
     code: "code1",
     id: attribute1.id,
@@ -73,8 +89,8 @@ describe("getEserviceDescriptorDeclaredAttributes", () => {
     ...getMockedApiEserviceDescriptor(),
     attributes: {
       declared: [[attribute1, attribute2], [attribute3]],
-      verified: [],
-      certified: [],
+      verified: [[attribute4, attribute5]],
+      certified: [[attribute6]],
     },
   };
 
@@ -155,7 +171,7 @@ describe("getEserviceDescriptorDeclaredAttributes", () => {
       pagination: {
         offset: 0,
         limit: 2,
-        totalCount: 2,
+        totalCount: 3,
       },
       results: [response[0], response[1]],
     };
@@ -174,7 +190,7 @@ describe("getEserviceDescriptorDeclaredAttributes", () => {
       pagination: {
         offset: 2,
         limit: 2,
-        totalCount: 1,
+        totalCount: 3,
       },
       results: [response[2]],
     };

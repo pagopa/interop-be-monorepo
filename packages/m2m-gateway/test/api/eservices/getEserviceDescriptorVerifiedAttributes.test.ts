@@ -205,15 +205,15 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttribu
         },
       ],
     },
-    // {
-    //   ...mockM2MEserviceVerifiedAttributesResponse,
-    //   results: [
-    //     {
-    //       ...mockM2MEserviceVerifiedAttributesResponse.results[0],
-    //       groupIndex: -1,
-    //     },
-    //   ],
-    // }, it should be fail, IDK why it pass
+    {
+      ...mockM2MEserviceVerifiedAttributesResponse,
+      results: [
+        {
+          ...mockM2MEserviceVerifiedAttributesResponse.results[0],
+          groupIndex: -1,
+        },
+      ],
+    },
     {
       ...mockM2MEserviceVerifiedAttributesResponse,
       results: [
