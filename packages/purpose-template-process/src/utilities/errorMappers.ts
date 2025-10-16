@@ -100,7 +100,7 @@ export const addPurposeTemplateAnswerAnnotationErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("purposeTemplateIsNotDraft", () => HTTP_STATUS_BAD_REQUEST)
+    .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "purposeTemplateNotFound",
       "purposeTemplateRiskAnalysisFormNotFound",
@@ -161,4 +161,18 @@ export const addRiskAnalysisAnswerAnnotationErrorMapper = (
       "purposeTemplateRiskAnalysisFormNotFound",
       () => HTTP_STATUS_INTERNAL_SERVER_ERROR
     )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const publishPurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "purposeTemplateNotInExpectedStates",
+      "riskAnalysisTemplateValidationFailed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("purposeTemplateStateConflict", () => HTTP_STATUS_CONFLICT)
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

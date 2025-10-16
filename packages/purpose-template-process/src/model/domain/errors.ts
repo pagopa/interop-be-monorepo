@@ -34,11 +34,10 @@ export const errorCodes = {
   associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0017",
   conflictDocumentPrettyNameDuplicate: "0018",
   annotationDocumentLimitExceeded: "0019",
-  purposeTemplateIsNotDraft: "0020",
-  conflictDuplicatedDocument: "0021",
-  hyperlinkDetectionError: "0022",
-  purposeTemplateNotInValidState: "0023",
-  riskAnalysisAnswerNotFound: "0024",
+  conflictDuplicatedDocument: "0020",
+  hyperlinkDetectionError: "0021",
+  purposeTemplateNotInValidState: "0022",
+  riskAnalysisAnswerNotFound: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -71,16 +70,6 @@ export function purposeTemplateNotFound(
     detail: `No Purpose Template found for ID ${purposeTemplateId}`,
     code: "purposeTemplateNotFound",
     title: "Purpose Template Not Found",
-  });
-}
-
-export function purposeTemplateStateNotDraft(
-  purposeTemplateId: PurposeTemplateId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose Template with ID ${purposeTemplateId} is not in draft state`,
-    code: "purposeTemplateIsNotDraft",
-    title: "Purpose Template State Not Draft",
   });
 }
 
