@@ -23,6 +23,7 @@ import {
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
@@ -66,6 +67,7 @@ const delegationReadModelServiceSQL =
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -75,6 +77,7 @@ export const readModelService = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
+  purposeReadModelServiceSQL,
 });
 
 export const userService = userServiceBuilderSQL(userDB);
