@@ -2284,6 +2284,43 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/templates/eservices/{eServiceId}/personalDataFlag:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - process
+      requestBody:
+        description: A payload containing a boolean that describes the personalData flag
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
+      operationId: setTemplateInstancePersonalDataFlag
+      description: Update the personalData flag of a template instance after a template update
+      responses:
+        "204":
+          description: E-Service personalData flag updated
+        "404":
+          description: E-Service Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/voucherLifespan/update:
     post:
       parameters:
