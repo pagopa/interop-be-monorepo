@@ -507,8 +507,8 @@ describe("Risk Analysis Validation", () => {
     const riskAnalysisForm: RiskAnalysisFormToValidate = {
       ...validRiskAnalysis2_0_Private,
       answers: {
-        usesPersonalData: ["YES"],
         ...validRiskAnalysis2_0_Private.answers,
+        usesPersonalData: ["YES"],
       },
     };
     expect(
@@ -548,6 +548,65 @@ describe("Risk Analysis Validation", () => {
       ).toEqual({
         type: "valid",
         value: validatedRiskAnalysis3_0_Pa,
+      });
+    }
+  );
+
+  it("should fail if the risk analysis is PA 3.1 and the eservice has different personalData", () => {
+    const riskAnalysisForm: RiskAnalysisFormToValidate = {
+      ...validRiskAnalysis3_1_Pa,
+      answers: {
+        ...validRiskAnalysis3_1_Pa.answers,
+        usesPersonalData: ["YES"],
+      },
+    };
+    expect(
+      validateRiskAnalysis(riskAnalysisForm, false, "PA", new Date(), false)
+    ).toEqual({
+      type: "invalid",
+      issues: [incompatiblePersonalDataError()],
+    });
+  });
+
+  it("should succeed if the risk analysis is PA 3.1 and the eservice doesn't have the personalData flag", () => {
+    expect(
+      validateRiskAnalysis(
+        validRiskAnalysis3_1_Pa,
+        false,
+        "PA",
+        new Date(),
+        undefined
+      )
+    ).toEqual({
+      type: "valid",
+      value: validatedRiskAnalysis3_1_Pa,
+    });
+  });
+
+  it.each([
+    { personalDataInEService: true, usesPersonalData: "YES" },
+    { personalDataInEService: false, usesPersonalData: "NO" },
+  ])(
+    "should succeed if the risk analysis is PA 3.1 and the eservice has consistent personalData flag",
+    ({ personalDataInEService, usesPersonalData }) => {
+      const riskAnalysisForm: RiskAnalysisFormToValidate = {
+        ...validRiskAnalysis3_1_Pa,
+        answers: {
+          ...validRiskAnalysis3_1_Pa.answers,
+          usesPersonalData: [usesPersonalData],
+        },
+      };
+      expect(
+        validateRiskAnalysis(
+          riskAnalysisForm,
+          false,
+          "PA",
+          new Date(),
+          personalDataInEService
+        )
+      ).toEqual({
+        type: "valid",
+        value: validatedRiskAnalysis3_1_Pa,
       });
     }
   );
