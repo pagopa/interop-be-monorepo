@@ -61,10 +61,6 @@ const isPurposeTemplateActive = (
   currentPurposeTemplateState: PurposeTemplateState
 ): boolean => currentPurposeTemplateState === purposeTemplateState.active;
 
-const isPurposeTemplateArchived = (
-  currentPurposeTemplateState: PurposeTemplateState
-): boolean => currentPurposeTemplateState === purposeTemplateState.archived;
-
 const isPurposeTemplateDraft = (
   currentPurposeTemplateState: PurposeTemplateState
 ): boolean => currentPurposeTemplateState === purposeTemplateState.draft;
@@ -228,11 +224,10 @@ export const assertSuspendableState = (
   );
 };
 
-export const archivableInitialStates = Object.values(
-  purposeTemplateState
-).filter(
-  (state) => !isPurposeTemplateArchived(state) && !isPurposeTemplateDraft(state)
-);
+export const archivableInitialStates: PurposeTemplateState[] = [
+  purposeTemplateState.active,
+  purposeTemplateState.suspended,
+];
 export const assertArchivableState = (
   purposeTemplate: PurposeTemplate
 ): void => {
