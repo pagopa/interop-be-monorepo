@@ -2370,6 +2370,9 @@ importers:
       '@types/node':
         specifier: 20.19.3
         version: 20.19.3
+      cpx2:
+        specifier: 7.0.2
+        version: 7.0.2
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
