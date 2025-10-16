@@ -13,6 +13,7 @@ import {
 } from "../../services/utils.js";
 import {
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   PurposeHandlerParams,
 } from "../handlerCommons.js";
 
@@ -61,7 +62,7 @@ export async function handlePurposeVersionActivated(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `La tua finalità "${purpose.title}" è stata approvata`,
@@ -76,6 +77,7 @@ export async function handlePurposeVersionActivated(
         ctaLabel: `Visualizza finalità`,
       }),
     },
-    address,
+    tenantId: consumer.id,
+    ...mapRecipientToEmailPayload(t),
   }));
 }
