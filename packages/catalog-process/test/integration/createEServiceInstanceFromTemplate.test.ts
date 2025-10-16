@@ -122,6 +122,7 @@ describe("create eService from template", () => {
       isConsumerDelegable: false,
       isClientAccessDelegable: false,
       templateId: eServiceTemplate.id,
+      personalData: eServiceTemplate.personalData,
     };
 
     const expectedEServiceWithDescriptor: EService = {
@@ -134,6 +135,7 @@ describe("create eService from template", () => {
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eServiceTemplate.id,
+      personalData: eServiceTemplate.personalData,
       descriptors: [
         {
           ...mockDescriptor,
@@ -214,6 +216,7 @@ describe("create eService from template", () => {
       isConsumerDelegable: false,
       templateId: eserviceTemplate.id,
       riskAnalysis: [validRiskAnalysisPA1, validRiskAnalysisPA2],
+      personalData: eserviceTemplate.personalData,
       descriptors: [
         {
           ...mockDescriptor,
@@ -287,6 +290,7 @@ describe("create eService from template", () => {
       isConsumerDelegable: false,
       templateId: eserviceTemplate.id,
       riskAnalysis: [validRiskAnalysisPrivate],
+      personalData: eserviceTemplate.personalData,
       descriptors: [
         {
           ...mockDescriptor,
@@ -467,6 +471,7 @@ describe("create eService from template", () => {
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eServiceTemplate.id,
+      personalData: eServiceTemplate.personalData,
       descriptors: [
         {
           ...mockDescriptor,

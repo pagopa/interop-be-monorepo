@@ -127,6 +127,7 @@ const eservicesRouter = (
           delegated,
           isConsumerDelegable,
           templatesIds,
+          personalData,
           offset,
           limit,
         } = req.query;
@@ -150,6 +151,7 @@ const eservicesRouter = (
             isConsumerDelegable,
             delegated,
             templatesIds: templatesIds.map<EServiceTemplateId>(unsafeBrandId),
+            personalData,
           },
           offset,
           limit,
