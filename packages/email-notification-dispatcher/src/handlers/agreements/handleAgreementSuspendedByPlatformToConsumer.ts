@@ -13,6 +13,7 @@ import {
 import {
   AgreementHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
@@ -64,7 +65,7 @@ export async function handleAgreementSuspendedByPlatformToConsumer(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Sospensione richiesta di fruizione da parte della Piattaforma`,
@@ -77,6 +78,7 @@ export async function handleAgreementSuspendedByPlatformToConsumer(
         ctaLabel: `Visualizza richiesta`,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

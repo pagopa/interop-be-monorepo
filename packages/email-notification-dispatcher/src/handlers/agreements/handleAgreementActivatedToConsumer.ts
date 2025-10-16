@@ -13,6 +13,7 @@ import {
 import {
   AgreementHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
@@ -62,7 +63,7 @@ export async function handleAgreementActivatedToConsumer(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `La tua richiesta per "${eservice.name}" è stata accettata`,
@@ -76,6 +77,7 @@ export async function handleAgreementActivatedToConsumer(
         ctaLabel: `Visualizza richiesta`,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

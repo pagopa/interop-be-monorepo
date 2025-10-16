@@ -178,12 +178,16 @@ describe("handleAgreementActivated", async () => {
     });
 
     expect(messages.length).toEqual(3);
-    expect(messages.some((message) => message.address === users[2].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[3].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[2].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[3].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -213,12 +217,16 @@ describe("handleAgreementActivated", async () => {
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[2].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[3].email)).toBe(
-      false
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[2].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[3].id
+      )
+    ).toBe(false);
   });
 
   it("should generate one message to the consumer of the agreement that was activated", async () => {
@@ -244,7 +252,9 @@ describe("handleAgreementActivated", async () => {
     expect(messages.length).toEqual(3);
     expect(
       messages.some(
-        (message) => message.address === consumerTenant.mails[0].address
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === consumerTenant.mails[0].address
       )
     ).toBe(true);
   });
@@ -282,7 +292,10 @@ describe("handleAgreementActivated", async () => {
 
     expect(messages.length).toEqual(1);
     expect(
-      messages.some((message) => message.address === newMail.address)
+      messages.some(
+        (message) =>
+          message.type === "Tenant" && message.address === newMail.address
+      )
     ).toBe(true);
   });
 
@@ -318,7 +331,9 @@ describe("handleAgreementActivated", async () => {
     expect(messages.length).toEqual(2);
     expect(
       messages.some(
-        (message) => message.address === consumerTenant.mails[0].address
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === consumerTenant.mails[0].address
       )
     ).toBe(false);
   });

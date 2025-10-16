@@ -13,6 +13,7 @@ import {
   getRecipientsForTenants,
   ClientPurposeHandlerParams,
   retrievePurpose,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "clientAddedRemovedToProducer";
@@ -57,7 +58,7 @@ export async function handleClientPurposeRemoved(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Client disassociato da una finalità`,
@@ -71,6 +72,7 @@ export async function handleClientPurposeRemoved(
         purposeTitle: purpose.title,
       }),
     },
-    address,
+    tenantId: producer.id,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

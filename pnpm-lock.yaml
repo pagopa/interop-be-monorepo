@@ -2674,12 +2674,18 @@ importers:
       nodemailer:
         specifier: 6.9.14
         version: 6.9.14
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0

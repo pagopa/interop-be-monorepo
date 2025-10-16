@@ -14,6 +14,7 @@ import {
 import {
   EServiceHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
@@ -68,7 +69,7 @@ export async function handleEserviceDescriptorSubmittedByDelegate(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Richiesta di approvazione per una nuova versione`,
@@ -82,6 +83,7 @@ export async function handleEserviceDescriptorSubmittedByDelegate(
         ctaLabel: "Valuta la richiesta",
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

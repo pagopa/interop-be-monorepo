@@ -13,6 +13,7 @@ import {
 import {
   EServiceHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
@@ -73,7 +74,7 @@ export async function handleEserviceDescriptorPublished(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
@@ -84,6 +85,7 @@ export async function handleEserviceDescriptorPublished(
         eserviceName: eservice.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

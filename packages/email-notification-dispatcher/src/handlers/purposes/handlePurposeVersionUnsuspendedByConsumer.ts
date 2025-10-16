@@ -13,6 +13,7 @@ import {
 } from "../../services/utils.js";
 import {
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   PurposeHandlerParams,
 } from "../handlerCommons.js";
 
@@ -64,7 +65,7 @@ export async function handlePurposeVersionUnsuspendedByConsumer(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Finalità riattivata dal fruitore`,
@@ -79,6 +80,7 @@ export async function handlePurposeVersionUnsuspendedByConsumer(
         ctaLabel: `Visualizza finalità`,
       }),
     },
-    address,
+    tenantId: producer.id,
+    ...mapRecipientToEmailPayload(t),
   }));
 }
