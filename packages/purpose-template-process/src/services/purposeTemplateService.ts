@@ -74,13 +74,12 @@ import {
   assertRequesterCanRetrievePurposeTemplate,
   assertRequesterIsCreator,
   assertDocumentsLimitsNotReached,
-  assertTemplateStateNotDraft,
-  assertRequesterPurposeTemplateCreator,
   validateAndTransformRiskAnalysisTemplate,
   validateEservicesAssociations,
   validateEservicesDisassociations,
   validateRiskAnalysisTemplateOrThrow,
   validateRiskAnalysisAnswerOrThrow,
+  assertPurposeTemplateStateIsNotDraft,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -590,11 +589,7 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateState.draft,
       ]);
 
-      // Check if the requester is the creator of the purpose template
-      assertRequesterPurposeTemplateCreator(
-        purposeTemplate.data.creatorId,
-        authData
-      );
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
 
       const validatedAnswer = validateRiskAnalysisAnswerOrThrow({
         riskAnalysisAnswer: riskAnalysisTemplateAnswerRequest,
@@ -667,7 +662,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertTemplateStateNotDraft(purposeTemplate.data);
+      assertPurposeTemplateStateIsNotDraft(purposeTemplate.data);
 
       const riskAnalysisFormTemplate = retrieveRiskAnalysisFormTemplate(
         purposeTemplate.data
@@ -771,10 +766,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterPurposeTemplateCreator(
-        purposeTemplate.data.creatorId,
-        authData
-      );
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
 
       assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
 
