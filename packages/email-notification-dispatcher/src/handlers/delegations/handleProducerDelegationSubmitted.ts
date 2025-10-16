@@ -14,6 +14,7 @@ import {
 import {
   DelegationHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
@@ -65,7 +66,7 @@ export async function handleProducerDelegationSubmitted(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Hai ricevuto una richiesta di delega`,
@@ -79,6 +80,7 @@ export async function handleProducerDelegationSubmitted(
         ctaLabel: `Visualizza richiesta di delega`,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

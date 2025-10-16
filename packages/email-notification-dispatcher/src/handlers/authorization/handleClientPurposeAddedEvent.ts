@@ -13,6 +13,7 @@ import {
   getRecipientsForTenants,
   ClientPurposeHandlerParams,
   retrievePurpose,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "clientAddedRemovedToProducer";
@@ -55,7 +56,7 @@ export async function handleClientPurposeAdded(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Nuovo client associato a una finalità`,
@@ -70,6 +71,7 @@ export async function handleClientPurposeAdded(
         ctaLabel: `Visualizza richiesta`,
       }),
     },
-    address,
+    tenantId: producer.id,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

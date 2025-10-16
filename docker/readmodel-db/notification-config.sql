@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS readmodel_notification_config.user_notification_confi
   metadata_version INTEGER NOT NULL,
   user_id UUID NOT NULL,
   tenant_id UUID NOT NULL,
+  user_roles VARCHAR[] NOT NULL,
   in_app_notification_preference BOOLEAN NOT NULL,
   email_notification_preference VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
