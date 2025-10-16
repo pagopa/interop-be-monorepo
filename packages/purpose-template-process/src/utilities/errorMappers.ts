@@ -100,7 +100,7 @@ export const addPurposeTemplateAnswerAnnotationErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("purposeTemplateIsNotDraft", () => HTTP_STATUS_BAD_REQUEST)
+    .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "purposeTemplateNotFound",
       "purposeTemplateRiskAnalysisFormNotFound",
