@@ -6,7 +6,6 @@ import {
   EServiceDescriptorPurposeTemplate,
   PurposeTemplate,
   PurposeTemplateEventV2,
-  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   toEServiceV2,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   toPurposeTemplateV2,
