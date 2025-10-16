@@ -11,6 +11,7 @@ import {
   ProducerKeychain,
   Purpose,
   PurposeTemplate,
+  PurposeTemplateId,
   Tenant,
   TenantNotificationConfig,
   UserNotificationConfig,
@@ -76,8 +77,11 @@ import {
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeVersionStampInReadmodelPurpose,
+  purposeTemplateChildTables,
+  DrizzleTransactionType,
+  purposeTemplateTables,
 } from "pagopa-interop-readmodel-models";
-import { and, eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
@@ -750,6 +754,27 @@ export const upsertTenant = async (
   });
 };
 
+const updateMetadataVersionInPurposeTemplateTables = async (
+  tx: DrizzleTransactionType,
+  purposeTemplateId: PurposeTemplateId,
+  newMetadataVersion: number,
+  tables: typeof purposeTemplateTables = purposeTemplateTables
+): Promise<void> => {
+  for (const table of tables) {
+    await tx
+      .update(table)
+      .set({ metadataVersion: newMetadataVersion })
+      .where(
+        and(
+          eq(
+            "purposeTemplateId" in table ? table.purposeTemplateId : table.id,
+            purposeTemplateId
+          ),
+          lte(table.metadataVersion, newMetadataVersion)
+        )
+      );
+  }
+};
 export const upsertPurposeTemplate = async (
   readModelDB: DrizzleReturnType,
   purposeTemplate: PurposeTemplate,
@@ -767,11 +792,15 @@ export const upsertPurposeTemplate = async (
       return;
     }
 
-    await tx
-      .delete(purposeTemplateInReadmodelPurposeTemplate)
-      .where(
-        eq(purposeTemplateInReadmodelPurposeTemplate.id, purposeTemplate.id)
-      );
+    for (const table of purposeTemplateChildTables) {
+      if (
+        table !== purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+      ) {
+        await tx
+          .delete(table)
+          .where(eq(table.purposeTemplateId, purposeTemplate.id));
+      }
+    }
 
     const {
       purposeTemplateSQL,
@@ -783,7 +812,11 @@ export const upsertPurposeTemplate = async (
 
     await tx
       .insert(purposeTemplateInReadmodelPurposeTemplate)
-      .values(purposeTemplateSQL);
+      .values(purposeTemplateSQL)
+      .onConflictDoUpdate({
+        target: purposeTemplateInReadmodelPurposeTemplate.id,
+        set: purposeTemplateSQL,
+      });
 
     if (riskAnalysisFormTemplateSQL) {
       await tx
@@ -814,6 +847,13 @@ export const upsertPurposeTemplate = async (
         )
         .values(annotationDocumentSQL);
     }
+
+    await updateMetadataVersionInPurposeTemplateTables(
+      tx,
+      purposeTemplate.id,
+      metadataVersion,
+      [purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate]
+    );
   });
 };
 

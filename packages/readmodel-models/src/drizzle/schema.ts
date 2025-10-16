@@ -1973,6 +1973,7 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurpo
       prettyName: varchar("pretty_name").notNull(),
       contentType: varchar("content_type").notNull(),
       path: varchar().notNull(),
+      checksum: varchar().notNull(),
       createdAt: timestamp("created_at", {
         withTimezone: true,
         mode: "string",

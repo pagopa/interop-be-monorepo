@@ -1,5 +1,5 @@
-import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
+import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
@@ -199,6 +199,31 @@ const purposeTemplateRouter = (
             emptyErrorMapper,
             ctx,
             `Error linking e-service ${req.body.eserviceId} to purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { purposeTemplateId, answerId } = req.params;
+        try {
+          const result =
+            await purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
+              unsafeBrandId(purposeTemplateId),
+              answerId,
+              req.body,
+              ctx
+            );
+          return res.status(200).send(result);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            "Error adding annotation document"
           );
           return res.status(errorRes.status).send(errorRes);
         }

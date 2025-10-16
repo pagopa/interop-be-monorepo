@@ -24,6 +24,7 @@ import {
   linkEservicesToPurposeTemplateErrorMapper,
   unlinkEServicesFromPurposeTemplateErrorMapper,
   updatePurposeTemplateErrorMapper,
+  addPurposeTemplateAnswerAnnotationErrorMapper,
   createRiskAnalysisAnswerErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
@@ -332,6 +333,35 @@ const purposeTemplateRouter = (
       }
       return res.status(501);
     })
+    .post(
+      "/purposeTemplates/:id/riskAnalysis/answers/:answerId/annotation/documents",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          const result =
+            await purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
+              unsafeBrandId(req.params.id),
+              req.params.answerId,
+              req.body,
+              ctx
+            );
+
+          setMetadataVersionHeader(res, result.metadata);
+          return res
+            .status(200)
+            .send(annotationDocumentToApiAnnotationDocument(result.data));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addPurposeTemplateAnswerAnnotationErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send();
+        }
+      }
+    )
     .get(
       "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId",
       async (req, res) => {
