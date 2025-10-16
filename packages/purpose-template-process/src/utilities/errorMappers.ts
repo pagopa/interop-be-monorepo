@@ -96,6 +96,27 @@ export const updatePurposeTemplateErrorMapper = (
     .with("purposeTemplateNameConflict", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const addPurposeTemplateAnswerAnnotationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "purposeTemplateNotFound",
+      "purposeTemplateRiskAnalysisFormNotFound",
+      "riskAnalysisTemplateAnswerNotFound",
+      "riskAnalysisTemplateAnswerAnnotationNotFound",
+      "riskAnalysisTemplateAnswerAnnotationDocumentNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "conflictDocumentPrettyNameDuplicate",
+      "conflictDuplicatedDocument",
+      "annotationDocumentLimitExceeded",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const createRiskAnalysisAnswerErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -140,6 +161,20 @@ export const addRiskAnalysisAnswerAnnotationErrorMapper = (
       "purposeTemplateRiskAnalysisFormNotFound",
       () => HTTP_STATUS_INTERNAL_SERVER_ERROR
     )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const publishPurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "purposeTemplateNotInExpectedStates",
+      "riskAnalysisTemplateValidationFailed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("purposeTemplateStateConflict", () => HTTP_STATUS_CONFLICT)
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deletePurposeTemplateErrorMapper = (
