@@ -150,6 +150,17 @@ export function riskAnalysisTemplateAnswerNotFound(
   });
 }
 
+export function riskAnalysisTemplateAnswerAnnotationNotFound(
+  purposeTemplateId: PurposeTemplateId,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Risk Analysis Template Answer Annotation found for Purpose Template ${purposeTemplateId} and Answer ${answerId}`,
+    code: "riskAnalysisTemplateAnswerAnnotationNotFound",
+    title: "Risk Analysis Template Answer Annotation Not Found",
+  });
+}
+
 export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
   purposeTemplateId: PurposeTemplateId,
   answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
