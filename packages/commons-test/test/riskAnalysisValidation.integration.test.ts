@@ -507,8 +507,8 @@ describe("Risk Analysis Validation", () => {
     const riskAnalysisForm: RiskAnalysisFormToValidate = {
       ...validRiskAnalysis2_0_Private,
       answers: {
-        usesPersonalData: ["YES"],
         ...validRiskAnalysis2_0_Private.answers,
+        usesPersonalData: ["YES"],
       },
     };
     expect(
