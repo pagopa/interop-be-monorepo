@@ -29,6 +29,7 @@ import {
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
+  purposeTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
@@ -66,6 +67,8 @@ export const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 export const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
+export const purposeTemplateReadModelServiceSQL =
+  purposeTemplateReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -74,6 +77,7 @@ export const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
+  purposeTemplateReadModelServiceSQL,
 });
 
 const testBrowserInstance: Browser = await launchPuppeteerBrowser({

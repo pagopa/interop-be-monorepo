@@ -50,6 +50,9 @@ export const errorCodes = {
   tenantIsNotTheDelegate: "0031",
   purposeTemplateNotFound: "0032",
   eserviceNotLinkedToPurposeTemplate: "0033",
+  purposeTemplateMissingNotEditableFieldValue: "0034",
+  riskAnalysisContainsNotEditableAnswers: "0035",
+  riskAnalysisAnswerNotInSuggestValues: "0036",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -399,5 +402,37 @@ export function eserviceNotLinkedToPurpose(
     detail: `EService ${eserviceId} is not linked to Purpose template ${purposeTemplateId}`,
     code: "eserviceNotLinkedToPurposeTemplate",
     title: "EService not linked to Purpose template",
+  });
+}
+export function purposeTemplateMissingNotEditableFieldValue(
+  purposeTemplateId: PurposeTemplateId,
+  key: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis in Purpose template ${purposeTemplateId} is missing a value for not editable field with key ${key}`,
+    code: "purposeTemplateMissingNotEditableFieldValue",
+    title: "Purpose template missing value for not editable value",
+  });
+}
+
+export function riskAnalysisContainsNotEditableAnswers(
+  purposeTemplateId: PurposeTemplateId,
+  key: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis contains not editable answers for key ${key} in purpose template ${purposeTemplateId}`,
+    code: "riskAnalysisContainsNotEditableAnswers",
+    title: "Risk analysis contains not editable answers",
+  });
+}
+
+export function riskAnalysisAnswerNotInSuggestValues(
+  purposeTemplateId: PurposeTemplateId,
+  key: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis answer not in suggest values for key ${key} in purpose template ${purposeTemplateId}`,
+    code: "riskAnalysisAnswerNotInSuggestValues",
+    title: "Risk analysis answer not in suggest values",
   });
 }

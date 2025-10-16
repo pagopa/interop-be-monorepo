@@ -43,11 +43,7 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   RiskAnalysis,
-  RiskAnalysisFormTemplate,
   RiskAnalysisId,
-  RiskAnalysisTemplateAnswer,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisTemplateSingleAnswer,
   Tenant,
   TenantId,
   TenantKind,
@@ -58,6 +54,7 @@ import {
   purposeVersionState,
   unsafeBrandId,
   UserId,
+  PurposeVersionStamps,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -133,6 +130,7 @@ import {
   purposeIsArchived,
   purposeIsDraft,
   validateAndTransformRiskAnalysis,
+  validateRiskAnalysisAgainstTemplateOrThrow,
   validateRiskAnalysisOrThrow,
   verifyRequesterIsConsumerOrDelegateConsumer,
 } from "./validators.js";
@@ -290,102 +288,6 @@ async function retrieveEserviceDescriptorFromPurposeTemplate(
   }
 
   return eserviceDescriptorPurposeTemplate;
-}
-
-function getAnswerToUpdate(
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed,
-  { answer, type }: RiskAnalysisTemplateAnswer
-): string[] {
-  if (!answer.editable) {
-    if (riskAnalysisForm.answers[answer.key]) {
-      throw riskAnalysisContainsNotEditableAnswers();
-    }
-
-    const answerValueByTemplate =
-      type === "single" ? (answer.value ? [answer.value] : []) : answer.values;
-
-    if (answerValueByTemplate.some((a) => !a)) {
-      throw purposeTemplateInvalid();
-    }
-
-    return answerValueByTemplate;
-  }
-
-  const curAnswerSeed = riskAnalysisForm.answers[answer.key];
-  if (
-    type === "single" &&
-    answer.suggestedValues.length > 0 &&
-    curAnswerSeed &&
-    curAnswerSeed.some((v: string) => !answer.suggestedValues.includes(v))
-  ) {
-    throw riskAnalysisAnswerNotInSuggestValues(answer.key);
-  }
-
-  return curAnswerSeed;
-}
-
-function validateRiskAnalysisAgainstTemplateOrThrow(
-  purposeTemplate: PurposeTemplate,
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
-  tenantKind: TenantKind,
-  createdAt: Date
-): PurposeRiskAnalysisForm | undefined {
-  if (!purposeTemplate.purposeRiskAnalysisForm || !riskAnalysisForm) {
-    return undefined;
-  }
-
-  const answersToValidate = {};
-
-  const accFn = (
-    answerField: keyof Pick<
-      RiskAnalysisFormTemplate,
-      "singleAnswers" | "multiAnswers"
-    >,
-    riskAnalysis: purposeApi.RiskAnalysisFormSeed,
-    riskAnalysisFormTemplate: RiskAnalysisFormTemplate
-  ): Record<string, string[]> =>
-    riskAnalysisFormTemplate[answerField]
-      .map((a) =>
-        answerField === "singleAnswers"
-          ? ({
-              type: "single" as const,
-              answer: a,
-            } as RiskAnalysisTemplateAnswer)
-          : ({
-              type: "multi" as const,
-              answer: a,
-            } as RiskAnalysisTemplateAnswer)
-      )
-      .reduce(
-        (acc, answer: RiskAnalysisTemplateAnswer) => ({
-          ...acc,
-          [answer.answer.key]: getAnswerToUpdate(riskAnalysis, answer),
-        }),
-        answersToValidate
-      );
-
-  const formToValidate: purposeApi.RiskAnalysisFormSeed = {
-    version: purposeTemplate.purposeRiskAnalysisForm.version,
-    answers: {
-      ...accFn(
-        "singleAnswers",
-        riskAnalysisForm,
-        purposeTemplate.purposeRiskAnalysisForm
-      ),
-      ...accFn(
-        "multiAnswers",
-        riskAnalysisForm,
-        purposeTemplate.purposeRiskAnalysisForm
-      ),
-    },
-  };
-
-  return validateAndTransformRiskAnalysis(
-    formToValidate,
-    false,
-    tenantKind,
-    createdAt
-  );
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
