@@ -18,7 +18,7 @@ import {
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
-  "delegationSubmittedRevokedToDelegate";
+  "eserviceNewVersionSubmittedToDelegator";
 
 export async function handleEserviceDescriptorSubmittedByDelegate(
   data: EServiceHandlerParams
