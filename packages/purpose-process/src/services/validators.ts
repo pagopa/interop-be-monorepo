@@ -529,7 +529,10 @@ function buildSingleOrMultiAnswerValue(
           : []
         : templateAnswer.values;
 
-    if (answerValueByTemplate.some((a) => !a)) {
+    if (
+      !answerValueByTemplate.length ||
+      answerValueByTemplate.some((a) => !a)
+    ) {
       throw purposeTemplateMissingNotEditableFieldValue(
         templateId,
         templateAnswer.key

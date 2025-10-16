@@ -704,7 +704,7 @@ const purposeRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const {
-          data: { purpose },
+          data: { purpose, isRiskAnalysisValid },
           metadata,
         } = await purposeService.createPurposeFromTemplate(
           unsafeBrandId<PurposeTemplateId>(req.params.purposeTemplateId),
@@ -714,7 +714,13 @@ const purposeRouter = (
 
         setMetadataVersionHeader(res, metadata);
 
-        return res.status(200).send(purposeApi.Purpose.parse(purpose));
+        return res
+          .status(200)
+          .send(
+            purposeApi.Purpose.parse(
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(error, createPurposeErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);

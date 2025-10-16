@@ -1,0 +1,46 @@
+meta {
+  name: Create Purpose From Template
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-purpose}}/templates/:purposeTemplateId/purposes
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "eserviceId": "{{eserviceId}}",
+      "consumerId": "{{tenantId}}",
+      "title": "{{randomName}}",
+      "dailyCalls": 100,
+      "riskAnalysisForm": {
+          "version": "3.0",
+          "answers": {
+              "institutionalPurpose": ["MyPurpose"]
+          }
+      }
+  }
+}
+
+vars:post-response {
+  purposeId: res.body.id
+  purposeVersionId: res.body.versions.at(-1).id
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
+}
