@@ -44,7 +44,6 @@ import {
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
-  riskAnalysisTemplateAnswerNotFound,
   ruleSetNotFoundError,
   riskAnalysisAnswerNotFound,
 } from "../model/domain/errors.js";
@@ -177,7 +176,9 @@ const updatePurposeTemplateWithoutAnnotation = async (
     readModelService
   );
 
-  assertPurposeTemplateObjectsAreDeletable(purposeTemplate.data, authData);
+  assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+  assertPurposeTemplateIsDraft(purposeTemplate.data);
+  assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
 
   const purposeTemplateRiskAnalysisForm =
     purposeTemplate.data.purposeRiskAnalysisForm;
