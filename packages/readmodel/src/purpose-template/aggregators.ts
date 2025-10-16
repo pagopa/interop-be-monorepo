@@ -401,6 +401,7 @@ export const toRiskAnalysisTemplateAnswerAnnotationDocument = (
   contentType: annotationDocumentSQL.contentType,
   path: annotationDocumentSQL.path,
   createdAt: stringToDate(annotationDocumentSQL.createdAt),
+  checksum: annotationDocumentSQL.checksum,
 });
 
 export const aggregateRiskAnalysisTemplateAnswerAnnotation = ({

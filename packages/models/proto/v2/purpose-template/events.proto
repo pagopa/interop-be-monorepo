@@ -46,6 +46,11 @@ message PurposeTemplateArchivedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
 }
 
+message PurposeTemplateAnnotationDocumentAddedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+  string documentId = 2;
+}
+
 message PurposeTemplateAnnotationDocumentDeletedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
   string documentId = 2;

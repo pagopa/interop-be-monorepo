@@ -25,14 +25,19 @@ export const errorCodes = {
   purposeTemplateStateConflict: "0008",
   purposeTemplateRiskAnalysisFormNotFound: "0009",
   riskAnalysisTemplateAnswerNotFound: "0010",
-  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0011",
-  associationEServicesForPurposeTemplateFailed: "0012",
-  associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0013",
-  tooManyEServicesForPurposeTemplate: "0014",
-  disassociationEServicesFromPurposeTemplateFailed: "0015",
-  associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0016",
-  hyperlinkDetectionError: "0017",
-  riskAnalysisAnswerNotFound: "0018",
+  riskAnalysisTemplateAnswerAnnotationNotFound: "0011",
+  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0012",
+  associationEServicesForPurposeTemplateFailed: "0013",
+  associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0014",
+  tooManyEServicesForPurposeTemplate: "0015",
+  disassociationEServicesFromPurposeTemplateFailed: "0016",
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0017",
+  conflictDocumentPrettyNameDuplicate: "0018",
+  annotationDocumentLimitExceeded: "0019",
+  conflictDuplicatedDocument: "0020",
+  hyperlinkDetectionError: "0021",
+  purposeTemplateNotInValidState: "0022",
+  riskAnalysisAnswerNotFound: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -145,6 +150,17 @@ export function riskAnalysisTemplateAnswerNotFound(
   });
 }
 
+export function riskAnalysisTemplateAnswerAnnotationNotFound(
+  purposeTemplateId: PurposeTemplateId,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Risk Analysis Template Answer Annotation found for Purpose Template ${purposeTemplateId} and Answer ${answerId}`,
+    code: "riskAnalysisTemplateAnswerAnnotationNotFound",
+    title: "Risk Analysis Template Answer Annotation Not Found",
+  });
+}
+
 export function riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
   purposeTemplateId: PurposeTemplateId,
   answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
@@ -213,6 +229,48 @@ export function associationBetweenEServiceAndPurposeTemplateDoesNotExist(
     detail: `Association between e-services and purpose template does not exist. Reasons: ${reasons} Eservices: ${eserviceIds} Purpose template: ${purposeTemplateId}`,
     code: "associationBetweenEServiceAndPurposeTemplateDoesNotExist",
     title: "Association between e-services and purpose template does not exist",
+  });
+}
+
+export function conflictDocumentPrettyNameDuplicate(
+  answerId: string,
+  prettyName: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Conflict: annotation document with pretty name '${prettyName}' is duplicated for answer with id '${answerId}'`,
+    code: "conflictDocumentPrettyNameDuplicate",
+    title: "Annotation document with pretty name already exists",
+  });
+}
+
+export function annotationDocumentLimitExceeded(
+  answerId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Annotation document limit exceeded for answer with id '${answerId}'`,
+    code: "annotationDocumentLimitExceeded",
+    title: "Annotation document limit exceeded",
+  });
+}
+
+export function conflictDuplicatedDocument(
+  answerId: string,
+  checksum: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Conflict: annotation document with checksum '${checksum}' is duplicated for answer with id '${answerId}'`,
+    code: "conflictDuplicatedDocument",
+    title: "Conflict: annotation document with checksum already exists",
+  });
+}
+export function purposeTemplateNotInValidState(
+  state: PurposeTemplateState,
+  validStates: PurposeTemplateState[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose template state is: ${state} but valid states are: ${validStates}`,
+    code: "purposeTemplateNotInValidState",
+    title: "Purpose template not in valid state",
   });
 }
 

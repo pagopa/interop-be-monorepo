@@ -20,6 +20,7 @@ export async function handleMessageV2(
       { type: "PurposeTemplateUnsuspended" },
       { type: "PurposeTemplateSuspended" },
       { type: "PurposeTemplateArchived" },
+      { type: "PurposeTemplateAnnotationDocumentAdded" },
       { type: "PurposeTemplateAnnotationDocumentDeleted" },
       async (msg) => {
         if (!msg.data.purposeTemplate) {

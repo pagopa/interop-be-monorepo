@@ -13,6 +13,7 @@ import {
   PurposeTemplatePublishedV2,
   PurposeTemplateSuspendedV2,
   PurposeTemplateUnsuspendedV2,
+  PurposeTemplateAnnotationDocumentAddedV2,
 } from "../gen/v2/purpose-template/events.js";
 
 export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
@@ -63,6 +64,11 @@ export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
+    type: z.literal("PurposeTemplateAnnotationDocumentAdded"),
+    data: protobufDecoder(PurposeTemplateAnnotationDocumentAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
     type: z.literal("PurposeTemplateAnnotationDocumentDeleted"),
     data: protobufDecoder(PurposeTemplateAnnotationDocumentDeletedV2),
   }),
@@ -99,6 +105,12 @@ export function purposeTemplateEventToBinaryDataV2(
     )
     .with({ type: "PurposeTemplateArchived" }, (e) =>
       PurposeTemplateArchivedV2.toBinary(e.data)
+    )
+    .with(
+      {
+        type: "PurposeTemplateAnnotationDocumentAdded",
+      },
+      (e) => PurposeTemplateAnnotationDocumentAddedV2.toBinary(e.data)
     )
     .with({ type: "PurposeTemplateAnnotationDocumentDeleted" }, (e) =>
       PurposeTemplateAnnotationDocumentDeletedV2.toBinary(e.data)
