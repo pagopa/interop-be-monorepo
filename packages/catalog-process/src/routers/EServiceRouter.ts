@@ -75,7 +75,8 @@ import {
   updateAgreementApprovalPolicyErrorMapper,
   updateEServiceSignalhubFlagErrorMapper,
   documentListErrorMapper,
-  updateEServicePersonalDataErrorMapper,
+  updateEServicePersonalDataFlagErrorMapper,
+  updateTemplateInstancePersonalDataErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 import { config } from "../config/config.js";
@@ -1244,6 +1245,30 @@ const eservicesRouter = (
       }
     )
     .post(
+      "/internal/templates/eservices/:eServiceId/personalDataFlag",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          await catalogService.internalUpdateTemplateInstancePersonalDataFlag(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.personalData,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTemplateInstancePersonalDataErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
       "/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/voucherLifespan/update",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -1502,7 +1527,7 @@ const eservicesRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          updateEServicePersonalDataErrorMapper,
+          updateEServicePersonalDataFlagErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
