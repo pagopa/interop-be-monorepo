@@ -368,11 +368,11 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         PurposeTemplateDbTable.purpose_template_risk_analysis_answer
       );
-      const riskAnalysisTemplateAnswerAnnotationsSQL = await getManyFromDb(
+      const riskAnalysisTemplateAnswersAnnotationsSQL = await getManyFromDb(
         dbContext,
         PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation
       );
-      const riskAnalysisTemplateAnswerAnnotationDocumentsSQL =
+      const riskAnalysisTemplateAnswersAnnotationsDocumentsSQL =
         await getManyFromDb(
           dbContext,
           PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document
@@ -385,10 +385,13 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
           (ra) => ({
             ...ra,
             value: JSON.parse(ra.value),
+            suggestedValues: ra.suggestedValues
+              ? JSON.parse(ra.suggestedValues)
+              : null,
           })
         ),
-        riskAnalysisTemplateAnswerAnnotationsSQL,
-        riskAnalysisTemplateAnswerAnnotationDocumentsSQL,
+        riskAnalysisTemplateAnswersAnnotationsSQL,
+        riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
       });
     },
   };
