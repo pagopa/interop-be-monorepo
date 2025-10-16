@@ -25160,6 +25160,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        handlesPersonalData:
+          type: boolean
       required:
         - id
         - targetDescription
@@ -25170,6 +25172,7 @@ components:
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
+        - handlesPersonalData
     PurposeTemplateSeed:
       type: object
       additionalProperties: false
