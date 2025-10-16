@@ -50,10 +50,12 @@ describe("handleConsumerDelegationSubmitted", async () => {
   };
   const delegatorTenant: Tenant = {
     ...getMockTenant(delegatorId),
+    name: "Delegator Tenant",
     mails: [getMockTenantMail()],
   };
   const delegateTenant: Tenant = {
     ...getMockTenant(delegateId),
+    name: "Delegate Tenant",
     mails: [getMockTenantMail()],
   };
   const users = [
@@ -270,7 +272,7 @@ describe("handleConsumerDelegationSubmitted", async () => {
       match(message.type)
         .with("User", () => {
           expect(message.email.body).toContain("{{ recipientName }}");
-          expect(message.email.body).toContain(delegateTenant.name);
+          expect(message.email.body).toContain(delegatorTenant.name);
           expect(message.email.body).toContain(eservice.name);
         })
         .with("Tenant", () => {

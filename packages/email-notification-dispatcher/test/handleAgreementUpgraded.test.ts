@@ -43,8 +43,14 @@ describe("handleAgreementUpgraded", async () => {
     id: eserviceId,
     descriptors: [descriptor],
   };
-  const producerTenant = getMockTenant(producerId);
-  const consumerTenant = getMockTenant(consumerId);
+  const producerTenant = {
+    ...getMockTenant(producerId),
+    name: "Producer Tenant",
+  };
+  const consumerTenant = {
+    ...getMockTenant(consumerId),
+    name: "Consumer Tenant",
+  };
   const users = [
     getMockUser(producerTenant.id),
     getMockUser(producerTenant.id),

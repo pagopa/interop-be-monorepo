@@ -50,10 +50,12 @@ describe("handleProducerDelegationRejected", async () => {
   };
   const delegatorTenant: Tenant = {
     ...getMockTenant(delegatorId),
+    name: "Delegator Tenant",
     mails: [getMockTenantMail()],
   };
   const delegateTenant: Tenant = {
     ...getMockTenant(delegateId),
+    name: "Delegate Tenant",
     mails: [getMockTenantMail()],
   };
   const users = [
@@ -245,8 +247,8 @@ describe("handleProducerDelegationRejected", async () => {
   it("should generate a complete and correct message", async () => {
     const delegation = getMockDelegation({
       kind: "DelegatedProducer",
-      delegatorId: delegateTenant.id,
-      delegateId: delegatorTenant.id,
+      delegatorId: delegatorTenant.id,
+      delegateId: delegateTenant.id,
       eserviceId: eservice.id,
     });
     await addOneDelegation(delegation);
