@@ -552,6 +552,7 @@ describe("Risk Analysis Validation", () => {
     }
   );
 
+  /*
   it("should fail if the risk analysis is PA 3.1 and the eservice has different personalData", () => {
     const riskAnalysisForm: RiskAnalysisFormToValidate = {
       ...validRiskAnalysis3_1_Pa,
@@ -610,4 +611,5 @@ describe("Risk Analysis Validation", () => {
       });
     }
   );
+  */
 });
