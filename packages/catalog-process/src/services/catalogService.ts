@@ -3362,6 +3362,7 @@ export function catalogServiceBuilder(
               seed.isSignalHubEnabled ?? template.isSignalHubEnabled,
             isConsumerDelegable: seed.isConsumerDelegable ?? false,
             isClientAccessDelegable: seed.isClientAccessDelegable ?? false,
+            personalData: template.personalData,
           },
           template: {
             id: template.id,
