@@ -114,9 +114,7 @@ export async function handlePurposeDocument(
           "PurposeVersionArchivedByRevokedDelegation"
         ),
       },
-      (event) => {
-        logger.info(`Skipping not relevant event type: ${event.type}`);
-      }
+      () => Promise.resolve()
     )
     .exhaustive();
 }

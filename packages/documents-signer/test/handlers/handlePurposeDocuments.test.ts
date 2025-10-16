@@ -118,7 +118,7 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
     ).not.toHaveBeenCalled();
   });
 
-  it("should log info for irrelevant events", async () => {
+  it("should not log info for irrelevant events", async () => {
     const event = {
       type: "PurposeAdded",
       data: { purpose: { id: "purpose-id" } },
@@ -132,9 +132,6 @@ describe("handlePurposeDocument (integration with testcontainers)", () => {
       loggerMock
     );
 
-    expect(loggerMock.info).toHaveBeenCalledWith(
-      "Skipping not relevant event type: PurposeAdded"
-    );
     expect(fileManagerMock.get).not.toHaveBeenCalled();
     expect(safeStorageServiceMock.createFile).not.toHaveBeenCalled();
     expect(

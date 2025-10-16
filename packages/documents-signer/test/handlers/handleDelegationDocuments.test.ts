@@ -85,7 +85,7 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
     );
   });
 
-  it("should log info for irrelevant events", async () => {
+  it("should not log info for irrelevant events", async () => {
     const event = {
       type: "ProducerDelegationSubmitted",
       data: { delegation: { id: "delegation-id" } },
@@ -99,9 +99,6 @@ describe("handleDelegationDocument (integration with testcontainers)", () => {
       loggerMock
     );
 
-    expect(loggerMock.info).toHaveBeenCalledWith(
-      "Skipping not relevant event type: ProducerDelegationSubmitted"
-    );
     expect(fileManagerMock.get).not.toHaveBeenCalled();
     expect(safeStorageServiceMock.createFile).not.toHaveBeenCalled();
     expect(

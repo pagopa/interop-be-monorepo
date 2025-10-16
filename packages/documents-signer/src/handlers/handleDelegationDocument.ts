@@ -78,9 +78,7 @@ export async function handleDelegationDocument(
           "ConsumerDelegationRevoked"
         ),
       },
-      (event) => {
-        logger.info(`Skipping not relevant event type: ${event.type}`);
-      }
+      () => Promise.resolve()
     )
     .exhaustive();
 }
