@@ -36,7 +36,9 @@ export async function handleMessageV2(
       {
         type: P.union(
           "UserNotificationConfigCreated",
-          "UserNotificationConfigUpdated"
+          "UserNotificationConfigUpdated",
+          "UserNotificationConfigRoleAdded",
+          "UserNotificationConfigRoleRemoved"
         ),
       },
       async (message) => {
