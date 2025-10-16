@@ -69,7 +69,7 @@ export async function handlePurposeArchived(
         notificationType,
         entityId: purpose.id,
         consumerName: consumer.name,
-        producerName: producer.name,
+        ...(t.type === "Tenant" ? { producerName: producer.name } : {}),
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza finalità`,

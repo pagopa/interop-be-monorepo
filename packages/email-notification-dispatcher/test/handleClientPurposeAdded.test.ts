@@ -22,6 +22,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import {
   eServiceNotFound,
   purposeNotFound,
@@ -54,10 +55,12 @@ describe("handleClientPurposeAdded", async () => {
   };
   const producerTenant: Tenant = {
     ...getMockTenant(producerId),
+    name: "Producer Tenant",
     mails: [getMockTenantMail()],
   };
   const consumerTenant: Tenant = {
     ...getMockTenant(consumerId),
+    name: "Consumer Tenant",
     mails: [getMockTenantMail()],
   };
   const users = [
@@ -258,9 +261,18 @@ describe("handleClientPurposeAdded", async () => {
       expect(message.email.body).toContain(
         `Nuovo client associato a una finalità`
       );
-      expect(message.email.body).toContain(consumerTenant.name);
-      expect(message.email.body).toContain(producerTenant.name);
-      expect(message.email.body).toContain(eservice.name);
+      match(message.type)
+        .with("User", () => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+          expect(message.email.body).toContain(consumerTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(producerTenant.name);
+          expect(message.email.body).toContain(consumerTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .exhaustive();
       expect(message.email.body).toContain(purpose.title);
       expect(message.email.body).toContain(`Visualizza richiesta`);
     });

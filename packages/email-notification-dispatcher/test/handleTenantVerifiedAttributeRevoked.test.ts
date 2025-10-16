@@ -22,6 +22,7 @@ import {
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { handleTenantVerifiedAttributeRevoked } from "../src/handlers/tenants/handleTenantVerifiedAttributeRevoked.js";
 import { attributeNotFound } from "../src/models/errors.js";
 import {
@@ -56,10 +57,14 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
 
   const targetTenant: Tenant = {
     ...getMockTenant(targetTenantId),
+    name: "Target Tenant",
     mails: [getMockTenantMail()],
     attributes: [tenantAttribute],
   };
-  const verifierTenant = getMockTenant(verifierTenantId);
+  const verifierTenant = {
+    ...getMockTenant(verifierTenantId),
+    name: "Verifier Tenant",
+  };
   const users = [getMockUser(targetTenantId), getMockUser(targetTenantId)];
 
   const { logger } = getMockContext({});
@@ -244,8 +249,16 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
       expect(message.email.body).toContain(
         `Un tuo attributo verificato è stato revocato`
       );
-      expect(message.email.body).toContain(verifierTenant.name);
-      expect(message.email.body).toContain(targetTenant.name);
+      match(message.type)
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(verifierTenant.name);
+          expect(message.email.body).toContain(targetTenant.name);
+        })
+        .with("User", () => {
+          expect(message.email.body).toContain(verifierTenant.name);
+          expect(message.email.body).toContain("{{ recipientName }}");
+        })
+        .exhaustive();
       expect(message.email.body).toContain(attribute.name);
     });
   });

@@ -11,6 +11,7 @@ import { TooManyRequestsException } from "@aws-sdk/client-sesv2";
 import { match } from "ts-pattern";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import { TenantReadModelService } from "pagopa-interop-readmodel";
+import { HtmlTemplateService } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -21,14 +22,15 @@ export function emailSenderProcessorBuilder(
   },
   sesEmailManager: EmailManagerSES,
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient,
-  tenantReadModelService: TenantReadModelService
+  tenantReadModelService: TenantReadModelService,
+  templateService: HtmlTemplateService
 ) {
   return {
     async getUserFromSelfcare(
       userId: UserId,
       tenantId: TenantId,
       loggerInstance: Logger
-    ): Promise<string | undefined> {
+    ): Promise<{ email: string; name: string } | undefined> {
       const tenant = await tenantReadModelService.getTenantById(tenantId);
       if (!tenant) {
         throw genericInternalError(
@@ -70,7 +72,7 @@ export function emailSenderProcessorBuilder(
             return undefined;
           }
 
-          const email = resp[0].email;
+          const { email, name, surname } = resp[0];
           if (!email) {
             loggerInstance.error(
               `User ${userId} in tenant ${tenantId} has no email in Selfcare`
@@ -78,7 +80,7 @@ export function emailSenderProcessorBuilder(
             return undefined;
           }
 
-          return email;
+          return { email, name: `${name} ${surname}` };
         } catch (error) {
           lastError = error;
           if (
@@ -149,13 +151,29 @@ export function emailSenderProcessorBuilder(
         `Consuming message for partition ${partition} with offset ${message.offset}`
       );
 
-      const address = await match(jsonPayload)
-        .with({ type: "User" }, async ({ userId, tenantId }) =>
-          this.getUserFromSelfcare(userId, tenantId, loggerInstance)
-        )
-        .with({ type: "Tenant" }, ({ address }) => address)
+      const emailMessage = await match(jsonPayload)
+        .with({ type: "User" }, async ({ userId, tenantId }) => {
+          const user = await this.getUserFromSelfcare(
+            userId,
+            tenantId,
+            loggerInstance
+          );
+          return user
+            ? {
+                to: user.email,
+                html: templateService.compileHtml(jsonPayload.email.body, {
+                  recipientName: `${user.name}`,
+                }),
+              }
+            : undefined;
+        })
+        .with({ type: "Tenant" }, ({ address }) => ({
+          to: address,
+          html: jsonPayload.email.body,
+        }))
         .exhaustive();
-      if (address === undefined) {
+
+      if (emailMessage === undefined) {
         loggerInstance.info(
           `Skipping message, it is not possible to retrieve the email for user ${
             jsonPayload.type === "User" ? jsonPayload.userId : ""
@@ -168,8 +186,8 @@ export function emailSenderProcessorBuilder(
       const mailOptions = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: jsonPayload.email.subject,
-        to: [address],
-        html: jsonPayload.email.body,
+        to: [emailMessage.to],
+        html: emailMessage.html,
       };
 
       let sent = false;

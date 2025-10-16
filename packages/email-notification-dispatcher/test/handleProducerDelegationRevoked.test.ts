@@ -22,6 +22,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
 import { handleProducerDelegationRevoked } from "../src/handlers/delegations/handleProducerDelegationRevoked.js";
 import {
@@ -49,10 +50,12 @@ describe("handleProducerDelegationRevoked", async () => {
   };
   const delegatorTenant: Tenant = {
     ...getMockTenant(delegatorId),
+    name: "Delegator Tenant",
     mails: [getMockTenantMail()],
   };
   const delegateTenant: Tenant = {
     ...getMockTenant(delegateId),
+    name: "Delegate Tenant",
     mails: [getMockTenantMail()],
   };
   const users = [
@@ -266,9 +269,18 @@ describe("handleProducerDelegationRevoked", async () => {
       expect(message.email.body).toContain(
         `Una delega che gestivi è stata revocata`
       );
-      expect(message.email.body).toContain(delegatorTenant.name);
-      expect(message.email.body).toContain(delegateTenant.name);
-      expect(message.email.body).toContain(eservice.name);
+      match(message)
+        .with({ type: "User" }, (message) => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+          expect(message.email.body).toContain(delegatorTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .with({ type: "Tenant" }, (message) => {
+          expect(message.email.body).toContain(delegatorTenant.name);
+          expect(message.email.body).toContain(delegateTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .exhaustive();
     });
   });
 });

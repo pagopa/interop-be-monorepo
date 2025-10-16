@@ -54,7 +54,10 @@
         color: #17324d;
       "
     >
-      <p style="margin-bottom: 0px">Gentile aderente,</p>
+      <p style="margin-bottom: 0px">
+        Gentile
+        <strong>{{ preservePlaceholderIfMissing "recipientName" }}</strong>,
+      </p>
     </div>
   </td>
 </tr>

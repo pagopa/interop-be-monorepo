@@ -19,6 +19,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
 import { handleAgreementSubmitted } from "../src/handlers/agreements/handleAgreementSubmitted.js";
 import {
@@ -43,8 +44,14 @@ describe("handleAgreementSubmitted", async () => {
     id: eserviceId,
     descriptors: [descriptor],
   };
-  const producerTenant = getMockTenant(producerId);
-  const consumerTenant = getMockTenant(consumerId);
+  const producerTenant = {
+    ...getMockTenant(producerId),
+    name: "Producer Tenant",
+  };
+  const consumerTenant = {
+    ...getMockTenant(consumerId),
+    name: "Consumer Tenant",
+  };
   const users = [
     getMockUser(producerTenant.id),
     getMockUser(producerTenant.id),
@@ -258,8 +265,18 @@ describe("handleAgreementSubmitted", async () => {
       expect(message.email.body).toContain(
         `Nuova richiesta di fruizione per un tuo e-service`
       );
-      expect(message.email.body).toContain(producerTenant.name);
-      expect(message.email.body).toContain(eservice.name);
+      match(message.type)
+        .with("User", () => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+          expect(message.email.body).toContain(consumerTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(producerTenant.name);
+          expect(message.email.body).toContain(consumerTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .exhaustive();
       expect(message.email.body).toContain(`Visualizza richiesta`);
     });
   });

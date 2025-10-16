@@ -70,7 +70,7 @@ export async function handlePurposeVersionRejected(
         title: `La tua finalità "${purpose.title}" è stata rifiutata`,
         notificationType,
         entityId: purpose.id,
-        consumerName: consumer.name,
+        ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         producerName: producer.name,
         eserviceName: eservice.name,
         purposeTitle: purpose.title,

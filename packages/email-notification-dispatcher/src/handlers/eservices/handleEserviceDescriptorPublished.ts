@@ -82,6 +82,7 @@ export async function handleEserviceDescriptorPublished(
         title: "Nuova versione di un e-service",
         notificationType,
         entityId: descriptor.id,
+        ...(t.type === "Tenant" ? { recipientName: "aderente" } : {}),
         eserviceName: eservice.name,
       }),
     },
