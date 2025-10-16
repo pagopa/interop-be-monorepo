@@ -1966,4 +1966,35 @@ describe("get eservices", () => {
       );
     }
   );
+
+  it("should get all the eServices if they exist (parameters: personalData = undefined)", async () => {
+    const result = await catalogService.getEServices(
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        templatesIds: [],
+        personalData: undefined,
+      },
+      0,
+      50,
+      getMockContext({
+        authData: getMockAuthData(organizationId3),
+      })
+    );
+
+    expect(result.totalCount).toBe(6);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+      ])
+    );
+  });
 });
