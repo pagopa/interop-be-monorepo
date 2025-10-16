@@ -25237,6 +25237,9 @@ components:
       type: object
       additionalProperties: false
       properties:
+        id:
+          type: string
+          format: uuid
         values:
           type: array
           items:
@@ -25254,6 +25257,7 @@ components:
             minLength: 1
             maxLength: 250
       required:
+        - id
         - values
         - editable
         - suggestedValues
