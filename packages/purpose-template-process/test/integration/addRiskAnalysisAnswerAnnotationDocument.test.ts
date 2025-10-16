@@ -33,8 +33,8 @@ import {
   conflictDocumentPrettyNameDuplicate,
   conflictDuplicatedDocument,
   purposeTemplateNotFound,
+  purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
-  purposeTemplateStateNotDraft,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
 } from "../../src/model/domain/errors.js";
@@ -208,7 +208,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     );
   });
 
-  it("should throw purposeTemplateStateNotDraft error when purpose template is not in draft state", async () => {
+  it("should throw purposeTemplateNotInExpectedStates error when purpose template is not in draft state", async () => {
     const publishedPurposeTemplate: PurposeTemplate = {
       ...existentPurposeTemplate,
       state: purposeTemplateState.active,
@@ -217,15 +217,19 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
 
     await expect(
       purposeTemplateService.addRiskAnalysisTemplateAnswerAnnotationDocument(
-        existentPurposeTemplate.id,
+        publishedPurposeTemplate.id,
         subjectSingleAnswer.id,
         validAnnotationDocumentSeed,
         getMockContext({
-          authData: getMockAuthData(existentPurposeTemplate.creatorId),
+          authData: getMockAuthData(publishedPurposeTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
-      purposeTemplateStateNotDraft(existentPurposeTemplate.id)
+      purposeTemplateNotInExpectedStates(
+        publishedPurposeTemplate.id,
+        publishedPurposeTemplate.state,
+        [purposeTemplateState.draft]
+      )
     );
   });
 

@@ -390,6 +390,25 @@ export function purposeTemplateServiceBuilder(
         annotationDocuments
       );
     },
+    async publishPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Publishing purpose template ${purposeTemplateId}`);
+      const result = await purposeTemplateClient.publishPurposeTemplate(
+        undefined,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+
+      return bffApi.PurposeTemplate.parse(result);
+    },
     async updatePurposeTemplate(
       id: PurposeTemplateId,
       seed: bffApi.PurposeTemplateSeed,
