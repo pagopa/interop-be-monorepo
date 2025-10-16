@@ -29,9 +29,10 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
   const updateMetadataVersionInPurposeTemplateTables = async (
     tx: DrizzleTransactionType,
     purposeTemplateId: PurposeTemplateId,
-    newMetadataVersion: number
+    newMetadataVersion: number,
+    tables: typeof purposeTemplateTables = purposeTemplateTables
   ): Promise<void> => {
-    for (const table of purposeTemplateTables) {
+    for (const table of tables) {
       await tx
         .update(table)
         .set({ metadataVersion: newMetadataVersion })
@@ -125,6 +126,13 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
             )
             .values(annotationDocumentSQL);
         }
+
+        await updateMetadataVersionInPurposeTemplateTables(
+          tx,
+          purposeTemplate.id,
+          metadataVersion,
+          [purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate]
+        );
       });
     },
     async upsertPurposeTemplateEServiceDescriptor(

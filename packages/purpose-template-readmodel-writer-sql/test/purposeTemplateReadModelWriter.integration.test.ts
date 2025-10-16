@@ -28,6 +28,7 @@ import {
   tenantKind,
   toEServiceV2,
   toPurposeTemplateV2,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
@@ -68,11 +69,23 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeTemplateDraftUpdated", async () => {
-      const metadataVersion = 1;
+      const metadataVersion = 2;
+
+      const purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate =
+        {
+          purposeTemplateId: purposeTemplate.id,
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+          createdAt: new Date(),
+        };
 
       await purposeTemplateWriterService.upsertPurposeTemplate(
         purposeTemplate,
-        0
+        1
+      );
+      await purposeTemplateWriterService.upsertPurposeTemplateEServiceDescriptor(
+        purposeTemplateEServiceDescriptor,
+        1
       );
 
       const updatedPurposeTemplate: PurposeTemplate = {
@@ -97,11 +110,21 @@ describe("Integration tests", async () => {
         await purposeTemplateReadModelService.getPurposeTemplateById(
           purposeTemplate.id
         );
+      const retrievedPurposeTemplateEServiceDescriptors =
+        await purposeTemplateReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
+          purposeTemplate.id
+        );
 
       expect(retrievedPurposeTemplate).toStrictEqual({
         data: updatedPurposeTemplate,
         metadata: { version: metadataVersion },
       });
+      expect(retrievedPurposeTemplateEServiceDescriptors).toStrictEqual([
+        {
+          data: purposeTemplateEServiceDescriptor,
+          metadata: { version: metadataVersion },
+        },
+      ]);
     });
 
     it("PurposeTemplatePublished", async () => {
@@ -362,18 +385,24 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurposeTemplateEServiceDescriptors).toStrictEqual([
         {
-          purposeTemplateId: purposeTemplate.id,
-          eserviceId: eservice1.id,
-          descriptorId: eservice1.descriptors[0].id,
-          createdAt: createdAt1,
+          data: {
+            purposeTemplateId: purposeTemplate.id,
+            eserviceId: eservice1.id,
+            descriptorId: eservice1.descriptors[0].id,
+            createdAt: createdAt1,
+          },
+          metadata: { version: metadataVersion },
         },
         {
-          purposeTemplateId: purposeTemplate.id,
-          eserviceId: eservice2.id,
-          descriptorId: eservice2.descriptors[0].id,
-          createdAt: createdAt2,
+          data: {
+            purposeTemplateId: purposeTemplate.id,
+            eserviceId: eservice2.id,
+            descriptorId: eservice2.descriptors[0].id,
+            createdAt: createdAt2,
+          },
+          metadata: { version: metadataVersion },
         },
-      ] satisfies EServiceDescriptorPurposeTemplate[]);
+      ] satisfies Array<WithMetadata<EServiceDescriptorPurposeTemplate>>);
     });
 
     it("PurposeTemplateEServiceUnlinked", async () => {
@@ -433,11 +462,14 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurposeTemplateEServiceDescriptors).toStrictEqual([
         {
-          purposeTemplateId: purposeTemplate.id,
-          eserviceId: eservice2.id,
-          descriptorId: eservice2.descriptors[0].id,
-          createdAt,
-        } satisfies EServiceDescriptorPurposeTemplate,
+          data: {
+            purposeTemplateId: purposeTemplate.id,
+            eserviceId: eservice2.id,
+            descriptorId: eservice2.descriptors[0].id,
+            createdAt,
+          },
+          metadata: { version: metadataVersion },
+        } satisfies WithMetadata<EServiceDescriptorPurposeTemplate>,
       ]);
     });
 

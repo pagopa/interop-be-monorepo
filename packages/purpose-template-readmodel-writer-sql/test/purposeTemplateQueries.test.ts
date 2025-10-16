@@ -57,16 +57,21 @@ describe("Purpose template queries", () => {
         riskAnalysisTemplateAnswersAnnotationsSQL,
         riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
       });
+      const retrievedPurposeTemplateEServiceDescriptors =
+        await purposeTemplateReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
+          purposeTemplate.id
+        );
 
       expect(retrievedPurposeTemplate).toStrictEqual({
         data: purposeTemplate,
         metadata: { version: metadataVersion },
       });
-      expect(
-        await purposeTemplateReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
-          purposeTemplate.id
-        )
-      ).toEqual([purposeTemplateEServiceDescriptor]);
+      expect(retrievedPurposeTemplateEServiceDescriptors).toEqual([
+        {
+          data: purposeTemplateEServiceDescriptor,
+          metadata: { version: metadataVersion },
+        },
+      ]);
     });
 
     it("should add a incomplete (*only* mandatory fields) purpose template", async () => {
