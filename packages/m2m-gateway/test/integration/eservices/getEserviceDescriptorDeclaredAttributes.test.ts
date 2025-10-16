@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, unsafeBrandId } from "pagopa-interop-models";
+import { generateId, genericInternalError, unsafeBrandId } from "pagopa-interop-models";
 import {
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
@@ -18,7 +18,6 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
-  eserviceDescriptorAttributeNotFound,
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
@@ -219,7 +218,7 @@ describe("getEserviceDescriptorDeclaredAttributes", () => {
       eserviceDescriptorNotFound(eservice.id, nonExistingDescriptorId)
     );
   });
-  it("Should throw eserviceDescriptorAttributeNotFound in case an attribute ID is present but cannot be resolved by the Attribute Registry", async () => {
+  it("Should throw internal error attribute not found in case an attribute ID is present but cannot be resolved by the Attribute Registry", async () => {
     const MISSING_ATTRIBUTE_ID = "00000000-0000-0000-0000-000000000001";
 
     const descriptorWithMissingAttribute: catalogApi.EServiceDescriptor = {
@@ -263,7 +262,7 @@ describe("getEserviceDescriptorDeclaredAttributes", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      eserviceDescriptorAttributeNotFound(descriptorWithMissingAttribute.id)
+      genericInternalError(`Attribute with id ${MISSING_ATTRIBUTE_ID} not found`)
     );
   });
 });

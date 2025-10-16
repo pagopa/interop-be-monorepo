@@ -7,11 +7,10 @@ import {
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { generateId } from "pagopa-interop-models";
+import { generateId, genericInternalError } from "pagopa-interop-models";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import {
-  eserviceDescriptorAttributeNotFound,
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
@@ -82,10 +81,10 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttribu
   ];
 
   const mockM2MEserviceVerifiedAttributesResponse: m2mGatewayApi.EServiceDescriptorVerifiedAttributes =
-    {
-      pagination: { offset: 0, limit: 10, totalCount: 3 },
-      results,
-    };
+  {
+    pagination: { offset: 0, limit: 10, totalCount: 3 },
+    results,
+  };
 
   const mockQueryParams: m2mGatewayApi.GetVerifiedAttributesQueryParams = {
     offset: 0,
@@ -136,8 +135,8 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttribu
       expectedStatus: 404,
     },
     {
-      error: eserviceDescriptorAttributeNotFound(descriptor.id),
-      expectedStatus: 404,
+      error: genericInternalError(`Attribute with id ${descriptor.id} not found`),
+      expectedStatus: 500,
     },
   ])(
     "Should return $expectedStatus for $error.code",

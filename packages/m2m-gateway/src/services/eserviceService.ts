@@ -8,6 +8,7 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  genericInternalError,
   ListResult,
   RiskAnalysisId,
   unsafeBrandId,
@@ -25,7 +26,6 @@ import {
 } from "../api/eserviceApiConverter.js";
 import {
   cannotDeleteLastEServiceDescriptor,
-  eserviceDescriptorAttributeNotFound,
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
@@ -156,7 +156,7 @@ export function eserviceServiceBuilder(
       const attributeDetailed = attributeMap.get(item.attributeId);
 
       if (!attributeDetailed) {
-        throw eserviceDescriptorAttributeNotFound(descriptorId);
+        throw genericInternalError(`Attribute with id ${item.attributeId} not found`);
       }
 
       return {
