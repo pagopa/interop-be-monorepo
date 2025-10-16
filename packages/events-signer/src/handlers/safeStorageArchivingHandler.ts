@@ -1,13 +1,16 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable max-params */
 
-import { Logger } from "pagopa-interop-commons";
+import {
+  Logger,
+  SafeStorageApiConfig,
+  SafeStorageService,
+  FileCreationRequest,
+  SignatureServiceBuilder,
+  SignatureReference,
+} from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
-import { SafeStorageApiConfig } from "../config/config.js";
-import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
-import { SafeStorageService } from "../services/safeStorageService.js";
-import { DbServiceBuilder } from "../services/dbService.js";
 
 export const archiveFileToSafeStorage = async (
   storedFile: {
@@ -15,7 +18,7 @@ export const archiveFileToSafeStorage = async (
     fileName: string;
   },
   logger: Logger,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService,
   config: SafeStorageApiConfig,
   correlationId: string
@@ -48,12 +51,14 @@ export const archiveFileToSafeStorage = async (
 
     logger.info(`File ${fileName} uploaded to Safe Storage successfully.`);
 
-    await dbService.saveSignatureReference({
+    const signatureReference = {
       safeStorageId: key,
-      fileKind: "PLATFORM_EVENTS",
+      fileKind: "EVENT_JOURNAL",
       fileName,
       correlationId,
-    });
+    } as SignatureReference;
+
+    await signatureService.saveSignatureReference(signatureReference);
     logger.info(`Safe Storage reference for ${fileName} saved in DynamoDB.`);
   } catch (error) {
     throw genericInternalError(
