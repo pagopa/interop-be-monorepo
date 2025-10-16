@@ -128,3 +128,20 @@ export function toCreateEventPurposeTemplatePublished(
     },
   };
 }
+
+export function toCreateEventPurposeTemplateDraftDeleted(
+  purposeTemplate: PurposeTemplate,
+  correlationId: CorrelationId,
+  version: number
+): CreateEvent<PurposeTemplateEventV2> {
+  return {
+    streamId: purposeTemplate.id,
+    version,
+    correlationId,
+    event: {
+      type: "PurposeTemplateDraftDeleted",
+      event_version: 2,
+      data: { purposeTemplate: toPurposeTemplateV2(purposeTemplate) },
+    },
+  };
+}
