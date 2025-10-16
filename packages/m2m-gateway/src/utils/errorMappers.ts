@@ -215,6 +215,7 @@ export const getEServiceDescriptorAttributesErrorMapper = (
   match(error.code)
     .with(
       "eserviceDescriptorNotFound",
+      "eserviceDescriptorAttributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

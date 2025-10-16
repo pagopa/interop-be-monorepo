@@ -309,10 +309,11 @@ export function cannotEditDeclaredAttributesForTenant(
   delegation: delegationApi.Delegation | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Cannot edit declared attributes for tenant ${targetTenantId}${delegation
+    detail: `Cannot edit declared attributes for tenant ${targetTenantId}${
+      delegation
         ? ` since it is not the delegator for delegation ${delegation.id}`
         : ` without a delegation (delegationId is missing)`
-      }`,
+    }`,
     code: "cannotEditDeclaredAttributesForTenant",
     title: "Tenant cannot edit declared attributes",
   });
@@ -359,5 +360,15 @@ export function eserviceTemplateRiskAnalysisNotFound(
     detail: `Risk analysis ${riskAnalysisId} not found for e-service template ${templateId}`,
     code: "eserviceTemplateRiskAnalysisNotFound",
     title: "E-Service Template risk analysis not found",
+  });
+}
+
+export function eserviceDescriptorAttributeNotFound(
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute not found for descriptor ${descriptorId}`,
+    code: "eserviceDescriptorAttributeNotFound",
+    title: "E-Service Descriptor Attribute Not Found",
   });
 }
