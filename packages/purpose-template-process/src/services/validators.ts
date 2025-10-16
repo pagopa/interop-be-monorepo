@@ -12,7 +12,6 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
   TenantKind,
-  operationForbidden,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -39,7 +38,6 @@ import {
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
-  purposeTemplateStateNotDraft,
   riskAnalysisTemplateValidationFailed,
   tooManyEServicesForPurposeTemplate,
   associationBetweenEServiceAndPurposeTemplateDoesNotExist,
@@ -117,13 +115,6 @@ export const assertEServiceIdsCountIsBelowThreshold = (
       eserviceIdsSize,
       config.maxEServicesPerLinkRequest
     );
-  }
-};
-export const assertTemplateStateNotDraft = (
-  purposeTemplate: PurposeTemplate
-): void => {
-  if (purposeTemplate.state !== purposeTemplateState.draft) {
-    throw purposeTemplateStateNotDraft(purposeTemplate.id);
   }
 };
 
@@ -325,15 +316,6 @@ export function assertPurposeTemplateHasRiskAnalysisForm(
 } {
   if (!purposeTemplate.purposeRiskAnalysisForm) {
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
-  }
-}
-
-export function assertRequesterPurposeTemplateCreator(
-  creatorId: TenantId,
-  authData: UIAuthData | M2MAdminAuthData
-): void {
-  if (authData.organizationId !== creatorId) {
-    throw operationForbidden;
   }
 }
 

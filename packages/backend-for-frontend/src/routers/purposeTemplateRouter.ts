@@ -179,6 +179,26 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/purposeTemplates/:purposeTemplateId/publish", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const response = await purposeTemplateService.publishPurposeTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          ctx
+        );
+
+        return res.status(200).send(bffApi.PurposeTemplate.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error publishing purpose template ${req.params.purposeTemplateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post(
       "/purposeTemplates/:purposeTemplateId/linkEservice",
       async (req, res) => {

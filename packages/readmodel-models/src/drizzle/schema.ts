@@ -1772,6 +1772,7 @@ export const userNotificationConfigInReadmodelNotificationConfig =
       metadataVersion: integer("metadata_version").notNull(),
       userId: uuid("user_id").notNull(),
       tenantId: uuid("tenant_id").notNull(),
+      userRoles: varchar("user_roles").array().notNull(),
       inAppNotificationPreference: boolean(
         "in_app_notification_preference"
       ).notNull(),
