@@ -1,11 +1,11 @@
 meta {
   name: Unlink Eservices from Purpose Template
   type: http
-  seq: 3
+  seq: 13
 }
 
 post {
-  url: {{host-purpose-template}}/purposeTemplates/:purposeTemplateId/unlinkEservices
+  url: {{host-bff}}/purposeTemplates/:purposeTemplateId/unlinkEservice
   body: json
   auth: none
 }
