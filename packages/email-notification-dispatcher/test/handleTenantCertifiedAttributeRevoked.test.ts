@@ -20,6 +20,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { handleTenantCertifiedAttributeRevoked } from "../src/handlers/tenants/handleTenantCertifiedAttributeRevoked.js";
 import { attributeNotFound } from "../src/models/errors.js";
 import {
@@ -45,10 +46,12 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
 
   const targetTenant: Tenant = {
     ...getMockTenant(targetTenantId),
+    name: "Target Tenant",
     mails: [getMockTenantMail()],
   };
   const certifierTenant: Tenant = {
     ...getMockTenant(certifierTenantId),
+    name: "Certifier Tenant",
     features: [
       {
         type: "PersistentCertifier",
@@ -207,8 +210,15 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
       expect(message.email.body).toContain(
         `Un tuo attributo certificato è stato revocato`
       );
-      expect(message.email.body).toContain(certifierTenant.name);
-      expect(message.email.body).toContain(targetTenant.name);
+      match(message.type)
+        .with("User", () => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+        })
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(targetTenant.name);
+        })
+        .exhaustive();
+      expect(message.email.body).toContain(attribute.name);
       expect(message.email.body).toContain(attribute.name);
     });
   });

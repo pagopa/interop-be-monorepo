@@ -1,5 +1,9 @@
 import { describe, beforeAll, vi, afterEach, it, expect } from "vitest";
-import { logger, EmailManagerSES } from "pagopa-interop-commons";
+import {
+  logger,
+  EmailManagerSES,
+  HtmlTemplateService,
+} from "pagopa-interop-commons";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import { TenantReadModelService } from "pagopa-interop-readmodel";
 import { generateId, UserId, TenantId } from "pagopa-interop-models";
@@ -34,11 +38,16 @@ describe("getUserFromSelfcare", () => {
       send: vi.fn().mockResolvedValue(undefined),
     } as EmailManagerSES;
 
+    const mockTemplateService = {
+      compileHtml: vi.fn((body: string) => body),
+    } as unknown as HtmlTemplateService;
+
     emailSenderProcessor = emailSenderProcessorBuilder(
       { label: "mock sender", mail: "sender@mock.com" },
       mockSESEmailManager,
       mockSelfcareV2InstitutionClient,
-      mockTenantReadModelService
+      mockTenantReadModelService,
+      mockTemplateService
     );
   });
 
@@ -194,7 +203,9 @@ describe("getUserFromSelfcare", () => {
     // eslint-disable-next-line functional/immutable-data
     mockSelfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET = vi
       .fn()
-      .mockResolvedValueOnce([{ email: expectedEmail }]);
+      .mockResolvedValueOnce([
+        { email: expectedEmail, name: "Jhon", surname: "Doe" },
+      ]);
 
     const result = await emailSenderProcessor.getUserFromSelfcare(
       userId,
@@ -202,6 +213,9 @@ describe("getUserFromSelfcare", () => {
       loggerInstance
     );
 
-    expect(result).toBe(expectedEmail);
+    expect(result).toEqual({
+      email: expectedEmail,
+      name: "Jhon Doe",
+    });
   });
 });

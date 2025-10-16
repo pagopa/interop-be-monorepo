@@ -24,6 +24,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
 import { handleAgreementActivatedToProducer } from "../src/handlers/agreements/handleAgreementActivatedToProducer.js";
 import {
@@ -51,10 +52,12 @@ describe("handleAgreementActivated", async () => {
   };
   const producerTenant: Tenant = {
     ...getMockTenant(producerId),
+    name: "Producer Tenant",
     mails: [getMockTenantMail()],
   };
   const consumerTenant: Tenant = {
     ...getMockTenant(consumerId),
+    name: "Consumer Tenant",
     mails: [getMockTenantMail()],
   };
   const users = [
@@ -258,7 +261,12 @@ describe("handleAgreementActivated", async () => {
       expect(message.email.body).toContain(
         `Richiesta di fruizione accettata automaticamente`
       );
-      expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(
+        match(message.type)
+          .with("User", () => "{{ recipientName }}")
+          .with("Tenant", () => producerTenant.name)
+          .exhaustive()
+      );
       expect(message.email.body).toContain(eservice.name);
       expect(message.email.body).toContain(`Visualizza richiesta`);
     });

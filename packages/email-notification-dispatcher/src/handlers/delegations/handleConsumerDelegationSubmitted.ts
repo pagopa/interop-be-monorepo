@@ -43,7 +43,7 @@ export async function handleConsumerDelegationSubmitted(
 
   const [htmlTemplate, eservice, delegator, delegate] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.consumerDelegationApprovedMailTemplate
+      eventMailTemplateType.consumerDelegationSubmittedMailTemplate
     ),
     retrieveEService(delegation.eserviceId, readModelService),
     retrieveTenant(delegation.delegatorId, readModelService),
@@ -74,8 +74,8 @@ export async function handleConsumerDelegationSubmitted(
         title: `Hai ricevuto una richiesta di delega`,
         notificationType,
         entityId: delegation.id,
+        ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
-        delegateName: delegate.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta di delega`,
       }),

@@ -43,7 +43,7 @@ export async function handleConsumerDelegationRejected(
 
   const [htmlTemplate, eservice, delegator, delegate] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.consumerDelegationApprovedMailTemplate
+      eventMailTemplateType.consumerDelegationRejectedMailTemplate
     ),
     retrieveEService(delegation.eserviceId, readModelService),
     retrieveTenant(delegation.delegatorId, readModelService),
@@ -74,7 +74,7 @@ export async function handleConsumerDelegationRejected(
         title: `La tua richiesta di delega è stata rifiutata`,
         notificationType,
         entityId: delegation.id,
-        delegatorName: delegator.name,
+        ...(t.type === "Tenant" ? { recipientName: delegator.name } : {}),
         delegateName: delegate.name,
         eserviceName: eservice.name,
       }),

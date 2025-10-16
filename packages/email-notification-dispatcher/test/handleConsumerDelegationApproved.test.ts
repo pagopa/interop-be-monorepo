@@ -22,6 +22,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
 import { handleConsumerDelegationApproved } from "../src/handlers/delegations/handleConsumerDelegationApproved.js";
 import {
@@ -49,9 +50,13 @@ describe("handleConsumerDelegationApproved", async () => {
   };
   const delegatorTenant: Tenant = {
     ...getMockTenant(delegatorId),
+    name: "Delegator Tenant",
     mails: [getMockTenantMail()],
   };
-  const delegateTenant = getMockTenant(delegateId);
+  const delegateTenant = {
+    ...getMockTenant(delegateId),
+    name: "Delegate Tenant",
+  };
   const users = [
     getMockUser(delegatorTenant.id),
     getMockUser(delegatorTenant.id),
@@ -263,9 +268,18 @@ describe("handleConsumerDelegationApproved", async () => {
       expect(message.email.body).toContain(
         `La tua richiesta di delega è stata accettata`
       );
-      expect(message.email.body).toContain(delegatorTenant.name);
-      expect(message.email.body).toContain(delegateTenant.name);
-      expect(message.email.body).toContain(eservice.name);
+      match(message.type)
+        .with("User", () => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+          expect(message.email.body).toContain(delegateTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(delegatorTenant.name);
+          expect(message.email.body).toContain(delegateTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .exhaustive();
     });
   });
 });

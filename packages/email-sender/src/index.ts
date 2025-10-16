@@ -1,5 +1,9 @@
 import { runConsumer } from "kafka-iam-auth";
-import { EmailManagerSES, initSesMailManager } from "pagopa-interop-commons";
+import {
+  buildHTMLTemplateService,
+  EmailManagerSES,
+  initSesMailManager,
+} from "pagopa-interop-commons";
 import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-api-clients";
 import {
   makeDrizzleConnection,
@@ -20,12 +24,14 @@ const sesEmailManager: EmailManagerSES = initSesMailManager(config, {
 const selfcareV2InstitutionClient = selfcareV2InstitutionClientBuilder(config);
 const readModelDB = makeDrizzleConnection(config);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const templateService = buildHTMLTemplateService();
 
 const processor = emailSenderProcessorBuilder(
   sesEmailSenderData,
   sesEmailManager,
   selfcareV2InstitutionClient,
-  tenantReadModelServiceSQL
+  tenantReadModelServiceSQL,
+  templateService
 );
 
 await runConsumer(config, [config.emailSenderTopic], processor.processMessage);

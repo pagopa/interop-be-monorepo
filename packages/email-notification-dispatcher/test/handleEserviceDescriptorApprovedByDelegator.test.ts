@@ -24,6 +24,7 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { tenantNotFound } from "../src/models/errors.js";
 import { handleEserviceDescriptorApprovedByDelegator } from "../src/handlers/eservices/handleEserviceDescriptorApprovedByDelegator.js";
 import {
@@ -44,10 +45,12 @@ describe("handleEserviceDescriptorApprovedByDelegator", async () => {
   const descriptor = getMockDescriptorPublished();
   const delegatorTenant: Tenant = {
     ...getMockTenant(delegatorId),
+    name: "Delegator Tenant",
     mails: [getMockTenantMail()],
   };
   const delegateTenant: Tenant = {
     ...getMockTenant(delegateId),
+    name: "Delegate Tenant",
     mails: [getMockTenantMail()],
   };
   const users = [
@@ -249,9 +252,18 @@ describe("handleEserviceDescriptorApprovedByDelegator", async () => {
       expect(message.email.body).toContain(
         `Approvata la pubblicazione della nuova versione`
       );
-      expect(message.email.body).toContain(delegatorTenant.name);
-      expect(message.email.body).toContain(delegateTenant.name);
-      expect(message.email.body).toContain(eservice.name);
+      match(message.type)
+        .with("User", () => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+          expect(message.email.body).toContain(delegatorTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(delegatorTenant.name);
+          expect(message.email.body).toContain(delegateTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .exhaustive();
     });
   });
 });
