@@ -167,6 +167,7 @@ describe("updatePurposeTemplate", () => {
       const expectedPurposeTemplate: PurposeTemplate = {
         id: unsafeBrandId(updatedPurposeTemplateResponse.data.id),
         createdAt: mockDate,
+        updatedAt: mockDate,
         targetDescription: validPurposeTemplateSeed.targetDescription,
         targetTenantKind: validPurposeTemplateSeed.targetTenantKind,
         creatorId: unsafeBrandId(existingPurposeTemplate.creatorId),
@@ -325,6 +326,31 @@ describe("updatePurposeTemplate", () => {
         })
       )
     ).rejects.toThrowError(missingFreeOfChargeReason());
+  });
+
+  it("Should not trigger duplicate title check when updating with case-insensitive same title", async () => {
+    const purposeTemplateWithTitle: PurposeTemplate = {
+      ...existingPurposeTemplate,
+      purposeTitle: "Template Title",
+    };
+
+    await addOneTenant(creator);
+    await addOnePurposeTemplate(purposeTemplateWithTitle);
+
+    // Update with same title but different case - should not trigger duplicate check
+    const updatedPurposeTemplate =
+      await purposeTemplateService.updatePurposeTemplate(
+        purposeTemplateWithTitle.id,
+        {
+          ...purposeTemplateSeed,
+          purposeTitle: "template title", // lowercase version
+        },
+        getMockContext({
+          authData: getMockAuthData(creatorId),
+        })
+      );
+
+    expect(updatedPurposeTemplate.data.purposeTitle).toBe("template title");
   });
 
   it("Should remove annotations documents for each answer deleted in purpose template seed, all annotation documents of answers not affected by update still remains in S3", async () => {

@@ -657,6 +657,221 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{id}/riskAnalysis/answers:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposeTemplate
+      summary: Add a risk analysis answer for a purpose template
+      operationId: addRiskAnalysisAnswerForPurposeTemplate
+      description: Add a new risk analysis answer for the specified purpose template risk analysis.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnswerRequest"
+        required: true
+      responses:
+        "200":
+          description: Risk Analysis Template Answer added.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswer"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/documents:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Add Document to Risk Analysis Answer Annotation
+      description: Add Answer Annotation Document to Risk Analysis of Purpose Template
+      operationId: addRiskAnalysisTemplateAnswerAnnotationDocument
+      tags:
+        - purposeTemplate
+      requestBody:
+        required: true
+        description: Annotation Document
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocumentSeed"
+      responses:
+        "200":
+          description: OK - Request successful. The response contains the created resource metadata (not the file)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+          $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+          $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+          $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+          $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: documentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purposeTemplate
+      summary: Get risk analysis form template answer annotation document
+      operationId: getRiskAnalysisTemplateAnswerAnnotationDocument
+      description: Retrieve a risk analysis form template answer annotation document
+      responses:
+        "200":
+          description: Risk analysis form template answer annotation document retrieved
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Risk analysis form template answer annotation document not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags:
+        - purposeTemplate
+      summary: Add a risk analysis answer annotation
+      operationId: addRiskAnalysisAnswerAnnotationForPurposeTemplate
+      description: Add a risk analysis answer annotation. Only the text is impacted, the docs are not impacted.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationText"
+        required: true
+      responses:
+        "200":
+          description: Risk Analysis Template Answer Annotation added.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotation"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template or Answer Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   headers:
     MetadataVersionHeader:
@@ -891,12 +1106,23 @@ components:
         - values
         - editable
         - suggestedValues
+    RiskAnalysisTemplateAnswerAnnotationText:
+      type: object
+      additionalProperties: false
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 250
+      required:
+        - text
     RiskAnalysisTemplateAnswerAnnotationSeed:
       type: object
       additionalProperties: false
       properties:
         text:
           type: string
+          maxLength: 250
         docs:
           type: array
           items:
@@ -908,15 +1134,22 @@ components:
       type: object
       additionalProperties: false
       properties:
-        name:
+        documentId:
           type: string
-        contentType:
+          format: uuid
+        name:
           type: string
         prettyName:
           type: string
         path:
           type: string
+        contentType:
+          type: string
+        checksum:
+          type: string
       required:
+        - documentId
+        - checksum
         - name
         - contentType
         - prettyName
@@ -925,6 +1158,9 @@ components:
       type: object
       additionalProperties: false
       properties:
+        id:
+          type: string
+          format: uuid
         values:
           type: array
           items:
@@ -942,6 +1178,7 @@ components:
             minLength: 1
             maxLength: 250
       required:
+        - id
         - values
         - editable
         - suggestedValues
@@ -977,6 +1214,8 @@ components:
           type: string
         path:
           type: string
+        checksum:
+          type: string
         createdAt:
           type: string
           format: date-time
@@ -986,7 +1225,21 @@ components:
         - contentType
         - prettyName
         - path
+        - checksum
         - createdAt
+    RiskAnalysisTemplateAnswerRequest:
+      type: object
+      properties:
+        answerKey:
+          type: string
+          description: The identifier of the risk analysis answer
+        answerData:
+          $ref: "#/components/schemas/RiskAnalysisTemplateAnswerSeed"
+      required:
+        - answerKey
+        - answerData
+      additionalProperties: false
+      description: A single risk analysis answer with explicit key and data structure
     Problem:
       properties:
         type:

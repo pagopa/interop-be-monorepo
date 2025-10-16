@@ -110,6 +110,7 @@ import {
   TenantNotificationConfig,
   UserNotificationConfig,
   DelegationStamps,
+  PurposeVersionStamps,
   PurposeTemplate,
   tenantKind,
   purposeTemplateState,
@@ -365,7 +366,8 @@ export const getMockPurposeTemplate = (
 });
 
 export const getMockPurposeVersion = (
-  state?: PurposeVersionState
+  state?: PurposeVersionState,
+  stamps?: PurposeVersionStamps
 ): PurposeVersion => ({
   id: generateId(),
   state: state || purposeVersionState.draft,
@@ -381,6 +383,7 @@ export const getMockPurposeVersion = (
   ...(state === purposeVersionState.rejected
     ? { rejectionReason: "test" }
     : {}),
+  ...(stamps ? { stamps } : {}),
 });
 
 export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
@@ -389,6 +392,9 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
   contentType: "json",
   createdAt: new Date(),
 });
+
+export const getMockPurposeVersionStamps = (): PurposeVersionStamps =>
+  generateMock(PurposeVersionStamps);
 
 export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),

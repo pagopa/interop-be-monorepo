@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
   content_type VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  checksum VARCHAR NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

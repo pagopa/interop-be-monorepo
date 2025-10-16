@@ -1,8 +1,13 @@
 import {
-  RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateAnswerAnnotation,
   generateId,
+  RiskAnalysisFormTemplate,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export type RiskAnalysisFormTemplateToValidate = {
   version: string;
@@ -26,6 +31,7 @@ export type RiskAnalysisTemplateAnswerAnnotationDocument = {
   contentType: string;
   prettyName: string;
   path: string;
+  checksum: string;
 };
 
 export type RiskAnalysisTemplateValidatedForm = {
@@ -119,6 +125,43 @@ export function riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
       ),
     },
   };
+}
+
+export function riskAnalysisValidatedAnswerToRiskAnalysisAnswer(
+  validatedAnswer: Extract<
+    RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
+    { type: "single" }
+  >
+): RiskAnalysisTemplateSingleAnswer;
+
+export function riskAnalysisValidatedAnswerToRiskAnalysisAnswer(
+  validatedAnswer: Extract<
+    RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
+    { type: "multi" }
+  >
+): RiskAnalysisTemplateMultiAnswer;
+
+export function riskAnalysisValidatedAnswerToRiskAnalysisAnswer(
+  validatedAnswer: RiskAnalysisTemplateValidatedSingleOrMultiAnswer
+): RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer {
+  return match(validatedAnswer) // This match help to distinguish properly brandedtype for Answer Id
+    .with({ type: "single" }, (a) => {
+      const { annotation, ...data } = a.answer;
+      return {
+        ...data,
+        id: generateId<RiskAnalysisSingleAnswerId>(),
+        ...(annotation ? { annotation: mapAnnotation(annotation) } : {}),
+      };
+    })
+    .with({ type: "multi" }, (a) => {
+      const { annotation, ...data } = a.answer;
+      return {
+        ...data,
+        id: generateId<RiskAnalysisMultiAnswerId>(),
+        ...(annotation ? { annotation: mapAnnotation(annotation) } : {}),
+      };
+    })
+    .exhaustive();
 }
 
 function mapAnnotation(

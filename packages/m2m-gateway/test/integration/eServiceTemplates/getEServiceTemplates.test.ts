@@ -61,6 +61,7 @@ describe("getEserviceTemplates", () => {
       intendedTarget: mockApiEserviceTemplate1.intendedTarget,
       creatorId: mockApiEserviceTemplate1.creatorId,
       isSignalHubEnabled: mockApiEserviceTemplate1.isSignalHubEnabled,
+      personalData: mockApiEserviceTemplate1.personalData,
     };
 
     const eserviceResponse2: m2mGatewayApi.EServiceTemplate = {
@@ -72,6 +73,7 @@ describe("getEserviceTemplates", () => {
       intendedTarget: mockApiEserviceTemplate2.intendedTarget,
       creatorId: mockApiEserviceTemplate2.creatorId,
       isSignalHubEnabled: mockApiEserviceTemplate2.isSignalHubEnabled,
+      personalData: mockApiEserviceTemplate2.personalData,
     };
 
     const eserviceTemplatesResponse: m2mGatewayApi.EServiceTemplates = {
