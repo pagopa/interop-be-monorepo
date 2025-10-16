@@ -79,7 +79,6 @@ import {
   validateEservicesDisassociations,
   validateRiskAnalysisTemplateOrThrow,
   validateRiskAnalysisAnswerOrThrow,
-  assertPurposeTemplateStateIsNotDraft,
 } from "./validators.js";
 
 async function retrievePurposeTemplate(
@@ -662,7 +661,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertPurposeTemplateStateIsNotDraft(purposeTemplate.data);
+      assertPurposeTemplateIsDraft(purposeTemplate.data);
 
       const riskAnalysisFormTemplate = retrieveRiskAnalysisFormTemplate(
         purposeTemplate.data

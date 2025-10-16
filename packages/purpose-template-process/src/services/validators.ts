@@ -118,18 +118,6 @@ export const assertEServiceIdsCountIsBelowThreshold = (
   }
 };
 
-export const assertPurposeTemplateStateIsNotDraft = (
-  purposeTemplate: PurposeTemplate
-): void => {
-  if (purposeTemplate.state !== purposeTemplateState.draft) {
-    throw purposeTemplateNotInExpectedStates(
-      purposeTemplate.id,
-      purposeTemplate.state,
-      [purposeTemplateState.draft]
-    );
-  }
-};
-
 export const assertDocumentsLimitsNotReached = (
   docs: RiskAnalysisTemplateAnswerAnnotationDocument[] | undefined,
   answerId: string
