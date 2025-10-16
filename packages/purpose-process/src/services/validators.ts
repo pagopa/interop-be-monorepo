@@ -35,6 +35,7 @@ import {
   descriptorNotFound,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
+  invalidPurposeTenantKind,
   missingFreeOfChargeReason,
   purposeNotInDraftState,
   purposeTemplateMissingNotEditableFieldValue,
@@ -496,6 +497,15 @@ export function assertValidEserviceState(
 ): void {
   if (eservice.descriptors.some((d) => validStates.includes(d.state))) {
     throw eservice.id;
+  }
+}
+
+export function assertValidPurposeTenantKind(
+  tenantKind: TenantKind,
+  targetTenantKind: TenantKind
+): void {
+  if (tenantKind !== targetTenantKind) {
+    throw invalidPurposeTenantKind(tenantKind, targetTenantKind);
   }
 }
 

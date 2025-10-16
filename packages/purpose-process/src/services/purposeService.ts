@@ -55,13 +55,14 @@ import {
   unsafeBrandId,
   UserId,
   PurposeVersionStamps,
+  purposeTemplateState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { config } from "../config/config.js";
 import {
   agreementNotFound,
   eserviceNotFound,
-  eserviceNotLinkedToPurpose,
+  eserviceNotLinkedToPurposeTemplate,
   eserviceRiskAnalysisNotFound,
   missingRiskAnalysis,
   notValidVersionState,
@@ -70,6 +71,7 @@ import {
   purposeCannotBeUpdated,
   purposeDelegationNotFound,
   purposeNotFound,
+  purposeTemplateNotActive,
   purposeTemplateNotFound,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
@@ -118,6 +120,7 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
+  assertValidPurposeTenantKind,
   getOrganizationRole,
   isArchivable,
   isClonable,
@@ -269,6 +272,9 @@ async function retrievePurposeTemplate(
   if (!purposeTemplate) {
     throw purposeTemplateNotFound(templateId);
   }
+  if (purposeTemplate.data.state !== purposeTemplateState.active) {
+    throw purposeTemplateNotActive(templateId);
+  }
   return purposeTemplate.data;
 }
 
@@ -284,7 +290,7 @@ async function retrieveEserviceDescriptorFromPurposeTemplate(
     );
 
   if (!eserviceDescriptorPurposeTemplate) {
-    throw eserviceNotLinkedToPurpose(eserviceId, purposeTemplateId);
+    throw eserviceNotLinkedToPurposeTemplate(eserviceId, purposeTemplateId);
   }
 
   return eserviceDescriptorPurposeTemplate;
@@ -1672,6 +1678,11 @@ export function purposeServiceBuilder(
 
       const tenantKind = await retrieveTenantKind(consumerId, readModelService);
       const createdAt = new Date();
+
+      assertValidPurposeTenantKind(
+        tenantKind,
+        purposeTemplate.targetTenantKind
+      );
 
       // TODO https://pagopa.atlassian.net/browse/PIN-7928: add handle personalDataInEService
       const validatedFormSeed = validateRiskAnalysisAgainstTemplateOrThrow(

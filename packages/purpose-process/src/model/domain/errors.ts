@@ -49,25 +49,17 @@ export const errorCodes = {
   purposeCannotBeUpdated: "0030",
   tenantIsNotTheDelegate: "0031",
   purposeTemplateNotFound: "0032",
-  eserviceNotLinkedToPurposeTemplate: "0033",
-  purposeTemplateMissingNotEditableFieldValue: "0034",
-  riskAnalysisContainsNotEditableAnswers: "0035",
-  riskAnalysisAnswerNotInSuggestValues: "0036",
+  purposeTemplateNotActive: "0033",
+  invalidPurposeTenantKind: "0034",
+  eserviceNotLinkedToPurposeTemplate: "0035",
+  purposeTemplateMissingNotEditableFieldValue: "0036",
+  riskAnalysisContainsNotEditableAnswers: "0037",
+  riskAnalysisAnswerNotInSuggestValues: "0038",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
-
-export function purposeTemplateNotFound(
-  templateId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose Template ${templateId} not found`,
-    code: "purposeTemplateNotFound",
-    title: "Purpose Template not found",
-  });
-}
 
 export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({
@@ -394,7 +386,38 @@ export function tenantIsNotTheDelegate(
   });
 }
 
-export function eserviceNotLinkedToPurpose(
+export function purposeTemplateNotFound(
+  templateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template ${templateId} not found`,
+    code: "purposeTemplateNotFound",
+    title: "Purpose Template not found",
+  });
+}
+
+export function purposeTemplateNotActive(
+  templateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template ${templateId} is not active`,
+    code: "purposeTemplateNotActive",
+    title: "Purpose Template not active",
+  });
+}
+
+export function invalidPurposeTenantKind(
+  purposeTenantKind: TenantKind,
+  templateTenantKind: TenantKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Tenant Kind ${purposeTenantKind} does not match template Tenant Kind ${templateTenantKind}`,
+    code: "invalidPurposeTenantKind",
+    title: "Invalid Purpose tenant kind",
+  });
+}
+
+export function eserviceNotLinkedToPurposeTemplate(
   eserviceId: EServiceId,
   purposeTemplateId: PurposeTemplateId
 ): ApiError<ErrorCodes> {
