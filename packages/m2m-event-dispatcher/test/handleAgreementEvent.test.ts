@@ -202,7 +202,7 @@ describe("handleAgreementEvent test", async () => {
       testReadModelService
     );
 
-    // Try to insert the same event again
+    // Try to insert the same event again: should be skipped
     await handleAgreementEvent(
       message,
       eventTimestamp,
@@ -211,10 +211,19 @@ describe("handleAgreementEvent test", async () => {
       testReadModelService
     );
 
+    // Try to insert one with a further resource version: should be inserted
+    await handleAgreementEvent(
+      { ...message, version: message.version + 1 },
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService,
+      testReadModelService
+    );
+
     expect(
       testM2mEventWriterService.insertAgreementM2MEvent
-    ).toHaveBeenCalledTimes(2);
+    ).toHaveBeenCalledTimes(3);
 
-    expect(await retrieveAllAgreementM2MEvents()).toHaveLength(1);
+    expect(await retrieveAllAgreementM2MEvents()).toHaveLength(2);
   });
 });
