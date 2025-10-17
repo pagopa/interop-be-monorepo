@@ -129,3 +129,13 @@ export const getMockReversePurposeSeed = (
   freeOfChargeReason: "test",
   dailyCalls: 1,
 });
+
+export const getMockPurposeFromTemplateSeed = (
+  eserviceId: string = generateId(),
+  consumerId: string = generateId()
+): purposeApi.PurposeFromTemplateSeed => ({
+  eserviceId,
+  consumerId,
+  title: "Mock title",
+  dailyCalls: 10,
+});
