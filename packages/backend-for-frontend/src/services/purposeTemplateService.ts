@@ -409,6 +409,63 @@ export function purposeTemplateServiceBuilder(
 
       return bffApi.PurposeTemplate.parse(result);
     },
+    async unsuspendPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
+      const result = await purposeTemplateClient.unsuspendPurposeTemplate(
+        undefined,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+
+      return bffApi.PurposeTemplate.parse(result);
+    },
+    async suspendPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Suspending purpose template ${purposeTemplateId}`);
+      const result = await purposeTemplateClient.suspendPurposeTemplate(
+        undefined,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+
+      return bffApi.PurposeTemplate.parse(result);
+    },
+    async archivePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Archiving purpose template ${purposeTemplateId}`);
+      const result = await purposeTemplateClient.archivePurposeTemplate(
+        undefined,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+
+      return bffApi.PurposeTemplate.parse(result);
+    },
     async updatePurposeTemplate(
       id: PurposeTemplateId,
       seed: bffApi.PurposeTemplateSeed,
@@ -548,6 +605,37 @@ export function purposeTemplateServiceBuilder(
           params: {
             purposeTemplateId,
             answerId,
+          },
+          headers,
+        }
+      );
+    },
+    async deleteRiskAnalysisTemplateAnswerAnnotationDocument({
+      purposeTemplateId,
+      answerId,
+      documentId,
+      ctx,
+    }: {
+      purposeTemplateId: PurposeTemplateId;
+      answerId: PurposeTemplateId;
+      documentId: string;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<void> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      const { headers, logger } = ctx;
+
+      logger.info(
+        `Deleting risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      await purposeTemplateClient.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+        undefined,
+        {
+          params: {
+            purposeTemplateId,
+            answerId,
+            documentId,
           },
           headers,
         }
