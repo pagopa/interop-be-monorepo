@@ -50,6 +50,7 @@ export const errorCodes = {
   delegationEServiceMismatch: "0032",
   cannotDeleteLastEServiceTemplateVersion: "0033",
   eserviceDescriptorAttributeNotFound: "0034",
+  eserviceTemplateVersionAttributeNotFound: "0035",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -309,11 +310,10 @@ export function cannotEditDeclaredAttributesForTenant(
   delegation: delegationApi.Delegation | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Cannot edit declared attributes for tenant ${targetTenantId}${
-      delegation
-        ? ` since it is not the delegator for delegation ${delegation.id}`
-        : ` without a delegation (delegationId is missing)`
-    }`,
+    detail: `Cannot edit declared attributes for tenant ${targetTenantId}${delegation
+      ? ` since it is not the delegator for delegation ${delegation.id}`
+      : ` without a delegation (delegationId is missing)`
+      }`,
     code: "cannotEditDeclaredAttributesForTenant",
     title: "Tenant cannot edit declared attributes",
   });
@@ -370,5 +370,15 @@ export function eserviceDescriptorAttributeNotFound(
     detail: `Attribute not found for descriptor ${descriptorId}`,
     code: "eserviceDescriptorAttributeNotFound",
     title: "E-Service Descriptor Attribute Not Found",
+  });
+}
+
+export function eserviceTemplateVersionAttributeNotFound(
+  versionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute not found for version ${versionId}`,
+    code: "eserviceTemplateVersionAttributeNotFound",
+    title: "E-Service Template Version Attribute Not Found",
   });
 }

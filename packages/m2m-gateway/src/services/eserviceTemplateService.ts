@@ -1,9 +1,10 @@
-import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { attributeRegistryApi, eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   EServiceDocumentId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
+  ListResult,
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -19,6 +20,7 @@ import {
 import {
   cannotDeleteLastEServiceTemplateVersion,
   eserviceTemplateRiskAnalysisNotFound,
+  eserviceTemplateVersionAttributeNotFound,
   eserviceTemplateVersionNotFound,
 } from "../model/errors.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
@@ -30,6 +32,7 @@ import {
 import { uploadEServiceTemplateDocument } from "../utils/fileUpload.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
+import { toM2MGatewayApiCertifiedAttribute, toM2MGatewayApiDeclaredAttribute, toM2MGatewayApiVerifiedAttribute } from "../api/attributeApiConverter.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
@@ -85,6 +88,84 @@ export function eserviceTemplateServiceBuilder(
 
     return version;
   };
+
+  // eslint-disable-next-line max-params
+  async function retrieveEServiceTemplateVersionAttributes(
+    eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
+    versionId: EServiceTemplateVersionId,
+    attributeKind: keyof eserviceTemplateApi.Attributes,
+    { offset, limit }: { offset: number; limit: number },
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<
+    ListResult<{
+      attribute: attributeRegistryApi.Attribute;
+      groupIndex: number;
+    }>
+  > {
+    const version = retrieveEServiceTemplateVersionById(eserviceTemplate, versionId);
+    const kindAttributeGroups = version.attributes[attributeKind];
+    const allFlatKindAttributes: Array<{
+      attributeId: string;
+      groupIndex: number;
+    }> = kindAttributeGroups.flatMap((group, groupIndex) =>
+      group.map((attribute) => ({
+        attributeId: attribute.id,
+        groupIndex,
+      }))
+    );
+
+    const paginatedFlatKindAttributes = allFlatKindAttributes.slice(
+      offset,
+      offset + limit
+    );
+
+    const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
+      paginatedFlatKindAttributes.map((item) => item.attributeId);
+
+    if (attributeIdsToResolve.length === 0) {
+      return {
+        results: [],
+        totalCount: attributeIdsToResolve.length,
+      };
+    }
+
+    // Resolve the complete details only for the attributes needed on the page.
+    const bulkResult = await clients.attributeProcessClient.getBulkedAttributes(
+      attributeIdsToResolve,
+      {
+        headers,
+        queries: {
+          offset,
+          limit,
+        },
+      }
+    );
+
+    // Convert the result array into a Map for efficient lookup
+    const attributeMap: Map<string, attributeRegistryApi.Attribute> = new Map(
+      bulkResult.data.results.map((attr) => [attr.id, attr])
+    );
+
+    // Recombination: Map the paginated flat list with the resolved complete details
+    const attributesToReturn = paginatedFlatKindAttributes.map((item) => {
+      const attributeDetailed = attributeMap.get(item.attributeId);
+
+      if (!attributeDetailed) {
+        throw eserviceTemplateVersionAttributeNotFound(versionId);
+      }
+
+      return {
+        attribute: attributeDetailed,
+        groupIndex: item.groupIndex,
+      };
+    });
+
+    return {
+      results: attributesToReturn,
+      totalCount: allFlatKindAttributes.length,
+    };
+  }
+
   const pollEServiceTemplate = (
     response: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
     headers: M2MGatewayAppContext["headers"]
@@ -696,6 +777,108 @@ export function eserviceTemplateServiceBuilder(
         versionId
       );
       return toM2MGatewayEServiceTemplateVersion(version);
+    },
+
+    async getEserviceTemplateVersionCertifiedAttributes(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      { limit, offset }: m2mGatewayApi.GetCertifiedAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateVersionCertifiedAttributes> {
+      logger.info(
+        `Retrieving Certified Attributes for E-Service Template ${templateId} Version ${versionId}`
+      );
+
+      const eserviceTemplateVersionAttributes = await retrieveEServiceTemplateVersionAttributes(
+        await retrieveEServiceTemplateById(headers, templateId),
+        versionId,
+        "certified",
+        { offset, limit },
+        headers
+      );
+
+      return {
+        results: eserviceTemplateVersionAttributes.results.map((item) => ({
+          groupIndex: item.groupIndex,
+          attribute: toM2MGatewayApiCertifiedAttribute({
+            attribute: item.attribute,
+            logger,
+          }),
+        })),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceTemplateVersionAttributes.totalCount,
+        },
+      };
+    },
+
+    async getEserviceTemplateVersionDeclaredAttributes(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      { limit, offset }: m2mGatewayApi.GetDeclaredAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateVersionDeclaredAttributes> {
+      logger.info(
+        `Retrieving Declared Attributes for E-Service Template ${templateId} Version ${versionId}`
+      );
+
+      const eserviceTemplateVersionAttributes = await retrieveEServiceTemplateVersionAttributes(
+        await retrieveEServiceTemplateById(headers, templateId),
+        versionId,
+        "declared",
+        { offset, limit },
+        headers
+      );
+
+      return {
+        results: eserviceTemplateVersionAttributes.results.map((item) => ({
+          groupIndex: item.groupIndex,
+          attribute: toM2MGatewayApiDeclaredAttribute({
+            attribute: item.attribute,
+            logger,
+          }),
+        })),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceTemplateVersionAttributes.totalCount,
+        },
+      };
+    },
+
+    async getEserviceTemplateVersionVerifiedAttributes(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      { limit, offset }: m2mGatewayApi.GetVerifiedAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateVersionVerifiedAttributes> {
+      logger.info(
+        `Retrieving Verified Attributes for E-Service Template ${templateId} Version ${versionId}`
+      );
+
+      const eserviceTemplateVersionAttributes = await retrieveEServiceTemplateVersionAttributes(
+        await retrieveEServiceTemplateById(headers, templateId),
+        versionId,
+        "verified",
+        { offset, limit },
+        headers
+      );
+
+      return {
+        results: eserviceTemplateVersionAttributes.results.map((item) => ({
+          groupIndex: item.groupIndex,
+          attribute: toM2MGatewayApiVerifiedAttribute({
+            attribute: item.attribute,
+            logger,
+          }),
+        })),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceTemplateVersionAttributes.totalCount,
+        },
+      };
     },
   };
 }
