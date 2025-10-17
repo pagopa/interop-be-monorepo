@@ -43,6 +43,10 @@ FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:f8f6771d949ff351c061de64ef9cbfbc5
 
 COPY --from=build /out /app
 
+RUN groupadd -r app && useradd -rm -g app app
+RUN chown -R app:app /app && chmod -R 700 /app
+USER app
+
 WORKDIR /app/packages/events-signer
 EXPOSE 3000
 
