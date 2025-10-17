@@ -1191,3 +1191,22 @@ export const getMockBffApiPurposeTemplateWithCompactCreator =
       z.array(bffApi.RiskAnalysisTemplateAnswerAnnotationDocument)
     ),
   });
+
+export const getMockBffApiPurposeTemplate = (
+  state?: bffApi.PurposeTemplateState
+): bffApi.PurposeTemplate & {
+  id: PurposeTemplateId;
+} => ({
+  id: generateId(),
+  targetDescription:
+    "This is a valid target description that meets the minimum length requirement",
+  targetTenantKind: "PA" as bffApi.TenantKind,
+  creatorId: generateId(),
+  state: state || generateMock(bffApi.PurposeTemplateState),
+  createdAt: new Date().toISOString(),
+  purposeTitle: "Valid Purpose Title",
+  purposeDescription:
+    "This is a valid purpose description that meets the minimum length requirement",
+  purposeRiskAnalysisForm: generateMock(bffApi.RiskAnalysisFormTemplate),
+  purposeIsFreeOfCharge: false,
+});
