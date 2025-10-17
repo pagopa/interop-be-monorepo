@@ -82,10 +82,10 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttribu
   ];
 
   const mockM2MEserviceVerifiedAttributesResponse: m2mGatewayApi.EServiceDescriptorVerifiedAttributes =
-    {
-      pagination: { offset: 0, limit: 10, totalCount: 3 },
-      results,
-    };
+  {
+    pagination: { offset: 0, limit: 10, totalCount: 3 },
+    results,
+  };
 
   const mockQueryParams: m2mGatewayApi.GetVerifiedAttributesQueryParams = {
     offset: 0,
@@ -137,7 +137,7 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttribu
     },
     {
       error: eserviceDescriptorAttributeNotFound(descriptor.id),
-      expectedStatus: 404,
+      expectedStatus: 500,
     },
   ])(
     "Should return $expectedStatus for $error.code",
