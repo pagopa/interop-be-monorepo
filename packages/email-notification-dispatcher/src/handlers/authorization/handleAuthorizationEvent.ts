@@ -26,7 +26,6 @@ export async function handleAuthorizationEvent(
     logger,
     readModelService,
     templateService,
-    userService,
     correlationId,
   } = params;
   return match(decodedMessage)
@@ -120,7 +119,6 @@ export async function handleAuthorizationEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -130,7 +128,6 @@ export async function handleAuthorizationEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )

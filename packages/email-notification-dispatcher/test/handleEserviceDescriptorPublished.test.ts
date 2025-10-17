@@ -40,7 +40,6 @@ import {
   getMockUser,
   readModelService,
   templateService,
-  userService,
 } from "./utils.js";
 
 describe("handleEserviceDescriptorPublished", async () => {
@@ -107,7 +106,6 @@ describe("handleEserviceDescriptorPublished", async () => {
         eserviceV2Msg: undefined,
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -159,7 +157,6 @@ describe("handleEserviceDescriptorPublished", async () => {
         eserviceV2Msg: toEServiceV2(eserviceNoDescriptor),
         logger,
         templateService,
-        userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
@@ -350,7 +347,6 @@ describe("handleEserviceDescriptorPublished", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
@@ -389,7 +385,6 @@ describe("handleEserviceDescriptorPublished", async () => {
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,
-      userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });

@@ -27,7 +27,6 @@ export async function handleAgreementEvent(
     logger,
     readModelService,
     templateService,
-    userService,
     correlationId,
   } = params;
   return match(params.decodedMessage)
@@ -37,7 +36,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })),
       ...(await handleAgreementActivatedToConsumer({
@@ -45,7 +43,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })),
     ])
@@ -55,7 +52,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -65,7 +61,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -75,7 +70,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -95,7 +89,6 @@ export async function handleAgreementEvent(
         logger,
         readModelService,
         templateService,
-        userService,
         correlationId,
       })
     )
@@ -107,7 +100,6 @@ export async function handleAgreementEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })),
         ...(await handleAgreementSuspendedByPlatformToProducer({
@@ -115,7 +107,6 @@ export async function handleAgreementEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })),
       ]
@@ -131,6 +122,16 @@ export async function handleAgreementEvent(
           userService,
           correlationId,
         })
+=======
+    .with({ type: "AgreementSuspendedByPlatform" }, ({ data: { agreement } }) =>
+      handleAgreementSuspendedByPlatformToConsumer({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
+>>>>>>> 221a91f82 (Remove user database)
     )
     .with(
       { type: "AgreementUnsuspendedByProducer" },
@@ -140,7 +141,6 @@ export async function handleAgreementEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })
     )
@@ -162,7 +162,6 @@ export async function handleAgreementEvent(
           logger,
           readModelService,
           templateService,
-          userService,
           correlationId,
         })),
         ...(await handleAgreementUnsuspendedByPlatformToConsumer({
