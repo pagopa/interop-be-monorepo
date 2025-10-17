@@ -40,8 +40,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.6.9
-        version: 1.6.9
+        specifier: 1.7.0
+        version: 1.7.0
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -1175,8 +1175,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.6.9
-        version: 1.6.9
+        specifier: 1.7.0
+        version: 1.7.0
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2103,8 +2103,8 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.6.9
-        version: 1.6.9
+        specifier: 1.7.0
+        version: 1.7.0
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2849,8 +2849,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.6.9
-        version: 1.6.9
+        specifier: 1.7.0
+        version: 1.7.0
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -4599,8 +4599,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.6.9
-        version: 1.6.9
+        specifier: 1.7.0
+        version: 1.7.0
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -5295,8 +5295,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.6.9
-        version: 1.6.9
+        specifier: 1.7.0
+        version: 1.7.0
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -7002,8 +7002,8 @@ packages:
   '@pagopa/eslint-config@3.0.0':
     resolution: {integrity: sha512-eYIPdiuYRbRPR5k0OuteRNqYb0Z2nfJ/lZohejB7ylfBeSDWwkaV8Z19AXP4RymE6oEesyPDZ6i0yNaE9tQrHw==}
 
-  '@pagopa/interop-outbound-models@1.6.9':
-    resolution: {integrity: sha512-sptbwh98g2h7rw62QkikfHG4RfXPR4vKUO5UmuohVdEisdUv4EpSfIyxFjoptnNmKg0LxrIsLNHkQ+x5F8pdBw==}
+  '@pagopa/interop-outbound-models@1.7.0':
+    resolution: {integrity: sha512-Y6Nf2ZyN8qFftmG0pBIctrFKQ/oC/a8IlKBlD03qNxYilB0ok7AB08QVpngEYcc7D3zlxhSDH35EVrRcjDj7gw==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -14041,7 +14041,7 @@ snapshots:
       - tsutils
       - typescript
 
-  '@pagopa/interop-outbound-models@1.6.9':
+  '@pagopa/interop-outbound-models@1.7.0':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0

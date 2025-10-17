@@ -31,7 +31,7 @@ export async function handlePurposeMessageV2(
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
-  refreshableToken: RefreshableInteropToken,
+  _refreshableToken: RefreshableInteropToken,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)

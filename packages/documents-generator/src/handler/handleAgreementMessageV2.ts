@@ -27,7 +27,7 @@ export async function handleAgreementMessageV2(
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
-  refreshableToken: RefreshableInteropToken,
+  _refreshableToken: RefreshableInteropToken,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)

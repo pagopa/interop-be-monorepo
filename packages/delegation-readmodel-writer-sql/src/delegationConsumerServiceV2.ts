@@ -8,7 +8,7 @@ import { DelegationWriterService } from "./delegationWriterService.js";
 
 export async function handleMessageV2(
   message: DelegationEventEnvelopeV2,
-  delegationWriterService: DelegationWriterService,
+  delegationWriterService: DelegationWriterService
 ): Promise<void> {
   await match(message)
     .with(
@@ -27,9 +27,9 @@ export async function handleMessageV2(
         }
         await delegationWriterService.upsertDelegation(
           fromDelegationV2(message.data.delegation),
-          message.version,
+          message.version
         );
-      },
+      }
     )
     .exhaustive();
 }
