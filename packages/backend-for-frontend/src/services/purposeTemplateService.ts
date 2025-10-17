@@ -576,7 +576,7 @@ export function purposeTemplateServiceBuilder(
         undefined,
         {
           params: {
-            id: purposeTemplateId,
+            purposeTemplateId,
             answerId,
             documentId,
           },

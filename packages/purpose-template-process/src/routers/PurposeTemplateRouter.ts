@@ -530,7 +530,7 @@ const purposeTemplateRouter = (
       }
     )
     .delete(
-      "/purposeTemplates/:id/riskAnalysis/answers/:answerId/annotation/documents/:documentId",
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -539,7 +539,7 @@ const purposeTemplateRouter = (
 
           await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
             {
-              purposeTemplateId: unsafeBrandId(req.params.id),
+              purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
               answerId: unsafeBrandId(req.params.answerId),
               documentId: unsafeBrandId(req.params.documentId),
               ctx,
