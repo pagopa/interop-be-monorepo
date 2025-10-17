@@ -130,6 +130,7 @@ describe("Purpose Template splitter", () => {
             contentType: a.contentType,
             path: a.path,
             createdAt: a.createdAt.toISOString(),
+            checksum: a.checksum,
           }));
         return {
           expectedRiskAnalysisTemplateSingleAnswersSQL: [
@@ -189,6 +190,7 @@ describe("Purpose Template splitter", () => {
             contentType: a.contentType,
             path: a.path,
             createdAt: a.createdAt.toISOString(),
+            checksum: a.checksum,
           }));
         return {
           expectedRiskAnalysisTemplateMultiAnswersSQL: [

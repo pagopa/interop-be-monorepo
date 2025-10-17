@@ -6,6 +6,7 @@ import {
   PurposeTemplateState,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
@@ -51,6 +52,30 @@ export const purposeTemplateToApiPurposeTemplate = (
     : undefined,
 });
 
+export const riskAnalysisAnswerToApiRiskAnalysisAnswer = (
+  riskAnalysisAnswer:
+    | RiskAnalysisTemplateSingleAnswer
+    | RiskAnalysisTemplateMultiAnswer
+): purposeTemplateApi.RiskAnalysisTemplateAnswer => ({
+  id: riskAnalysisAnswer.id,
+  values:
+    "value" in riskAnalysisAnswer
+      ? riskAnalysisAnswer.value
+        ? [riskAnalysisAnswer.value]
+        : []
+      : (riskAnalysisAnswer as RiskAnalysisTemplateMultiAnswer).values,
+  editable: riskAnalysisAnswer.editable,
+  suggestedValues:
+    "suggestedValues" in riskAnalysisAnswer
+      ? riskAnalysisAnswer.suggestedValues
+      : [],
+  annotation: riskAnalysisAnswer.annotation
+    ? purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation(
+        riskAnalysisAnswer.annotation
+      )
+    : undefined,
+});
+
 function riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
   riskAnalysisForm: RiskAnalysisFormTemplate
 ): purposeTemplateApi.RiskAnalysisFormTemplate {
@@ -82,6 +107,7 @@ export const multiAnswersToApiMultiAnswers = (
   multiAnswers.map((answer: RiskAnalysisTemplateMultiAnswer) => ({
     responseKey: answer.id,
     responseValue: {
+      id: answer.id,
       values: answer.values,
       editable: answer.editable,
       suggestedValues: [], // always empty for multi answers
@@ -101,6 +127,7 @@ export const singleAnswersToApiSingleAnswers = (
   singleAnswers.map((answer: RiskAnalysisTemplateSingleAnswer) => ({
     responseKey: answer.id,
     responseValue: {
+      id: answer.id,
       values: answer.value ? [answer.value] : [],
       editable: answer.editable,
       suggestedValues: answer.suggestedValues,
@@ -119,10 +146,7 @@ export const purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation
       ? {
           id: annotation.id,
           text: annotation.text,
-          docs: annotation.docs.map((doc) => ({
-            ...doc,
-            createdAt: doc.createdAt?.toJSON(),
-          })),
+          docs: annotation.docs.map(annotationDocumentToApiAnnotationDocument),
         }
       : undefined;
 
@@ -133,3 +157,10 @@ export const eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemp
     ...eserviceDescriptorPurposeTemplate,
     createdAt: eserviceDescriptorPurposeTemplate.createdAt.toJSON(),
   });
+
+export const annotationDocumentToApiAnnotationDocument = (
+  annotationDocument: RiskAnalysisTemplateAnswerAnnotationDocument
+): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument => ({
+  ...annotationDocument,
+  createdAt: annotationDocument.createdAt.toJSON(),
+});

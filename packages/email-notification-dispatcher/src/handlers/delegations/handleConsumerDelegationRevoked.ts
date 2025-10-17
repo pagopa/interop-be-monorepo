@@ -1,9 +1,9 @@
 import {
   EmailNotificationMessagePayload,
-  generateId,
   missingKafkaMessageDataError,
   NotificationType,
   fromDelegationV2,
+  generateId,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -14,6 +14,7 @@ import {
 import {
   DelegationHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
@@ -42,7 +43,7 @@ export async function handleConsumerDelegationRevoked(
 
   const [htmlTemplate, eservice, delegator, delegate] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.consumerDelegationApprovedMailTemplate
+      eventMailTemplateType.consumerDelegationRevokedMailTemplate
     ),
     retrieveEService(delegation.eserviceId, readModelService),
     retrieveTenant(delegation.delegatorId, readModelService),
@@ -65,7 +66,7 @@ export async function handleConsumerDelegationRevoked(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Una delega che gestivi è stata revocata`,
@@ -73,11 +74,12 @@ export async function handleConsumerDelegationRevoked(
         title: `Una delega che gestivi è stata revocata`,
         notificationType,
         entityId: delegation.id,
+        ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
-        delegateName: delegate.name,
         eserviceName: eservice.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

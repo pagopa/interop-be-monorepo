@@ -12,6 +12,7 @@ import {
   M2MAdminAuthData,
   riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
   retrieveOriginFromAuthData,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -54,6 +55,8 @@ import {
   notValidEServiceTemplateVersionState,
   attributeDuplicatedInGroup,
   tenantNotFound,
+  missingPersonalDataFlag,
+  eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
 } from "../model/domain/errors.js";
 import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
@@ -91,6 +94,7 @@ import {
   toCreateEventEServiceTemplateVersionDocumentUpdated,
   toCreateEventEServiceTemplateVersionDocumentDeleted,
   toCreateEventEServiceTemplateVersionInterfaceDeleted,
+  toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -512,6 +516,15 @@ export function eserviceTemplateServiceBuilder(
 
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
         assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
+      }
+      if (
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
+        eserviceTemplate.data.personalData === undefined
+      ) {
+        throw missingPersonalDataFlag(
+          eserviceTemplateId,
+          eserviceTemplateVersionId
+        );
       }
 
       const publishedTemplate: EServiceTemplate = {
@@ -1302,6 +1315,9 @@ export function eserviceTemplateServiceBuilder(
         createdAt: creationDate,
         riskAnalysis: [],
         isSignalHubEnabled: seed.isSignalHubEnabled,
+        ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
+          ? { personalData: seed.personalData }
+          : {}),
       };
 
       const eserviceTemplateCreationEvent = toCreateEventEServiceTemplateAdded(
@@ -1830,6 +1846,49 @@ export function eserviceTemplateServiceBuilder(
         },
       };
     },
+    async updateEServiceTemplatePersonalDataFlagAfterPublication(
+      eserviceTemplateId: EServiceTemplateId,
+      personalData: boolean,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EServiceTemplate> {
+      logger.info(
+        `Setting personalData flag for EServiceTemplate ${eserviceTemplateId} to ${personalData}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      assertPublishedEServiceTemplate(eserviceTemplate.data);
+
+      if (eserviceTemplate.data.personalData !== undefined) {
+        throw eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce(
+          eserviceTemplateId
+        );
+      }
+
+      const updatedEServiceTemplate: EServiceTemplate = {
+        ...eserviceTemplate.data,
+        personalData,
+      };
+
+      const event =
+        toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication(
+          eserviceTemplate.metadata.version,
+          updatedEServiceTemplate,
+          correlationId
+        );
+
+      await repository.createEvent(event);
+
+      return updatedEServiceTemplate;
+    },
   };
 }
 
@@ -1898,10 +1957,7 @@ export async function cloneEServiceTemplateDocument({
 // eslint-disable-next-line max-params
 async function updateDraftEServiceTemplate(
   eserviceTemplateId: EServiceTemplateId,
-  {
-    seed,
-    type,
-  }:
+  typeAndSeed:
     | {
         type: "post";
         seed: eserviceTemplateApi.UpdateEServiceTemplateSeed;
@@ -1938,10 +1994,7 @@ async function updateDraftEServiceTemplate(
     mode,
     isSignalHubEnabled,
     intendedTarget,
-    ...rest
-  } = seed;
-  void (rest satisfies Record<string, never>);
-  // ^ To make sure we extract all the updated fields
+  } = typeAndSeed.seed;
 
   if (name && name !== eserviceTemplate.data.name) {
     await assertEServiceTemplateNameAvailable(name, readModelService);
@@ -1977,7 +2030,7 @@ async function updateDraftEServiceTemplate(
       ? eserviceTemplate.data.riskAnalysis
       : [];
 
-  const updatedIsSignalHubEnabled = match(type)
+  const updatedIsSignalHubEnabled = match(typeAndSeed.type)
     .with("post", () => isSignalHubEnabled)
     .with(
       "patch",
@@ -1985,6 +2038,17 @@ async function updateDraftEServiceTemplate(
     )
     .exhaustive();
 
+  const updatedPersonalData = match(typeAndSeed)
+    .with({ type: "post" }, ({ seed }) => seed.personalData)
+    .with(
+      { type: "patch" },
+      ({ seed }) =>
+        seed.personalData ??
+        (seed.personalData === null
+          ? undefined
+          : eserviceTemplate.data.personalData)
+    )
+    .exhaustive();
   const updatedEServiceTemplate: EServiceTemplate = {
     ...eserviceTemplate.data,
     name: name ?? eserviceTemplate.data.name,
@@ -2000,6 +2064,9 @@ async function updateDraftEServiceTemplate(
         }))
       : eserviceTemplate.data.versions,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
+    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
+      ? { personalData: updatedPersonalData }
+      : {}),
   };
 
   const event = await repository.createEvent(

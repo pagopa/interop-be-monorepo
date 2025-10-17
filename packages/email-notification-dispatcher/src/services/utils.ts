@@ -14,6 +14,7 @@ import {
 } from "pagopa-interop-models";
 import { dateAtRomeZone } from "pagopa-interop-commons";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   activeProducerDelegationNotFound,
   agreementStampDateNotFound,
@@ -35,10 +36,19 @@ export const eventMailTemplateType = {
   agreementUpgradedMailTemplate: "agreement-upgraded-mail",
   agreementSuspendedByConsumerMailTemplate:
     "agreement-suspended-by-consumer-mail",
-  agreementSuspendedByPlatformMailTemplate:
-    "agreement-suspended-by-platform-mail",
+  agreementSuspendedByPlatformToConsumerMailTemplate:
+    "agreement-suspended-by-platform-to-consumer-mail",
   agreementUnsuspendedByConsumerMailTemplate:
     "agreement-unsuspended-by-consumer-mail",
+  agreementUnsuspendedByPlatformToConsumerMailTemplate:
+    "agreement-unsuspended-by-platform-to-consumer-mail",
+  agreementSuspendedByProducerMailTemplate:
+    "agreement-suspended-by-producer-mail",
+  agreementSuspendedByPlatformMailTemplate:
+    "agreement-suspended-by-platform-mail",
+  agreementUnsuspendedByProducerMailTemplate:
+    "agreement-unsuspended-by-producer-mail",
+  agreementUnsuspendedByPlatform: "agreement-unsuspended-by-platform-mail",
   agreementUnsuspendedByPlatformMailTemplate:
     "agreement-unsuspended-by-platform-mail",
   agreementArchivedByConsumerMailTemplate:
@@ -191,6 +201,10 @@ export function encodeEmailEvent(
       subject: event.email.subject,
       body: event.email.body,
     },
-    address: event.address,
+    tenantId: event.tenantId,
+    ...match(event)
+      .with({ type: "User" }, ({ type, userId }) => ({ type, userId }))
+      .with({ type: "Tenant" }, ({ type, address }) => ({ type, address }))
+      .exhaustive(),
   });
 }
