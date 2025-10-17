@@ -572,9 +572,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
           )
-        )
-        .orderBy(
-          ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
         );
 
       return aggregatePurposeTemplateArray(
