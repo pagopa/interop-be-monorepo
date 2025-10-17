@@ -51,6 +51,8 @@ export const errorCodes = {
   cannotDeleteLastEServiceTemplateVersion: "0033",
   eserviceDescriptorAttributeNotFound: "0034",
   eserviceDescriptorGroupNotFound: "0035",
+  eserviceTemplateVersionAttributeGroupNotFound: "0036",
+  eserviceTemplateVersionAttributeNotFoundInGroup: "0037",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -383,5 +385,28 @@ export function eserviceDescriptorGroupNotFound(
     detail: `Group with index ${groupIndex} not found for descriptor ${descriptorId} of e-service ${eserviceId}`,
     code: "eserviceDescriptorGroupNotFound",
     title: "E-Service Descriptor Group Not Found",
+  });
+}
+
+export function eserviceTemplateVersionAttributeGroupNotFound(
+  templateId: EServiceTemplateId,
+  versionId: EServiceTemplateVersionId,
+  groupIndex: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Group with index ${groupIndex} not found for e-service template version ${versionId} of template ${templateId}`,
+    code: "eserviceTemplateVersionAttributeGroupNotFound",
+    title: "E-Service Template Version Attribute Group Not Found",
+  });
+}
+
+export function eserviceTemplateVersionAttributeNotFoundInGroup(
+  versionId: EServiceTemplateVersionId,
+  groupIndex: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute not found for e-service template version ${versionId} in group with index ${groupIndex}`,
+    code: "eserviceTemplateVersionAttributeNotFoundInGroup",
+    title: "E-Service Template Version Attribute Not Found in Group",
   });
 }

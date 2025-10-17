@@ -392,8 +392,10 @@ export function getMockedApiRiskAnalysis(): catalogApi.EServiceRiskAnalysis {
 
 export function getMockedApiEserviceTemplateVersion({
   state,
+  attributes,
 }: {
   state?: eserviceTemplateApi.EServiceTemplateVersionState;
+  attributes?: eserviceTemplateApi.Attributes;
 } = {}): eserviceTemplateApi.EServiceTemplateVersion {
   return {
     id: generateId(),
@@ -401,7 +403,7 @@ export function getMockedApiEserviceTemplateVersion({
       state ?? generateMock(eserviceTemplateApi.EServiceTemplateVersionState),
     voucherLifespan: generateMock(z.number().positive()),
     version: 0,
-    attributes: {
+    attributes: attributes ?? {
       certified: [[getMockedApiEServiceAttribute()]],
       declared: [[getMockedApiEServiceAttribute()]],
       verified: [[getMockedApiEServiceAttribute()]],

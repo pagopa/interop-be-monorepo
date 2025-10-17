@@ -10686,7 +10686,7 @@ paths:
       description: |
         Delete a specific Certified Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Template Version.
         If the deleted attribute is the last one in the group, the entire group will be removed.
-      operationId: deleteEServiceTemplateCertifiedAttributeFromGroup
+      operationId: deleteEServiceTemplateVersionCertifiedAttributeFromGroup
       responses:
         "204":
           description: E-Service Template Version Certified Attribute deleted from Attribute Group
@@ -10788,7 +10788,7 @@ paths:
       description: |
         Delete a specific Verified Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Template Version.
         If the deleted attribute is the last one in the group, the entire group will be removed.
-      operationId: deleteEServiceTemplateVerifiedAttributeFromGroup
+      operationId: deleteEServiceTemplateVersionVerifiedAttributeFromGroup
       responses:
         "204":
           description: E-Service Template Version Verified Attribute deleted from Attribute Group
@@ -10889,7 +10889,7 @@ paths:
       description: |
         Delete a specific Declared Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Template Version.
         If the deleted attribute is the last one in the group, the entire group will be removed.
-      operationId: deleteEServiceTemplateDeclaredAttributeFromGroup
+      operationId: deleteEServiceTemplateVersionDeclaredAttributeFromGroup
       responses:
         "204":
           description: E-Service Template Version Declared Attribute deleted from Attribute Group
