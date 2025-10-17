@@ -1,17 +1,21 @@
-import { FileManager, logger, Logger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  logger,
+  Logger,
+  SafeStorageService,
+} from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
 import { format } from "date-fns";
+import { SignatureServiceBuilder } from "pagopa-interop-commons";
 import {
   SqsSafeStorageBody,
   SqsSafeStorageBodySchema,
 } from "../models/sqsSafeStorageBody.js";
 import { config } from "../config/config.js";
-import { DbServiceBuilder } from "../services/dynamoService.js";
-import { SafeStorageService } from "../services/safeStorageClient.js";
 
 async function processMessage(
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   message: SqsSafeStorageBody,
   safeStorageService: SafeStorageService,
   logger: Logger
@@ -50,7 +54,7 @@ async function processMessage(
 
     logger.info(`File successfully saved in S3 with key: ${key}`);
 
-    await dbService.deleteFromDynamo(message.id);
+    await signatureService.deleteSignatureReference(message.id);
     logger.info(`Record ${message.id} deleted from DynamoDB`);
   } catch (error) {
     logger.error(`Error processing message: ${String(error)}`);
@@ -61,7 +65,7 @@ async function processMessage(
 export const sqsMessageHandler = async (
   messagePayload: Message,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorageService: SafeStorageService
 ): Promise<void> => {
   const logInstance: Logger = logger({ serviceName: config.serviceName });
@@ -85,7 +89,7 @@ export const sqsMessageHandler = async (
 
     await processMessage(
       fileManager,
-      dbService,
+      signatureService,
       validatedMessage,
       safeStorageService,
       logInstance

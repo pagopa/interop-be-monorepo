@@ -33,13 +33,6 @@ export const createTenantDefaultNotificationConfigErrorMapper = (
     .with("tenantNotificationConfigAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const createUserDefaultNotificationConfigErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("userNotificationConfigAlreadyExists", () => HTTP_STATUS_CONFLICT)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const updateTenantNotificationConfigErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -61,9 +54,10 @@ export const deleteTenantNotificationConfigErrorMapper = (
     .with("tenantNotificationConfigNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const deleteUserNotificationConfigErrorMapper = (
+export const removeUserNotificationConfigRoleErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("userNotificationConfigNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("userRoleNotInUserNotificationConfig", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

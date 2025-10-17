@@ -9,6 +9,7 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotation,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationId,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
@@ -218,14 +219,9 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
               id: unsafeBrandId(annotationSQL.id),
               text: annotationSQL.text,
               docs: annotationDocumentSQL
-                ? annotationDocumentSQL.map((doc) => ({
-                    id: unsafeBrandId(doc.id),
-                    name: doc.name,
-                    prettyName: doc.prettyName,
-                    contentType: doc.contentType,
-                    path: doc.path,
-                    createdAt: stringToDate(doc.createdAt),
-                  }))
+                ? annotationDocumentSQL.map(
+                    toRiskAnalysisTemplateAnswerAnnotationDocument
+                  )
                 : [],
             }
           : undefined;
@@ -411,6 +407,18 @@ export const toPurposeTemplateAggregatorArray = (
     riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
   };
 };
+
+export const toRiskAnalysisTemplateAnswerAnnotationDocument = (
+  annotationDocumentSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL
+): RiskAnalysisTemplateAnswerAnnotationDocument => ({
+  id: unsafeBrandId(annotationDocumentSQL.id),
+  name: annotationDocumentSQL.name,
+  prettyName: annotationDocumentSQL.prettyName,
+  contentType: annotationDocumentSQL.contentType,
+  path: annotationDocumentSQL.path,
+  createdAt: stringToDate(annotationDocumentSQL.createdAt),
+  checksum: annotationDocumentSQL.checksum,
+});
 
 export const aggregatePurposeTemplateEServiceDescriptorArray = (
   purposeTemplateEServiceDescriptor: PurposeTemplateEServiceDescriptorSQL[]
