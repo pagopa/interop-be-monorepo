@@ -64,7 +64,9 @@ export type UiSection =
   | "/catalogo-e-service"
   | "/aderente"
   | "/aderente/deleghe"
-  | "/aderente/anagrafica";
+  | "/aderente/anagrafica"
+  | "/gestione-client"
+  | "/gestione-client/api-e-service";
 
 export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
   {
@@ -77,7 +79,7 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     newEserviceTemplateVersionToInstantiator: "/erogazione/e-service",
     eserviceTemplateNameChangedToInstantiator: "/erogazione/e-service",
     eserviceTemplateStatusChangedToInstantiator: "/erogazione/e-service",
-    clientKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
+    clientKeyAddedDeletedToClientUsers: "/gestione-client/api-e-service",
     agreementActivatedRejectedToConsumer: "/fruizione/richieste",
     purposeActivatedRejectedToConsumer: "/fruizione/finalita",
     purposeSuspendedUnsuspendedToConsumer: "/fruizione/finalita",
@@ -87,4 +89,5 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     eserviceNewVersionApprovedRejectedToDelegate: "/aderente/deleghe",
     delegationSubmittedRevokedToDelegate: "/aderente/deleghe",
     certifiedVerifiedAttributeAssignedRevokedToAssignee: "/aderente/anagrafica",
+    producerKeychainKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
   } as const;

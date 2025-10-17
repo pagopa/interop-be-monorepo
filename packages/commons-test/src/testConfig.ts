@@ -2,7 +2,7 @@ import {
   DPoPConfig,
   PecEmailManagerConfig,
   TokenGenerationReadModelDbConfig,
-  EventsSignerConfig,
+  DynamoDBClientConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -28,9 +28,10 @@ export const EnhancedDPoPConfig = DPoPConfig.and(
 );
 export type EnhancedDPoPConfig = z.infer<typeof EnhancedDPoPConfig>;
 
-export const EnhancedEventsSignerConfig = EventsSignerConfig.and(
-  z.object({ safeStoragePort: z.number() })
+export const EnhancedDynamoDBClientConfig = DynamoDBClientConfig.and(
+  z.object({ dynamoDbTestPort: z.number() })
 );
-export type EnhancedEventsSignerConfig = z.infer<
-  typeof EnhancedEventsSignerConfig
+
+export type EnhancedDynamoDBClientConfig = z.infer<
+  typeof EnhancedDynamoDBClientConfig
 >;

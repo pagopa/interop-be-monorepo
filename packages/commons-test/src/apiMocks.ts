@@ -359,6 +359,7 @@ export function getMockedApiEServiceTemplate({
         tenantKind: generateMock(eserviceTemplateApi.TenantKind),
       },
     ],
+    personalData: generateMock(z.boolean().optional()),
   };
 }
 

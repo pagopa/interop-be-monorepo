@@ -9,6 +9,7 @@ import {
   purposeInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { m2mEventVisibility } from "pagopa-interop-models";
+import { DelegationIdParam } from "../model/types.js";
 
 export function afterEventIdFilter<
   T extends
@@ -56,4 +57,30 @@ export function visibilityFilter<
       ? and(eq(table.visibility, restrictedVisibility), restrictedFilter)
       : undefined
   );
+}
+
+export function delegationIdFilter<
+  T extends
+    | typeof eserviceInM2MEvent
+    | typeof agreementInM2MEvent
+    | typeof purposeInM2MEvent
+>(
+  table: T,
+  delegationId: DelegationIdParam,
+  {
+    nullFilter,
+  }: {
+    nullFilter: SQL | undefined;
+  }
+): SQL | undefined {
+  return delegationId
+    ? or(
+        eq(table.producerDelegationId, delegationId),
+        "consumerDelegationId" in table
+          ? eq(table.consumerDelegationId, delegationId)
+          : undefined
+      )
+    : delegationId === null
+    ? nullFilter
+    : undefined;
 }

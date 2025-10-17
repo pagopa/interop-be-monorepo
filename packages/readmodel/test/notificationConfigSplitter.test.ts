@@ -72,6 +72,7 @@ describe("Notification config splitters", () => {
         id: userNotificationConfig.id,
         userId: userNotificationConfig.userId,
         tenantId: userNotificationConfig.tenantId,
+        userRoles: userNotificationConfig.userRoles,
         metadataVersion: 1,
         createdAt: userNotificationConfig.createdAt.toISOString(),
         updatedAt: expectedUpdatedAt,
@@ -103,6 +104,7 @@ describe("Notification config splitters", () => {
             "delegationSubmittedRevokedToDelegate",
             "certifiedVerifiedAttributeAssignedRevokedToAssignee",
             "clientKeyAddedDeletedToClientUsers",
+            "producerKeychainKeyAddedDeletedToClientUsers",
           ] as const
         )
           .filter(
@@ -136,6 +138,7 @@ describe("Notification config splitters", () => {
             "delegationSubmittedRevokedToDelegate",
             "certifiedVerifiedAttributeAssignedRevokedToAssignee",
             "clientKeyAddedDeletedToClientUsers",
+            "producerKeychainKeyAddedDeletedToClientUsers",
           ] as const
         )
           .filter(

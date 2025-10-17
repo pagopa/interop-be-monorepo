@@ -6,17 +6,22 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeTemplateState,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
   TenantKind,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  aggregatePurposeTemplateEServiceDescriptor,
+  aggregatePurposeTemplateEServiceDescriptorArray,
   CatalogReadModelService,
   PurposeTemplateReadModelService,
   aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
-  aggregatePurposeTemplateEServiceDescriptor,
-  aggregatePurposeTemplateEServiceDescriptorArray,
+  toRiskAnalysisTemplateAnswerAnnotationDocument,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
@@ -277,6 +282,59 @@ export function readModelServiceBuilderSQL({
       return await purposeTemplateReadModelServiceSQL.getPurposeTemplateById(
         purposeTemplateId
       );
+    },
+    async getRiskAnalysisTemplateAnswerAnnotationDocument(
+      purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
+    ): Promise<
+      WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument> | undefined
+    > {
+      const queryResult = await readModelDB
+        .select({
+          riskAnalysisAnswerAnnotationDocument:
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+        })
+        .from(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+        )
+        .innerJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.id,
+              documentId
+            ),
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+              answerId
+            )
+          )
+        );
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      const { riskAnalysisAnswerAnnotationDocument } = queryResult[0];
+      return {
+        data: toRiskAnalysisTemplateAnswerAnnotationDocument(
+          riskAnalysisAnswerAnnotationDocument
+        ),
+        metadata: {
+          version: riskAnalysisAnswerAnnotationDocument.metadataVersion,
+        },
+      };
     },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
       purposeTemplateId: PurposeTemplateId,

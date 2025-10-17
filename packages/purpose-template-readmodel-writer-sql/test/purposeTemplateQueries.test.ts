@@ -3,8 +3,13 @@ import { getMockPurposeTemplate } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import { aggregatePurposeTemplate } from "pagopa-interop-readmodel";
 import {
+  EServiceDescriptorPurposeTemplate,
+  generateId,
+} from "pagopa-interop-models";
+import {
   checkCompletePurposeTemplate,
   getCompleteMockPurposeTemplate,
+  purposeTemplateReadModelService,
   purposeTemplateWriterService,
   readModelDB,
   retrievePurposeTemplateRiskAnalysisAnswersAnnotationsDocumentsSQLById,
@@ -20,9 +25,20 @@ describe("Purpose template queries", () => {
       const metadataVersion = 1;
 
       const purposeTemplate = getCompleteMockPurposeTemplate();
+      const purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate =
+        {
+          purposeTemplateId: purposeTemplate.id,
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+          createdAt: new Date(),
+        };
 
       await purposeTemplateWriterService.upsertPurposeTemplate(
         purposeTemplate,
+        metadataVersion
+      );
+      await purposeTemplateWriterService.upsertPurposeTemplateEServiceDescriptor(
+        purposeTemplateEServiceDescriptor,
         metadataVersion
       );
 
@@ -41,11 +57,21 @@ describe("Purpose template queries", () => {
         riskAnalysisTemplateAnswersAnnotationsSQL,
         riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
       });
+      const retrievedPurposeTemplateEServiceDescriptors =
+        await purposeTemplateReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
+          purposeTemplate.id
+        );
 
       expect(retrievedPurposeTemplate).toStrictEqual({
         data: purposeTemplate,
         metadata: { version: metadataVersion },
       });
+      expect(retrievedPurposeTemplateEServiceDescriptors).toEqual([
+        {
+          data: purposeTemplateEServiceDescriptor,
+          metadata: { version: metadataVersion },
+        },
+      ]);
     });
 
     it("should add a incomplete (*only* mandatory fields) purpose template", async () => {
