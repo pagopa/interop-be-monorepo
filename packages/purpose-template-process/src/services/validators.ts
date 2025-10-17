@@ -8,9 +8,10 @@ import {
   purposeTemplateState,
   PurposeTemplateState,
   RiskAnalysisFormTemplate,
+  RiskAnalysisTemplateAnswer,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
   TenantKind,
-  operationForbidden,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -28,6 +29,9 @@ import {
 import {
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
   associationEServicesForPurposeTemplateFailed,
+  annotationDocumentLimitExceeded,
+  conflictDocumentPrettyNameDuplicate,
+  conflictDuplicatedDocument,
   hyperlinkDetectionError,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
@@ -56,6 +60,8 @@ import {
   validPurposeTemplateResult,
 } from "../errors/purposeTemplateValidationErrors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+
+export const ANNOTATION_DOCUMENTS_LIMIT = 2;
 
 const isRequesterCreator = (
   creatorId: TenantId,
@@ -111,6 +117,31 @@ export const assertEServiceIdsCountIsBelowThreshold = (
     );
   }
 };
+
+export const assertDocumentsLimitsNotReached = (
+  docs: RiskAnalysisTemplateAnswerAnnotationDocument[] | undefined,
+  answerId: string
+): void => {
+  const totalDocs = docs?.length || 0;
+  if (totalDocs === ANNOTATION_DOCUMENTS_LIMIT) {
+    throw annotationDocumentLimitExceeded(answerId);
+  }
+};
+
+export const assertAnnotationDocumentIsUnique = (
+  { answer }: RiskAnalysisTemplateAnswer,
+  newPrettyName: string,
+  newChecksum: string
+): void =>
+  [...(answer?.annotation?.docs || [])].forEach((doc) => {
+    if (doc.prettyName === newPrettyName) {
+      throw conflictDocumentPrettyNameDuplicate(answer.id, newPrettyName);
+    }
+
+    if (doc?.checksum === newChecksum) {
+      throw conflictDuplicatedDocument(answer.id, newChecksum);
+    }
+  });
 
 export function validateAndTransformRiskAnalysisTemplate(
   riskAnalysisFormTemplate:
@@ -285,15 +316,6 @@ export function assertPurposeTemplateHasRiskAnalysisForm(
 } {
   if (!purposeTemplate.purposeRiskAnalysisForm) {
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
-  }
-}
-
-export function assertRequesterPurposeTemplateCreator(
-  creatorId: TenantId,
-  authData: UIAuthData | M2MAdminAuthData
-): void {
-  if (authData.organizationId !== creatorId) {
-    throw operationForbidden;
   }
 }
 
