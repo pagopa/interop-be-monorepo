@@ -4,19 +4,20 @@ import { purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate } from "pag
 
 export const PurposeTemplateRiskAnalysisAnswerSchema = createSelectSchema(
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate
-).extend({
-  deleted: z.boolean().default(false).optional(),
-  suggestedValues: z
-    .array(z.string())
-    .transform((val) => JSON.stringify(val))
-    .pipe(z.string())
-    .nullish(),
-  value: z
-    .array(z.string())
-    .transform((val) => JSON.stringify(val))
-    .pipe(z.string())
-    .nullish(),
-});
+)
+  .omit({ value: true, suggestedValues: true })
+  .extend({
+    deleted: z.boolean().default(false).optional(),
+    suggestedValues: z
+      .array(z.string())
+      .transform((val) => JSON.stringify(val))
+      .pipe(z.string())
+      .nullable(),
+    value: z
+      .array(z.string())
+      .transform((val) => JSON.stringify(val))
+      .pipe(z.string()),
+  });
 export type PurposeTemplateRiskAnalysisAnswerSchema = z.infer<
   typeof PurposeTemplateRiskAnalysisAnswerSchema
 >;
