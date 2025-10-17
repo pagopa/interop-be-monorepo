@@ -70,7 +70,8 @@ export const handleDelegationMessageV2 = async (
             "ProducerDelegationSubmitted",
             "ProducerDelegationRejected",
             "ConsumerDelegationSubmitted",
-            "ConsumerDelegationRejected"
+            "ConsumerDelegationRejected",
+            "DelegationContractAdded"
           ),
         },
         (event) => {

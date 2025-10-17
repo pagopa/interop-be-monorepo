@@ -32,7 +32,7 @@ export async function handlePurposeMessageV2(
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
   refreshableToken: RefreshableInteropToken,
-  logger: Logger,
+  logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
     .with(
@@ -40,7 +40,7 @@ export async function handlePurposeMessageV2(
         type: P.union(
           "PurposeActivated",
           "NewPurposeVersionActivated",
-          "PurposeVersionActivated",
+          "PurposeVersionActivated"
         ),
       },
       async (msg): Promise<void> => {
@@ -52,7 +52,7 @@ export async function handlePurposeMessageV2(
 
         const eservice = await retrieveEService(
           purpose.eserviceId,
-          readModelService,
+          readModelService
         );
         if (!eservice) {
           throw eServiceNotFound(purpose.eserviceId);
@@ -62,7 +62,7 @@ export async function handlePurposeMessageV2(
             retrieveTenant(eservice?.data.producerId, readModelService),
             retrieveTenant(purpose.consumerId, readModelService),
             readModelService.getActiveProducerDelegationByEserviceId(
-              purpose.eserviceId,
+              purpose.eserviceId
             ),
             retrievePurposeDelegation(purpose, readModelService),
           ]);
@@ -107,16 +107,16 @@ export async function handlePurposeMessageV2(
           pdfGenerator,
           fileManager,
           config,
-          logger,
+          logger
         ).createRiskAnalysisDocument(
           purpose,
           purposeVersion.dailyCalls,
           eserviceInfo,
           purposeVersion.stamps?.creation.who,
           tenantKind,
-          "it",
+          "it"
         );
-      },
+      }
     )
     .with(
       {
@@ -137,10 +137,10 @@ export async function handlePurposeMessageV2(
           "PurposeVersionUnsuspendedByProducer",
           "PurposeVersionOverQuotaUnsuspended",
           "PurposeArchived",
-          "PurposeVersionArchivedByRevokedDelegation",
+          "PurposeVersionArchivedByRevokedDelegation"
         ),
       },
-      () => Promise.resolve(),
+      () => Promise.resolve()
     )
     .exhaustive();
 }

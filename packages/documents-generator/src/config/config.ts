@@ -15,7 +15,7 @@ import {
 import { z } from "zod";
 
 export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
-  AgreementTopicConfig,
+  AgreementTopicConfig
 )
   .and(AuthorizationTopicConfig)
   .and(PurposeTopicConfig)
@@ -44,13 +44,13 @@ export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
         delegationProcessUrl: c.DELEGATION_PROCESS_URL,
         purposeProcessUrl: c.PURPOSE_PROCESS_URL,
         agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
-      })),
+      }))
   );
 
 export type DocumentsGeneratorConfig = z.infer<typeof DocumentsGeneratorConfig>;
 
 export const config: DocumentsGeneratorConfig = DocumentsGeneratorConfig.parse(
-  process.env,
+  process.env
 );
 
 export const baseConsumerConfig: KafkaConsumerConfig =
