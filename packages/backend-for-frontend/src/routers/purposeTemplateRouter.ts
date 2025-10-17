@@ -317,34 +317,54 @@ const purposeTemplateRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
-  purposeTemplateRouter.put(
-    "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation",
-    async (req, res) => {
+    )
+    .put(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result =
+            await purposeTemplateService.addRiskAnalysisAnswerAnnotation(
+              unsafeBrandId(req.params.purposeTemplateId),
+              unsafeBrandId(req.params.answerId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(bffApi.RiskAnalysisTemplateAnswerAnnotation.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            "Error adding risk analysis answer annotation for purpose template"
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete("/purposeTemplates/:purposeTemplateId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result =
-          await purposeTemplateService.addRiskAnalysisAnswerAnnotation(
-            unsafeBrandId(req.params.purposeTemplateId),
-            unsafeBrandId(req.params.answerId),
-            req.body,
-            ctx
-          );
-        return res
-          .status(200)
-          .send(bffApi.RiskAnalysisTemplateAnswerAnnotation.parse(result));
+        await purposeTemplateService.deletePurposeTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          ctx
+        );
+
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx,
-          "Error adding risk analysis answer annotation for purpose template"
+          `Error deleting purpose template ${req.params.purposeTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    }
-  );
+    });
 
   return purposeTemplateRouter;
 };
