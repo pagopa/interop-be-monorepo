@@ -43,6 +43,7 @@ import {
   updateReversePurposeErrorMapper,
   getPurposesErrorMapper,
   retrieveLatestRiskAnalysisConfigurationErrorMapper,
+  createPurposeFromTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { PurposeService } from "../services/purposeService.js";
 
@@ -722,7 +723,11 @@ const purposeRouter = (
             )
           );
       } catch (error) {
-        const errorRes = makeApiProblem(error, createPurposeErrorMapper, ctx);
+        const errorRes = makeApiProblem(
+          error,
+          createPurposeFromTemplateErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     });
