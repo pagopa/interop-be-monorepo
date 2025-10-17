@@ -73,6 +73,11 @@ paths:
             default: []
           explode: false
         - in: query
+          name: personalData
+          description: if true only e-service templates that handle personal data will be returned, if false only non-personal data e-service templates will be returned, if not present all e-service templates will be returned
+          schema:
+            type: boolean
+        - in: query
           name: offset
           required: true
           schema:

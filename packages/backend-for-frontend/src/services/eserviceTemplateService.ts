@@ -367,12 +367,13 @@ export function eserviceTemplateServiceBuilder(
     getCatalogEServiceTemplates: async (
       name: string | undefined,
       creatorsIds: string[],
+      personalData: boolean | undefined,
       offset: number,
       limit: number,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CatalogEServiceTemplates> => {
       logger.info(
-        `Retrieving Catalog EService templates for name = ${name}, creatorsIds = ${creatorsIds}, offset = ${offset}, limit = ${limit}`
+        `Retrieving Catalog EService templates for name = ${name}, creatorsIds = ${creatorsIds}, personalData = ${personalData}, offset = ${offset}, limit = ${limit}`
       );
       const eserviceTemplatesResponse: eserviceTemplateApi.EServiceTemplates =
         await eserviceTemplateClient.getEServiceTemplates({
