@@ -219,15 +219,9 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
               id: unsafeBrandId(annotationSQL.id),
               text: annotationSQL.text,
               docs: annotationDocumentSQL
-                ? annotationDocumentSQL.map((doc) => ({
-                    id: unsafeBrandId(doc.id),
-                    name: doc.name,
-                    prettyName: doc.prettyName,
-                    contentType: doc.contentType,
-                    checksum: doc.checksum,
-                    path: doc.path,
-                    createdAt: stringToDate(doc.createdAt),
-                  }))
+                ? annotationDocumentSQL.map(
+                    toRiskAnalysisTemplateAnswerAnnotationDocument
+                  )
                 : [],
             }
           : undefined;

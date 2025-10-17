@@ -26,8 +26,8 @@ import {
   AppContext,
   DB,
   eventRepository,
-  getLatestVersionFormRules,
   FileManager,
+  getLatestVersionFormRules,
   M2MAdminAuthData,
   M2MAuthData,
   riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
@@ -49,13 +49,17 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
+  toCreateEventPurposeTemplateDraftDeleted,
   toCreateEventPurposeTemplateDraftUpdated,
   toCreateEventPurposeTemplateEServiceLinked,
   toCreateEventPurposeTemplateEServiceUnlinked,
   toCreateEventPurposeTemplatePublished,
   toCreateEventPurposeTemplateAnswerAnnotationDocumentAdded,
 } from "../model/domain/toEvent.js";
-import { cleanupAnnotationDocsForRemovedAnswers } from "../utilities/riskAnalysisDocUtils.js";
+import {
+  cleanupAnnotationDocsForRemovedAnswers,
+  deleteRiskAnalysisTemplateAnswerAnnotationDocuments,
+} from "../utilities/riskAnalysisDocUtils.js";
 import {
   GetPurposeTemplateEServiceDescriptorsFilters,
   GetPurposeTemplatesFilters,
@@ -886,6 +890,47 @@ export function purposeTemplateServiceBuilder(
         data: updatedPurposeTemplate,
         metadata: { version: createdEvent.newVersion },
       };
+    },
+    async deletePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<void> {
+      logger.info(`Deleting purpose template ${purposeTemplateId}`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertPurposeTemplateIsDraft(purposeTemplate.data);
+      assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
+
+      const annotationDocumentsToRemove: RiskAnalysisTemplateAnswerAnnotationDocument[] =
+        [
+          ...purposeTemplate.data.purposeRiskAnalysisForm.singleAnswers,
+          ...purposeTemplate.data.purposeRiskAnalysisForm.multiAnswers,
+        ]
+          .filter((a) => a.annotation)
+          .flatMap((a) => a.annotation?.docs || []);
+
+      await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
+        annotationDocumentsToRemove,
+        fileManager,
+        logger,
+      });
+
+      await repository.createEvent(
+        toCreateEventPurposeTemplateDraftDeleted(
+          purposeTemplate.data,
+          correlationId,
+          purposeTemplate.metadata.version
+        )
+      );
     },
   };
 }

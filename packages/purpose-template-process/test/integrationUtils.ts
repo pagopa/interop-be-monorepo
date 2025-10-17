@@ -35,7 +35,7 @@ import { config } from "../src/config/config.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
 
-export const { cleanup, postgresDB, readModelDB, fileManager } =
+export const { cleanup, postgresDB, fileManager, readModelDB } =
   await setupTestContainersVitest(
     inject("eventStoreConfig"),
     inject("fileManagerConfig"),
