@@ -88,10 +88,10 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttrib
   ];
 
   const mockM2MEserviceCertifiedAttributesResponse: m2mGatewayApi.EServiceDescriptorCertifiedAttributes =
-  {
-    pagination: { offset: 0, limit: 10, totalCount: 3 },
-    results,
-  };
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 3 },
+      results,
+    };
 
   const mockQueryParams: m2mGatewayApi.GetCertifiedAttributesQueryParams = {
     offset: 0,
