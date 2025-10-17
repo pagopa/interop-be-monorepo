@@ -1,10 +1,15 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
-import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  attributeRegistryApi,
+  catalogApi,
+  m2mGatewayApi,
+} from "pagopa-interop-api-clients";
 import {
   AttributeId,
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  ListResult,
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -37,6 +42,11 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
+import {
+  toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiDeclaredAttribute,
+  toM2MGatewayApiVerifiedAttribute,
+} from "../api/attributeApiConverter.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 

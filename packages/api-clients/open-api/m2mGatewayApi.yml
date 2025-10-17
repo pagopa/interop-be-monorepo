@@ -14144,6 +14144,48 @@ components:
         - code
         - origin
         - createdAt
+    EServiceDescriptorCertifiedAttribute:
+      type: object
+      description: Represents an E-Service Descriptor Certified attribute with the index of its attribute group.
+      properties:
+        groupIndex:
+          type: integer
+          format: int32
+          minimum: 0
+          description: The index of the group to which the attribute belongs.
+        attribute:
+          $ref: "#/components/schemas/CertifiedAttribute"
+      required:
+        - groupIndex
+        - attribute
+    EServiceDescriptorDeclaredAttribute:
+      type: object
+      description: Represents an E-Service Descriptor Declared attribute with the index of its attribute group.
+      properties:
+        groupIndex:
+          type: integer
+          format: int32
+          minimum: 0
+          description: The index of the group to which the attribute belongs.
+        attribute:
+          $ref: "#/components/schemas/DeclaredAttribute"
+      required:
+        - groupIndex
+        - attribute
+    EServiceDescriptorVerifiedAttribute:
+      type: object
+      description: Represents an E-Service Descriptor Verified attribute with the index of its attribute group.
+      properties:
+        groupIndex:
+          type: integer
+          format: int32
+          minimum: 0
+          description: The index of the group to which the attribute belongs.
+        attribute:
+          $ref: "#/components/schemas/VerifiedAttribute"
+      required:
+        - groupIndex
+        - attribute
     DeclaredAttributeSeed:
       type: object
       additionalProperties: false
@@ -14167,6 +14209,45 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CertifiedAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    EServiceDescriptorCertifiedAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorCertifiedAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    EServiceDescriptorDeclaredAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorDeclaredAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    EServiceDescriptorVerifiedAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorVerifiedAttribute"
         pagination:
           $ref: "#/components/schemas/Pagination"
       required:
