@@ -104,7 +104,9 @@ function getSanitizedAnswers(
   riskAnalysisForm: RiskAnalysisFormToValidate
 ): RiskAnalysisFormToValidate["answers"] {
   return Object.fromEntries(
-    Object.entries(riskAnalysisForm.answers).filter(([, v]) => v.length > 0)
+    Object.entries(riskAnalysisForm.answers).filter(
+      ([, v]) => v && v.length > 0
+    )
   );
 }
 
