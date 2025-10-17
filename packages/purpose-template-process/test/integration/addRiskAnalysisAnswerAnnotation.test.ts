@@ -13,7 +13,6 @@ import {
   PurposeTemplate,
   PurposeTemplateDraftUpdatedV2,
   tenantKind,
-  operationForbidden,
   generateId,
   TenantId,
   RiskAnalysisSingleAnswerId,
@@ -25,6 +24,7 @@ import {
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisAnswerNotFound,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurposeTemplate,
@@ -294,7 +294,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     vi.useRealTimers();
   });
 
-  it("should throw operationForbidden if the requester is not the creator", async () => {
+  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -320,7 +320,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
           authData: getMockAuthData(differentCreatorId),
         })
       )
-    ).rejects.toThrowError(operationForbidden);
+    ).rejects.toThrowError(tenantNotAllowed(differentCreatorId));
 
     vi.useRealTimers();
   });

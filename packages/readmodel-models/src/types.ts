@@ -323,3 +323,14 @@ export type PurposeTemplateItemsSQL = {
   riskAnalysisTemplateAnswersAnnotationsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL[];
   riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
 };
+export const purposeTemplateChildTables = [
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+];
+export const purposeTemplateTables = [
+  purposeTemplateInReadmodelPurposeTemplate,
+  ...purposeTemplateChildTables,
+];
