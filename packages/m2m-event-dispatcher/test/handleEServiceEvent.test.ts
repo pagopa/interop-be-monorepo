@@ -339,9 +339,18 @@ describe("handleEServiceEvent test", async () => {
       testReadModelService
     );
 
-    // Try to insert the same event again
+    // Try to insert the same event again: should be skipped
     await handleEServiceEvent(
       message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService,
+      testReadModelService
+    );
+
+    // Try to insert one with a further resource version: should be inserted
+    await handleEServiceEvent(
+      { ...message, version: message.version + 1 },
       eventTimestamp,
       genericLogger,
       testM2mEventWriterService,

@@ -89,9 +89,17 @@ describe("handleAttributeEvent test", async () => {
       testM2mEventWriterService
     );
 
-    // Try to insert the same event again
+    // Try to insert the same event again: should be skipped
     await handleAttributeEvent(
       message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService
+    );
+
+    // Try to insert one with a further resource version: should be inserted
+    await handleAttributeEvent(
+      { ...message, version: message.version + 1 },
       eventTimestamp,
       genericLogger,
       testM2mEventWriterService
