@@ -24,6 +24,7 @@ import {
   PurposeTemplateId,
   PurposeTemplate,
   EServiceDescriptorPurposeTemplate,
+  purposeTemplateState,
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
@@ -33,6 +34,7 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  purposeTemplateInReadmodelPurposeTemplate,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
@@ -441,12 +443,20 @@ export function readModelServiceBuilderSQL({
         )
       )?.data;
     },
-    async getPurposeTemplateById(
+    async getActivePurposeTemplateById(
       purposeTemplateId: PurposeTemplateId
-    ): Promise<WithMetadata<PurposeTemplate> | undefined> {
-      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateById(
-        purposeTemplateId
-      );
+    ): Promise<PurposeTemplate | undefined> {
+      return (
+        await purposeTemplateReadModelServiceSQL.getPurposeTemplateByFilter(
+          and(
+            eq(purposeTemplateInReadmodelPurposeTemplate.id, purposeTemplateId),
+            eq(
+              purposeTemplateInReadmodelPurposeTemplate.state,
+              purposeTemplateState.active
+            )
+          )
+        )
+      )?.data;
     },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
       purposeTemplateId: PurposeTemplateId

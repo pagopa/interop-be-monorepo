@@ -49,12 +49,11 @@ export const errorCodes = {
   purposeCannotBeUpdated: "0030",
   tenantIsNotTheDelegate: "0031",
   purposeTemplateNotFound: "0032",
-  purposeTemplateNotActive: "0033",
-  invalidPurposeTenantKind: "0034",
-  eserviceNotLinkedToPurposeTemplate: "0035",
-  purposeTemplateMissingNotEditableFieldValue: "0036",
-  riskAnalysisContainsNotEditableAnswers: "0037",
-  riskAnalysisAnswerNotInSuggestValues: "0038",
+  invalidPurposeTenantKind: "0033",
+  eserviceNotLinkedToPurposeTemplate: "0034",
+  purposeTemplateMissingNotEditableFieldValue: "0035",
+  riskAnalysisContainsNotEditableAnswers: "0036",
+  riskAnalysisAnswerNotInSuggestValues: "0037",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -393,16 +392,6 @@ export function purposeTemplateNotFound(
     detail: `Purpose Template ${templateId} not found`,
     code: "purposeTemplateNotFound",
     title: "Purpose Template not found",
-  });
-}
-
-export function purposeTemplateNotActive(
-  templateId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose Template ${templateId} is not active`,
-    code: "purposeTemplateNotActive",
-    title: "Purpose Template not active",
   });
 }
 
