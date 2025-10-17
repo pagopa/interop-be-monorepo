@@ -71,7 +71,7 @@ export const handleDelegationMessageV2 = async (
             "ProducerDelegationRejected",
             "ConsumerDelegationSubmitted",
             "ConsumerDelegationRejected",
-            "DelegationContractAdded"
+            "DelegationContractGenerated"
           ),
         },
         (event) => {

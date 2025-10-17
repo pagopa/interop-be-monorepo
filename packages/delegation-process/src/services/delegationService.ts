@@ -46,7 +46,7 @@ import {
   toCreateEventProducerDelegationRejected,
   toCreateEventProducerDelegationRevoked,
   toCreateEventProducerDelegationSubmitted,
-  toCreateEventDelegationContractAdded,
+  toCreateEventDelegationContractGenerated,
 } from "../model/domain/toEvent.js";
 import {
   activeDelegationStates,
@@ -463,7 +463,7 @@ export function delegationServiceBuilder(
       delegationContract,
     };
     const event = await repository.createEvent(
-      toCreateEventDelegationContractAdded(
+      toCreateEventDelegationContractGenerated(
         { data: delegationWithContract, metadata },
         correlationId
       )

@@ -150,7 +150,7 @@ export function toCreateEventConsumerDelegationRejected(
     correlationId,
   };
 }
-export function toCreateEventDelegationContractAdded(
+export function toCreateEventDelegationContractGenerated(
   delegation: WithMetadata<Delegation>,
   correlationId: CorrelationId
 ): CreateEvent<DelegationEventV2> {
@@ -158,7 +158,7 @@ export function toCreateEventDelegationContractAdded(
     streamId: delegation.data.id,
     version: delegation.metadata.version,
     event: {
-      type: "DelegationContractAdded",
+      type: "DelegationContractGenerated",
       event_version: 2,
       data: {
         delegation: toDelegationV2(delegation.data),

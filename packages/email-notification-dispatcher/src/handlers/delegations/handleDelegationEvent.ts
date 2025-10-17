@@ -68,7 +68,7 @@ export async function handleDelegationEvent(
           "ProducerDelegationRevoked",
           "ConsumerDelegationSubmitted",
           "ConsumerDelegationRevoked",
-          "DelegationContractAdded"
+          "DelegationContractGenerated"
         ),
       },
       () => {

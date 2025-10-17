@@ -16,7 +16,7 @@ import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
 
 function toOuboundDelegationContractDocumentV2(
-  document: DelegationContractDocumentV2,
+  document: DelegationContractDocumentV2
 ): Exact<OutboundDelegationContractDocumentV2, DelegationContractDocumentV2> {
   return {
     ...document,
@@ -25,7 +25,7 @@ function toOuboundDelegationContractDocumentV2(
 }
 
 function toOutboundStampV2(
-  stamp: DelegationStampV2,
+  stamp: DelegationStampV2
 ): Exact<OutboundDelegationStampV2, DelegationStampV2> {
   return {
     ...stamp,
@@ -34,7 +34,7 @@ function toOutboundStampV2(
 }
 
 function toOutboundStampsV2(
-  stamp: DelegationStampsV2,
+  stamp: DelegationStampsV2
 ): Exact<OutboundDelegationStampsV2, DelegationStampsV2> {
   return {
     activation: stamp.activation && toOutboundStampV2(stamp.activation),
@@ -45,7 +45,7 @@ function toOutboundStampsV2(
 }
 
 function toOutboundDelegationV2(
-  delegation: DelegationV2,
+  delegation: DelegationV2
 ): Exact<OutboundDelegationV2, DelegationV2> {
   return {
     ...delegation,
@@ -60,7 +60,7 @@ function toOutboundDelegationV2(
 }
 
 export function toOutboundEventV2(
-  message: DelegationEventEnvelopeV2,
+  message: DelegationEventEnvelopeV2
 ): OutboundDelegationEvent | undefined {
   return match(message)
     .returnType<OutboundDelegationEvent | undefined>()
@@ -73,7 +73,7 @@ export function toOutboundEventV2(
       { type: "ConsumerDelegationApproved" },
       { type: "ConsumerDelegationRejected" },
       { type: "ConsumerDelegationRevoked" },
-      { type: "DelegationContractAdded" },
+      { type: "DelegationContractGenerated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -85,7 +85,7 @@ export function toOutboundEventV2(
         stream_id: msg.stream_id,
         streamVersion: msg.version,
         timestamp: new Date(),
-      }),
+      })
     )
     .exhaustive();
 }

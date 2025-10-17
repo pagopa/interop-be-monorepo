@@ -13,7 +13,7 @@ import { delegationServiceBuilder } from "../../service/delegationService.js";
 
 export async function handleDelegationMessageV2(
   messages: DelegationEventEnvelopeV2[],
-  dbContext: DBContext,
+  dbContext: DBContext
 ): Promise<void> {
   const delegationService = delegationServiceBuilder(dbContext);
 
@@ -32,19 +32,19 @@ export async function handleDelegationMessageV2(
             "ConsumerDelegationApproved",
             "ConsumerDelegationRejected",
             "ConsumerDelegationRevoked",
-            "DelegationContractAdded",
+            "DelegationContractGenerated"
           ),
         },
         async (msg) => {
           if (!msg.data.delegation) {
             throw genericInternalError(
-              "Delegation can't be missing in event message",
+              "Delegation can't be missing in event message"
             );
           }
 
           const splitResult = splitDelegationIntoObjectsSQL(
             fromDelegationV2(msg.data.delegation),
-            msg.version,
+            msg.version
           );
 
           upsertDelegationBatch.push(
@@ -52,9 +52,9 @@ export async function handleDelegationMessageV2(
               delegationSQL: splitResult.delegationSQL,
               stampsSQL: splitResult.stampsSQL,
               contractDocumentsSQL: splitResult.contractDocumentsSQL,
-            } as z.input<typeof DelegationItemsSchema>),
+            } as z.input<typeof DelegationItemsSchema>)
           );
-        },
+        }
       )
       .exhaustive();
   }
@@ -62,7 +62,7 @@ export async function handleDelegationMessageV2(
   if (upsertDelegationBatch.length > 0) {
     await delegationService.upsertBatchDelegation(
       dbContext,
-      upsertDelegationBatch,
+      upsertDelegationBatch
     );
   }
 }

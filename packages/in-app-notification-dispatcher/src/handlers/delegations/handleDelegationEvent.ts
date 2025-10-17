@@ -48,7 +48,7 @@ export async function handleDelegationEvent(
           type
         )
     )
-    .with({ type: "DelegationContractAdded" }, () => {
+    .with({ type: "DelegationContractGenerated" }, () => {
       logger.info(
         `No need to send an in-app notification for ${decodedMessage.type} message`
       );
