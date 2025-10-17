@@ -1,123 +1,121 @@
 <!DOCTYPE html>
 <html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analisi del rischio</title>
+    <link rel="stylesheet" href="./riskAnalysisTemplate.css" type="text/css" />
+    {{{paged-pdf-polyfill}}}
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Analisi del rischio</title>
-  <link rel="stylesheet" href="./riskAnalysisTemplate.css" type="text/css" />
-  {{{paged-pdf-polyfill}}}
-</head>
-
-<body>
-  <!--  Footer and header must be placed before other elements.
+  <body>
+    <!--  Footer and header must be placed before other elements.
           See https://github.com/danfickle/openhtmltopdf/issues/661#issuecomment-787961020
     -->
-  <!-- Pié di pagina -->
-  <div class="footer">
-    <hr />
-    <div class="pagopa">
-      <div class="pagopa-data">
-        PagoPA S.p.A.<br />
-        società per azioni con socio unico<br />
-        capitale sociale di euro 1,000,000 interamente versato<br />
-        sede legale in Roma, Piazza Colonna 370, CAP 00187<br />
-        n. di iscrizione a Registro Imprese di Roma, CF e P.IVA 15376371009
-      </div>
-      <div class="pictogram">
-        <img src="../assets/media/pictogram_pagopa.svg" />
-      </div>
-    </div>
-  </div>
-
-  <!-- Intestazione di pagina -->
-  <div class="header">
-    <div class="logo">
-      <img src="../assets/media/logo_pagopa.png" />
-    </div>
-  </div>
-
-  <!-- Titolo del documento -->
-  <h1>Analisi del rischio</h1>
-
-  <!-- Informazioni di contesto -->
-  <div class="purpose-info">
-    <div class="item">
-      <div class="label">E-Service</div>
-      <div class="value">{{eServiceName}}</div>
-    </div>
-
-    <div class="item">
-      <div class="label">Ente erogatore</div>
-      <div class="value">
-        {{producerName}}{{#if producerIPACode}} (codice IPA:
-        {{producerIPACode}}){{/if}}
+    <!-- Pié di pagina -->
+    <div class="footer">
+      <hr />
+      <div class="pagopa">
+        <div class="pagopa-data">
+          PagoPA S.p.A.<br />
+          società per azioni con socio unico<br />
+          capitale sociale di euro 1,000,000 interamente versato<br />
+          sede legale in Roma, Piazza Colonna 370, CAP 00187<br />
+          n. di iscrizione a Registro Imprese di Roma, CF e P.IVA 15376371009
+        </div>
+        <div class="pictogram">
+          <img src="../assets/media/pictogram_pagopa.svg" />
+        </div>
       </div>
     </div>
 
-    {{#if producerDelegationId}}
-    <div class="item">
-      <div class="label">Ente delegato all’erogazione</div>
-      <div class="value">
-        {{producerDelegateName}}{{#if producerDelegateIpaCode}} (codice IPA:
-        {{producerDelegateIpaCode}}){{/if}}
-      </div>
-    </div>
-    {{/if}}
-
-    <br />
-
-    <div class="item">
-      <div class="label">Ente fruitore</div>
-      <div class="value">
-        {{consumerName}}{{#if consumerIpaCode}} (codice IPA:
-        {{consumerIpaCode}}){{/if}}
+    <!-- Intestazione di pagina -->
+    <div class="header">
+      <div class="logo">
+        <img src="../assets/media/logo_pagopa.png" />
       </div>
     </div>
 
-    {{#if userId}}
-    <div class="item">
-      <div class="label">ID operatore</div>
-      <div class="value">{{userId}}</div>
-    </div>
-    {{else}}
-    <div class="item">
-      <div class="label">ID fruitore</div>
-      <div class="value">{{consumerId}}</div>
-    </div>
-    {{/if}} {{#if consumerDelegationId}}
-    <div class="item">
-      <div class="label">Ente delegato alla fruizione</div>
-      <div class="value">
-        {{consumerDelegateName}}{{#if consumerDelegateIpaCode}} (codice IPA:
-        {{consumerDelegateIpaCode}}){{/if}}
+    <!-- Titolo del documento -->
+    <h1>Analisi del rischio</h1>
+
+    <!-- Informazioni di contesto -->
+    <div class="purpose-info">
+      <div class="item">
+        <div class="label">E-Service</div>
+        <div class="value">{{eServiceName}}</div>
+      </div>
+
+      <div class="item">
+        <div class="label">Ente erogatore</div>
+        <div class="value">
+          {{producerName}}{{#if producerIPACode}} (codice IPA:
+          {{producerIPACode}}){{/if}}
+        </div>
+      </div>
+
+      {{#if producerDelegationId}}
+      <div class="item">
+        <div class="label">Ente delegato all’erogazione</div>
+        <div class="value">
+          {{producerDelegateName}}{{#if producerDelegateIpaCode}} (codice IPA:
+          {{producerDelegateIpaCode}}){{/if}}
+        </div>
+      </div>
+      {{/if}}
+
+      <br />
+
+      <div class="item">
+        <div class="label">Ente fruitore</div>
+        <div class="value">
+          {{consumerName}}{{#if consumerIpaCode}} (codice IPA:
+          {{consumerIpaCode}}){{/if}}
+        </div>
+      </div>
+
+      {{#if userId}}
+      <div class="item">
+        <div class="label">ID operatore</div>
+        <div class="value">{{userId}}</div>
+      </div>
+      {{else}}
+      <div class="item">
+        <div class="label">ID fruitore</div>
+        <div class="value">{{consumerId}}</div>
+      </div>
+      {{/if}} {{#if consumerDelegationId}}
+      <div class="item">
+        <div class="label">Ente delegato alla fruizione</div>
+        <div class="value">
+          {{consumerDelegateName}}{{#if consumerDelegateIpaCode}} (codice IPA:
+          {{consumerDelegateIpaCode}}){{/if}}
+        </div>
+      </div>
+      {{/if}}
+
+      <div class="item">
+        <div class="label">Numero chiamate API/giorno</div>
+        <div class="value">{{dailyCalls}}</div>
+      </div>
+
+      <div class="item">
+        <div class="label">L’e-service riceve o eroga dati?</div>
+        <div class="value">{{eServiceMode}}</div>
       </div>
     </div>
-    {{/if}}
 
-    <div class="item">
-      <div class="label">Numero chiamate API/giorno</div>
-      <div class="value">{{dailyCalls}}</div>
+    <!-- Blocco titolo gratuito -->
+    <div class="free-of-charge">
+      {{{freeOfCharge}}} {{{freeOfChargeReason}}}
     </div>
 
-    <div class="item">
-      <div class="label">L’e-service riceve o eroga dati?</div>
-      <div class="value">{{eServiceMode}}</div>
+    <!-- Blocco dell'analisi del rischio -->
+    <div class="purpose-answers">{{{answers}}}</div>
+
+    <div class="release-date">
+      <div class="date">{{date}}</div>
     </div>
-  </div>
-
-  <!-- Blocco titolo gratuito -->
-  <div class="free-of-charge">
-    {{{freeOfCharge}}} {{{freeOfChargeReason}}}
-  </div>
-
-  <!-- Blocco dell'analisi del rischio -->
-  <div class="purpose-answers">{{{answers}}}</div>
-
-  <div class="release-date">
-    <div class="date">{{date}}</div>
-  </div>
-</body>
-
+  </body>
 </html>
