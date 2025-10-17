@@ -1,4 +1,4 @@
-import { SQL } from "drizzle-orm";
+import { SQL, and, eq } from "drizzle-orm";
 import { AnyPgTable } from "drizzle-orm/pg-core";
 import {
   eserviceInM2MEvent,
@@ -17,9 +17,9 @@ export async function isResourceVersionPresent<
   tx: DrizzleTransactionType,
   resourceVersion: number,
   table: T,
-  filter: SQL | undefined
+  resourceIdFilter: SQL | undefined
 ): Promise<boolean> {
-  if (filter === undefined) {
+  if (resourceIdFilter === undefined) {
     throw genericInternalError("Filter cannot be undefined");
   }
 
@@ -28,12 +28,10 @@ export async function isResourceVersionPresent<
       resourceVersion: table.resourceVersion,
     })
     .from(table satisfies AnyPgTable)
-    .where(filter)
+    .where(and(resourceIdFilter, eq(table.resourceVersion, resourceVersion)))
     .limit(1);
 
   const existingResourceVersion = row.at(0)?.resourceVersion;
 
-  return existingResourceVersion
-    ? existingResourceVersion === resourceVersion
-    : false;
+  return existingResourceVersion !== undefined;
 }

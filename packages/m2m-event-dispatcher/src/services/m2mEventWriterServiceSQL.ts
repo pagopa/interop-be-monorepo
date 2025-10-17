@@ -23,20 +23,20 @@ import { isResourceVersionPresent } from "../utils/m2mEventSQLUtils.js";
 export function m2mEventWriterServiceSQLBuilder(
   m2mEventDB: ReturnType<typeof drizzle>
 ) {
-  function insertIfVersionNotPresent(
+  function insertIfResourceVersionNotPresent(
     event: EServiceM2MEventSQL | AgreementM2MEventSQL | AttributeM2MEventSQL,
     table:
       | typeof eserviceInM2MEvent
       | typeof agreementInM2MEvent
       | typeof attributeInM2MEvent,
-    filter: SQL | undefined
+    resourceIdFilter: SQL | undefined
   ): Promise<void> {
     return m2mEventDB.transaction(async (tx) => {
       const shouldWrite = !(await isResourceVersionPresent(
         tx,
         event.resourceVersion,
         table,
-        filter
+        resourceIdFilter
       ));
 
       if (shouldWrite) {
@@ -47,14 +47,14 @@ export function m2mEventWriterServiceSQLBuilder(
 
   return {
     async insertEServiceM2MEvent(event: EServiceM2MEventSQL): Promise<void> {
-      await insertIfVersionNotPresent(
+      await insertIfResourceVersionNotPresent(
         event,
         eserviceInM2MEvent,
         eq(eserviceInM2MEvent.eserviceId, event.eserviceId)
       );
     },
     async insertAgreementM2MEvent(event: AgreementM2MEventSQL): Promise<void> {
-      await insertIfVersionNotPresent(
+      await insertIfResourceVersionNotPresent(
         event,
         agreementInM2MEvent,
         eq(agreementInM2MEvent.agreementId, event.agreementId)
@@ -88,7 +88,7 @@ export function m2mEventWriterServiceSQLBuilder(
       await m2mEventDB.insert(tenantInM2MEvent).values([]);
     },
     async insertAttributeM2MEvent(event: AttributeM2MEventSQL): Promise<void> {
-      await insertIfVersionNotPresent(
+      await insertIfResourceVersionNotPresent(
         event,
         attributeInM2MEvent,
         eq(attributeInM2MEvent.attributeId, event.attributeId)
