@@ -27,9 +27,9 @@ import {
 } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
-describe("deleteCertifiedAttributeFromGroup", () => {
+describe("deleteEServiceDescriptorVerifiedAttributeFromGroup", () => {
   const mockAttribute = getMockedApiEServiceAttribute();
-  const mockCertifiedAttributes = [
+  const mockVerifiedAttributes = [
     [getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute()],
     [getMockedApiEServiceAttribute(), mockAttribute],
     [mockAttribute],
@@ -41,9 +41,9 @@ describe("deleteCertifiedAttributeFromGroup", () => {
   ];
   const mockDescriptor = getMockedApiEserviceDescriptor({
     attributes: {
-      certified: mockCertifiedAttributes,
+      certified: [],
       declared: [],
-      verified: [],
+      verified: mockVerifiedAttributes,
     },
   });
   const mockEService = getMockedApiEservice({
@@ -75,7 +75,7 @@ describe("deleteCertifiedAttributeFromGroup", () => {
 
     const groupIndex = 1;
 
-    await eserviceService.deleteCertifiedAttributeFromGroup(
+    await eserviceService.deleteEServiceDescriptorVerifiedAttributeFromGroup(
       unsafeBrandId(mockEService.id),
       unsafeBrandId(mockDescriptor.id),
       groupIndex,
@@ -92,14 +92,14 @@ describe("deleteCertifiedAttributeFromGroup", () => {
       },
       body: {
         attributes: {
-          certified: mockCertifiedAttributes.map((group, index) => {
+          certified: [],
+          declared: [],
+          verified: mockVerifiedAttributes.map((group, index) => {
             if (index === groupIndex) {
               return group.filter((attr) => attr.id !== mockAttribute.id);
             }
             return group;
           }),
-          declared: [],
-          verified: [],
         },
       },
     });
@@ -117,7 +117,7 @@ describe("deleteCertifiedAttributeFromGroup", () => {
 
     const groupIndex = 2;
 
-    await eserviceService.deleteCertifiedAttributeFromGroup(
+    await eserviceService.deleteEServiceDescriptorVerifiedAttributeFromGroup(
       unsafeBrandId(mockEService.id),
       unsafeBrandId(mockDescriptor.id),
       groupIndex,
@@ -134,11 +134,11 @@ describe("deleteCertifiedAttributeFromGroup", () => {
       },
       body: {
         attributes: {
-          certified: mockCertifiedAttributes.filter(
+          certified: [],
+          declared: [],
+          verified: mockVerifiedAttributes.filter(
             (_, index) => index !== groupIndex
           ),
-          declared: [],
-          verified: [],
         },
       },
     });
@@ -151,7 +151,7 @@ describe("deleteCertifiedAttributeFromGroup", () => {
     });
 
     await expect(
-      eserviceService.deleteCertifiedAttributeFromGroup(
+      eserviceService.deleteEServiceDescriptorVerifiedAttributeFromGroup(
         unsafeBrandId(mockEService.id),
         unsafeBrandId(mockDescriptor.id),
         1,
@@ -169,7 +169,7 @@ describe("deleteCertifiedAttributeFromGroup", () => {
     });
 
     await expect(
-      eserviceService.deleteCertifiedAttributeFromGroup(
+      eserviceService.deleteEServiceDescriptorVerifiedAttributeFromGroup(
         unsafeBrandId(mockEService.id),
         unsafeBrandId(mockDescriptor.id),
         1,
@@ -189,7 +189,7 @@ describe("deleteCertifiedAttributeFromGroup", () => {
     );
 
     await expect(
-      eserviceService.deleteCertifiedAttributeFromGroup(
+      eserviceService.deleteEServiceDescriptorVerifiedAttributeFromGroup(
         unsafeBrandId(mockEService.id),
         unsafeBrandId(mockDescriptor.id),
         1,
@@ -209,10 +209,10 @@ describe("deleteCertifiedAttributeFromGroup", () => {
 
   it("Should throw eserviceDescriptorGroupNotFound in case of missing group for the specified group index", async () => {
     await expect(
-      eserviceService.deleteCertifiedAttributeFromGroup(
+      eserviceService.deleteEServiceDescriptorVerifiedAttributeFromGroup(
         unsafeBrandId(mockEService.id),
         unsafeBrandId(mockDescriptor.id),
-        mockCertifiedAttributes.length + 1,
+        mockVerifiedAttributes.length + 1,
         unsafeBrandId(mockAttribute.id),
         getMockM2MAdminAppContext()
       )
@@ -220,14 +220,14 @@ describe("deleteCertifiedAttributeFromGroup", () => {
       eserviceDescriptorGroupNotFound(
         unsafeBrandId(mockEService.id),
         unsafeBrandId(mockDescriptor.id),
-        mockCertifiedAttributes.length + 1
+        mockVerifiedAttributes.length + 1
       )
     );
   });
 
   it("Should throw eserviceDescriptorAttributeNotFound in case of attribute not found", async () => {
     await expect(
-      eserviceService.deleteCertifiedAttributeFromGroup(
+      eserviceService.deleteEServiceDescriptorVerifiedAttributeFromGroup(
         unsafeBrandId(mockEService.id),
         unsafeBrandId(mockDescriptor.id),
         1,
@@ -242,7 +242,7 @@ describe("deleteCertifiedAttributeFromGroup", () => {
   it("Should throw eserviceDescriptorNotFound in case of eservice descriptor not found", async () => {
     const descriptorId = generateId();
     await expect(
-      eserviceService.deleteCertifiedAttributeFromGroup(
+      eserviceService.deleteEServiceDescriptorVerifiedAttributeFromGroup(
         unsafeBrandId(mockEService.id),
         unsafeBrandId(descriptorId),
         1,

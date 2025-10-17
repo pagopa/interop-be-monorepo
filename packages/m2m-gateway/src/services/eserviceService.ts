@@ -1138,7 +1138,7 @@ export function eserviceServiceBuilder(
       };
     },
 
-    async deleteVerifiedAttributeFromGroup(
+    async deleteEServiceDescriptorVerifiedAttributeFromGroup(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       groupIndex: number,
@@ -1159,7 +1159,7 @@ export function eserviceServiceBuilder(
       );
     },
 
-    async deleteDeclaredAttributeFromGroup(
+    async deleteEServiceDescriptorDeclaredAttributeFromGroup(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       groupIndex: number,
@@ -1180,7 +1180,7 @@ export function eserviceServiceBuilder(
       );
     },
 
-    async deleteCertifiedAttributeFromGroup(
+    async deleteEServiceDescriptorCertifiedAttributeFromGroup(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       groupIndex: number,

@@ -216,7 +216,7 @@ export const getEServiceDescriptorAttributesErrorMapper = (
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const deleteCertifiedAttributeFromGroupErrorMapper = (
+export const deleteEServiceDescriptorCertifiedAttributeFromGroupErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -228,7 +228,7 @@ export const deleteCertifiedAttributeFromGroupErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const deleteVerifiedAttributeFromGroupErrorMapper = (
+export const deleteEServiceDescriptorVerifiedAttributeFromGroupErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -240,7 +240,7 @@ export const deleteVerifiedAttributeFromGroupErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const deleteDeclaredAttributeFromGroupErrorMapper = (
+export const deleteEServiceDescriptorDeclaredAttributeFromGroupErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
