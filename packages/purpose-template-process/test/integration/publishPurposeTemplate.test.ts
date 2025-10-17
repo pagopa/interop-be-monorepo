@@ -2,21 +2,15 @@
 import {
   decodeProtobufPayload,
   getMockAuthData,
+  getMockCompleteRiskAnalysisFormTemplate,
   getMockContext,
   getMockPurposeTemplate,
-  getMockRiskAnalysisTemplateAnswerAnnotation,
-  getMockRiskAnalysisTemplateAnswerAnnotationDocument,
-  getMockValidRiskAnalysisFormTemplate,
   sortPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
-  tenantKind,
   TenantId,
   PurposeTemplate,
-  RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisTemplateSingleAnswer,
   purposeTemplateState,
   PurposeTemplatePublishedV2,
   toPurposeTemplateV2,
@@ -41,30 +35,7 @@ import {
 
 describe("publishPurposeTemplate", () => {
   const creatorId = generateId<TenantId>();
-  const incompleteRiskAnalysisFormTemplate =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
-  const riskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
-    ...incompleteRiskAnalysisFormTemplate,
-    singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
-      (a): RiskAnalysisTemplateSingleAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-        suggestedValues: [],
-      })
-    ),
-    multiAnswers: incompleteRiskAnalysisFormTemplate.multiAnswers.map(
-      (a): RiskAnalysisTemplateMultiAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-      })
-    ),
-  };
+  const riskAnalysisFormTemplate = getMockCompleteRiskAnalysisFormTemplate();
 
   const purposeTemplate: PurposeTemplate = {
     ...getMockPurposeTemplate(),

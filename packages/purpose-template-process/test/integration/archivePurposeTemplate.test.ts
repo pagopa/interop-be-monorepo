@@ -12,8 +12,8 @@ import {
   TenantId,
   PurposeTemplate,
   purposeTemplateState,
-  PurposeTemplateSuspendedV2,
   toPurposeTemplateV2,
+  PurposeTemplateArchivedV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -26,8 +26,9 @@ import {
   purposeTemplateStateConflict,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { archivableInitialStates } from "../../src/services/validators.js";
 
-describe("suspendPurposeTemplate", () => {
+describe("archivePurposeTemplate", () => {
   const creatorId = generateId<TenantId>();
   const riskAnalysisFormTemplate = getMockCompleteRiskAnalysisFormTemplate();
 
@@ -50,47 +51,56 @@ describe("suspendPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  it("should write on event-store for the suspending of a purpose template in active state", async () => {
-    const metadataVersion = 1;
-    await addOnePurposeTemplate(purposeTemplate, metadataVersion);
+  it.each(archivableInitialStates)(
+    "should write on event-store for the archiving of a purpose template in %s state",
+    async (state) => {
+      const metadataVersion = 1;
+      await addOnePurposeTemplate(
+        { ...purposeTemplate, state },
+        metadataVersion
+      );
 
-    const suspendResponse = await purposeTemplateService.suspendPurposeTemplate(
-      purposeTemplate.id,
-      getMockContext({ authData: getMockAuthData(creatorId) })
-    );
+      const archiveResponse =
+        await purposeTemplateService.archivePurposeTemplate(
+          purposeTemplate.id,
+          getMockContext({ authData: getMockAuthData(creatorId) })
+        );
 
-    const updatedPurposeTemplate = suspendResponse.data;
+      const updatedPurposeTemplate = archiveResponse.data;
 
-    const writtenEvent = await readLastPurposeTemplateEvent(purposeTemplate.id);
+      const writtenEvent = await readLastPurposeTemplateEvent(
+        purposeTemplate.id
+      );
 
-    const expectedMetadataVersion = metadataVersion + 1;
+      const expectedMetadataVersion = metadataVersion + 1;
 
-    expect(writtenEvent).toMatchObject({
-      stream_id: purposeTemplate.id,
-      version: String(expectedMetadataVersion),
-      type: "PurposeTemplateSuspended",
-      event_version: 2,
-    });
+      expect(writtenEvent).toMatchObject({
+        stream_id: purposeTemplate.id,
+        version: String(expectedMetadataVersion),
+        type: "PurposeTemplateArchived",
+        event_version: 2,
+      });
 
-    const expectedPurposeTemplate: PurposeTemplate = {
-      ...purposeTemplate,
-      state: purposeTemplateState.suspended,
-      updatedAt: new Date(),
-    };
+      const expectedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate,
+        state: purposeTemplateState.archived,
+        updatedAt: new Date(),
+      };
 
-    const writtenPayload = decodeProtobufPayload({
-      messageType: PurposeTemplateSuspendedV2,
-      payload: writtenEvent.data,
-    });
+      const writtenPayload = decodeProtobufPayload({
+        messageType: PurposeTemplateArchivedV2,
+        payload: writtenEvent.data,
+      });
 
-    expect(sortPurposeTemplate(writtenPayload.purposeTemplate)).toEqual(
-      sortPurposeTemplate(toPurposeTemplateV2(expectedPurposeTemplate))
-    );
-    expect(suspendResponse).toMatchObject({
-      data: updatedPurposeTemplate,
-      metadata: { version: expectedMetadataVersion },
-    });
-  });
+      expect(sortPurposeTemplate(writtenPayload.purposeTemplate)).toEqual(
+        sortPurposeTemplate(toPurposeTemplateV2(expectedPurposeTemplate))
+      );
+      expect(archiveResponse).toMatchObject({
+        data: updatedPurposeTemplate,
+        metadata: { version: expectedMetadataVersion },
+      });
+    }
+  );
 
   it("should throw tenantNotAllowed if the caller is not the creator of the purpose template", async () => {
     await addOnePurposeTemplate(purposeTemplate);
@@ -98,7 +108,7 @@ describe("suspendPurposeTemplate", () => {
     const otherTenantId = generateId<TenantId>();
 
     await expect(async () => {
-      await purposeTemplateService.suspendPurposeTemplate(
+      await purposeTemplateService.archivePurposeTemplate(
         purposeTemplate.id,
         getMockContext({ authData: getMockAuthData(otherTenantId) })
       );
@@ -109,15 +119,7 @@ describe("suspendPurposeTemplate", () => {
     {
       error: purposeTemplateStateConflict(
         purposeTemplate.id,
-        purposeTemplateState.suspended
-      ),
-      state: purposeTemplateState.suspended,
-    },
-    {
-      error: purposeTemplateNotInExpectedStates(
-        purposeTemplate.id,
-        purposeTemplateState.archived,
-        [purposeTemplateState.active]
+        purposeTemplateState.archived
       ),
       state: purposeTemplateState.archived,
     },
@@ -125,7 +127,7 @@ describe("suspendPurposeTemplate", () => {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplate.id,
         purposeTemplateState.draft,
-        [purposeTemplateState.active]
+        archivableInitialStates
       ),
       state: purposeTemplateState.draft,
     },
@@ -140,7 +142,7 @@ describe("suspendPurposeTemplate", () => {
       await addOnePurposeTemplate(purposeTemplateWithUnexpectedState);
 
       await expect(async () => {
-        await purposeTemplateService.suspendPurposeTemplate(
+        await purposeTemplateService.archivePurposeTemplate(
           purposeTemplateWithUnexpectedState.id,
           getMockContext({ authData: getMockAuthData(creatorId) })
         );

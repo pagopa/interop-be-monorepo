@@ -22,7 +22,7 @@ import {
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("API POST /purposeTemplates/{id}/suspend", () => {
+describe("API POST /purposeTemplates/{id}/archive", () => {
   const purposeTemplate = getMockPurposeTemplate();
   const serviceResponse = getMockWithMetadata(purposeTemplate);
 
@@ -31,7 +31,7 @@ describe("API POST /purposeTemplates/{id}/suspend", () => {
   );
 
   beforeEach(() => {
-    purposeTemplateService.suspendPurposeTemplate = vi
+    purposeTemplateService.archivePurposeTemplate = vi
       .fn()
       .mockResolvedValue(serviceResponse);
   });
@@ -41,7 +41,7 @@ describe("API POST /purposeTemplates/{id}/suspend", () => {
     purposeTemplateId: PurposeTemplateId = purposeTemplate.id
   ) =>
     request(api)
-      .post(`/purposeTemplates/${purposeTemplateId}/suspend`)
+      .post(`/purposeTemplates/${purposeTemplateId}/archive`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -75,8 +75,8 @@ describe("API POST /purposeTemplates/{id}/suspend", () => {
     {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplate.id,
-        purposeTemplateState.archived,
-        [purposeTemplateState.active]
+        purposeTemplateState.draft,
+        [purposeTemplateState.archived]
       ),
       expectedStatus: 400,
     },
@@ -88,14 +88,14 @@ describe("API POST /purposeTemplates/{id}/suspend", () => {
     {
       error: purposeTemplateStateConflict(
         generateId(),
-        purposeTemplateState.suspended
+        purposeTemplateState.archived
       ),
       expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      purposeTemplateService.suspendPurposeTemplate = vi
+      purposeTemplateService.archivePurposeTemplate = vi
         .fn()
         .mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
