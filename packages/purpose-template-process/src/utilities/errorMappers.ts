@@ -163,7 +163,7 @@ export const addRiskAnalysisAnswerAnnotationErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const publishPurposeTemplateErrorMapper = (
+export const activatePurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -172,6 +172,16 @@ export const publishPurposeTemplateErrorMapper = (
       "riskAnalysisTemplateValidationFailed",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("purposeTemplateStateConflict", () => HTTP_STATUS_CONFLICT)
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const suspendPurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeTemplateNotInExpectedStates", () => HTTP_STATUS_BAD_REQUEST)
     .with("purposeTemplateStateConflict", () => HTTP_STATUS_CONFLICT)
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)

@@ -8,6 +8,7 @@ import {
   WithMetadata,
   purposeTemplateEventToBinaryDataV2,
   ListResult,
+  PurposeTemplateState,
   RiskAnalysisTemplateAnswer,
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
@@ -55,6 +56,8 @@ import {
   toCreateEventPurposeTemplateEServiceLinked,
   toCreateEventPurposeTemplateEServiceUnlinked,
   toCreateEventPurposeTemplatePublished,
+  toCreateEventPurposeTemplateSuspended,
+  toCreateEventPurposeTemplateUnsuspended,
   toCreateEventPurposeTemplateAnswerAnnotationDocumentAdded,
 } from "../model/domain/toEvent.js";
 import {
@@ -83,6 +86,7 @@ import {
   validateEservicesAssociations,
   validateEservicesDisassociations,
   validateRiskAnalysisTemplateOrThrow,
+  assertSuspendableState,
   validateRiskAnalysisAnswerOrThrow,
 } from "./validators.js";
 
@@ -1101,41 +1105,86 @@ export function purposeTemplateServiceBuilder(
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Publishing purpose template ${id}`);
 
+      const updatedPurposeTemplate = await activatePurposeTemplate({
+        id,
+        expectedInitialState: purposeTemplateState.draft,
+        authData,
+        readModelService,
+      });
+
+      const createdEvent = await repository.createEvent(
+        toCreateEventPurposeTemplatePublished(
+          updatedPurposeTemplate.data,
+          updatedPurposeTemplate.metadata.version,
+          correlationId
+        )
+      );
+
+      return {
+        data: updatedPurposeTemplate.data,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
+    async unsuspendPurposeTemplate(
+      id: PurposeTemplateId,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeTemplate>> {
+      logger.info(`Unsuspending purpose template ${id}`);
+
+      const updatedPurposeTemplate = await activatePurposeTemplate({
+        id,
+        expectedInitialState: purposeTemplateState.suspended,
+        authData,
+        readModelService,
+      });
+
+      const createdEvent = await repository.createEvent(
+        toCreateEventPurposeTemplateUnsuspended({
+          purposeTemplate: updatedPurposeTemplate.data,
+          version: updatedPurposeTemplate.metadata.version,
+          correlationId,
+        })
+      );
+
+      return {
+        data: updatedPurposeTemplate.data,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
+    async suspendPurposeTemplate(
+      id: PurposeTemplateId,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeTemplate>> {
+      logger.info(`Suspending purpose template ${id}`);
+
       const purposeTemplate = await retrievePurposeTemplate(
         id,
         readModelService
       );
 
-      const purposeRiskAnalysisForm =
-        purposeTemplate.data.purposeRiskAnalysisForm;
-
-      if (!purposeRiskAnalysisForm) {
-        throw purposeTemplateRiskAnalysisFormNotFound(id);
-      }
-
       assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
-      assertActivatableState(purposeTemplate.data, purposeTemplateState.draft);
-
-      validateRiskAnalysisTemplateOrThrow({
-        riskAnalysisFormTemplate:
-          riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
-            purposeRiskAnalysisForm
-          ),
-        tenantKind: purposeTemplate.data.targetTenantKind,
-      });
+      assertSuspendableState(purposeTemplate.data);
 
       const updatedPurposeTemplate: PurposeTemplate = {
         ...purposeTemplate.data,
-        state: purposeTemplateState.active,
+        state: purposeTemplateState.suspended,
         updatedAt: new Date(),
       };
 
       const createdEvent = await repository.createEvent(
-        toCreateEventPurposeTemplatePublished(
-          updatedPurposeTemplate,
-          purposeTemplate.metadata.version,
-          correlationId
-        )
+        toCreateEventPurposeTemplateSuspended({
+          purposeTemplate: updatedPurposeTemplate,
+          version: purposeTemplate.metadata.version,
+          correlationId,
+        })
       );
 
       return {
@@ -1281,3 +1330,43 @@ export function purposeTemplateServiceBuilder(
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;
+
+async function activatePurposeTemplate({
+  id,
+  expectedInitialState,
+  authData,
+  readModelService,
+}: {
+  id: PurposeTemplateId;
+  expectedInitialState: PurposeTemplateState;
+  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">;
+  readModelService: ReadModelServiceSQL;
+}): Promise<WithMetadata<PurposeTemplate>> {
+  const purposeTemplate = await retrievePurposeTemplate(id, readModelService);
+
+  const purposeRiskAnalysisForm = purposeTemplate.data.purposeRiskAnalysisForm;
+
+  if (!purposeRiskAnalysisForm) {
+    throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.data.id);
+  }
+
+  assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+  assertActivatableState(purposeTemplate.data, expectedInitialState);
+
+  validateRiskAnalysisTemplateOrThrow({
+    riskAnalysisFormTemplate:
+      riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate(
+        purposeRiskAnalysisForm
+      ),
+    tenantKind: purposeTemplate.data.targetTenantKind,
+  });
+
+  return {
+    data: {
+      ...purposeTemplate.data,
+      state: purposeTemplateState.active,
+      updatedAt: new Date(),
+    },
+    metadata: purposeTemplate.metadata,
+  };
+}
