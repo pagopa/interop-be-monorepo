@@ -5,6 +5,7 @@ import {
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
 import {
+  AttributeId,
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
@@ -26,6 +27,7 @@ import {
 import {
   cannotDeleteLastEServiceDescriptor,
   eserviceDescriptorAttributeNotFound,
+  eserviceDescriptorGroupNotFound,
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
@@ -169,6 +171,67 @@ export function eserviceServiceBuilder(
       results: attributesToReturn,
       totalCount: allFlatKindAttributes.length,
     };
+  }
+
+  // eslint-disable-next-line max-params
+  async function deleteAttributeFromEServiceDescriptorGroup(
+    eserviceId: EServiceId,
+    descriptorId: DescriptorId,
+    groupIndex: number,
+    attributeId: AttributeId,
+    attributeKind: keyof catalogApi.Attributes,
+    { headers }: WithLogger<M2MGatewayAppContext>
+  ): Promise<void> {
+    const eservice = await retrieveEServiceById(headers, eserviceId);
+    const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
+
+    const descriptorAttributes = descriptor.attributes[attributeKind];
+
+    const attributeGroup = descriptorAttributes[groupIndex];
+
+    if (!attributeGroup) {
+      throw eserviceDescriptorGroupNotFound(
+        eserviceId,
+        descriptorId,
+        groupIndex
+      );
+    }
+
+    if (!attributeGroup.find((a) => a.id === attributeId)) {
+      throw eserviceDescriptorAttributeNotFound(descriptorId);
+    }
+
+    const attributeGroupWithoutAttribute = attributeGroup.filter(
+      (a) => a.id !== attributeId
+    );
+
+    const updatedGroups =
+      attributeGroupWithoutAttribute.length === 0
+        ? [
+            ...descriptorAttributes.slice(0, groupIndex),
+            ...descriptorAttributes.slice(groupIndex + 1),
+          ]
+        : [
+            ...descriptorAttributes.slice(0, groupIndex),
+            attributeGroupWithoutAttribute,
+            ...descriptorAttributes.slice(groupIndex + 1),
+          ];
+
+    const response =
+      await clients.catalogProcessClient.patchUpdateDraftDescriptor(
+        {
+          attributes: {
+            ...descriptor.attributes,
+            [attributeKind]: updatedGroups,
+          },
+        },
+        {
+          params: { eServiceId: eserviceId, descriptorId },
+          headers,
+        }
+      );
+
+    await pollEService(response, headers);
   }
 
   const pollEserviceUntilDeletion = (
@@ -1073,6 +1136,69 @@ export function eserviceServiceBuilder(
           totalCount: eserviceAttributes.totalCount,
         },
       };
+    },
+
+    async deleteVerifiedAttributeFromGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      ctx.logger.info(
+        `Deleting Verified Attribute ${attributeId} from group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      await deleteAttributeFromEServiceDescriptorGroup(
+        eserviceId,
+        descriptorId,
+        groupIndex,
+        attributeId,
+        "verified",
+        ctx
+      );
+    },
+
+    async deleteDeclaredAttributeFromGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      ctx.logger.info(
+        `Deleting Declared Attribute ${attributeId} from group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      await deleteAttributeFromEServiceDescriptorGroup(
+        eserviceId,
+        descriptorId,
+        groupIndex,
+        attributeId,
+        "declared",
+        ctx
+      );
+    },
+
+    async deleteCertifiedAttributeFromGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      ctx.logger.info(
+        `Deleting Certified Attribute ${attributeId} from group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      await deleteAttributeFromEServiceDescriptorGroup(
+        eserviceId,
+        descriptorId,
+        groupIndex,
+        attributeId,
+        "certified",
+        ctx
+      );
     },
   };
 }
