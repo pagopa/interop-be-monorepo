@@ -14,6 +14,7 @@ import {
   UserNotificationConfigUpdatedV2,
   toUserNotificationConfigV2,
   emailNotificationPreference,
+  userRole,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -31,6 +32,7 @@ describe("updateUserNotificationConfig", () => {
     ...getMockUserNotificationConfig(),
     userId,
     tenantId,
+    userRoles: [userRole.ADMIN_ROLE],
   };
   const userNotificationConfigSeed: notificationConfigApi.UserNotificationConfigUpdateSeed =
     {
@@ -89,6 +91,9 @@ describe("updateUserNotificationConfig", () => {
         clientKeyAddedDeletedToClientUsers:
           !userNotificationConfig.inAppConfig
             .clientKeyAddedDeletedToClientUsers,
+        producerKeychainKeyAddedDeletedToClientUsers:
+          !userNotificationConfig.inAppConfig
+            .producerKeychainKeyAddedDeletedToClientUsers,
       },
       emailConfig: getMockNotificationConfig(),
     };
@@ -120,10 +125,11 @@ describe("updateUserNotificationConfig", () => {
       messageType: UserNotificationConfigUpdatedV2,
       payload: writtenEvent.data,
     });
-    const expectedUserNotificationConfig = {
+    const expectedUserNotificationConfig: UserNotificationConfig = {
       id: serviceReturnValue.id,
       userId,
       tenantId,
+      userRoles: [userRole.ADMIN_ROLE],
       ...userNotificationConfigSeed,
       emailNotificationPreference: emailNotificationPreference.enabled,
       createdAt: userNotificationConfig.createdAt,

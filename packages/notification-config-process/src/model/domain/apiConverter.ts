@@ -3,6 +3,8 @@ import {
   EmailNotificationPreference,
   TenantNotificationConfig,
   UserNotificationConfig,
+  UserRole,
+  userRole,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -26,6 +28,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
   id,
   userId,
   tenantId,
+  userRoles,
   inAppNotificationPreference,
   emailNotificationPreference,
   inAppConfig: {
@@ -60,6 +63,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
     certifiedVerifiedAttributeAssignedRevokedToAssignee:
       certifiedVerifiedAttributeAssignedRevokedToAssigneeInApp,
     clientKeyAddedDeletedToClientUsers: clientKeyAddedDeletedToClientUsersInApp,
+    producerKeychainKeyAddedDeletedToClientUsers:
+      producerKeychainKeyAddedDeletedToClientUsersInApp,
   },
   emailConfig: {
     agreementSuspendedUnsuspendedToProducer:
@@ -93,6 +98,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
     certifiedVerifiedAttributeAssignedRevokedToAssignee:
       certifiedVerifiedAttributeAssignedRevokedToAssigneeEmail,
     clientKeyAddedDeletedToClientUsers: clientKeyAddedDeletedToClientUsersEmail,
+    producerKeychainKeyAddedDeletedToClientUsers:
+      producerKeychainKeyAddedDeletedToClientUsersEmail,
   },
   createdAt,
   updatedAt,
@@ -102,6 +109,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
     id,
     userId,
     tenantId,
+    userRoles: userRoles.map(userRoleToApiUserRole),
     inAppNotificationPreference,
     emailNotificationPreference:
       emailNotificationPreferenceToApiEmailNotificationPreference(
@@ -141,6 +149,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
         certifiedVerifiedAttributeAssignedRevokedToAssigneeInApp,
       clientKeyAddedDeletedToClientUsers:
         clientKeyAddedDeletedToClientUsersInApp,
+      producerKeychainKeyAddedDeletedToClientUsers:
+        producerKeychainKeyAddedDeletedToClientUsersInApp,
     },
     emailConfig: {
       agreementSuspendedUnsuspendedToProducer:
@@ -176,6 +186,8 @@ export function userNotificationConfigToApiUserNotificationConfig({
         certifiedVerifiedAttributeAssignedRevokedToAssigneeEmail,
       clientKeyAddedDeletedToClientUsers:
         clientKeyAddedDeletedToClientUsersEmail,
+      producerKeychainKeyAddedDeletedToClientUsers:
+        producerKeychainKeyAddedDeletedToClientUsersEmail,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),
@@ -199,5 +211,27 @@ export function emailNotificationPreferenceToApiEmailNotificationPreference(
     .with("Enabled", () => "ENABLED" as const)
     .with("Disabled", () => "DISABLED" as const)
     .with("Digest", () => "DIGEST" as const)
+    .exhaustive();
+}
+
+export function apiUserRoleToUserRole(
+  apiUserRole: notificationConfigApi.UserRole
+): UserRole {
+  return match(apiUserRole)
+    .with("ADMIN", () => userRole.ADMIN_ROLE)
+    .with("API", () => userRole.API_ROLE)
+    .with("SECURITY", () => userRole.SECURITY_ROLE)
+    .with("SUPPORT", () => userRole.SUPPORT_ROLE)
+    .exhaustive();
+}
+
+export function userRoleToApiUserRole(
+  role: UserRole
+): notificationConfigApi.UserRole {
+  return match(role)
+    .with(userRole.ADMIN_ROLE, () => "ADMIN" as const)
+    .with(userRole.API_ROLE, () => "API" as const)
+    .with(userRole.SECURITY_ROLE, () => "SECURITY" as const)
+    .with(userRole.SUPPORT_ROLE, () => "SUPPORT" as const)
     .exhaustive();
 }

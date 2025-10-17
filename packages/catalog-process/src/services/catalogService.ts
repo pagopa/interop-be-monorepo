@@ -101,6 +101,7 @@ import {
   checksumDuplicate,
   attributeDuplicatedInGroup,
   eservicePersonalDataFlagCanOnlyBeSetOnce,
+  missingPersonalDataFlag,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -1630,6 +1631,13 @@ export function catalogServiceBuilder(
         throw audienceCannotBeEmpty(descriptor.id);
       }
 
+      if (
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
+        eservice.data.personalData === undefined
+      ) {
+        throw missingPersonalDataFlag(eserviceId, descriptorId);
+      }
+
       if (producerDelegation) {
         const eserviceWithWaitingForApprovalDescriptor = replaceDescriptor(
           eservice.data,
@@ -2729,6 +2737,13 @@ export function catalogServiceBuilder(
           descriptor.id,
           descriptor.state.toString()
         );
+      }
+
+      if (
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
+        eservice.data.personalData === undefined
+      ) {
+        throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
       const updatedEService = await processDescriptorPublication(

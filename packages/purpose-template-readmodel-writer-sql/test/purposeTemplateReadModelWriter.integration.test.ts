@@ -2,14 +2,18 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockPurposeTemplate,
+  getMockRiskAnalysisTemplateAnswerAnnotationDocument,
+  getMockValidRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import {
   dateToBigInt,
   EService,
   EServiceDescriptorPurposeTemplate,
+  generateId,
   PurposeTemplate,
   PurposeTemplateAddedV2,
+  PurposeTemplateAnnotationDocumentAddedV2,
   PurposeTemplateArchivedV2,
   PurposeTemplateDraftDeletedV2,
   PurposeTemplateDraftUpdatedV2,
@@ -20,8 +24,11 @@ import {
   purposeTemplateState,
   PurposeTemplateSuspendedV2,
   PurposeTemplateUnsuspendedV2,
+  RiskAnalysisTemplateAnswerAnnotationId,
+  tenantKind,
   toEServiceV2,
   toPurposeTemplateV2,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
@@ -62,11 +69,23 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeTemplateDraftUpdated", async () => {
-      const metadataVersion = 1;
+      const metadataVersion = 2;
+
+      const purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate =
+        {
+          purposeTemplateId: purposeTemplate.id,
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+          createdAt: new Date(),
+        };
 
       await purposeTemplateWriterService.upsertPurposeTemplate(
         purposeTemplate,
-        0
+        1
+      );
+      await purposeTemplateWriterService.upsertPurposeTemplateEServiceDescriptor(
+        purposeTemplateEServiceDescriptor,
+        1
       );
 
       const updatedPurposeTemplate: PurposeTemplate = {
@@ -91,11 +110,21 @@ describe("Integration tests", async () => {
         await purposeTemplateReadModelService.getPurposeTemplateById(
           purposeTemplate.id
         );
+      const retrievedPurposeTemplateEServiceDescriptors =
+        await purposeTemplateReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
+          purposeTemplate.id
+        );
 
       expect(retrievedPurposeTemplate).toStrictEqual({
         data: updatedPurposeTemplate,
         metadata: { version: metadataVersion },
       });
+      expect(retrievedPurposeTemplateEServiceDescriptors).toStrictEqual([
+        {
+          data: purposeTemplateEServiceDescriptor,
+          metadata: { version: metadataVersion },
+        },
+      ]);
     });
 
     it("PurposeTemplatePublished", async () => {
@@ -356,18 +385,24 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurposeTemplateEServiceDescriptors).toStrictEqual([
         {
-          purposeTemplateId: purposeTemplate.id,
-          eserviceId: eservice1.id,
-          descriptorId: eservice1.descriptors[0].id,
-          createdAt: createdAt1,
+          data: {
+            purposeTemplateId: purposeTemplate.id,
+            eserviceId: eservice1.id,
+            descriptorId: eservice1.descriptors[0].id,
+            createdAt: createdAt1,
+          },
+          metadata: { version: metadataVersion },
         },
         {
-          purposeTemplateId: purposeTemplate.id,
-          eserviceId: eservice2.id,
-          descriptorId: eservice2.descriptors[0].id,
-          createdAt: createdAt2,
+          data: {
+            purposeTemplateId: purposeTemplate.id,
+            eserviceId: eservice2.id,
+            descriptorId: eservice2.descriptors[0].id,
+            createdAt: createdAt2,
+          },
+          metadata: { version: metadataVersion },
         },
-      ] satisfies EServiceDescriptorPurposeTemplate[]);
+      ] satisfies Array<WithMetadata<EServiceDescriptorPurposeTemplate>>);
     });
 
     it("PurposeTemplateEServiceUnlinked", async () => {
@@ -427,12 +462,104 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurposeTemplateEServiceDescriptors).toStrictEqual([
         {
-          purposeTemplateId: purposeTemplate.id,
-          eserviceId: eservice2.id,
-          descriptorId: eservice2.descriptors[0].id,
-          createdAt,
-        } satisfies EServiceDescriptorPurposeTemplate,
+          data: {
+            purposeTemplateId: purposeTemplate.id,
+            eserviceId: eservice2.id,
+            descriptorId: eservice2.descriptors[0].id,
+            createdAt,
+          },
+          metadata: { version: metadataVersion },
+        } satisfies WithMetadata<EServiceDescriptorPurposeTemplate>,
       ]);
+    });
+
+    it("PurposeTemplateAnnotationDocumentAdded", async () => {
+      const metadataVersion = 1;
+
+      const mockValidRiskAnalysisTemplateForm =
+        getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+
+      const answerToUpdateWithAnnotationDoc =
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        mockValidRiskAnalysisTemplateForm.singleAnswers.find(
+          (a) => a.key === "purpose"
+        )!;
+
+      const riskAnalysisWithAnnotation = {
+        ...mockValidRiskAnalysisTemplateForm,
+        singleAnswers: mockValidRiskAnalysisTemplateForm.singleAnswers.map(
+          (a) =>
+            a.id === answerToUpdateWithAnnotationDoc.id
+              ? {
+                  ...a,
+                  annotation: {
+                    id: generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
+                    text: "Annotation text",
+                    docs: [],
+                  },
+                }
+              : a
+        ),
+      };
+
+      const existentPurposeTemplate: PurposeTemplate = {
+        ...getMockPurposeTemplate(),
+        purposeRiskAnalysisForm: riskAnalysisWithAnnotation,
+      };
+
+      await purposeTemplateWriterService.upsertPurposeTemplate(
+        existentPurposeTemplate,
+        0
+      );
+
+      const annotationDocument =
+        getMockRiskAnalysisTemplateAnswerAnnotationDocument();
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...existentPurposeTemplate,
+        purposeRiskAnalysisForm: {
+          ...existentPurposeTemplate.purposeRiskAnalysisForm!,
+          singleAnswers:
+            existentPurposeTemplate.purposeRiskAnalysisForm!.singleAnswers.map(
+              (a) =>
+                a.id === answerToUpdateWithAnnotationDoc.id
+                  ? {
+                      ...a,
+                      annotation: {
+                        ...a.annotation!,
+                        docs: [...a.annotation!.docs, annotationDocument],
+                      },
+                    }
+                  : a
+            ),
+        },
+      };
+
+      const payload: PurposeTemplateAnnotationDocumentAddedV2 = {
+        purposeTemplate: toPurposeTemplateV2(updatedPurposeTemplate),
+        documentId: annotationDocument.id,
+      };
+
+      const message: PurposeTemplateEventEnvelope = {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: metadataVersion,
+        type: "PurposeTemplateAnnotationDocumentAdded",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, purposeTemplateWriterService);
+
+      const retrievedPurposeTemplate =
+        await purposeTemplateReadModelService.getPurposeTemplateById(
+          updatedPurposeTemplate.id
+        );
+
+      expect(retrievedPurposeTemplate).toStrictEqual({
+        data: updatedPurposeTemplate,
+        metadata: { version: metadataVersion },
+      });
     });
   });
 });

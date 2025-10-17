@@ -10,10 +10,11 @@ import {
   retrieveHTMLTemplate,
 } from "../../services/utils.js";
 import {
-  TenantHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   retrieveAttribute,
   retrieveTenantByCertifierId,
+  TenantHandlerParams,
 } from "../handlerCommons.js";
 import { certifierDatabaseOriginNames } from "../../config/constants.js";
 
@@ -77,7 +78,7 @@ export async function handleTenantCertifiedAttributeAssigned(
     : (await retrieveTenantByCertifierId(attribute.origin, readModelService))
         .name;
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Hai ricevuto un nuovo attributo certificato`,
@@ -85,11 +86,12 @@ export async function handleTenantCertifiedAttributeAssigned(
         title: `Hai ricevuto un nuovo attributo certificato`,
         notificationType,
         entityId: tenant.id,
+        ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         certifierName,
-        tenantName: tenant.name,
         attributeName: attribute.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

@@ -71,6 +71,7 @@ describe("updateDraftEServiceTemplate", () => {
       intendedTarget:
         mockEServiceTemplateProcessGetResponse.data.intendedTarget,
       creatorId: mockEServiceTemplateProcessGetResponse.data.creatorId,
+      personalData: mockEServiceTemplateProcessGetResponse.data.personalData,
     };
 
     expect(result).toEqual(expectedM2MEServiceTemplate);

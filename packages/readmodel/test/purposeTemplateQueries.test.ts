@@ -4,6 +4,7 @@ import {
   generateId,
   PurposeTemplate,
   TenantId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { getMockPurposeTemplate } from "pagopa-interop-commons-test";
 import { eq } from "drizzle-orm";
@@ -129,11 +130,14 @@ describe("Purpose template queries", () => {
 
       expect(retrievedPurposeTemplateEServiceDescriptors).toStrictEqual([
         {
-          purposeTemplateId: purposeTemplate.id,
-          eserviceId: purposeTemplateEServiceDescriptor.eserviceId,
-          descriptorId: purposeTemplateEServiceDescriptor.descriptorId,
-          createdAt: purposeTemplateEServiceDescriptor.createdAt,
-        },
+          data: {
+            purposeTemplateId: purposeTemplate.id,
+            eserviceId: purposeTemplateEServiceDescriptor.eserviceId,
+            descriptorId: purposeTemplateEServiceDescriptor.descriptorId,
+            createdAt: purposeTemplateEServiceDescriptor.createdAt,
+          },
+          metadata: { version: metadataVersion },
+        } satisfies WithMetadata<EServiceDescriptorPurposeTemplate>,
       ]);
     });
 
