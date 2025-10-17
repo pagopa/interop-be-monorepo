@@ -82,10 +82,10 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttri
   ];
 
   const mockM2MEserviceTemplateVersionVerifiedAttributesResponse: m2mGatewayApi.EServiceTemplateVersionVerifiedAttributes =
-  {
-    pagination: { offset: 0, limit: 10, totalCount: 3 },
-    results,
-  };
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 3 },
+      results,
+    };
 
   const mockQueryParams: m2mGatewayApi.GetVerifiedAttributesQueryParams = {
     offset: 0,
@@ -94,7 +94,9 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttri
 
   mockEServiceTemplateService.getEserviceTemplateVersionVerifiedAttributes = vi
     .fn()
-    .mockResolvedValue(mockM2MEserviceTemplateVersionVerifiedAttributesResponse);
+    .mockResolvedValue(
+      mockM2MEserviceTemplateVersionVerifiedAttributesResponse
+    );
 
   const makeRequest = async (
     token: string,
@@ -119,7 +121,9 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttri
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockM2MEserviceTemplateVersionVerifiedAttributesResponse);
+      expect(res.body).toEqual(
+        mockM2MEserviceTemplateVersionVerifiedAttributesResponse
+      );
     }
   );
 
@@ -132,7 +136,10 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttri
   });
   it.each([
     {
-      error: eserviceTemplateVersionNotFound(unsafeBrandId(eserviceTemplate.id), unsafeBrandId(version.id)),
+      error: eserviceTemplateVersionNotFound(
+        unsafeBrandId(eserviceTemplate.id),
+        unsafeBrandId(version.id)
+      ),
       expectedStatus: 404,
     },
     {
@@ -142,9 +149,8 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttri
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      mockEServiceTemplateService.getEserviceTemplateVersionVerifiedAttributes = vi
-        .fn()
-        .mockRejectedValue(error);
+      mockEServiceTemplateService.getEserviceTemplateVersionVerifiedAttributes =
+        vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, generateId(), generateId());
       expect(res.status).toBe(expectedStatus);
@@ -174,7 +180,8 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttri
       ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse,
       results: [
         {
-          ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse.results[0],
+          ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse
+            .results[0],
           id: "invalid",
         },
       ],
@@ -183,7 +190,8 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttri
       ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse,
       results: [
         {
-          ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse.results[0],
+          ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse
+            .results[0],
           createdAt: undefined,
         },
       ],
@@ -200,7 +208,8 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttri
       ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse,
       results: [
         {
-          ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse.results[0],
+          ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse
+            .results[0],
           groupIndex: undefined,
         },
       ],
@@ -209,7 +218,8 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttri
       ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse,
       results: [
         {
-          ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse.results[0],
+          ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse
+            .results[0],
           groupIndex: -1,
         },
       ],
@@ -218,7 +228,8 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttri
       ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse,
       results: [
         {
-          ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse.results[0],
+          ...mockM2MEserviceTemplateVersionVerifiedAttributesResponse
+            .results[0],
           groupIndex: "a string",
         },
       ],
@@ -226,9 +237,8 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttri
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockEServiceTemplateService.getEserviceTemplateVersionVerifiedAttributes = vi
-        .fn()
-        .mockResolvedValueOnce(resp);
+      mockEServiceTemplateService.getEserviceTemplateVersionVerifiedAttributes =
+        vi.fn().mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,

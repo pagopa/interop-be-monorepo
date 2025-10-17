@@ -310,10 +310,11 @@ export function cannotEditDeclaredAttributesForTenant(
   delegation: delegationApi.Delegation | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Cannot edit declared attributes for tenant ${targetTenantId}${delegation
-      ? ` since it is not the delegator for delegation ${delegation.id}`
-      : ` without a delegation (delegationId is missing)`
-      }`,
+    detail: `Cannot edit declared attributes for tenant ${targetTenantId}${
+      delegation
+        ? ` since it is not the delegator for delegation ${delegation.id}`
+        : ` without a delegation (delegationId is missing)`
+    }`,
     code: "cannotEditDeclaredAttributesForTenant",
     title: "Tenant cannot edit declared attributes",
   });

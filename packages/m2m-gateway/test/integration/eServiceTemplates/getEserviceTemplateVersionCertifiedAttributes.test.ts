@@ -123,7 +123,9 @@ describe("getEserviceTemplateVersionCertifiedAttributes", () => {
   ];
 
   const mockEserviceTemplateResponse = getMockWithMetadata(eserviceTemplate);
-  const mockGetEServiceTemplateById = vi.fn().mockResolvedValue(mockEserviceTemplateResponse);
+  const mockGetEServiceTemplateById = vi
+    .fn()
+    .mockResolvedValue(mockEserviceTemplateResponse);
   const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
     data: {
       results: [bulkAttribute1, bulkAttribute2, bulkAttribute3],
@@ -167,14 +169,15 @@ describe("getEserviceTemplateVersionCertifiedAttributes", () => {
   });
 
   it("Should apply filters (offset, limit)", async () => {
-    const response1: m2mGatewayApi.EServiceTemplateVersionCertifiedAttributes = {
-      pagination: {
-        offset: 0,
-        limit: 2,
-        totalCount: 3,
-      },
-      results: [response[0], response[1]],
-    };
+    const response1: m2mGatewayApi.EServiceTemplateVersionCertifiedAttributes =
+      {
+        pagination: {
+          offset: 0,
+          limit: 2,
+          totalCount: 3,
+        },
+        results: [response[0], response[1]],
+      };
 
     const result =
       await eserviceTemplateService.getEserviceTemplateVersionCertifiedAttributes(
@@ -186,14 +189,15 @@ describe("getEserviceTemplateVersionCertifiedAttributes", () => {
 
     expect(result).toEqual(response1);
 
-    const response2: m2mGatewayApi.EServiceTemplateVersionCertifiedAttributes = {
-      pagination: {
-        offset: 2,
-        limit: 2,
-        totalCount: 3,
-      },
-      results: [response[2]],
-    };
+    const response2: m2mGatewayApi.EServiceTemplateVersionCertifiedAttributes =
+      {
+        pagination: {
+          offset: 2,
+          limit: 2,
+          totalCount: 3,
+        },
+        results: [response[2]],
+      };
 
     const result2 =
       await eserviceTemplateService.getEserviceTemplateVersionCertifiedAttributes(
@@ -216,29 +220,42 @@ describe("getEserviceTemplateVersionCertifiedAttributes", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      eserviceTemplateVersionNotFound(unsafeBrandId(eserviceTemplate.id), unsafeBrandId(nonExistingDescriptorId))
+      eserviceTemplateVersionNotFound(
+        unsafeBrandId(eserviceTemplate.id),
+        unsafeBrandId(nonExistingDescriptorId)
+      )
     );
   });
   it("Should throw eserviceTemplateVersionAttributeNotFound in case an attribute ID is present but cannot be resolved by the Attribute Registry", async () => {
     const MISSING_ATTRIBUTE_ID = "00000000-0000-0000-0000-000000000001";
 
-    const descriptorWithMissingAttribute: eserviceTemplateApi.EServiceTemplateVersion = {
-      ...getMockedApiEserviceTemplateVersion(),
-      attributes: {
-        certified: [
-          [{ id: MISSING_ATTRIBUTE_ID, explicitAttributeVerification: false }],
-        ],
-        declared: [],
-        verified: [],
-      },
-    };
+    const descriptorWithMissingAttribute: eserviceTemplateApi.EServiceTemplateVersion =
+      {
+        ...getMockedApiEserviceTemplateVersion(),
+        attributes: {
+          certified: [
+            [
+              {
+                id: MISSING_ATTRIBUTE_ID,
+                explicitAttributeVerification: false,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
 
     const eserviceWithDescriptorWithoutAttribute: eserviceTemplateApi.EServiceTemplate =
-      getMockedApiEServiceTemplate({ versions: [descriptorWithMissingAttribute] });
+      getMockedApiEServiceTemplate({
+        versions: [descriptorWithMissingAttribute],
+      });
     const mockEserviceTemplateResponse = getMockWithMetadata(
       eserviceWithDescriptorWithoutAttribute
     );
-    const mockGetEServiceTemplateById = vi.fn().mockResolvedValue(mockEserviceTemplateResponse);
+    const mockGetEServiceTemplateById = vi
+      .fn()
+      .mockResolvedValue(mockEserviceTemplateResponse);
     const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
       data: {
         results: [],
@@ -263,7 +280,9 @@ describe("getEserviceTemplateVersionCertifiedAttributes", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      eserviceTemplateVersionAttributeNotFound(descriptorWithMissingAttribute.id)
+      eserviceTemplateVersionAttributeNotFound(
+        descriptorWithMissingAttribute.id
+      )
     );
   });
 });

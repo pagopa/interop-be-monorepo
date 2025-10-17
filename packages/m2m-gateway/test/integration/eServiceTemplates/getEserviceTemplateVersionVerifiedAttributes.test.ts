@@ -123,7 +123,9 @@ describe("getEserviceTemplateVersionVerifiedAttributes", () => {
   ];
 
   const mockEserviceTemplateResponse = getMockWithMetadata(eserviceTemplate);
-  const mockGetEServiceTemplateById = vi.fn().mockResolvedValue(mockEserviceTemplateResponse);
+  const mockGetEServiceTemplateById = vi
+    .fn()
+    .mockResolvedValue(mockEserviceTemplateResponse);
   const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
     data: {
       results: [bulkAttribute1, bulkAttribute2, bulkAttribute3],
@@ -216,27 +218,42 @@ describe("getEserviceTemplateVersionVerifiedAttributes", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      eserviceTemplateVersionNotFound(unsafeBrandId(eserviceTemplate.id), unsafeBrandId(nonExistingDescriptorId))
+      eserviceTemplateVersionNotFound(
+        unsafeBrandId(eserviceTemplate.id),
+        unsafeBrandId(nonExistingDescriptorId)
+      )
     );
   });
   it("Should throw eserviceTemplateVersionAttributeNotFound in case an attribute ID is present but cannot be resolved by the Attribute Registry", async () => {
     const MISSING_ATTRIBUTE_ID = "00000000-0000-0000-0000-000000000001";
 
-    const descriptorWithMissingAttribute: eserviceTemplateApi.EServiceTemplateVersion = {
-      ...getMockedApiEserviceTemplateVersion(),
-      attributes: {
-        certified: [],
-        declared: [],
-        verified: [[{ id: MISSING_ATTRIBUTE_ID, explicitAttributeVerification: false }]],
-      },
-    };
+    const descriptorWithMissingAttribute: eserviceTemplateApi.EServiceTemplateVersion =
+      {
+        ...getMockedApiEserviceTemplateVersion(),
+        attributes: {
+          certified: [],
+          declared: [],
+          verified: [
+            [
+              {
+                id: MISSING_ATTRIBUTE_ID,
+                explicitAttributeVerification: false,
+              },
+            ],
+          ],
+        },
+      };
 
     const eserviceWithDescriptorWithoutAttribute: eserviceTemplateApi.EServiceTemplate =
-      getMockedApiEServiceTemplate({ versions: [descriptorWithMissingAttribute] });
+      getMockedApiEServiceTemplate({
+        versions: [descriptorWithMissingAttribute],
+      });
     const mockEserviceTemplateResponse = getMockWithMetadata(
       eserviceWithDescriptorWithoutAttribute
     );
-    const mockGetEServiceTemplateById = vi.fn().mockResolvedValue(mockEserviceTemplateResponse);
+    const mockGetEServiceTemplateById = vi
+      .fn()
+      .mockResolvedValue(mockEserviceTemplateResponse);
     const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
       data: {
         results: [],
@@ -261,7 +278,9 @@ describe("getEserviceTemplateVersionVerifiedAttributes", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      eserviceTemplateVersionAttributeNotFound(descriptorWithMissingAttribute.id)
+      eserviceTemplateVersionAttributeNotFound(
+        descriptorWithMissingAttribute.id
+      )
     );
   });
 });

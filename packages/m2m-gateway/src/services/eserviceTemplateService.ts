@@ -1,4 +1,8 @@
-import { attributeRegistryApi, eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  attributeRegistryApi,
+  eserviceTemplateApi,
+  m2mGatewayApi,
+} from "pagopa-interop-api-clients";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   EServiceDocumentId,
@@ -32,7 +36,11 @@ import {
 import { uploadEServiceTemplateDocument } from "../utils/fileUpload.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
-import { toM2MGatewayApiCertifiedAttribute, toM2MGatewayApiDeclaredAttribute, toM2MGatewayApiVerifiedAttribute } from "../api/attributeApiConverter.js";
+import {
+  toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiDeclaredAttribute,
+  toM2MGatewayApiVerifiedAttribute,
+} from "../api/attributeApiConverter.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
@@ -102,7 +110,10 @@ export function eserviceTemplateServiceBuilder(
       groupIndex: number;
     }>
   > {
-    const version = retrieveEServiceTemplateVersionById(eserviceTemplate, versionId);
+    const version = retrieveEServiceTemplateVersionById(
+      eserviceTemplate,
+      versionId
+    );
     const kindAttributeGroups = version.attributes[attributeKind];
     const allFlatKindAttributes: Array<{
       attributeId: string;
@@ -789,13 +800,14 @@ export function eserviceTemplateServiceBuilder(
         `Retrieving Certified Attributes for E-Service Template ${templateId} Version ${versionId}`
       );
 
-      const eserviceTemplateVersionAttributes = await retrieveEServiceTemplateVersionAttributes(
-        await retrieveEServiceTemplateById(headers, templateId),
-        versionId,
-        "certified",
-        { offset, limit },
-        headers
-      );
+      const eserviceTemplateVersionAttributes =
+        await retrieveEServiceTemplateVersionAttributes(
+          await retrieveEServiceTemplateById(headers, templateId),
+          versionId,
+          "certified",
+          { offset, limit },
+          headers
+        );
 
       return {
         results: eserviceTemplateVersionAttributes.results.map((item) => ({
@@ -823,13 +835,14 @@ export function eserviceTemplateServiceBuilder(
         `Retrieving Declared Attributes for E-Service Template ${templateId} Version ${versionId}`
       );
 
-      const eserviceTemplateVersionAttributes = await retrieveEServiceTemplateVersionAttributes(
-        await retrieveEServiceTemplateById(headers, templateId),
-        versionId,
-        "declared",
-        { offset, limit },
-        headers
-      );
+      const eserviceTemplateVersionAttributes =
+        await retrieveEServiceTemplateVersionAttributes(
+          await retrieveEServiceTemplateById(headers, templateId),
+          versionId,
+          "declared",
+          { offset, limit },
+          headers
+        );
 
       return {
         results: eserviceTemplateVersionAttributes.results.map((item) => ({
@@ -857,13 +870,14 @@ export function eserviceTemplateServiceBuilder(
         `Retrieving Verified Attributes for E-Service Template ${templateId} Version ${versionId}`
       );
 
-      const eserviceTemplateVersionAttributes = await retrieveEServiceTemplateVersionAttributes(
-        await retrieveEServiceTemplateById(headers, templateId),
-        versionId,
-        "verified",
-        { offset, limit },
-        headers
-      );
+      const eserviceTemplateVersionAttributes =
+        await retrieveEServiceTemplateVersionAttributes(
+          await retrieveEServiceTemplateById(headers, templateId),
+          versionId,
+          "verified",
+          { offset, limit },
+          headers
+        );
 
       return {
         results: eserviceTemplateVersionAttributes.results.map((item) => ({
