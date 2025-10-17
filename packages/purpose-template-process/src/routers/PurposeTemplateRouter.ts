@@ -15,6 +15,7 @@ import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
+  activatePurposeTemplateErrorMapper,
   addRiskAnalysisAnswerAnnotationErrorMapper,
   createPurposeTemplateErrorMapper,
   deletePurposeTemplateErrorMapper,
@@ -25,7 +26,6 @@ import {
   getPurposeTemplatesErrorMapper,
   getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
   linkEservicesToPurposeTemplateErrorMapper,
-  publishPurposeTemplateErrorMapper,
   unlinkEServicesFromPurposeTemplateErrorMapper,
   updatePurposeTemplateErrorMapper,
   addPurposeTemplateAnswerAnnotationErrorMapper,
@@ -324,12 +324,33 @@ const purposeTemplateRouter = (
     })
     .post("/purposeTemplates/:id/unsuspend", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
+
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data: purposeTemplate, metadata } =
+          await purposeTemplateService.unsuspendPurposeTemplate(
+            unsafeBrandId(req.params.id),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            purposeTemplateApi.PurposeTemplate.parse(
+              purposeTemplateToApiPurposeTemplate(purposeTemplate)
+            )
+          );
       } catch (error) {
-        return res.status(501);
+        const errorRes = makeApiProblem(
+          error,
+          activatePurposeTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-      return res.status(501);
     })
     .post("/purposeTemplates/:id/archive", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -364,7 +385,7 @@ const purposeTemplateRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          publishPurposeTemplateErrorMapper,
+          activatePurposeTemplateErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
