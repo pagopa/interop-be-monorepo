@@ -49,6 +49,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
+  toCreateEventPurposeTemplateAnnotationDocumentDeleted,
   toCreateEventPurposeTemplateDraftDeleted,
   toCreateEventPurposeTemplateDraftUpdated,
   toCreateEventPurposeTemplateEServiceLinked,
@@ -70,8 +71,8 @@ import {
   assertAnnotationDocumentIsUnique,
   assertConsistentFreeOfCharge,
   assertEServiceIdsCountIsBelowThreshold,
-  assertPurposeTemplateIsDraft,
   assertPurposeTemplateStateIsValid,
+  assertPurposeTemplateIsDraft,
   assertPurposeTemplateHasRiskAnalysisForm,
   validateRiskAnalysisAnswerAnnotationOrThrow,
   assertPurposeTemplateTitleIsNotDuplicated,
@@ -269,6 +270,146 @@ const updatePurposeTemplateWithoutAnnotation = async (
   };
 };
 
+const updatePurposeTemplateWithoutAnnotationDocument = async (
+  purposeTemplateId: PurposeTemplateId,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+  documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">,
+  readModelService: ReadModelServiceSQL
+): Promise<{
+  updatedPurposeTemplate: WithMetadata<PurposeTemplate>;
+  removedAnnotationDocument: RiskAnalysisTemplateAnswerAnnotationDocument;
+}> => {
+  const purposeTemplate = await retrievePurposeTemplate(
+    purposeTemplateId,
+    readModelService
+  );
+
+  assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+  assertPurposeTemplateIsDraft(purposeTemplate.data);
+  assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
+
+  const purposeTemplateRiskAnalysisForm =
+    purposeTemplate.data.purposeRiskAnalysisForm;
+
+  function removeAnnotationDocument<
+    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+  >(
+    answers: T[],
+    answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+    documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
+  ): {
+    updatedAnswers: T[];
+    removedAnnotationDocument:
+      | RiskAnalysisTemplateAnswerAnnotationDocument
+      | undefined;
+  } {
+    return answers.reduce(
+      (
+        acc: {
+          updatedAnswers: T[];
+          removedAnnotationDocument:
+            | RiskAnalysisTemplateAnswerAnnotationDocument
+            | undefined;
+        },
+        answer
+      ) => {
+        if (answer.id === answerId) {
+          const { updatedAnnotationDocs, removedAnnotationDocument } = (
+            answer.annotation?.docs || []
+          ).reduce(
+            (
+              acc: {
+                updatedAnnotationDocs: RiskAnalysisTemplateAnswerAnnotationDocument[];
+                removedAnnotationDocument:
+                  | RiskAnalysisTemplateAnswerAnnotationDocument
+                  | undefined;
+              },
+              doc
+            ) =>
+              doc.id === documentId
+                ? { ...acc, removedAnnotationDocument: doc }
+                : {
+                    ...acc,
+                    updatedAnnotationDocs: [...acc.updatedAnnotationDocs, doc],
+                  },
+            {
+              updatedAnnotationDocs: [],
+              removedAnnotationDocument: undefined,
+            }
+          );
+
+          return {
+            updatedAnswers: [
+              ...acc.updatedAnswers,
+              {
+                ...answer,
+                annotation: {
+                  ...answer.annotation,
+                  docs: updatedAnnotationDocs,
+                },
+              },
+            ],
+            removedAnnotationDocument,
+          };
+        } else {
+          return {
+            ...acc,
+            updatedAnswers: [...acc.updatedAnswers, answer],
+          };
+        }
+      },
+      {
+        updatedAnswers: [],
+        removedAnnotationDocument: undefined,
+      }
+    );
+  }
+
+  const {
+    updatedAnswers: updatedSingleAnswers,
+    removedAnnotationDocument: removedSingleAnswerAnnotationDocument,
+  } = removeAnnotationDocument(
+    purposeTemplateRiskAnalysisForm.singleAnswers,
+    answerId,
+    documentId
+  );
+  const {
+    updatedAnswers: updatedMultiAnswers,
+    removedAnnotationDocument: removedMultiAnswerAnnotationDocument,
+  } = removeAnnotationDocument(
+    purposeTemplateRiskAnalysisForm.multiAnswers,
+    answerId,
+    documentId
+  );
+
+  const removedAnnotationDocument =
+    removedSingleAnswerAnnotationDocument ||
+    removedMultiAnswerAnnotationDocument;
+  if (!removedAnnotationDocument) {
+    throw riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
+      purposeTemplate.data.id,
+      answerId,
+      documentId
+    );
+  }
+
+  return {
+    updatedPurposeTemplate: {
+      data: {
+        ...purposeTemplate.data,
+        purposeRiskAnalysisForm: {
+          ...purposeTemplateRiskAnalysisForm,
+          singleAnswers: updatedSingleAnswers,
+          multiAnswers: updatedMultiAnswers,
+        },
+      },
+      metadata: purposeTemplate.metadata,
+    },
+    removedAnnotationDocument,
+  };
+};
+
 function findAnswerAndAnnotation(
   riskAnalysisForm: RiskAnalysisFormTemplate,
   answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
@@ -422,6 +563,7 @@ export function purposeTemplateServiceBuilder(
       const annotationDocument =
         await readModelService.getRiskAnalysisTemplateAnswerAnnotationDocument(
           purposeTemplateId,
+          answerId,
           documentId
         );
 
@@ -1092,6 +1234,47 @@ export function purposeTemplateServiceBuilder(
           version: event.newVersion,
         },
       };
+    },
+    async deleteRiskAnalysisTemplateAnswerAnnotationDocument({
+      purposeTemplateId,
+      answerId,
+      documentId,
+      ctx,
+    }: {
+      purposeTemplateId: PurposeTemplateId;
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+      documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
+    }): Promise<void> {
+      const { logger, correlationId, authData } = ctx;
+
+      logger.info(
+        `Deleting risk analysis template answer annotation document ${documentId} for purpose template ${purposeTemplateId}, answer ${answerId}`
+      );
+
+      const { updatedPurposeTemplate, removedAnnotationDocument } =
+        await updatePurposeTemplateWithoutAnnotationDocument(
+          purposeTemplateId,
+          answerId,
+          documentId,
+          authData,
+          readModelService
+        );
+
+      await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
+        annotationDocumentsToRemove: [removedAnnotationDocument],
+        fileManager,
+        logger,
+      });
+
+      await repository.createEvent(
+        toCreateEventPurposeTemplateAnnotationDocumentDeleted({
+          purposeTemplate: updatedPurposeTemplate.data,
+          documentId,
+          version: updatedPurposeTemplate.metadata.version,
+          correlationId,
+        })
+      );
     },
   };
 }
