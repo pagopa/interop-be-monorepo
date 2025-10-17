@@ -18,13 +18,11 @@ import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
-  purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
-  riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("API POST /purposeTemplates/{id}/unsuspend", () => {
+describe("API POST /purposeTemplates/{id}/suspend", () => {
   const purposeTemplate = getMockPurposeTemplate();
   const serviceResponse = getMockWithMetadata(purposeTemplate);
 
@@ -33,7 +31,7 @@ describe("API POST /purposeTemplates/{id}/unsuspend", () => {
   );
 
   beforeEach(() => {
-    purposeTemplateService.unsuspendPurposeTemplate = vi
+    purposeTemplateService.suspendPurposeTemplate = vi
       .fn()
       .mockResolvedValue(serviceResponse);
   });
@@ -43,7 +41,7 @@ describe("API POST /purposeTemplates/{id}/unsuspend", () => {
     purposeTemplateId: PurposeTemplateId = purposeTemplate.id
   ) =>
     request(api)
-      .post(`/purposeTemplates/${purposeTemplateId}/unsuspend`)
+      .post(`/purposeTemplates/${purposeTemplateId}/suspend`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -75,15 +73,10 @@ describe("API POST /purposeTemplates/{id}/unsuspend", () => {
 
   it.each([
     {
-      error: purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id),
-      expectedStatus: 500,
-    },
-    { error: riskAnalysisTemplateValidationFailed([]), expectedStatus: 400 },
-    {
       error: purposeTemplateNotInExpectedStates(
-        generateId(),
-        purposeTemplate.state,
-        [purposeTemplateState.suspended]
+        purposeTemplate.id,
+        purposeTemplateState.archived,
+        [purposeTemplateState.active]
       ),
       expectedStatus: 400,
     },
@@ -95,14 +88,14 @@ describe("API POST /purposeTemplates/{id}/unsuspend", () => {
     {
       error: purposeTemplateStateConflict(
         generateId(),
-        purposeTemplateState.active
+        purposeTemplateState.suspended
       ),
       expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      purposeTemplateService.unsuspendPurposeTemplate = vi
+      purposeTemplateService.suspendPurposeTemplate = vi
         .fn()
         .mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
@@ -111,7 +104,7 @@ describe("API POST /purposeTemplates/{id}/unsuspend", () => {
     }
   );
 
-  it("Should return 400 if passed invalid data", async () => {
+  it("Should return 400 if passed invalid data: %s", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as PurposeTemplateId);
     expect(res.status).toBe(400);
