@@ -48,7 +48,8 @@ describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAtt
   it.each(authorizedRoles)(
     "Should return 204 and perform service calls for user with role %s",
     async (role) => {
-      mockEserviceService.deleteEService = vi.fn();
+      mockEserviceService.deleteEServiceDescriptorCertifiedAttributeFromGroup =
+        vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(
@@ -63,7 +64,8 @@ describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAtt
   );
 
   it("Should return 400 for incorrect value for eservice id", async () => {
-    mockEserviceService.deleteEService = vi.fn();
+    mockEserviceService.deleteEServiceDescriptorCertifiedAttributeFromGroup =
+      vi.fn();
 
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
@@ -77,7 +79,8 @@ describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAtt
   });
 
   it("Should return 400 for incorrect value for descriptor id", async () => {
-    mockEserviceService.deleteEService = vi.fn();
+    mockEserviceService.deleteEServiceDescriptorCertifiedAttributeFromGroup =
+      vi.fn();
 
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
@@ -91,7 +94,8 @@ describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAtt
   });
 
   it("Should return 400 for incorrect value for group index", async () => {
-    mockEserviceService.deleteEService = vi.fn();
+    mockEserviceService.deleteEServiceDescriptorCertifiedAttributeFromGroup =
+      vi.fn();
 
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
@@ -105,7 +109,8 @@ describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAtt
   });
 
   it("Should return 400 for incorrect value for attribute id", async () => {
-    mockEserviceService.deleteEService = vi.fn();
+    mockEserviceService.deleteEServiceDescriptorCertifiedAttributeFromGroup =
+      vi.fn();
 
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
