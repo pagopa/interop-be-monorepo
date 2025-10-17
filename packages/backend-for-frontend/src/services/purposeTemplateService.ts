@@ -409,25 +409,6 @@ export function purposeTemplateServiceBuilder(
 
       return bffApi.PurposeTemplate.parse(result);
     },
-    async publishPurposeTemplate(
-      purposeTemplateId: PurposeTemplateId,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.PurposeTemplate> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
-      logger.info(`Publishing purpose template ${purposeTemplateId}`);
-      const result = await purposeTemplateClient.publishPurposeTemplate(
-        undefined,
-        {
-          params: {
-            id: purposeTemplateId,
-          },
-          headers,
-        }
-      );
-
-      return bffApi.PurposeTemplate.parse(result);
-    },
     async unsuspendPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
