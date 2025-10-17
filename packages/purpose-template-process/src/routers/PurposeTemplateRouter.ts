@@ -20,6 +20,8 @@ import {
   archivePurposeTemplateErrorMapper,
   createPurposeTemplateErrorMapper,
   deletePurposeTemplateErrorMapper,
+  deleteRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
+  deleteRiskAnalysisTemplateAnswerAnnotationErrorMapper,
   getPurposeTemplateErrorMapper,
   getPurposeTemplateEServiceDescriptorsErrorMapper,
   getPurposeTemplatesErrorMapper,
@@ -560,6 +562,59 @@ const purposeTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             addRiskAnalysisAnswerAnnotationErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation(
+            {
+              purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
+              answerId: unsafeBrandId(req.params.answerId),
+              ctx,
+            }
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteRiskAnalysisTemplateAnswerAnnotationErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+            {
+              purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
+              answerId: unsafeBrandId(req.params.answerId),
+              documentId: unsafeBrandId(req.params.documentId),
+              ctx,
+            }
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
