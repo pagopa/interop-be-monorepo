@@ -159,6 +159,116 @@ function getDefaultRiskAnalysisFormTemplate(
   };
 }
 
+const updatePurposeTemplateWithoutAnnotation = async (
+  purposeTemplateId: PurposeTemplateId,
+  answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
+  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">,
+  readModelService: ReadModelServiceSQL
+): Promise<{
+  updatedPurposeTemplate: WithMetadata<PurposeTemplate>;
+  updatedAnswer:
+    | RiskAnalysisTemplateSingleAnswer
+    | RiskAnalysisTemplateMultiAnswer;
+  annotationDocumentsToRemove: RiskAnalysisTemplateAnswerAnnotationDocument[];
+}> => {
+  const purposeTemplate = await retrievePurposeTemplate(
+    purposeTemplateId,
+    readModelService
+  );
+
+  assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+  assertPurposeTemplateIsDraft(purposeTemplate.data);
+  assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
+
+  const purposeTemplateRiskAnalysisForm =
+    purposeTemplate.data.purposeRiskAnalysisForm;
+
+  function removeAnnotation<
+    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+  >(
+    answers: T[],
+    answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
+  ): {
+    updatedAnswers: T[];
+    updatedAnswer:
+      | RiskAnalysisTemplateSingleAnswer
+      | RiskAnalysisTemplateMultiAnswer
+      | undefined;
+    annotationDocumentsToRemove: RiskAnalysisTemplateAnswerAnnotationDocument[];
+  } {
+    return answers.reduce(
+      (
+        acc: {
+          updatedAnswers: T[];
+          updatedAnswer:
+            | RiskAnalysisTemplateSingleAnswer
+            | RiskAnalysisTemplateMultiAnswer
+            | undefined;
+          annotationDocumentsToRemove: RiskAnalysisTemplateAnswerAnnotationDocument[];
+        },
+        answer
+      ) => {
+        if (answer.id === answerId) {
+          const updatedAnswer = { ...answer, annotation: undefined };
+
+          return {
+            updatedAnswers: [...acc.updatedAnswers, updatedAnswer],
+            updatedAnswer,
+            annotationDocumentsToRemove: answer.annotation?.docs || [],
+          };
+        } else {
+          return {
+            ...acc,
+            updatedAnswers: [...acc.updatedAnswers, answer],
+          };
+        }
+      },
+      {
+        updatedAnswers: [],
+        updatedAnswer: undefined,
+        annotationDocumentsToRemove: [],
+      }
+    );
+  }
+
+  const {
+    updatedAnswers: updatedSingleAnswers,
+    updatedAnswer: updatedSingleAnswer,
+    annotationDocumentsToRemove: annotationDocumentsToRemoveFromSingleAnswer,
+  } = removeAnnotation(purposeTemplateRiskAnalysisForm.singleAnswers, answerId);
+  const {
+    updatedAnswers: updatedMultiAnswers,
+    updatedAnswer: updatedMultiAnswer,
+    annotationDocumentsToRemove: annotationDocumentsToRemoveFromMultiAnswer,
+  } = removeAnnotation(purposeTemplateRiskAnalysisForm.multiAnswers, answerId);
+
+  const updatedAnswer = updatedSingleAnswer || updatedMultiAnswer;
+  if (!updatedAnswer) {
+    throw riskAnalysisTemplateAnswerNotFound(purposeTemplate.data.id, answerId);
+  }
+
+  const annotationDocumentsToRemove = [
+    ...annotationDocumentsToRemoveFromSingleAnswer,
+    ...annotationDocumentsToRemoveFromMultiAnswer,
+  ];
+
+  return {
+    updatedPurposeTemplate: {
+      data: {
+        ...purposeTemplate.data,
+        purposeRiskAnalysisForm: {
+          ...purposeTemplateRiskAnalysisForm,
+          singleAnswers: updatedSingleAnswers,
+          multiAnswers: updatedMultiAnswers,
+        },
+      },
+      metadata: purposeTemplate.metadata,
+    },
+    updatedAnswer,
+    annotationDocumentsToRemove,
+  };
+};
+
 function findAnswerAndAnnotation(
   riskAnalysisForm: RiskAnalysisFormTemplate,
   answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
@@ -931,6 +1041,57 @@ export function purposeTemplateServiceBuilder(
           purposeTemplate.metadata.version
         )
       );
+    },
+    async deleteRiskAnalysisTemplateAnswerAnnotation({
+      purposeTemplateId,
+      answerId,
+      ctx,
+    }: {
+      purposeTemplateId: PurposeTemplateId;
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
+    }): Promise<
+      WithMetadata<
+        RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+      >
+    > {
+      const { logger, correlationId, authData } = ctx;
+
+      logger.info(
+        `Deleting risk analysis template answer annotation for purpose template ${purposeTemplateId} and answer ${answerId}`
+      );
+
+      const {
+        updatedPurposeTemplate,
+        updatedAnswer,
+        annotationDocumentsToRemove,
+      } = await updatePurposeTemplateWithoutAnnotation(
+        purposeTemplateId,
+        answerId,
+        authData,
+        readModelService
+      );
+
+      await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
+        annotationDocumentsToRemove,
+        fileManager,
+        logger,
+      });
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeTemplateDraftUpdated(
+          updatedPurposeTemplate.data,
+          correlationId,
+          updatedPurposeTemplate.metadata.version
+        )
+      );
+
+      return {
+        data: updatedAnswer,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
   };
 }
