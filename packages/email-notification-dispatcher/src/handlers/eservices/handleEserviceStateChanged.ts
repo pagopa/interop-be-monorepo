@@ -13,7 +13,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { getRecipientsForTenants } from "../handlerCommons.js";
+import {
+  getRecipientsForTenants,
+  mapRecipientToEmailPayload,
+} from "../handlerCommons.js";
 import { HandlerCommonParams } from "../../models/handlerParams.js";
 import {
   eventMailTemplateType,
@@ -116,8 +119,8 @@ export async function handleEserviceStateChanged(
     `${eservice.id}/${descriptorId}`
   );
 
-  return targets.flatMap(({ address, tenantId }) => {
-    const tenant = consumers.find((tenant) => tenant.id === tenantId);
+  return targets.flatMap((t) => {
+    const tenant = consumers.find((tenant) => tenant.id === t.tenantId);
 
     if (!tenant) {
       return [];
@@ -132,12 +135,13 @@ export async function handleEserviceStateChanged(
             title,
             notificationType,
             entityId,
-            consumerName: tenant.name,
+            ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             copy,
             ctaLabel: `Visualizza e-service`,
           }),
         },
-        address,
+        tenantId: producer.id,
+        ...mapRecipientToEmailPayload(t),
       },
     ];
   });
@@ -157,7 +161,7 @@ function getCopyAndDescriptorId(
         ),
       },
       ({ data: { oldName } }) => ({
-        copy: `Ti informiamo che l'e-service "${oldName}" è stato rinominato in "${eservice.name}" dall'ente erogatore. La tua richiesta di fruizione rimane attiva e non sono richieste azioni da parte tua.`,
+        copy: `Ti informiamo che l'e-service "${oldName}" è stato rinominato in "${eservice.name}" dall'ente erogatore ${producer.name}. La tua richiesta di fruizione rimane attiva e non sono richieste azioni da parte tua.`,
         title: `L'e-service "${oldName}" è stato rinominato`,
       })
     )
@@ -203,7 +207,7 @@ function getCopyAndDescriptorId(
           unsafeBrandId<DescriptorId>(descriptorId)
         );
         return {
-          copy: `L'ente erogatore <Nome Ente Erogatore> ha aggiunto un documento nella versione ${descriptor.version} dell'e-service "${eservice.name}" a cui sei iscritto. Ti invitiamo a prendere visione della documentazione integrativa.`,
+          copy: `L'ente erogatore ${producer.name} ha aggiunto un documento nella versione ${descriptor.version} dell'e-service "${eservice.name}" a cui sei iscritto. Ti invitiamo a prendere visione della documentazione integrativa.`,
           descriptorId,
         };
       }

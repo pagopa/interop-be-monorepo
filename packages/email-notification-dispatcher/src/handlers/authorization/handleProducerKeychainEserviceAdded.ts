@@ -12,6 +12,7 @@ import {
 } from "../../services/utils.js";
 import {
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   ProducerKeychainEServiceHandlerParams,
 } from "../handlerCommons.js";
 import { eServiceNotFound } from "../../models/errors.js";
@@ -72,7 +73,7 @@ export async function handleProducerKeychainEserviceAdded(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Nuovo livello di sicurezza per "${eservice.name}"`,
@@ -87,6 +88,7 @@ export async function handleProducerKeychainEserviceAdded(
         ctaLabel: `Visualizza chiavi`,
       }),
     },
-    address,
+    tenantId: producer.id,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

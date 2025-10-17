@@ -14,6 +14,7 @@ import {
 import {
   EServiceHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
@@ -91,14 +92,15 @@ export async function handleEserviceDescriptorPublished(
             title: `Nuova versione disponibile per "${eservice.name}"`,
             notificationType,
             entityId: descriptor.id,
-            ...(t.type === "Tenant" ? { recipientName: "aderente" } : {}),
+            ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             eserviceName: eservice.name,
             eserviceVersion: descriptor.version,
             producerName: producer.name,
             ctaLabel: `Visualizza e-service`,
           }),
         },
-        address: t.address,
+        tenantId: producer.id,
+        ...mapRecipientToEmailPayload(t),
       },
     ];
   });

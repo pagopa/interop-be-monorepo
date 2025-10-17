@@ -195,18 +195,26 @@ describe("handleEserviceDescriptorPublished", async () => {
     });
 
     expect(messages.length).toEqual(6);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[2].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[3].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[2].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[3].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -239,18 +247,26 @@ describe("handleEserviceDescriptorPublished", async () => {
     });
 
     expect(messages.length).toEqual(4);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
-    expect(messages.some((message) => message.address === users[2].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[3].email)).toBe(
-      false
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[2].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[3].id
+      )
+    ).toBe(false);
   });
 
   it("should generate one message to the consumers of the eservice", async () => {
@@ -278,12 +294,16 @@ describe("handleEserviceDescriptorPublished", async () => {
     expect(messages.length).toEqual(6);
     expect(
       messages.some(
-        (message) => message.address === consumerTenants[0].mails[0].address
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === consumerTenants[0].mails[0].address
       )
     ).toBe(true);
     expect(
       messages.some(
-        (message) => message.address === consumerTenants[1].mails[0].address
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === consumerTenants[1].mails[0].address
       )
     ).toBe(true);
   });
@@ -322,7 +342,10 @@ describe("handleEserviceDescriptorPublished", async () => {
 
     expect(messages.length).toEqual(1);
     expect(
-      messages.some((message) => message.address === newMail.address)
+      messages.some(
+        (message) =>
+          message.type === "Tenant" && message.address === newMail.address
+      )
     ).toBe(true);
   });
 
@@ -358,7 +381,9 @@ describe("handleEserviceDescriptorPublished", async () => {
     expect(messages.length).toEqual(2);
     expect(
       messages.some(
-        (message) => message.address === consumerTenants[0].mails[0].address
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === consumerTenants[0].mails[0].address
       )
     ).toBe(false);
   });

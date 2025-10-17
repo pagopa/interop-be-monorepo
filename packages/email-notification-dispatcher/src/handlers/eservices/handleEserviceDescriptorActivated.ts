@@ -14,6 +14,7 @@ import {
 import {
   EServiceHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
@@ -75,8 +76,8 @@ export async function handleEserviceDescriptorActivated(
     return [];
   }
 
-  return targets.flatMap(({ address, tenantId }) => {
-    const tenant = tenants.find((tenant) => tenant.id === tenantId);
+  return targets.flatMap((t) => {
+    const tenant = tenants.find((tenant) => tenant.id === t.tenantId);
 
     if (!tenant) {
       return [];
@@ -91,14 +92,15 @@ export async function handleEserviceDescriptorActivated(
             title: `Una versione di "${eservice.name}" è stata riattivata`,
             notificationType,
             entityId: descriptor.id,
-            consumerName: tenant.name,
+            ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             producerName: producer.name,
             eserviceName: eservice.name,
             eserviceVersion: descriptor.version,
             ctaLabel: `Visualizza e-service`,
           }),
         },
-        address,
+        tenantId: producer.id,
+        ...mapRecipientToEmailPayload(t),
       },
     ];
   });
