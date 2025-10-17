@@ -28,6 +28,7 @@ import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
   TenantId,
+  tenantKind,
   TenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -501,11 +502,29 @@ export function assertValidEserviceState(
 }
 
 export function assertValidPurposeTenantKind(
-  tenantKind: TenantKind,
-  targetTenantKind: TenantKind
+  purposeTenantKind: TenantKind,
+  templateTargetTenantKind: TenantKind
 ): void {
-  if (tenantKind !== targetTenantKind) {
-    throw invalidPurposeTenantKind(tenantKind, targetTenantKind);
+  const privateTenantKinds: TenantKind[] = [
+    tenantKind.GSP,
+    tenantKind.SCP,
+    tenantKind.PRIVATE,
+  ];
+  const valid = match(purposeTenantKind)
+    .with(tenantKind.PA, () => templateTargetTenantKind === tenantKind.PA)
+    .with(tenantKind.GSP, () =>
+      privateTenantKinds.includes(templateTargetTenantKind)
+    )
+    .with(tenantKind.SCP, () =>
+      privateTenantKinds.includes(templateTargetTenantKind)
+    )
+    .with(tenantKind.PRIVATE, () =>
+      privateTenantKinds.includes(templateTargetTenantKind)
+    )
+    .exhaustive();
+
+  if (!valid) {
+    throw invalidPurposeTenantKind(purposeTenantKind, templateTargetTenantKind);
   }
 }
 

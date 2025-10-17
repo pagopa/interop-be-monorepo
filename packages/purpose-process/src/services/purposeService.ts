@@ -1645,22 +1645,23 @@ export function purposeServiceBuilder(
 
       const consumerId = unsafeBrandId<TenantId>(body.consumerId);
       const eserviceId = unsafeBrandId<EServiceId>(body.eserviceId);
-      const purposeTemplate = await retrieveActivePurposeTemplate(
-        purposeTemplateId,
-        readModelService
-      );
-
-      await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
-      await retrieveEserviceDescriptorFromPurposeTemplate(
-        purposeTemplateId,
-        eserviceId,
-        readModelService
-      );
 
       const delegationId = await verifyRequesterIsConsumerOrDelegateConsumer(
         consumerId,
         eserviceId,
         authData,
+        readModelService
+      );
+      await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
+
+      const purposeTemplate = await retrieveActivePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      await retrieveEserviceDescriptorFromPurposeTemplate(
+        purposeTemplateId,
+        eserviceId,
         readModelService
       );
 
