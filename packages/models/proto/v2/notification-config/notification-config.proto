@@ -47,10 +47,18 @@ message UserNotificationConfigV2 {
   optional int64 updatedAt = 7;
   bool inAppNotificationPreference = 8;
   EmailNotificationPreferenceV2 emailNotificationPreference = 9;
+  repeated UserRoleV2 userRoles = 10;
 }
 
 enum EmailNotificationPreferenceV2 {
   DISABLED = 0;
   ENABLED = 1;
   DIGEST = 2;
+}
+
+enum UserRoleV2 {
+  ADMIN = 0;
+  SECURITY = 1;
+  API = 2;
+  SUPPORT = 3;
 }
