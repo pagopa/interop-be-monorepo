@@ -6,6 +6,7 @@ import {
   getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
+  getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -15,8 +16,14 @@ import {
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
+  NotificationType,
+  Tenant,
   TenantId,
+  TenantMail,
+  TenantNotificationConfigId,
   toEServiceV2,
+  unsafeBrandId,
+  UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -48,7 +55,10 @@ describe("handleEserviceDescriptorPublished", async () => {
     descriptors: [descriptor],
   };
   const producerTenant = getMockTenant(producerId);
-  const consumerTenants = consumerIds.map((id) => getMockTenant(id));
+  const consumerTenants: Tenant[] = consumerIds.map((id) => ({
+    ...getMockTenant(id),
+    mails: [getMockTenantMail()],
+  }));
   const users = [
     getMockUser(consumerTenants[0].id),
     getMockUser(consumerTenants[0].id),
@@ -66,11 +76,21 @@ describe("handleEserviceDescriptorPublished", async () => {
     for (const user of users) {
       await addOneUser(user);
     }
+    readModelService.getTenantNotificationConfigByTenantId = vi
+      .fn()
+      .mockImplementation((tenantId) => ({
+        id: generateId<TenantNotificationConfigId>(),
+        tenantId,
+        enabled: true,
+        createAt: new Date(),
+      }));
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
-      .mockImplementation((tenantIds, _notificationType) =>
+      .mockImplementation((tenantIds: TenantId[], _: NotificationType) =>
         users
-          .filter((user) => tenantIds.includes(user.tenantId))
+          .filter((user) =>
+            tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
+          )
           .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
       );
   });
@@ -174,7 +194,7 @@ describe("handleEserviceDescriptorPublished", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(4);
+    expect(messages.length).toEqual(6);
     expect(messages.some((message) => message.address === users[0].email)).toBe(
       true
     );
@@ -218,7 +238,7 @@ describe("handleEserviceDescriptorPublished", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(2);
+    expect(messages.length).toEqual(4);
     expect(messages.some((message) => message.address === users[0].email)).toBe(
       true
     );
@@ -231,6 +251,116 @@ describe("handleEserviceDescriptorPublished", async () => {
     expect(messages.some((message) => message.address === users[3].email)).toBe(
       false
     );
+  });
+
+  it("should generate one message to the consumers of the eservice", async () => {
+    const agreements: Agreement[] = consumerTenants.map((consumerTenant) => ({
+      ...getMockAgreement(),
+      state: agreementState.active,
+      stamps: {},
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    }));
+    await addOneAgreement(agreements[0]);
+    await addOneAgreement(agreements[1]);
+
+    const messages = await handleEserviceDescriptorPublished({
+      eserviceV2Msg: toEServiceV2(eservice),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(6);
+    expect(
+      messages.some(
+        (message) => message.address === consumerTenants[0].mails[0].address
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.address === consumerTenants[1].mails[0].address
+      )
+    ).toBe(true);
+  });
+
+  it("should generate a message using the latest consumer mail that was registered", async () => {
+    const oldMail: TenantMail = {
+      ...getMockTenantMail(),
+      createdAt: new Date(1999),
+    };
+    const newMail = getMockTenantMail();
+    const consumerTenantWithMultipleMails: Tenant = {
+      ...getMockTenant(),
+      mails: [oldMail, newMail],
+    };
+    await addOneTenant(consumerTenantWithMultipleMails);
+
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenantWithMultipleMails.id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleEserviceDescriptorPublished({
+      eserviceV2Msg: toEServiceV2(eservice),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toEqual(1);
+    expect(
+      messages.some((message) => message.address === newMail.address)
+    ).toBe(true);
+  });
+
+  it("should not generate a message to the consumer if they disabled email notification", async () => {
+    readModelService.getTenantNotificationConfigByTenantId = vi
+      .fn()
+      .mockResolvedValue({
+        id: generateId<TenantNotificationConfigId>(),
+        tenantId: consumerTenants[0].id,
+        enabled: false,
+        createAt: new Date(),
+      });
+
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenants[0].id,
+    };
+    await addOneAgreement(agreement);
+
+    const messages = await handleEserviceDescriptorPublished({
+      eserviceV2Msg: toEServiceV2(eservice),
+      logger,
+      templateService,
+      userService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+    expect(messages.length).toEqual(2);
+    expect(
+      messages.some(
+        (message) => message.address === consumerTenants[0].mails[0].address
+      )
+    ).toBe(false);
   });
 
   it("should generate a complete and correct message", async () => {
@@ -253,7 +383,8 @@ describe("handleEserviceDescriptorPublished", async () => {
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages.length).toBe(2);
+
+    expect(messages.length).toBe(3);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
