@@ -14,8 +14,6 @@ import {
   toEServiceV2,
   EServicePersonalDataFlagUpdatedAfterPublicationV2,
   operationForbidden,
-  generateId,
-  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -27,7 +25,6 @@ import {
   eServiceNotFound,
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   eserviceWithoutValidDescriptors,
-  templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("update E-service personalData flag for an already created E-service", async () => {
@@ -147,56 +144,6 @@ describe("update E-service personalData flag for an already created E-service", 
         catalogService.updateEServicePersonalDataFlagAfterPublication(
           eservice.id,
           personalDataFlag,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
-        )
-      ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
-    }
-  );
-
-  it("should throw templateInstanceNotAllowed if the eservice is not a template instance", async () => {
-    const eservice: EService = {
-      ...getMockEService(),
-      personalData: undefined,
-      templateId: generateId<EServiceTemplateId>(),
-      descriptors: [
-        {
-          ...getMockDescriptor(descriptorState.published),
-          interface: getMockDocument(),
-        },
-      ],
-    };
-
-    await addOneEService(eservice);
-    await expect(
-      catalogService.updateEServicePersonalDataFlagAfterPublication(
-        eservice.id,
-        true,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      templateInstanceNotAllowed(eservice.id, eservice.templateId!)
-    );
-  });
-
-  it.each([
-    descriptorState.draft,
-    descriptorState.archived,
-    descriptorState.waitingForApproval,
-  ])(
-    "should throw eserviceWithoutValidDescriptors if the eservice doesn't have published/suspended/archived descriptors",
-    async (state) => {
-      const eservice: EService = {
-        ...getMockEService(),
-        personalData: undefined,
-        descriptors: [{ ...getMockDescriptor(), state }],
-      };
-
-      await addOneEService(eservice);
-      await expect(
-        catalogService.updateEServicePersonalDataFlagAfterPublication(
-          eservice.id,
-          true,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));

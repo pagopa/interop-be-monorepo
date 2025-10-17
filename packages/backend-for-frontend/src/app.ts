@@ -106,7 +106,7 @@ import notificationConfigRouter from "./routers/notificationConfigRouter.js";
 import {
   InAppNotificationService,
   inAppNotificationServiceBuilder,
-} from "./services/inAppNotificationManagerService.js";
+} from "./services/inAppNotificationService.js";
 import inAppNotificationRouter from "./routers/inAppNotificationRouter.js";
 
 export type BFFServices = {
@@ -208,7 +208,8 @@ export async function createServices(
     purposeTemplateService: purposeTemplateServiceBuilder(
       clients.purposeTemplateProcessClient,
       clients.tenantProcessClient,
-      clients.catalogProcessClient
+      clients.catalogProcessClient,
+      fileManager
     ),
     selfcareService: selfcareServiceBuilder(clients),
     tenantService: tenantServiceBuilder(

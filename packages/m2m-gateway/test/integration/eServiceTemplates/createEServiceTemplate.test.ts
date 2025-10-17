@@ -80,6 +80,7 @@ describe("createEServiceTemplate", () => {
       creatorId: mockEserviceTemplateProcessResponse.data.creatorId,
       isSignalHubEnabled:
         mockEserviceTemplateProcessResponse.data.isSignalHubEnabled,
+      personalData: mockEserviceTemplateProcessResponse.data.personalData,
     };
 
     const result = await eserviceTemplateService.createEServiceTemplate(

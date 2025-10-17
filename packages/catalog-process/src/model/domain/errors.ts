@@ -56,6 +56,7 @@ export const errorCodes = {
   checksumDuplicate: "0040",
   attributeDuplicatedInGroup: "0041",
   eservicePersonalDataFlagCanOnlyBeSetOnce: "0042",
+  missingPersonalDataFlag: "0043",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -484,5 +485,16 @@ export function eservicePersonalDataFlagCanOnlyBeSetOnce(
     detail: `PersonalData flag has already been set for eService ${eserviceId}`,
     code: "eservicePersonalDataFlagCanOnlyBeSetOnce",
     title: "EService personalData flag can only be set once",
+  });
+}
+
+export function missingPersonalDataFlag(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because personalData flag must be set for the eservice`,
+    code: "missingPersonalDataFlag",
+    title: "EService personalData flag must be set before publication",
   });
 }
