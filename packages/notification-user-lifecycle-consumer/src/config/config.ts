@@ -5,7 +5,6 @@ import {
   ReadModelSQLDbConfig,
   SelfcareConsumerConfig,
   TokenGenerationConfig,
-  UserSQLDbConfig,
 } from "pagopa-interop-commons";
 
 export const NotificationUserLifecycleConsumerConfig = KafkaConsumerConfig.and(
@@ -13,7 +12,6 @@ export const NotificationUserLifecycleConsumerConfig = KafkaConsumerConfig.and(
 )
   .and(ReadModelSQLDbConfig)
   .and(SelfcareConsumerConfig)
-  .and(UserSQLDbConfig)
   .and(TokenGenerationConfig)
   .and(
     z

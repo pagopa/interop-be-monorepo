@@ -13,7 +13,6 @@ import {
   PurposeTemplate,
   PurposeTemplateDraftUpdatedV2,
   tenantKind,
-  operationForbidden,
   generateId,
   TenantId,
 } from "pagopa-interop-models";
@@ -27,6 +26,7 @@ import {
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateValidationFailed,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurposeTemplate,
@@ -314,7 +314,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
     vi.useRealTimers();
   });
 
-  it("should throw operationForbidden if the requester is not the creator", async () => {
+  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -340,7 +340,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
           authData: getMockAuthData(differentCreatorId),
         })
       )
-    ).rejects.toThrowError(operationForbidden);
+    ).rejects.toThrowError(tenantNotAllowed(differentCreatorId));
 
     vi.useRealTimers();
   });

@@ -1,5 +1,6 @@
 import { match } from "ts-pattern";
 import {
+  NotificationType,
   TenantId,
   TenantNotificationConfig,
   UserId,
@@ -21,7 +22,6 @@ import {
   aggregateUserNotificationConfig,
   toUserNotificationConfigAggregator,
 } from "./notification-config/aggregators.js";
-import { NotificationType } from "./notification-config/utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function notificationConfigReadModelServiceBuilder(

@@ -2370,6 +2370,9 @@ importers:
       '@types/node':
         specifier: 20.19.3
         version: 20.19.3
+      cpx2:
+        specifier: 7.0.2
+        version: 7.0.2
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -2671,12 +2674,18 @@ importers:
       nodemailer:
         specifier: 6.9.14
         version: 6.9.14
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -4028,9 +4037,6 @@ importers:
         specifier: 3.23.8
         version: 3.23.8
     devDependencies:
-      '@anatine/zod-mock':
-        specifier: 3.13.4
-        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.23.8)
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
@@ -4222,9 +4228,6 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
-      pagopa-interop-selfcare-user-db-models:
-        specifier: workspace:*
-        version: link:../selfcare-user-db-models
       pg:
         specifier: 8.13.1
         version: 8.13.1

@@ -9,6 +9,7 @@ import {
 import {
   generateId,
   PurposeTemplateId,
+  purposeTemplateState,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
 } from "pagopa-interop-models";
@@ -29,8 +30,8 @@ import {
   conflictDocumentPrettyNameDuplicate,
   conflictDuplicatedDocument,
   purposeTemplateNotFound,
+  purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
-  purposeTemplateStateNotDraft,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
 } from "../../src/model/domain/errors.js";
@@ -150,7 +151,11 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
       expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
     {
-      error: purposeTemplateStateNotDraft(purposeTemplateId),
+      error: purposeTemplateNotInExpectedStates(
+        purposeTemplateId,
+        purposeTemplateState.active,
+        [purposeTemplateState.draft]
+      ),
       expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {
