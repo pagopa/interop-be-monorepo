@@ -75,6 +75,43 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+    delete:
+      tags:
+        - notification
+      summary: Delete bulk notifications
+      description: Delete bulk notifications
+      operationId: deleteNotifications
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "204":
+          description: Notifications deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /notifications/bulk/markAsRead:
     post:
       tags:
@@ -150,6 +187,111 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /notifications/{notificationId}/markAsUnread:
+    post:
+      tags:
+        - notification
+      summary: Mark a notification as unread
+      description: Mark a notification as unread
+      operationId: markNotificationAsUnread
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - in: path
+          name: notificationId
+          required: true
+          description: ID of Notification
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Notification marked as unread
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Notification not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications/bulk/markAsUnread:
+    post:
+      tags:
+        - notification
+      summary: Mark a list of notifications as unread
+      description: Mark a list of notifications as unread
+      operationId: markNotificationsAsUnread
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "204":
+          description: Notifications marked as unread
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications/markAsReadByEntityId/{entityId}:
+    post:
+      tags:
+        - notification
+      summary: Mark all notifications as read by entity id
+      description: Mark all notifications as read by entity id
+      operationId: markNotificationsAsReadByEntityId
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - in: path
+          name: entityId
+          required: true
+          description: ID of Entity
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Notifications marked as read
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /notifications/{notificationId}:
     delete:
       tags:
@@ -175,6 +317,34 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications/byType:
+    get:
+      tags:
+        - notification
+      summary: Get all notifications by type
+      description: Returns a list of all notifications count grouped by notificationType
+      operationId: getNotificationsByType
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      responses:
+        "200":
+          description: A list of notifications count grouped by notificationType
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationsByType"
         "401":
           description: Unauthorized
           content:
@@ -266,8 +436,78 @@ components:
         - body
         - notificationType
         - entityId
-        - readAt
         - createdAt
+
+    NotificationsByType:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: object
+          properties:
+            agreementSuspendedUnsuspendedToProducer:
+              type: integer
+              format: int32
+            agreementManagementToProducer:
+              type: integer
+              format: int32
+            clientAddedRemovedToProducer:
+              type: integer
+              format: int32
+            purposeStatusChangedToProducer:
+              type: integer
+              format: int32
+            templateStatusChangedToProducer:
+              type: integer
+              format: int32
+            agreementSuspendedUnsuspendedToConsumer:
+              type: integer
+              format: int32
+            eserviceStateChangedToConsumer:
+              type: integer
+              format: int32
+            agreementActivatedRejectedToConsumer:
+              type: integer
+              format: int32
+            purposeActivatedRejectedToConsumer:
+              type: integer
+              format: int32
+            purposeSuspendedUnsuspendedToConsumer:
+              type: integer
+              format: int32
+            newEserviceTemplateVersionToInstantiator:
+              type: integer
+              format: int32
+            eserviceTemplateNameChangedToInstantiator:
+              type: integer
+              format: int32
+            eserviceTemplateStatusChangedToInstantiator:
+              type: integer
+              format: int32
+            delegationApprovedRejectedToDelegator:
+              type: integer
+              format: int32
+            eserviceNewVersionSubmittedToDelegator:
+              type: integer
+              format: int32
+            eserviceNewVersionApprovedRejectedToDelegate:
+              type: integer
+              format: int32
+            delegationSubmittedRevokedToDelegate:
+              type: integer
+              format: int32
+            certifiedVerifiedAttributeAssignedRevokedToAssignee:
+              type: integer
+              format: int32
+            clientKeyAddedDeletedToClientUsers:
+              type: integer
+              format: int32
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
 
     Problem:
       properties:

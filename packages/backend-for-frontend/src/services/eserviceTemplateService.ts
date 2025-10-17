@@ -367,12 +367,13 @@ export function eserviceTemplateServiceBuilder(
     getCatalogEServiceTemplates: async (
       name: string | undefined,
       creatorsIds: string[],
+      personalData: boolean | undefined,
       offset: number,
       limit: number,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CatalogEServiceTemplates> => {
       logger.info(
-        `Retrieving Catalog EService templates for name = ${name}, creatorsIds = ${creatorsIds}, offset = ${offset}, limit = ${limit}`
+        `Retrieving Catalog EService templates for name = ${name}, creatorsIds = ${creatorsIds}, personalData = ${personalData}, offset = ${offset}, limit = ${limit}`
       );
       const eserviceTemplatesResponse: eserviceTemplateApi.EServiceTemplates =
         await eserviceTemplateClient.getEServiceTemplates({
@@ -630,7 +631,6 @@ export function eserviceTemplateServiceBuilder(
 
       return { contentType, document: Buffer.from(stream) };
     },
-
     updateEServiceTemplateDocumentById: async (
       templateId: EServiceTemplateId,
       templateVersionId: EServiceTemplateVersionId,
@@ -655,6 +655,24 @@ export function eserviceTemplateServiceBuilder(
         );
 
       return { id, name, contentType, prettyName, checksum };
+    },
+    updateEServiceTemplatePersonalDataFlag: async (
+      { logger, headers }: WithLogger<BffAppContext>,
+      templateId: EServiceTemplateId,
+      personalDataSeed: bffApi.EServiceTemplatePersonalDataFlagUpdateSeed
+    ): Promise<void> => {
+      logger.info(
+        `Set personal flag for E-Service Template with id = ${templateId} to ${personalDataSeed.personalData}`
+      );
+      await eserviceTemplateClient.updateEServiceTemplatePersonalDataFlagAfterPublication(
+        personalDataSeed,
+        {
+          headers,
+          params: {
+            templateId,
+          },
+        }
+      );
     },
     deleteEServiceTemplateDocumentById: async (
       templateId: EServiceTemplateId,

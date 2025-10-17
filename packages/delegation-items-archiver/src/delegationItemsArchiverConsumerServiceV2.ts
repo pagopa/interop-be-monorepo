@@ -16,11 +16,11 @@ import {
   AgreementProcessClient,
   PurposeProcessClient,
 } from "./clients/clientsProvider.js";
-import { ReadModelService } from "./readModelService.js";
 import {
   processAgreement,
   processPurposes,
 } from "./delegationItemsArchiverProcessors.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export async function handleMessageV2({
   decodedMessage,
@@ -39,7 +39,7 @@ export async function handleMessageV2({
   offset: string;
   correlationId: CorrelationId;
   logger: Logger;
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   agreementProcessClient: AgreementProcessClient;
   purposeProcessClient: PurposeProcessClient;
 }): Promise<void> {

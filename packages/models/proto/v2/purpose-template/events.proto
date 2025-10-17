@@ -20,7 +20,6 @@ message PurposeTemplateEServiceUnlinkedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
   eservice.v2.EServiceV2 eservice = 2;
   string descriptorId = 3;
-  int64 createdAt = 4;
 }
 
 message PurposeTemplateDraftUpdatedV2 {

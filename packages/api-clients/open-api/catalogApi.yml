@@ -132,6 +132,11 @@ paths:
             default: []
           explode: false
         - in: query
+          name: personalData
+          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned
+          schema:
+            type: boolean
+        - in: query
           name: offset
           required: true
           schema:
@@ -1974,6 +1979,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/personalDataFlag:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Set personalData flag for an eservice after publication
+      operationId: updateEServicePersonalDataFlagAfterPublication
+      description: Set personalData flag for an eservice after publication
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing a boolean that describes the personalData flag
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
+      responses:
+        "200":
+          description: EService personalData flag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/approve:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2215,6 +2277,43 @@ paths:
       responses:
         "204":
           description: E-Service description updated
+        "404":
+          description: E-Service Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/templates/eservices/{eServiceId}/personalDataFlag:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - process
+      requestBody:
+        description: A payload containing a boolean that describes the personalData flag
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
+      operationId: setTemplateInstancePersonalDataFlag
+      description: Update the personalData flag of a template instance after a template update
+      responses:
+        "204":
+          description: E-Service personalData flag updated
         "404":
           description: E-Service Not Found
           content:
@@ -2615,6 +2714,8 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        personalData:
+          type: boolean
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2642,6 +2743,8 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        personalData:
+          type: boolean
     PatchUpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2664,6 +2767,9 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        personalData:
+          type: boolean
+          nullable: true
     UpdateEServiceTemplateInstanceSeed:
       type: object
       additionalProperties: false
@@ -3136,6 +3242,9 @@ components:
         templateId:
           type: string
           format: uuid
+        personalData:
+          type: boolean
+
     CreatedEServiceRiskAnalysis:
       type: object
       additionalProperties: false
@@ -3419,6 +3528,14 @@ components:
           type: boolean
       required:
         - isSignalHubEnabled
+    EServicePersonalDataFlagUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        personalData:
+          type: boolean
+      required:
+        - personalData
     EServiceDescriptor:
       type: object
       additionalProperties: false

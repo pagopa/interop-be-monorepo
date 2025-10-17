@@ -44,4 +44,12 @@ message UserNotificationConfigV2 {
   NotificationConfigV2 emailConfig = 5;
   int64 createdAt = 6;
   optional int64 updatedAt = 7;
+  bool inAppNotificationPreference = 8;
+  EmailNotificationPreferenceV2 emailNotificationPreference = 9;
+}
+
+enum EmailNotificationPreferenceV2 {
+  DISABLED = 0;
+  ENABLED = 1;
+  DIGEST = 2;
 }

@@ -80,6 +80,8 @@ describe("processUserEvent", () => {
       createdAt: "2022-01-01T00:00:00.000Z",
       tenantId,
       userId,
+      inAppNotificationPreference: true,
+      emailNotificationPreference: "ENABLED",
       inAppConfig: {
         agreementSuspendedUnsuspendedToProducer: false,
         agreementManagementToProducer: false,
@@ -166,7 +168,7 @@ describe("processUserEvent", () => {
       name: "John",
       familyName: "Doe",
       email: "john.doe@example.com",
-      productRole: "admin",
+      productRoles: ["admin"],
     });
 
     expect(
@@ -208,7 +210,7 @@ describe("processUserEvent", () => {
       name: "John",
       familyName: "Doe",
       email: "john.doe@example.com",
-      productRole: "admin",
+      productRoles: ["admin"],
     });
   });
 

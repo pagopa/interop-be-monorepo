@@ -32,6 +32,7 @@ import {
   purposeRiskAnalysisFormInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import {
   aggregatePurposeArray,
@@ -282,6 +283,7 @@ export function readModelServiceBuilderSQL({
             purposeRiskAnalysisAnswerInReadmodelPurpose,
           purposeVersion: purposeVersionInReadmodelPurpose,
           purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+          purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
           totalCount: subquery.totalCount,
         })
         .from(purposeInReadmodelPurpose)
@@ -321,6 +323,13 @@ export function readModelServiceBuilderSQL({
           eq(
             purposeVersionInReadmodelPurpose.id,
             purposeVersionDocumentInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          purposeVersionStampInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionStampInReadmodelPurpose.purposeVersionId
           )
         )
         .leftJoin(

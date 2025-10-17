@@ -429,6 +429,8 @@ components:
         - id
         - userId
         - tenantId
+        - inAppNotificationPreference
+        - emailNotificationPreference
         - inAppConfig
         - emailConfig
         - createdAt
@@ -442,6 +444,14 @@ components:
         tenantId:
           type: string
           format: uuid
+        inAppNotificationPreference:
+          type: boolean
+        emailNotificationPreference:
+          type: string
+          enum:
+            - ENABLED
+            - DISABLED
+            - DIGEST
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
@@ -548,9 +558,19 @@ components:
       type: object
       additionalProperties: false
       required:
+        - inAppNotificationPreference
+        - emailNotificationPreference
         - inAppConfig
         - emailConfig
       properties:
+        inAppNotificationPreference:
+          type: boolean
+        emailNotificationPreference:
+          type: string
+          enum:
+            - ENABLED
+            - DISABLED
+            - DIGEST
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:

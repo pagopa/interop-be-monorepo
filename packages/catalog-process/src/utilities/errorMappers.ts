@@ -41,6 +41,7 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
       "inconsistentDailyCalls",
       "eServiceTemplateWithoutPublishedVersion",
       "templateMissingRequiredRiskAnalysis",
+      "eServiceTemplateWithoutPersonalDataFlag",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -297,6 +298,7 @@ export const publishDescriptorErrorMapper = (
       "riskAnalysisNotValid",
       "notValidDescriptor",
       "audienceCannotBeEmpty",
+      "missingPersonalDataFlag",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -507,6 +509,7 @@ export const approveDelegatedEServiceDescriptorErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("missingPersonalDataFlag", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -548,6 +551,13 @@ export const updateTemplateInstanceNameErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateTemplateInstanceDescriptionErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateTemplateInstancePersonalDataErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -683,5 +693,22 @@ export const updateTemplateInstanceDescriptorErrorMapper = (
       "notValidDescriptor",
       "inconsistentDailyCalls",
       () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateEServicePersonalDataFlagErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "operationForbidden",
+      "templateInstanceNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "eserviceWithoutValidDescriptors",
+      "eservicePersonalDataFlagCanOnlyBeSetOnce",
+      () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

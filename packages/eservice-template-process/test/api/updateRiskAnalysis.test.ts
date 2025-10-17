@@ -119,7 +119,7 @@ describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
     {
       error: riskAnalysisValidationFailed([
         new RiskAnalysisValidationIssue({
-          code: "noRulesVersionFoundError",
+          code: "rulesVersionNotFoundError",
           detail: "no rule",
         }),
       ]),

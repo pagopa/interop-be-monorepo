@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { EachMessagePayload } from "kafkajs";
 import { generateId } from "pagopa-interop-models";
-import { EmailNotificationPayload } from "../src/model/emailNotificationPayload.js";
+import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 
-export const correctEventPayload: EmailNotificationPayload = {
+export const correctEventPayload: EmailNotificationMessagePayload = {
   correlationId: generateId(),
-  subject: "Subject",
+  email: {
+    subject: "Subject",
+    body: "<b>body</b>",
+  },
   address: "address@mail.com",
-  body: "<b>body</b>",
 };
 
 export const kafkaMessagePayload: EachMessagePayload = {

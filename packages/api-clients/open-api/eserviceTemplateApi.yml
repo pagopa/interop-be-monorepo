@@ -73,6 +73,11 @@ paths:
             default: []
           explode: false
         - in: query
+          name: personalData
+          description: if true only e-service templates that handle personal data will be returned, if false only non-personal data e-service templates will be returned, if not present all e-service templates will be returned
+          schema:
+            type: boolean
+        - in: query
           name: offset
           required: true
           schema:
@@ -1312,6 +1317,62 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /templates/{templateId}/personalDataFlag:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Set personalData flag for published e-service templates
+      operationId: updateEServiceTemplatePersonalDataFlagAfterPublication
+      parameters:
+        - name: templateId
+          in: path
+          description: the eservice template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: EService template personalData flag updated
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceTemplatePersonalDataFlagUpdateSeed"
+      responses:
+        "200":
+          description: EService template personalData flag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplate"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/creators":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1416,6 +1477,8 @@ components:
           $ref: "#/components/schemas/VersionSeedForEServiceTemplateCreation"
         isSignalHubEnabled:
           type: boolean
+        personalData:
+          type: boolean
     UpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -1444,6 +1507,8 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
+        personalData:
+          type: boolean
     PatchUpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -1465,6 +1530,8 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
+          type: boolean
+        personalData:
           type: boolean
     VersionSeedForEServiceTemplateCreation:
       required:
@@ -1621,6 +1688,14 @@ components:
           type: string
           minLength: 5
           maxLength: 60
+    EServiceTemplatePersonalDataFlagUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        personalData:
+          type: boolean
+      required:
+        - personalData
     AttributesSeed:
       additionalProperties: false
       properties:
@@ -1765,6 +1840,8 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
+          type: boolean
+        personalData:
           type: boolean
     EServiceMode:
       type: string

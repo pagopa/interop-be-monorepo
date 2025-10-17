@@ -1,9 +1,11 @@
 /* eslint-disable functional/no-let */
-import { genericInternalError } from "pagopa-interop-models";
+import {
+  genericInternalError,
+  EmailNotificationMessagePayload,
+} from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { delay, EmailManagerSES, logger } from "pagopa-interop-commons";
 import { TooManyRequestsException } from "@aws-sdk/client-sesv2";
-import { EmailNotificationPayload } from "../model/emailNotificationPayload.js";
 import { config } from "../config/config.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -33,7 +35,7 @@ export function emailSenderProcessorBuilder(
         success,
         error,
         data: jsonPayload,
-      } = EmailNotificationPayload.safeParse(
+      } = EmailNotificationMessagePayload.safeParse(
         JSON.parse(message.value.toString())
       );
 
@@ -54,9 +56,9 @@ export function emailSenderProcessorBuilder(
       );
       const mailOptions = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
-        subject: jsonPayload.subject,
+        subject: jsonPayload.email.subject,
         to: [jsonPayload.address],
-        html: jsonPayload.body,
+        html: jsonPayload.email.body,
       };
 
       let sent = false;

@@ -68,14 +68,35 @@ paths:
             default: []
           explode: false
         - in: query
+          name: eserviceIds
+          description: comma separated sequence of e-service IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: states
-          description: filter by template state
+          description: comma separated sequence of states
           schema:
             type: array
             items:
               $ref: "#/components/schemas/PurposeTemplateState"
             default: []
           explode: false
+        - in: query
+          name: targetTenantKind
+          description: filter by target tenant kind
+          schema:
+            $ref: "#/components/schemas/TenantKind"
+        - in: query
+          name: excludeExpiredRiskAnalysis
+          description: exclude purpose templates with expired risk analysis
+          schema:
+            type: boolean
+            default: true
         - in: query
           name: offset
           required: true
@@ -97,9 +118,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PurposeTemplate"
+                $ref: "#/components/schemas/PurposeTemplates"
         "400":
           description: Bad Request
           content:
@@ -134,134 +153,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PurposeTemplate"
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-  /purposeTemplates/eservices:
-    get:
-      tags:
-        - purposeTemplate
-      summary: List E-Service associated to Purpose Templates
-      operationId: getEServices
-      description: Retrieve associations between all Purpose Templates and all their linked E-Services
-      parameters:
-        - in: query
-          name: eserviceIds
-          description: comma separated sequence of E-Service IDs
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
-          name: purposeTemplateIds
-          description: comma separated sequence of Purpose Template IDs
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
-          name: offset
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
-      responses:
-        "200":
-          description: E-Services retrieved
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-  /purposeTemplates/riskAnalysis:
-    get:
-      tags:
-        - purposeTemplate
-      summary: Retrieve Purpose Template Risk Analysis 
-      operationId: getRiskAnalysis
-      description: Retrieve the Risk Analysis for all purpose templates.
-      parameters:
-        - in: query
-          name: eserviceIds
-          description: comma separated sequence of E-Service IDs
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
-          name: purposeTemplateIds
-          description: comma separated sequence of Purpose Template IDs
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
-          name: offset
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
-      responses:
-        "200":
-          description: Risk Analysis retrieved
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/RiskAnalysisFormTemplate"
         "400":
           description: Bad Request
           content:
@@ -312,7 +203,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-    post:
+    put:
       tags:
         - purposeTemplate
       summary: Update Purpose Template
@@ -381,32 +272,51 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /purposeTemplates/{id}/riskAnalysis:
+  /purposeTemplates/{id}/linkEservices:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: id
         in: path
-        description: the purpose template id
         required: true
         schema:
           type: string
           format: uuid
-    get:
+    post:
       tags:
         - purposeTemplate
-      summary: Get Purpose Template Risk Analysis
-      operationId: getPurposeTemplateRiskAnalysis
-      description: Retrieve a purpose template risk analysis
+      summary: Link E-Services to Purpose Template
+      operationId: linkEServicesToPurposeTemplate
+      description: Link E-Services to a purpose template (in Draft or Active state)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eserviceIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  minItems: 1
+              required:
+                - eserviceIds
+        required: true
       responses:
         "200":
-          description: Purpose Template Risk Analysis retrieved
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
+          description: E-Services linked to purpose template
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+                type: array
+                items:
+                  $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
@@ -419,28 +329,45 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{id}/unlinkEservices:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
+      summary: Unlink E-Services from Purpose Template
+      description: Unlink E-Services from a purpose template (in Draft or Active state)
+      operationId: unlinkEServicesFromPurposeTemplate
       tags:
         - purposeTemplate
-      summary: Update Purpose Template Risk Analysis
-      operationId: updatePurposeTemplateRiskAnalysis
-      description: Updates a purpose template (in Draft state) risk analysis
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RiskAnalysisFormTemplateSeed"
+              type: object
+              properties:
+                eserviceIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  minItems: 1
+              required:
+                - eserviceIds
         required: true
       responses:
-        "200":
-          description: Purpose Template Risk Analysis updated
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+        "204":
+          description: E-Services unlinked from purpose template
         "400":
           description: Bad Request
           content:
@@ -474,94 +401,54 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: producerIds
+        description: comma separated sequence of e-service producer IDs
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          default: []
+        explode: false
+      - in: query
+        name: eserviceIds
+        description: comma separated sequence of e-service IDs
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          default: []
+        explode: false
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
     get:
       tags:
         - purposeTemplate
       summary: Get Purpose Template E-Services
       operationId: getPurposeTemplateEServices
-      description: Retrieve a purpose template e-services
+      description: Retrieve e-services linked to a purpose template
       responses:
         "200":
           description: Purpose Template E-Services retrieved
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
-        "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: Purpose Template Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-    post:
-      tags:
-        - purposeTemplate
-      summary: Add E-Service to Purpose Template
-      operationId: addEServiceToPurposeTemplate
-      description: Add an E-Service to a purpose template (in Draft state)
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateEServiceDescriptorPurposeTemplateSeed"
-        required: true
-      responses:
-        "200":
-          description: E-Service added to purpose template
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: Purpose Template Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-    delete:
-      tags:
-        - purposeTemplate
-      summary: Remove E-Service from Purpose Template
-      operationId: removeEServiceFromPurposeTemplate
-      description: Remove an E-Service from a purpose template (in Draft state)
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateEServiceDescriptorPurposeTemplateSeed"
-        required: true
-      responses:
-        "204":
-          description: E-Service removed from purpose template
+                $ref: "#/components/schemas/EServiceDescriptorsPurposeTemplate"
         "403":
           description: Forbidden
           content:
@@ -770,6 +657,159 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{id}/riskAnalysis/answers:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposeTemplate
+      summary: Add a risk analysis answer for a purpose template
+      operationId: addRiskAnalysisAnswerForPurposeTemplate
+      description: Add a new risk analysis answer for the specified purpose template risk analysis.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnswerRequest"
+        required: true
+      responses:
+        "200":
+          description: Risk Analysis Template Answer added.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswer"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: documentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purposeTemplate
+      summary: Get risk analysis form template answer annotation document
+      operationId: getRiskAnalysisTemplateAnswerAnnotationDocument
+      description: Retrieve a risk analysis form template answer annotation document
+      responses:
+        "200":
+          description: Risk analysis form template answer annotation document retrieved
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Risk analysis form template answer annotation document not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags:
+        - purposeTemplate
+      summary: Add a risk analysis answer annotation
+      operationId: addRiskAnalysisAnswerAnnotationForPurposeTemplate
+      description: Add a risk analysis answer annotation. Only the text is impacted, the docs are not impacted.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationText"
+        required: true
+      responses:
+        "200":
+          description: Risk Analysis Template Answer Annotation added.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotation"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template or Answer Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   headers:
     MetadataVersionHeader:
@@ -785,6 +825,20 @@ components:
       schema:
         type: string
   schemas:
+    PurposeTemplates:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeTemplate"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     PurposeTemplate:
       type: object
       description: Business representation of a purpose template
@@ -839,16 +893,24 @@ components:
       properties:
         targetDescription:
           type: string
+          minLength: 10
+          maxLength: 250
         targetTenantKind:
           $ref: "#/components/schemas/TenantKind"
         purposeTitle:
           type: string
+          minLength: 5
+          maxLength: 60
         purposeDescription:
           type: string
+          minLength: 10
+          maxLength: 250
         purposeRiskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormTemplateSeed"
         purposeIsFreeOfCharge:
           type: boolean
+        purposeFreeOfChargeReason:
+          type: string
         purposeDailyCalls:
           type: integer
           format: int32
@@ -876,6 +938,20 @@ components:
         - PRIVATE
         - GSP
         - SCP
+    EServiceDescriptorsPurposeTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     EServiceDescriptorPurposeTemplate:
       type: object
       additionalProperties: false
@@ -934,18 +1010,88 @@ components:
           maxLength: 250
         answers:
           additionalProperties:
-            $ref: "#/components/schemas/RiskAnalysisTemplateAnswer"
+            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerSeed"
       required:
         - version
         - answers
+    RiskAnalysisTemplateAnswerSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        values:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2000
+        editable:
+          type: boolean
+        annotation:
+          $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationSeed"
+        suggestedValues:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 250
+      required:
+        - values
+        - editable
+        - suggestedValues
+    RiskAnalysisTemplateAnswerAnnotationText:
+      type: object
+      additionalProperties: false
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 250
+      required:
+        - text
+    RiskAnalysisTemplateAnswerAnnotationSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        text:
+          type: string
+          maxLength: 250
+        docs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocumentSeed"
+      required:
+        - text
+        - docs
+    RiskAnalysisTemplateAnswerAnnotationDocumentSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        contentType:
+          type: string
+        prettyName:
+          type: string
+        path:
+          type: string
+      required:
+        - name
+        - contentType
+        - prettyName
+        - path
     RiskAnalysisTemplateAnswer:
       type: object
       additionalProperties: false
       properties:
-        value:
+        id:
           type: string
-          minLength: 1
-          maxLength: 2000
+          format: uuid
+        values:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2000
         editable:
           type: boolean
         annotation:
@@ -954,8 +1100,11 @@ components:
           type: array
           items:
             type: string
+            minLength: 1
+            maxLength: 250
       required:
-        - value
+        - id
+        - values
         - editable
         - suggestedValues
     RiskAnalysisTemplateAnswerAnnotation:
@@ -972,6 +1121,7 @@ components:
           items:
             $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
       required:
+        - text
         - id
         - docs
     RiskAnalysisTemplateAnswerAnnotationDocument:
@@ -999,6 +1149,19 @@ components:
         - prettyName
         - path
         - createdAt
+    RiskAnalysisTemplateAnswerRequest:
+      type: object
+      properties:
+        answerKey:
+          type: string
+          description: The identifier of the risk analysis answer
+        answerData:
+          $ref: "#/components/schemas/RiskAnalysisTemplateAnswerSeed"
+      required:
+        - answerKey
+        - answerData
+      additionalProperties: false
+      description: A single risk analysis answer with explicit key and data structure
     Problem:
       properties:
         type:

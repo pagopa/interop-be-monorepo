@@ -2,6 +2,7 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  assertFeatureFlagEnabled,
   authRole,
   ExpressContext,
   fromAppContext,
@@ -74,8 +75,11 @@ import {
   updateAgreementApprovalPolicyErrorMapper,
   updateEServiceSignalhubFlagErrorMapper,
   documentListErrorMapper,
+  updateEServicePersonalDataFlagErrorMapper,
+  updateTemplateInstancePersonalDataErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
+import { config } from "../config/config.js";
 
 const eservicesRouter = (
   ctx: ZodiosContext,
@@ -123,6 +127,7 @@ const eservicesRouter = (
           delegated,
           isConsumerDelegable,
           templatesIds,
+          personalData,
           offset,
           limit,
         } = req.query;
@@ -146,6 +151,7 @@ const eservicesRouter = (
             isConsumerDelegable,
             delegated,
             templatesIds: templatesIds.map<EServiceTemplateId>(unsafeBrandId),
+            personalData,
           },
           offset,
           limit,
@@ -1239,6 +1245,30 @@ const eservicesRouter = (
       }
     )
     .post(
+      "/internal/templates/eservices/:eServiceId/personalDataFlag",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          await catalogService.internalUpdateTemplateInstancePersonalDataFlag(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.personalData,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTemplateInstancePersonalDataErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
       "/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/voucherLifespan/update",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -1474,7 +1504,35 @@ const eservicesRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/eservices/:eServiceId/personalDataFlag", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        assertFeatureFlagEnabled(config, "featureFlagEservicePersonalData");
+
+        const updatedEService =
+          await catalogService.updateEServicePersonalDataFlagAfterPublication(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.personalData,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateEServicePersonalDataFlagErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return eservicesRouter;
 };

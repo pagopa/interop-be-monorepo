@@ -60,6 +60,7 @@ describe("E-service template queries", () => {
           getMockValidEServiceTemplateRiskAnalysis(tenantKind.PRIVATE),
         ],
         isSignalHubEnabled: true,
+        personalData: false,
       };
 
       await eserviceTemplateWriterService.upsertEServiceTemplate(
@@ -195,6 +196,7 @@ describe("E-service template queries", () => {
           getMockValidEServiceTemplateRiskAnalysis(tenantKind.PRIVATE),
         ],
         isSignalHubEnabled: true,
+        personalData: false,
       };
 
       await eserviceTemplateWriterService.upsertEServiceTemplate(

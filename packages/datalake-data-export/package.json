@@ -1,12 +1,12 @@
 {
   "name": "pagopa-interop-datalake-data-export",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability Data Lake Data Export",
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
-    "test:old": "echo \"Old readmodel\" && vitest --config vitest.config.ts ",
+    "test": "vitest --config vitest.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -16,8 +16,6 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@types/node": "20.19.9",
     "@pagopa/eslint-config": "3.0.0",
@@ -35,7 +33,6 @@
     "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",
     "date-fns": "3.6.0",
-    "mongodb": "6.7.0",
     "zod": "3.23.8"
   }
 }

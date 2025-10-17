@@ -2,15 +2,21 @@ import {
   EService,
   Descriptor,
   descriptorState,
+  Attribute,
+  AttributeId,
   Tenant,
   TenantId,
   EServiceId,
   PurposeId,
   Purpose,
+  EServiceTemplate,
+  EServiceTemplateVersion,
 } from "pagopa-interop-models";
 
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import {
+  attributeNotFound,
+  certifierTenantNotFound,
   descriptorPublishedNotFound,
   eserviceNotFound,
   purposeNotFound,
@@ -41,6 +47,19 @@ export function retrieveLatestPublishedDescriptor(
   return latestDescriptor;
 }
 
+export function retrieveLatestPublishedEServiceTemplateVersion(
+  eserviceTemplate: EServiceTemplate
+): EServiceTemplateVersion {
+  const latestVersion = eserviceTemplate.versions
+    .filter((d) => d.state === descriptorState.published)
+    .sort((a, b) => Number(a.version) - Number(b.version))
+    .at(-1);
+  if (!latestVersion) {
+    throw descriptorPublishedNotFound(eserviceTemplate.id);
+  }
+  return latestVersion;
+}
+
 export async function retrieveEservice(
   eserviceId: EServiceId,
   readModelService: ReadModelServiceSQL
@@ -61,4 +80,26 @@ export async function retrievePurpose(
     throw purposeNotFound(purposeId);
   }
   return purpose;
+}
+
+export async function retrieveAttribute(
+  attributeId: AttributeId,
+  readModelService: ReadModelServiceSQL
+): Promise<Attribute> {
+  const attribute = await readModelService.getAttributeById(attributeId);
+  if (!attribute) {
+    throw attributeNotFound(attributeId);
+  }
+  return attribute;
+}
+
+export async function retrieveTenantByCertifierId(
+  certifierId: string,
+  readModelService: ReadModelServiceSQL
+): Promise<Tenant> {
+  const tenant = await readModelService.getTenantByCertifierId(certifierId);
+  if (!tenant) {
+    throw certifierTenantNotFound(certifierId);
+  }
+  return tenant;
 }

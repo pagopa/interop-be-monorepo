@@ -11,8 +11,8 @@ import { CsvRow, NonPaRow, PaRow } from "../model/csvRowModel.js";
 import { InteropContext } from "../model/interopContextModel.js";
 import { AnacReadModelTenant } from "../model/tenant.js";
 import { TenantProcessService } from "./tenantProcessService.js";
-import { ReadModelQueries } from "./readmodelQueriesService.js";
 import { SftpClient } from "./sftpService.js";
+import { ReadModelQueriesSQL } from "./readmodelQueriesServiceSQL.js";
 
 export const ANAC_ENABLED_CODE = "anac_abilitato";
 export const ANAC_ASSIGNED_CODE = "anac_incaricato";
@@ -20,7 +20,7 @@ export const ANAC_IN_VALIDATION_CODE = "anac_in_convalida";
 
 export async function importAttributes(
   sftpClient: SftpClient,
-  readModel: ReadModelQueries,
+  readModel: ReadModelQueriesSQL,
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
   recordsBatchSize: number,
@@ -66,7 +66,7 @@ export async function importAttributes(
 }
 
 async function processFileContent(
-  readModel: ReadModelQueries,
+  readModel: ReadModelQueriesSQL,
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
   fileContent: string,
@@ -147,7 +147,7 @@ async function processFileContent(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function unassignMissingOrgsAttributes(
-  readModel: ReadModelQueries,
+  readModel: ReadModelQueriesSQL,
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
   allOrgsInFile: string[],
@@ -197,7 +197,7 @@ async function unassignMissingOrgsAttributes(
 }
 
 async function getAttributesIdentifiers(
-  readModel: ReadModelQueries,
+  readModel: ReadModelQueriesSQL,
   anacTenantId: string
 ): Promise<AnacAttributes> {
   const anacTenant: AnacReadModelTenant = await readModel.getTenantById(

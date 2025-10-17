@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS "user"."user" (
     name VARCHAR NOT NULL,
     family_name VARCHAR NOT NULL,
     email VARCHAR NOT NULL,
-    product_role VARCHAR NOT NULL
+    product_roles VARCHAR[] NOT NULL
 );

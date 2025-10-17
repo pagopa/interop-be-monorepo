@@ -320,9 +320,10 @@ export function catalogServiceBuilder(
         mode,
         agreementStates,
         isConsumerDelegable,
+        personalData,
       } = queries;
       logger.info(
-        `Retrieving EServices for name = ${name}, producersIds = ${producersIds}, attributesIds = ${attributesIds}, states = ${states}, agreementStates = ${agreementStates}, isConsumerDelegable = ${isConsumerDelegable}, mode = ${mode}, offset = ${offset}, limit = ${limit}`
+        `Retrieving EServices for name = ${name}, producersIds = ${producersIds}, attributesIds = ${attributesIds}, states = ${states}, agreementStates = ${agreementStates}, isConsumerDelegable = ${isConsumerDelegable}, mode = ${mode}, personalData = ${personalData}, offset = ${offset}, limit = ${limit}`
       );
       const requesterId = authData.organizationId;
       const eservicesResponse: catalogApi.EServices =
@@ -597,6 +598,26 @@ export function catalogServiceBuilder(
         }
       );
     },
+
+    updateEServicePersonalDataFlag: async (
+      { headers, logger }: WithLogger<BffAppContext>,
+      eServiceId: EServiceId,
+      personalDataSeed: bffApi.EServicePersonalDataFlagUpdateSeed
+    ): Promise<void> => {
+      logger.info(
+        `Set personal flag for E-Service with id = ${eServiceId} to ${personalDataSeed.personalData}`
+      );
+      await catalogProcessClient.updateEServicePersonalDataFlagAfterPublication(
+        personalDataSeed,
+        {
+          headers,
+          params: {
+            eServiceId,
+          },
+        }
+      );
+    },
+
     createEService: async (
       eServiceSeed: bffApi.EServiceSeed,
       { headers, logger }: WithLogger<BffAppContext>

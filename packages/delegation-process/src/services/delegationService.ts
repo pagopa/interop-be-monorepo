@@ -47,7 +47,6 @@ import {
   toCreateEventProducerDelegationRevoked,
   toCreateEventProducerDelegationSubmitted,
 } from "../model/domain/toEvent.js";
-import { ReadModelService } from "./readModelService.js";
 import {
   activeDelegationStates,
   assertDelegationNotExists,
@@ -63,6 +62,7 @@ import {
   assertTenantAllowedToReceiveDelegation,
 } from "./validators.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const retrieveDelegationById = async (
   {
@@ -72,7 +72,7 @@ export const retrieveDelegationById = async (
     delegationId: DelegationId;
     kind: DelegationKind | undefined;
   },
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Delegation>> => {
   const delegation = await readModelService.getDelegationById(
     delegationId,
@@ -85,7 +85,7 @@ export const retrieveDelegationById = async (
 };
 
 export const retrieveTenantById = async (
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   tenantId: TenantId
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
@@ -96,7 +96,7 @@ export const retrieveTenantById = async (
 };
 
 export const retrieveEserviceById = async (
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   id: EServiceId
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(id);
@@ -109,7 +109,7 @@ export const retrieveEserviceById = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager
 ) {

@@ -45,7 +45,7 @@ import {
   eserviceWithoutValidDescriptors,
   eserviceTemplateNameConflict,
 } from "../model/domain/errors.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -116,7 +116,7 @@ export async function assertRequesterIsDelegateProducerOrProducer(
   producerId: TenantId,
   eserviceId: EServiceId,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> {
   // Search for active producer delegation
   const producerDelegation = await readModelService.getLatestDelegation({
@@ -150,7 +150,7 @@ export function assertRequesterIsProducer(
 
 export async function assertNoExistingProducerDelegationInActiveOrPendingState(
   eserviceId: EServiceId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> {
   const producerDelegation = await readModelService.getLatestDelegation({
     eserviceId,
@@ -202,9 +202,15 @@ export function assertHasNoDraftOrWaitingForApprovalDescriptor(
 
 export function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: catalogApi.EServiceRiskAnalysisSeed["riskAnalysisForm"],
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  dateForExpirationValidation: Date
 ): RiskAnalysisValidatedForm {
-  const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
+  const result = validateRiskAnalysis(
+    riskAnalysisForm,
+    true,
+    tenantKind,
+    dateForExpirationValidation
+  );
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
   } else {
@@ -226,7 +232,8 @@ export function assertRiskAnalysisIsValidForPublication(
         riskAnalysis.riskAnalysisForm
       ),
       false,
-      tenantKind
+      tenantKind,
+      new Date()
     );
 
     if (result.type === "invalid") {
@@ -274,7 +281,7 @@ export function assertDocumentDeletableDescriptorState(
 export async function assertEServiceNameAvailableForProducer(
   name: string,
   producerId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> {
   const isEServiceNameAvailable =
     await readModelService.isEServiceNameAvailableForProducer({
@@ -288,7 +295,7 @@ export async function assertEServiceNameAvailableForProducer(
 
 export async function assertEServiceNameNotConflictingWithTemplate(
   name: string,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> {
   const eserviceTemplateWithSameNameExists =
     await readModelService.isEServiceNameConflictingWithTemplate({

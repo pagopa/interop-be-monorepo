@@ -131,6 +131,15 @@ describe("POST /authorization-server/token.oauth2", () => {
     expect(res.headers["x-rate-limit-remaining"]).toBe("10");
   });
 
+  it("Should return 400 for a bad formatted request body", async () => {
+    const res = await request(api)
+      .post("/authorization-server/token.oauth2")
+      .set("Content-Type", "application/json")
+      .send("wrong-formatted-json");
+
+    expect(res.status).toBe(400);
+  });
+
   it.each([
     {
       error: tokenGenerationStatesEntryNotFound(tokenClientKidPK),

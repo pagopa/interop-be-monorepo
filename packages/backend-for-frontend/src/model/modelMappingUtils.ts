@@ -1,5 +1,6 @@
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
+import { NotificationType } from "pagopa-interop-models";
 import {
   fromApiTenantMail,
   toBffTenantMail,
@@ -49,3 +50,41 @@ export function getLatestTenantContactEmail(
 
   return mail ? toBffTenantMail(mail) : undefined;
 }
+
+export type UiSection =
+  | "/erogazione"
+  | "/erogazione/richieste"
+  | "/erogazione/finalita"
+  | "/erogazione/template-eservice"
+  | "/erogazione/e-service"
+  | "/erogazione/portachiavi"
+  | "/fruizione"
+  | "/fruizione/richieste"
+  | "/fruizione/finalita"
+  | "/catalogo-e-service"
+  | "/aderente"
+  | "/aderente/deleghe"
+  | "/aderente/anagrafica";
+
+export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
+  {
+    agreementManagementToProducer: "/erogazione/richieste",
+    agreementSuspendedUnsuspendedToProducer: "/erogazione/richieste",
+    agreementSuspendedUnsuspendedToConsumer: "/fruizione/richieste",
+    clientAddedRemovedToProducer: "/erogazione/finalita",
+    purposeStatusChangedToProducer: "/erogazione/finalita",
+    templateStatusChangedToProducer: "/erogazione/template-eservice",
+    newEserviceTemplateVersionToInstantiator: "/erogazione/e-service",
+    eserviceTemplateNameChangedToInstantiator: "/erogazione/e-service",
+    eserviceTemplateStatusChangedToInstantiator: "/erogazione/e-service",
+    clientKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
+    agreementActivatedRejectedToConsumer: "/fruizione/richieste",
+    purposeActivatedRejectedToConsumer: "/fruizione/finalita",
+    purposeSuspendedUnsuspendedToConsumer: "/fruizione/finalita",
+    eserviceStateChangedToConsumer: "/catalogo-e-service",
+    delegationApprovedRejectedToDelegator: "/aderente/deleghe",
+    eserviceNewVersionSubmittedToDelegator: "/aderente/deleghe",
+    eserviceNewVersionApprovedRejectedToDelegate: "/aderente/deleghe",
+    delegationSubmittedRevokedToDelegate: "/aderente/deleghe",
+    certifiedVerifiedAttributeAssignedRevokedToAssignee: "/aderente/anagrafica",
+  } as const;

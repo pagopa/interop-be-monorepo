@@ -13,6 +13,7 @@ import {
   UserNotificationConfig,
   UserNotificationConfigUpdatedV2,
   toUserNotificationConfigV2,
+  emailNotificationPreference,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -33,6 +34,8 @@ describe("updateUserNotificationConfig", () => {
   };
   const userNotificationConfigSeed: notificationConfigApi.UserNotificationConfigUpdateSeed =
     {
+      inAppNotificationPreference: true,
+      emailNotificationPreference: "ENABLED",
       inAppConfig: {
         agreementSuspendedUnsuspendedToProducer:
           !userNotificationConfig.inAppConfig
@@ -122,6 +125,7 @@ describe("updateUserNotificationConfig", () => {
       userId,
       tenantId,
       ...userNotificationConfigSeed,
+      emailNotificationPreference: emailNotificationPreference.enabled,
       createdAt: userNotificationConfig.createdAt,
       updatedAt: new Date(),
     };

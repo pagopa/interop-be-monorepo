@@ -59,7 +59,7 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
     command: -c 'max_connections=512' -c 'wal_level=logical'
-    
+
   # POSTGRESQL user
   user-sql:
     volumes:
@@ -73,6 +73,19 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
     command: -c 'max_connections=512' -c 'wal_level=logical'
+
+  # M2M events POSTGRESQL DB
+  m2m-event-sql:
+    volumes:
+      - ./m2m-event-db:/docker-entrypoint-initdb.d
+    image: postgres:14
+    ports:
+      - 6006:5433
+    environment:
+      PGPORT: 5433
+      POSTGRES_DB: root
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
 
   # Zookeeper for Kafka
   zookeeper:
@@ -110,17 +123,6 @@ services:
     depends_on:
       - kafka
 
-  # Mongo DB readmodel
-  readmodel:
-    image: mongo:4.0
-    ports:
-      - 27017:27017
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-    volumes:
-      - readmodel-volume:/data/db
-
   # Dynamo DB readmodel for token generation and privacy notices
   dynamodb-local:
     command: "-jar DynamoDBLocal.jar -inMemory -sharedDb"
@@ -157,21 +159,6 @@ services:
       - AWS_REGION=eu-south-1
       - TABLES=privacy-notice,privacy-notice-acceptances,platform-states,token-generation-states,dpop-cache
     entrypoint: ./dynamo-migrations.sh
-
-  # Web GUI for mongo
-  mongo-express:
-    image: mongo-express:1.0.2-20
-    ports:
-      - 8081:8081
-    environment:
-      ME_CONFIG_MONGODB_AUTH_USERNAME: root
-      ME_CONFIG_MONGODB_AUTH_PASSWORD: example
-      ME_CONFIG_BASICAUTH_USERNAME: root
-      ME_CONFIG_BASICAUTH_PASSWORD: example
-      ME_CONFIG_MONGODB_URL: mongodb://root:example@readmodel:27017/
-    depends_on:
-      - readmodel
-    restart: always
 
   # Web GUI for PostgreSQL
   pg-admin:

@@ -7,10 +7,8 @@ export * from "./agreement/agreementEvents.js";
 export * from "./agreement/protobufConverterFromV1.js";
 export * from "./agreement/protobufConverterFromV2.js";
 export * from "./agreement/protobufConverterToV2.js";
-export * from "./agreement/agreementReadModelAdapter.js";
 
 export * from "./attribute/attribute.js";
-export * from "./attribute/attributeReadModelAdapter.js";
 export * from "./attribute/attributeEvents.js";
 export * from "./attribute/protobufConverterFromV1.js";
 export * from "./attribute/protobufConverterToV1.js";
@@ -21,10 +19,10 @@ export * from "./delegation/protobufConverterFromV2.js";
 export * from "./delegation/protobufConverterToV2.js";
 
 export * from "./email/email.js";
+export * from "./email/emailNotificationMessagePayload.js";
 
 export * from "./eservice/eservice.js";
 export * from "./eservice/eserviceEvents.js";
-export * from "./eservice/eserviceReadModelAdapter.js";
 export * from "./eservice/protobufConverterFromV1.js";
 export * from "./eservice/protobufConverterFromV2.js";
 export * from "./eservice/protobufConverterToV2.js";
@@ -32,18 +30,16 @@ export * from "./eservice/protobufConverterToV2.js";
 export * from "./institution/institution.js";
 
 export * from "./risk-analysis/riskAnalysis.js";
-export * from "./risk-analysis/riskAnalysisTemplate.js";
+export * from "./risk-analysis-template/riskAnalysisTemplate.js";
 
 export * from "./tenant/tenant.js";
 export * from "./tenant/tenantEvents.js";
-export * from "./tenant/tenantReadModelAdapter.js";
 export * from "./tenant/protobufConverterFromV1.js";
 export * from "./tenant/protobufConverterFromV2.js";
 export * from "./tenant/protobufConverterToV2.js";
 
 export * from "./purpose/purpose.js";
 export * from "./purpose/purposeEvents.js";
-export * from "./purpose/purposeReadModelAdapter.js";
 export * from "./purpose/protobufConverterFromV1.js";
 export * from "./purpose/protobufConverterFromV2.js";
 export * from "./purpose/protobufConverterToV2.js";
@@ -56,7 +52,6 @@ export * from "./authorization/protobufConverterFromV1.js";
 export * from "./authorization/protobufConverterToV1.js";
 export * from "./authorization/protobufConverterFromV2.js";
 export * from "./authorization/protobufConverterToV2.js";
-export * from "./authorization/authorizationReadModelAdapter.js";
 
 export * from "./eservice-template/eserviceTemplate.js";
 export * from "./eservice-template/eserviceTemplateEvents.js";
@@ -93,15 +88,7 @@ export * from "./dpop/dpopCache.js";
 export * from "./protobuf/protobuf.js";
 
 // Read models
-export * from "./read-models/agreementReadModel.js";
-export * from "./read-models/attributeReadModel.js";
-export * from "./read-models/eserviceReadModel.js";
-export * from "./read-models/tenantReadModel.js";
-export * from "./read-models/purposeReadModel.js";
 export * from "./read-models/readModels.js";
-export * from "./read-models/authorizationReadModel.js";
-export * from "./read-models/delegationReadModel.js";
-
 // Utilities
 export * from "./brandedIds.js";
 export * from "./constants.js";
@@ -150,3 +137,9 @@ export * from "./gen/v2/notification-config/events.js";
 
 // Selfcare User model
 export * from "./user/user.js";
+
+// M2M Event model
+export * from "./m2m-event/m2mEventVisibility.js";
+export * from "./m2m-event/attributeM2MEvent.js";
+export * from "./m2m-event/eserviceM2MEvent.js";
+export * from "./m2m-event/agreementM2MEvent.js";

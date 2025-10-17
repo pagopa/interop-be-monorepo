@@ -2,12 +2,12 @@
   "name": "pagopa-interop-selfcare-client-users-updater",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability Selfcare Client Users Updater: a Kafka consumer that listens to messages from the Selfcare 'SC-Users' topic and updates client users based on the received messages",
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
-    "test:old": "echo \"Old readmodel\" && vitest --config vitest.config.ts ",
+    "test": "vitest --config vitest.config.ts",
     "test:it": "vitest integration",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
@@ -18,8 +18,6 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.19.9",

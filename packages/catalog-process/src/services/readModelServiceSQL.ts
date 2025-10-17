@@ -2,6 +2,7 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   withTotalCount,
@@ -124,7 +125,7 @@ export function readModelServiceBuilderSQL(
   return {
     // eslint-disable-next-line sonarjs/cognitive-complexity
     async getEServices(
-      authData: UIAuthData | M2MAuthData,
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
@@ -143,6 +144,7 @@ export function readModelServiceBuilderSQL(
         isClientAccessDelegable,
         delegated,
         templatesIds,
+        personalData,
       } = filters;
 
       return await readmodelDB.transaction(async (tx) => {
@@ -233,6 +235,9 @@ export function readModelServiceBuilderSQL(
                 // templateIds filter
                 templatesIds.length > 0
                   ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
+                  : undefined,
+                personalData !== undefined
+                  ? eq(eserviceInReadmodelCatalog.personalData, personalData)
                   : undefined
               )
             )

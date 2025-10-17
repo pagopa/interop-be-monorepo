@@ -5,6 +5,7 @@ import {
   UserId,
   UserNotificationConfig,
   WithMetadata,
+  emailNotificationPreference,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -133,7 +134,20 @@ export function notificationConfigReadModelServiceBuilder(
               userNotificationConfigInReadmodelNotificationConfig.tenantId,
               tenantIds
             ),
-            eq(enabledNotificationTable.notificationType, notificationType)
+            eq(enabledNotificationTable.notificationType, notificationType),
+            match(notificationChannel)
+              .with(
+                "inApp",
+                () =>
+                  userNotificationConfigInReadmodelNotificationConfig.inAppNotificationPreference
+              )
+              .with("email", () =>
+                eq(
+                  userNotificationConfigInReadmodelNotificationConfig.emailNotificationPreference,
+                  emailNotificationPreference.enabled
+                )
+              )
+              .exhaustive()
           )
         );
 
