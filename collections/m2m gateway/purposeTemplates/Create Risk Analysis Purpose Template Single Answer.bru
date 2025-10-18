@@ -1,0 +1,31 @@
+meta {
+  name: Create Risk Analysis Single Answer (Purpose)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-m2m-gw}}/purposeTemplates/{{purpose-template-id}}/riskAnalysis/answers
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "answerKey": "purpose",
+    "answerData": {
+      "values": [],
+      "editable": true,
+      "suggestedValues": ["INSTITUTIONAL"],
+      "annotation": {
+        "text": "NB: Si ricorda ai sensi dell'art. 5, paragrafo 1, lett. b), del GDPR (principio della limitazione delle finalità), le finalità devono essere determinate, esplicite e legittime.",
+        "docs": []
+      }
+    }
+  }
+}
