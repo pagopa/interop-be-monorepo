@@ -39,9 +39,9 @@ import {
   invalidPurposeTenantKind,
   missingFreeOfChargeReason,
   purposeNotInDraftState,
-  purposeTemplateMissingNotEditableFieldValue,
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
+  riskAnalysisMissingExpectedFieldError,
   riskAnalysisValidationFailed,
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegate,
@@ -533,47 +533,55 @@ function buildSingleOrMultiAnswerValue(
   { answer: templateAnswer, type }: RiskAnalysisTemplateAnswer,
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed
 ): string[] {
-  if (!templateAnswer.editable) {
-    if (riskAnalysisForm.answers[templateAnswer.key]) {
+  const answerSeed = riskAnalysisForm.answers[templateAnswer.key];
+  const isSingleAnswer = type === "single";
+  const isEditable = templateAnswer.editable;
+  const hasSuggestions =
+    isSingleAnswer && templateAnswer.suggestedValues.length > 0;
+
+  if (!answerSeed) {
+    // Editable Answer or Single Answer with Suggestions must provide answer
+    if (isEditable || hasSuggestions) {
+      throw riskAnalysisMissingExpectedFieldError(templateAnswer.key);
+    }
+
+    // Answer is taken from template
+    return isSingleAnswer
+      ? templateAnswer.value
+        ? [templateAnswer.value]
+        : []
+      : templateAnswer.values;
+  }
+
+  if (!isEditable) {
+    if (
+      // Not Editable Multi Answer must not provide answer value
+      !isSingleAnswer ||
+      // Not Editable Single Answer without suggestion must not provide answer value
+      !hasSuggestions
+    ) {
       throw riskAnalysisContainsNotEditableAnswers(
         templateId,
         templateAnswer.key
       );
     }
 
-    const answerValueByTemplate =
-      type === "single"
-        ? templateAnswer.value
-          ? [templateAnswer.value]
-          : []
-        : templateAnswer.values;
-
+    // Not Editable Single Answer with suggestion must provide one of them
     if (
-      !answerValueByTemplate.length ||
-      answerValueByTemplate.some((a) => !a)
+      hasSuggestions &&
+      answerSeed.some(
+        (v: string) => !templateAnswer.suggestedValues.includes(v)
+      )
     ) {
-      throw purposeTemplateMissingNotEditableFieldValue(
+      throw riskAnalysisAnswerNotInSuggestValues(
         templateId,
         templateAnswer.key
       );
     }
-
-    return answerValueByTemplate;
   }
 
-  const curAnswerSeed = riskAnalysisForm.answers[templateAnswer.key];
-  if (
-    type === "single" &&
-    templateAnswer.suggestedValues.length > 0 &&
-    curAnswerSeed &&
-    curAnswerSeed.some(
-      (v: string) => !templateAnswer.suggestedValues.includes(v)
-    )
-  ) {
-    throw riskAnalysisAnswerNotInSuggestValues(templateId, templateAnswer.key);
-  }
-
-  return curAnswerSeed;
+  // Editable Answer or Single Answer with Suggestion is taken from body
+  return answerSeed;
 }
 
 function buildAnswersSeed(

@@ -51,9 +51,9 @@ export const errorCodes = {
   purposeTemplateNotFound: "0032",
   invalidPurposeTenantKind: "0033",
   eserviceNotLinkedToPurposeTemplate: "0034",
-  purposeTemplateMissingNotEditableFieldValue: "0035",
-  riskAnalysisContainsNotEditableAnswers: "0036",
-  riskAnalysisAnswerNotInSuggestValues: "0037",
+  riskAnalysisContainsNotEditableAnswers: "0035",
+  riskAnalysisAnswerNotInSuggestValues: "0036",
+  riskAnalysisMissingExpectedFieldError: "0037",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -416,16 +416,6 @@ export function eserviceNotLinkedToPurposeTemplate(
     title: "EService not linked to Purpose template",
   });
 }
-export function purposeTemplateMissingNotEditableFieldValue(
-  purposeTemplateId: PurposeTemplateId,
-  key: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Risk analysis in Purpose template ${purposeTemplateId} is missing a value for not editable field with key ${key}`,
-    code: "purposeTemplateMissingNotEditableFieldValue",
-    title: "Purpose template missing value for not editable value",
-  });
-}
 
 export function riskAnalysisContainsNotEditableAnswers(
   purposeTemplateId: PurposeTemplateId,
@@ -446,5 +436,15 @@ export function riskAnalysisAnswerNotInSuggestValues(
     detail: `Risk analysis answer not in suggest values for key ${key} in purpose template ${purposeTemplateId}`,
     code: "riskAnalysisAnswerNotInSuggestValues",
     title: "Risk analysis answer not in suggest values",
+  });
+}
+
+export function riskAnalysisMissingExpectedFieldError(
+  key: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Expected field not found in form for key ${key}`,
+    code: "riskAnalysisMissingExpectedFieldError",
+    title: "Expected field not found in form",
   });
 }

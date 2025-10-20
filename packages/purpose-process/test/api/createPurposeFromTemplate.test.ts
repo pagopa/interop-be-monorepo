@@ -27,6 +27,7 @@ import {
   purposeTemplateNotFound,
   eserviceNotLinkedToPurposeTemplate,
   invalidPurposeTenantKind,
+  riskAnalysisMissingExpectedFieldError,
 } from "../../src/model/domain/errors.js";
 import { getMockPurposeFromTemplateSeed } from "../mockUtils.js";
 
@@ -113,6 +114,10 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
     },
     {
       error: invalidPurposeTenantKind(tenantKind.PA, tenantKind.GSP),
+      expectedStatus: 400,
+    },
+    {
+      error: riskAnalysisMissingExpectedFieldError("test-key"),
       expectedStatus: 400,
     },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
