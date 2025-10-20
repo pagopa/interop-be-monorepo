@@ -44,9 +44,13 @@ describe("handleAgreementSuspendedByProducer", async () => {
     consumerId,
     descriptors: [descriptor],
   };
-  const producerTenant = getMockTenant(producerId);
+  const producerTenant = {
+    ...getMockTenant(producerId),
+    name: "Producer Tenant",
+  };
   const consumerTenant = {
     ...getMockTenant(consumerId),
+    name: "Consumer Tenant",
     mails: [getMockTenantMail()],
   };
   const users = [
@@ -193,12 +197,16 @@ describe("handleAgreementSuspendedByProducer", async () => {
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -230,12 +238,16 @@ describe("handleAgreementSuspendedByProducer", async () => {
     });
 
     expect(messages.length).toEqual(1);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
   });
 
   it("should generate a complete and correct message", async () => {

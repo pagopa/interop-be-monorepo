@@ -2370,6 +2370,9 @@ importers:
       '@types/node':
         specifier: 20.19.3
         version: 20.19.3
+      cpx2:
+        specifier: 7.0.2
+        version: 7.0.2
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -2671,12 +2674,18 @@ importers:
       nodemailer:
         specifier: 6.9.14
         version: 6.9.14
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0

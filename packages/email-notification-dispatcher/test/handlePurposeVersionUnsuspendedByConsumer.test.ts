@@ -23,6 +23,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
 import { handlePurposeVersionUnsuspendedByConsumer } from "../src/handlers/purposes/handlePurposeVersionUnsuspendedByConsumer.js";
 import {
@@ -50,9 +51,13 @@ describe("handlePurposeVersionUnsuspendedByConsumer", async () => {
   };
   const producerTenant: Tenant = {
     ...getMockTenant(producerId),
+    name: "Producer Tenant",
     mails: [getMockTenantMail()],
   };
-  const consumerTenant = getMockTenant(consumerId);
+  const consumerTenant = {
+    ...getMockTenant(consumerId),
+    name: "Consumer Tenant",
+  };
   const users = [
     getMockUser(producerTenant.id),
     getMockUser(producerTenant.id),
@@ -194,12 +199,16 @@ describe("handlePurposeVersionUnsuspendedByConsumer", async () => {
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -226,12 +235,16 @@ describe("handlePurposeVersionUnsuspendedByConsumer", async () => {
     });
 
     expect(messages.length).toEqual(1);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
   });
 
   it("should generate a complete and correct message", async () => {
@@ -255,9 +268,18 @@ describe("handlePurposeVersionUnsuspendedByConsumer", async () => {
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain(`Finalità riattivata dal fruitore`);
-      expect(message.email.body).toContain(producerTenant.name);
-      expect(message.email.body).toContain(consumerTenant.name);
-      expect(message.email.body).toContain(eservice.name);
+      match(message.type)
+        .with("User", () => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+          expect(message.email.body).toContain(consumerTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(producerTenant.name);
+          expect(message.email.body).toContain(consumerTenant.name);
+          expect(message.email.body).toContain(eservice.name);
+        })
+        .exhaustive();
       expect(message.email.body).toContain(purpose.title);
     });
   });

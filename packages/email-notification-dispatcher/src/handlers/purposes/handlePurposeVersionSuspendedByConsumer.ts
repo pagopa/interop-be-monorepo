@@ -13,6 +13,7 @@ import {
 } from "../../services/utils.js";
 import {
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   PurposeHandlerParams,
 } from "../handlerCommons.js";
 
@@ -64,7 +65,7 @@ export async function handlePurposeVersionSuspendedByConsumer(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Finalità sospesa dal fruitore`,
@@ -73,12 +74,13 @@ export async function handlePurposeVersionSuspendedByConsumer(
         notificationType,
         entityId: purpose.id,
         consumerName: consumer.name,
-        producerName: producer.name,
+        ...(t.type === "Tenant" ? { producerName: producer.name } : {}),
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza finalità`,
       }),
     },
-    address,
+    tenantId: producer.id,
+    ...mapRecipientToEmailPayload(t),
   }));
 }
