@@ -28,6 +28,50 @@ import {
   readModelService,
 } from "./utils.js";
 
+// Helper function to get expected body based on event type and audience
+function getExpectedBodyForEvent(
+  eventType: AgreementSuspendedUnsuspendedEventType,
+  isProducerUser: boolean,
+  eserviceName: string,
+  consumerName: string,
+  producerName: string
+): string {
+  if (eventType === "AgreementSuspendedByPlatform") {
+    return isProducerUser
+      ? inAppTemplates.agreementSuspendedByPlatformToProducer(
+          consumerName,
+          eserviceName
+        )
+      : inAppTemplates.agreementSuspendedByPlatformToConsumer(eserviceName);
+  }
+  if (eventType === "AgreementUnsuspendedByPlatform") {
+    return isProducerUser
+      ? inAppTemplates.agreementUnsuspendedByPlatformToProducer(
+          consumerName,
+          eserviceName
+        )
+      : inAppTemplates.agreementUnsuspendedByPlatformToConsumer(eserviceName);
+  }
+  // For non-platform events
+  const templateMap: Record<
+    string,
+    (subject: string, eserviceName: string) => string
+  > = {
+    AgreementSuspendedByConsumer:
+      inAppTemplates.agreementSuspendedByConsumerToProducer,
+    AgreementUnsuspendedByConsumer:
+      inAppTemplates.agreementUnsuspendedByConsumerToProducer,
+    AgreementSuspendedByProducer:
+      inAppTemplates.agreementSuspendedByProducerToConsumer,
+    AgreementUnsuspendedByProducer:
+      inAppTemplates.agreementUnsuspendedByProducerToConsumer,
+    AgreementArchivedByConsumer:
+      inAppTemplates.agreementArchivedByConsumerToProducer,
+  };
+  const subjectName = isProducerUser ? consumerName : producerName;
+  return templateMap[eventType](subjectName, eserviceName);
+}
+
 describe("handleAgreementSuspendedUnsuspended", () => {
   const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
@@ -161,7 +205,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
     },
   ])(
     "should handle $eventType event correctly",
-    async ({ eventType, expectedAudience, expectedSubject }) => {
+    async ({ eventType, expectedAudience }) => {
       const producerUsers = [
         { userId: generateId(), tenantId: producerId },
         { userId: generateId(), tenantId: producerId },
@@ -205,30 +249,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
 
       expect(notifications).toHaveLength(expectedUsers.length);
 
-      // Use the same template function as the implementation for each event type
-      const templateMap = {
-        AgreementSuspendedByConsumer:
-          inAppTemplates.agreementSuspendedToProducer,
-        AgreementUnsuspendedByConsumer:
-          inAppTemplates.agreementUnsuspendedByConsumerToProducer,
-        AgreementSuspendedByProducer:
-          inAppTemplates.agreementSuspendedByProducerToConsumer,
-        AgreementUnsuspendedByProducer:
-          inAppTemplates.agreementUnsuspendedByProducerToConsumer,
-        AgreementSuspendedByPlatform:
-          inAppTemplates.agreementSuspendedByPlatformToProducer,
-        AgreementUnsuspendedByPlatform:
-          inAppTemplates.agreementUnsuspendedByPlatformToProducer,
-        AgreementArchivedByConsumer:
-          inAppTemplates.agreementArchivedByConsumerToProducer,
-      };
-      const expectedBody = templateMap[eventType](
-        expectedSubject,
-        eservice.name
-      );
-
       const expectedNotifications = expectedUsers.map((user) => {
-        // Determine the notification type based on which audience this user belongs to
         const isProducerUser = producerUsers.some(
           (p) => p.userId === user.userId
         );
@@ -236,10 +257,18 @@ describe("handleAgreementSuspendedUnsuspended", () => {
           ? "agreementSuspendedUnsuspendedToProducer"
           : "agreementSuspendedUnsuspendedToConsumer";
 
+        const body = getExpectedBodyForEvent(
+          eventType,
+          isProducerUser,
+          eservice.name,
+          consumerTenant.name,
+          producerTenant.name
+        );
+
         return {
           userId: user.userId,
           tenantId: user.tenantId,
-          body: expectedBody,
+          body,
           notificationType,
           entityId: agreement.id,
         };

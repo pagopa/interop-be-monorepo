@@ -6,6 +6,7 @@ import { DelegationSubmittedRevokedToDelegateEventType } from "../handlers/deleg
 import { EserviceNewVersionApprovedRejectedToDelegateEventType } from "../handlers/eservices/handleEserviceNewVersionApprovedRejectedToDelegate.js";
 
 export const inAppTemplates = {
+  // agreements - erogazione
   agreementSubmittedToProducer: (
     consumerName: string,
     eserviceName: string
@@ -21,7 +22,7 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `L'ente ${consumerName} ha aggiornato la propria richiesta di fruizione per l'e-service <strong>${eserviceName}</strong> alla versione più recente.`,
-  agreementSuspendedToProducer: (
+  agreementSuspendedByConsumerToProducer: (
     consumerName: string,
     eserviceName: string
   ): string =>
@@ -46,6 +47,7 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `Ti informiamo che il fruitore ${consumerName} ha archiviato la sua richiesta di fruizione per il tuo e-service <strong>${eserviceName}</strong>.`,
+
   // agreements - fruizione
   agreementSuspendedByProducerToConsumer: (
     producerName: string,
@@ -56,14 +58,20 @@ export const inAppTemplates = {
     producerName: string,
     eserviceName: string
   ): string =>
-    `L'ente erogatore ${producerName} ha riattivato la tua richiesta di fruizione per l'e-service <strong>${eserviceName}</strong>, precedentemente sospesa. Puoi nuovamente utilizzare i voucher associati.`,
+    `L'ente erogatore ${producerName} ha riattivato la richiesta di fruizione formulata dal tuo ente per l'e-service <strong>${eserviceName}</strong>, precedentemente sospesa. Puoi nuovamente utilizzare i voucher associati.`,
+  agreementSuspendedByPlatformToConsumer: (eserviceName: string): string =>
+    `La Piattaforma PDND ha sospeso la richiesta di fruizione formulata dal tuo ente per l'e-service <strong>${eserviceName}</strong>, in quanto non risultano più soddisfatti i requisiti necessari. `,
+  agreementUnsuspendedByPlatformToConsumer: (eserviceName: string): string =>
+    `La Piattaforma PDND ha riattivato la richiesta di fruizione formulata dal tuo ente per l'e-service <strong>${eserviceName}</strong>, precedentemente sospesa.`,
   agreementActivatedToConsumer: (
     producerName: string,
     eserviceName: string
   ): string =>
-    `L'ente erogatore ${producerName} ha accettato la tua richiesta di fruizione per l'e-service <strong>${eserviceName}</strong>. Puoi ora procedere alla creazione dei voucher per iniziare a interrogare le API.`,
+    `L'ente erogatore ${producerName} ha accettato la richiesta di fruizione per l'e-service <strong>${eserviceName}</strong>. Puoi ora procedere alla creazione dei voucher per iniziare a interrogare le API.`,
   agreementRejectedToConsumer: (eserviceName: string): string =>
     `La tua richiesta di fruizione per l'e-service <strong>${eserviceName}</strong> è stata rifiutata dall'ente erogatore.`,
+
+  // eservices - fruizione
   eserviceNameUpdatedToConsumer: (
     eservice: EService,
     oldName: string | undefined

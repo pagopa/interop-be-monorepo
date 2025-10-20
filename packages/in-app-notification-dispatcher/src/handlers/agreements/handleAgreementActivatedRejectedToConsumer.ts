@@ -5,9 +5,11 @@ import {
   NewNotification,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { retrieveTenant } from "../handlerCommons.js";
 import { retrieveEservice } from "../handlerCommons.js";
+
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
 export async function handleAgreementActivatedRejectedToConsumer(
@@ -44,19 +46,14 @@ export async function handleAgreementActivatedRejectedToConsumer(
   );
   const producer = await retrieveTenant(agreement.producerId, readModelService);
 
-  const NOTIFICATION_BODY_BUILDERS: Record<
-    "AgreementActivated" | "AgreementRejected",
-    (producerName: string, eserviceName: string) => string
-  > = {
-    AgreementActivated: inAppTemplates.agreementActivatedToConsumer,
-    AgreementRejected: (_producerName: string, eserviceName: string) =>
-      inAppTemplates.agreementRejectedToConsumer(eserviceName),
-  };
-
-  const body = NOTIFICATION_BODY_BUILDERS[eventType](
-    producer.name,
-    eservice.name
-  );
+  const body = match(eventType)
+    .with("AgreementActivated", () =>
+      inAppTemplates.agreementActivatedToConsumer(producer.name, eservice.name)
+    )
+    .with("AgreementRejected", () =>
+      inAppTemplates.agreementRejectedToConsumer(eservice.name)
+    )
+    .exhaustive();
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,

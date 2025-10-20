@@ -1,3 +1,4 @@
+import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import {
   AgreementV2,
@@ -43,19 +44,17 @@ export async function handleAgreementManagementToProducer(
     readModelService
   );
 
-  const NOTIFICATION_BODY_BUILDERS: Record<
-    "AgreementActivated" | "AgreementSubmitted" | "AgreementUpgraded",
-    (consumerName: string, eserviceName: string) => string
-  > = {
-    AgreementActivated: inAppTemplates.agreementActivatedToProducer,
-    AgreementSubmitted: inAppTemplates.agreementSubmittedToProducer,
-    AgreementUpgraded: inAppTemplates.agreementUpgradedToProducer,
-  };
-
-  const body = NOTIFICATION_BODY_BUILDERS[eventType](
-    consumer.name,
-    eservice.name
-  );
+  const body = match(eventType)
+    .with("AgreementActivated", () =>
+      inAppTemplates.agreementActivatedToProducer(consumer.name, eservice.name)
+    )
+    .with("AgreementSubmitted", () =>
+      inAppTemplates.agreementSubmittedToProducer(consumer.name, eservice.name)
+    )
+    .with("AgreementUpgraded", () =>
+      inAppTemplates.agreementUpgradedToProducer(consumer.name, eservice.name)
+    )
+    .exhaustive();
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
