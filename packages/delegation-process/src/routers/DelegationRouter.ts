@@ -189,7 +189,7 @@ const delegationRouter = (
         validateAuthorization(ctx, [INTERNAL_ROLE]);
 
         const { data, metadata } =
-          await delegationService.addDelegationContract(
+          await delegationService.internalAddDelegationContract(
             unsafeBrandId(delegationId),
             delegationContract,
             ctx

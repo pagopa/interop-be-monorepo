@@ -44,7 +44,7 @@ describe("API POST /internal/delegations/:delegationId/contract test", () => {
   );
 
   beforeEach(() => {
-    delegationService.addDelegationContract = vi
+    delegationService.internalAddDelegationContract = vi
       .fn()
       .mockResolvedValue(serviceResponse);
   });
@@ -68,7 +68,9 @@ describe("API POST /internal/delegations/:delegationId/contract test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token);
 
-      expect(delegationService.addDelegationContract).toHaveBeenCalledWith(
+      expect(
+        delegationService.internalAddDelegationContract
+      ).toHaveBeenCalledWith(
         mockDelegation.id,
         mockDelegationContract,
         expect.anything()
@@ -111,7 +113,7 @@ describe("API POST /internal/delegations/:delegationId/contract test", () => {
   ])(
     "Should return $expectedStatus for $description error",
     async ({ error, expectedStatus }) => {
-      delegationService.addDelegationContract = vi
+      delegationService.internalAddDelegationContract = vi
         .fn()
         .mockRejectedValue(error);
       const token = generateToken(authRole.INTERNAL_ROLE);

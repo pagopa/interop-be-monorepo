@@ -442,7 +442,7 @@ export function delegationServiceBuilder(
     );
   }
 
-  async function addDelegationContract(
+  async function internalAddDelegationContract(
     delegationId: DelegationId,
     delegationContract: DelegationContractDocument,
     { logger, correlationId }: WithLogger<AppContext<AuthData>>
@@ -714,12 +714,16 @@ export function delegationServiceBuilder(
         delegateId: authData.organizationId,
       });
     },
-    async addDelegationContract(
+    async internalAddDelegationContract(
       delegationId: DelegationId,
       delegationContract: DelegationContractDocument,
       ctx: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<Delegation>> {
-      return await addDelegationContract(delegationId, delegationContract, ctx);
+      return await internalAddDelegationContract(
+        delegationId,
+        delegationContract,
+        ctx
+      );
     },
   };
 }
