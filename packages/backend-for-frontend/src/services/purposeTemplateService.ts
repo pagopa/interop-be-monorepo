@@ -447,6 +447,25 @@ export function purposeTemplateServiceBuilder(
 
       return bffApi.PurposeTemplate.parse(result);
     },
+    async archivePurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplate> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      logger.info(`Archiving purpose template ${purposeTemplateId}`);
+      const result = await purposeTemplateClient.archivePurposeTemplate(
+        undefined,
+        {
+          params: {
+            id: purposeTemplateId,
+          },
+          headers,
+        }
+      );
+
+      return bffApi.PurposeTemplate.parse(result);
+    },
     async updatePurposeTemplate(
       id: PurposeTemplateId,
       seed: bffApi.PurposeTemplateSeed,
