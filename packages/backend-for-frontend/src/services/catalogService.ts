@@ -755,6 +755,7 @@ export function catalogServiceBuilder(
       eserviceName: string | undefined,
       consumersIds: string[],
       delegated: boolean | undefined,
+      personalData: boolean | undefined,
       offset: number,
       limit: number,
       { headers, authData, logger }: WithLogger<BffAppContext>
@@ -781,6 +782,7 @@ export function catalogServiceBuilder(
               name: eserviceName,
               producersIds: requesterId,
               delegated,
+              personalData,
               offset,
               limit,
             },
