@@ -7,7 +7,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant } from "../handlerCommons.js";
+import { retrieveEservice, retrieveTenant } from "../handlerCommons.js";
 
 export type DelegationApprovedRejectedToDelegatorEventType =
   | "ProducerDelegationApproved"
@@ -35,6 +35,10 @@ export async function handleDelegationApprovedRejectedToDelegator(
       [delegation.delegatorId],
       "delegationApprovedRejectedToDelegator"
     );
+  const eservice = await retrieveEservice(
+    delegation.eserviceId,
+    readModelService
+  );
 
   if (usersWithNotifications.length === 0) {
     logger.info(
@@ -49,6 +53,7 @@ export async function handleDelegationApprovedRejectedToDelegator(
   );
 
   const body = inAppTemplates.delegationApprovedRejectedToDelegator(
+    eservice.name,
     delegate.name,
     eventType,
     delegation.rejectionReason

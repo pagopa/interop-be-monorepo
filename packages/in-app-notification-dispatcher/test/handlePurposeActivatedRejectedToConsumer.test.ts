@@ -16,6 +16,7 @@ import {
   toPurposeV2,
   purposeVersionState,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { handlePurposeActivatedRejectedToConsumer } from "../src/handlers/purposes/handlePurposeActivatedRejectedToConsumer.js";
 import { tenantNotFound, eserviceNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
@@ -159,48 +160,55 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
       eventType: "PurposeVersionRejected",
       expectedAction: "rifiutato",
     },
-  ])(
-    "should handle $eventType event correctly",
-    async ({ eventType, expectedAction }) => {
-      const consumerUsers = [
-        { userId: generateId(), tenantId: consumerId },
-        { userId: generateId(), tenantId: consumerId },
-      ];
+  ])("should handle $eventType event correctly", async ({ eventType }) => {
+    const consumerUsers = [
+      { userId: generateId(), tenantId: consumerId },
+      { userId: generateId(), tenantId: consumerId },
+    ];
 
-      // eslint-disable-next-line functional/immutable-data
-      readModelService.getTenantUsersWithNotificationEnabled = vi
-        .fn()
-        .mockResolvedValue(consumerUsers);
+    // eslint-disable-next-line functional/immutable-data
+    readModelService.getTenantUsersWithNotificationEnabled = vi
+      .fn()
+      .mockResolvedValue(consumerUsers);
 
-      const notifications = await handlePurposeActivatedRejectedToConsumer(
-        toPurposeV2(purpose),
-        logger,
-        readModelService,
-        eventType
-      );
+    const notifications = await handlePurposeActivatedRejectedToConsumer(
+      toPurposeV2(purpose),
+      logger,
+      readModelService,
+      eventType
+    );
 
-      expect(notifications).toHaveLength(consumerUsers.length);
+    expect(notifications).toHaveLength(consumerUsers.length);
 
-      const expectedBody = inAppTemplates.purposeActivatedRejectedToConsumer(
-        purpose.title,
-        producerTenant.name,
-        eservice.name,
-        expectedAction
-      );
+    const expectedBody = match(eventType)
+      .with("PurposeVersionActivated", () =>
+        inAppTemplates.purposeActivatedToConsumer(
+          purpose.title,
+          producerTenant.name,
+          eservice.name
+        )
+      )
+      .with("PurposeVersionRejected", () =>
+        inAppTemplates.purposeRejectedToConsumer(
+          purpose.title,
+          producerTenant.name,
+          eservice.name
+        )
+      )
+      .exhaustive();
 
-      const expectedNotifications = consumerUsers.map((user) => ({
-        userId: user.userId,
-        tenantId: user.tenantId,
-        body: expectedBody,
-        notificationType: "purposeActivatedRejectedToConsumer",
-        entityId: purpose.id,
-      }));
+    const expectedNotifications = consumerUsers.map((user) => ({
+      userId: user.userId,
+      tenantId: user.tenantId,
+      body: expectedBody,
+      notificationType: "purposeActivatedRejectedToConsumer",
+      entityId: purpose.id,
+    }));
 
-      expect(notifications).toEqual(
-        expect.arrayContaining(expectedNotifications)
-      );
-    }
-  );
+    expect(notifications).toEqual(
+      expect.arrayContaining(expectedNotifications)
+    );
+  });
 
   it("should generate notifications for multiple users", async () => {
     const users = [

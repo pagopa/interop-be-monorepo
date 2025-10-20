@@ -15,16 +15,34 @@ import {
 } from "pagopa-interop-models";
 import { tenantNotFound } from "../src/models/errors.js";
 import { handleDelegationSubmittedRevokedToDelegate } from "../src/handlers/delegations/handleDelegationSubmittedRevokedToDelegate.js";
-import { addOneDelegation, addOneTenant, readModelService } from "./utils.js";
+import {
+  addOneDelegation,
+  addOneTenant,
+  addOneEService,
+  readModelService,
+} from "./utils.js";
 
 describe("handleDelegationSubmittedRevokedToDelegate", () => {
   const delegator = getMockTenant();
   const delegate = getMockTenant();
-
+  const eserviceId = generateId<import("pagopa-interop-models").EServiceId>();
+  // Create a mock eService with the same eserviceId and required fields
+  const eservice = {
+    id: eserviceId,
+    name: "Test EService",
+    producerId: delegator.id,
+    createdAt: new Date(),
+    description: "Test EService description",
+    technology: "Rest" as const,
+    descriptors: [],
+    riskAnalysis: [],
+    mode: "Deliver" as const,
+  };
   const delegation = getMockDelegation({
     kind: randomArrayItem(Object.values(delegationKind)),
     delegatorId: delegator.id,
     delegateId: delegate.id,
+    eserviceId,
   });
 
   const { logger } = getMockContext({});
@@ -33,6 +51,7 @@ describe("handleDelegationSubmittedRevokedToDelegate", () => {
     // Setup test data
     await addOneTenant(delegator);
     await addOneTenant(delegate);
+    await addOneEService(eservice);
     await addOneDelegation(delegation);
   });
 
@@ -100,22 +119,22 @@ describe("handleDelegationSubmittedRevokedToDelegate", () => {
     {
       eventType: "ProducerDelegationSubmitted",
       kind: delegationKind.delegatedProducer,
-      expectedBody: `${delegator.name} ha conferito una delega in erogazione.`,
+      expectedBody: `Hai ricevuto una richiesta di delega all'erogazione dall'ente ${delegator.name} per l'e-service <strong>${eservice.name}</strong>.`,
     },
     {
       eventType: "ConsumerDelegationSubmitted",
       kind: delegationKind.delegatedConsumer,
-      expectedBody: `${delegator.name} ha conferito una delega in fruizione.`,
+      expectedBody: `Hai ricevuto una richiesta di delega alla fruizione dall'ente ${delegator.name} per l'e-service <strong>${eservice.name}</strong>.`,
     },
     {
       eventType: "ProducerDelegationRevoked",
       kind: delegationKind.delegatedProducer,
-      expectedBody: `${delegator.name} ha revocato una delega in erogazione.`,
+      expectedBody: `Ti informiamo che l'ente ${delegator.name} ha revocato la delega all'erogazione per l'e-service <strong>${eservice.name}</strong> che ti aveva conferito.`,
     },
     {
       eventType: "ConsumerDelegationRevoked",
       kind: delegationKind.delegatedConsumer,
-      expectedBody: `${delegator.name} ha revocato una delega in fruizione.`,
+      expectedBody: `Ti informiamo che l'ente ${delegator.name} ha revocato la delega alla fruizione per l'e-service <strong>${eservice.name}</strong> che ti aveva conferito.`,
     },
   ])(
     "should handle $eventType event correctly",

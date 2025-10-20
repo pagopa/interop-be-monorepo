@@ -4,16 +4,23 @@ import {
   fromDelegationV2,
   DelegationV2,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { retrieveTenant } from "../handlerCommons.js";
+import { retrieveEservice, retrieveTenant } from "../handlerCommons.js";
 
-export type DelegationSubmittedRevokedToDelegateEventType =
+export type DelegationSubmittedToDelegateEventType =
   | "ProducerDelegationSubmitted"
-  | "ConsumerDelegationSubmitted"
+  | "ConsumerDelegationSubmitted";
+
+export type DelegationRevokedToDelegateEventType =
   | "ProducerDelegationRevoked"
   | "ConsumerDelegationRevoked";
+
+export type DelegationSubmittedRevokedToDelegateEventType =
+  | DelegationSubmittedToDelegateEventType
+  | DelegationRevokedToDelegateEventType;
 
 export async function handleDelegationSubmittedRevokedToDelegate(
   delegationV2Msg: DelegationV2 | undefined,
@@ -47,11 +54,27 @@ export async function handleDelegationSubmittedRevokedToDelegate(
     delegation.delegatorId,
     readModelService
   );
-
-  const body = inAppTemplates.delegationSubmittedRevokedToDelegate(
-    delegator.name,
-    eventType
+  const eservice = await retrieveEservice(
+    delegation.eserviceId,
+    readModelService
   );
+
+  const body = match(eventType)
+    .with("ProducerDelegationSubmitted", "ConsumerDelegationSubmitted", () =>
+      inAppTemplates.delegationSubmittedToDelegate(
+        eservice.name,
+        delegator.name,
+        eventType as DelegationSubmittedToDelegateEventType
+      )
+    )
+    .with("ProducerDelegationRevoked", "ConsumerDelegationRevoked", () =>
+      inAppTemplates.delegationRevokedToDelegate(
+        eservice.name,
+        delegator.name,
+        eventType as DelegationRevokedToDelegateEventType
+      )
+    )
+    .exhaustive();
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,

@@ -2,7 +2,10 @@ import { match } from "ts-pattern";
 import { EServiceTemplate } from "pagopa-interop-models";
 import { EService } from "pagopa-interop-models";
 import { DelegationApprovedRejectedToDelegatorEventType } from "../handlers/delegations/handleDelegationApprovedRejectedToDelegator.js";
-import { DelegationSubmittedRevokedToDelegateEventType } from "../handlers/delegations/handleDelegationSubmittedRevokedToDelegate.js";
+import {
+  DelegationRevokedToDelegateEventType,
+  DelegationSubmittedToDelegateEventType,
+} from "../handlers/delegations/handleDelegationSubmittedRevokedToDelegate.js";
 import { EserviceNewVersionApprovedRejectedToDelegateEventType } from "../handlers/eservices/handleEserviceNewVersionApprovedRejectedToDelegate.js";
 
 export const inAppTemplates = {
@@ -83,9 +86,12 @@ export const inAppTemplates = {
     } dall'ente erogatore. La tua richiesta di fruizione rimane attiva e non sono richieste azioni da parte tua.`,
   eserviceDescriptionUpdatedToConsumer: (
     eserviceName: string,
+    version: string | undefined,
     producerName: string
   ): string =>
-    `L'ente erogatore <strong>${producerName}</strong> ha aggiornato la descrizione dell'e-service <strong>${eserviceName}</strong>.`,
+    `L'ente erogatore <strong>${producerName}</strong> ha modificato la descrizione nella versione ${
+      version ?? ""
+    } dell'e-service <strong>${eserviceName}</strong> a cui sei iscritto.`,
   eserviceDescriptorAttributesUpdatedToConsumer: (
     eserviceName: string,
     producerName: string
@@ -96,24 +102,27 @@ export const inAppTemplates = {
     version: string | undefined,
     producerName: string
   ): string =>
-    `L'ente erogatore <strong>${producerName}</strong> ha pubblicato una nuova versione ${
+    `È disponibile una nuova versione ${
       version ?? ""
-    } per l'e-service <strong>${eserviceName}</strong>.`,
+    } per l'e-service <strong>${eserviceName}</strong>, pubblicato da <strong>${producerName}</strong>.`,
   eserviceDescriptorSuspendedToConsumer: (
     eserviceName: string,
     producerName: string
   ): string =>
-    `L'ente erogatore <strong>${producerName}</strong> ha sospeso l'e-service <strong>${eserviceName}</strong>.`,
+    `L'ente erogatore <strong>${producerName}</strong> ha sospeso l'e-service <strong>${eserviceName}</strong>, a cui sei iscritto.`,
   eserviceDescriptorActivatedToConsumer: (
     eserviceName: string,
     producerName: string
   ): string =>
-    `L'ente erogatore <strong>${producerName}</strong> ha riattivato l'e-service <strong>${eserviceName}</strong>.`,
+    `L'ente erogatore <strong>${producerName}</strong> ha riattivato l'e-service <strong>${eserviceName}</strong>, precedentemente sospesa`,
   eserviceDescriptorQuotasUpdatedToConsumer: (
     eserviceName: string,
+    version: string | undefined,
     producerName: string
   ): string =>
-    `L'ente erogatore <strong>${producerName}</strong> ha aggiornato le quote dell'e-service <strong>${eserviceName}</strong>.`,
+    `L'ente erogatore <strong>${producerName}</strong> ha apportato delle modifiche alle soglie di carico della versione ${
+      version ?? ""
+    } dell'e-service <strong>${eserviceName}</strong> a cui sei iscritto.`,
   eserviceDescriptorAgreementApprovalPolicyUpdatedToConsumer: (
     eserviceName: string,
     producerName: string
@@ -127,10 +136,12 @@ export const inAppTemplates = {
     `L'ente erogatore <strong>${producerName}</strong> ha aggiunto l'interfaccia <strong>${interfaceName}</strong> dell'e-service <strong>${eserviceName}</strong>.`,
   eserviceDescriptorDocumentAddedToConsumer: (
     eserviceName: string,
-    documentName = "",
+    version: string | undefined,
     producerName: string
   ): string =>
-    `L'ente erogatore <strong>${producerName}</strong> ha aggiunto il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong>.`,
+    `L'ente erogatore <strong>${producerName}</strong> ha aggiunto un documento nella versione ${
+      version ?? ""
+    } dell'e-service <strong>${eserviceName}</strong> a cui sei iscritto.`,
   eserviceDescriptorInterfaceUpdatedToConsumer: (
     eserviceName: string,
     interfaceName = "",
@@ -140,9 +151,12 @@ export const inAppTemplates = {
   eserviceDescriptorDocumentUpdatedToConsumer: (
     eserviceName: string,
     documentName = "",
+    version: string | undefined,
     producerName: string
   ): string =>
-    `L'ente erogatore <strong>${producerName}</strong> ha aggiornato il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong>.`,
+    `L'ente erogatore <strong>${producerName}</strong> ha aggiornato un documento <strong>${documentName}</strong> della versione ${
+      version ?? ""
+    } dell'e-service <strong>${eserviceName}</strong>, a cui sei iscritto.`,
   eserviceDescriptorDocumentDeletedToConsumer: (
     eserviceName: string,
     documentName = "",
@@ -150,6 +164,7 @@ export const inAppTemplates = {
   ): string =>
     `L'ente erogatore <strong>${producerName}</strong> ha rimosso il documento <strong>${documentName}</strong> dell'e-service <strong>${eserviceName}</strong>.`,
   delegationApprovedRejectedToDelegator: (
+    eserviceName: string,
     delegateName: string,
     eventType: DelegationApprovedRejectedToDelegatorEventType,
     rejectionReason: string | undefined
@@ -157,32 +172,32 @@ export const inAppTemplates = {
     const { action, delegationKind, reason } = match(eventType)
       .with("ProducerDelegationApproved", () => ({
         action: "approvato",
-        delegationKind: "erogazione",
-        reason: "",
+        delegationKind: "all'erogazione",
+        reason: "La delega è ora attiva.",
       }))
       .with("ConsumerDelegationApproved", () => ({
         action: "approvato",
-        delegationKind: "fruizione",
-        reason: "",
+        delegationKind: "alla fruizione",
+        reason: "La delega è ora attiva.",
       }))
       .with("ProducerDelegationRejected", () => ({
         action: "rifiutato",
-        delegationKind: "erogazione",
+        delegationKind: "all'erogazione",
         reason: rejectionReason ? ` Motivo: ${rejectionReason}.` : "",
       }))
       .with("ConsumerDelegationRejected", () => ({
         action: "rifiutato",
-        delegationKind: "fruizione",
+        delegationKind: "alla fruizione",
         reason: rejectionReason ? ` Motivo: ${rejectionReason}.` : "",
       }))
       .exhaustive();
-    return `${delegateName} ha ${action} la delega in ${delegationKind}.${reason}`;
+    return `Ti informiamo che l'ente ${delegateName} ha ${action} la delega ${delegationKind} che il tuo ente gli ha conferito per l'e-service <strong>${eserviceName}</strong>. ${reason}`;
   },
   eserviceNewVersionSubmittedToDelegator: (
     delegateName: string,
     eserviceName: string
   ): string =>
-    `${delegateName} ha richiesto l'approvazione di una nuova versione dell'e-service <strong>${eserviceName}</strong>.`,
+    `L'ente delegato ${delegateName} richiede la tua approvazione per pubblicare una nuova versione dell'e-service <strong>${eserviceName}</strong>.`,
   eserviceNewVersionApprovedRejectedToDelegate: (
     delegatorName: string,
     eserviceName: string,
@@ -199,40 +214,46 @@ export const inAppTemplates = {
         reason: rejectionReason ? ` Motivo: ${rejectionReason}.` : "",
       }))
       .exhaustive();
-    return `${delegatorName} ha ${action} la nuova versione dell'e-service <strong>${eserviceName}</strong>.${reason}`;
+    return `L'ente delegante ${delegatorName} ha ${action} la pubblicazione della nuova versione dell'e-service <strong>${eserviceName}</strong> che gestisci tramite delega.${reason}`;
   },
-  delegationSubmittedRevokedToDelegate: (
+  delegationSubmittedToDelegate: (
+    eserviceName: string,
     delegatorName: string,
-    eventType: DelegationSubmittedRevokedToDelegateEventType
+    eventType: DelegationSubmittedToDelegateEventType
   ): string => {
-    const { action, delegationKind } = match(eventType)
+    const { delegationKind } = match(eventType)
       .with("ProducerDelegationSubmitted", () => ({
-        action: "conferito",
-        delegationKind: "erogazione",
+        delegationKind: "all'erogazione",
       }))
       .with("ConsumerDelegationSubmitted", () => ({
-        action: "conferito",
-        delegationKind: "fruizione",
-      }))
-      .with("ProducerDelegationRevoked", () => ({
-        action: "revocato",
-        delegationKind: "erogazione",
-      }))
-      .with("ConsumerDelegationRevoked", () => ({
-        action: "revocato",
-        delegationKind: "fruizione",
+        delegationKind: "alla fruizione",
       }))
       .exhaustive();
-    return `${delegatorName} ha ${action} una delega in ${delegationKind}.`;
+    return `Hai ricevuto una richiesta di delega ${delegationKind} dall'ente ${delegatorName} per l'e-service <strong>${eserviceName}</strong>.`;
+  },
+  delegationRevokedToDelegate: (
+    eserviceName: string,
+    delegatorName: string,
+    eventType: DelegationRevokedToDelegateEventType
+  ): string => {
+    const { delegationKind } = match(eventType)
+      .with("ProducerDelegationRevoked", () => ({
+        delegationKind: "all'erogazione",
+      }))
+      .with("ConsumerDelegationRevoked", () => ({
+        delegationKind: "alla fruizione",
+      }))
+      .exhaustive();
+    return `Ti informiamo che l'ente ${delegatorName} ha revocato la delega ${delegationKind} per l'e-service <strong>${eserviceName}</strong> che ti aveva conferito.`;
   },
   templateStatusChangedToProducer: (templateName: string): string =>
-    `Hai sospeso il tuo template "<strong>${templateName}</strong>".`,
+    `È stato sospeso il tuo template "<strong>${templateName}</strong>".`,
   newEserviceTemplateVersionToInstantiator: (
     creatorName: string,
     eserviceTemplateVersion: string,
     eserviceTemplateName: string
   ): string =>
-    `${creatorName} ha pubblicato una nuova versione ${eserviceTemplateVersion} del template "<strong>${eserviceTemplateName}</strong>" per il tuo e-service.`,
+    `L'ente ${creatorName} ha pubblicato una nuova versione ${eserviceTemplateVersion} del template "<strong>${eserviceTemplateName}</strong>".`,
   eserviceTemplateNameChangedToInstantiator: (
     eserviceTemplate: EServiceTemplate,
     oldName: string | undefined
@@ -246,7 +267,7 @@ export const inAppTemplates = {
     creatorName: string,
     eserviceTemplateName: string
   ): string =>
-    `${creatorName} ha sospeso il template "<strong>${eserviceTemplateName}</strong>" per il tuo e-service.`,
+    `L'ente ${creatorName} ha sospeso il template "<strong>${eserviceTemplateName}</strong>", da cui il tuo ente ha generato l'e-service.`,
   purposeStatusChangedToConsumer: (
     purposeName: string,
     consumerName: string,
@@ -261,13 +282,18 @@ export const inAppTemplates = {
     action: "sospeso" | "riattivato"
   ): string =>
     `L'ente erogatore ${producerName} ha ${action} la finalità <strong>${purposeName}</strong>, associata all'e-service <strong>${eserviceName}</strong>.`,
-  purposeActivatedRejectedToConsumer: (
+  purposeActivatedToConsumer: (
     purposeName: string,
     producerName: string,
-    eserviceName: string,
-    action: "attivato" | "rifiutato"
+    eserviceName: string
   ): string =>
-    `L'ente erogatore ${producerName} ha ${action} la finalità <strong>${purposeName}</strong>, associata all'e-service <strong>${eserviceName}</strong>.`,
+    `L'ente erogatore ${producerName} ha ha approvato la finalità <strong>${purposeName}</strong>, che hai richiesto per l'e-service <strong>${eserviceName}</strong>.`,
+  purposeRejectedToConsumer: (
+    purposeName: string,
+    producerName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente erogatore ${producerName} ha rifiutato la finalità <strong>${purposeName}</strong> che il tuo ente ha inoltrato per l'e-service <strong>${eserviceName}</strong>.`,
   clientAddedRemovedToProducer: (
     purposeName: string,
     eserviceName: string,
@@ -280,13 +306,13 @@ export const inAppTemplates = {
     attributeKind: "certificato" | "verificato",
     assignerName: string
   ): string =>
-    `${assignerName} ti ha conferito l'attributo ${attributeKind} "${attributeName}". Puoi ora utilizzarlo nelle richieste di fruizione.`,
+    `L'ente certificatore ${assignerName} ha conferito al tuo ente l'attributo ${attributeKind} "${attributeName}". Puoi ora utilizzarlo nelle richieste di fruizione.`,
   certifiedVerifiedAttributeRevokedToAssignee: (
     attributeName: string,
     attributeKind: "certificato" | "verificato",
     revokerName: string
   ): string =>
-    `Ti informiamo che ${revokerName} ti ha revocato l'attributo ${attributeKind} "${attributeName}". Tutte le richieste di fruizione che utilizzano tale attributo subiranno una sospensione. Non potrai più utilizzare questo attributo per le future richieste di fruizione`,
+    `Ti informiamo che l'ente certificatore  ${revokerName} ha revocato l'attributo ${attributeKind} "${attributeName}". Tutte le richieste di fruizione che utilizzano tale attributo subiranno una sospensione. Non potrai più utilizzare questo attributo per le future richieste di fruizione.`,
   producerKeychainEServiceAddedToConsumer: (
     producerName: string,
     eserviceName: string

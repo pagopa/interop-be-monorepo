@@ -223,6 +223,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody: inAppTemplates.eserviceDescriptionUpdatedToConsumer(
         eservice.name,
+        eservice.descriptors[0].version,
         producerTenant.name
       ),
     },
@@ -236,6 +237,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody: inAppTemplates.eserviceDescriptionUpdatedToConsumer(
         eservice.name,
+        eservice.descriptors[0].version,
         producerTenant.name
       ),
     },
@@ -310,6 +312,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody: inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(
         eservice.name,
+        eservice.descriptors[0].version,
         producerTenant.name
       ),
     },
@@ -324,6 +327,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody: inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(
         eservice.name,
+        eservice.descriptors[0].version,
         producerTenant.name
       ),
     },
@@ -451,6 +455,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       expectedBody: inAppTemplates.eserviceDescriptorDocumentUpdatedToConsumer(
         eservice.name,
         eservice.descriptors[0].docs[0].prettyName,
+        eservice.descriptors[0].version,
         producerTenant.name
       ),
     },
@@ -467,6 +472,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       expectedBody: inAppTemplates.eserviceDescriptorDocumentUpdatedToConsumer(
         eservice.name,
         eservice.descriptors[0].docs[0].prettyName,
+        eservice.descriptors[0].version,
         producerTenant.name
       ),
     },

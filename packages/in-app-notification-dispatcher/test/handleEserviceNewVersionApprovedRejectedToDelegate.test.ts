@@ -204,11 +204,11 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
   }>([
     {
       eventType: "EServiceDescriptorApprovedByDelegator",
-      expectedBody: `${delegator.name} ha approvato la nuova versione dell'e-service <strong>${eservice.name}</strong>.`,
+      expectedBody: `L'ente delegante ${delegator.name} ha approvato la pubblicazione della nuova versione dell'e-service <strong>${eservice.name}</strong> che gestisci tramite delega.`,
     },
     {
       eventType: "EServiceDescriptorRejectedByDelegator",
-      expectedBody: `${delegator.name} ha rifiutato la nuova versione dell'e-service <strong>${eservice.name}</strong>.`,
+      expectedBody: `L'ente delegante ${delegator.name} ha rifiutato la pubblicazione della nuova versione dell'e-service <strong>${eservice.name}</strong> che gestisci tramite delega.`,
     },
   ])(
     "should handle $eventType event correctly",
@@ -335,7 +335,7 @@ describe("handleEserviceNewVersionApprovedRejectedToDelegate", () => {
           "EServiceDescriptorRejectedByDelegator"
         );
 
-      const expectedBody = `${delegator.name} ha rifiutato la nuova versione dell'e-service <strong>${eservice.name}</strong>.${expectedReason}`;
+      const expectedBody = `L'ente delegante ${delegator.name} ha rifiutato la pubblicazione della nuova versione dell'e-service <strong>${eservice.name}</strong> che gestisci tramite delega.${expectedReason}`;
 
       expect(notifications).toHaveLength(delegateUsers.length);
       expect(notifications[0].body).toEqual(expectedBody);

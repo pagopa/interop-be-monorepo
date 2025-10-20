@@ -146,12 +146,16 @@ function getBodyAndDescriptorId(
           "EServiceDescriptionUpdatedByTemplateUpdate"
         ),
       },
-      () => ({
-        body: inAppTemplates.eserviceDescriptionUpdatedToConsumer(
-          eservice.name,
-          producerName
-        ),
-      })
+      () => {
+        const latestDescriptor = retrieveLatestPublishedDescriptor(eservice);
+        return {
+          body: inAppTemplates.eserviceDescriptionUpdatedToConsumer(
+            eservice.name,
+            latestDescriptor?.version,
+            producerName
+          ),
+        };
+      }
     )
     .with(
       {
@@ -209,6 +213,7 @@ function getBodyAndDescriptorId(
       ({ data: { descriptorId } }) => ({
         body: inAppTemplates.eserviceDescriptorQuotasUpdatedToConsumer(
           eservice.name,
+          eservice.descriptors.find((d) => d.id === descriptorId)?.version,
           producerName
         ),
         descriptorId,
@@ -245,21 +250,14 @@ function getBodyAndDescriptorId(
           "EServiceDescriptorDocumentAddedByTemplateUpdate"
         ),
       },
-      ({ data: { descriptorId, documentId } }) => {
-        const documentName = getDocumentName(
-          eservice,
-          descriptorId,
-          documentId
-        );
-        return {
-          body: inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
-            eservice.name,
-            documentName,
-            producerName
-          ),
-          descriptorId,
-        };
-      }
+      ({ data: { descriptorId } }) => ({
+        body: inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
+          eservice.name,
+          eservice.descriptors.find((d) => d.id === descriptorId)?.version,
+          producerName
+        ),
+        descriptorId,
+      })
     )
     .with(
       {
@@ -315,6 +313,7 @@ function getBodyAndDescriptorId(
           body: inAppTemplates.eserviceDescriptorDocumentUpdatedToConsumer(
             eservice.name,
             documentName,
+            eservice.descriptors.find((d) => d.id === descriptorId)?.version,
             producerName
           ),
           descriptorId,

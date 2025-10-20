@@ -15,16 +15,34 @@ import {
 } from "pagopa-interop-models";
 import { tenantNotFound } from "../src/models/errors.js";
 import { handleDelegationApprovedRejectedToDelegator } from "../src/handlers/delegations/handleDelegationApprovedRejectedToDelegator.js";
-import { addOneDelegation, addOneTenant, readModelService } from "./utils.js";
+import {
+  addOneDelegation,
+  addOneTenant,
+  addOneEService,
+  readModelService,
+} from "./utils.js";
 
 describe("handleDelegationApprovedRejectedToDelegator", () => {
   const delegator = getMockTenant();
   const delegate = getMockTenant();
-
+  const eserviceId = generateId<import("pagopa-interop-models").EServiceId>();
+  // Create a mock eService with the same eserviceId and required fields
+  const eservice = {
+    id: eserviceId,
+    name: "Test EService",
+    producerId: delegator.id,
+    createdAt: new Date(),
+    description: "Test EService description",
+    technology: "Rest" as const,
+    descriptors: [],
+    riskAnalysis: [],
+    mode: "Deliver" as const,
+  };
   const delegation = getMockDelegation({
     kind: randomArrayItem(Object.values(delegationKind)),
     delegatorId: delegator.id,
     delegateId: delegate.id,
+    eserviceId,
   });
 
   const { logger } = getMockContext({});
@@ -33,6 +51,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
     // Setup test data
     await addOneTenant(delegator);
     await addOneTenant(delegate);
+    await addOneEService(eservice);
     await addOneDelegation(delegation);
   });
 
@@ -102,25 +121,25 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
       eventType: "ProducerDelegationApproved",
       kind: delegationKind.delegatedProducer,
       rejectionReason: undefined,
-      expectedBody: `${delegate.name} ha approvato la delega in erogazione.`,
+      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha approvato la delega all'erogazione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>. La delega è ora attiva.`,
     },
     {
       eventType: "ConsumerDelegationApproved",
       kind: delegationKind.delegatedConsumer,
       rejectionReason: undefined,
-      expectedBody: `${delegate.name} ha approvato la delega in fruizione.`,
+      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha approvato la delega alla fruizione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>. La delega è ora attiva.`,
     },
     {
       eventType: "ProducerDelegationRejected",
       kind: delegationKind.delegatedProducer,
       rejectionReason: "mock reason",
-      expectedBody: `${delegate.name} ha rifiutato la delega in erogazione. Motivo: mock reason.`,
+      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha rifiutato la delega all'erogazione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>.  Motivo: mock reason.`,
     },
     {
       eventType: "ConsumerDelegationRejected",
       kind: delegationKind.delegatedConsumer,
       rejectionReason: "mock reason",
-      expectedBody: `${delegate.name} ha rifiutato la delega in fruizione. Motivo: mock reason.`,
+      expectedBody: `Ti informiamo che l'ente ${delegate.name} ha rifiutato la delega alla fruizione che il tuo ente gli ha conferito per l'e-service <strong>Test EService</strong>.  Motivo: mock reason.`,
     },
   ])(
     "should handle $eventType event correctly",
