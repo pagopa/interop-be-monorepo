@@ -196,13 +196,16 @@ export function eserviceServiceBuilder(
       [attributeKind]: newAttributeGroups,
     };
     // Update the descriptor with the new attributes
-    await clients.catalogProcessClient.updateDescriptorAttributes(
+    const response = await clients.catalogProcessClient.updateDescriptorAttributes(
       newAttributes,
       {
         params: { eServiceId: eserviceId, descriptorId },
         headers,
       }
     );
+
+    await pollEService(response, headers);
+
     const bulkResult = await clients.attributeProcessClient.getBulkedAttributes(
       attributeIds,
       {

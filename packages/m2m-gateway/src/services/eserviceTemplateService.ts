@@ -144,16 +144,19 @@ export function eserviceTemplateServiceBuilder(
     };
 
     // Update the version with the new attributes
-    await clients.eserviceTemplateProcessClient.updateTemplateVersionAttributes(
-      newAttributes,
-      {
-        params: {
-          templateId,
-          templateVersionId: versionId,
-        },
-        headers,
-      }
-    );
+    const response =
+      await clients.eserviceTemplateProcessClient.updateTemplateVersionAttributes(
+        newAttributes,
+        {
+          params: {
+            templateId,
+            templateVersionId: versionId,
+          },
+          headers,
+        }
+      );
+
+    await pollEServiceTemplate(response, headers);
 
     // Retrieve the attributes details
     const bulkResult = await clients.attributeProcessClient.getBulkedAttributes(
