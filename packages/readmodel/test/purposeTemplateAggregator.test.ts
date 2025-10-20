@@ -1,47 +1,20 @@
 import { describe, expect, it } from "vitest";
 import {
   PurposeTemplate,
-  RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisTemplateSingleAnswer,
   tenantKind,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
   getMockPurposeTemplate,
   getMockValidRiskAnalysisFormTemplate,
-  getMockRiskAnalysisTemplateAnswerAnnotation,
-  getMockRiskAnalysisTemplateAnswerAnnotationDocument,
+  getMockCompleteRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test/index.js";
 import { splitPurposeTemplateIntoObjectsSQL } from "../src/purpose-template/splitters.js";
 import { aggregatePurposeTemplate } from "../src/purpose-template/aggregators.js";
 
 describe("Purpose template aggregator", () => {
   it("should convert complete purpose template SQL objects into a business logic purpose template", () => {
-    const incompleteRiskAnalysisFormTemplate =
-      getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
-    const riskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
-      ...incompleteRiskAnalysisFormTemplate,
-      singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
-        (a): RiskAnalysisTemplateSingleAnswer => ({
-          ...a,
-          annotation: {
-            ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-            docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-          },
-          suggestedValues: ["a", "b"],
-        })
-      ),
-      multiAnswers: incompleteRiskAnalysisFormTemplate.multiAnswers.map(
-        (a): RiskAnalysisTemplateMultiAnswer => ({
-          ...a,
-          annotation: {
-            ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-            docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-          },
-        })
-      ),
-    };
+    const riskAnalysisFormTemplate = getMockCompleteRiskAnalysisFormTemplate();
 
     const purposeTemplate: WithMetadata<PurposeTemplate> = {
       data: {
