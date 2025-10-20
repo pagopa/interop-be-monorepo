@@ -3,10 +3,16 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   generateId,
+  PurposeTemplate,
   PurposeTemplateId,
   purposeTemplateState,
+  WithMetadata,
 } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockPurposeTemplate,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
@@ -17,13 +23,17 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("API /purposeTemplates/{id}", () => {
-  const purposeTemplateId = generateId<PurposeTemplateId>();
+  const serviceResponse: WithMetadata<PurposeTemplate> = getMockWithMetadata(
+    getMockPurposeTemplate()
+  );
 
-  purposeTemplateService.deletePurposeTemplate = vi.fn().mockResolvedValue({});
+  purposeTemplateService.deletePurposeTemplate = vi
+    .fn()
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
-    id: PurposeTemplateId = purposeTemplateId
+    id: PurposeTemplateId = serviceResponse.data.id
   ) =>
     request(api)
       .delete(`/purposeTemplates/${id}`)
@@ -41,6 +51,9 @@ describe("API /purposeTemplates/{id}", () => {
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(204);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -48,7 +61,7 @@ describe("API /purposeTemplates/{id}", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, purposeTemplateId);
+    const res = await makeRequest(token, serviceResponse.data.id);
 
     expect(res.status).toBe(403);
   });
@@ -56,14 +69,14 @@ describe("API /purposeTemplates/{id}", () => {
   it.each([
     {
       error: purposeTemplateNotInExpectedStates(
-        purposeTemplateId,
+        serviceResponse.data.id,
         purposeTemplateState.active,
         [purposeTemplateState.draft]
       ),
       expectedStatus: 409,
     },
     {
-      error: purposeTemplateNotFound(purposeTemplateId),
+      error: purposeTemplateNotFound(generateId()),
       expectedStatus: 404,
     },
     {
@@ -82,7 +95,7 @@ describe("API /purposeTemplates/{id}", () => {
         .mockRejectedValue(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, purposeTemplateId);
+      const res = await makeRequest(token, serviceResponse.data.id);
 
       expect(res.status).toBe(expectedStatus);
     }

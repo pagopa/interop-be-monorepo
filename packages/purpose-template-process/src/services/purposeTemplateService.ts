@@ -1238,7 +1238,7 @@ export function purposeTemplateServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<void> {
+    ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Deleting purpose template ${purposeTemplateId}`);
 
       const purposeTemplate = await retrievePurposeTemplate(
@@ -1264,13 +1264,20 @@ export function purposeTemplateServiceBuilder(
         logger,
       });
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventPurposeTemplateDraftDeleted(
           purposeTemplate.data,
           correlationId,
           purposeTemplate.metadata.version
         )
       );
+
+      return {
+        data: purposeTemplate.data,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async deleteRiskAnalysisTemplateAnswerAnnotation({
       purposeTemplateId,
@@ -1333,7 +1340,7 @@ export function purposeTemplateServiceBuilder(
       answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
       documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId;
       ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
-    }): Promise<void> {
+    }): Promise<WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument>> {
       const { logger, correlationId, authData } = ctx;
 
       logger.info(
@@ -1355,7 +1362,7 @@ export function purposeTemplateServiceBuilder(
         logger,
       });
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventPurposeTemplateAnnotationDocumentDeleted({
           purposeTemplate: updatedPurposeTemplate.data,
           documentId,
@@ -1363,6 +1370,13 @@ export function purposeTemplateServiceBuilder(
           correlationId,
         })
       );
+
+      return {
+        data: removedAnnotationDocument,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
   };
 }

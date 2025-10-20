@@ -207,10 +207,13 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        await purposeTemplateService.deletePurposeTemplate(
+        const { metadata } = await purposeTemplateService.deletePurposeTemplate(
           unsafeBrandId(req.params.id),
           ctx
         );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -321,12 +324,13 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const response = await purposeTemplateService.suspendPurposeTemplate(
-          unsafeBrandId(req.params.id),
-          ctx
-        );
+        const { metadata } =
+          await purposeTemplateService.suspendPurposeTemplate(
+            unsafeBrandId(req.params.id),
+            ctx
+          );
 
-        setMetadataVersionHeader(res, response.metadata);
+        setMetadataVersionHeader(res, metadata);
 
         return res.status(204).send();
       } catch (error) {
@@ -344,12 +348,13 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const response = await purposeTemplateService.unsuspendPurposeTemplate(
-          unsafeBrandId(req.params.id),
-          ctx
-        );
+        const { metadata } =
+          await purposeTemplateService.unsuspendPurposeTemplate(
+            unsafeBrandId(req.params.id),
+            ctx
+          );
 
-        setMetadataVersionHeader(res, response.metadata);
+        setMetadataVersionHeader(res, metadata);
 
         return res.status(204).send();
       } catch (error) {
@@ -367,12 +372,13 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const response = await purposeTemplateService.archivePurposeTemplate(
-          unsafeBrandId(req.params.id),
-          ctx
-        );
+        const { metadata } =
+          await purposeTemplateService.archivePurposeTemplate(
+            unsafeBrandId(req.params.id),
+            ctx
+          );
 
-        setMetadataVersionHeader(res, response.metadata);
+        setMetadataVersionHeader(res, metadata);
 
         return res.status(204).send();
       } catch (error) {
@@ -390,12 +396,13 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const response = await purposeTemplateService.publishPurposeTemplate(
-          unsafeBrandId(req.params.id),
-          ctx
-        );
+        const { metadata } =
+          await purposeTemplateService.publishPurposeTemplate(
+            unsafeBrandId(req.params.id),
+            ctx
+          );
 
-        setMetadataVersionHeader(res, response.metadata);
+        setMetadataVersionHeader(res, metadata);
 
         return res.status(204).send();
       } catch (error) {
@@ -584,14 +591,18 @@ const purposeTemplateRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
-            {
-              purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
-              answerId: unsafeBrandId(req.params.answerId),
-              documentId: unsafeBrandId(req.params.documentId),
-              ctx,
-            }
-          );
+          const { metadata } =
+            await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+              {
+                purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
+                answerId: unsafeBrandId(req.params.answerId),
+                documentId: unsafeBrandId(req.params.documentId),
+                ctx,
+              }
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(

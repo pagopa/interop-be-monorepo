@@ -5,16 +5,18 @@ import {
   generateId,
   PurposeTemplateId,
   purposeTemplateState,
-  RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
-  RiskAnalysisTemplateSingleAnswer,
   tenantKind,
+  unsafeBrandId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
   generateToken,
   getMockValidRiskAnalysisFormTemplate,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   purposeTemplateNotFound,
@@ -23,27 +25,29 @@ import {
   riskAnalysisTemplateAnswerNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { riskAnalysisAnswerToApiRiskAnalysisAnswer } from "../../src/model/domain/apiConverter.js";
 
 describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation", () => {
   const purposeTemplateId = generateId<PurposeTemplateId>();
   const riskAnalysisTemplate = getMockValidRiskAnalysisFormTemplate(
     tenantKind.PA
   );
-  const answerWithoutAnnotation: RiskAnalysisTemplateSingleAnswer = {
-    ...riskAnalysisTemplate.singleAnswers[0],
-    annotation: undefined,
-  };
+  const serviceResponse: WithMetadata<purposeTemplateApi.RiskAnalysisTemplateAnswer> =
+    getMockWithMetadata(
+      riskAnalysisAnswerToApiRiskAnalysisAnswer({
+        ...riskAnalysisTemplate.singleAnswers[0],
+        annotation: undefined,
+      })
+    );
 
   purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation = vi
     .fn()
-    .mockResolvedValue(answerWithoutAnnotation);
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
     id: PurposeTemplateId = purposeTemplateId,
-    answerId:
-      | RiskAnalysisSingleAnswerId
-      | RiskAnalysisMultiAnswerId = answerWithoutAnnotation.id
+    answerId: string = serviceResponse.data.id
   ) =>
     request(api)
       .delete(
@@ -58,11 +62,15 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
     authRole.M2M_ADMIN_ROLE,
   ];
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(serviceResponse.data);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -95,7 +103,7 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
     {
       error: riskAnalysisTemplateAnswerNotFound(
         purposeTemplateId,
-        answerWithoutAnnotation.id
+        unsafeBrandId(serviceResponse.data.id)
       ),
       expectedStatus: 404,
     },
