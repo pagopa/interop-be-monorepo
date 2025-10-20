@@ -19,6 +19,7 @@ import {
 
 import {
   AppContext,
+  AuthData,
   DB,
   eventRepository,
   FileManager,
@@ -444,10 +445,7 @@ export function delegationServiceBuilder(
   async function addDelegationContract(
     delegationId: DelegationId,
     delegationContract: DelegationContractDocument,
-    {
-      logger,
-      correlationId,
-    }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    { logger, correlationId }: WithLogger<AppContext<AuthData>>
   ): Promise<WithMetadata<Delegation>> {
     logger.info(`Adding delegation contract ${delegationId}`);
     const { data: delegation, metadata } = await retrieveDelegationById(
@@ -719,7 +717,7 @@ export function delegationServiceBuilder(
     async addDelegationContract(
       delegationId: DelegationId,
       delegationContract: DelegationContractDocument,
-      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+      ctx: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return await addDelegationContract(delegationId, delegationContract, ctx);
     },

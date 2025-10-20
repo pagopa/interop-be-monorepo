@@ -45,6 +45,7 @@ const {
   M2M_ROLE,
   SUPPORT_ROLE,
   M2M_ADMIN_ROLE,
+  INTERNAL_ROLE,
 } = authRole;
 
 const delegationRouter = (
@@ -180,12 +181,12 @@ const delegationRouter = (
         }
       }
     )
-    .post("/delegations/:delegationId/contract", async (req, res) => {
+    .post("/internal/delegations/:delegationId/contract", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       const { delegationId } = req.params;
       const delegationContract = DelegationContractDocument.parse(req.body);
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
 
         const { data, metadata } =
           await delegationService.addDelegationContract(

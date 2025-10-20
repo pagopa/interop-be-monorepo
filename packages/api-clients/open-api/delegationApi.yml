@@ -357,7 +357,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /delegations/{delegationId}/contract:
+  /internal/delegations/{delegationId}/contract:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: delegationId
