@@ -14,7 +14,9 @@ import { EserviceTemplateService } from "../services/eserviceTemplateService.js"
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   deleteDraftEServiceTemplateVersionErrorMapper,
+  getEServiceTemplateVersionAttributesErrorMapper,
   getEServiceTemplateRiskAnalysisErrorMapper,
+  getEServiceTemplateVersionDocumentsErrorMapper,
   getEServiceTemplateVersionErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
@@ -481,7 +483,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEServiceTemplateVersionErrorMapper,
+            getEServiceTemplateVersionDocumentsErrorMapper,
             ctx,
             `Error retrieving documents for eservice template ${req.params.templateId} version with id ${req.params.versionId}`
           );
@@ -671,7 +673,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEServiceTemplateVersionErrorMapper,
+            getEServiceTemplateVersionAttributesErrorMapper,
             ctx,
             `Error retrieving certified attributes for version with id ${req.params.versionId} for eservice template with id ${req.params.templateId}`
           );
@@ -702,7 +704,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEServiceTemplateVersionErrorMapper,
+            getEServiceTemplateVersionAttributesErrorMapper,
             ctx,
             `Error retrieving declared attributes for version with id ${req.params.versionId} for eservice template with id ${req.params.templateId}`
           );
@@ -733,7 +735,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEServiceTemplateVersionErrorMapper,
+            getEServiceTemplateVersionAttributesErrorMapper,
             ctx,
             `Error retrieving verified attributes for version with id ${req.params.versionId} for eservice template with id ${req.params.templateId}`
           );

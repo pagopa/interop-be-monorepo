@@ -88,12 +88,12 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/certifiedAttr
   ];
 
   const mockM2MEserviceTemplateVersionCertifiedAttributesResponse: m2mGatewayApi.EServiceTemplateVersionCertifiedAttributes =
-    {
-      pagination: { offset: 0, limit: 10, totalCount: 3 },
-      results,
-    };
+  {
+    pagination: { offset: 0, limit: 10, totalCount: 3 },
+    results,
+  };
 
-  const mockQueryParams: m2mGatewayApi.GetCertifiedAttributesQueryParams = {
+  const mockQueryParams: m2mGatewayApi.GetEServiceTemplateVersionCertifiedAttributesQueryParams = {
     offset: 0,
     limit: 10,
   };
@@ -108,7 +108,7 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/certifiedAttr
     token: string,
     templateId: string = eserviceTemplate.id,
     versionId: string = version.id,
-    query: m2mGatewayApi.GetCertifiedAttributesQueryParams = mockQueryParams
+    query: m2mGatewayApi.GetEServiceTemplateVersionCertifiedAttributesQueryParams = mockQueryParams
   ) =>
     request(api)
       .get(
@@ -175,7 +175,7 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/certifiedAttr
       token,
       generateId(),
       generateId(),
-      query as m2mGatewayApi.GetCertifiedAttributesQueryParams
+      query as m2mGatewayApi.GetEServiceTemplateVersionCertifiedAttributesQueryParams
     );
 
     expect(res.status).toBe(400);
