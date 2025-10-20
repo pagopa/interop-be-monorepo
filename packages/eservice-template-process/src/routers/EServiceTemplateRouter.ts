@@ -42,6 +42,7 @@ import {
   updateDocumentErrorMapper,
   deleteDocumentErrorMapper,
   getEServiceTemplatesErrorMapper,
+  updateEServiceTemplatePersonalDataFlagErrorMapper,
   deleteEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
