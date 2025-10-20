@@ -321,21 +321,14 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { data: purposeTemplate, metadata } =
-          await purposeTemplateService.suspendPurposeTemplate(
-            unsafeBrandId(req.params.id),
-            ctx
-          );
+        const response = await purposeTemplateService.suspendPurposeTemplate(
+          unsafeBrandId(req.params.id),
+          ctx
+        );
 
-        setMetadataVersionHeader(res, metadata);
+        setMetadataVersionHeader(res, response.metadata);
 
-        return res
-          .status(200)
-          .send(
-            purposeTemplateApi.PurposeTemplate.parse(
-              purposeTemplateToApiPurposeTemplate(purposeTemplate)
-            )
-          );
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -351,21 +344,14 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { data: purposeTemplate, metadata } =
-          await purposeTemplateService.unsuspendPurposeTemplate(
-            unsafeBrandId(req.params.id),
-            ctx
-          );
+        const response = await purposeTemplateService.unsuspendPurposeTemplate(
+          unsafeBrandId(req.params.id),
+          ctx
+        );
 
-        setMetadataVersionHeader(res, metadata);
+        setMetadataVersionHeader(res, response.metadata);
 
-        return res
-          .status(200)
-          .send(
-            purposeTemplateApi.PurposeTemplate.parse(
-              purposeTemplateToApiPurposeTemplate(purposeTemplate)
-            )
-          );
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -381,21 +367,14 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { data: purposeTemplate, metadata } =
-          await purposeTemplateService.archivePurposeTemplate(
-            unsafeBrandId(req.params.id),
-            ctx
-          );
+        const response = await purposeTemplateService.archivePurposeTemplate(
+          unsafeBrandId(req.params.id),
+          ctx
+        );
 
-        setMetadataVersionHeader(res, metadata);
+        setMetadataVersionHeader(res, response.metadata);
 
-        return res
-          .status(200)
-          .send(
-            purposeTemplateApi.PurposeTemplate.parse(
-              purposeTemplateToApiPurposeTemplate(purposeTemplate)
-            )
-          );
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -411,21 +390,14 @@ const purposeTemplateRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { data: purposeTemplate, metadata } =
-          await purposeTemplateService.publishPurposeTemplate(
-            unsafeBrandId(req.params.id),
-            ctx
-          );
+        const response = await purposeTemplateService.publishPurposeTemplate(
+          unsafeBrandId(req.params.id),
+          ctx
+        );
 
-        setMetadataVersionHeader(res, metadata);
+        setMetadataVersionHeader(res, response.metadata);
 
-        return res
-          .status(200)
-          .send(
-            purposeTemplateApi.PurposeTemplate.parse(
-              purposeTemplateToApiPurposeTemplate(purposeTemplate)
-            )
-          );
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -576,14 +548,24 @@ const purposeTemplateRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation(
-            {
-              purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
-              answerId: unsafeBrandId(req.params.answerId),
-              ctx,
-            }
-          );
-          return res.status(204).send();
+          const answerWithDeletedAnnotation =
+            await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation(
+              {
+                purposeTemplateId: unsafeBrandId(req.params.purposeTemplateId),
+                answerId: unsafeBrandId(req.params.answerId),
+                ctx,
+              }
+            );
+
+          setMetadataVersionHeader(res, answerWithDeletedAnnotation.metadata);
+
+          return res
+            .status(200)
+            .send(
+              riskAnalysisAnswerToApiRiskAnalysisAnswer(
+                answerWithDeletedAnnotation.data
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

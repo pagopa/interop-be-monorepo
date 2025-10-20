@@ -483,15 +483,11 @@ paths:
       tags:
         - purposeTemplate
       responses:
-        "200":
+        "204":
           description: Purpose Template Suspended
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -532,15 +528,11 @@ paths:
       tags:
         - purposeTemplate
       responses:
-        "200":
+        "204":
           description: Purpose Template Unsuspended
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -581,15 +573,11 @@ paths:
       tags:
         - purposeTemplate
       responses:
-        "200":
+        "204":
           description: Purpose Template Archived
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -630,15 +618,11 @@ paths:
       tags:
         - purposeTemplate
       responses:
-        "200":
+        "204":
           description: Purpose Template Published
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           description: Bad Request
           content:
@@ -918,8 +902,15 @@ paths:
       operationId: deleteRiskAnalysisTemplateAnswerAnnotation
       description: Delete a risk analysis form template answer annotation and the related files
       responses:
-        "204":
+        "200":
           description: Risk analysis form template answer annotation deleted
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswer"
         "400":
           description: Bad Request
           content:

@@ -11873,12 +11873,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Published
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -11998,12 +11994,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Unsuspended
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12123,12 +12115,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Suspended
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -12248,12 +12236,8 @@ paths:
       tags:
         - purposeTemplates
       responses:
-        "200":
+        "204":
           description: Purpose Template Archived
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PurposeTemplate"
           headers:
             "X-Rate-Limit-Limit":
               schema:
