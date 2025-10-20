@@ -18,7 +18,7 @@ import {
 import {
   EserviceTemplateHandlerParams,
   getRecipientsForTenants,
-  UserEmailNotificationRecipient,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
@@ -79,18 +79,14 @@ export async function handleEServiceTemplateVersionPublished(
     )
   );
 
-  const targets = (
-    await getRecipientsForTenants({
-      tenants: instantiators,
-      notificationType,
-      readModelService,
-      userService,
-      logger,
-      includeTenantContactEmails: false,
-    })
-  ).filter(
-    (target): target is UserEmailNotificationRecipient => target.type === "User"
-  );
+  const targets = await getRecipientsForTenants({
+    tenants: instantiators,
+    notificationType,
+    readModelService,
+    userService,
+    logger,
+    includeTenantContactEmails: false,
+  });
 
   if (targets.length === 0) {
     logger.info(
@@ -99,9 +95,9 @@ export async function handleEServiceTemplateVersionPublished(
     return [];
   }
 
-  return targets.flatMap(({ address, tenantId }) => {
-    const tenantEServices = instantiatorEserviceMap[tenantId] || [];
-    const tenant = instantiators.find((tenant) => tenant.id === tenantId);
+  return targets.flatMap((t) => {
+    const tenantEServices = instantiatorEserviceMap[t.tenantId] || [];
+    const tenant = instantiators.find((tenant) => tenant.id === t.tenantId);
 
     if (!tenant) {
       return [];
@@ -117,13 +113,14 @@ export async function handleEServiceTemplateVersionPublished(
           entityId: EServiceIdDescriptorId.parse(
             `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
           ),
-          instantiatorName: tenant.name,
+          ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
           creatorName: creator.name,
           version: eserviceTemplateVersion.version,
           templateName: eserviceTemplate.name,
         }),
       },
-      address,
+      tenantId: t.tenantId,
+      ...mapRecipientToEmailPayload(t),
     }));
   });
 }

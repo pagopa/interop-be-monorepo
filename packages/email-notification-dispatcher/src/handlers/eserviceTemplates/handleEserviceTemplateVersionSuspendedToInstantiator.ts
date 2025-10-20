@@ -15,7 +15,11 @@ import {
   retrieveLatestPublishedDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
-import { EserviceTemplateHandlerParams } from "../handlerCommons.js";
+import {
+  EserviceTemplateHandlerParams,
+  getRecipientsForTenants,
+  mapRecipientToEmailPayload,
+} from "../handlerCommons.js";
 
 const notificationType: NotificationType =
   "eserviceTemplateStatusChangedToInstantiator";
@@ -25,7 +29,9 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     eserviceTemplateV2Msg,
+    eserviceTemplateVersionId,
     readModelService,
+    logger,
     templateService,
     userService,
     correlationId,
@@ -62,26 +68,30 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
 
   const instantiators = await readModelService.getTenantsById(tenantIds);
 
-  const tenantUsers =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      tenantIds,
-      notificationType
+  const targets = await getRecipientsForTenants({
+    tenants: instantiators,
+    notificationType,
+    readModelService,
+    userService,
+    logger,
+    includeTenantContactEmails: false,
+  });
+
+  if (targets.length === 0) {
+    logger.info(
+      `No targets found for instantiator tenants. EService template ${eserviceTemplate.id}, eservice template version ${eserviceTemplateVersionId}, no emails to dispatch.`
     );
+    return [];
+  }
 
-  const users = await userService.readUsers(
-    tenantUsers.map(({ userId }) => userId)
-  );
+  return targets.flatMap((t) => {
+    const eservices = instantiatorEserviceMap[t.tenantId] || [];
+    const tenant = instantiators.find((tenant) => tenant.id === t.tenantId);
 
-  return tenantUsers.flatMap(({ userId, tenantId }) => {
-    const eservices = instantiatorEserviceMap[tenantId] || [];
-    const user = users.find((user) => user.userId === userId);
-    const tenant = instantiators.find((tenant) => tenant.id === tenantId);
-
-    if (!user || !tenant) {
+    if (!tenant) {
       return [];
     }
 
-    const address = user.email;
     return eservices.map((eservice) => ({
       correlationId: correlationId ?? generateId(),
       email: {
@@ -92,12 +102,13 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
           entityId: EServiceIdDescriptorId.parse(
             `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
           ),
-          instantiatorName: tenant.name,
+          ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
           creatorName: creator.name,
           templateName: eserviceTemplate.name,
         }),
       },
-      address,
+      tenantId: t.tenantId,
+      ...mapRecipientToEmailPayload(t),
     }));
   });
 }

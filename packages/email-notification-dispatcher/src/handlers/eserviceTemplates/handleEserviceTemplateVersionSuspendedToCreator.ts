@@ -14,6 +14,7 @@ import {
 import {
   EserviceTemplateHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   retrieveLatestPublishedEServiceTemplateVersion,
 } from "../handlerCommons.js";
 
@@ -63,7 +64,7 @@ export async function handleEServiceTemplateVersionSuspendedToCreator(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Hai sospeso un tuo template e-service`,
@@ -75,11 +76,12 @@ export async function handleEServiceTemplateVersionSuspendedToCreator(
             retrieveLatestPublishedEServiceTemplateVersion(eserviceTemplate).id
           }`
         ),
-        creatorName: creator.name,
+        ...(t.type === "Tenant" ? { recipientName: creator.name } : {}),
         templateName: eserviceTemplate.name,
         ctaLabel: `Visualizza template`,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

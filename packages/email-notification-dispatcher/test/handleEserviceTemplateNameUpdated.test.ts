@@ -22,6 +22,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { handleEServiceTemplateNameUpdated } from "../src/handlers/eserviceTemplates/handleEserviceTemplateNameUpdated.js";
 import {
   addOneEService,
@@ -116,12 +117,16 @@ describe("handleEServiceTemplateNameUpdated", async () => {
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -142,12 +147,16 @@ describe("handleEServiceTemplateNameUpdated", async () => {
     });
 
     expect(messages.length).toEqual(1);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
   });
 
   it("should generate a complete and correct message", async () => {
@@ -169,7 +178,14 @@ describe("handleEServiceTemplateNameUpdated", async () => {
         `Aggiornamento nome del template &quot;${oldName}&quot;`
       );
       expect(message.email.body).toContain(oldName);
-      expect(message.email.body).toContain(instantiatorTenant.name);
+      match(message.type)
+        .with("User", () => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+        })
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(instantiatorTenant.name);
+        })
+        .exhaustive();
       expect(message.email.body).toContain(eserviceTemplate.name);
     });
   });

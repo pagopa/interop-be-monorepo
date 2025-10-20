@@ -17,7 +17,7 @@ import {
 import {
   EserviceTemplateNameUpdatedHandlerParams,
   getRecipientsForTenants,
-  UserEmailNotificationRecipient,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "templateStatusChangedToProducer";
@@ -65,18 +65,14 @@ export async function handleEServiceTemplateNameUpdated(
     )
   );
 
-  const targets = (
-    await getRecipientsForTenants({
-      tenants: instantiators,
-      notificationType,
-      readModelService,
-      userService,
-      logger,
-      includeTenantContactEmails: false,
-    })
-  ).filter(
-    (target): target is UserEmailNotificationRecipient => target.type === "User"
-  );
+  const targets = await getRecipientsForTenants({
+    tenants: instantiators,
+    notificationType,
+    readModelService,
+    userService,
+    logger,
+    includeTenantContactEmails: false,
+  });
 
   if (targets.length === 0) {
     logger.info(
@@ -85,9 +81,9 @@ export async function handleEServiceTemplateNameUpdated(
     return [];
   }
 
-  return targets.flatMap(({ address, tenantId }) => {
-    const tenantEServices = instantiatorEserviceMap[tenantId] || [];
-    const tenant = instantiators.find((tenant) => tenant.id === tenantId);
+  return targets.flatMap((t) => {
+    const tenantEServices = instantiatorEserviceMap[t.tenantId] || [];
+    const tenant = instantiators.find((tenant) => tenant.id === t.tenantId);
 
     if (!tenant) {
       return [];
@@ -103,12 +99,13 @@ export async function handleEServiceTemplateNameUpdated(
           entityId: EServiceIdDescriptorId.parse(
             `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
           ),
-          instantiatorName: tenant.name,
+          ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
           oldName: oldName ?? eserviceTemplate.id,
           newName: eserviceTemplate.name,
         }),
       },
-      address,
+      tenantId: t.tenantId,
+      ...mapRecipientToEmailPayload(t),
     }));
   });
 }
