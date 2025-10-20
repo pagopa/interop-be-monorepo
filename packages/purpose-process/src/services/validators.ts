@@ -512,13 +512,7 @@ export function assertValidPurposeTenantKind(
   ];
   const valid = match(purposeTenantKind)
     .with(tenantKind.PA, () => templateTargetTenantKind === tenantKind.PA)
-    .with(tenantKind.GSP, () =>
-      privateTenantKinds.includes(templateTargetTenantKind)
-    )
-    .with(tenantKind.SCP, () =>
-      privateTenantKinds.includes(templateTargetTenantKind)
-    )
-    .with(tenantKind.PRIVATE, () =>
+    .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       privateTenantKinds.includes(templateTargetTenantKind)
     )
     .exhaustive();
