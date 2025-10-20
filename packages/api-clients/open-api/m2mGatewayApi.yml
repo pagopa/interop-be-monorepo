@@ -13355,7 +13355,7 @@ paths:
   /purposeTemplates:
     get:
       tags:
-        - purposeTemplate
+        - purposeTemplates
       summary: List Purpose Templates
       operationId: getPurposeTemplates
       description: Retrieve Purpose Templates with pagination and filters
@@ -13488,7 +13488,7 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"                          
     post:
       tags:
-        - purposeTemplate
+        - purposeTemplates
       summary: Create a new Purpose Template
       operationId: createPurposeTemplate
       description: Create a new Purpose Template (Draft state)
@@ -13589,7 +13589,7 @@ paths:
           format: uuid
     get:
       tags:
-        - purposeTemplate
+        - purposeTemplates
       summary: Get Purpose Template
       operationId: getPurposeTemplate
       description: Retrieve a Purpose template
@@ -13661,7 +13661,7 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
     put:
       tags:
-        - purposeTemplate
+        - purposeTemplates
       summary: Update a Draft Purpose Template
       operationId: updatePurposeTemplate
       description: Updates a Purpose Template (Draft state)
@@ -13765,7 +13765,7 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
     delete:
       tags:
-        - purposeTemplate
+        - purposeTemplates
       summary: Delete a Purpose Template
       operationId: deletePurposeTemplate
       description: Deletes a specific purpose template if it is in Draft state
@@ -13867,7 +13867,7 @@ paths:
           format: uuid
     post:
       tags:
-        - purposeTemplate
+        - purposeTemplates
       summary: Link E-Services to Purpose Template
       operationId: linkEServicesToPurposeTemplate
       description: Link E-Services to a purpose template (in Draft or Active state)
@@ -13980,7 +13980,7 @@ paths:
       description: Unlink E-Services from a purpose template (in Draft or Active state)
       operationId: unlinkEServicesFromPurposeTemplate
       tags:
-        - purposeTemplate
+        - purposeTemplates
       requestBody:
         content:
           application/json:
@@ -14109,7 +14109,7 @@ paths:
           maximum: 50
     get:
       tags:
-        - purposeTemplate
+        - purposeTemplates
       summary: Get Purpose Template E-Services
       operationId: getPurposeTemplateEServices
       description: Retrieve e-services linked to a purpose template
@@ -14185,7 +14185,7 @@ paths:
       description: Suspends a purpose template by id (from Active State to Suspended State)
       operationId: suspendPurposeTemplate
       tags:
-        - purposeTemplate
+        - purposeTemplates
       responses:
         "204":
           description: Purpose Template Suspended
@@ -14274,7 +14274,7 @@ paths:
       description: Unsuspends a purpose template by id (from Suspended State to Active State)
       operationId: unsuspendPurposeTemplate
       tags:
-        - purposeTemplate
+        - purposeTemplates
       responses:
         "204":
           description: Purpose Template Unsuspended
@@ -14363,7 +14363,7 @@ paths:
       description: Archives a purpose template by id (from Suspended State to Archived State)
       operationId: archivePurposeTemplate
       tags:
-        - purposeTemplate
+        - purposeTemplates
       responses:
         "204":
           description: Purpose Template Archived
@@ -14449,7 +14449,7 @@ paths:
       description: Publishes a purpose template by id (from Draft State to Active State)
       operationId: publishPurposeTemplate
       tags:
-        - purposeTemplate
+        - purposeTemplates
       responses:
         "204":
           description: Purpose Template Published
@@ -14535,7 +14535,7 @@ paths:
           format: uuid
     post:
       tags:
-        - purposeTemplate
+        - purposeTemplates
       summary: Add a risk analysis answer for a purpose template
       operationId: addRiskAnalysisAnswerForPurposeTemplate
       description: Add a new risk analysis answer for the specified purpose template risk analysis.
@@ -14617,7 +14617,7 @@ paths:
       description: Add Answer Annotation Document to Risk Analysis of Purpose Template
       operationId: addRiskAnalysisTemplateAnswerAnnotationDocument
       tags:
-        - purposeTemplate
+        - purposeTemplates
       requestBody:
         required: true
         description: Annotation Document
@@ -14719,7 +14719,7 @@ paths:
           format: uuid
     get:
       tags:
-        - purposeTemplate
+        - purposeTemplates
       summary: Get risk analysis form template answer annotation document
       operationId: getRiskAnalysisTemplateAnswerAnnotationDocument
       description: Retrieve a risk analysis form template answer annotation document
@@ -14791,7 +14791,7 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"                
     delete:
       tags:
-        - purposeTemplate
+        - purposeTemplates
       summary: Delete risk analysis form template answer annotation document
       operationId: deleteRiskAnalysisTemplateAnswerAnnotationDocument
       description: Delete a risk analysis form template answer annotation document
@@ -14886,7 +14886,7 @@ paths:
           format: uuid
     put:
       tags:
-        - purposeTemplate
+        - purposeTemplates
       summary: Add a risk analysis answer annotation
       operationId: addRiskAnalysisAnswerAnnotationForPurposeTemplate
       description: Add a risk analysis answer annotation. Only the text is impacted, the docs are not impacted.
@@ -14964,7 +14964,7 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"                
     delete:
       tags:
-        - purposeTemplate
+        - purposeTemplates
       summary: Delete risk analysis form template answer annotation
       operationId: deleteRiskAnalysisTemplateAnswerAnnotation
       description: Delete a risk analysis form template answer annotation and the related files
