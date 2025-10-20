@@ -46,14 +46,6 @@ export async function handleEServiceTemplateVersionPublished(
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
 
-  const [htmlTemplate, creator, eservices] = await Promise.all([
-    retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceTemplateVersionPublishedMailTemplate
-    ),
-    retrieveTenant(eserviceTemplate.creatorId, readModelService),
-    readModelService.getEServicesByTemplateId(eserviceTemplate.id),
-  ]);
-
   const eserviceTemplateVersion = eserviceTemplate.versions.find(
     (version) => version.id === eserviceTemplateVersionId
   );
@@ -64,6 +56,14 @@ export async function handleEServiceTemplateVersionPublished(
     );
     return [];
   }
+
+  const [htmlTemplate, creator, eservices] = await Promise.all([
+    retrieveHTMLTemplate(
+      eventMailTemplateType.eserviceTemplateVersionPublishedMailTemplate
+    ),
+    retrieveTenant(eserviceTemplate.creatorId, readModelService),
+    readModelService.getEServicesByTemplateId(eserviceTemplate.id),
+  ]);
 
   const instantiatorEserviceMap = Object.fromEntries(
     eservices.reduce<Map<TenantId, EService[]>>((acc, eservice) => {
