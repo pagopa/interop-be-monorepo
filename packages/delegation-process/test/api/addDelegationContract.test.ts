@@ -34,7 +34,7 @@ const mockDelegationContract: DelegationContractDocument = {
   createdAt: new Date(),
 };
 
-describe("API POST /delegations/:delegationId/contract test", () => {
+describe("API POST /internal/delegations/:delegationId/contract test", () => {
   const mockDelegation: Delegation = getMockDelegation({
     kind: delegationKind.delegatedProducer,
   });
@@ -55,15 +55,12 @@ describe("API POST /delegations/:delegationId/contract test", () => {
     payload: DelegationContractDocument = mockDelegationContract
   ) =>
     request(api)
-      .post(`/delegations/${delegationId}/contract`)
+      .post(`/internal/delegations/${delegationId}/contract`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(payload);
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.ADMIN_ROLE,
-    authRole.M2M_ADMIN_ROLE,
-  ];
+  const authorizedRoles: AuthRole[] = [authRole.INTERNAL_ROLE];
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s on successful contract add",
@@ -117,20 +114,20 @@ describe("API POST /delegations/:delegationId/contract test", () => {
       delegationService.addDelegationContract = vi
         .fn()
         .mockRejectedValue(error);
-      const token = generateToken(authRole.ADMIN_ROLE);
+      const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
     }
   );
 
   it("Should return 400 if passed an invalid delegation id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token, "invalid" as DelegationId);
     expect(res.status).toBe(400);
   });
 
   it("Should return 400 if passed an invalid contract document payload", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const invalidPayload = {
       id: generateId(),
       contentType: "application/pdf",
