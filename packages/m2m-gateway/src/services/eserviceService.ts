@@ -1,9 +1,14 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
-import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  attributeRegistryApi,
+  catalogApi,
+  m2mGatewayApi,
+} from "pagopa-interop-api-clients";
 import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  ListResult,
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -20,6 +25,7 @@ import {
 } from "../api/eserviceApiConverter.js";
 import {
   cannotDeleteLastEServiceDescriptor,
+  eserviceDescriptorAttributeNotFound,
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
@@ -34,6 +40,11 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
+import {
+  toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiDeclaredAttribute,
+  toM2MGatewayApiVerifiedAttribute,
+} from "../api/attributeApiConverter.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -82,6 +93,83 @@ export function eserviceServiceBuilder(
 
     return riskAnalysis;
   };
+
+  // eslint-disable-next-line max-params
+  async function retrieveEServiceDescriptorAttributes(
+    eservice: WithMaybeMetadata<catalogApi.EService>,
+    descriptorId: DescriptorId,
+    attributeKind: keyof catalogApi.Attributes,
+    { offset, limit }: { offset: number; limit: number },
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<
+    ListResult<{
+      attribute: attributeRegistryApi.Attribute;
+      groupIndex: number;
+    }>
+  > {
+    const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
+    const kindAttributeGroups = descriptor.attributes[attributeKind];
+    const allFlatKindAttributes: Array<{
+      attributeId: string;
+      groupIndex: number;
+    }> = kindAttributeGroups.flatMap((group, groupIndex) =>
+      group.map((attribute) => ({
+        attributeId: attribute.id,
+        groupIndex,
+      }))
+    );
+
+    const paginatedFlatKindAttributes = allFlatKindAttributes.slice(
+      offset,
+      offset + limit
+    );
+
+    const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
+      paginatedFlatKindAttributes.map((item) => item.attributeId);
+
+    if (attributeIdsToResolve.length === 0) {
+      return {
+        results: [],
+        totalCount: attributeIdsToResolve.length,
+      };
+    }
+
+    // Resolve the complete details only for the attributes needed on the page.
+    const bulkResult = await clients.attributeProcessClient.getBulkedAttributes(
+      attributeIdsToResolve,
+      {
+        headers,
+        queries: {
+          offset,
+          limit,
+        },
+      }
+    );
+
+    // Convert the result array into a Map for efficient lookup
+    const attributeMap: Map<string, attributeRegistryApi.Attribute> = new Map(
+      bulkResult.data.results.map((attr) => [attr.id, attr])
+    );
+
+    // Recombination: Map the paginated flat list with the resolved complete details
+    const attributesToReturn = paginatedFlatKindAttributes.map((item) => {
+      const attributeDetailed = attributeMap.get(item.attributeId);
+
+      if (!attributeDetailed) {
+        throw eserviceDescriptorAttributeNotFound(descriptorId);
+      }
+
+      return {
+        attribute: attributeDetailed,
+        groupIndex: item.groupIndex,
+      };
+    });
+
+    return {
+      results: attributesToReturn,
+      totalCount: allFlatKindAttributes.length,
+    };
+  }
 
   const pollEserviceUntilDeletion = (
     eserviceId: string,
@@ -883,6 +971,108 @@ export function eserviceServiceBuilder(
         });
 
       await pollEServiceById(eserviceId, metadata, headers);
+    },
+
+    async getEserviceDescriptorCertifiedAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { limit, offset }: m2mGatewayApi.GetCertifiedAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorCertifiedAttributes> {
+      logger.info(
+        `Retrieving Certified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      const eserviceAttributes = await retrieveEServiceDescriptorAttributes(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId,
+        "certified",
+        { offset, limit },
+        headers
+      );
+
+      return {
+        results: eserviceAttributes.results.map((item) => ({
+          groupIndex: item.groupIndex,
+          attribute: toM2MGatewayApiCertifiedAttribute({
+            attribute: item.attribute,
+            logger,
+          }),
+        })),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceAttributes.totalCount,
+        },
+      };
+    },
+
+    async getEserviceDescriptorDeclaredAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { limit, offset }: m2mGatewayApi.GetDeclaredAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorDeclaredAttributes> {
+      logger.info(
+        `Retrieving Declared Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      const eserviceAttributes = await retrieveEServiceDescriptorAttributes(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId,
+        "declared",
+        { offset, limit },
+        headers
+      );
+
+      return {
+        results: eserviceAttributes.results.map((item) => ({
+          groupIndex: item.groupIndex,
+          attribute: toM2MGatewayApiDeclaredAttribute({
+            attribute: item.attribute,
+            logger,
+          }),
+        })),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceAttributes.totalCount,
+        },
+      };
+    },
+
+    async getEserviceDescriptorVerifiedAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { limit, offset }: m2mGatewayApi.GetVerifiedAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptorVerifiedAttributes> {
+      logger.info(
+        `Retrieving Verified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      const eserviceAttributes = await retrieveEServiceDescriptorAttributes(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId,
+        "verified",
+        { offset, limit },
+        headers
+      );
+
+      return {
+        results: eserviceAttributes.results.map((item) => ({
+          groupIndex: item.groupIndex,
+          attribute: toM2MGatewayApiVerifiedAttribute({
+            attribute: item.attribute,
+            logger,
+          }),
+        })),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceAttributes.totalCount,
+        },
+      };
     },
   };
 }
