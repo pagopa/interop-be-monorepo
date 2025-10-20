@@ -82,15 +82,16 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/declaredAttri
   ];
 
   const mockM2MEserviceTemplateVersionDeclaredAttributesResponse: m2mGatewayApi.EServiceTemplateVersionDeclaredAttributes =
-  {
-    pagination: { offset: 0, limit: 10, totalCount: 3 },
-    results,
-  };
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 3 },
+      results,
+    };
 
-  const mockQueryParams: m2mGatewayApi.GetEServiceTemplateVersionDeclaredAttributesQueryParams = {
-    offset: 0,
-    limit: 10,
-  };
+  const mockQueryParams: m2mGatewayApi.GetEServiceTemplateVersionDeclaredAttributesQueryParams =
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   mockEServiceTemplateService.getEserviceTemplateVersionDeclaredAttributes = vi
     .fn()

@@ -793,7 +793,10 @@ export function eserviceTemplateServiceBuilder(
     async getEserviceTemplateVersionCertifiedAttributes(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      { limit, offset }: m2mGatewayApi.GetEServiceTemplateVersionCertifiedAttributesQueryParams,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApi.GetEServiceTemplateVersionCertifiedAttributesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersionCertifiedAttributes> {
       logger.info(
@@ -828,7 +831,10 @@ export function eserviceTemplateServiceBuilder(
     async getEserviceTemplateVersionDeclaredAttributes(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      { limit, offset }: m2mGatewayApi.GetEServiceTemplateVersionDeclaredAttributesQueryParams,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApi.GetEServiceTemplateVersionDeclaredAttributesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersionDeclaredAttributes> {
       logger.info(
@@ -863,7 +869,10 @@ export function eserviceTemplateServiceBuilder(
     async getEserviceTemplateVersionVerifiedAttributes(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      { limit, offset }: m2mGatewayApi.GetEServiceTemplateVersionVerifiedAttributesQueryParams,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApi.GetEServiceTemplateVersionVerifiedAttributesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersionVerifiedAttributes> {
       logger.info(

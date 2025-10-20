@@ -88,15 +88,16 @@ describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/certifiedAttr
   ];
 
   const mockM2MEserviceTemplateVersionCertifiedAttributesResponse: m2mGatewayApi.EServiceTemplateVersionCertifiedAttributes =
-  {
-    pagination: { offset: 0, limit: 10, totalCount: 3 },
-    results,
-  };
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 3 },
+      results,
+    };
 
-  const mockQueryParams: m2mGatewayApi.GetEServiceTemplateVersionCertifiedAttributesQueryParams = {
-    offset: 0,
-    limit: 10,
-  };
+  const mockQueryParams: m2mGatewayApi.GetEServiceTemplateVersionCertifiedAttributesQueryParams =
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   mockEServiceTemplateService.getEserviceTemplateVersionCertifiedAttributes = vi
     .fn()
