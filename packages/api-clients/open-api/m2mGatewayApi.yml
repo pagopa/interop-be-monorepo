@@ -17464,6 +17464,20 @@ components:
         - prettyName
         - path
         - createdAt
+    EServiceDescriptorsPurposeTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorPurposeTemplate"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     EServiceDescriptorPurposeTemplate:
       type: object
       additionalProperties: false
