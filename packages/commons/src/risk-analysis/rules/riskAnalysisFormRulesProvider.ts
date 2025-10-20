@@ -11,6 +11,7 @@ import { pa3 } from "./PA/3.0.js";
 import { private1 } from "./PRIVATE/1.0.js";
 import { private2 } from "./PRIVATE/2.0.js";
 import { RiskAnalysisFormRules } from "./riskAnalysisFormRules.js";
+import { pa31 } from "./PA/3.1.js";
 
 export const formRules = {
   PA_1_0: "PA-1.0",
@@ -44,7 +45,7 @@ function getFormRules(ruleset: FormRules): RiskAnalysisFormRules {
       .with(formRules.PA_1_0, () => pa1)
       .with(formRules.PA_2_0, () => pa2)
       .with(formRules.PA_3_0, () => pa3)
-      .with(formRules.PA_3_1, () => pa3) // TODO replace with pa31
+      .with(formRules.PA_3_1, () => pa31) // TODO replace with pa31
       .with(formRules.PRIVATE_1_0, () => private1)
       .with(formRules.PRIVATE_2_0, () => private2)
       .exhaustive()
@@ -55,8 +56,12 @@ export const riskAnalysisFormRules: Record<
   TenantKind,
   RiskAnalysisFormRules[]
 > = {
-  // TODO add PA 3.1
-  PA: [getFormRules("PA-1.0"), getFormRules("PA-2.0"), getFormRules("PA-3.0")],
+  PA: [
+    getFormRules("PA-1.0"),
+    getFormRules("PA-2.0"),
+    getFormRules("PA-3.0"),
+    getFormRules("PA-3.1"),
+  ],
   PRIVATE: [getFormRules("PRIVATE-1.0"), getFormRules("PRIVATE-2.0")],
   GSP: [getFormRules("PRIVATE-1.0"), getFormRules("PRIVATE-2.0")],
   SCP: [getFormRules("PRIVATE-1.0"), getFormRules("PRIVATE-2.0")],

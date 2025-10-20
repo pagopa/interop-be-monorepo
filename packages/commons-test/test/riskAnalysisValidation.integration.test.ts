@@ -18,11 +18,15 @@ import {
   expiredRiskAnalysis2_0_Pa,
   validRiskAnalysis2_0_Private,
   validRiskAnalysis3_0_Pa,
+  validRiskAnalysis3_1_Pa,
+  validRiskAnalysis3_1_Pa_no_personal_data,
   validSchemaOnlyRiskAnalysis2_0_Private,
   validSchemaOnlyRiskAnalysis3_0_Pa,
   validatedRiskAnalysis2_0_Pa_Expired,
   validatedRiskAnalysis2_0_Private,
   validatedRiskAnalysis3_0_Pa,
+  validatedRiskAnalysis3_1_Pa,
+  validatedRiskAnalysis3_1_Pa_no_personal_data,
 } from "../src/riskAnalysisTestUtils.js";
 
 describe("Risk Analysis Validation", () => {
@@ -552,7 +556,6 @@ describe("Risk Analysis Validation", () => {
     }
   );
 
-  /*
   it("should fail if the risk analysis is PA 3.1 and the eservice has different personalData", () => {
     const riskAnalysisForm: RiskAnalysisFormToValidate = {
       ...validRiskAnalysis3_1_Pa,
@@ -590,13 +593,10 @@ describe("Risk Analysis Validation", () => {
   ])(
     "should succeed if the risk analysis is PA 3.1 and the eservice has consistent personalData flag",
     ({ personalDataInEService, usesPersonalData }) => {
-      const riskAnalysisForm: RiskAnalysisFormToValidate = {
-        ...validRiskAnalysis3_1_Pa,
-        answers: {
-          ...validRiskAnalysis3_1_Pa.answers,
-          usesPersonalData: [usesPersonalData],
-        },
-      };
+      const riskAnalysisForm: RiskAnalysisFormToValidate =
+        usesPersonalData === "YES"
+          ? validRiskAnalysis3_1_Pa
+          : validRiskAnalysis3_1_Pa_no_personal_data;
       expect(
         validateRiskAnalysis(
           riskAnalysisForm,
@@ -607,9 +607,11 @@ describe("Risk Analysis Validation", () => {
         )
       ).toEqual({
         type: "valid",
-        value: validatedRiskAnalysis3_1_Pa,
+        value:
+          usesPersonalData === "YES"
+            ? validatedRiskAnalysis3_1_Pa
+            : validatedRiskAnalysis3_1_Pa_no_personal_data,
       });
     }
   );
-  */
 });
