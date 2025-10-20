@@ -70,9 +70,9 @@ describe("getPurposeTemplates", async () => {
     targetTenantKind: tenantKind.SCP,
   };
 
-  const activePurposeTemplateByCreator2: PurposeTemplate = {
+  const publishedPurposeTemplateByCreator2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
-    purposeTitle: "Active Purpose Template 2",
+    purposeTitle: "Published Purpose Template 2",
     state: purposeTemplateState.published,
     creatorId: creatorId2,
     targetTenantKind: tenantKind.PA,
@@ -126,7 +126,7 @@ describe("getPurposeTemplates", async () => {
     await addOnePurposeTemplate(draftPurposeTemplateByCreator1);
     await addOnePurposeTemplate(suspendedPurposeTemplateByCreator1);
     await addOnePurposeTemplate(archivedPurposeTemplateByCreator1);
-    await addOnePurposeTemplate(activePurposeTemplateByCreator2);
+    await addOnePurposeTemplate(publishedPurposeTemplateByCreator2);
     await addOnePurposeTemplate(draftPurposeTemplateByCreator2);
     await addOnePurposeTemplate(suspendedPurposeTemplateByCreator2);
     await addOnePurposeTemplate(archivedPurposeTemplateByCreator2);
@@ -157,7 +157,7 @@ describe("getPurposeTemplates", async () => {
 
     expectSinglePageListResult(allPurposeTemplates, [
       publishedPurposeTemplateByCreator1,
-      activePurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator2,
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
@@ -199,7 +199,7 @@ describe("getPurposeTemplates", async () => {
 
     expectSinglePageListResult(result, [
       publishedPurposeTemplateByCreator1,
-      activePurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator2,
     ]);
   });
 
@@ -266,7 +266,7 @@ describe("getPurposeTemplates", async () => {
     );
     expectSinglePageListResult(result, [
       publishedPurposeTemplateByCreator1,
-      activePurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
       draftPurposeTemplateByCreator2,
     ]);
@@ -286,7 +286,7 @@ describe("getPurposeTemplates", async () => {
     );
     expectSinglePageListResult(result2, [
       publishedPurposeTemplateByCreator1,
-      activePurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator2,
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       suspendedPurposeTemplateByCreator1,
@@ -327,7 +327,7 @@ describe("getPurposeTemplates", async () => {
     );
     expectSinglePageListResult(result, [
       publishedPurposeTemplateByCreator1,
-      activePurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator2,
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
@@ -373,7 +373,7 @@ describe("getPurposeTemplates", async () => {
     );
     expectSinglePageListResult(result, [
       publishedPurposeTemplateByCreator1,
-      activePurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator2,
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
@@ -428,7 +428,7 @@ describe("getPurposeTemplates", async () => {
       totalCount: 8,
       results: [
         publishedPurposeTemplateByCreator1,
-        activePurposeTemplateByCreator2,
+        publishedPurposeTemplateByCreator2,
       ].map(sortPurposeTemplate),
     });
   });

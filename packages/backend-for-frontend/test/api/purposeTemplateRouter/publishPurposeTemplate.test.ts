@@ -9,14 +9,14 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { getMockBffApiPurposeTemplate } from "../../mockUtils.js";
 
 describe("API POST /purposeTemplates/{purposeTemplateId}/publish", () => {
-  const mockActivePurposeTemplate = getMockBffApiPurposeTemplate(
+  const mockPublishedPurposeTemplate = getMockBffApiPurposeTemplate(
     bffApi.PurposeTemplateState.Enum.PUBLISHED
   );
 
   beforeEach(() => {
     clients.purposeTemplateProcessClient.publishPurposeTemplate = vi
       .fn()
-      .mockResolvedValue(mockActivePurposeTemplate);
+      .mockResolvedValue(mockPublishedPurposeTemplate);
   });
 
   const makeRequest = async (
@@ -30,9 +30,9 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/publish", () => {
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockActivePurposeTemplate.id);
+    const res = await makeRequest(token, mockPublishedPurposeTemplate.id);
     expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockActivePurposeTemplate);
+    expect(res.body).toEqual(mockPublishedPurposeTemplate);
   });
 
   it("Should return 400 for invalid purpose template id", async () => {
