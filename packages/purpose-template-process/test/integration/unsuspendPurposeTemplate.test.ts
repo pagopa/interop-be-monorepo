@@ -12,7 +12,7 @@ import {
   TenantId,
   PurposeTemplate,
   purposeTemplateState,
-  PurposeTemplatePublishedV2,
+  PurposeTemplateUnsuspendedV2,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -33,7 +33,7 @@ import {
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("publishPurposeTemplate", () => {
+describe("unsuspendPurposeTemplate", () => {
   const creatorId = generateId<TenantId>();
   const riskAnalysisFormTemplate = getMockCompleteRiskAnalysisFormTemplate();
 
@@ -43,7 +43,7 @@ describe("publishPurposeTemplate", () => {
     purposeRiskAnalysisForm: riskAnalysisFormTemplate,
     purposeFreeOfChargeReason: "Free of charge reason",
     purposeDailyCalls: 100,
-    state: purposeTemplateState.draft,
+    state: purposeTemplateState.suspended,
     creatorId,
   };
 
@@ -56,22 +56,26 @@ describe("publishPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  it("should write on event-store for the publishing of a purpose template in draft state", async () => {
-    await addOnePurposeTemplate(purposeTemplate);
+  it("should write on event-store for the unsuspending of a purpose template in suspended state", async () => {
+    const metadataVersion = 1;
+    await addOnePurposeTemplate(purposeTemplate, metadataVersion);
 
-    const publishResponse = await purposeTemplateService.publishPurposeTemplate(
-      purposeTemplate.id,
-      getMockContext({ authData: getMockAuthData(creatorId) })
-    );
+    const unsuspendResponse =
+      await purposeTemplateService.unsuspendPurposeTemplate(
+        purposeTemplate.id,
+        getMockContext({ authData: getMockAuthData(creatorId) })
+      );
 
-    const updatedPurposeTemplate = publishResponse.data;
+    const updatedPurposeTemplate = unsuspendResponse.data;
 
     const writtenEvent = await readLastPurposeTemplateEvent(purposeTemplate.id);
 
+    const expectedMetadataVersion = metadataVersion + 1;
+
     expect(writtenEvent).toMatchObject({
       stream_id: purposeTemplate.id,
-      version: "1",
-      type: "PurposeTemplatePublished",
+      version: String(expectedMetadataVersion),
+      type: "PurposeTemplateUnsuspended",
       event_version: 2,
     });
 
@@ -82,16 +86,16 @@ describe("publishPurposeTemplate", () => {
     };
 
     const writtenPayload = decodeProtobufPayload({
-      messageType: PurposeTemplatePublishedV2,
+      messageType: PurposeTemplateUnsuspendedV2,
       payload: writtenEvent.data,
     });
 
     expect(sortPurposeTemplate(writtenPayload.purposeTemplate)).toEqual(
       sortPurposeTemplate(toPurposeTemplateV2(expectedPurposeTemplate))
     );
-    expect(publishResponse).toMatchObject({
+    expect(unsuspendResponse).toMatchObject({
       data: updatedPurposeTemplate,
-      metadata: { version: 1 },
+      metadata: { version: expectedMetadataVersion },
     });
   });
 
@@ -101,14 +105,14 @@ describe("publishPurposeTemplate", () => {
     const otherTenantId = generateId<TenantId>();
 
     await expect(async () => {
-      await purposeTemplateService.publishPurposeTemplate(
+      await purposeTemplateService.unsuspendPurposeTemplate(
         purposeTemplate.id,
         getMockContext({ authData: getMockAuthData(otherTenantId) })
       );
     }).rejects.toThrowError(tenantNotAllowed(otherTenantId));
   });
 
-  it("should throw purposeTemplateRiskAnalysisFormNotFound if the purpose template has no risk analysis template", async () => {
+  it("should throw missingRiskAnalysisFormTemplate if the purpose template has no risk analysis template", async () => {
     const purposeTemplateWithoutRiskAnalysis: PurposeTemplate = {
       ...purposeTemplate,
       purposeRiskAnalysisForm: undefined,
@@ -117,7 +121,7 @@ describe("publishPurposeTemplate", () => {
     await addOnePurposeTemplate(purposeTemplateWithoutRiskAnalysis);
 
     await expect(async () => {
-      await purposeTemplateService.publishPurposeTemplate(
+      await purposeTemplateService.unsuspendPurposeTemplate(
         purposeTemplateWithoutRiskAnalysis.id,
         getMockContext({ authData: getMockAuthData(creatorId) })
       );
@@ -156,7 +160,7 @@ describe("publishPurposeTemplate", () => {
     );
 
     await expect(async () => {
-      await purposeTemplateService.publishPurposeTemplate(
+      await purposeTemplateService.unsuspendPurposeTemplate(
         purposeTemplateWithInvalidRiskAnalysis.id,
         getMockContext({ authData: getMockAuthData(creatorId) })
       );
@@ -179,17 +183,17 @@ describe("publishPurposeTemplate", () => {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplate.id,
         purposeTemplateState.archived,
-        [purposeTemplateState.draft]
+        [purposeTemplateState.suspended]
       ),
       state: purposeTemplateState.archived,
     },
     {
       error: purposeTemplateNotInExpectedStates(
         purposeTemplate.id,
-        purposeTemplateState.suspended,
-        [purposeTemplateState.draft]
+        purposeTemplateState.draft,
+        [purposeTemplateState.suspended]
       ),
-      state: purposeTemplateState.suspended,
+      state: purposeTemplateState.draft,
     },
   ])(
     `should throw $error.code if the purpose template is in $state state`,
@@ -202,7 +206,7 @@ describe("publishPurposeTemplate", () => {
       await addOnePurposeTemplate(purposeTemplateWithUnexpectedState);
 
       await expect(async () => {
-        await purposeTemplateService.publishPurposeTemplate(
+        await purposeTemplateService.unsuspendPurposeTemplate(
           purposeTemplateWithUnexpectedState.id,
           getMockContext({ authData: getMockAuthData(creatorId) })
         );
