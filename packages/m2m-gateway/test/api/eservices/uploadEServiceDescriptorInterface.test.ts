@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -16,6 +16,15 @@ import {
 import { config } from "../../../src/config/config.js";
 
 describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router test", () => {
+  const mockDate = new Date();
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(mockDate);
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   const mockFileUpload = {
     fileContent: Buffer.from("test content"),
     filename: "test_document.yaml",
@@ -72,7 +81,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
         eserviceId,
         descriptorId,
         {
-          file: fileFromTestMultipartFileUpload(mockFileUpload),
+          file: fileFromTestMultipartFileUpload(mockFileUpload, mockDate),
           prettyName: mockFileUpload.prettyName,
         },
         expect.any(Object) // Context object
