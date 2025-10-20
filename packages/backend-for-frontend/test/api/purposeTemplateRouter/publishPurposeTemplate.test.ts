@@ -10,7 +10,7 @@ import { getMockBffApiPurposeTemplate } from "../../mockUtils.js";
 
 describe("API POST /purposeTemplates/{purposeTemplateId}/publish", () => {
   const mockActivePurposeTemplate = getMockBffApiPurposeTemplate(
-    bffApi.PurposeTemplateState.Enum.ACTIVE
+    bffApi.PurposeTemplateState.Enum.PUBLISHED
   );
 
   beforeEach(() => {

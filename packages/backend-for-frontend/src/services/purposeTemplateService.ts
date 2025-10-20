@@ -201,7 +201,7 @@ export function purposeTemplateServiceBuilder(
             targetTenantKind,
             creatorIds,
             eserviceIds,
-            states: [purposeTemplateApi.PurposeTemplateState.Enum.ACTIVE],
+            states: [purposeTemplateApi.PurposeTemplateState.Enum.PUBLISHED],
             excludeExpiredRiskAnalysis,
             limit,
             offset,

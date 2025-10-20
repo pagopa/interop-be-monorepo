@@ -36,7 +36,7 @@ describe("API GET /purposeTemplates", () => {
     purposeTitle: "Mock title",
     eserviceIds: generateId(),
     creatorIds: `${generateId()},${generateId()}`,
-    states: "ACTIVE,DRAFT",
+    states: `${purposeTemplateApi.PurposeTemplateState.Enum.PUBLISHED},${purposeTemplateApi.PurposeTemplateState.Enum.DRAFT}`,
     excludeExpiredRiskAnalysis: false,
     targetTenantKind: tenantKind.PA,
   };
@@ -107,7 +107,12 @@ describe("API GET /purposeTemplates", () => {
     { query: { offset: 0, limit: "invalid" } },
     { query: { ...defaultQuery, eserviceIds: `${generateId()},invalid` } },
     { query: { ...defaultQuery, creatorIds: `${generateId()},invalid` } },
-    { query: { ...defaultQuery, states: "ACTIVE,invalid" } },
+    {
+      query: {
+        ...defaultQuery,
+        states: `${purposeTemplateApi.PurposeTemplateState.Enum.PUBLISHED},invalid`,
+      },
+    },
     { query: { ...defaultQuery, targetTenantKind: "invalid" } },
     { query: { ...defaultQuery, excludeExpiredRiskAnalysis: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {

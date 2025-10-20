@@ -40,20 +40,20 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
 
   const purposeTemplate1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
-    purposeTitle: "Active Purpose Template 1 - test",
-    state: purposeTemplateState.active,
+    purposeTitle: "Published Purpose Template 1 - test",
+    state: purposeTemplateState.published,
     creatorId,
   };
   const purposeTemplate2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
-    purposeTitle: "Active Purpose Template 2 - test",
-    state: purposeTemplateState.active,
+    purposeTitle: "Published Purpose Template 2 - test",
+    state: purposeTemplateState.published,
     creatorId,
   };
   const purposeTemplate3: PurposeTemplate = {
     ...getMockPurposeTemplate(),
-    purposeTitle: "Active Purpose Template 3 - test",
-    state: purposeTemplateState.active,
+    purposeTitle: "Published Purpose Template 3 - test",
+    state: purposeTemplateState.published,
     creatorId,
   };
 

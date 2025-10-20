@@ -267,17 +267,17 @@ describe("updatePurposeTemplate", () => {
   });
 
   it("Should throw a purposeTemplateNotInDraftState error if purpose template is not in draft state", async () => {
-    const purposeTemplateInActiveState: PurposeTemplate = {
+    const purposeTemplateInPublishedState: PurposeTemplate = {
       ...existingPurposeTemplate,
-      state: purposeTemplateState.active,
+      state: purposeTemplateState.published,
     };
 
     await addOneTenant(creator);
-    await addOnePurposeTemplate(purposeTemplateInActiveState);
+    await addOnePurposeTemplate(purposeTemplateInPublishedState);
 
     expect(
       purposeTemplateService.updatePurposeTemplate(
-        purposeTemplateInActiveState.id,
+        purposeTemplateInPublishedState.id,
         purposeTemplateSeed,
         getMockContext({
           authData: getMockAuthData(creatorId),
@@ -285,8 +285,8 @@ describe("updatePurposeTemplate", () => {
       )
     ).rejects.toThrowError(
       purposeTemplateNotInExpectedStates(
-        purposeTemplateInActiveState.id,
-        purposeTemplateInActiveState.state,
+        purposeTemplateInPublishedState.id,
+        purposeTemplateInPublishedState.state,
         [purposeTemplateState.draft]
       )
     );

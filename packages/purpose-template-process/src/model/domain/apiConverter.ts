@@ -18,10 +18,22 @@ export function purposeTemplateStateToApiPurposeTemplateState(
   return match<PurposeTemplateState, purposeTemplateApi.PurposeTemplateState>(
     input
   )
-    .with(purposeTemplateState.draft, () => "DRAFT")
-    .with(purposeTemplateState.active, () => "ACTIVE")
-    .with(purposeTemplateState.suspended, () => "SUSPENDED")
-    .with(purposeTemplateState.archived, () => "ARCHIVED")
+    .with(
+      purposeTemplateState.draft,
+      () => purposeTemplateApi.PurposeTemplateState.Enum.DRAFT
+    )
+    .with(
+      purposeTemplateState.published,
+      () => purposeTemplateApi.PurposeTemplateState.Enum.PUBLISHED
+    )
+    .with(
+      purposeTemplateState.suspended,
+      () => purposeTemplateApi.PurposeTemplateState.Enum.SUSPENDED
+    )
+    .with(
+      purposeTemplateState.archived,
+      () => purposeTemplateApi.PurposeTemplateState.Enum.ARCHIVED
+    )
     .exhaustive();
 }
 
@@ -31,10 +43,22 @@ export function apiPurposeTemplateStateToPurposeTemplateState(
   return match<purposeTemplateApi.PurposeTemplateState, PurposeTemplateState>(
     state
   )
-    .with("DRAFT", () => purposeTemplateState.draft)
-    .with("ACTIVE", () => purposeTemplateState.active)
-    .with("SUSPENDED", () => purposeTemplateState.suspended)
-    .with("ARCHIVED", () => purposeTemplateState.archived)
+    .with(
+      purposeTemplateApi.PurposeTemplateState.Enum.DRAFT,
+      () => purposeTemplateState.draft
+    )
+    .with(
+      purposeTemplateApi.PurposeTemplateState.Enum.PUBLISHED,
+      () => purposeTemplateState.published
+    )
+    .with(
+      purposeTemplateApi.PurposeTemplateState.Enum.SUSPENDED,
+      () => purposeTemplateState.suspended
+    )
+    .with(
+      purposeTemplateApi.PurposeTemplateState.Enum.ARCHIVED,
+      () => purposeTemplateState.archived
+    )
     .exhaustive();
 }
 

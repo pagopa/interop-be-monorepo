@@ -1060,7 +1060,7 @@ components:
       type: string
       description: Purpose Template State
       enum:
-        - ACTIVE
+        - PUBLISHED
         - DRAFT
         - SUSPENDED
         - ARCHIVED
