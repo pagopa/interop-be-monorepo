@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
@@ -70,6 +71,7 @@ import {
   purposeCannotBeUpdated,
   purposeDelegationNotFound,
   purposeNotFound,
+  purposeNotInDraftState,
   purposeTemplateNotFound,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
@@ -161,6 +163,16 @@ const retrievePurposeVersion = (
   }
 
   return version;
+};
+
+const retrieveDraftPurposeVersion = (purpose: Purpose): PurposeVersion => {
+  const draftVersion = purpose.versions.find(
+    (v) => v.state === purposeVersionState.draft
+  );
+  if (draftVersion === undefined) {
+    throw purposeNotInDraftState(purpose.id);
+  }
+  return draftVersion;
 };
 
 const retrievePurposeVersionDocument = (
@@ -1754,6 +1766,96 @@ export function purposeServiceBuilder(
       return {
         data: purposeVersion,
         metadata: { version: event.newVersion },
+      };
+    },
+    async updateDraftPurposeCreatedByTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      purposeId: PurposeId,
+      purposeUpdateContent: purposeApi.PatchPurposeUpdateFromTemplateContent,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Purpose>> {
+      logger.info(
+        `Partial updating draft Purpose ${purposeId} created by Purpose template ${purposeTemplateId}`
+      );
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      assertPurposeIsDraft(purpose.data);
+
+      await verifyRequesterIsConsumerOrDelegateConsumer(
+        purpose.data.consumerId,
+        purpose.data.eserviceId,
+        authData,
+        readModelService
+      );
+
+      const purposeTemplate = await retrieveActivePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      const lastDraftVersion = retrieveDraftPurposeVersion(purpose.data);
+
+      if (purposeUpdateContent.title) {
+        await assertPurposeTitleIsNotDuplicated({
+          readModelService,
+          eserviceId: purpose.data.eserviceId,
+          consumerId: purpose.data.consumerId,
+          title: purposeUpdateContent.title,
+        });
+      }
+
+      const tenantKind = await retrieveTenantKind(
+        purpose.data.consumerId,
+        readModelService
+      );
+
+      assertValidPurposeTenantKind(
+        tenantKind,
+        purposeTemplate.targetTenantKind
+      );
+
+      const updatedRiskAnalysisForm = purposeUpdateContent.riskAnalysisForm
+        ? // TODO https://pagopa.atlassian.net/browse/PIN-7928: add handle personalDataInEService
+          validateRiskAnalysisAgainstTemplateOrThrow(
+            purposeTemplate,
+            purposeUpdateContent.riskAnalysisForm,
+            tenantKind,
+            purpose.data.createdAt
+          )
+        : undefined;
+
+      const updatedVersions = purposeUpdateContent.dailyCalls
+        ? replacePurposeVersion(purpose.data, {
+            ...lastDraftVersion,
+            dailyCalls: purposeUpdateContent.dailyCalls,
+            updatedAt: new Date(),
+          }).versions
+        : purpose.data.versions;
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        title: purposeUpdateContent.title ?? purpose.data.title,
+        versions: updatedVersions,
+        riskAnalysisForm: updatedRiskAnalysisForm
+          ? updatedRiskAnalysisForm
+          : purpose.data.riskAnalysisForm,
+        updatedAt: new Date(),
+      };
+
+      const event = toCreateEventDraftPurposeUpdated({
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
+      });
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: updatedPurpose,
+        metadata: { version: createdEvent.newVersion },
       };
     },
   };
