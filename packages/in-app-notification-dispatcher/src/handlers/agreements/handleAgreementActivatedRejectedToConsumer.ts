@@ -9,7 +9,6 @@ import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { retrieveTenant } from "../handlerCommons.js";
 import { retrieveEservice } from "../handlerCommons.js";
-
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 
 export async function handleAgreementActivatedRejectedToConsumer(

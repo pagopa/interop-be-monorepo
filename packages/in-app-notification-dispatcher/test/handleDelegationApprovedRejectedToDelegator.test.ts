@@ -26,7 +26,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
   const delegator = getMockTenant();
   const delegate = getMockTenant();
   const eserviceId = generateId<import("pagopa-interop-models").EServiceId>();
-  // Create a mock eService with the same eserviceId and required fields
+
   const eservice = {
     id: eserviceId,
     name: "Test EService",

@@ -325,21 +325,20 @@ export const inAppTemplates = {
   ): string =>
     `L'utente ${userId} ha rimosso la chiave ${kid} dal client ${clientName}. Assicurati che l'operatività non sia compromessa.`,
   clientKeyAddedToClientUsers: (clientName: string): string =>
-    `Ti informiamo che é stata aggiunta una nuova chiave al client ${clientName}.`,
+    `Ti informiamo che è stata aggiunta una nuova chiave al client ${clientName}.`,
   clientUserDeletedToClientUsers: (clientName: string): string =>
-    `Una chiave associata al client ${clientName} non é più considerata sicura, in quanto l'operatore che l'ha caricata non é più attivo. La chiave deve essere sostituita per garantire la sicurezza e l'operatività`,
+    `Una chiave associata al client ${clientName} non è più considerata sicura, in quanto l'operatore che l'ha caricata non è più attivo. La chiave deve essere sostituita per garantire la sicurezza e l'operatività`,
   producerKeychainKeyDeletedToClientUsers: (
     producerKeychainName: string,
-    userId: string,
-    kid: string
+    userId: string
   ): string =>
-    `L'utente ${userId} ha rimosso la chiave ${kid} di e-service dal client ${producerKeychainName}. Assicurati che l'operatività non sia compromessa.`,
+    `L'utente ${userId} ha rimosso una chiave di e-service dal client ${producerKeychainName}. Assicurati che l'operatività non sia compromessa.`,
   producerKeychainKeyAddedToClientUsers: (
     producerKeychainName: string
   ): string =>
-    `Ti informiamo che é stata aggiunta una nuova chiave e-service al client ${producerKeychainName}.`,
+    `Ti informiamo che è stata aggiunta una nuova chiave e-service al client ${producerKeychainName}.`,
   producerKeychainUserDeletedToClientUsers: (
     producerKeychainName: string
   ): string =>
-    `Una chiave associata al client ${producerKeychainName} non é più considerata sicura, in quanto l'operatore che l'ha caricata non é più attivo. La chiave deve essere sostituita per garantire la sicurezza e l'operatività`,
+    `Una chiave associata al client ${producerKeychainName} non è più considerata sicura, in quanto l'operatore che l'ha caricata non è più attivo. La chiave deve essere sostituita per garantire la sicurezza e l'operatività.`,
 };

@@ -177,7 +177,6 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
 
     expect(notifications).toHaveLength(consumerUsers.length);
 
-    // Use ts-pattern to select the correct template function
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const expectedBody = match(eventType)
       .with("AgreementActivated", () =>

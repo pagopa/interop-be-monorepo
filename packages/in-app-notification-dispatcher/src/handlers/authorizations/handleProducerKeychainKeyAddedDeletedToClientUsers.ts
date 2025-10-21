@@ -62,8 +62,7 @@ export async function handleProducerKeychainKeyAddedDeletedToClientUsers(
           tenantId,
           body: inAppTemplates.producerKeychainKeyDeletedToClientUsers(
             producerKeychain.name,
-            key.userId,
-            key.kid
+            key.userId
           ),
           notificationType:
             "producerKeychainKeyAddedDeletedToClientUsers" as const,

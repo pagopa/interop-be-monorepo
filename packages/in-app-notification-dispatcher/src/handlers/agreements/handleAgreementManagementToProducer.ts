@@ -1,4 +1,3 @@
-import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import {
   AgreementV2,
@@ -6,6 +5,7 @@ import {
   missingKafkaMessageDataError,
   NewNotification,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import { retrieveTenant, retrieveEservice } from "../handlerCommons.js";
