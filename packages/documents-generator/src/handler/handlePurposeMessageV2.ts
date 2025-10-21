@@ -12,6 +12,7 @@ import {
   getIpaCode,
   Logger,
   PDFGenerator,
+  RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import {
   retrieveEService,
@@ -24,11 +25,13 @@ import { riskAnalysisDocumentBuilder } from "../service/purpose/purposeContractB
 import { eServiceNotFound, tenantKindNotFound } from "../model/errors.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
 
+// eslint-disable-next-line max-params
 export async function handlePurposeMessageV2(
   decodedMessage: PurposeEventEnvelopeV2,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
+  _refreshableToken: RefreshableInteropToken,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
