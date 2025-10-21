@@ -357,6 +357,69 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/delegations/{delegationId}/contract:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of an unsigned contract document to the delegation
+      summary: Add unsigned contract metadata to delegation
+      tags:
+        - delegation
+      operationId: addUnsignedDelegationContractMetadata
+      requestBody:
+        description: The unsigned contract document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationContractDocument"
+      responses:
+        "200":
+          description: Contract metadata added successfully
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /consumer/delegations:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
