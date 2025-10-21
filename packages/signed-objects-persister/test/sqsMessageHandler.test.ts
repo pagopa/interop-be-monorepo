@@ -3,6 +3,7 @@ import { FileManager, SafeStorageService } from "pagopa-interop-commons";
 import { Message } from "@aws-sdk/client-sqs";
 import { SignatureServiceBuilder } from "pagopa-interop-commons";
 import { sqsMessageHandler } from "../src/handlers/sqsMessageHandler.js";
+import { config } from "../src/config/config.js";
 
 vi.mock("../src/config/config.js", () => ({
   config: {
@@ -13,12 +14,22 @@ vi.mock("../src/config/config.js", () => ({
 }));
 
 const mockFileManager: Partial<FileManager> = {
-  storeBytes: vi.fn(),
+  resumeOrStoreBytes: vi.fn(() =>
+    Promise.resolve("6e902b1c-7f55-4074-a036-749e75551f33")
+  ),
 };
 
 const mockDbService: SignatureServiceBuilder = {
   saveSignatureReference: vi.fn(),
-  readSignatureReference: vi.fn(),
+  readSignatureReference: vi.fn(() =>
+    Promise.resolve({
+      safeStorageId: "6e902b1c-7f55-4074-a036-749e75551f33",
+      fileKind: "RISK_ANALYSIS_DOCUMENT",
+      fileName: "multa.pdf",
+      correlationId: expect.any(String),
+      creationTimestamp: expect.any(Number),
+    })
+  ),
   deleteSignatureReference: vi.fn(),
 };
 
@@ -47,7 +58,7 @@ describe("sqsMessageHandler", () => {
       detail: {
         key: "test-file-key.pdf",
         versionId: "12345",
-        documentType: "INTEROP_LEGAL_FACTS",
+        documentType: "RISK_ANALYSIS_DOCUMENT",
         documentStatus: "SAVED",
         contentType: "application/pdf",
         checksum: "mock-checksum",
@@ -73,7 +84,9 @@ describe("sqsMessageHandler", () => {
     (mockSafeStorageService.downloadFileContent as Mock).mockResolvedValueOnce(
       mockFileContent
     );
-    (mockFileManager.storeBytes as Mock).mockResolvedValueOnce(mockS3Key);
+    (mockFileManager.resumeOrStoreBytes as Mock).mockResolvedValueOnce(
+      mockS3Key
+    );
     (mockDbService.deleteSignatureReference as Mock).mockResolvedValueOnce(
       void 0
     );
@@ -89,11 +102,11 @@ describe("sqsMessageHandler", () => {
       sqsMessageBody.detail.key
     );
 
-    expect(mockFileManager.storeBytes).toHaveBeenCalledWith(
+    expect(mockFileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       {
-        bucket: "test-bucket",
+        bucket: config.signedDocumentsBucket,
         path: "12345/2025/01/01",
-        name: "test-file-key.pdf",
+        name: "test-file-key-signed.pdf",
         content: mockFileContent,
       },
       expect.any(Object)
@@ -119,7 +132,7 @@ describe("sqsMessageHandler", () => {
     ).rejects.toThrow("Invalid SQS payload");
 
     expect(mockSafeStorageService.getFile).not.toHaveBeenCalled();
-    expect(mockFileManager.storeBytes).not.toHaveBeenCalled();
+    expect(mockFileManager.resumeOrStoreBytes).not.toHaveBeenCalled();
     expect(mockDbService.deleteSignatureReference).not.toHaveBeenCalled();
   });
 });

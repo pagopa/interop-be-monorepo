@@ -1,5 +1,6 @@
 import {
   FileManager,
+  formatError,
   logger,
   Logger,
   SafeStorageService,
@@ -7,11 +8,14 @@ import {
 import { Message } from "@aws-sdk/client-sqs";
 import { format } from "date-fns";
 import { SignatureServiceBuilder } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import {
   SqsSafeStorageBody,
   SqsSafeStorageBodySchema,
 } from "../models/sqsSafeStorageBody.js";
 import { config } from "../config/config.js";
+import { FILE_KIND_CONFIG } from "../utils/fileKind.config.js";
+import { insertSignedBeforeExtension } from "../utils/insertSignedBeforeExtension.js";
 
 async function processMessage(
   fileManager: FileManager,
@@ -22,6 +26,17 @@ async function processMessage(
 ): Promise<void> {
   try {
     const fileKey = message.detail.key;
+
+    const signature = await signatureService.readSignatureReference(message.id);
+    if (!signature) {
+      throw new Error(`Missing signature reference for message ${message.id}`);
+    }
+
+    const fileKind = signature.fileKind;
+    if (!(fileKind in FILE_KIND_CONFIG)) {
+      throw new Error(`Unknown fileKind: ${fileKind}`);
+    }
+
     const fileRef = await safeStorageService.getFile(fileKey);
 
     if (!fileRef.download?.url) {
@@ -35,29 +50,53 @@ async function processMessage(
       fileRef.download.url
     );
 
+    const configForKind =
+      FILE_KIND_CONFIG[fileKind as keyof typeof FILE_KIND_CONFIG];
+
     const clientShortCode = message.detail.client_short_code;
     const date = new Date(message.time);
     const datePath = format(date, "yyyy/MM/dd");
 
     const path = `${clientShortCode}/${datePath}`;
-    const fileName = fileKey;
+    const fileName = insertSignedBeforeExtension(fileKey);
 
-    const key = await fileManager.storeBytes(
+    const key = await fileManager.resumeOrStoreBytes(
       {
-        bucket: config.s3Bucket,
+        bucket: configForKind.bucket,
         path,
         name: fileName,
         content: fileContent,
       },
       logger
     );
-
     logger.info(`File successfully saved in S3 with key: ${key}`);
+
+    if (configForKind.process) {
+      // Se process non è null
+      // richiama l’endpoint del process corrispondente
+      // per aggiungere i metadata del documento firmato all’oggetto
+      const processEndpoint = await match(configForKind.process)
+        .with("riskAnalysis", async () => {
+          // return processService.getEndpointFor(fileKind);
+        })
+        .with("agreement", async () => {
+          // return processService.getEndpointFor(fileKind);
+        })
+        .with("delegation", async () => {
+          // return processService.getEndpointFor(fileKind);
+        })
+        .otherwise(
+          async () =>
+            // opzionale: caso di default
+            null
+        );
+      logger.info(processEndpoint);
+    }
 
     await signatureService.deleteSignatureReference(message.id);
     logger.info(`Record ${message.id} deleted from DynamoDB`);
   } catch (error) {
-    logger.error(`Error processing message: ${String(error)}`);
+    logger.error(`Error processing message: ${formatError(error)}`);
     throw error;
   }
 }
