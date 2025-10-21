@@ -89,9 +89,11 @@ export function addMultipartFileToSupertestRequest(
 }
 
 export function fileFromTestMultipartFileUpload(
-  file: TestMultipartFileUpload
+  file: TestMultipartFileUpload,
+  date = new Date()
 ): File {
   return new File([file.fileContent], file.filename, {
     type: file.contentType,
+    lastModified: date.getTime(),
   });
 }
