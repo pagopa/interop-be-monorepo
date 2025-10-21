@@ -12,7 +12,6 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
   TenantKind,
-  operationForbidden,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -39,7 +38,6 @@ import {
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
-  purposeTemplateStateNotDraft,
   riskAnalysisTemplateValidationFailed,
   tooManyEServicesForPurposeTemplate,
   associationBetweenEServiceAndPurposeTemplateDoesNotExist,
@@ -73,10 +71,6 @@ const isRequesterCreator = (
 const isPurposeTemplateActive = (
   currentPurposeTemplateState: PurposeTemplateState
 ): boolean => currentPurposeTemplateState === purposeTemplateState.active;
-
-const isPurposeTemplateArchived = (
-  currentPurposeTemplateState: PurposeTemplateState
-): boolean => currentPurposeTemplateState === purposeTemplateState.archived;
 
 const isPurposeTemplateDraft = (
   currentPurposeTemplateState: PurposeTemplateState
@@ -117,13 +111,6 @@ export const assertEServiceIdsCountIsBelowThreshold = (
       eserviceIdsSize,
       config.maxEServicesPerLinkRequest
     );
-  }
-};
-export const assertTemplateStateNotDraft = (
-  purposeTemplate: PurposeTemplate
-): void => {
-  if (purposeTemplate.state !== purposeTemplateState.draft) {
-    throw purposeTemplateStateNotDraft(purposeTemplate.id);
   }
 };
 
@@ -305,9 +292,10 @@ export const assertSuspendableState = (
   );
 };
 
-export const archivableInitialStates = Object.values(
-  purposeTemplateState
-).filter((state) => !isPurposeTemplateArchived(state));
+export const archivableInitialStates: PurposeTemplateState[] = [
+  purposeTemplateState.active,
+  purposeTemplateState.suspended,
+];
 export const assertArchivableState = (
   purposeTemplate: PurposeTemplate
 ): void => {
@@ -325,15 +313,6 @@ export function assertPurposeTemplateHasRiskAnalysisForm(
 } {
   if (!purposeTemplate.purposeRiskAnalysisForm) {
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
-  }
-}
-
-export function assertRequesterPurposeTemplateCreator(
-  creatorId: TenantId,
-  authData: UIAuthData | M2MAdminAuthData
-): void {
-  if (authData.organizationId !== creatorId) {
-    throw operationForbidden;
   }
 }
 
