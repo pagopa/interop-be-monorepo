@@ -83,7 +83,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
     expect(notifications).toEqual([]);
   });
 
-  it.only("should throw tenantNotFound when tenant is not found", async () => {
+  it("should throw tenantNotFound when tenant is not found", async () => {
     await addOneTenant(producerTenant);
     const consumerId = generateId<TenantId>();
     const agreement = getMockAgreement(
@@ -374,7 +374,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody: inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
         eservice.name,
-        eservice.descriptors[0].docs[0].prettyName,
+        "1",
         producerTenant.name
       ),
     },
@@ -390,7 +390,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
       expectedBody: inAppTemplates.eserviceDescriptorDocumentAddedToConsumer(
         eservice.name,
-        eservice.descriptors[0].docs[0].prettyName,
+        "1",
         producerTenant.name
       ),
     },
