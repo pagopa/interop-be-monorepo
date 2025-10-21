@@ -243,3 +243,14 @@ export function assertProducerKeychainVisibilityIsFull(
     throw unauthorizedError("Tenant is not the owner of the keychain");
   }
 }
+
+export function assertRequesterCanRetrieveUsers(
+  requesterId: TenantId,
+  tenantId: TenantId
+): void {
+  if (requesterId !== tenantId) {
+    throw unauthorizedError(
+      `Requester ${requesterId} cannot retrieve users for tenant ${tenantId}`
+    );
+  }
+}
