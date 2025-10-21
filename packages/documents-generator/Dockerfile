@@ -65,6 +65,10 @@ RUN chown -R app:app /app && chmod -R 700 /app
 
 COPY --from=build /out /app
 
+RUN chown -R app:app /app
+RUN chmod -R 700 /app
+USER app
+
 WORKDIR /app/packages/documents-generator
 EXPOSE 3000
 
