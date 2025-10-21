@@ -26156,6 +26156,8 @@ components:
         createdAt:
           type: string
           format: date-time
+        checksum:
+          type: string
       required:
         - id
         - name
@@ -26163,6 +26165,7 @@ components:
         - prettyName
         - path
         - createdAt
+        - checksum
     CompactUsers:
       type: array
       items:
