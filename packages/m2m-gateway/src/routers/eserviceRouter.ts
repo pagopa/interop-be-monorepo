@@ -20,6 +20,7 @@ import {
   deleteDraftEServiceDescriptorErrorMapper,
   getEServiceRiskAnalysisErrorMapper,
   getEServiceDescriptorAttributesErrorMapper,
+  createEServiceDescriptorAttributeGroupsErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -926,7 +927,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEServiceDescriptorAttributesErrorMapper,
+            createEServiceDescriptorAttributeGroupsErrorMapper,
             ctx,
             `Error creating certified attributes group for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
           );
@@ -951,7 +952,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEServiceDescriptorAttributesErrorMapper,
+            createEServiceDescriptorAttributeGroupsErrorMapper,
             ctx,
             `Error creating declared attributes group for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
           );
@@ -976,7 +977,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEServiceDescriptorAttributesErrorMapper,
+            createEServiceDescriptorAttributeGroupsErrorMapper,
             ctx,
             `Error creating verified attributes group for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
           );

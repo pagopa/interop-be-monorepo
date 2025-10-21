@@ -46,6 +46,7 @@ import {
   toM2MGatewayApiVerifiedAttribute,
 } from "../api/attributeApiConverter.js";
 import { EServiceDescriptorAttributesGroupSeed } from "../../../api-clients/dist/m2mGatewayApi.js";
+import { getResolvedAttributesMap } from "../utils/getResolvedAttributesMap.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -128,29 +129,20 @@ export function eserviceServiceBuilder(
     const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
       paginatedFlatKindAttributes.map((item) => item.attributeId);
 
+    const attributeMap = await getResolvedAttributesMap(
+      attributeIdsToResolve,
+      headers,
+      clients,
+      offset,
+      limit
+    );
+
     if (attributeIdsToResolve.length === 0) {
       return {
         results: [],
         totalCount: attributeIdsToResolve.length,
       };
     }
-
-    // Resolve the complete details only for the attributes needed on the page.
-    const bulkResult = await clients.attributeProcessClient.getBulkedAttributes(
-      attributeIdsToResolve,
-      {
-        headers,
-        queries: {
-          offset,
-          limit,
-        },
-      }
-    );
-
-    // Convert the result array into a Map for efficient lookup
-    const attributeMap: Map<string, attributeRegistryApi.Attribute> = new Map(
-      bulkResult.data.results.map((attr) => [attr.id, attr])
-    );
 
     // Recombination: Map the paginated flat list with the resolved complete details
     const attributesToReturn = paginatedFlatKindAttributes.map((item) => {
@@ -174,7 +166,7 @@ export function eserviceServiceBuilder(
   async function createEServiceDescriptorAttributesGroup(
     eserviceId: EServiceId,
     descriptorId: DescriptorId,
-    attributeIds: EServiceDescriptorAttributesGroupSeed,
+    seed: EServiceDescriptorAttributesGroupSeed,
     attributeKind: keyof catalogApi.Attributes,
     { headers }: WithLogger<M2MGatewayAppContext>
   ): Promise<{
@@ -189,7 +181,7 @@ export function eserviceServiceBuilder(
 
     const newAttributeGroups = [
       ...descriptor.attributes[attributeKind],
-      attributeIds.attributeIds.map((id) => ({
+      seed.attributeIds.map((id) => ({
         id,
         explicitAttributeVerification: false,
       })),
@@ -209,24 +201,30 @@ export function eserviceServiceBuilder(
         }
       );
 
-    const updatedEservice = await pollEService(response, headers);
+    await pollEService(response, headers);
 
-    const allAttributesWithDetails = await retrieveEServiceDescriptorAttributes(
-      updatedEservice,
-      descriptorId,
-      attributeKind,
-      { offset: 0, limit: Infinity },
-      headers
+    const attributeMap = await getResolvedAttributesMap(
+      seed.attributeIds,
+      headers,
+      clients,
+      0,
+      seed.attributeIds.length
     );
 
-    const newlyCreatedGroupAttributes = allAttributesWithDetails.results.filter(
-      (item) => item.groupIndex === newGroupIndex
-    );
+    const newlyCreatedGroupAttributes: attributeRegistryApi.Attribute[] =
+      seed.attributeIds.map((attributeId) => {
+        const attributeDetailed = attributeMap.get(attributeId);
+
+        if (!attributeDetailed) {
+          throw eserviceDescriptorAttributeNotFound(descriptorId);
+        }
+        return attributeDetailed;
+      });
 
     const attributesToReturn: attributeRegistryApi.Attributes = {
-      results: newlyCreatedGroupAttributes.map((item) => item.attribute),
+      results: newlyCreatedGroupAttributes,
       totalCount: newlyCreatedGroupAttributes.length,
-    };
+    }
 
     return {
       groupIndex: newGroupIndex,

@@ -42,11 +42,8 @@ import {
 import { uploadEServiceTemplateDocument } from "../utils/fileUpload.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
-import {
-  toM2MGatewayApiCertifiedAttribute,
-  toM2MGatewayApiDeclaredAttribute,
-  toM2MGatewayApiVerifiedAttribute,
-} from "../api/attributeApiConverter.js";
+import { EServiceTemplateVersionAttributesGroupSeed } from "../../../api-clients/dist/m2mGatewayApi.js";
+import { getResolvedAttributesMap } from "../utils/getResolvedAttributesMap.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
@@ -139,29 +136,20 @@ export function eserviceTemplateServiceBuilder(
     const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
       paginatedFlatKindAttributes.map((item) => item.attributeId);
 
+    const attributeMap = await getResolvedAttributesMap(
+      attributeIdsToResolve,
+      headers,
+      clients,
+      offset,
+      limit
+    );
+
     if (attributeIdsToResolve.length === 0) {
       return {
         results: [],
         totalCount: attributeIdsToResolve.length,
       };
     }
-
-    // Resolve the complete details only for the attributes needed on the page.
-    const bulkResult = await clients.attributeProcessClient.getBulkedAttributes(
-      attributeIdsToResolve,
-      {
-        headers,
-        queries: {
-          offset,
-          limit,
-        },
-      }
-    );
-
-    // Convert the result array into a Map for efficient lookup
-    const attributeMap: Map<string, attributeRegistryApi.Attribute> = new Map(
-      bulkResult.data.results.map((attr) => [attr.id, attr])
-    );
 
     // Recombination: Map the paginated flat list with the resolved complete details
     const attributesToReturn = paginatedFlatKindAttributes.map((item) => {
@@ -206,7 +194,7 @@ export function eserviceTemplateServiceBuilder(
   async function createEServiceTemplateVersionAttributesGroup(
     templateId: EServiceTemplateId,
     versionId: EServiceTemplateVersionId,
-    attributeIds: string[],
+    seed: EServiceTemplateVersionAttributesGroupSeed,
     attributeKind: keyof eserviceTemplateApi.Attributes,
     { headers }: WithLogger<M2MGatewayAppContext>
   ): Promise<{
@@ -217,12 +205,11 @@ export function eserviceTemplateServiceBuilder(
     const version = retrieveEServiceTemplateVersionById(template, versionId);
 
     // Get the new group index (will be the length of current groups)
-    const newGroupIndex = version.attributes.certified.length;
-
+    const newGroupIndex = version.attributes[attributeKind].length;
     // Create the new attributes structure with the new group
     const newAttributeGroups = [
       ...version.attributes[attributeKind],
-      attributeIds.map((id) => ({
+      seed.attributeIds.map((id) => ({
         id,
         explicitAttributeVerification: false,
       })),
@@ -234,8 +221,8 @@ export function eserviceTemplateServiceBuilder(
 
     // Update the version with the new attributes
     const response =
-      await clients.eserviceTemplateProcessClient.updateTemplateVersionAttributes(
-        newAttributes,
+      await clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
+        { attributes: newAttributes },
         {
           params: {
             templateId,
@@ -247,21 +234,33 @@ export function eserviceTemplateServiceBuilder(
 
     await pollEServiceTemplate(response, headers);
 
-    // Retrieve the attributes details
-    const bulkResult = await clients.attributeProcessClient.getBulkedAttributes(
-      attributeIds,
-      {
-        headers,
-        queries: {
-          offset: 0,
-          limit: attributeIds.length,
-        },
-      }
+    const attributeMap = await getResolvedAttributesMap(
+      seed.attributeIds,
+      headers,
+      clients,
+      0,
+      seed.attributeIds.length
     );
+
+    // Recombination and verification: Check that all requested attributes were found
+    const newlyCreatedGroupAttributes: attributeRegistryApi.Attribute[] =
+      seed.attributeIds.map((attributeId) => {
+        const attributeDetailed = attributeMap.get(attributeId);
+
+        if (!attributeDetailed) {
+          throw eserviceTemplateVersionAttributeNotFound(versionId);
+        }
+        return attributeDetailed;
+      });
+
+    const attributesToReturn: attributeRegistryApi.Attributes = {
+      results: newlyCreatedGroupAttributes,
+      totalCount: newlyCreatedGroupAttributes.length,
+    }
 
     return {
       groupIndex: newGroupIndex,
-      attributes: bulkResult.data,
+      attributes: attributesToReturn,
     };
   }
   const pollEserviceTemplateUntilDeletion = (
@@ -867,7 +866,7 @@ export function eserviceTemplateServiceBuilder(
     async createEServiceTemplateVersionCertifiedAttributesGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      attributeIds: string[],
+      attributeIds: EServiceTemplateVersionAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersionCertifiedAttribute[]> {
       ctx.logger.info(
@@ -894,7 +893,7 @@ export function eserviceTemplateServiceBuilder(
     async createEServiceTemplateVersionDeclaredAttributesGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      attributeIds: string[],
+      attributeIds: EServiceTemplateVersionAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersionDeclaredAttribute[]> {
       ctx.logger.info(
@@ -920,7 +919,7 @@ export function eserviceTemplateServiceBuilder(
     async createEServiceTemplateVersionVerifiedAttributesGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      attributeIds: string[],
+      attributeIds: EServiceTemplateVersionAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersionVerifiedAttribute[]> {
       ctx.logger.info(

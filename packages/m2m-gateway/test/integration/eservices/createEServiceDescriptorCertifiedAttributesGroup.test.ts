@@ -26,7 +26,7 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import { eserviceDescriptorAttributeNotFound, missingMetadata } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
 describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
@@ -190,21 +190,10 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
       params: { eServiceId: eservice.id },
     });
 
-    // Verify that getBulkedAttributes was called with correct parameters including duplicates for attributes in different groups
-    const attributesIDS = [
-      attribute1.id,
-      attribute2.id,
-      attribute3.id,
-      attribute1.id,
-      attribute2.id,
-      attribute3.id,
-    ];
-
     expect(mockGetBulkedAttributes).toHaveBeenCalledWith(
-      attributesIDS,
+      [attribute1.id, attribute2.id, attribute3.id],
       expect.objectContaining({
-        headers: expect.anything(),
-        queries: { limit: Infinity, offset: 0 },
+        queries: { limit: 3, offset: 0 },
       })
     );
     expectApiClientPostToHaveBeenCalledWith({
@@ -294,6 +283,69 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
 
     expect(mockGetEServiceById).toHaveBeenCalledTimes(
       config.defaultPollingMaxRetries + 1
+    );
+  });
+
+  it("Should throw eserviceTemplateVersionAttributeNotFound in case an attribute ID is present but cannot be resolved by the Attribute Registry", async () => {
+    const MISSING_ATTRIBUTE_ID = "00000000-0000-0000-0000-000000000001";
+
+    const descriptorWithMissingAttribute: catalogApi.EServiceDescriptor =
+    {
+      ...getMockedApiEserviceDescriptor(),
+      attributes: {
+        certified: [
+          [
+            {
+              id: MISSING_ATTRIBUTE_ID,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        verified: [],
+        declared: [],
+      },
+    };
+
+    const eserviceWithDescriptorWithoutAttribute: catalogApi.EService =
+      getMockedApiEservice({
+        descriptors: [descriptorWithMissingAttribute],
+      });
+    const mockEserviceTemplateResponse = getMockWithMetadata(
+      eserviceWithDescriptorWithoutAttribute
+    );
+    const mockGetEServiceTemplateById = vi
+      .fn()
+      .mockResolvedValue(mockEserviceTemplateResponse);
+    const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
+      data: {
+        results: [],
+        totalCount: 0,
+      },
+      metadata: {},
+    });
+
+    mockGetEServiceById.mockResolvedValueOnce(getMockWithMetadata(eserviceWithDescriptorWithoutAttribute))
+
+    mockInteropBeClients.attributeProcessClient = {
+      getBulkedAttributes: mockGetBulkedAttributes,
+    } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
+
+    mockInteropBeClients.eserviceTemplateProcessClient = {
+      getEServiceTemplateById: mockGetEServiceTemplateById,
+      patchUpdateDescriptor: mockPatchUpdateDescriptor
+    } as unknown as PagoPAInteropBeClients["eserviceTemplateProcessClient"];
+
+    await expect(
+      eserviceService.createEServiceDescriptorCertifiedAttributesGroup(
+        unsafeBrandId(eserviceWithDescriptorWithoutAttribute.id),
+        unsafeBrandId(descriptorWithMissingAttribute.id),
+        seed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      eserviceDescriptorAttributeNotFound(
+        descriptorWithMissingAttribute.id
+      )
     );
   });
 });

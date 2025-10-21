@@ -18,6 +18,7 @@ import {
   getEServiceTemplateRiskAnalysisErrorMapper,
   getEServiceTemplateVersionDocumentsErrorMapper,
   getEServiceTemplateVersionErrorMapper,
+  createEServiceTemplateVersionAttributeGroupsErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -718,7 +719,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEServiceTemplateVersionAttributesErrorMapper,
+            createEServiceTemplateVersionAttributeGroupsErrorMapper,
             ctx,
             `Error creating certified attributes group for version ${req.params.versionId} for eservice template ${req.params.templateId}`
           );
@@ -774,7 +775,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEServiceTemplateVersionAttributesErrorMapper,
+            createEServiceTemplateVersionAttributeGroupsErrorMapper,
             ctx,
             `Error creating declared attributes group for version ${req.params.versionId} for eservice template ${req.params.templateId}`
           );
@@ -830,7 +831,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEServiceTemplateVersionAttributesErrorMapper,
+            createEServiceTemplateVersionAttributeGroupsErrorMapper,
             ctx,
             `Error creating verified attributes group for version ${req.params.versionId} for eservice template ${req.params.templateId}`
           );

@@ -22,7 +22,9 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/verifiedAttrib
     getMockedApiEServiceTemplate();
   const mockVersion = mockTemplate.versions[0]!;
 
-  const mockAttributeIds = [generateId(), generateId()];
+  const mockAttributeSeed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed = {
+    attributeIds: [generateId(), generateId(), generateId()],
+  };
 
   const mockAttribute1 = getMockedApiAttribute({
     kind: attributeRegistryApi.AttributeKind.Values.VERIFIED,
@@ -53,7 +55,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/verifiedAttrib
     token: string,
     templateId: string,
     versionId: string,
-    body: string[]
+    body: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed
   ) =>
     request(api)
       .post(
@@ -75,7 +77,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/verifiedAttrib
         token,
         mockTemplate.id,
         mockVersion.id,
-        mockAttributeIds
+        mockAttributeSeed
       );
 
       expect(res.status).toBe(201);
@@ -85,7 +87,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/verifiedAttrib
       ).toHaveBeenCalledWith(
         unsafeBrandId(mockTemplate.id),
         unsafeBrandId(mockVersion.id),
-        mockAttributeIds,
+        mockAttributeSeed,
         expect.anything()
       );
     }
@@ -99,14 +101,14 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/verifiedAttrib
       token,
       mockTemplate.id,
       mockVersion.id,
-      mockAttributeIds
+      mockAttributeSeed
     );
     expect(res.status).toBe(403);
   });
 
   it("Should return 400 if passed invalid attribute IDs", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const invalidBody = ["not-a-uuid"];
+    const invalidBody = { attributeIds: ["not-a-uuid", "also-invalid"] };
     const res = await makeRequest(
       token,
       mockTemplate.id,
@@ -134,7 +136,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/verifiedAttrib
       token,
       mockTemplate.id,
       nonExistentVersionId,
-      mockAttributeIds
+      mockAttributeSeed
     );
 
     expect(res.status).toBe(404);

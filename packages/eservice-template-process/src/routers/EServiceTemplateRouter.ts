@@ -809,7 +809,7 @@ const eserviceTemplatesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
           const updatedEServiceTemplate =
             await eserviceTemplateService.updateEServiceTemplateVersionAttributes(

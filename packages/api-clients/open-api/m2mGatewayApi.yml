@@ -10887,7 +10887,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
+              $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
         "201":
           description: Certified Attributes Group created
@@ -11102,7 +11102,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
+              $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
         "201":
           description: Declared Attributes Group created
@@ -11317,7 +11317,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
+              $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
         "201":
           description: Verified Attributes Group created
