@@ -279,6 +279,29 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Deletes an e-service template
+      operationId: deleteEServiceTemplate
+      description: Deletes the specified E-Service Template
+      responses:
+        "204":
+          description: EService Template deleted
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
