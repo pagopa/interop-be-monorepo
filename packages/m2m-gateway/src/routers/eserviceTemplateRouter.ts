@@ -130,6 +130,26 @@ const eserviceTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .delete("/eserviceTemplates/:templateId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await eserviceTemplateService.deleteEServiceTemplate(
+          unsafeBrandId(req.params.templateId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error deleting eservice template with id ${req.params.templateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .patch("/eserviceTemplates/:templateId/description", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 

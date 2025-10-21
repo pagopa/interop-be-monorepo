@@ -1,17 +1,16 @@
 meta {
-  name: Delete Eservice
+  name: Delete Eservice Template
   type: http
-  seq: 22
 }
 
 delete {
-  url: {{host-catalog}}/eservices/:eserviceId
+  url: {{host-template}}/templates/:eserviceTemplateId
   body: json
   auth: none
 }
 
 params:path {
-  eserviceId: {{eserviceId}}
+  eserviceTemplateId: {{eserviceTemplateId}}
 }
 
 headers {

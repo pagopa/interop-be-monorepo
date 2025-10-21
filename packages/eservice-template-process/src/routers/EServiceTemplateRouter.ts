@@ -43,6 +43,7 @@ import {
   deleteDocumentErrorMapper,
   getEServiceTemplatesErrorMapper,
   updateEServiceTemplatePersonalDataFlagErrorMapper,
+  deleteEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   eserviceTemplateToApiEServiceTemplate,
@@ -180,6 +181,26 @@ const eserviceTemplatesRouter = (
         const errorRes = makeApiProblem(
           error,
           getEServiceTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/templates/:templateId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+
+        await eserviceTemplateService.deleteEServiceTemplate(
+          unsafeBrandId(req.params.templateId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          deleteEServiceTemplateErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
