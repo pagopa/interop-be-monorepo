@@ -22,6 +22,7 @@ import {
   getEServiceDescriptorAttributesErrorMapper,
   createEServiceDescriptorAttributeGroupsErrorMapper,
   deleteEServiceDescriptorAttributeFromGroupErrorMapper,
+  assignEServiceDescriptorAttributesErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -911,6 +912,110 @@ const eserviceRouter = (
         }
       }
     )
+
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/groups/:groupIndex/attributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          const attributes =
+            await eserviceService.assignEServiceDescriptorCertifiedAttributesGroup(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.params.groupIndex,
+              req.body,
+              ctx
+            );
+          return res
+            .status(204)
+            .send(
+              attributes.map((attribute) =>
+                m2mGatewayApi.EServiceDescriptorCertifiedAttribute.parse(
+                  attribute
+                )
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            assignEServiceDescriptorAttributesErrorMapper,
+            ctx,
+            `Error retrieving certified attributes for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/declaredAttributes/groups/:groupIndex/attributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          const attributes =
+            await eserviceService.assignEServiceDescriptorDeclaredAttributesGroup(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.params.groupIndex,
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              attributes.map((attribute) =>
+                m2mGatewayApi.EServiceDescriptorDeclaredAttribute.parse(
+                  attribute
+                )
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            assignEServiceDescriptorAttributesErrorMapper,
+            ctx,
+            `Error retrieving declared attributes for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/verifiedAttributes/groups/:groupIndex/attributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          const attributes =
+            await eserviceService.assignEServiceDescriptorVerifiedAttributesGroup(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.params.groupIndex,
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              attributes.map((attribute) =>
+                m2mGatewayApi.EServiceDescriptorVerifiedAttribute.parse(
+                  attribute
+                )
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            assignEServiceDescriptorAttributesErrorMapper,
+            ctx,
+            `Error retrieving verified attributes for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+
     .post(
       "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/groups",
       async (req, res) => {

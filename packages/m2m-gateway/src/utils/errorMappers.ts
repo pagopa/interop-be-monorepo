@@ -259,3 +259,23 @@ export const deleteEServiceTemplateVersionAttributeFromGroupErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const assignEServiceDescriptorAttributesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceDescriptorAttributeGroupNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const assignEServiceTemplateVersionAttributesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceTemplateVersionAttributeGroupNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
