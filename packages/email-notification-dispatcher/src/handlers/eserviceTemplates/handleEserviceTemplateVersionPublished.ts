@@ -65,19 +65,16 @@ export async function handleEServiceTemplateVersionPublished(
     readModelService.getEServicesByTemplateId(eserviceTemplate.id),
   ]);
 
-  const instantiatorEserviceMap = Object.fromEntries(
-    eservices.reduce<Map<TenantId, EService[]>>((acc, eservice) => {
+  const instantiatorEserviceMap = eservices.reduce<Map<TenantId, EService[]>>(
+    (acc, eservice) => {
       const current = acc.get(eservice.producerId) ?? [];
       acc.set(eservice.producerId, [...current, eservice]);
       return acc;
-    }, new Map())
+    },
+    new Map<TenantId, EService[]>()
   );
-
-  const instantiators = await readModelService.getTenantsById(
-    Object.keys(instantiatorEserviceMap).map((tenantId) =>
-      unsafeBrandId(tenantId)
-    )
-  );
+  const tenantIds: TenantId[] = Array.from(instantiatorEserviceMap.keys());
+  const instantiators = await readModelService.getTenantsById(tenantIds);
 
   const targets = await getRecipientsForTenants({
     tenants: instantiators,
@@ -96,7 +93,7 @@ export async function handleEServiceTemplateVersionPublished(
   }
 
   return targets.flatMap((t) => {
-    const tenantEServices = instantiatorEserviceMap[t.tenantId] || [];
+    const tenantEServices = instantiatorEserviceMap.get(t.tenantId) || [];
     const tenant = instantiators.find((tenant) => tenant.id === t.tenantId);
 
     if (!tenant) {
