@@ -13,6 +13,7 @@ import {
 import {
   AgreementHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
@@ -65,7 +66,7 @@ export async function handleAgreementUnsuspendedByProducer(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `La tua richiesta per "${eservice.name}" è stata riattivata`,
@@ -73,12 +74,13 @@ export async function handleAgreementUnsuspendedByProducer(
         title: `La tua richiesta per "${eservice.name}" è stata riattivata`,
         notificationType,
         entityId: agreement.id,
-        consumerName: consumer.name,
+        ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza la richiesta`,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }
