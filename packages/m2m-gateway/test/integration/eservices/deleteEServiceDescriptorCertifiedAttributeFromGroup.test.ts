@@ -1,5 +1,9 @@
 import { describe, it, vi, beforeEach, expect } from "vitest";
-import { generateId, pollingMaxRetriesExceeded, unsafeBrandId } from "pagopa-interop-models";
+import {
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import {
   getMockWithMetadata,
   getMockedApiEServiceAttribute,
@@ -29,7 +33,11 @@ describe("deleteEServiceDescriptorCertifiedAttributeFromGroup", () => {
     [getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute()],
     [getMockedApiEServiceAttribute(), mockAttribute],
     [mockAttribute],
-    [getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute()],
+    [
+      getMockedApiEServiceAttribute(),
+      getMockedApiEServiceAttribute(),
+      getMockedApiEServiceAttribute(),
+    ],
   ];
   const mockDescriptor = getMockedApiEserviceDescriptor({
     attributes: {
@@ -44,9 +52,13 @@ describe("deleteEServiceDescriptorCertifiedAttributeFromGroup", () => {
 
   const mockGetEServiceResponse = getMockWithMetadata(mockEService);
 
-  const mockGetEService = vi.fn(mockPollingResponse(mockGetEServiceResponse, 2));
+  const mockGetEService = vi.fn(
+    mockPollingResponse(mockGetEServiceResponse, 2)
+  );
 
-  const mockPatchUpdateDescriptor = vi.fn().mockResolvedValue(mockGetEServiceResponse);
+  const mockPatchUpdateDescriptor = vi
+    .fn()
+    .mockResolvedValue(mockGetEServiceResponse);
 
   mockInteropBeClients.catalogProcessClient = {
     patchUpdateDraftDescriptor: mockPatchUpdateDescriptor,
@@ -72,7 +84,8 @@ describe("deleteEServiceDescriptorCertifiedAttributeFromGroup", () => {
     );
 
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost: mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
+      mockPost:
+        mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
       params: {
         eServiceId: mockEService.id,
         descriptorId: mockDescriptor.id,
@@ -94,7 +107,9 @@ describe("deleteEServiceDescriptorCertifiedAttributeFromGroup", () => {
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockEService.id },
     });
-    expect(mockInteropBeClients.catalogProcessClient.getEServiceById).toHaveBeenCalledTimes(3);
+    expect(
+      mockInteropBeClients.catalogProcessClient.getEServiceById
+    ).toHaveBeenCalledTimes(3);
   });
 
   it("Should delete the whole group if the last attribute is removed", async () => {
@@ -111,14 +126,17 @@ describe("deleteEServiceDescriptorCertifiedAttributeFromGroup", () => {
     );
 
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost: mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
+      mockPost:
+        mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
       params: {
         eServiceId: mockEService.id,
         descriptorId: mockDescriptor.id,
       },
       body: {
         attributes: {
-          certified: mockCertifiedAttributes.filter((_, index) => index !== groupIndex),
+          certified: mockCertifiedAttributes.filter(
+            (_, index) => index !== groupIndex
+          ),
           declared: [],
           verified: [],
         },
@@ -164,7 +182,10 @@ describe("deleteEServiceDescriptorCertifiedAttributeFromGroup", () => {
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
     mockGetEService.mockImplementation(
-      mockPollingResponse(mockGetEServiceResponse, config.defaultPollingMaxRetries + 1)
+      mockPollingResponse(
+        mockGetEServiceResponse,
+        config.defaultPollingMaxRetries + 1
+      )
     );
 
     await expect(
@@ -175,8 +196,15 @@ describe("deleteEServiceDescriptorCertifiedAttributeFromGroup", () => {
         unsafeBrandId(mockAttribute.id),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(pollingMaxRetriesExceeded(config.defaultPollingMaxRetries, config.defaultPollingRetryDelay));
-    expect(mockGetEService).toHaveBeenCalledTimes(config.defaultPollingMaxRetries + 1);
+    ).rejects.toThrowError(
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
+    );
+    expect(mockGetEService).toHaveBeenCalledTimes(
+      config.defaultPollingMaxRetries + 1
+    );
   });
 
   it("Should throw eserviceDescriptorAttributeGroupNotFound in case of missing group for the specified group index", async () => {
@@ -190,6 +218,7 @@ describe("deleteEServiceDescriptorCertifiedAttributeFromGroup", () => {
       )
     ).rejects.toThrowError(
       eserviceDescriptorAttributeGroupNotFound(
+        "certified",
         unsafeBrandId(mockEService.id),
         unsafeBrandId(mockDescriptor.id),
         mockCertifiedAttributes.length + 1
@@ -206,7 +235,9 @@ describe("deleteEServiceDescriptorCertifiedAttributeFromGroup", () => {
         unsafeBrandId(generateId()),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(eserviceDescriptorAttributeNotFound(unsafeBrandId(mockDescriptor.id)));
+    ).rejects.toThrowError(
+      eserviceDescriptorAttributeNotFound(unsafeBrandId(mockDescriptor.id))
+    );
   });
 
   it("Should throw eserviceDescriptorNotFound in case of eservice descriptor not found", async () => {
@@ -219,6 +250,11 @@ describe("deleteEServiceDescriptorCertifiedAttributeFromGroup", () => {
         unsafeBrandId(mockAttribute.id),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(eserviceDescriptorNotFound(unsafeBrandId(mockEService.id), unsafeBrandId(descriptorId)));
+    ).rejects.toThrowError(
+      eserviceDescriptorNotFound(
+        unsafeBrandId(mockEService.id),
+        unsafeBrandId(descriptorId)
+      )
+    );
   });
 });

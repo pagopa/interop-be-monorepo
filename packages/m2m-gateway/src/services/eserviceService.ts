@@ -174,7 +174,7 @@ export function eserviceServiceBuilder(
   }
 
   // eslint-disable-next-line max-params
-  async function deleteAttributeFromEServiceDescriptorGroup(
+  async function deleteEServiceDescriptorAttributeFromGroup(
     eserviceId: EServiceId,
     descriptorId: DescriptorId,
     groupIndex: number,
@@ -1150,7 +1150,7 @@ export function eserviceServiceBuilder(
         `Deleting Verified Attribute ${attributeId} from group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      await deleteAttributeFromEServiceDescriptorGroup(
+      await deleteEServiceDescriptorAttributeFromGroup(
         eserviceId,
         descriptorId,
         groupIndex,
@@ -1171,7 +1171,7 @@ export function eserviceServiceBuilder(
         `Deleting Declared Attribute ${attributeId} from group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      await deleteAttributeFromEServiceDescriptorGroup(
+      await deleteEServiceDescriptorAttributeFromGroup(
         eserviceId,
         descriptorId,
         groupIndex,
@@ -1192,7 +1192,7 @@ export function eserviceServiceBuilder(
         `Deleting Certified Attribute ${attributeId} from group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      await deleteAttributeFromEServiceDescriptorGroup(
+      await deleteEServiceDescriptorAttributeFromGroup(
         eserviceId,
         descriptorId,
         groupIndex,
