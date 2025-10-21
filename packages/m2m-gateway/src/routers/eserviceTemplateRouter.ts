@@ -18,6 +18,7 @@ import {
   getEServiceTemplateRiskAnalysisErrorMapper,
   getEServiceTemplateVersionDocumentsErrorMapper,
   getEServiceTemplateVersionErrorMapper,
+  deleteEServiceTemplateVersionAttributeFromGroupErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -758,6 +759,81 @@ const eserviceTemplateRouter = (
             getEServiceTemplateVersionAttributesErrorMapper,
             ctx,
             `Error retrieving verified attributes for version with id ${req.params.versionId} for eservice template with id ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eserviceTemplates/:templateId/versions/:versionId/certifiedAttributes/groups/:groupIndex/attributes/:attributeId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceTemplateService.deleteEServiceTemplateVersionCertifiedAttributeFromGroup(
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.versionId),
+            req.params.groupIndex,
+            unsafeBrandId(req.params.attributeId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteEServiceTemplateVersionAttributeFromGroupErrorMapper,
+            ctx,
+            `Error deleting certified attribute ${req.params.attributeId} from group ${req.params.groupIndex} for version ${req.params.versionId} of eservice template ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eserviceTemplates/:templateId/versions/:versionId/verifiedAttributes/groups/:groupIndex/attributes/:attributeId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceTemplateService.deleteEServiceTemplateVersionVerifiedAttributeFromGroup(
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.versionId),
+            req.params.groupIndex,
+            unsafeBrandId(req.params.attributeId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteEServiceTemplateVersionAttributeFromGroupErrorMapper,
+            ctx,
+            `Error deleting verified attribute ${req.params.attributeId} from group ${req.params.groupIndex} for version ${req.params.versionId} of eservice template ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eserviceTemplates/:templateId/versions/:versionId/declaredAttributes/groups/:groupIndex/attributes/:attributeId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceTemplateService.deleteEServiceTemplateVersionDeclaredAttributeFromGroup(
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.versionId),
+            req.params.groupIndex,
+            unsafeBrandId(req.params.attributeId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteEServiceTemplateVersionAttributeFromGroupErrorMapper,
+            ctx,
+            `Error deleting declared attribute ${req.params.attributeId} from group ${req.params.groupIndex} for version ${req.params.versionId} of eservice template ${req.params.templateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
