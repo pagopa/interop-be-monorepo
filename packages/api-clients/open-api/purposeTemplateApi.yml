@@ -908,15 +908,11 @@ paths:
       operationId: deleteRiskAnalysisTemplateAnswerAnnotation
       description: Delete a risk analysis form template answer annotation and the related files
       responses:
-        "200":
+        "204":
           description: Risk analysis form template answer annotation deleted
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RiskAnalysisTemplateAnswer"
         "400":
           description: Bad Request
           content:
