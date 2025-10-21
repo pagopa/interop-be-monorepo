@@ -308,9 +308,11 @@ export function getMockedApiEservice({
 export function getMockedApiEserviceDescriptor({
   state,
   interfaceDoc,
+  attributes,
 }: {
   state?: catalogApi.EServiceDescriptorState;
   interfaceDoc?: catalogApi.EServiceDoc;
+  attributes?: catalogApi.Attributes;
 } = {}): catalogApi.EServiceDescriptor {
   return {
     id: generateId(),
@@ -331,7 +333,7 @@ export function getMockedApiEserviceDescriptor({
     suspendedAt: new Date().toISOString(),
     deprecatedAt: new Date().toISOString(),
     archivedAt: new Date().toISOString(),
-    attributes: generateMock(catalogApi.Attributes),
+    attributes: attributes ?? generateMock(catalogApi.Attributes),
     rejectionReasons: generateMock(z.array(catalogApi.RejectionReason)),
     templateVersionRef: generateMock(catalogApi.EServiceTemplateVersionRef),
   };
