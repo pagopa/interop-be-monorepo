@@ -256,7 +256,7 @@ export function initFileManager(
           logger.error(
             `Error checking file s3://${s3File.bucket}/${key}: ${error}`
           );
-          throw fileManagerResumeFileError(s3File.bucket, key, error);
+          throw fileManagerResumeFileError(key, s3File.bucket, error);
         }
       }
       return storeBytesFn(s3File, logger);

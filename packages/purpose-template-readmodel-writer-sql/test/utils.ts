@@ -1,21 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
+  getMockCompleteRiskAnalysisFormTemplate,
   getMockPurposeTemplate,
-  getMockRiskAnalysisTemplateAnswerAnnotation,
-  getMockRiskAnalysisTemplateAnswerAnnotationDocument,
-  getMockValidRiskAnalysisFormTemplate,
   setupTestContainersVitest,
 } from "pagopa-interop-commons-test";
 import { inject, afterEach, expect } from "vitest";
 import { purposeTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
-import {
-  PurposeTemplate,
-  PurposeTemplateId,
-  RiskAnalysisFormTemplate,
-  RiskAnalysisTemplateMultiAnswer,
-  RiskAnalysisTemplateSingleAnswer,
-  tenantKind,
-} from "pagopa-interop-models";
+import { PurposeTemplate, PurposeTemplateId } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
   purposeTemplateInReadmodelPurposeTemplate,
@@ -50,30 +41,7 @@ export const purposeTemplateWriterService =
   purposeTemplateWriterServiceBuilder(readModelDB);
 
 export const getCompleteMockPurposeTemplate = (): PurposeTemplate => {
-  const incompleteRiskAnalysisFormTemplate =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
-  const riskAnalysisFormTemplate: RiskAnalysisFormTemplate = {
-    ...incompleteRiskAnalysisFormTemplate,
-    singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
-      (a): RiskAnalysisTemplateSingleAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-        suggestedValues: ["a", "b"],
-      })
-    ),
-    multiAnswers: incompleteRiskAnalysisFormTemplate.multiAnswers.map(
-      (a): RiskAnalysisTemplateMultiAnswer => ({
-        ...a,
-        annotation: {
-          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
-          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
-        },
-      })
-    ),
-  };
+  const riskAnalysisFormTemplate = getMockCompleteRiskAnalysisFormTemplate();
 
   return {
     ...getMockPurposeTemplate(),

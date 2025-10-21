@@ -7,7 +7,6 @@ export const SafeStorageApiConfig = z
     SAFE_STORAGE_CLIENT_ID: z.string(),
     SAFE_STORAGE_DOC_TYPE: z.string(),
     SAFE_STORAGE_DOC_STATUS: z.string(),
-    SAFE_STORAGE_HOST: z.string(),
   })
   .transform((c) => ({
     safeStorageBaseUrl: c.SAFE_STORAGE_BASE_URL,
@@ -15,7 +14,6 @@ export const SafeStorageApiConfig = z
     safeStorageClientId: c.SAFE_STORAGE_CLIENT_ID,
     safeStorageDocType: c.SAFE_STORAGE_DOC_TYPE,
     safeStorageDocStatus: c.SAFE_STORAGE_DOC_STATUS,
-    safeStorageHost: c.SAFE_STORAGE_HOST,
   }));
 
 export type SafeStorageApiConfig = z.infer<typeof SafeStorageApiConfig>;
