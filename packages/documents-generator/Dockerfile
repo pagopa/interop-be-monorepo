@@ -60,11 +60,11 @@ RUN apt-get update && \
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
+COPY --from=build /out /app
+
 RUN groupadd -r app && useradd -rm -g app -G audio,video app
 RUN chown -R app:app /app && chmod -R 700 /app
 USER app
-
-COPY --from=build /out /app
 
 WORKDIR /app/packages/documents-generator
 EXPOSE 3000
