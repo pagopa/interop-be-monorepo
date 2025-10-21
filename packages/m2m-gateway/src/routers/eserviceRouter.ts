@@ -21,6 +21,7 @@ import {
   getEServiceRiskAnalysisErrorMapper,
   getEServiceDescriptorAttributesErrorMapper,
   createEServiceDescriptorAttributeGroupsErrorMapper,
+  deleteEServiceDescriptorAttributeFromGroupErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -935,6 +936,31 @@ const eserviceRouter = (
         }
       }
     )
+    .delete(
+      "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/groups/:groupIndex/attributes/:attributeId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceService.deleteEServiceDescriptorCertifiedAttributeFromGroup(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.params.groupIndex,
+            unsafeBrandId(req.params.attributeId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteEServiceDescriptorAttributeFromGroupErrorMapper,
+            ctx,
+            `Error deleting certified attribute ${req.params.attributeId} from group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/eservices/:eserviceId/descriptors/:descriptorId/declaredAttributes/groups",
       async (req, res) => {
@@ -955,6 +981,30 @@ const eserviceRouter = (
             createEServiceDescriptorAttributeGroupsErrorMapper,
             ctx,
             `Error creating declared attributes group for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    ).delete(
+      "/eservices/:eserviceId/descriptors/:descriptorId/verifiedAttributes/groups/:groupIndex/attributes/:attributeId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceService.deleteEServiceDescriptorVerifiedAttributeFromGroup(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.params.groupIndex,
+            unsafeBrandId(req.params.attributeId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteEServiceDescriptorAttributeFromGroupErrorMapper,
+            ctx,
+            `Error deleting verified attribute ${req.params.attributeId} from group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -980,6 +1030,31 @@ const eserviceRouter = (
             createEServiceDescriptorAttributeGroupsErrorMapper,
             ctx,
             `Error creating verified attributes group for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eserviceId/descriptors/:descriptorId/declaredAttributes/groups/:groupIndex/attributes/:attributeId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceService.deleteEServiceDescriptorDeclaredAttributeFromGroup(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.params.groupIndex,
+            unsafeBrandId(req.params.attributeId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteEServiceDescriptorAttributeFromGroupErrorMapper,
+            ctx,
+            `Error deleting declared attribute ${req.params.attributeId} from group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

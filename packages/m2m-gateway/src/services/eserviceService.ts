@@ -5,6 +5,7 @@ import {
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
 import {
+  AttributeId,
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
@@ -26,6 +27,7 @@ import {
 import {
   cannotDeleteLastEServiceDescriptor,
   eserviceDescriptorAttributeNotFound,
+  eserviceDescriptorAttributeGroupNotFound,
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
@@ -202,7 +204,6 @@ export function eserviceServiceBuilder(
       );
 
     await pollEService(response, headers);
-
     const attributeMap = await getResolvedAttributesMap(
       seed.attributeIds,
       headers,
@@ -231,6 +232,68 @@ export function eserviceServiceBuilder(
       attributes: attributesToReturn,
     };
   }
+  // eslint-disable-next-line max-params
+  async function deleteEServiceDescriptorAttributeFromGroup(
+    eserviceId: EServiceId,
+    descriptorId: DescriptorId,
+    groupIndex: number,
+    attributeId: AttributeId,
+    attributeKind: keyof catalogApi.Attributes,
+    { headers }: WithLogger<M2MGatewayAppContext>
+  ): Promise<void> {
+    const eservice = await retrieveEServiceById(headers, eserviceId);
+    const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
+
+    const kindAttributeGroups = descriptor.attributes[attributeKind];
+
+    const attributeGroup = kindAttributeGroups.at(groupIndex);
+
+    if (!attributeGroup) {
+      throw eserviceDescriptorAttributeGroupNotFound(
+        attributeKind,
+        eserviceId,
+        descriptorId,
+        groupIndex
+      );
+    }
+
+    if (!attributeGroup.find((a) => a.id === attributeId)) {
+      throw eserviceDescriptorAttributeNotFound(descriptorId);
+    }
+
+    const attributeGroupWithoutAttribute = attributeGroup.filter(
+      (a) => a.id !== attributeId
+    );
+
+    const updatedGroups =
+      attributeGroupWithoutAttribute.length === 0
+        ? [
+          ...kindAttributeGroups.slice(0, groupIndex),
+          ...kindAttributeGroups.slice(groupIndex + 1),
+        ]
+        : [
+          ...kindAttributeGroups.slice(0, groupIndex),
+          attributeGroupWithoutAttribute,
+          ...kindAttributeGroups.slice(groupIndex + 1),
+        ];
+
+    const response =
+      await clients.catalogProcessClient.patchUpdateDraftDescriptor(
+        {
+          attributes: {
+            ...descriptor.attributes,
+            [attributeKind]: updatedGroups,
+          },
+        },
+        {
+          params: { eServiceId: eserviceId, descriptorId },
+          headers,
+        }
+      );
+
+    await pollEService(response, headers);
+  }
+
   const pollEserviceUntilDeletion = (
     eserviceId: string,
     headers: M2MGatewayAppContext["headers"]
@@ -1215,6 +1278,68 @@ export function eserviceServiceBuilder(
           logger: ctx.logger,
         }),
       }));
+    },
+    async deleteEServiceDescriptorVerifiedAttributeFromGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      ctx.logger.info(
+        `Deleting Verified Attribute ${attributeId} from group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      await deleteEServiceDescriptorAttributeFromGroup(
+        eserviceId,
+        descriptorId,
+        groupIndex,
+        attributeId,
+        "verified",
+        ctx
+      );
+    },
+
+    async deleteEServiceDescriptorDeclaredAttributeFromGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      ctx.logger.info(
+        `Deleting Declared Attribute ${attributeId} from group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      await deleteEServiceDescriptorAttributeFromGroup(
+        eserviceId,
+        descriptorId,
+        groupIndex,
+        attributeId,
+        "declared",
+        ctx
+      );
+    },
+
+    async deleteEServiceDescriptorCertifiedAttributeFromGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      ctx.logger.info(
+        `Deleting Certified Attribute ${attributeId} from group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      await deleteEServiceDescriptorAttributeFromGroup(
+        eserviceId,
+        descriptorId,
+        groupIndex,
+        attributeId,
+        "certified",
+        ctx
+      );
     },
   };
 }

@@ -5,6 +5,7 @@ import {
 } from "pagopa-interop-api-clients";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
+  AttributeId,
   EServiceDocumentId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
@@ -26,6 +27,7 @@ import {
   eserviceTemplateRiskAnalysisNotFound,
   eserviceTemplateVersionAttributeNotFound,
   eserviceTemplateVersionNotFound,
+  eserviceTemplateVersionAttributeGroupNotFound,
 } from "../model/errors.js";
 import {
   toM2MGatewayApiCertifiedAttribute,
@@ -270,6 +272,75 @@ export function eserviceTemplateServiceBuilder(
     pollResourceUntilDeletion(() =>
       retrieveEServiceTemplateById(headers, unsafeBrandId(templateId))
     )({});
+
+  // eslint-disable-next-line max-params
+  async function deleteEServiceTemplateVersionAttributeFromGroup(
+    templateId: EServiceTemplateId,
+    versionId: EServiceTemplateVersionId,
+    groupIndex: number,
+    attributeId: AttributeId,
+    attributeKind: keyof eserviceTemplateApi.Attributes,
+    { headers }: WithLogger<M2MGatewayAppContext>
+  ): Promise<void> {
+    const eserviceTemplate = await retrieveEServiceTemplateById(
+      headers,
+      templateId
+    );
+    const eserviceTemplateVersion = retrieveEServiceTemplateVersionById(
+      eserviceTemplate,
+      versionId
+    );
+
+    const kindAttributeGroups =
+      eserviceTemplateVersion.attributes[attributeKind];
+
+    const attributeGroup = kindAttributeGroups.at(groupIndex);
+
+    if (!attributeGroup) {
+      throw eserviceTemplateVersionAttributeGroupNotFound(
+        attributeKind,
+        templateId,
+        versionId,
+        groupIndex
+      );
+    }
+
+    if (!attributeGroup.find((a) => a.id === attributeId)) {
+      throw eserviceTemplateVersionAttributeNotFound(versionId);
+    }
+
+    const attributeGroupWithoutAttribute = attributeGroup.filter(
+      (a) => a.id !== attributeId
+    );
+
+    const updatedGroups =
+      attributeGroupWithoutAttribute.length === 0
+        ? [
+          ...kindAttributeGroups.slice(0, groupIndex),
+          ...kindAttributeGroups.slice(groupIndex + 1),
+        ]
+        : [
+          ...kindAttributeGroups.slice(0, groupIndex),
+          attributeGroupWithoutAttribute,
+          ...kindAttributeGroups.slice(groupIndex + 1),
+        ];
+
+    const response =
+      await clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
+        {
+          attributes: {
+            ...eserviceTemplateVersion.attributes,
+            [attributeKind]: updatedGroups,
+          },
+        },
+        {
+          params: { templateId, templateVersionId: versionId },
+          headers,
+        }
+      );
+
+    await pollEServiceTemplate(response, headers);
+  }
 
   return {
     async getEServiceTemplateById(
@@ -957,7 +1028,6 @@ export function eserviceTemplateServiceBuilder(
       );
       await pollEserviceTemplateUntilDeletion(templateId, headers);
     },
-
     async getEserviceTemplateVersionCertifiedAttributes(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
@@ -1070,6 +1140,63 @@ export function eserviceTemplateServiceBuilder(
           totalCount: eserviceTemplateVersionAttributes.totalCount,
         },
       };
+    },
+    async deleteEServiceTemplateVersionCertifiedAttributeFromGroup(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      ctx.logger.info(
+        `Deleting certified attribute ${attributeId} from group ${groupIndex} for version ${versionId} of eservice template ${templateId}`
+      );
+      await deleteEServiceTemplateVersionAttributeFromGroup(
+        templateId,
+        versionId,
+        groupIndex,
+        attributeId,
+        "certified",
+        ctx
+      );
+    },
+    async deleteEServiceTemplateVersionVerifiedAttributeFromGroup(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      ctx.logger.info(
+        `Deleting verified attribute ${attributeId} from group ${groupIndex} for version ${versionId} of eservice template ${templateId}`
+      );
+      await deleteEServiceTemplateVersionAttributeFromGroup(
+        templateId,
+        versionId,
+        groupIndex,
+        attributeId,
+        "verified",
+        ctx
+      );
+    },
+    async deleteEServiceTemplateVersionDeclaredAttributeFromGroup(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      ctx.logger.info(
+        `Deleting declared attribute ${attributeId} from group ${groupIndex} for version ${versionId} of eservice template ${templateId}`
+      );
+      await deleteEServiceTemplateVersionAttributeFromGroup(
+        templateId,
+        versionId,
+        groupIndex,
+        attributeId,
+        "declared",
+        ctx
+      );
     },
   };
 }
