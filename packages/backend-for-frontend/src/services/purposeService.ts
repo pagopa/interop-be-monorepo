@@ -37,6 +37,7 @@ import { config } from "../config/config.js";
 import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { isAgreementUpgradable } from "./validators.js";
@@ -266,9 +267,9 @@ export function purposeServiceBuilder(
       offset: number;
       limit: number;
     },
-    headers: Headers,
-    correlationId: CorrelationId
+    ctx: WithLogger<BffAppContext>
   ): Promise<bffApi.Purposes> => {
+    const { headers, correlationId } = ctx;
     const queries = {
       ...filters,
       eservicesIds:
@@ -296,13 +297,11 @@ export function purposeServiceBuilder(
           })
       )
     );
-    const notificationPromise =
-      inAppNotificationManagerClient.filterUnreadNotifications({
-        queries: {
-          entityIds: purposes.results.map((a) => a.id),
-        },
-        headers,
-      });
+    const notificationPromise = filterUnreadNotifications(
+      inAppNotificationManagerClient,
+      purposes.results.map((a) => a.id),
+      ctx
+    );
 
     const getTenant = async (id: string): Promise<tenantApi.Tenant> =>
       tenantProcessClient.tenant.getTenant({
@@ -416,8 +415,9 @@ export function purposeServiceBuilder(
       },
       offset: number,
       limit: number,
-      { headers, authData, logger, correlationId }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
+      const { authData, logger } = ctx;
       logger.info(
         `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Consumers ${filters.consumersIds} offset ${offset}, limit ${limit}`
       );
@@ -430,8 +430,7 @@ export function purposeServiceBuilder(
           offset,
           limit,
         },
-        headers,
-        correlationId
+        ctx
       );
     },
     async getConsumerPurposes(
@@ -443,8 +442,9 @@ export function purposeServiceBuilder(
       },
       offset: number,
       limit: number,
-      { headers, authData, logger, correlationId }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
+      const { authData, logger } = ctx;
       logger.info(
         `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Producers ${filters.producersIds} offset ${offset}, limit ${limit}`
       );
@@ -457,9 +457,7 @@ export function purposeServiceBuilder(
           offset,
           limit,
         },
-
-        headers,
-        correlationId
+        ctx
       );
     },
     async clonePurpose(

@@ -69,6 +69,7 @@ import {
   cloneEServiceDocument,
   createDescriptorDocumentZipFile,
 } from "../utilities/fileUtils.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import {
@@ -89,7 +90,7 @@ export const enhanceCatalogEservices = async (
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
   inAppNotificationManagerClient: InAppNotificationManagerClient,
-  headers: Headers,
+  ctx: WithLogger<BffAppContext>,
   requesterId: TenantId
 ): Promise<bffApi.CatalogEService[]> => {
   const tenantsIds = new Set([
@@ -97,13 +98,11 @@ export const enhanceCatalogEservices = async (
     requesterId,
   ] as TenantId[]);
 
-  const notificationsPromise =
-    inAppNotificationManagerClient.filterUnreadNotifications({
-      queries: {
-        entityIds: eservices.map((a) => a.id),
-      },
-      headers,
-    });
+  const notificationsPromise = filterUnreadNotifications(
+    inAppNotificationManagerClient,
+    eservices.map((a) => a.id),
+    ctx
+  );
 
   const cachedTenants = new Map(
     await Promise.all(
@@ -111,7 +110,7 @@ export const enhanceCatalogEservices = async (
         async (tenantId): Promise<[TenantId, tenantApi.Tenant]> => [
           tenantId,
           await tenantProcessClient.tenant.getTenant({
-            headers,
+            headers: ctx.headers,
             params: { id: tenantId },
           }),
         ]
@@ -163,7 +162,7 @@ export const enhanceCatalogEservices = async (
     eservices.map(
       enhanceEService(
         agreementProcessClient,
-        headers,
+        ctx.headers,
         requesterId,
         notifications
       )
@@ -331,7 +330,7 @@ export function catalogServiceBuilder(
 ) {
   return {
     getCatalog: async (
-      { headers, authData, logger }: WithLogger<BffAppContext>,
+      ctx: WithLogger<BffAppContext>,
       queries: catalogApi.GetEServicesQueryParams
     ): Promise<bffApi.CatalogEServices> => {
       const {
@@ -345,13 +344,13 @@ export function catalogServiceBuilder(
         agreementStates,
         isConsumerDelegable,
       } = queries;
-      logger.info(
+      ctx.logger.info(
         `Retrieving EServices for name = ${name}, producersIds = ${producersIds}, attributesIds = ${attributesIds}, states = ${states}, agreementStates = ${agreementStates}, isConsumerDelegable = ${isConsumerDelegable}, mode = ${mode}, offset = ${offset}, limit = ${limit}`
       );
-      const requesterId = authData.organizationId;
+      const requesterId = ctx.authData.organizationId;
       const eservicesResponse: catalogApi.EServices =
         await catalogProcessClient.getEServices({
-          headers,
+          headers: ctx.headers,
           queries,
         });
 
@@ -360,7 +359,7 @@ export function catalogServiceBuilder(
         tenantProcessClient,
         agreementProcessClient,
         inAppNotificationManagerClient,
-        headers,
+        ctx,
         requesterId
       );
       const response: bffApi.CatalogEServices = {

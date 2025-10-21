@@ -28,6 +28,7 @@ import { delegationNotFound } from "../model/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 
 // eslint-disable-next-line max-params
 async function enhanceDelegation<
@@ -245,8 +246,9 @@ export function delegationServiceBuilder(
         delegatorIds?: string[];
         eserviceIds?: string[];
       },
-      { headers, logger }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactDelegations> {
+      const { headers, logger } = ctx;
       logger.info("Retrieving all delegations");
 
       const delegations = await delegationClients.delegation.getDelegations({
@@ -262,13 +264,11 @@ export function delegationServiceBuilder(
         headers,
       });
 
-      const notificationsPromise: Promise<string[]> =
-        inAppNotificationManagerClient.filterUnreadNotifications({
-          queries: {
-            entityIds: delegations.results.map((a) => a.id),
-          },
-          headers,
-        });
+      const notificationsPromise: Promise<string[]> = filterUnreadNotifications(
+        inAppNotificationManagerClient,
+        delegations.results.map((a) => a.id),
+        ctx
+      );
 
       const involvedTenants = await getTenantsFromDelegation(
         tenantClient,
