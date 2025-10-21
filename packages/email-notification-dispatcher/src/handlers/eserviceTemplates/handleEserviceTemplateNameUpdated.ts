@@ -20,7 +20,8 @@ import {
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
-const notificationType: NotificationType = "templateStatusChangedToProducer";
+const notificationType: NotificationType =
+  "eserviceTemplateNameChangedToInstantiator";
 
 export async function handleEServiceTemplateNameUpdated(
   params: EserviceTemplateNameUpdatedHandlerParams
