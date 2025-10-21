@@ -73,6 +73,7 @@ export function toOutboundEventV2(
       { type: "ConsumerDelegationApproved" },
       { type: "ConsumerDelegationRejected" },
       { type: "ConsumerDelegationRevoked" },
+      { type: "DelegationContractGenerated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
