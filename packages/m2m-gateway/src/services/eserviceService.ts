@@ -182,20 +182,12 @@ export function eserviceServiceBuilder(
     attributes: attributeRegistryApi.Attributes;
   }> {
 
-    console.log("createEServiceDescriptorAttributesGroup called with:", {
-      eserviceId,
-      descriptorId,
-      attributeIds,
-    });
-
     const eservice = await retrieveEServiceById(headers, eserviceId);
 
     const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
 
-    // 1. Determina il nuovo indice del gruppo
     const newGroupIndex = descriptor.attributes[attributeKind].length;
 
-    // 2. Crea il nuovo array di gruppi, aggiungendo il nuovo gruppo
     const newAttributeGroups = [
       ...descriptor.attributes[attributeKind],
       attributeIds.attributeIds.map((id) => ({
@@ -204,13 +196,11 @@ export function eserviceServiceBuilder(
       })),
     ];
 
-    // 3. Crea il nuovo oggetto Attributes completo
     const newAttributes = {
       ...descriptor.attributes,
       [attributeKind]: newAttributeGroups,
     };
 
-    // 4. Aggiorna il descrittore con i nuovi attributi
     const response = await clients.catalogProcessClient.patchUpdateDraftDescriptor(
       { attributes: newAttributes },
       {
@@ -219,31 +209,21 @@ export function eserviceServiceBuilder(
       }
     );
 
-    // 5. Attendi il completamento dell'operazione
-    await pollEService(response, headers);
+    const updatedEservice = await pollEService(response, headers);
 
-    // 6. RECUPERA GLI ATTRIBUTI DETTAGLIATI USANDO LA FUNZIONE ESISTENTE
-    //    Dobbiamo filtrare il risultato per mostrare SOLO gli attributi del nuovo gruppo.
     const allAttributesWithDetails = await retrieveEServiceDescriptorAttributes(
-      { data: eservice.data, metadata: eservice.metadata }, // Passa l'eService (potrebbe essere necessario recuperarlo di nuovo o aggiornarlo, ma per semplicità usiamo quello iniziale)
+      updatedEservice,
       descriptorId,
       attributeKind,
-      // Per ottenere tutti gli attributi, usiamo un offset/limit che li copra tutti.
-      // L'implementazione attuale di retrieveEServiceDescriptorAttributes non supporta
-      // la paginazione per un singolo gruppo, ma per tutti i gruppi.
-      // L'alternativa più semplice è ricalcolare l'offset e il limit per il nuovo gruppo.
-      { offset: 0, limit: Infinity }, // Cerchiamo di prendere tutti gli attributi
+      { offset: 0, limit: Infinity },
       headers
     );
 
-    // Filtriamo solo gli attributi che appartengono al gruppo appena creato.
     const newlyCreatedGroupAttributes =
       allAttributesWithDetails.results.filter(
         (item) => item.groupIndex === newGroupIndex
       );
 
-    // 7. Prepara l'oggetto di ritorno nel formato atteso.
-    //    Si assume che attributeRegistryApi.Attributes sia un oggetto con una proprietà 'results'.
     const attributesToReturn: attributeRegistryApi.Attributes = {
       results: newlyCreatedGroupAttributes.map((item) => item.attribute),
       totalCount: newlyCreatedGroupAttributes.length,
@@ -1176,8 +1156,6 @@ export function eserviceServiceBuilder(
           "certified",
           ctx
         );
-      console.log("attributes", attributes);
-      console.log("groupIndex:", groupIndex);
 
       return attributes.results.map((attr) => ({
         groupIndex,

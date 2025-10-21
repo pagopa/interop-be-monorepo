@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { attributeRegistryApi, catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId, pollingMaxRetriesExceeded, unsafeBrandId } from "pagopa-interop-models";
 import {
@@ -6,19 +6,15 @@ import {
     getMockedApiEserviceDescriptor,
     getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import {
-    eserviceService,
-    expectApiClientGetToHaveBeenCalledWith,
-    expectApiClientPostToHaveBeenCalledWith,
-    mockInteropBeClients,
-    mockPollingResponse,
-} from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+
 import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 import { genericLogger } from "pagopa-interop-commons";
+import { eserviceService, expectApiClientGetToHaveBeenCalledWith, expectApiClientPostToHaveBeenCalledWith, mockInteropBeClients, mockPollingResponse } from "../../integrationUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { missingMetadata } from "../../../src/model/errors.js";
+import { config } from "../../../src/config/config.js";
+
 
 describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
     const attribute1: catalogApi.Attribute = {
@@ -84,6 +80,57 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
         descriptors: [descriptor],
     };
 
+    const descriptorUpdated: catalogApi.EServiceDescriptor = {
+        ...descriptor,
+        attributes: {
+            certified: [
+                [attribute1, attribute2, attribute3],
+                seed.attributeIds.map((id) => ({ id, explicitAttributeVerification: false })),
+            ],
+            verified: [],
+            declared: [],
+        },
+    };
+
+    const eserviceUpdated: catalogApi.EService = {
+        ...eservice,
+        descriptors: [descriptorUpdated],
+    };
+
+    const metadataUpdatedEservice = getMockWithMetadata(eserviceUpdated);
+
+
+    const mockGetEServiceById = vi.fn();
+
+    mockGetEServiceById.mockResolvedValueOnce(getMockWithMetadata(eservice));
+
+    mockGetEServiceById.mockImplementationOnce(
+        mockPollingResponse(metadataUpdatedEservice, 2)
+    );
+
+    mockGetEServiceById.mockResolvedValue(metadataUpdatedEservice);
+
+    const mockPatchUpdateDescriptor = vi
+        .fn()
+        .mockResolvedValue(metadataUpdatedEservice);
+
+
+    const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
+        data: {
+            results: [bulkAttribute1, bulkAttribute2, bulkAttribute3],
+            totalCount: descriptor.attributes.certified.length,
+        },
+        metadata: {},
+    });
+    mockInteropBeClients.catalogProcessClient = {
+        getEServiceById: mockGetEServiceById,
+        patchUpdateDraftDescriptor: mockPatchUpdateDescriptor,
+    } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
+
+    mockInteropBeClients.attributeProcessClient = {
+        getBulkedAttributes: mockGetBulkedAttributes,
+    } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
+
 
     const response: m2mGatewayApi.EServiceDescriptorCertifiedAttribute[] = [
         {
@@ -109,39 +156,13 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
         },
     ];
 
-    const mockEserviceProcessResponse = getMockWithMetadata(response);
-    const mockGetEServiceById = vi.fn().mockResolvedValue(getMockWithMetadata(eservice));
-    const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
-        data: {
-            results: [bulkAttribute1, bulkAttribute2, bulkAttribute3],
-            totalCount: descriptor.attributes.certified.length,
-        },
-        metadata: {},
-    });
-
-    const mockUpdateDescriptorAttributes = vi
-        .fn()
-        .mockResolvedValue(mockEserviceProcessResponse);
-
-    // const mockGetEserviceById = vi.fn(
-    //     mockPollingResponse(eservice, 2)
-    // );
-
-    mockInteropBeClients.catalogProcessClient = {
-        updateDescriptorAttributes: mockUpdateDescriptorAttributes,
-        getEServiceById: mockGetEServiceById,
-    } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
-
-    mockInteropBeClients.attributeProcessClient = {
-        getBulkedAttributes: mockGetBulkedAttributes,
-    } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
-
     beforeEach(() => {
-        vi.clearAllMocks();
+        mockPatchUpdateDescriptor.mockClear();
+        mockGetEServiceById.mockClear();
+        mockGetBulkedAttributes.mockClear();
     });
 
-    it.only("Should succeed and perform API clients calls", async () => {
-
+    it("Should succeed and perform API clients calls", async () => {
         const result = await eserviceService.createEServiceDescriptorCertifiedAttributesGroup(
             unsafeBrandId(eservice.id),
             unsafeBrandId(descriptor.id),
@@ -149,70 +170,108 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
             getMockM2MAdminAppContext()
         );
 
-
         expect(result).toEqual(response);
-        // expectApiClientPostToHaveBeenCalledWith({
-        //     mockPost: mockInteropBeClients.catalogProcessClient.createEService,
-        //     body: mockEserviceSeed,
-        // });
-        // expectApiClientGetToHaveBeenCalledWith({
-        //     mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
-        //     params: { eServiceId: mockEserviceProcessResponse.data.id },
-        // });
-        // expect(
-        //     mockInteropBeClients.catalogProcessClient.getEServiceById
-        // ).toHaveBeenCalledTimes(2);
+        expectApiClientGetToHaveBeenCalledWith({
+            mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
+            params: { eServiceId: eservice.id },
+        });
+
+        // Verify that getBulkedAttributes was called with correct parameters including duplicates for attributes in different groups
+        const attributesIDS = [attribute1.id, attribute2.id, attribute3.id, attribute1.id, attribute2.id, attribute3.id];
+
+        expect(mockGetBulkedAttributes).toHaveBeenCalledWith(
+            attributesIDS,
+            expect.objectContaining({
+                headers: expect.anything(),
+                queries: { limit: Infinity, offset: 0 },
+            })
+        );
+        expectApiClientPostToHaveBeenCalledWith({
+            mockPost:
+                mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
+            params: {
+                eServiceId: eservice.id,
+                descriptorId: descriptor.id,
+            },
+            body: {
+                attributes: descriptorUpdated.attributes,
+            },
+        });
+        expect(mockGetEServiceById).toHaveBeenCalledTimes(3);
     });
 
-    // it("Should throw missingMetadata in case the attribute returned by the creation POST call has no metadata", async () => {
-    //     mockCreateEService.mockResolvedValueOnce({
-    //         ...mockEserviceProcessResponse,
-    //         metadata: undefined,
-    //     });
+    it("Should throw missingMetadata in case the attribute returned by the update PATCH call has no metadata", async () => {
+        mockPatchUpdateDescriptor.mockResolvedValueOnce({
+            ...metadataUpdatedEservice,
+            metadata: undefined,
+        });
 
-    //     await expect(
-    //         eserviceService.createEService(
-    //             mockEserviceSeed,
-    //             getMockM2MAdminAppContext()
-    //         )
-    //     ).rejects.toThrowError(missingMetadata());
-    // });
+        await expect(
+            eserviceService.createEServiceDescriptorCertifiedAttributesGroup(
+                unsafeBrandId(eservice.id),
+                unsafeBrandId(descriptor.id),
+                seed,
+                getMockM2MAdminAppContext()
+            )
+        ).rejects.toThrowError(missingMetadata());
+    });
 
-    // it("Should throw missingMetadata in case the attribute returned by the polling GET call has no metadata", async () => {
-    //     mockGetEservice.mockResolvedValueOnce({
-    //         ...mockEserviceProcessResponse,
-    //         metadata: undefined,
-    //     });
+    it("Should throw missingMetadata in case the attribute returned by the polling GET call has no metadata", async () => {
+        mockGetEServiceById.mockResolvedValueOnce(getMockWithMetadata(eservice));
+        mockPatchUpdateDescriptor.mockResolvedValueOnce(metadataUpdatedEservice);
+        mockGetEServiceById.mockResolvedValueOnce({
+            ...metadataUpdatedEservice,
+            metadata: undefined,
+        });
+        mockGetEServiceById.mockResolvedValue(metadataUpdatedEservice);
 
-    //     await expect(
-    //         eserviceService.createEService(
-    //             mockEserviceSeed,
-    //             getMockM2MAdminAppContext()
-    //         )
-    //     ).rejects.toThrowError(missingMetadata());
-    // });
+        await expect(
+            eserviceService.createEServiceDescriptorCertifiedAttributesGroup(
+                unsafeBrandId(eservice.id),
+                unsafeBrandId(descriptor.id),
+                seed,
+                getMockM2MAdminAppContext()
+            )
+        ).rejects.toThrowError(missingMetadata());
+        expect(mockGetEServiceById).toHaveBeenCalledTimes(2);
+    });
 
-    // it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    //     mockGetEservice.mockImplementation(
-    //         mockPollingResponse(
-    //             mockEserviceProcessResponse,
-    //             config.defaultPollingMaxRetries + 1
-    //         )
-    //     );
+    it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
+        mockGetEServiceById.mockReset();
+        mockGetEServiceById.mockResolvedValueOnce(getMockWithMetadata(eservice));
+        mockPatchUpdateDescriptor.mockResolvedValueOnce(metadataUpdatedEservice);
+        const nonFinalStateEservice = {
+            ...metadataUpdatedEservice,
+            descriptors: [{
+                ...descriptorUpdated,
+                state: "DRAFT",
+            }],
+        };
 
-    //     await expect(
-    //         eserviceService.createEService(
-    //             mockEserviceSeed,
-    //             getMockM2MAdminAppContext()
-    //         )
-    //     ).rejects.toThrowError(
-    //         pollingMaxRetriesExceeded(
-    //             config.defaultPollingMaxRetries,
-    //             config.defaultPollingRetryDelay
-    //         )
-    //     );
-    //     expect(mockGetEservice).toHaveBeenCalledTimes(
-    //         config.defaultPollingMaxRetries
-    //     );
-    // });
+        mockGetEServiceById.mockImplementation(
+            mockPollingResponse(
+                getMockWithMetadata(nonFinalStateEservice),
+                config.defaultPollingMaxRetries + 1
+            )
+        );
+
+        await expect(
+            eserviceService.createEServiceDescriptorCertifiedAttributesGroup(
+                unsafeBrandId(eservice.id),
+                unsafeBrandId(descriptor.id),
+                seed,
+                getMockM2MAdminAppContext()
+            )
+        ).rejects.toThrowError(
+            pollingMaxRetriesExceeded(
+                config.defaultPollingMaxRetries,
+                config.defaultPollingRetryDelay
+            )
+        );
+
+        expect(mockGetEServiceById).toHaveBeenCalledTimes(
+            config.defaultPollingMaxRetries + 1
+        );
+    });
+
 });
