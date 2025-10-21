@@ -7,7 +7,6 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   TenantId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,

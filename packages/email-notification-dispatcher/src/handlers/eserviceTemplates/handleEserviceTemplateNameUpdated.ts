@@ -7,7 +7,6 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   TenantId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -80,7 +79,7 @@ export async function handleEServiceTemplateNameUpdated(
   }
 
   return targets.flatMap((t) => {
-    const tenantEServices = instantiatorEserviceMap[t.tenantId] || [];
+    const tenantEServices = instantiatorEserviceMap.get(t.tenantId) || [];
     const tenant = instantiators.find((tenant) => tenant.id === t.tenantId);
 
     if (!tenant) {
