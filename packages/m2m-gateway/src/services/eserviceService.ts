@@ -45,6 +45,7 @@ import {
   toM2MGatewayApiDeclaredAttribute,
   toM2MGatewayApiVerifiedAttribute,
 } from "../api/attributeApiConverter.js";
+import { EServiceDescriptorAttributesGroupSeed } from "../../../api-clients/dist/m2mGatewayApi.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -173,52 +174,84 @@ export function eserviceServiceBuilder(
   async function createEServiceDescriptorAttributesGroup(
     eserviceId: EServiceId,
     descriptorId: DescriptorId,
-    attributeIds: string[],
+    attributeIds: EServiceDescriptorAttributesGroupSeed,
     attributeKind: keyof catalogApi.Attributes,
     { headers }: WithLogger<M2MGatewayAppContext>
   ): Promise<{
     groupIndex: number;
     attributes: attributeRegistryApi.Attributes;
   }> {
+
+    console.log("createEServiceDescriptorAttributesGroup called with:", {
+      eserviceId,
+      descriptorId,
+      attributeIds,
+    });
+
     const eservice = await retrieveEServiceById(headers, eserviceId);
+
     const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
-    // Get the new group index (will be the length of current groups)
+
+    // 1. Determina il nuovo indice del gruppo
     const newGroupIndex = descriptor.attributes[attributeKind].length;
+
+    // 2. Crea il nuovo array di gruppi, aggiungendo il nuovo gruppo
     const newAttributeGroups = [
       ...descriptor.attributes[attributeKind],
-      attributeIds.map((id) => ({
+      attributeIds.attributeIds.map((id) => ({
         id,
         explicitAttributeVerification: false,
       })),
     ];
+
+    // 3. Crea il nuovo oggetto Attributes completo
     const newAttributes = {
       ...descriptor.attributes,
       [attributeKind]: newAttributeGroups,
     };
-    // Update the descriptor with the new attributes
-    const response = await clients.catalogProcessClient.updateDescriptorAttributes(
-      newAttributes,
+
+    // 4. Aggiorna il descrittore con i nuovi attributi
+    const response = await clients.catalogProcessClient.patchUpdateDraftDescriptor(
+      { attributes: newAttributes },
       {
         params: { eServiceId: eserviceId, descriptorId },
         headers,
       }
     );
 
+    // 5. Attendi il completamento dell'operazione
     await pollEService(response, headers);
 
-    const bulkResult = await clients.attributeProcessClient.getBulkedAttributes(
-      attributeIds,
-      {
-        headers,
-        queries: {
-          offset: 0,
-          limit: attributeIds.length,
-        },
-      }
+    // 6. RECUPERA GLI ATTRIBUTI DETTAGLIATI USANDO LA FUNZIONE ESISTENTE
+    //    Dobbiamo filtrare il risultato per mostrare SOLO gli attributi del nuovo gruppo.
+    const allAttributesWithDetails = await retrieveEServiceDescriptorAttributes(
+      { data: eservice.data, metadata: eservice.metadata }, // Passa l'eService (potrebbe essere necessario recuperarlo di nuovo o aggiornarlo, ma per semplicità usiamo quello iniziale)
+      descriptorId,
+      attributeKind,
+      // Per ottenere tutti gli attributi, usiamo un offset/limit che li copra tutti.
+      // L'implementazione attuale di retrieveEServiceDescriptorAttributes non supporta
+      // la paginazione per un singolo gruppo, ma per tutti i gruppi.
+      // L'alternativa più semplice è ricalcolare l'offset e il limit per il nuovo gruppo.
+      { offset: 0, limit: Infinity }, // Cerchiamo di prendere tutti gli attributi
+      headers
     );
+
+    // Filtriamo solo gli attributi che appartengono al gruppo appena creato.
+    const newlyCreatedGroupAttributes =
+      allAttributesWithDetails.results.filter(
+        (item) => item.groupIndex === newGroupIndex
+      );
+
+    // 7. Prepara l'oggetto di ritorno nel formato atteso.
+    //    Si assume che attributeRegistryApi.Attributes sia un oggetto con una proprietà 'results'.
+    const attributesToReturn: attributeRegistryApi.Attributes = {
+      results: newlyCreatedGroupAttributes.map((item) => item.attribute),
+      totalCount: newlyCreatedGroupAttributes.length,
+    };
+
     return {
       groupIndex: newGroupIndex,
-      attributes: bulkResult.data,
+      attributes: attributesToReturn,
     };
   }
   const pollEserviceUntilDeletion = (
@@ -1128,7 +1161,7 @@ export function eserviceServiceBuilder(
     async createEServiceDescriptorCertifiedAttributesGroup(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      attributeIds: string[],
+      attributeIds: EServiceDescriptorAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceDescriptorCertifiedAttribute[]> {
       ctx.logger.info(
@@ -1143,6 +1176,8 @@ export function eserviceServiceBuilder(
           "certified",
           ctx
         );
+      console.log("attributes", attributes);
+      console.log("groupIndex:", groupIndex);
 
       return attributes.results.map((attr) => ({
         groupIndex,
@@ -1156,7 +1191,7 @@ export function eserviceServiceBuilder(
     async createEServiceDescriptorDeclaredAttributesGroup(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      attributeIds: string[],
+      attributeIds: EServiceDescriptorAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceDescriptorDeclaredAttribute[]> {
       ctx.logger.info(
@@ -1183,7 +1218,7 @@ export function eserviceServiceBuilder(
     async createEServiceDescriptorVerifiedAttributesGroup(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      attributeIds: string[],
+      attributeIds: EServiceDescriptorAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceDescriptorVerifiedAttribute[]> {
       ctx.logger.info(

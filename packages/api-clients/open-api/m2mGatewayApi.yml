@@ -7827,7 +7827,7 @@ paths:
           content:
             application/json:
               schema:
-                  $ref: "#/components/schemas/EServiceDescriptorCertifiedAttributes"
+                $ref: "#/components/schemas/EServiceDescriptorCertifiedAttributes"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -7933,7 +7933,7 @@ paths:
           content:
             application/json:
               schema:
-                  $ref: "#/components/schemas/EServiceDescriptorDeclaredAttributes"
+                $ref: "#/components/schemas/EServiceDescriptorDeclaredAttributes"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -8039,7 +8039,7 @@ paths:
           content:
             application/json:
               schema:
-                  $ref: "#/components/schemas/EServiceDescriptorVerifiedAttributes"
+                $ref: "#/components/schemas/EServiceDescriptorVerifiedAttributes"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -8126,19 +8126,16 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: string
-                format: uuid
+              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
         "201":
           description: Certified Attributes Group created
           content:
             application/json:
               schema:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/EServiceDescriptorCertifiedAttribute"
+                type: array
+                items:
+                  $ref: "#/components/schemas/EServiceDescriptorCertifiedAttribute"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -8238,19 +8235,16 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: string
-                format: uuid
+              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
         "201":
           description: Declared Attributes Group created
           content:
             application/json:
               schema:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/EServiceDescriptorDeclaredAttribute"
+                type: array
+                items:
+                  $ref: "#/components/schemas/EServiceDescriptorDeclaredAttribute"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -8350,19 +8344,16 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: string
-                format: uuid
+              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
         "201":
           description: Verified Attributes Group created
           content:
             application/json:
               schema:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/EServiceDescriptorVerifiedAttribute"
+                type: array
+                items:
+                  $ref: "#/components/schemas/EServiceDescriptorVerifiedAttribute"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -14597,7 +14588,17 @@ components:
       required:
         - groupIndex
         - attribute
-        
+    EServiceDescriptorAttributesGroupSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        attributeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+        - attributeIds
     DeclaredAttributeSeed:
       type: object
       additionalProperties: false
