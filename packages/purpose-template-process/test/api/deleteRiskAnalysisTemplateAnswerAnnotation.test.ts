@@ -62,12 +62,12 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
     authRole.M2M_ADMIN_ROLE,
   ];
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 204 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(serviceResponse.data);
+      expect(res.status).toBe(204);
+      expect(res.body).toEqual({});
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
       );
