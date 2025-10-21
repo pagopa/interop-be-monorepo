@@ -198,12 +198,17 @@ export const createPurposeFromTemplateErrorMapper = (
     )
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
+      "tenantNotFound",
+      "tenantKindNotFound",
       "agreementNotFound",
       "eserviceNotLinkedToPurposeTemplate",
       "riskAnalysisValidationFailed",
       "invalidPurposeTenantKind",
       "riskAnalysisMissingExpectedFieldError",
+      "riskAnalysisContainsNotEditableAnswers",
+      "riskAnalysisAnswerNotInSuggestValues",
       "riskAnalysisVersionMismatch",
+      "eServiceModeNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)

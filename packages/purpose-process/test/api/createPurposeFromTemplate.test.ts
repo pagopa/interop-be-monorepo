@@ -4,6 +4,7 @@ import {
   DelegationId,
   Purpose,
   PurposeTemplateId,
+  eserviceMode,
   generateId,
   tenantKind,
 } from "pagopa-interop-models";
@@ -29,6 +30,11 @@ import {
   invalidPurposeTenantKind,
   riskAnalysisMissingExpectedFieldError,
   riskAnalysisVersionMismatch,
+  eServiceModeNotAllowed,
+  riskAnalysisContainsNotEditableAnswers,
+  riskAnalysisAnswerNotInSuggestValues,
+  tenantKindNotFound,
+  tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import { getMockPurposeFromTemplateSeed } from "../mockUtils.js";
 
@@ -106,6 +112,14 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
       expectedStatus: 404,
     },
     {
+      error: tenantNotFound(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: tenantKindNotFound(generateId()),
+      expectedStatus: 400,
+    },
+    {
       error: agreementNotFound(generateId(), generateId()),
       expectedStatus: 400,
     },
@@ -122,7 +136,19 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
       expectedStatus: 400,
     },
     {
+      error: riskAnalysisContainsNotEditableAnswers(generateId(), "test-key"),
+      expectedStatus: 400,
+    },
+    {
+      error: riskAnalysisAnswerNotInSuggestValues(generateId(), "test-key"),
+      expectedStatus: 400,
+    },
+    {
       error: riskAnalysisVersionMismatch("0", "1"),
+      expectedStatus: 400,
+    },
+    {
+      error: eServiceModeNotAllowed(generateId(), eserviceMode.deliver),
       expectedStatus: 400,
     },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
