@@ -12,6 +12,7 @@ import {
   riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
+  Logger,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
