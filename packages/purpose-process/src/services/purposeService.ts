@@ -1652,6 +1652,10 @@ export function purposeServiceBuilder(
         authData,
         readModelService
       );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertEserviceMode(eservice, eserviceMode.deliver);
+
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
       const purposeTemplate = await retrieveActivePurposeTemplate(
