@@ -1,9 +1,5 @@
 import { describe, it, vi, beforeEach, expect } from "vitest";
-import {
-  generateId,
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { generateId, pollingMaxRetriesExceeded, unsafeBrandId } from "pagopa-interop-models";
 import {
   getMockWithMetadata,
   getMockedApiEServiceAttribute,
@@ -21,7 +17,7 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import {
   eserviceDescriptorAttributeNotFound,
-  eserviceDescriptorGroupNotFound,
+  eserviceDescriptorAttributeGroupNotFound,
   eserviceDescriptorNotFound,
   missingMetadata,
 } from "../../../src/model/errors.js";
@@ -33,11 +29,7 @@ describe("deleteEServiceDescriptorVerifiedAttributeFromGroup", () => {
     [getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute()],
     [getMockedApiEServiceAttribute(), mockAttribute],
     [mockAttribute],
-    [
-      getMockedApiEServiceAttribute(),
-      getMockedApiEServiceAttribute(),
-      getMockedApiEServiceAttribute(),
-    ],
+    [getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute()],
   ];
   const mockDescriptor = getMockedApiEserviceDescriptor({
     attributes: {
@@ -52,13 +44,9 @@ describe("deleteEServiceDescriptorVerifiedAttributeFromGroup", () => {
 
   const mockGetEServiceResponse = getMockWithMetadata(mockEService);
 
-  const mockGetEService = vi.fn(
-    mockPollingResponse(mockGetEServiceResponse, 2)
-  );
+  const mockGetEService = vi.fn(mockPollingResponse(mockGetEServiceResponse, 2));
 
-  const mockPatchUpdateDescriptor = vi
-    .fn()
-    .mockResolvedValue(mockGetEServiceResponse);
+  const mockPatchUpdateDescriptor = vi.fn().mockResolvedValue(mockGetEServiceResponse);
 
   mockInteropBeClients.catalogProcessClient = {
     patchUpdateDraftDescriptor: mockPatchUpdateDescriptor,
@@ -84,8 +72,7 @@ describe("deleteEServiceDescriptorVerifiedAttributeFromGroup", () => {
     );
 
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost:
-        mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
+      mockPost: mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
       params: {
         eServiceId: mockEService.id,
         descriptorId: mockDescriptor.id,
@@ -107,9 +94,7 @@ describe("deleteEServiceDescriptorVerifiedAttributeFromGroup", () => {
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockEService.id },
     });
-    expect(
-      mockInteropBeClients.catalogProcessClient.getEServiceById
-    ).toHaveBeenCalledTimes(3);
+    expect(mockInteropBeClients.catalogProcessClient.getEServiceById).toHaveBeenCalledTimes(3);
   });
 
   it("Should delete the whole group if the last attribute is removed", async () => {
@@ -126,8 +111,7 @@ describe("deleteEServiceDescriptorVerifiedAttributeFromGroup", () => {
     );
 
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost:
-        mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
+      mockPost: mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
       params: {
         eServiceId: mockEService.id,
         descriptorId: mockDescriptor.id,
@@ -136,9 +120,7 @@ describe("deleteEServiceDescriptorVerifiedAttributeFromGroup", () => {
         attributes: {
           certified: [],
           declared: [],
-          verified: mockVerifiedAttributes.filter(
-            (_, index) => index !== groupIndex
-          ),
+          verified: mockVerifiedAttributes.filter((_, index) => index !== groupIndex),
         },
       },
     });
@@ -182,10 +164,7 @@ describe("deleteEServiceDescriptorVerifiedAttributeFromGroup", () => {
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
     mockGetEService.mockImplementation(
-      mockPollingResponse(
-        mockGetEServiceResponse,
-        config.defaultPollingMaxRetries + 1
-      )
+      mockPollingResponse(mockGetEServiceResponse, config.defaultPollingMaxRetries + 1)
     );
 
     await expect(
@@ -196,18 +175,11 @@ describe("deleteEServiceDescriptorVerifiedAttributeFromGroup", () => {
         unsafeBrandId(mockAttribute.id),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(
-      pollingMaxRetriesExceeded(
-        config.defaultPollingMaxRetries,
-        config.defaultPollingRetryDelay
-      )
-    );
-    expect(mockGetEService).toHaveBeenCalledTimes(
-      config.defaultPollingMaxRetries + 1
-    );
+    ).rejects.toThrowError(pollingMaxRetriesExceeded(config.defaultPollingMaxRetries, config.defaultPollingRetryDelay));
+    expect(mockGetEService).toHaveBeenCalledTimes(config.defaultPollingMaxRetries + 1);
   });
 
-  it("Should throw eserviceDescriptorGroupNotFound in case of missing group for the specified group index", async () => {
+  it("Should throw eserviceDescriptorAttributeGroupNotFound in case of missing group for the specified group index", async () => {
     await expect(
       eserviceService.deleteEServiceDescriptorVerifiedAttributeFromGroup(
         unsafeBrandId(mockEService.id),
@@ -217,7 +189,7 @@ describe("deleteEServiceDescriptorVerifiedAttributeFromGroup", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      eserviceDescriptorGroupNotFound(
+      eserviceDescriptorAttributeGroupNotFound(
         unsafeBrandId(mockEService.id),
         unsafeBrandId(mockDescriptor.id),
         mockVerifiedAttributes.length + 1
@@ -234,9 +206,7 @@ describe("deleteEServiceDescriptorVerifiedAttributeFromGroup", () => {
         unsafeBrandId(generateId()),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(
-      eserviceDescriptorAttributeNotFound(unsafeBrandId(mockDescriptor.id))
-    );
+    ).rejects.toThrowError(eserviceDescriptorAttributeNotFound(unsafeBrandId(mockDescriptor.id)));
   });
 
   it("Should throw eserviceDescriptorNotFound in case of eservice descriptor not found", async () => {
@@ -249,11 +219,6 @@ describe("deleteEServiceDescriptorVerifiedAttributeFromGroup", () => {
         unsafeBrandId(mockAttribute.id),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(
-      eserviceDescriptorNotFound(
-        unsafeBrandId(mockEService.id),
-        unsafeBrandId(descriptorId)
-      )
-    );
+    ).rejects.toThrowError(eserviceDescriptorNotFound(unsafeBrandId(mockEService.id), unsafeBrandId(descriptorId)));
   });
 });

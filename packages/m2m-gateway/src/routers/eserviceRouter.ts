@@ -20,9 +20,7 @@ import {
   deleteDraftEServiceDescriptorErrorMapper,
   getEServiceRiskAnalysisErrorMapper,
   getEServiceDescriptorAttributesErrorMapper,
-  deleteEServiceDescriptorCertifiedAttributeFromGroupErrorMapper,
-  deleteEServiceDescriptorVerifiedAttributeFromGroupErrorMapper,
-  deleteEServiceDescriptorDeclaredAttributeFromGroupErrorMapper,
+  deleteEServiceDescriptorAttributeFromGroupErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -929,7 +927,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deleteEServiceDescriptorCertifiedAttributeFromGroupErrorMapper,
+            deleteEServiceDescriptorAttributeFromGroupErrorMapper,
             ctx,
             `Error deleting certified attribute ${req.params.attributeId} from group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
           );
@@ -954,7 +952,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deleteEServiceDescriptorVerifiedAttributeFromGroupErrorMapper,
+            deleteEServiceDescriptorAttributeFromGroupErrorMapper,
             ctx,
             `Error deleting verified attribute ${req.params.attributeId} from group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
           );
@@ -979,7 +977,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deleteEServiceDescriptorDeclaredAttributeFromGroupErrorMapper,
+            deleteEServiceDescriptorAttributeFromGroupErrorMapper,
             ctx,
             `Error deleting declared attribute ${req.params.attributeId} from group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
           );

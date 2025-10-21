@@ -8117,7 +8117,7 @@ paths:
           format: uuid
       - name: groupIndex
         in: path
-        description: The position index of the Attribute Group
+        description: The index of the group to which the Attribute belongs
         required: true
         schema:
           type: integer
@@ -8133,7 +8133,7 @@ paths:
     delete:
       tags:
         - eservices
-      summary: Delete E-Service Descriptor Certified Attribute from a specific Attribute Group
+      summary: Delete an E-Service Descriptor Certified Attribute from a specific Attribute Group
       description: |
         Delete a specific Certified Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
         If the deleted attribute is the last one in the group, the entire group will be removed.
@@ -8218,7 +8218,7 @@ paths:
           format: uuid
       - name: groupIndex
         in: path
-        description: The position index of the Attribute Group
+        description: The index of the group to which the Attribute belongs
         required: true
         schema:
           type: integer
@@ -8234,7 +8234,7 @@ paths:
     delete:
       tags:
         - eservices
-      summary: Delete E-Service Descriptor Verified Attribute from a specific Attribute Group
+      summary: Delete an E-Service Descriptor Verified Attribute from a specific Attribute Group
       description: |
         Delete a specific Verified Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
         If the deleted attribute is the last one in the group, the entire group will be removed.
@@ -8319,7 +8319,7 @@ paths:
           format: uuid
       - name: groupIndex
         in: path
-        description: The position index of the Attribute Group
+        description: The index of the group to which the Attribute belongs
         required: true
         schema:
           type: integer
@@ -8335,7 +8335,7 @@ paths:
     delete:
       tags:
         - eservices
-      summary: Delete E-Service Descriptor Declared Attribute from a specific Attribute Group
+      summary: Delete an E-Service Descriptor Declared Attribute from a specific Attribute Group
       description: |
         Delete a specific Declared Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
         If the deleted attribute is the last one in the group, the entire group will be removed.

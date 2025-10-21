@@ -27,7 +27,7 @@ import {
 import {
   cannotDeleteLastEServiceDescriptor,
   eserviceDescriptorAttributeNotFound,
-  eserviceDescriptorGroupNotFound,
+  eserviceDescriptorAttributeGroupNotFound,
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
@@ -185,12 +185,13 @@ export function eserviceServiceBuilder(
     const eservice = await retrieveEServiceById(headers, eserviceId);
     const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
 
-    const descriptorAttributes = descriptor.attributes[attributeKind];
+    const kindAttributeGroups = descriptor.attributes[attributeKind];
 
-    const attributeGroup = descriptorAttributes[groupIndex];
+    const attributeGroup = kindAttributeGroups.at(groupIndex);
 
     if (!attributeGroup) {
-      throw eserviceDescriptorGroupNotFound(
+      throw eserviceDescriptorAttributeGroupNotFound(
+        attributeKind,
         eserviceId,
         descriptorId,
         groupIndex
@@ -208,13 +209,13 @@ export function eserviceServiceBuilder(
     const updatedGroups =
       attributeGroupWithoutAttribute.length === 0
         ? [
-            ...descriptorAttributes.slice(0, groupIndex),
-            ...descriptorAttributes.slice(groupIndex + 1),
+            ...kindAttributeGroups.slice(0, groupIndex),
+            ...kindAttributeGroups.slice(groupIndex + 1),
           ]
         : [
-            ...descriptorAttributes.slice(0, groupIndex),
+            ...kindAttributeGroups.slice(0, groupIndex),
             attributeGroupWithoutAttribute,
-            ...descriptorAttributes.slice(groupIndex + 1),
+            ...kindAttributeGroups.slice(groupIndex + 1),
           ];
 
     const response =

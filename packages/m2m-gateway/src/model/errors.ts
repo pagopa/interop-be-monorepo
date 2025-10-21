@@ -4,6 +4,7 @@ import {
   authorizationApi,
   purposeApi,
   tenantApi,
+  catalogApi,
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
@@ -50,7 +51,7 @@ export const errorCodes = {
   delegationEServiceMismatch: "0032",
   cannotDeleteLastEServiceTemplateVersion: "0033",
   eserviceDescriptorAttributeNotFound: "0034",
-  eserviceDescriptorGroupNotFound: "0035",
+  eserviceDescriptorAttributeGroupNotFound: "0035",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -374,14 +375,15 @@ export function eserviceDescriptorAttributeNotFound(
   });
 }
 
-export function eserviceDescriptorGroupNotFound(
+export function eserviceDescriptorAttributeGroupNotFound(
+  kind: keyof catalogApi.Attributes,
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
   groupIndex: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Group with index ${groupIndex} not found for descriptor ${descriptorId} of e-service ${eserviceId}`,
-    code: "eserviceDescriptorGroupNotFound",
-    title: "E-Service Descriptor Group Not Found",
+    detail: `${kind} Attribute group with index ${groupIndex} not found for descriptor ${descriptorId} of e-service ${eserviceId}`,
+    code: "eserviceDescriptorAttributeGroupNotFound",
+    title: "E-Service Descriptor Attribute Group Not Found",
   });
 }
