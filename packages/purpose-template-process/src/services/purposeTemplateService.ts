@@ -496,6 +496,7 @@ export function purposeTemplateServiceBuilder(
         purposeIsFreeOfCharge: seed.purposeIsFreeOfCharge,
         purposeFreeOfChargeReason: seed.purposeFreeOfChargeReason,
         purposeDailyCalls: seed.purposeDailyCalls,
+        handlesPersonalData: seed.handlesPersonalData,
       };
 
       const event = await repository.createEvent(

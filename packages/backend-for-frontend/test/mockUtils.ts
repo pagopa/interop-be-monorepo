@@ -545,6 +545,7 @@ export const getMockPurposeTemplateSeed = (): bffApi.PurposeTemplateSeed => ({
   purposeIsFreeOfCharge: false,
   purposeFreeOfChargeReason: undefined,
   purposeDailyCalls: 1000,
+  handlesPersonalData: false,
 });
 
 export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
@@ -1209,4 +1210,5 @@ export const getMockBffApiPurposeTemplate = (
     "This is a valid purpose description that meets the minimum length requirement",
   purposeRiskAnalysisForm: generateMock(bffApi.RiskAnalysisFormTemplate),
   purposeIsFreeOfCharge: false,
+  handlesPersonalData: false,
 });
