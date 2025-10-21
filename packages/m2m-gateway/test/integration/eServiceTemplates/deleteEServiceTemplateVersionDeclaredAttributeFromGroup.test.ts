@@ -231,6 +231,7 @@ describe("deleteEServiceTemplateVersionDeclaredAttributeFromGroup", () => {
       )
     ).rejects.toThrowError(
       eserviceTemplateVersionAttributeGroupNotFound(
+        "declared",
         unsafeBrandId(mockEServiceTemplate.id),
         unsafeBrandId(mockVersion.id),
         mockVerifiedAttributes.length + 1

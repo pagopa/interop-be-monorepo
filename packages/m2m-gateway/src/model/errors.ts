@@ -391,12 +391,13 @@ export function eserviceDescriptorAttributeGroupNotFound(
 }
 
 export function eserviceTemplateVersionAttributeGroupNotFound(
+  kind: keyof catalogApi.Attributes,
   templateId: EServiceTemplateId,
   versionId: EServiceTemplateVersionId,
   groupIndex: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Group with index ${groupIndex} not found for e-service template version ${versionId} of template ${templateId}`,
+    detail: `${kind} Attribute group with index ${groupIndex} not found for e-service template version ${versionId} of template ${templateId}`,
     code: "eserviceTemplateVersionAttributeGroupNotFound",
     title: "E-Service Template Version Attribute Group Not Found",
   });

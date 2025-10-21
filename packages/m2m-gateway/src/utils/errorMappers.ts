@@ -228,35 +228,14 @@ export const deleteEServiceDescriptorAttributeFromGroupErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const deleteEServiceTemplateVersionDeclaredAttributeFromGroupErrorMapper =
-  (error: ApiError<ErrorCodes>): number =>
-    match(error.code)
-      .with(
-        "eserviceTemplateVersionNotFound",
-        "eserviceTemplateVersionAttributeGroupNotFound",
-        "eserviceTemplateVersionAttributeNotFoundInGroup",
-        () => HTTP_STATUS_NOT_FOUND
-      )
-      .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const deleteEServiceTemplateVersionCertifiedAttributeFromGroupErrorMapper =
-  (error: ApiError<ErrorCodes>): number =>
-    match(error.code)
-      .with(
-        "eserviceTemplateVersionNotFound",
-        "eserviceTemplateVersionAttributeGroupNotFound",
-        "eserviceTemplateVersionAttributeNotFoundInGroup",
-        () => HTTP_STATUS_NOT_FOUND
-      )
-      .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const deleteEServiceTemplateVersionVerifiedAttributeFromGroupErrorMapper =
-  (error: ApiError<ErrorCodes>): number =>
-    match(error.code)
-      .with(
-        "eserviceTemplateVersionNotFound",
-        "eserviceTemplateVersionAttributeGroupNotFound",
-        "eserviceTemplateVersionAttributeNotFoundInGroup",
-        () => HTTP_STATUS_NOT_FOUND
-      )
-      .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+export const deleteEServiceTemplateVersionAttributeFromGroupErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceTemplateVersionNotFound",
+      "eserviceTemplateVersionAttributeGroupNotFound",
+      "eserviceTemplateVersionAttributeNotFoundInGroup",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

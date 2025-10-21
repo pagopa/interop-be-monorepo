@@ -17,9 +17,7 @@ import {
   getEServiceTemplateRiskAnalysisErrorMapper,
   getEServiceTemplateVersionErrorMapper,
   getEServiceTemplateVersionDocumentsErrorMapper,
-  deleteEServiceTemplateVersionCertifiedAttributeFromGroupErrorMapper,
-  deleteEServiceTemplateVersionVerifiedAttributeFromGroupErrorMapper,
-  deleteEServiceTemplateVersionDeclaredAttributeFromGroupErrorMapper,
+  deleteEServiceTemplateVersionAttributeFromGroupErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -689,7 +687,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deleteEServiceTemplateVersionCertifiedAttributeFromGroupErrorMapper,
+            deleteEServiceTemplateVersionAttributeFromGroupErrorMapper,
             ctx,
             `Error deleting certified attribute ${req.params.attributeId} from group ${req.params.groupIndex} for version ${req.params.versionId} of eservice template ${req.params.templateId}`
           );
@@ -714,7 +712,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deleteEServiceTemplateVersionVerifiedAttributeFromGroupErrorMapper,
+            deleteEServiceTemplateVersionAttributeFromGroupErrorMapper,
             ctx,
             `Error deleting verified attribute ${req.params.attributeId} from group ${req.params.groupIndex} for version ${req.params.versionId} of eservice template ${req.params.templateId}`
           );
@@ -739,7 +737,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deleteEServiceTemplateVersionDeclaredAttributeFromGroupErrorMapper,
+            deleteEServiceTemplateVersionAttributeFromGroupErrorMapper,
             ctx,
             `Error deleting declared attribute ${req.params.attributeId} from group ${req.params.groupIndex} for version ${req.params.versionId} of eservice template ${req.params.templateId}`
           );

@@ -136,13 +136,14 @@ export function eserviceTemplateServiceBuilder(
       versionId
     );
 
-    const descriptorAttributes =
+    const kindAttributeGroups =
       eserviceTemplateVersion.attributes[attributeKind];
 
-    const attributeGroup = descriptorAttributes[groupIndex];
+    const attributeGroup = kindAttributeGroups.at(groupIndex);
 
     if (!attributeGroup) {
       throw eserviceTemplateVersionAttributeGroupNotFound(
+        attributeKind,
         templateId,
         versionId,
         groupIndex
@@ -163,13 +164,13 @@ export function eserviceTemplateServiceBuilder(
     const updatedGroups =
       attributeGroupWithoutAttribute.length === 0
         ? [
-            ...descriptorAttributes.slice(0, groupIndex),
-            ...descriptorAttributes.slice(groupIndex + 1),
+            ...kindAttributeGroups.slice(0, groupIndex),
+            ...kindAttributeGroups.slice(groupIndex + 1),
           ]
         : [
-            ...descriptorAttributes.slice(0, groupIndex),
+            ...kindAttributeGroups.slice(0, groupIndex),
             attributeGroupWithoutAttribute,
-            ...descriptorAttributes.slice(groupIndex + 1),
+            ...kindAttributeGroups.slice(groupIndex + 1),
           ];
 
     const response =
