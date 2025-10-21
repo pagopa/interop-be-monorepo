@@ -221,8 +221,4 @@ export const getEServiceTemplateVersionAttributesErrorMapper = (
 ): number =>
   match(error.code)
     .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "eserviceTemplateVersionAttributeNotFound",
-      () => HTTP_STATUS_NOT_FOUND
-    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

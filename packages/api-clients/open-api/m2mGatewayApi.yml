@@ -10753,6 +10753,113 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /eserviceTemplates/{templateId}/versions/{versionId}/certifiedAttributes:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: versionId
+        in: path
+        description: The ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - eserviceTemplates
+      summary: List E-Service Template Version Certified Attributes
+      description: Retrieve a list of E-Service Template Version Certified Attributes
+      operationId: getEServiceTemplateVersionCertifiedAttributes
+      parameters:
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          description: Maximum number of results to return
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: E-Service Template Version Certified Attributes retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+
   /eserviceTemplates/{templateId}/versions/{versionId}/certifiedAttributes/groups:
     parameters:
       - name: templateId
@@ -10790,7 +10897,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttribute"
-          headers:
+              headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
             X-Rate-Limit-Remaining:
@@ -10825,6 +10932,112 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
           description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /eserviceTemplates/{templateId}/versions/{versionId}/declaredAttributes:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: versionId
+        in: path
+        description: The ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - eserviceTemplates
+      summary: List E-Service Template Version Declared Attributes
+      description: Retrieve a list of E-Service Template Version Declared Attributes
+      operationId: getEServiceTemplateVersionDeclaredAttributes
+      parameters:
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          description: Maximum number of results to return
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: E-Service Template Version Declared Attributes retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersionDeclaredAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
           content:
             application/problem+json:
               schema:
@@ -10934,6 +11147,112 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
           description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttributes:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: versionId
+        in: path
+        description: The ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - eserviceTemplates
+      summary: List E-Service Template Version Verified Attributes
+      description: Retrieve a list of E-Service Template Version Verified Attributes
+      operationId: getEServiceTemplateVersionVerifiedAttributes
+      parameters:
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          description: Maximum number of results to return
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: E-Service Template Version Verified Attributes retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersionVerifiedAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
           content:
             application/problem+json:
               schema:
@@ -14590,9 +14909,37 @@ components:
       required:
         - groupIndex
         - attribute
+    EServiceTemplateVersionCertifiedAttribute:
+      type: object
+      description: Represents an E-Service Template Version Certified attribute with the index of its attribute group.
+      properties:
+        groupIndex:
+          type: integer
+          format: int32
+          minimum: 0
+          description: The index of the group to which the attribute belongs.
+        attribute:
+          $ref: "#/components/schemas/CertifiedAttribute"
+      required:
+        - groupIndex
+        - attribute
     EServiceDescriptorDeclaredAttribute:
       type: object
       description: Represents an E-Service Descriptor Declared attribute with the index of its attribute group.
+      properties:
+        groupIndex:
+          type: integer
+          format: int32
+          minimum: 0
+          description: The index of the group to which the attribute belongs.
+        attribute:
+          $ref: "#/components/schemas/DeclaredAttribute"
+      required:
+        - groupIndex
+        - attribute
+    EServiceTemplateVersionDeclaredAttribute:
+      type: object
+      description: Represents an E-Service Template Version Declared attribute with the index of its attribute group.
       properties:
         groupIndex:
           type: integer
@@ -14615,34 +14962,6 @@ components:
           description: The index of the group to which the attribute belongs.
         attribute:
           $ref: "#/components/schemas/VerifiedAttribute"
-      required:
-        - groupIndex
-        - attribute
-    EServiceTemplateVersionCertifiedAttribute:
-      type: object
-      description: Represents an E-Service Template Version Certified attribute with the index of its attribute group.
-      properties:
-        groupIndex:
-          type: integer
-          format: int32
-          minimum: 0
-          description: The index of the group to which the attribute belongs.
-        attribute:
-          $ref: "#/components/schemas/CertifiedAttribute"
-      required:
-        - groupIndex
-        - attribute
-    EServiceTemplateVersionDeclaredAttribute:
-      type: object
-      description: Represents an E-Service Template Version Declared attribute with the index of its attribute group.
-      properties:
-        groupIndex:
-          type: integer
-          format: int32
-          minimum: 0
-          description: The index of the group to which the attribute belongs.
-        attribute:
-          $ref: "#/components/schemas/DeclaredAttribute"
       required:
         - groupIndex
         - attribute
@@ -14712,32 +15031,6 @@ components:
       required:
         - results
         - pagination
-    EServiceDescriptorDeclaredAttributes:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/EServiceDescriptorDeclaredAttribute"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
-    EServiceDescriptorVerifiedAttributes:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/EServiceDescriptorVerifiedAttribute"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
     EServiceTemplateVersionCertifiedAttributes:
       type: object
       additionalProperties: false
@@ -14751,6 +15044,19 @@ components:
       required:
         - results
         - pagination
+    EServiceDescriptorDeclaredAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorDeclaredAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     EServiceTemplateVersionDeclaredAttributes:
       type: object
       additionalProperties: false
@@ -14759,6 +15065,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceTemplateVersionDeclaredAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    EServiceDescriptorVerifiedAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorVerifiedAttribute"
         pagination:
           $ref: "#/components/schemas/Pagination"
       required:
