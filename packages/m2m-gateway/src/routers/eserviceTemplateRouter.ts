@@ -14,9 +14,10 @@ import { EserviceTemplateService } from "../services/eserviceTemplateService.js"
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   deleteDraftEServiceTemplateVersionErrorMapper,
+  getEServiceTemplateVersionAttributesErrorMapper,
   getEServiceTemplateRiskAnalysisErrorMapper,
-  getEServiceTemplateVersionErrorMapper,
   getEServiceTemplateVersionDocumentsErrorMapper,
+  getEServiceTemplateVersionErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -126,6 +127,26 @@ const eserviceTemplateRouter = (
           emptyErrorMapper,
           ctx,
           `Error updating eservice with id ${req.params.templateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/eserviceTemplates/:templateId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await eserviceTemplateService.deleteEServiceTemplate(
+          unsafeBrandId(req.params.templateId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error deleting eservice template with id ${req.params.templateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -644,6 +665,99 @@ const eserviceTemplateRouter = (
             emptyErrorMapper,
             ctx,
             `Error deleting risk analysis ${req.params.riskAnalysisId} for eservice template with id ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eserviceTemplates/:templateId/versions/:versionId/certifiedAttributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const attributes =
+            await eserviceTemplateService.getEserviceTemplateVersionCertifiedAttributes(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.versionId),
+              { limit: req.query.limit, offset: req.query.offset },
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApi.EServiceTemplateVersionCertifiedAttributes.parse(
+                attributes
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceTemplateVersionAttributesErrorMapper,
+            ctx,
+            `Error retrieving certified attributes for version with id ${req.params.versionId} for eservice template with id ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eserviceTemplates/:templateId/versions/:versionId/declaredAttributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const attributes =
+            await eserviceTemplateService.getEserviceTemplateVersionDeclaredAttributes(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.versionId),
+              { limit: req.query.limit, offset: req.query.offset },
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApi.EServiceDescriptorDeclaredAttributes.parse(
+                attributes
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceTemplateVersionAttributesErrorMapper,
+            ctx,
+            `Error retrieving declared attributes for version with id ${req.params.versionId} for eservice template with id ${req.params.templateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eserviceTemplates/:templateId/versions/:versionId/verifiedAttributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const attributes =
+            await eserviceTemplateService.getEserviceTemplateVersionVerifiedAttributes(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.versionId),
+              { limit: req.query.limit, offset: req.query.offset },
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApi.EServiceDescriptorVerifiedAttributes.parse(
+                attributes
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceTemplateVersionAttributesErrorMapper,
+            ctx,
+            `Error retrieving verified attributes for version with id ${req.params.versionId} for eservice template with id ${req.params.templateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
