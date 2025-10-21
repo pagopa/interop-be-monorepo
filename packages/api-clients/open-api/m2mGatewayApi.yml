@@ -10780,10 +10780,7 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: string
-                format: uuid
+              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
         "201":
           description: Certified Attributes Group created
@@ -10892,10 +10889,7 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: string
-                format: uuid
+              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
         "201":
           description: Declared Attributes Group created
@@ -11004,10 +10998,7 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: string
-                format: uuid
+              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
         "201":
           description: Verified Attributes Group created
@@ -14786,6 +14777,17 @@ components:
       required:
         - results
         - pagination
+    EServiceTemplateVersionAttributesGroupSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        attributeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+        - attributeIds
     CertifiedAttributeSeed:
       type: object
       additionalProperties: false
