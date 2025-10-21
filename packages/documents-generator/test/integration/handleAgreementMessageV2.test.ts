@@ -1,8 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable functional/no-let */
 
 import path from "path";
 import { fileURLToPath } from "url";
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  vi,
+  afterEach,
+  beforeAll,
+} from "vitest";
 import {
   AgreementEventEnvelopeV2,
   AgreementId,
@@ -27,6 +36,7 @@ import {
   delegationState,
 } from "pagopa-interop-models";
 import {
+  RefreshableInteropToken,
   dateAtRomeZone,
   genericLogger,
   timeAtRomeZone,
@@ -70,6 +80,15 @@ describe("handleAgreementMessageV2", () => {
   });
 
   afterEach(cleanup);
+  const testToken = "mockToken";
+
+  let mockRefreshableToken: RefreshableInteropToken;
+
+  beforeAll(() => {
+    mockRefreshableToken = {
+      get: () => Promise.resolve({ serialized: testToken }),
+    } as unknown as RefreshableInteropToken;
+  });
 
   it("should generate and store a contract for an 'AgreementActivated' event", async () => {
     const mockDescriptorId = generateId<DescriptorId>();
@@ -131,6 +150,7 @@ describe("handleAgreementMessageV2", () => {
       pdfGenerator,
       fileManager,
       readModelService,
+      mockRefreshableToken,
       genericLogger
     );
 
@@ -303,6 +323,7 @@ describe("handleAgreementMessageV2", () => {
       pdfGenerator,
       fileManager,
       readModelService,
+      mockRefreshableToken,
       genericLogger
     );
     const expectedPayload = {
@@ -392,6 +413,7 @@ describe("handleAgreementMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
+        mockRefreshableToken,
         genericLogger
       )
     ).resolves.toBeUndefined();
@@ -425,6 +447,7 @@ describe("handleAgreementMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
+        mockRefreshableToken,
         genericLogger
       )
     ).rejects.toThrow(eServiceNotFound(mockEServiceId).message);
@@ -472,6 +495,7 @@ describe("handleAgreementMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
+        mockRefreshableToken,
         genericLogger
       )
     ).rejects.toThrow(tenantNotFound(mockConsumerId).message);

@@ -20,6 +20,7 @@ export async function handleMessageV2(
       { type: "ConsumerDelegationApproved" },
       { type: "ConsumerDelegationRejected" },
       { type: "ConsumerDelegationRevoked" },
+      { type: "DelegationContractGenerated" },
       async (message) => {
         if (!message.data.delegation) {
           throw missingKafkaMessageDataError("delegation", message.type);
