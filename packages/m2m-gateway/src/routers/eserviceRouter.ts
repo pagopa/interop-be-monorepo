@@ -20,9 +20,7 @@ import {
   deleteDraftEServiceDescriptorErrorMapper,
   getEServiceRiskAnalysisErrorMapper,
   getEServiceDescriptorAttributesErrorMapper,
-  deleteCertifiedAttributeFromGroupErrorMapper,
-  deleteVerifiedAttributeFromGroupErrorMapper,
-  deleteDeclaredAttributeFromGroupErrorMapper,
+  deleteEServiceDescriptorAttributeFromGroupErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -918,7 +916,7 @@ const eserviceRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-          await eserviceService.deleteCertifiedAttributeFromGroup(
+          await eserviceService.deleteEServiceDescriptorCertifiedAttributeFromGroup(
             unsafeBrandId(req.params.eserviceId),
             unsafeBrandId(req.params.descriptorId),
             req.params.groupIndex,
@@ -929,7 +927,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deleteCertifiedAttributeFromGroupErrorMapper,
+            deleteEServiceDescriptorAttributeFromGroupErrorMapper,
             ctx,
             `Error deleting certified attribute ${req.params.attributeId} from group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
           );
@@ -943,7 +941,7 @@ const eserviceRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-          await eserviceService.deleteVerifiedAttributeFromGroup(
+          await eserviceService.deleteEServiceDescriptorVerifiedAttributeFromGroup(
             unsafeBrandId(req.params.eserviceId),
             unsafeBrandId(req.params.descriptorId),
             req.params.groupIndex,
@@ -954,7 +952,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deleteVerifiedAttributeFromGroupErrorMapper,
+            deleteEServiceDescriptorAttributeFromGroupErrorMapper,
             ctx,
             `Error deleting verified attribute ${req.params.attributeId} from group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
           );
@@ -968,7 +966,7 @@ const eserviceRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-          await eserviceService.deleteDeclaredAttributeFromGroup(
+          await eserviceService.deleteEServiceDescriptorDeclaredAttributeFromGroup(
             unsafeBrandId(req.params.eserviceId),
             unsafeBrandId(req.params.descriptorId),
             req.params.groupIndex,
@@ -979,7 +977,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deleteDeclaredAttributeFromGroupErrorMapper,
+            deleteEServiceDescriptorAttributeFromGroupErrorMapper,
             ctx,
             `Error deleting declared attribute ${req.params.attributeId} from group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
           );

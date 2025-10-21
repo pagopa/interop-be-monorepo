@@ -12,7 +12,7 @@ import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
-describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes/groups/{groupIndex}/attributes/{attributeId} router test", () => {
+describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/declaredAttributes/groups/{groupIndex}/attributes/{attributeId} router test", () => {
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
 
   const makeRequest = async (
@@ -24,7 +24,7 @@ describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAtt
   ) =>
     request(api)
       .delete(
-        `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/certifiedAttributes/groups/${groupIndex}/attributes/${attributeId}`
+        `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/declaredAttributes/groups/${groupIndex}/attributes/${attributeId}`
       )
       .set("Authorization", `Bearer ${token}`)
       .send();
@@ -32,11 +32,11 @@ describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAtt
   const mockApiAttribute = getMockedApiEServiceAttribute();
   const mockApiEServiceDescriptor = getMockedApiEserviceDescriptor({
     attributes: {
-      certified: [
+      certified: [],
+      declared: [
         [getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute()],
         [mockApiAttribute],
       ],
-      declared: [],
       verified: [],
     },
   });
@@ -48,7 +48,8 @@ describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAtt
   it.each(authorizedRoles)(
     "Should return 204 and perform service calls for user with role %s",
     async (role) => {
-      mockEserviceService.deleteEService = vi.fn();
+      mockEserviceService.deleteEServiceDescriptorDeclaredAttributeFromGroup =
+        vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(
@@ -63,7 +64,8 @@ describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAtt
   );
 
   it("Should return 400 for incorrect value for eservice id", async () => {
-    mockEserviceService.deleteEService = vi.fn();
+    mockEserviceService.deleteEServiceDescriptorDeclaredAttributeFromGroup =
+      vi.fn();
 
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
@@ -77,7 +79,8 @@ describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAtt
   });
 
   it("Should return 400 for incorrect value for descriptor id", async () => {
-    mockEserviceService.deleteEService = vi.fn();
+    mockEserviceService.deleteEServiceDescriptorDeclaredAttributeFromGroup =
+      vi.fn();
 
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
@@ -91,7 +94,8 @@ describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAtt
   });
 
   it("Should return 400 for incorrect value for group index", async () => {
-    mockEserviceService.deleteEService = vi.fn();
+    mockEserviceService.deleteEServiceDescriptorDeclaredAttributeFromGroup =
+      vi.fn();
 
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
@@ -105,7 +109,8 @@ describe("DELETE /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAtt
   });
 
   it("Should return 400 for incorrect value for attribute id", async () => {
-    mockEserviceService.deleteEService = vi.fn();
+    mockEserviceService.deleteEServiceDescriptorDeclaredAttributeFromGroup =
+      vi.fn();
 
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
