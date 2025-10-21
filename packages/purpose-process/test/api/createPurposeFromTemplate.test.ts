@@ -28,6 +28,7 @@ import {
   eserviceNotLinkedToPurposeTemplate,
   invalidPurposeTenantKind,
   riskAnalysisMissingExpectedFieldError,
+  riskAnalysisVersionMismatch,
 } from "../../src/model/domain/errors.js";
 import { getMockPurposeFromTemplateSeed } from "../mockUtils.js";
 
@@ -118,6 +119,10 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
     },
     {
       error: riskAnalysisMissingExpectedFieldError("test-key"),
+      expectedStatus: 400,
+    },
+    {
+      error: riskAnalysisVersionMismatch("0", "1"),
       expectedStatus: 400,
     },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },

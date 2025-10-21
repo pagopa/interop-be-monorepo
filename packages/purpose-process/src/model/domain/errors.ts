@@ -54,6 +54,7 @@ export const errorCodes = {
   riskAnalysisContainsNotEditableAnswers: "0035",
   riskAnalysisAnswerNotInSuggestValues: "0036",
   riskAnalysisMissingExpectedFieldError: "0037",
+  riskAnalysisVersionMismatch: "0038",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -446,5 +447,16 @@ export function riskAnalysisMissingExpectedFieldError(
     detail: `Expected field not found in form for key ${key}`,
     code: "riskAnalysisMissingExpectedFieldError",
     title: "Expected field not found in form",
+  });
+}
+
+export function riskAnalysisVersionMismatch(
+  seedVersion: string,
+  purposeTemplateVersion: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis version ${seedVersion} does not match purpose template version ${purposeTemplateVersion}`,
+    code: "riskAnalysisVersionMismatch",
+    title: "Risk analysis version mismatch",
   });
 }

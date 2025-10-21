@@ -43,6 +43,7 @@ import {
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisMissingExpectedFieldError,
   riskAnalysisValidationFailed,
+  riskAnalysisVersionMismatch,
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegate,
   tenantIsNotTheDelegatedConsumer,
@@ -627,6 +628,15 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
 ): PurposeRiskAnalysisForm | undefined {
   if (!purposeTemplate.purposeRiskAnalysisForm || !riskAnalysisForm) {
     return undefined;
+  }
+
+  if (
+    purposeTemplate.purposeRiskAnalysisForm.version !== riskAnalysisForm.version
+  ) {
+    throw riskAnalysisVersionMismatch(
+      riskAnalysisForm.version,
+      purposeTemplate.purposeRiskAnalysisForm.version
+    );
   }
 
   const answersToSeed = buildAnswersSeed(

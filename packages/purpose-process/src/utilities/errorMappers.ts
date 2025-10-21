@@ -203,6 +203,7 @@ export const createPurposeFromTemplateErrorMapper = (
       "riskAnalysisValidationFailed",
       "invalidPurposeTenantKind",
       "riskAnalysisMissingExpectedFieldError",
+      "riskAnalysisVersionMismatch",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
