@@ -4,7 +4,9 @@ import { EachMessagePayload } from "kafkajs";
 import {
   AgreementTopicConfig,
   DelegationTopicConfig,
+  InteropTokenGenerator,
   PurposeTopicConfig,
+  RefreshableInteropToken,
   decodeKafkaMessage,
   genericLogger,
   initFileManager,
@@ -36,6 +38,10 @@ import { handleDelegationMessageV2 } from "./handler/handleDelegationMessageV2.j
 import { handleAgreementMessageV2 } from "./handler/handleAgreementMessageV2.js";
 import { readModelServiceBuilderSQL } from "./service/readModelSql.js";
 
+const refreshableToken = new RefreshableInteropToken(
+  new InteropTokenGenerator(config)
+);
+await refreshableToken.init();
 const fileManager = initFileManager(config);
 const pdfGenerator = await initPDFGenerator();
 
@@ -77,7 +83,8 @@ function processMessage(
           decodedMessage,
           pdfGenerator,
           fileManager,
-          readModelServiceSQL
+          readModelServiceSQL,
+          refreshableToken
         );
 
         return { decodedMessage, documentGenerator };
@@ -93,7 +100,8 @@ function processMessage(
           decodedMessage,
           pdfGenerator,
           fileManager,
-          readModelServiceSQL
+          readModelServiceSQL,
+          refreshableToken
         );
 
         return { decodedMessage, documentGenerator };
@@ -109,7 +117,8 @@ function processMessage(
           decodedMessage,
           pdfGenerator,
           fileManager,
-          readModelServiceSQL
+          readModelServiceSQL,
+          refreshableToken
         );
 
         return { decodedMessage, documentGenerator };

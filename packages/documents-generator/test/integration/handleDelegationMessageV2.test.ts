@@ -1,9 +1,18 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable sonarjs/no-identical-functions */
+/* eslint-disable functional/no-let */
 
 import path from "path";
 import { fileURLToPath } from "url";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+} from "vitest";
 import {
   DelegationEventEnvelopeV2,
   DelegationId,
@@ -14,6 +23,8 @@ import {
   delegationState,
   delegationKind,
   toDelegationV2,
+  unsafeBrandId,
+  CorrelationId,
 } from "pagopa-interop-models";
 import {
   getMockDelegation,
@@ -21,6 +32,7 @@ import {
   getMockEService,
 } from "pagopa-interop-commons-test";
 import {
+  RefreshableInteropToken,
   dateAtRomeZone,
   genericLogger,
   getIpaCode,
@@ -43,10 +55,42 @@ const mockDelegationId = generateId<DelegationId>();
 const mockDelegatorId = generateId<TenantId>();
 const mockDelegateId = generateId<TenantId>();
 const mockEServiceId = generateId<EServiceId>();
+export const mockAddUnsignedDelegationContractMetadataFn = vi.fn();
+vi.mock("pagopa-interop-api-clients", () => ({
+  delegationApi: {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    createDelegationApiClient: () => ({
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      get addUnsignedDelegationContractMetadata() {
+        return mockAddUnsignedDelegationContractMetadataFn;
+      },
+    }),
+  },
+  agreementApi: {
+    createAgreementApiClient: vi.fn(),
+  },
+  purposeApi: {
+    createPurposeApiClient: vi.fn(),
+  },
+}));
 
 describe("handleDelegationMessageV2", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+  const testToken = "mockToken";
+
+  const testHeaders = {
+    "X-Correlation-Id": generateId(),
+    Authorization: `Bearer ${testToken}`,
+  };
+
+  let mockRefreshableToken: RefreshableInteropToken;
+
+  beforeAll(() => {
+    mockRefreshableToken = {
+      get: () => Promise.resolve({ serialized: testToken }),
+    } as unknown as RefreshableInteropToken;
   });
 
   afterEach(cleanup);
@@ -84,6 +128,146 @@ describe("handleDelegationMessageV2", () => {
       type: "ProducerDelegationApproved",
       data: { delegation: toDelegationV2(mockDelegation) },
       log_date: new Date(),
+      correlation_id: generateId(),
+    };
+
+    vi.spyOn(pdfGenerator, "generate").mockResolvedValue(
+      Buffer.from("mock pdf content")
+    );
+    vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
+      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+    );
+    await handleDelegationMessageV2(
+      mockEvent,
+      pdfGenerator,
+      fileManager,
+      readModelService,
+      mockRefreshableToken,
+      genericLogger
+    );
+
+    expect(pdfGenerator.generate).toHaveBeenCalledOnce();
+    expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledOnce();
+    expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bucket: config.s3Bucket,
+        path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
+      }),
+      genericLogger
+    );
+  });
+
+  it("should generate and store a contract and call delegation process", async () => {
+    const mockDelegation = {
+      ...getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegatorId: mockDelegatorId,
+        delegateId: mockDelegateId,
+        eserviceId: mockEServiceId,
+        state: delegationState.active,
+        stamps: {
+          submission: { who: generateId(), when: new Date() },
+          activation: { who: generateId(), when: new Date() },
+        },
+      }),
+      id: mockDelegationId,
+      createdAt: new Date(),
+    };
+    const mockDelegator = getMockTenant(mockDelegatorId);
+    const mockDelegate = getMockTenant(mockDelegateId);
+    const mockEService = getMockEService(mockEServiceId, mockDelegatorId, []);
+
+    await addOneDelegation(mockDelegation);
+    await addOneTenant(mockDelegator);
+    await addOneTenant(mockDelegate);
+    await addOneEService(mockEService);
+
+    const mockEvent: DelegationEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mockDelegationId,
+      version: 1,
+      event_version: 2,
+      type: "ProducerDelegationApproved",
+      data: { delegation: toDelegationV2(mockDelegation) },
+      log_date: new Date(),
+      correlation_id: generateId(),
+    };
+
+    vi.spyOn(pdfGenerator, "generate").mockResolvedValue(
+      Buffer.from("mock pdf content")
+    );
+    vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
+      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
+    );
+
+    testHeaders["X-Correlation-Id"] = unsafeBrandId<CorrelationId>(
+      mockEvent.correlation_id!
+    );
+
+    await handleDelegationMessageV2(
+      mockEvent,
+      pdfGenerator,
+      fileManager,
+      readModelService,
+      mockRefreshableToken,
+      genericLogger
+    );
+
+    expect(mockAddUnsignedDelegationContractMetadataFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contentType: "application/pdf",
+        createdAt: expect.any(String),
+        id: expect.any(String),
+        name: expect.any(String),
+        path: expect.any(String),
+        prettyName: expect.any(String),
+      }),
+
+      expect.objectContaining({
+        params: {
+          delegationId: mockDelegationId,
+        },
+        headers: testHeaders,
+      })
+    );
+  });
+
+  it("should generate and store a contract for 'ProducerDelegationRevoked' and 'ConsumerDelegationRevoked' events", async () => {
+    const mockDelegation = {
+      ...getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegatorId: mockDelegatorId,
+        delegateId: mockDelegateId,
+        eserviceId: mockEServiceId,
+        state: delegationState.revoked,
+        stamps: {
+          submission: { who: generateId(), when: new Date() },
+          revocation: { who: generateId(), when: new Date() },
+        },
+      }),
+      id: mockDelegationId,
+      createdAt: new Date(),
+      revocationAt: new Date(),
+      revokedBy: generateId<UserId>(),
+    };
+
+    const mockDelegator = getMockTenant(mockDelegatorId);
+    const mockDelegate = getMockTenant(mockDelegateId);
+    const mockEService = getMockEService(mockEServiceId, mockDelegatorId, []);
+
+    await addOneDelegation(mockDelegation);
+    await addOneTenant(mockDelegator);
+    await addOneTenant(mockDelegate);
+    await addOneEService(mockEService);
+
+    const mockEvent: DelegationEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mockDelegationId,
+      version: 1,
+      event_version: 2,
+      type: "ProducerDelegationRevoked",
+      data: { delegation: toDelegationV2(mockDelegation) },
+      log_date: new Date(),
     };
 
     vi.spyOn(pdfGenerator, "generate").mockResolvedValue(
@@ -98,6 +282,7 @@ describe("handleDelegationMessageV2", () => {
       pdfGenerator,
       fileManager,
       readModelService,
+      mockRefreshableToken,
       genericLogger
     );
 
@@ -153,70 +338,6 @@ describe("handleDelegationMessageV2", () => {
     vi.spyOn(pdfGenerator, "generate").mockResolvedValue(
       Buffer.from("mock pdf content")
     );
-    vi.spyOn(fileManager, "storeBytes").mockResolvedValue(
-      `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
-    );
-
-    await handleDelegationMessageV2(
-      mockEvent,
-      pdfGenerator,
-      fileManager,
-      readModelService,
-      genericLogger
-    );
-
-    expect(pdfGenerator.generate).toHaveBeenCalledOnce();
-    expect(fileManager.storeBytes).toHaveBeenCalledOnce();
-    expect(fileManager.storeBytes).toHaveBeenCalledWith(
-      expect.objectContaining({
-        bucket: config.s3Bucket,
-        path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
-      }),
-      genericLogger
-    );
-  });
-
-  it("should generate and store a contract for 'ProducerDelegationRevoked' and 'ConsumerDelegationRevoked' events", async () => {
-    const mockDelegation = {
-      ...getMockDelegation({
-        kind: delegationKind.delegatedProducer,
-        delegatorId: mockDelegatorId,
-        delegateId: mockDelegateId,
-        eserviceId: mockEServiceId,
-        state: delegationState.revoked,
-        stamps: {
-          submission: { who: generateId(), when: new Date() },
-          revocation: { who: generateId(), when: new Date() },
-        },
-      }),
-      id: mockDelegationId,
-      createdAt: new Date(),
-      revocationAt: new Date(),
-      revokedBy: generateId<UserId>(),
-    };
-
-    const mockDelegator = getMockTenant(mockDelegatorId);
-    const mockDelegate = getMockTenant(mockDelegateId);
-    const mockEService = getMockEService(mockEServiceId, mockDelegatorId, []);
-
-    await addOneDelegation(mockDelegation);
-    await addOneTenant(mockDelegator);
-    await addOneTenant(mockDelegate);
-    await addOneEService(mockEService);
-
-    const mockEvent: DelegationEventEnvelopeV2 = {
-      sequence_num: 1,
-      stream_id: mockDelegationId,
-      version: 1,
-      event_version: 2,
-      type: "ProducerDelegationRevoked",
-      data: { delegation: toDelegationV2(mockDelegation) },
-      log_date: new Date(),
-    };
-
-    vi.spyOn(pdfGenerator, "generate").mockResolvedValue(
-      Buffer.from("mock pdf content")
-    );
     vi.spyOn(fileManager, "resumeOrStoreBytes").mockResolvedValue(
       `${config.s3Bucket}/${config.delegationDocumentPath}/${mockDelegationId}/mock-file.pdf`
     );
@@ -226,12 +347,13 @@ describe("handleDelegationMessageV2", () => {
       pdfGenerator,
       fileManager,
       readModelService,
+      mockRefreshableToken,
       genericLogger
     );
 
     expect(pdfGenerator.generate).toHaveBeenCalledOnce();
-    expect(fileManager.storeBytes).toHaveBeenCalledOnce();
-    expect(fileManager.storeBytes).toHaveBeenCalledWith(
+    expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledOnce();
+    expect(fileManager.resumeOrStoreBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.s3Bucket,
         path: `${config.delegationDocumentPath}/${mockDelegation.id}`,
@@ -300,6 +422,7 @@ describe("handleDelegationMessageV2", () => {
       pdfGenerator,
       fileManager,
       readModelService,
+      mockRefreshableToken,
       genericLogger
     );
 
@@ -377,6 +500,7 @@ describe("handleDelegationMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
+        mockRefreshableToken,
         genericLogger
       )
     ).resolves.toBeUndefined();
@@ -417,6 +541,7 @@ describe("handleDelegationMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
+        mockRefreshableToken,
         genericLogger
       )
     ).rejects.toThrow(tenantNotFound(mockDelegateId).message);
