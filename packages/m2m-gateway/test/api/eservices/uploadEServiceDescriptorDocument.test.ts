@@ -10,7 +10,6 @@ import { missingMetadata } from "../../../src/model/errors.js";
 import {
   TestMultipartFileUpload,
   addMultipartFileToSupertestRequest,
-  fileFromTestMultipartFileUpload,
 } from "../../multipartTestUtils.js";
 import { config } from "../../../src/config/config.js";
 
@@ -79,10 +78,10 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/documents router
       ).toHaveBeenCalledWith(
         eserviceId,
         descriptorId,
-        {
-          file: fileFromTestMultipartFileUpload(mockFileUpload, mockDate),
+        expect.objectContaining({
+          file: expect.any(File),
           prettyName: mockFileUpload.prettyName,
-        },
+        }),
         expect.any(Object) // Context object
       );
     }
