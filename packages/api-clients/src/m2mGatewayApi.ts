@@ -159,4 +159,22 @@ export type GetEServiceCertifiedAttributesQueryParams = QueryParametersByAlias<
   "getCertifiedAttributes"
 >;
 
+export type GetEServiceTemplateVersionCertifiedAttributesQueryParams =
+  QueryParametersByAlias<
+    EServiceTemplateApi,
+    "getEServiceTemplateVersionCertifiedAttributes"
+  >;
+
+export type GetEServiceTemplateVersionDeclaredAttributesQueryParams =
+  QueryParametersByAlias<
+    EServiceTemplateApi,
+    "getEServiceTemplateVersionDeclaredAttributes"
+  >;
+
+export type GetEServiceTemplateVersionVerifiedAttributesQueryParams =
+  QueryParametersByAlias<
+    EServiceTemplateApi,
+    "getEServiceTemplateVersionVerifiedAttributes"
+  >;
+
 export * from "./generated/m2mGatewayApi.js";
