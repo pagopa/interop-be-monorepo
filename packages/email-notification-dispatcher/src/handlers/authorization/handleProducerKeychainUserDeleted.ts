@@ -12,8 +12,8 @@ import {
 } from "../../services/utils.js";
 import {
   ProducerKeychainUserHandlerParams,
-  UserEmailNotificationRecipient,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType =
@@ -57,10 +57,7 @@ export async function handleProducerKeychainUserDeleted(
       logger,
       includeTenantContactEmails: false,
     })
-  ).filter(
-    (target): target is UserEmailNotificationRecipient =>
-      target.type === "User" && target.userId !== userId
-  );
+  ).filter((target) => target.type !== "User" || target.userId != userId);
 
   if (targets.length === 0) {
     logger.info(
@@ -69,7 +66,7 @@ export async function handleProducerKeychainUserDeleted(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Attenzione: una chiave non è più sicura`,
@@ -77,11 +74,12 @@ export async function handleProducerKeychainUserDeleted(
         title: `Attenzione: una chiave non è più sicura`,
         notificationType,
         entityId: producerKeychain.id,
-        producerName: producer.name,
+        ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         clientName: producerKeychain.name,
         ctaLabel: `Gestisci chiavi`,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

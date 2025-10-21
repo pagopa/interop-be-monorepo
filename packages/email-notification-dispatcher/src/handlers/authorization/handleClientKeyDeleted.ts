@@ -12,8 +12,8 @@ import {
 } from "../../services/utils.js";
 import {
   ClientKeyHandlerParams,
-  UserEmailNotificationRecipient,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 import { clientKeyNotFound } from "../../models/errors.js";
 
@@ -57,10 +57,7 @@ export async function handleClientKeyDeleted(
       logger,
       includeTenantContactEmails: false,
     })
-  ).filter(
-    (target): target is UserEmailNotificationRecipient =>
-      target.type === "User" && target.userId !== key.userId
-  );
+  ).filter((target) => target.type !== "User" || target.userId !== key.userId);
 
   if (targets.length === 0) {
     logger.info(
@@ -69,7 +66,7 @@ export async function handleClientKeyDeleted(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Una chiave di e-service è stata rimossa`,
@@ -77,11 +74,12 @@ export async function handleClientKeyDeleted(
         title: `Una chiave di e-service è stata rimossa`,
         notificationType,
         entityId: client.id,
-        consumerName: consumer.name,
+        ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         userName: key.userId,
         clientName: client.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

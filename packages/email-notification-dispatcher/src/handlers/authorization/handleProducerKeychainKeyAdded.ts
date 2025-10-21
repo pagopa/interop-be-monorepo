@@ -12,8 +12,8 @@ import {
 } from "../../services/utils.js";
 import {
   ProducerKeychainKeyHandlerParams,
-  UserEmailNotificationRecipient,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 import { producerKeychainKeyNotFound } from "../../models/errors.js";
 
@@ -63,10 +63,7 @@ export async function handleProducerKeychainKeyAdded(
       logger,
       includeTenantContactEmails: false,
     })
-  ).filter(
-    (target): target is UserEmailNotificationRecipient =>
-      target.type === "User" && target.userId !== key.userId
-  );
+  ).filter((target) => target.type !== "User" || target.userId !== key.userId);
 
   if (targets.length === 0) {
     logger.info(
@@ -75,7 +72,7 @@ export async function handleProducerKeychainKeyAdded(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Nuova chiave aggiunta al client "${producerKeychain.name}"`,
@@ -83,10 +80,11 @@ export async function handleProducerKeychainKeyAdded(
         title: `Nuova chiave aggiunta al client "${producerKeychain.name}"`,
         notificationType,
         entityId: producerKeychain.id,
-        producerName: producer.name,
+        ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         clientName: producerKeychain.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

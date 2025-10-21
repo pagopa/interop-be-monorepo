@@ -12,8 +12,8 @@ import {
 } from "../../services/utils.js";
 import {
   ProducerKeychainKeyHandlerParams,
-  UserEmailNotificationRecipient,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 import { producerKeychainKeyNotFound } from "../../models/errors.js";
 
@@ -63,10 +63,7 @@ export async function handleProducerKeychainKeyDeleted(
       logger,
       includeTenantContactEmails: false,
     })
-  ).filter(
-    (target): target is UserEmailNotificationRecipient =>
-      target.type === "User" && target.userId !== key.userId
-  );
+  ).filter((target) => target.type !== "User" || target.userId !== key.userId);
 
   if (targets.length === 0) {
     logger.info(
@@ -75,7 +72,7 @@ export async function handleProducerKeychainKeyDeleted(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Una chiave di e-service è stata rimossa`,
@@ -83,11 +80,12 @@ export async function handleProducerKeychainKeyDeleted(
         title: `Una chiave di e-service è stata rimossa`,
         notificationType,
         entityId: producerKeychain.id,
-        producerName: producer.name,
+        ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         userName: key.userId,
         clientName: producerKeychain.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

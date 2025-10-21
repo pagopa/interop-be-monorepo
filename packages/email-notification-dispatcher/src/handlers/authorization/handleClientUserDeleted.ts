@@ -12,8 +12,8 @@ import {
 } from "../../services/utils.js";
 import {
   ClientUserHandlerParams,
-  UserEmailNotificationRecipient,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "clientKeyAddedDeletedToClientUsers";
@@ -51,10 +51,7 @@ export async function handleClientUserDeleted(
       logger,
       includeTenantContactEmails: false,
     })
-  ).filter(
-    (target): target is UserEmailNotificationRecipient =>
-      target.type === "User" && target.userId !== userId
-  );
+  ).filter((target) => target.type !== "User" || target.userId !== userId);
 
   if (targets.length === 0) {
     logger.info(
@@ -63,7 +60,7 @@ export async function handleClientUserDeleted(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Attenzione: una chiave non è più sicura`,
@@ -71,10 +68,11 @@ export async function handleClientUserDeleted(
         title: `Attenzione: una chiave non è più sicura`,
         notificationType,
         entityId: client.id,
-        consumerName: consumer.name,
+        ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         clientName: client.name,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }

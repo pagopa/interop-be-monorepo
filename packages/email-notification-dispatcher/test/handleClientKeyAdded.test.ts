@@ -20,6 +20,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { handleClientKeyAdded } from "../src/handlers/authorization/handleClientKeyAdded.js";
 import { clientKeyNotFound, tenantNotFound } from "../src/models/errors.js";
 import {
@@ -161,15 +162,21 @@ describe("handleClientKeyAdded", async () => {
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      false
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[2].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(false);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[2].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -190,15 +197,21 @@ describe("handleClientKeyAdded", async () => {
     });
 
     expect(messages.length).toEqual(1);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      false
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
-    expect(messages.some((message) => message.address === users[2].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(false);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[2].id
+      )
+    ).toBe(true);
   });
 
   it("should generate a complete and correct message", async () => {
@@ -219,7 +232,14 @@ describe("handleClientKeyAdded", async () => {
       expect(message.email.body).toContain(
         `Nuova chiave aggiunta al client &quot;${client.name}&quot;`
       );
-      expect(message.email.body).toContain(consumerTenant.name);
+      match(message.type)
+        .with("User", () => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+        })
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(consumerTenant.name);
+        })
+        .exhaustive();
       expect(message.email.body).toContain(client.name);
     });
   });

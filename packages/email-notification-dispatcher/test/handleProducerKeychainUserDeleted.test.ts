@@ -18,6 +18,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { handleProducerKeychainUserDeleted } from "../src/handlers/authorization/handleProducerKeychainUserDeleted.js";
 import { tenantNotFound } from "../src/models/errors.js";
 import {
@@ -132,15 +133,21 @@ describe("handleProducerKeychainUserDeleted", async () => {
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      false
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[2].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(false);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[2].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -161,15 +168,21 @@ describe("handleProducerKeychainUserDeleted", async () => {
     });
 
     expect(messages.length).toEqual(1);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      false
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
-    expect(messages.some((message) => message.address === users[2].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(false);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[2].id
+      )
+    ).toBe(true);
   });
 
   it("should generate a complete and correct message", async () => {
@@ -190,7 +203,14 @@ describe("handleProducerKeychainUserDeleted", async () => {
       expect(message.email.body).toContain(
         `Attenzione: una chiave non è più sicura`
       );
-      expect(message.email.body).toContain(producerTenant.name);
+      match(message.type)
+        .with("User", () => {
+          expect(message.email.body).toContain("{{ recipientName }}");
+        })
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(producerTenant.name);
+        })
+        .exhaustive();
       expect(message.email.body).toContain(producerKeychain.name);
     });
   });
