@@ -46,6 +46,7 @@ import {
   retrieveLatestRiskAnalysisConfigurationErrorMapper,
   createPurposeFromTemplateErrorMapper,
   generateRiskAnalysisDocumentErrorMapper,
+  updatePurposeByTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { PurposeService } from "../services/purposeService.js";
 
@@ -755,6 +756,41 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             generateRiskAnalysisDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .patch(
+      "/templates/:purposeTemplateId/purposes/:purposeId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          const updatedPurpose =
+            await purposeService.updateDraftPurposeCreatedByTemplate(
+              unsafeBrandId<PurposeTemplateId>(req.params.purposeTemplateId),
+              unsafeBrandId(req.params.purposeId),
+              req.body,
+              ctx
+            );
+
+          setMetadataVersionHeader(res, updatedPurpose.metadata);
+
+          return res
+            .status(200)
+            .send(
+              purposeApi.Purpose.parse(
+                purposeToApiPurpose(updatedPurpose.data, true)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updatePurposeByTemplateErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

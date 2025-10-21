@@ -279,3 +279,34 @@ export const generateRiskAnalysisDocumentErrorMapper = (
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updatePurposeByTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "riskAnalysisValidationFailed",
+      "tenantKindNotFound",
+      "invalidPurposeTenantKind",
+      "riskAnalysisVersionMismatch",
+      "riskAnalysisMissingExpectedFieldError",
+      "riskAnalysisContainsNotEditableAnswers",
+      "riskAnalysisAnswerNotInSuggestValues",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "purposeTemplateNotFound",
+      "purposeNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "purposeNotInDraftState",
+      "duplicatedPurposeTitle",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
