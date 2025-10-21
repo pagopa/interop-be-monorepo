@@ -21,7 +21,9 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/declaredAttribut
   const mockEService: catalogApi.EService = getMockedApiEservice();
   const mockDescriptor = mockEService.descriptors[0]!;
 
-  const mockAttributeIds = [generateId(), generateId()];
+  const mockAttributeSeed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed = {
+    attributeIds: [generateId(), generateId(), generateId()],
+  };
 
   const mockAttribute1 = getMockedApiAttribute({
     kind: attributeRegistryApi.AttributeKind.Values.DECLARED,
@@ -51,7 +53,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/declaredAttribut
     token: string,
     eserviceId: string,
     descriptorId: string,
-    body: string[]
+    body: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed
   ) =>
     request(api)
       .post(
@@ -73,7 +75,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/declaredAttribut
         token,
         mockEService.id,
         mockDescriptor.id,
-        mockAttributeIds
+        mockAttributeSeed
       );
 
       expect(res.status).toBe(201);
@@ -83,7 +85,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/declaredAttribut
       ).toHaveBeenCalledWith(
         unsafeBrandId(mockEService.id),
         unsafeBrandId(mockDescriptor.id),
-        mockAttributeIds,
+        mockAttributeSeed,
         expect.anything()
       );
     }
@@ -97,14 +99,14 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/declaredAttribut
       token,
       mockEService.id,
       mockDescriptor.id,
-      mockAttributeIds
+      mockAttributeSeed
     );
     expect(res.status).toBe(403);
   });
 
   it("Should return 400 if passed invalid attribute IDs", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const invalidBody = ["not-a-uuid"];
+    const invalidBody = { attributeIds: ["not-a-uuid", "also-invalid"] };
     const res = await makeRequest(
       token,
       mockEService.id,
@@ -131,7 +133,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/declaredAttribut
       token,
       mockEService.id,
       nonExistentDescriptorId,
-      mockAttributeIds
+      mockAttributeSeed
     );
 
     expect(res.status).toBe(404);
