@@ -35,6 +35,7 @@ import {
   pollResourceWithMetadata,
   isPolledVersionAtLeastResponseVersion,
   isPolledVersionAtLeastMetadataTargetVersion,
+  pollResourceUntilDeletion,
 } from "../utils/polling.js";
 import { uploadEServiceTemplateDocument } from "../utils/fileUpload.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
@@ -175,6 +176,14 @@ export function eserviceTemplateServiceBuilder(
       attributes: bulkResult.data,
     };
   }
+  const pollEserviceTemplateUntilDeletion = (
+    templateId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveEServiceTemplateById(headers, unsafeBrandId(templateId))
+    )({});
+
   return {
     async getEServiceTemplateById(
       templateId: EServiceTemplateId,
@@ -845,6 +854,21 @@ export function eserviceTemplateServiceBuilder(
           logger: ctx.logger,
         }),
       }));
+    },
+    async deleteEServiceTemplate(
+      templateId: EServiceTemplateId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting eservice template with id ${templateId}`);
+
+      await clients.eserviceTemplateProcessClient.deleteEServiceTemplate(
+        undefined,
+        {
+          params: { templateId },
+          headers,
+        }
+      );
+      await pollEserviceTemplateUntilDeletion(templateId, headers);
     },
   };
 }
