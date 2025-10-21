@@ -102,6 +102,7 @@ import {
   attributeDuplicatedInGroup,
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
+  eServiceTemplateWithoutPersonalDataFlag,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -147,6 +148,7 @@ import {
   toCreateEventEServiceSignalhubFlagEnabled,
   toCreateEventEServiceSignalhubFlagDisabled,
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
+  toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -797,7 +799,7 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EService>> {
       logger.info(
-        `Getting EServices with name = ${filters.name}, ids = ${filters.eservicesIds}, producers = ${filters.producersIds}, states = ${filters.states}, agreementStates = ${filters.agreementStates}, technology = ${filters.technology}, mode = ${filters.mode}, isSignalHubEnabled = ${filters.isSignalHubEnabled}, isConsumerDelegable = ${filters.isConsumerDelegable}, isClientAccessDelegable = ${filters.isClientAccessDelegable}, limit = ${limit}, offset = ${offset}`
+        `Getting EServices with name = ${filters.name}, ids = ${filters.eservicesIds}, producers = ${filters.producersIds}, states = ${filters.states}, agreementStates = ${filters.agreementStates}, technology = ${filters.technology}, mode = ${filters.mode}, isSignalHubEnabled = ${filters.isSignalHubEnabled}, isConsumerDelegable = ${filters.isConsumerDelegable}, isClientAccessDelegable = ${filters.isClientAccessDelegable}, personalData = ${filters.personalData} limit = ${limit}, offset = ${offset}`
       );
       const eservicesList = await readModelService.getEServices(
         authData,
@@ -2206,8 +2208,9 @@ export function catalogServiceBuilder(
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         tenant.kind,
-        new Date() // [todo remove comment] risk analysis creation
+        new Date(), // [todo remove comment] risk analysis creation
         // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
+        eservice.data.personalData
       );
 
       const newRiskAnalysis: RiskAnalysis =
@@ -2292,8 +2295,9 @@ export function catalogServiceBuilder(
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         tenant.kind,
-        new Date() // [todo remove comment] risk analysis update
+        new Date(), // [todo remove comment] risk analysis update
         // drawback: the date of the risk analysis is replaced below in the function riskAnalysisValidatedFormToNewRiskAnalysis
+        eservice.data.personalData
       );
 
       const updatedRiskAnalysis: RiskAnalysis = {
@@ -2948,6 +2952,30 @@ export function catalogServiceBuilder(
         )
       );
     },
+    async internalUpdateTemplateInstancePersonalDataFlag(
+      eserviceId: EServiceId,
+      personalData: boolean,
+      { correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(`Internal updating EService ${eserviceId} personalData`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      if (eservice.data.personalData !== undefined) {
+        return;
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        personalData,
+      };
+      await repository.createEvent(
+        toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+    },
     async internalUpdateTemplateInstanceDescriptorVoucherLifespan(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -3303,6 +3331,16 @@ export function catalogServiceBuilder(
         readModelService
       );
 
+      if (
+        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
+        template.personalData === undefined
+      ) {
+        throw eServiceTemplateWithoutPersonalDataFlag(
+          template.id,
+          publishedVersion.id
+        );
+      }
+
       const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
@@ -3326,6 +3364,7 @@ export function catalogServiceBuilder(
               seed.isSignalHubEnabled ?? template.isSignalHubEnabled,
             isConsumerDelegable: seed.isConsumerDelegable ?? false,
             isClientAccessDelegable: seed.isClientAccessDelegable ?? false,
+            personalData: template.personalData,
           },
           template: {
             id: template.id,

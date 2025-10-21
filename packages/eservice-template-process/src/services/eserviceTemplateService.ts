@@ -250,13 +250,15 @@ const replaceEServiceTemplateVersion = (
 export function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed["riskAnalysisForm"],
   tenantKind: TenantKind,
-  dateForExpirationValidation: Date
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
     tenantKind,
-    dateForExpirationValidation
+    dateForExpirationValidation,
+    personalDataInEService
   );
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
@@ -973,7 +975,8 @@ export function eserviceTemplateServiceBuilder(
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         createRiskAnalysis.riskAnalysisForm,
         createRiskAnalysis.tenantKind,
-        new Date()
+        new Date(),
+        template.data.personalData
       );
 
       const newRiskAnalysis: EServiceTemplateRiskAnalysis =
@@ -1076,7 +1079,8 @@ export function eserviceTemplateServiceBuilder(
       const validatedForm = validateRiskAnalysisSchemaOrThrow(
         updateRiskAnalysisSeed.riskAnalysisForm,
         updateRiskAnalysisSeed.tenantKind,
-        new Date()
+        new Date(),
+        template.data.personalData
       );
 
       const updatedRiskAnalysisForm: RiskAnalysisForm = {
@@ -1481,7 +1485,7 @@ export function eserviceTemplateServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EServiceTemplate>> {
       logger.info(
-        `Getting EServices templates with name = ${filters.name}, ids = ${filters.eserviceTemplatesIds}, creators = ${filters.creatorsIds}, states = ${filters.states}, limit = ${limit}, offset = ${offset}`
+        `Getting EServices templates with name = ${filters.name}, ids = ${filters.eserviceTemplatesIds}, creators = ${filters.creatorsIds}, states = ${filters.states}, personalData = ${filters.personalData}, limit = ${limit}, offset = ${offset}`
       );
 
       const { results, totalCount } =

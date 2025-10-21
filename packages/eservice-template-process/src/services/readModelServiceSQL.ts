@@ -51,6 +51,7 @@ export type GetEServiceTemplatesFilters = {
   eserviceTemplatesIds: EServiceTemplateId[];
   creatorsIds: TenantId[];
   states: EServiceTemplateVersionState[];
+  personalData?: boolean;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -115,7 +116,8 @@ export function readModelServiceBuilderSQL({
       limit: number,
       authData: UIAuthData | M2MAuthData | M2MAdminAuthData
     ): Promise<ListResult<EServiceTemplate>> {
-      const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
+      const { eserviceTemplatesIds, creatorsIds, states, name, personalData } =
+        filters;
 
       const subquery = readModelDB
         .select(
@@ -145,6 +147,12 @@ export function readModelServiceBuilderSQL({
               ? inArray(
                   eserviceTemplateInReadmodelEserviceTemplate.id,
                   eserviceTemplatesIds
+                )
+              : undefined,
+            personalData !== undefined
+              ? eq(
+                  eserviceTemplateInReadmodelEserviceTemplate.personalData,
+                  personalData
                 )
               : undefined,
             // CREATORS IDS FILTER
