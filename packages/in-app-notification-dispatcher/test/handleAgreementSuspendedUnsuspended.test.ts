@@ -158,50 +158,34 @@ describe("handleAgreementSuspendedUnsuspended", () => {
   it.each<{
     eventType: AgreementSuspendedUnsuspendedEventType;
     expectedAudience: "consumer" | "producer" | "both";
-    expectedAction: "sospeso" | "riattivato" | "archiviato";
-    expectedSubject: string;
   }>([
     {
       eventType: "AgreementSuspendedByConsumer",
       expectedAudience: "producer",
-      expectedAction: "sospeso",
-      expectedSubject: consumerTenant.name,
     },
     {
       eventType: "AgreementUnsuspendedByConsumer",
       expectedAudience: "producer",
-      expectedAction: "riattivato",
-      expectedSubject: consumerTenant.name,
     },
     {
       eventType: "AgreementSuspendedByProducer",
       expectedAudience: "consumer",
-      expectedAction: "sospeso",
-      expectedSubject: producerTenant.name,
     },
     {
       eventType: "AgreementUnsuspendedByProducer",
       expectedAudience: "consumer",
-      expectedAction: "riattivato",
-      expectedSubject: producerTenant.name,
     },
     {
       eventType: "AgreementSuspendedByPlatform",
       expectedAudience: "both",
-      expectedAction: "sospeso",
-      expectedSubject: "La piattaforma",
     },
     {
       eventType: "AgreementUnsuspendedByPlatform",
       expectedAudience: "both",
-      expectedAction: "riattivato",
-      expectedSubject: "La piattaforma",
     },
     {
       eventType: "AgreementArchivedByConsumer",
       expectedAudience: "producer",
-      expectedAction: "archiviato",
-      expectedSubject: consumerTenant.name,
     },
   ])(
     "should handle $eventType event correctly",

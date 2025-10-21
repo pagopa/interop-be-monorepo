@@ -150,15 +150,12 @@ describe("handlePurposeActivatedRejectedToConsumer", () => {
 
   it.each<{
     eventType: "PurposeVersionActivated" | "PurposeVersionRejected";
-    expectedAction: "attivato" | "rifiutato";
   }>([
     {
       eventType: "PurposeVersionActivated",
-      expectedAction: "attivato",
     },
     {
       eventType: "PurposeVersionRejected",
-      expectedAction: "rifiutato",
     },
   ])("should handle $eventType event correctly", async ({ eventType }) => {
     const consumerUsers = [

@@ -2,10 +2,6 @@ import { match } from "ts-pattern";
 import { EServiceTemplate } from "pagopa-interop-models";
 import { EService } from "pagopa-interop-models";
 import { DelegationApprovedRejectedToDelegatorEventType } from "../handlers/delegations/handleDelegationApprovedRejectedToDelegator.js";
-import {
-  DelegationRevokedToDelegateEventType,
-  DelegationSubmittedToDelegateEventType,
-} from "../handlers/delegations/handleDelegationSubmittedRevokedToDelegate.js";
 import { EserviceNewVersionApprovedRejectedToDelegateEventType } from "../handlers/eservices/handleEserviceNewVersionApprovedRejectedToDelegate.js";
 
 export const inAppTemplates = {
@@ -219,7 +215,7 @@ export const inAppTemplates = {
   delegationSubmittedToDelegate: (
     eserviceName: string,
     delegatorName: string,
-    eventType: DelegationSubmittedToDelegateEventType
+    eventType: "ProducerDelegationSubmitted" | "ConsumerDelegationSubmitted"
   ): string => {
     const { delegationKind } = match(eventType)
       .with("ProducerDelegationSubmitted", () => ({
@@ -234,7 +230,7 @@ export const inAppTemplates = {
   delegationRevokedToDelegate: (
     eserviceName: string,
     delegatorName: string,
-    eventType: DelegationRevokedToDelegateEventType
+    eventType: "ProducerDelegationRevoked" | "ConsumerDelegationRevoked"
   ): string => {
     const { delegationKind } = match(eventType)
       .with("ProducerDelegationRevoked", () => ({

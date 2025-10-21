@@ -147,15 +147,12 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
 
   it.each<{
     eventType: "AgreementActivated" | "AgreementRejected";
-    expectedAction: "attivato" | "rifiutato";
   }>([
     {
       eventType: "AgreementActivated",
-      expectedAction: "attivato",
     },
     {
       eventType: "AgreementRejected",
-      expectedAction: "rifiutato",
     },
   ])("should handle $eventType event correctly", async ({ eventType }) => {
     const consumerUsers = [

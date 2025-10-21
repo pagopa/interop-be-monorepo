@@ -10,17 +10,11 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import { retrieveEservice, retrieveTenant } from "../handlerCommons.js";
 
-export type DelegationSubmittedToDelegateEventType =
+export type DelegationSubmittedRevokedToDelegateEventType =
   | "ProducerDelegationSubmitted"
-  | "ConsumerDelegationSubmitted";
-
-export type DelegationRevokedToDelegateEventType =
+  | "ConsumerDelegationSubmitted"
   | "ProducerDelegationRevoked"
   | "ConsumerDelegationRevoked";
-
-export type DelegationSubmittedRevokedToDelegateEventType =
-  | DelegationSubmittedToDelegateEventType
-  | DelegationRevokedToDelegateEventType;
 
 export async function handleDelegationSubmittedRevokedToDelegate(
   delegationV2Msg: DelegationV2 | undefined,
@@ -60,19 +54,25 @@ export async function handleDelegationSubmittedRevokedToDelegate(
   );
 
   const body = match(eventType)
-    .with("ProducerDelegationSubmitted", "ConsumerDelegationSubmitted", () =>
-      inAppTemplates.delegationSubmittedToDelegate(
-        eservice.name,
-        delegator.name,
-        eventType as DelegationSubmittedToDelegateEventType
-      )
+    .with(
+      "ProducerDelegationSubmitted",
+      "ConsumerDelegationSubmitted",
+      (eventType) =>
+        inAppTemplates.delegationSubmittedToDelegate(
+          eservice.name,
+          delegator.name,
+          eventType
+        )
     )
-    .with("ProducerDelegationRevoked", "ConsumerDelegationRevoked", () =>
-      inAppTemplates.delegationRevokedToDelegate(
-        eservice.name,
-        delegator.name,
-        eventType as DelegationRevokedToDelegateEventType
-      )
+    .with(
+      "ProducerDelegationRevoked",
+      "ConsumerDelegationRevoked",
+      (eventType) =>
+        inAppTemplates.delegationRevokedToDelegate(
+          eservice.name,
+          delegator.name,
+          eventType
+        )
     )
     .exhaustive();
 

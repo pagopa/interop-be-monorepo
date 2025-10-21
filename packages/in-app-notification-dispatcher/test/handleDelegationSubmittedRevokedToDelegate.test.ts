@@ -12,6 +12,7 @@ import {
   delegationKind,
   toDelegationV2,
   DelegationKind,
+  EServiceId,
 } from "pagopa-interop-models";
 import { tenantNotFound } from "../src/models/errors.js";
 import { handleDelegationSubmittedRevokedToDelegate } from "../src/handlers/delegations/handleDelegationSubmittedRevokedToDelegate.js";
@@ -25,7 +26,7 @@ import {
 describe("handleDelegationSubmittedRevokedToDelegate", () => {
   const delegator = getMockTenant();
   const delegate = getMockTenant();
-  const eserviceId = generateId<import("pagopa-interop-models").EServiceId>();
+  const eserviceId: EServiceId = generateId();
 
   const eservice = {
     id: eserviceId,

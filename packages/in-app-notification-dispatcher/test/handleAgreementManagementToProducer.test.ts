@@ -136,19 +136,15 @@ describe("handleAgreementManagementToProducer", () => {
       | "AgreementActivated"
       | "AgreementSubmitted"
       | "AgreementUpgraded";
-    expectedAction: "attivato" | "creato" | "aggiornato";
   }>([
     {
       eventType: "AgreementActivated",
-      expectedAction: "attivato",
     },
     {
       eventType: "AgreementSubmitted",
-      expectedAction: "creato",
     },
     {
       eventType: "AgreementUpgraded",
-      expectedAction: "aggiornato",
     },
   ])("should handle $eventType event correctly", async ({ eventType }) => {
     const producerUsers = [
