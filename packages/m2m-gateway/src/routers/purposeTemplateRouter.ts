@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
