@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import {
   pollingMaxRetriesExceeded,
   unsafeBrandId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
   getMockedApiPurpose,
@@ -23,8 +24,11 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("updateDraftReversePurpose", () => {
   const mockPurpose = getMockedApiPurpose();
-  const mockPurposeProcessGetResponse = getMockWithMetadata(mockPurpose);
-
+  const mockPurposeProcessGetResponse: WithMetadata<purposeApi.Purpose> =
+    getMockWithMetadata({
+      ...mockPurpose,
+      purposeTemplateId: undefined,
+    });
   const mockPurposeSeed: m2mGatewayApi.ReversePurposeDraftUpdateSeed = {
     title: "updated title",
     description: "updated description",
