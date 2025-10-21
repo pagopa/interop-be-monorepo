@@ -3,7 +3,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { genericLogger } from "pagopa-interop-commons";
+import {
+  genericLogger,
+  getLatestVersionFormRules,
+} from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAuthData,
@@ -63,8 +66,12 @@ describe("updatePurposeTemplate", () => {
     vi.useRealTimers();
   });
 
-  const riskAnalisysPAVersion = "3.0";
-  const riskAnalisysPrivateVersion = "2.0";
+  const riskAnalysisPAVersion = getLatestVersionFormRules(
+    tenantKind.PA
+  )!.version;
+  const riskAnalysisPrivateVersion = getLatestVersionFormRules(
+    tenantKind.PRIVATE
+  )!.version;
   const creatorId = generateId<TenantId>();
   const creator: Tenant = getMockTenant(creatorId);
 
@@ -82,10 +89,10 @@ describe("updatePurposeTemplate", () => {
   };
 
   it.each([
-    { kind: tenantKind.PA, riskAnalysisVersion: riskAnalisysPAVersion },
+    { kind: tenantKind.PA, riskAnalysisVersion: riskAnalysisPAVersion },
     {
       kind: tenantKind.PRIVATE,
-      riskAnalysisVersion: riskAnalisysPrivateVersion,
+      riskAnalysisVersion: riskAnalysisPrivateVersion,
     },
   ])(
     "should successfully update a purpose template in draft state with valid data and targetTenantKind %s",
@@ -250,7 +257,8 @@ describe("updatePurposeTemplate", () => {
           ...riskAnalysisFormTemplateSeed,
           answers: updatedAnswers,
         },
-        tenantKind
+        tenantKind,
+        existingPurposeTemplate.handlesPersonalData
       );
     }
   );

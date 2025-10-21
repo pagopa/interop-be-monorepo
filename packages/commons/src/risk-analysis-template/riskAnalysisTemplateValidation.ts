@@ -9,6 +9,10 @@ import {
   getLatestVersionFormRules,
 } from "../risk-analysis/riskAnalysisValidation.js";
 import {
+  buildLabel,
+  formRules,
+} from "../risk-analysis/rules/riskAnalysisFormRulesProvider.js";
+import {
   RiskAnalysisFormTemplateToValidate,
   RiskAnalysisTemplateAnswerToValidate,
   RiskAnalysisTemplateValidatedForm,
@@ -29,6 +33,7 @@ import {
   unexpectedRiskAnalysisTemplateRulesVersionError,
   validTemplateResult,
   unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError,
+  incompatiblePurposeTemplatePersonalDataError,
 } from "./riskAnalysisTemplateValidationErrors.js";
 
 /* 
@@ -51,7 +56,8 @@ validatePurposeTemplateRiskAnalysis
 */
 export function validatePurposeTemplateRiskAnalysis(
   riskAnalysisFormTemplate: RiskAnalysisFormTemplateToValidate,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  personalDataInPurposeTemplate: boolean
 ): RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedForm> {
   const latestVersionFormRules = getLatestVersionFormRules(tenantKind);
 
@@ -106,6 +112,24 @@ export function validatePurposeTemplateRiskAnalysis(
       multiAnswers: [],
     }
   );
+
+  const personalDataInRiskAnalysisTemplate = match(
+    singleAnswers.find((a) => a.key === "usesPersonalData")?.value
+  )
+    .with("YES", () => true)
+    .with("NO", () => false)
+    .otherwise(() => undefined);
+
+  const personalDataFlagValidation = validatePersonalDataFlag({
+    tenantKind,
+    version: latestVersionFormRules.version,
+    personalDataInRiskAnalysisTemplate,
+    personalDataInPurposeTemplate,
+  });
+
+  if (personalDataFlagValidation.length > 0) {
+    return invalidTemplateResult(personalDataFlagValidation);
+  }
 
   return validTemplateResult({
     version: latestVersionFormRules.version,
@@ -403,3 +427,39 @@ function formContainsDependency(
     .with(P.nullish, () => false)
     .exhaustive();
 }
+
+const validatePersonalDataFlag = ({
+  tenantKind,
+  version,
+  personalDataInRiskAnalysisTemplate,
+  personalDataInPurposeTemplate,
+}: {
+  tenantKind: TenantKind;
+  version: string;
+  personalDataInRiskAnalysisTemplate: boolean | undefined;
+  personalDataInPurposeTemplate: boolean | undefined;
+}): RiskAnalysisTemplateValidationIssue[] => {
+  const label = buildLabel(tenantKind, version);
+  return match(label)
+    .with(
+      formRules.PA_1_0,
+      formRules.PA_2_0,
+      formRules.PA_3_0,
+      formRules.PRIVATE_1_0,
+      () => []
+    )
+    .with(formRules.PA_3_1, formRules.PRIVATE_2_0, () =>
+      match(personalDataInPurposeTemplate)
+        .with(P.boolean, () => {
+          if (
+            personalDataInPurposeTemplate !== personalDataInRiskAnalysisTemplate
+          ) {
+            return [incompatiblePurposeTemplatePersonalDataError()];
+          }
+          return [];
+        })
+        .with(undefined, () => [])
+        .exhaustive()
+    )
+    .exhaustive();
+};
