@@ -258,7 +258,7 @@ export function eserviceTemplateServiceBuilder(
     const attributesToReturn: attributeRegistryApi.Attributes = {
       results: newlyCreatedGroupAttributes,
       totalCount: newlyCreatedGroupAttributes.length,
-    }
+    };
 
     return {
       groupIndex: newGroupIndex,

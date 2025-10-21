@@ -56,10 +56,7 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/attributes
       .mockResolvedValue(mockEserviceTemplate);
   });
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.ADMIN_ROLE,
-    authRole.API_ROLE,
-  ];
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {

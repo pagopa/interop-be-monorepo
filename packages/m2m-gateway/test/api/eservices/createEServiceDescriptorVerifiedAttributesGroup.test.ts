@@ -21,9 +21,10 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/verifiedAttribut
   const mockEService: catalogApi.EService = getMockedApiEservice();
   const mockDescriptor = mockEService.descriptors[0]!;
 
-  const mockAttributeSeed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed = {
-    attributeIds: [generateId(), generateId(), generateId()],
-  };
+  const mockAttributeSeed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed =
+    {
+      attributeIds: [generateId(), generateId(), generateId()],
+    };
 
   const mockAttribute1 = getMockedApiAttribute({
     kind: attributeRegistryApi.AttributeKind.Values.VERIFIED,

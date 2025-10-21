@@ -985,7 +985,8 @@ const eserviceRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    ).delete(
+    )
+    .delete(
       "/eservices/:eserviceId/descriptors/:descriptorId/verifiedAttributes/groups/:groupIndex/attributes/:attributeId",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);

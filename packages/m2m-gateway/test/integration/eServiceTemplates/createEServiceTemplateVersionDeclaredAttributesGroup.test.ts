@@ -27,7 +27,10 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { eserviceTemplateVersionAttributeNotFound, missingMetadata } from "../../../src/model/errors.js";
+import {
+  eserviceTemplateVersionAttributeNotFound,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
 describe("createEServiceTemplateVersionDeclaredAttributesGroup", () => {
@@ -114,17 +117,23 @@ describe("createEServiceTemplateVersionDeclaredAttributesGroup", () => {
     versions: [versionUpdated],
   };
 
-  const metadataUpdatedEserviceTemplate = getMockWithMetadata(eserviceTemplateUpdated);
+  const metadataUpdatedEserviceTemplate = getMockWithMetadata(
+    eserviceTemplateUpdated
+  );
 
   const mockGetEServiceTemplateById = vi.fn();
 
-  mockGetEServiceTemplateById.mockResolvedValueOnce(getMockWithMetadata(eserviceTemplate));
+  mockGetEServiceTemplateById.mockResolvedValueOnce(
+    getMockWithMetadata(eserviceTemplate)
+  );
 
   mockGetEServiceTemplateById.mockImplementationOnce(
     mockPollingResponse(metadataUpdatedEserviceTemplate, 2)
   );
 
-  mockGetEServiceTemplateById.mockResolvedValue(metadataUpdatedEserviceTemplate);
+  mockGetEServiceTemplateById.mockResolvedValue(
+    metadataUpdatedEserviceTemplate
+  );
 
   const mockPatchUpdateDraftTemplateVersion = vi
     .fn()
@@ -187,7 +196,9 @@ describe("createEServiceTemplateVersionDeclaredAttributesGroup", () => {
 
     expect(result).toEqual(response);
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.eserviceTemplateProcessClient.getEServiceTemplateById,
+      mockGet:
+        mockInteropBeClients.eserviceTemplateProcessClient
+          .getEServiceTemplateById,
       params: { templateId: eserviceTemplate.id },
     });
 
@@ -199,7 +210,8 @@ describe("createEServiceTemplateVersionDeclaredAttributesGroup", () => {
     );
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
-        mockInteropBeClients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion,
+        mockInteropBeClients.eserviceTemplateProcessClient
+          .patchUpdateDraftTemplateVersion,
       params: {
         templateId: eserviceTemplate.id,
         templateVersionId: version.id,
@@ -228,13 +240,19 @@ describe("createEServiceTemplateVersionDeclaredAttributesGroup", () => {
   });
 
   it("Should throw missingMetadata in case the attribute returned by the polling GET call has no metadata", async () => {
-    mockGetEServiceTemplateById.mockResolvedValueOnce(getMockWithMetadata(eserviceTemplate));
-    mockPatchUpdateDraftTemplateVersion.mockResolvedValueOnce(metadataUpdatedEserviceTemplate);
+    mockGetEServiceTemplateById.mockResolvedValueOnce(
+      getMockWithMetadata(eserviceTemplate)
+    );
+    mockPatchUpdateDraftTemplateVersion.mockResolvedValueOnce(
+      metadataUpdatedEserviceTemplate
+    );
     mockGetEServiceTemplateById.mockResolvedValueOnce({
       ...metadataUpdatedEserviceTemplate,
       metadata: undefined,
     });
-    mockGetEServiceTemplateById.mockResolvedValue(metadataUpdatedEserviceTemplate);
+    mockGetEServiceTemplateById.mockResolvedValue(
+      metadataUpdatedEserviceTemplate
+    );
 
     await expect(
       eserviceTemplateService.createEServiceTemplateVersionDeclaredAttributesGroup(
@@ -249,8 +267,12 @@ describe("createEServiceTemplateVersionDeclaredAttributesGroup", () => {
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetEServiceTemplateById.mockReset();
-    mockGetEServiceTemplateById.mockResolvedValueOnce(getMockWithMetadata(eserviceTemplate));
-    mockPatchUpdateDraftTemplateVersion.mockResolvedValueOnce(metadataUpdatedEserviceTemplate);
+    mockGetEServiceTemplateById.mockResolvedValueOnce(
+      getMockWithMetadata(eserviceTemplate)
+    );
+    mockPatchUpdateDraftTemplateVersion.mockResolvedValueOnce(
+      metadataUpdatedEserviceTemplate
+    );
     const nonFinalStateEservice = {
       ...metadataUpdatedEserviceTemplate,
       descriptors: [
@@ -291,21 +313,21 @@ describe("createEServiceTemplateVersionDeclaredAttributesGroup", () => {
     const MISSING_ATTRIBUTE_ID = "00000000-0000-0000-0000-000000000001";
 
     const versionWithMissingAttribute: eserviceTemplateApi.EServiceTemplateVersion =
-    {
-      ...getMockedApiEserviceTemplateVersion(),
-      attributes: {
-        declared: [
-          [
-            {
-              id: MISSING_ATTRIBUTE_ID,
-              explicitAttributeVerification: false,
-            },
+      {
+        ...getMockedApiEserviceTemplateVersion(),
+        attributes: {
+          declared: [
+            [
+              {
+                id: MISSING_ATTRIBUTE_ID,
+                explicitAttributeVerification: false,
+              },
+            ],
           ],
-        ],
-        certified: [],
-        verified: [],
-      },
-    };
+          certified: [],
+          verified: [],
+        },
+      };
 
     const eserviceTemplateWithVersionWithoutAttribute: eserviceTemplateApi.EServiceTemplate =
       getMockedApiEServiceTemplate({
@@ -325,7 +347,9 @@ describe("createEServiceTemplateVersionDeclaredAttributesGroup", () => {
       metadata: {},
     });
 
-    mockGetEServiceTemplateById.mockResolvedValueOnce(getMockWithMetadata(eserviceTemplateWithVersionWithoutAttribute))
+    mockGetEServiceTemplateById.mockResolvedValueOnce(
+      getMockWithMetadata(eserviceTemplateWithVersionWithoutAttribute)
+    );
 
     mockInteropBeClients.attributeProcessClient = {
       getBulkedAttributes: mockGetBulkedAttributes,
@@ -333,7 +357,7 @@ describe("createEServiceTemplateVersionDeclaredAttributesGroup", () => {
 
     mockInteropBeClients.eserviceTemplateProcessClient = {
       getEServiceTemplateById: mockGetEServiceTemplateById,
-      patchUpdateDraftTemplateVersion: mockPatchUpdateDraftTemplateVersion
+      patchUpdateDraftTemplateVersion: mockPatchUpdateDraftTemplateVersion,
     } as unknown as PagoPAInteropBeClients["eserviceTemplateProcessClient"];
 
     await expect(
@@ -344,9 +368,7 @@ describe("createEServiceTemplateVersionDeclaredAttributesGroup", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      eserviceTemplateVersionAttributeNotFound(
-        versionWithMissingAttribute.id
-      )
+      eserviceTemplateVersionAttributeNotFound(versionWithMissingAttribute.id)
     );
   });
 });

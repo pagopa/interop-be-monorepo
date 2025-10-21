@@ -22,9 +22,10 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/verifiedAttrib
     getMockedApiEServiceTemplate();
   const mockVersion = mockTemplate.versions[0]!;
 
-  const mockAttributeSeed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed = {
-    attributeIds: [generateId(), generateId(), generateId()],
-  };
+  const mockAttributeSeed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed =
+    {
+      attributeIds: [generateId(), generateId(), generateId()],
+    };
 
   const mockAttribute1 = getMockedApiAttribute({
     kind: attributeRegistryApi.AttributeKind.Values.VERIFIED,

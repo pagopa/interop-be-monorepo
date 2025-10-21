@@ -26,7 +26,10 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { eserviceDescriptorAttributeNotFound, missingMetadata } from "../../../src/model/errors.js";
+import {
+  eserviceDescriptorAttributeNotFound,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
 describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
@@ -289,8 +292,7 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
   it("Should throw eserviceTemplateVersionAttributeNotFound in case an attribute ID is present but cannot be resolved by the Attribute Registry", async () => {
     const MISSING_ATTRIBUTE_ID = "00000000-0000-0000-0000-000000000001";
 
-    const descriptorWithMissingAttribute: catalogApi.EServiceDescriptor =
-    {
+    const descriptorWithMissingAttribute: catalogApi.EServiceDescriptor = {
       ...getMockedApiEserviceDescriptor(),
       attributes: {
         certified: [
@@ -324,7 +326,9 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
       metadata: {},
     });
 
-    mockGetEServiceById.mockResolvedValueOnce(getMockWithMetadata(eserviceWithDescriptorWithoutAttribute))
+    mockGetEServiceById.mockResolvedValueOnce(
+      getMockWithMetadata(eserviceWithDescriptorWithoutAttribute)
+    );
 
     mockInteropBeClients.attributeProcessClient = {
       getBulkedAttributes: mockGetBulkedAttributes,
@@ -332,7 +336,7 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
 
     mockInteropBeClients.eserviceTemplateProcessClient = {
       getEServiceTemplateById: mockGetEServiceTemplateById,
-      patchUpdateDescriptor: mockPatchUpdateDescriptor
+      patchUpdateDescriptor: mockPatchUpdateDescriptor,
     } as unknown as PagoPAInteropBeClients["eserviceTemplateProcessClient"];
 
     await expect(
@@ -343,9 +347,7 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      eserviceDescriptorAttributeNotFound(
-        descriptorWithMissingAttribute.id
-      )
+      eserviceDescriptorAttributeNotFound(descriptorWithMissingAttribute.id)
     );
   });
 });

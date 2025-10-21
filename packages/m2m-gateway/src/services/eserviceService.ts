@@ -225,7 +225,7 @@ export function eserviceServiceBuilder(
     const attributesToReturn: attributeRegistryApi.Attributes = {
       results: newlyCreatedGroupAttributes,
       totalCount: newlyCreatedGroupAttributes.length,
-    }
+    };
 
     return {
       groupIndex: newGroupIndex,
@@ -268,14 +268,14 @@ export function eserviceServiceBuilder(
     const updatedGroups =
       attributeGroupWithoutAttribute.length === 0
         ? [
-          ...kindAttributeGroups.slice(0, groupIndex),
-          ...kindAttributeGroups.slice(groupIndex + 1),
-        ]
+            ...kindAttributeGroups.slice(0, groupIndex),
+            ...kindAttributeGroups.slice(groupIndex + 1),
+          ]
         : [
-          ...kindAttributeGroups.slice(0, groupIndex),
-          attributeGroupWithoutAttribute,
-          ...kindAttributeGroups.slice(groupIndex + 1),
-        ];
+            ...kindAttributeGroups.slice(0, groupIndex),
+            attributeGroupWithoutAttribute,
+            ...kindAttributeGroups.slice(groupIndex + 1),
+          ];
 
     const response =
       await clients.catalogProcessClient.patchUpdateDraftDescriptor(
