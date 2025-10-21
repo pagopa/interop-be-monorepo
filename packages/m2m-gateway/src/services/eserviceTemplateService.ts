@@ -799,7 +799,6 @@ export function eserviceTemplateServiceBuilder(
       return toM2MGatewayEServiceTemplateVersion(version);
     },
 
-    
     async deleteEServiceTemplate(
       templateId: EServiceTemplateId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -815,7 +814,7 @@ export function eserviceTemplateServiceBuilder(
       );
       await pollEserviceTemplateUntilDeletion(templateId, headers);
     },
-    
+
     async getEserviceTemplateVersionCertifiedAttributes(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
