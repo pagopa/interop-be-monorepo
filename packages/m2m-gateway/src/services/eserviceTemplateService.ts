@@ -28,7 +28,6 @@ import {
   eserviceTemplateVersionAttributeNotFound,
   eserviceTemplateVersionNotFound,
   eserviceTemplateVersionAttributeGroupNotFound,
-  eserviceTemplateVersionAttributeNotFoundInGroup,
 } from "../model/errors.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
@@ -243,10 +242,7 @@ export function eserviceTemplateServiceBuilder(
     }
 
     if (!attributeGroup.find((a) => a.id === attributeId)) {
-      throw eserviceTemplateVersionAttributeNotFoundInGroup(
-        versionId,
-        groupIndex
-      );
+      throw eserviceTemplateVersionAttributeNotFound(versionId);
     }
 
     const attributeGroupWithoutAttribute = attributeGroup.filter(

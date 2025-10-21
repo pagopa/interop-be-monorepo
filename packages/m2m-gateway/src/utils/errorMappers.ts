@@ -242,7 +242,7 @@ export const deleteEServiceTemplateVersionAttributeFromGroupErrorMapper = (
     .with(
       "eserviceTemplateVersionNotFound",
       "eserviceTemplateVersionAttributeGroupNotFound",
-      "eserviceTemplateVersionAttributeNotFoundInGroup",
+      "eserviceTemplateVersionAttributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

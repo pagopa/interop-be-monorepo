@@ -21,7 +21,7 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import {
   eserviceTemplateVersionAttributeGroupNotFound,
-  eserviceTemplateVersionAttributeNotFoundInGroup,
+  eserviceTemplateVersionAttributeNotFound,
   eserviceTemplateVersionNotFound,
   missingMetadata,
 } from "../../../src/model/errors.js";
@@ -239,7 +239,7 @@ describe("deleteEServiceTemplateVersionDeclaredAttributeFromGroup", () => {
     );
   });
 
-  it("Should throw eserviceTemplateVersionAttributeNotFoundInGroup in case of attribute not found", async () => {
+  it("Should throw eserviceTemplateVersionAttributeNotFound in case of attribute not found", async () => {
     await expect(
       eserviceTemplateService.deleteEServiceTemplateVersionDeclaredAttributeFromGroup(
         unsafeBrandId(mockEServiceTemplate.id),
@@ -249,10 +249,7 @@ describe("deleteEServiceTemplateVersionDeclaredAttributeFromGroup", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      eserviceTemplateVersionAttributeNotFoundInGroup(
-        unsafeBrandId(mockVersion.id),
-        1
-      )
+      eserviceTemplateVersionAttributeNotFound(unsafeBrandId(mockVersion.id))
     );
   });
 

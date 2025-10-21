@@ -54,7 +54,6 @@ export const errorCodes = {
   eserviceTemplateVersionAttributeNotFound: "0035",
   eserviceDescriptorAttributeGroupNotFound: "0036",
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
-  eserviceTemplateVersionAttributeNotFoundInGroup: "0038",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -411,16 +410,5 @@ export function eserviceTemplateVersionAttributeGroupNotFound(
     detail: `${kind} Attribute group with index ${groupIndex} not found for e-service template version ${versionId} of template ${templateId}`,
     code: "eserviceTemplateVersionAttributeGroupNotFound",
     title: "E-Service Template Version Attribute Group Not Found",
-  });
-}
-
-export function eserviceTemplateVersionAttributeNotFoundInGroup(
-  versionId: EServiceTemplateVersionId,
-  groupIndex: number
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Attribute not found for e-service template version ${versionId} in group with index ${groupIndex}`,
-    code: "eserviceTemplateVersionAttributeNotFoundInGroup",
-    title: "E-Service Template Version Attribute Not Found in Group",
   });
 }
