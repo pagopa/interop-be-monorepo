@@ -50,6 +50,7 @@ export const errorCodes = {
   delegationEServiceMismatch: "0032",
   cannotDeleteLastEServiceTemplateVersion: "0033",
   eserviceDescriptorAttributeNotFound: "0034",
+  eserviceDescriptorAttributeGroupNotFound: "0035",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -370,5 +371,15 @@ export function eserviceDescriptorAttributeNotFound(
     detail: `Attribute not found for descriptor ${descriptorId}`,
     code: "eserviceDescriptorAttributeNotFound",
     title: "E-Service Descriptor Attribute Not Found",
+  });
+}
+
+export function eserviceDescriptorAttributeGroupNotFound(
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute group not found for descriptor ${descriptorId}`,
+    code: "eserviceDescriptorAttributeGroupNotFound",
+    title: "E-Service Descriptor Attribute group Not Found",
   });
 }
