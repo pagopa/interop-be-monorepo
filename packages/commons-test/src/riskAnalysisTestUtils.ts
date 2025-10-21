@@ -355,7 +355,7 @@ export const getMockValidRiskAnalysis = (
   match(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
-        validatedRiskAnalysis3_0_Pa,
+        validatedRiskAnalysis3_1_Pa,
         generateMock(z.string())
       )
     )
