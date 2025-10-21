@@ -181,7 +181,6 @@ export function eserviceServiceBuilder(
     groupIndex: number;
     attributes: attributeRegistryApi.Attributes;
   }> {
-
     const eservice = await retrieveEServiceById(headers, eserviceId);
 
     const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
@@ -201,13 +200,14 @@ export function eserviceServiceBuilder(
       [attributeKind]: newAttributeGroups,
     };
 
-    const response = await clients.catalogProcessClient.patchUpdateDraftDescriptor(
-      { attributes: newAttributes },
-      {
-        params: { eServiceId: eserviceId, descriptorId },
-        headers,
-      }
-    );
+    const response =
+      await clients.catalogProcessClient.patchUpdateDraftDescriptor(
+        { attributes: newAttributes },
+        {
+          params: { eServiceId: eserviceId, descriptorId },
+          headers,
+        }
+      );
 
     const updatedEservice = await pollEService(response, headers);
 
@@ -219,10 +219,9 @@ export function eserviceServiceBuilder(
       headers
     );
 
-    const newlyCreatedGroupAttributes =
-      allAttributesWithDetails.results.filter(
-        (item) => item.groupIndex === newGroupIndex
-      );
+    const newlyCreatedGroupAttributes = allAttributesWithDetails.results.filter(
+      (item) => item.groupIndex === newGroupIndex
+    );
 
     const attributesToReturn: attributeRegistryApi.Attributes = {
       results: newlyCreatedGroupAttributes.map((item) => item.attribute),
