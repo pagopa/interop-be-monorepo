@@ -21,6 +21,10 @@ import {
   Delegation,
   PurposeId,
   ListResult,
+  PurposeTemplate,
+  EServiceDescriptorPurposeTemplate,
+  PurposeTemplateEvent,
+  toPurposeTemplateV2,
 } from "pagopa-interop-models";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
@@ -37,6 +41,8 @@ import {
   upsertDelegation,
   upsertEService,
   upsertPurpose,
+  upsertPurposeTemplate,
+  upsertPurposeTemplateEServiceDescriptor,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import {
@@ -123,6 +129,23 @@ export const addOneDelegation = async (
   await upsertDelegation(readModelDB, delegation, 0);
 };
 
+export const addOnePurposeTemplate = async (
+  purposeTemplate: PurposeTemplate
+): Promise<void> => {
+  await writePurposeTemplateInEventstore(purposeTemplate);
+  await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
+};
+
+export const addOnePurposeTemplateEServiceDescriptor = async (
+  purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate
+): Promise<void> => {
+  await upsertPurposeTemplateEServiceDescriptor(
+    readModelDB,
+    purposeTemplateEServiceDescriptor,
+    0
+  );
+};
+
 export const writePurposeInEventstore = async (
   purpose: Purpose
 ): Promise<void> => {
@@ -139,6 +162,26 @@ export const writePurposeInEventstore = async (
   };
 
   await writeInEventstore(eventToWrite, "purpose", postgresDB);
+};
+
+export const writePurposeTemplateInEventstore = async (
+  purposeTemplate: PurposeTemplate
+): Promise<void> => {
+  const purposeTemplateEvent: PurposeTemplateEvent = {
+    type: "PurposeTemplateAdded",
+    event_version: 2,
+    data: {
+      purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+    },
+  };
+
+  const eventToWrite: StoredEvent<PurposeTemplateEvent> = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    stream_id: purposeTemplateEvent.data.purposeTemplate!.id,
+    version: 0,
+    event: purposeTemplateEvent,
+  };
+  await writeInEventstore(eventToWrite, "purpose_template", postgresDB);
 };
 
 export const readLastPurposeEvent = async (

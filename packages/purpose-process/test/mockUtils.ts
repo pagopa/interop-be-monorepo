@@ -13,6 +13,15 @@ import {
 } from "pagopa-interop-models";
 import { getMockValidRiskAnalysisForm } from "pagopa-interop-commons-test";
 import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  RiskAnalysisValidatedForm,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
+} from "pagopa-interop-commons";
+import {
+  validRiskAnalysis2_0_Private,
+  validRiskAnalysis3_0_Pa,
+} from "pagopa-interop-commons-test/index.js";
+import { match } from "ts-pattern";
 import { validateAndTransformRiskAnalysis } from "../src/services/validators.js";
 
 export const buildRiskAnalysisSeed = (
@@ -132,10 +141,47 @@ export const getMockReversePurposeSeed = (
 
 export const getMockPurposeFromTemplateSeed = (
   eserviceId: string = generateId(),
-  consumerId: string = generateId()
+  consumerId: string = generateId(),
+  riskAnalysisForm?: purposeApi.RiskAnalysisFormSeed
 ): purposeApi.PurposeFromTemplateSeed => ({
   eserviceId,
   consumerId,
   title: "Mock title",
   dailyCalls: 10,
+  riskAnalysisForm,
 });
+
+export const validatedRiskAnalysisFormFromTemplate3_0_Pa: RiskAnalysisValidatedForm =
+  {
+    version: validRiskAnalysis3_0_Pa.version,
+    singleAnswers: [
+      {
+        key: "publicInterestTaskText",
+        value: "public interest task text test",
+      },
+    ],
+    multiAnswers: [],
+  };
+
+export const validatedRiskAnalysisFormFromTemplate2_0_Private: RiskAnalysisValidatedForm =
+  {
+    version: validRiskAnalysis2_0_Private.version,
+    singleAnswers: [],
+    multiAnswers: [],
+  };
+
+export const getMockValidRiskAnalysisFormFromTemplate = (
+  producerTenantKind: TenantKind
+): RiskAnalysisForm =>
+  match(producerTenantKind)
+    .with(tenantKind.PA, () =>
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(
+        validatedRiskAnalysisFormFromTemplate3_0_Pa
+      )
+    )
+    .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(
+        validatedRiskAnalysisFormFromTemplate2_0_Private
+      )
+    )
+    .exhaustive();

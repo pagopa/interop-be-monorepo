@@ -1656,11 +1656,19 @@ export function purposeServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertEserviceMode(eservice, eserviceMode.deliver);
 
+      const tenantKind = await retrieveTenantKind(consumerId, readModelService);
+      const createdAt = new Date();
+
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
       const purposeTemplate = await retrieveActivePurposeTemplate(
         purposeTemplateId,
         readModelService
+      );
+
+      assertValidPurposeTenantKind(
+        tenantKind,
+        purposeTemplate.targetTenantKind
       );
 
       await retrieveEserviceDescriptorFromPurposeTemplate(
@@ -1675,14 +1683,6 @@ export function purposeServiceBuilder(
         consumerId,
         title: body.title,
       });
-
-      const tenantKind = await retrieveTenantKind(consumerId, readModelService);
-      const createdAt = new Date();
-
-      assertValidPurposeTenantKind(
-        tenantKind,
-        purposeTemplate.targetTenantKind
-      );
 
       // TODO https://pagopa.atlassian.net/browse/PIN-7928: add handle personalDataInEService
       const validatedFormSeed = validateRiskAnalysisAgainstTemplateOrThrow(
