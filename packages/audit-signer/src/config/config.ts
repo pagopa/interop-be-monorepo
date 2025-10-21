@@ -1,28 +1,16 @@
 import { z } from "zod";
 import {
-  AgreementTopicConfig,
-  CatalogTopicConfig,
-  PurposeTopicConfig,
-  AuthorizationTopicConfig,
-  DelegationTopicConfig,
   FileManagerConfig,
   LoggerConfig,
   S3Config,
-  KafkaBatchConsumerConfig,
   SafeStorageApiConfig,
   DynamoDBClientConfig,
 } from "pagopa-interop-commons";
 import { SQSConsumerConfig } from "./sqsConfig.js";
 
-export const AuditSignerConfig = SQSConsumerConfig.and(CatalogTopicConfig)
-  .and(AgreementTopicConfig)
-  .and(AuthorizationTopicConfig)
-  .and(PurposeTopicConfig)
-  .and(DelegationTopicConfig)
-  .and(FileManagerConfig)
+export const AuditSignerConfig = SQSConsumerConfig.and(FileManagerConfig)
   .and(S3Config)
   .and(LoggerConfig)
-  .and(KafkaBatchConsumerConfig)
   .and(DynamoDBClientConfig)
   .and(SafeStorageApiConfig)
   .and(
