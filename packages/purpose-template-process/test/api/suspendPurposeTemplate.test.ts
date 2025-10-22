@@ -104,7 +104,7 @@ describe("API POST /purposeTemplates/{id}/suspend", () => {
     }
   );
 
-  it("Should return 400 if passed invalid data: %s", async () => {
+  it("Should return 400 if an invalid purpose template id is passed", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as PurposeTemplateId);
     expect(res.status).toBe(400);

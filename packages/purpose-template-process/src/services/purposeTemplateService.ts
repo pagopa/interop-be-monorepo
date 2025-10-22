@@ -50,6 +50,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
+  toCreateEventPurposeTemplateArchived,
   toCreateEventPurposeTemplateAnnotationDocumentDeleted,
   toCreateEventPurposeTemplateDraftDeleted,
   toCreateEventPurposeTemplateDraftUpdated,
@@ -72,6 +73,7 @@ import {
 import {
   assertActivatableState,
   assertAnnotationDocumentIsUnique,
+  assertArchivableState,
   assertConsistentFreeOfCharge,
   assertEServiceIdsCountIsBelowThreshold,
   assertPurposeTemplateStateIsValid,
@@ -1181,6 +1183,43 @@ export function purposeTemplateServiceBuilder(
 
       const createdEvent = await repository.createEvent(
         toCreateEventPurposeTemplateSuspended({
+          purposeTemplate: updatedPurposeTemplate,
+          version: purposeTemplate.metadata.version,
+          correlationId,
+        })
+      );
+
+      return {
+        data: updatedPurposeTemplate,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
+    async archivePurposeTemplate(
+      id: PurposeTemplateId,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeTemplate>> {
+      logger.info(`Archiving purpose template ${id}`);
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        id,
+        readModelService
+      );
+
+      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertArchivableState(purposeTemplate.data);
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        state: purposeTemplateState.archived,
+        updatedAt: new Date(),
+      };
+
+      const createdEvent = await repository.createEvent(
+        toCreateEventPurposeTemplateArchived({
           purposeTemplate: updatedPurposeTemplate,
           version: purposeTemplate.metadata.version,
           correlationId,
