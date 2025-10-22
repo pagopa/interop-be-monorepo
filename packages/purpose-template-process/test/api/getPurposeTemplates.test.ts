@@ -110,6 +110,7 @@ describe("API GET /purposeTemplates", () => {
     { query: { ...defaultQuery, states: "ACTIVE,invalid" } },
     { query: { ...defaultQuery, targetTenantKind: "invalid" } },
     { query: { ...defaultQuery, excludeExpiredRiskAnalysis: "invalid" } },
+    { query: { ...defaultQuery, handlesPersonalData: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof defaultQuery);

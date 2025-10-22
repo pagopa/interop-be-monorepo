@@ -30,6 +30,7 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
     purposeTitle: "Purpose Template title",
     purposeDescription: "Purpose Template description",
     purposeIsFreeOfCharge: false,
+    handlesPersonalData: false,
   };
 
   beforeEach(() => {
