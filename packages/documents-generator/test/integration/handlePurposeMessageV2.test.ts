@@ -1,6 +1,12 @@
+/* eslint-disable functional/no-let */
+
 import path from "path";
 import { fileURLToPath } from "url";
-import { genericLogger, getIpaCode } from "pagopa-interop-commons";
+import {
+  RefreshableInteropToken,
+  genericLogger,
+  getIpaCode,
+} from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockDescriptorPublished,
@@ -44,6 +50,7 @@ describe("handleDelegationMessageV2", () => {
     vi.clearAllMocks();
   });
   afterEach(cleanup);
+  let mockRefreshableToken: RefreshableInteropToken;
 
   it("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
     vi.spyOn(pdfGenerator, "generate");
@@ -116,6 +123,7 @@ describe("handleDelegationMessageV2", () => {
       pdfGenerator,
       fileManager,
       readModelService,
+      mockRefreshableToken,
       genericLogger
     );
     const expectedPdfPayload = {
@@ -178,6 +186,7 @@ describe("handleDelegationMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
+        mockRefreshableToken,
         genericLogger
       )
     ).resolves.toBeUndefined();
@@ -210,6 +219,7 @@ describe("handleDelegationMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
+        mockRefreshableToken,
         genericLogger
       )
     ).rejects.toThrow(eServiceNotFound(mockPurpose.eserviceId).message);
@@ -257,6 +267,7 @@ describe("handleDelegationMessageV2", () => {
         pdfGenerator,
         fileManager,
         readModelService,
+        mockRefreshableToken,
         genericLogger
       )
     ).rejects.toThrow(tenantKindNotFound(mockConsumer.id).message);

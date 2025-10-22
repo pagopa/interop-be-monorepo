@@ -1772,6 +1772,7 @@ export const userNotificationConfigInReadmodelNotificationConfig =
       metadataVersion: integer("metadata_version").notNull(),
       userId: uuid("user_id").notNull(),
       tenantId: uuid("tenant_id").notNull(),
+      userRoles: varchar("user_roles").array().notNull(),
       inAppNotificationPreference: boolean(
         "in_app_notification_preference"
       ).notNull(),
@@ -1884,6 +1885,7 @@ export const purposeTemplateInReadmodelPurposeTemplate =
       purposeIsFreeOfCharge: boolean("purpose_is_free_of_charge").notNull(),
       purposeFreeOfChargeReason: varchar("purpose_free_of_charge_reason"),
       purposeDailyCalls: integer("purpose_daily_calls"),
+      handlesPersonalData: boolean("handles_personal_data").notNull(),
     },
     (table) => [
       unique("purpose_template_id_metadata_version_key").on(

@@ -5,7 +5,12 @@ import {
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { FileManager, Logger, PDFGenerator } from "pagopa-interop-commons";
+import {
+  FileManager,
+  Logger,
+  PDFGenerator,
+  RefreshableInteropToken,
+} from "pagopa-interop-commons";
 import { agreementContractBuilder } from "../service/agreement/agreementContractBuilder.js";
 import { config } from "../config/config.js";
 
@@ -16,11 +21,13 @@ import {
 } from "../service/agreement/agreementService.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
 
+// eslint-disable-next-line max-params
 export async function handleAgreementMessageV2(
   decodedMessage: AgreementEventEnvelopeV2,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   readModelService: ReadModelServiceSQL,
+  _refreshableToken: RefreshableInteropToken,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)

@@ -35,7 +35,7 @@ import { config } from "../src/config/config.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
 
-export const { cleanup, postgresDB, readModelDB, fileManager } =
+export const { cleanup, postgresDB, fileManager, readModelDB } =
   await setupTestContainersVitest(
     inject("eventStoreConfig"),
     inject("fileManagerConfig"),
@@ -66,20 +66,19 @@ export const purposeTemplateService = purposeTemplateServiceBuilder(
 );
 
 export const writePurposeTemplateInEventstore = async (
-  purposeTemplate: PurposeTemplate
+  purposeTemplate: PurposeTemplate,
+  metadataVersion: number = 0
 ): Promise<void> => {
   const purposeTemplateEvent: PurposeTemplateEvent = {
     type: "PurposeTemplateAdded",
     event_version: 2,
-    data: {
-      purposeTemplate: toPurposeTemplateV2(purposeTemplate),
-    },
+    data: { purposeTemplate: toPurposeTemplateV2(purposeTemplate) },
   };
 
   const eventToWrite: StoredEvent<PurposeTemplateEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     stream_id: purposeTemplateEvent.data.purposeTemplate!.id,
-    version: 0,
+    version: metadataVersion,
     event: purposeTemplateEvent,
   };
   await writeInEventstore(eventToWrite, "purpose_template", postgresDB);
@@ -109,10 +108,11 @@ export function expectSinglePageListResult(
 }
 
 export const addOnePurposeTemplate = async (
-  purposeTemplate: PurposeTemplate
+  purposeTemplate: PurposeTemplate,
+  metadataVersion: number = 0
 ): Promise<void> => {
-  await writePurposeTemplateInEventstore(purposeTemplate);
-  await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
+  await writePurposeTemplateInEventstore(purposeTemplate, metadataVersion);
+  await upsertPurposeTemplate(readModelDB, purposeTemplate, metadataVersion);
 };
 
 export const addOnePurposeTemplateEServiceDescriptor = async (

@@ -1,6 +1,7 @@
 import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
 import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
 import { NotificationType } from "pagopa-interop-models";
+import { z } from "zod";
 import {
   fromApiTenantMail,
   toBffTenantMail,
@@ -91,3 +92,43 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     certifiedVerifiedAttributeAssignedRevokedToAssignee: "/aderente/anagrafica",
     producerKeychainKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
   } as const;
+
+export const Category = z.enum([
+  "Subscribers",
+  "Providers",
+  "Delegations",
+  "AttributesAndKeys",
+]);
+export type Category = z.infer<typeof Category>;
+
+export const notificationTypeToCategory: Record<NotificationType, Category> = {
+  agreementManagementToProducer: "Providers",
+  agreementSuspendedUnsuspendedToProducer: "Providers",
+  agreementSuspendedUnsuspendedToConsumer: "Subscribers",
+  clientAddedRemovedToProducer: "Providers",
+  purposeStatusChangedToProducer: "Providers",
+  templateStatusChangedToProducer: "Providers",
+  newEserviceTemplateVersionToInstantiator: "Providers",
+  eserviceTemplateNameChangedToInstantiator: "Providers",
+  eserviceTemplateStatusChangedToInstantiator: "Providers",
+  clientKeyAddedDeletedToClientUsers: "Providers",
+  agreementActivatedRejectedToConsumer: "Subscribers",
+  purposeActivatedRejectedToConsumer: "Subscribers",
+  purposeSuspendedUnsuspendedToConsumer: "Subscribers",
+  eserviceStateChangedToConsumer: "Subscribers",
+  delegationApprovedRejectedToDelegator: "Delegations",
+  eserviceNewVersionSubmittedToDelegator: "Delegations",
+  eserviceNewVersionApprovedRejectedToDelegate: "Delegations",
+  delegationSubmittedRevokedToDelegate: "Delegations",
+  certifiedVerifiedAttributeAssignedRevokedToAssignee: "AttributesAndKeys",
+  producerKeychainKeyAddedDeletedToClientUsers: "AttributesAndKeys",
+};
+
+export const categoryToNotificationTypes: Record<Category, NotificationType[]> =
+  Object.entries(notificationTypeToCategory).reduce(
+    (acc, [type, category]) => ({
+      ...acc,
+      [category]: [...(acc[category] || []), type as NotificationType],
+    }),
+    {} as Record<Category, NotificationType[]>
+  );
