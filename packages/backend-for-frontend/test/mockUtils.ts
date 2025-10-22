@@ -496,6 +496,7 @@ export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
   dailyCallsPerConsumer: generateMock(z.number().int().min(1).max(1000000000)),
   dailyCallsTotal: generateMock(z.number().int().min(1).max(1000000000)),
   delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
+  purposeTemplate: generateMock(bffApi.CompactPurposeTemplate.optional()),
 });
 
 export const getMockBffApiRiskAnalysisFormConfig =
@@ -1065,6 +1066,7 @@ export const getMockBffApiNotification = (): bffApi.Notification => ({
   userId: generateId(),
   tenantId: generateId(),
   body: generateMock(z.string()),
+  category: generateMock(z.string()),
   deepLink: generateMock(z.string()),
   readAt: generateMock(z.string().datetime({ offset: true }).nullable()),
   createdAt: generateMock(z.string().datetime({ offset: true })),

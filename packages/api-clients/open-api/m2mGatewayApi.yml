@@ -14782,6 +14782,9 @@ components:
           $ref: "#/components/schemas/PurposeVersion"
         rejectedVersion:
           $ref: "#/components/schemas/PurposeVersion"
+        purposeTemplateId:
+          type: string
+          format: uuid
       required:
         - id
         - eserviceId
