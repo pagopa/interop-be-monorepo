@@ -72,6 +72,28 @@ export const buildUpdateVersionSeed = (
     verified: [],
   },
 });
+export const buildCreateVersionSeed = (
+  version: EServiceTemplateVersion
+): eserviceTemplateApi.EServiceTemplateVersionSeed => ({
+  voucherLifespan: version.voucherLifespan,
+  dailyCallsPerConsumer: version.dailyCallsPerConsumer,
+  dailyCallsTotal: version.dailyCallsTotal,
+  agreementApprovalPolicy: "AUTOMATIC",
+  description: version.description,
+  attributes: {
+    certified: [],
+    declared: [],
+    verified: [],
+  },
+  docs: version.docs.map((d) => ({
+    ...d,
+    kind: "DOCUMENT",
+    serverUrls: [],
+    documentId: d.id,
+    filePath: d.path,
+    fileName: d.name,
+  })),
+});
 
 export const buildInterfaceSeed =
   (): eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed => ({
