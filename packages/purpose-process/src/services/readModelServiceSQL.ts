@@ -458,13 +458,6 @@ export function readModelServiceBuilderSQL({
         )
       )?.data;
     },
-    async getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
-      purposeTemplateId: PurposeTemplateId
-    ): Promise<EServiceDescriptorPurposeTemplate[] | undefined> {
-      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
-        purposeTemplateId
-      );
-    },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(
       purposeTemplateId: PurposeTemplateId,
       eserviceId: EServiceId
