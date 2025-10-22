@@ -8436,9 +8436,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceDescriptorCertifiedAttribute"
+                $ref: "#/components/schemas/EServiceDescriptorCertifiedAttributesGroup"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -8545,9 +8543,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceDescriptorDeclaredAttribute"
+                $ref: "#/components/schemas/EServiceDescriptorDeclaredAttributesGroup"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -8654,9 +8650,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceDescriptorVerifiedAttribute"
+                $ref: "#/components/schemas/EServiceDescriptorVerifiedAttributesGroup"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -11707,13 +11701,11 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
         "201":
-          description: Certified Attributes Group created
+          description: Certified Attributes Group created for E-Service Template Version
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttribute"
+                $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttributesGroup"
               headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -11816,13 +11808,11 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
         "201":
-          description: Declared Attributes Group created
+          description: Declared Attributes Group created for E-Service Template Version
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceTemplateVersionDeclaredAttribute"
+                $ref: "#/components/schemas/EServiceTemplateVersionDeclaredAttributesGroup"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -11925,13 +11915,11 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
         "201":
-          description: Verified Attributes Group created
+          description: Verified Attributes Group created for E-Service Template Version
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceTemplateVersionVerifiedAttribute"
+                $ref: "#/components/schemas/EServiceTemplateVersionVerifiedAttributesGroup"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -15649,6 +15637,26 @@ components:
       required:
         - results
         - pagination
+    EServiceDescriptorCertifiedAttributesGroup:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorCertifiedAttribute"
+      required:
+        - results
+    EServiceTemplateVersionCertifiedAttributesGroup:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttribute"
+      required:
+        - results
     EServiceDescriptorDeclaredAttributes:
       type: object
       additionalProperties: false
@@ -15675,6 +15683,26 @@ components:
       required:
         - results
         - pagination
+    EServiceDescriptorDeclaredAttributesGroup:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorDeclaredAttribute"
+      required:
+        - results
+    EServiceTemplateVersionDeclaredAttributesGroup:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateVersionDeclaredAttribute"
+      required:
+        - results
     EServiceDescriptorVerifiedAttributes:
       type: object
       additionalProperties: false
@@ -15701,6 +15729,26 @@ components:
       required:
         - results
         - pagination
+    EServiceDescriptorVerifiedAttributesGroup:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorVerifiedAttribute"
+      required:
+        - results
+    EServiceTemplateVersionVerifiedAttributesGroup:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateVersionVerifiedAttribute"
+      required:
+        - results
     EServiceTemplateVersionAttributesGroupSeed:
       type: object
       additionalProperties: false

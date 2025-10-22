@@ -23,9 +23,9 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/certifiedAttri
   const mockVersion = mockTemplate.versions[0]!;
 
   const mockAttributeSeed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed =
-    {
-      attributeIds: [generateId(), generateId(), generateId()],
-    };
+  {
+    attributeIds: [generateId(), generateId(), generateId()],
+  };
 
   const mockAttribute1 = getMockedApiAttribute({
     kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
@@ -36,8 +36,9 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/certifiedAttri
     code: "CODE2",
   });
 
-  const mockResponse: m2mGatewayApi.EServiceTemplateVersionCertifiedAttribute[] =
-    [
+  const mockResponse: m2mGatewayApi.EServiceTemplateVersionCertifiedAttributesGroup =
+  {
+    results: [
       {
         groupIndex: 1,
         attribute: toM2MGatewayApiCertifiedAttribute({
@@ -52,7 +53,8 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/certifiedAttri
           logger: genericLogger,
         }),
       },
-    ];
+    ],
+  };
 
   const makeRequest = async (
     token: string,

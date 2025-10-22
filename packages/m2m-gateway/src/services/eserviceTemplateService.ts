@@ -937,9 +937,9 @@ export function eserviceTemplateServiceBuilder(
     async createEServiceTemplateVersionCertifiedAttributesGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      attributeIds: EServiceTemplateVersionAttributesGroupSeed,
+      seed: EServiceTemplateVersionAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceTemplateVersionCertifiedAttribute[]> {
+    ): Promise<m2mGatewayApi.EServiceTemplateVersionCertifiedAttributesGroup> {
       ctx.logger.info(
         `Creating Certified Attributes Group for E-Service Template ${templateId} Version ${versionId}`
       );
@@ -948,25 +948,26 @@ export function eserviceTemplateServiceBuilder(
         await createEServiceTemplateVersionAttributesGroup(
           templateId,
           versionId,
-          attributeIds,
+          seed,
           "certified",
           ctx
         );
-      return attributes.results.map((attr) => ({
+      const results = attributes.results.map((attr) => ({
         groupIndex,
         attribute: toM2MGatewayApiCertifiedAttribute({
           attribute: attr,
           logger: ctx.logger,
         }),
       }));
+      return { results };
     },
 
     async createEServiceTemplateVersionDeclaredAttributesGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      attributeIds: EServiceTemplateVersionAttributesGroupSeed,
+      seed: EServiceTemplateVersionAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceTemplateVersionDeclaredAttribute[]> {
+    ): Promise<m2mGatewayApi.EServiceTemplateVersionDeclaredAttributesGroup> {
       ctx.logger.info(
         `Creating Declared Attributes Group for E-Service Template ${templateId} Version ${versionId}`
       );
@@ -974,25 +975,26 @@ export function eserviceTemplateServiceBuilder(
         await createEServiceTemplateVersionAttributesGroup(
           templateId,
           versionId,
-          attributeIds,
+          seed,
           "declared",
           ctx
         );
-      return attributes.results.map((attr) => ({
+      const results = attributes.results.map((attr) => ({
         groupIndex,
         attribute: toM2MGatewayApiDeclaredAttribute({
           attribute: attr,
           logger: ctx.logger,
         }),
       }));
+      return { results };
     },
 
     async createEServiceTemplateVersionVerifiedAttributesGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      attributeIds: EServiceTemplateVersionAttributesGroupSeed,
+      seed: EServiceTemplateVersionAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceTemplateVersionVerifiedAttribute[]> {
+    ): Promise<m2mGatewayApi.EServiceTemplateVersionVerifiedAttributesGroup> {
       ctx.logger.info(
         `Creating Verified Attributes Group for E-Service Template ${templateId} Version ${versionId}`
       );
@@ -1001,17 +1003,18 @@ export function eserviceTemplateServiceBuilder(
         await createEServiceTemplateVersionAttributesGroup(
           templateId,
           versionId,
-          attributeIds,
+          seed,
           "verified",
           ctx
         );
-      return attributes.results.map((attr) => ({
+      const results = attributes.results.map((attr) => ({
         groupIndex,
         attribute: toM2MGatewayApiVerifiedAttribute({
           attribute: attr,
           logger: ctx.logger,
         }),
       }));
+      return { results };
     },
     async deleteEServiceTemplate(
       templateId: EServiceTemplateId,

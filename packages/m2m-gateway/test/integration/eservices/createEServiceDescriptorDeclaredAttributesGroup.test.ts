@@ -148,29 +148,31 @@ describe("createEServiceDescriptorDeclaredAttributesGroup", () => {
     getBulkedAttributes: mockGetBulkedAttributes,
   } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
 
-  const response: m2mGatewayApi.EServiceDescriptorDeclaredAttribute[] = [
-    {
-      groupIndex: 1,
-      attribute: toM2MGatewayApiDeclaredAttribute({
-        attribute: bulkAttribute1,
-        logger: genericLogger,
-      }),
-    },
-    {
-      groupIndex: 1,
-      attribute: toM2MGatewayApiDeclaredAttribute({
-        attribute: bulkAttribute2,
-        logger: genericLogger,
-      }),
-    },
-    {
-      groupIndex: 1,
-      attribute: toM2MGatewayApiDeclaredAttribute({
-        attribute: bulkAttribute3,
-        logger: genericLogger,
-      }),
-    },
-  ];
+  const response: m2mGatewayApi.EServiceDescriptorDeclaredAttributesGroup = {
+    results: [
+      {
+        groupIndex: 1,
+        attribute: toM2MGatewayApiDeclaredAttribute({
+          attribute: bulkAttribute1,
+          logger: genericLogger,
+        }),
+      },
+      {
+        groupIndex: 1,
+        attribute: toM2MGatewayApiDeclaredAttribute({
+          attribute: bulkAttribute2,
+          logger: genericLogger,
+        }),
+      },
+      {
+        groupIndex: 1,
+        attribute: toM2MGatewayApiDeclaredAttribute({
+          attribute: bulkAttribute3,
+          logger: genericLogger,
+        }),
+      },
+    ],
+  };
 
   beforeEach(() => {
     mockPatchUpdateDescriptor.mockClear();

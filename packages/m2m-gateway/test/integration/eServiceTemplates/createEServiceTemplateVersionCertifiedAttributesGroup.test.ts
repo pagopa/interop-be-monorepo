@@ -155,29 +155,31 @@ describe("createEServiceTemplateVersionCertifiedAttributesGroup", () => {
     getBulkedAttributes: mockGetBulkedAttributes,
   } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
 
-  const response: m2mGatewayApi.EServiceTemplateVersionCertifiedAttribute[] = [
-    {
-      groupIndex: 1,
-      attribute: toM2MGatewayApiCertifiedAttribute({
-        attribute: bulkAttribute1,
-        logger: genericLogger,
-      }),
-    },
-    {
-      groupIndex: 1,
-      attribute: toM2MGatewayApiCertifiedAttribute({
-        attribute: bulkAttribute2,
-        logger: genericLogger,
-      }),
-    },
-    {
-      groupIndex: 1,
-      attribute: toM2MGatewayApiCertifiedAttribute({
-        attribute: bulkAttribute3,
-        logger: genericLogger,
-      }),
-    },
-  ];
+  const response: m2mGatewayApi.EServiceTemplateVersionCertifiedAttributesGroup = {
+    results: [
+      {
+        groupIndex: 1,
+        attribute: toM2MGatewayApiCertifiedAttribute({
+          attribute: bulkAttribute1,
+          logger: genericLogger,
+        }),
+      },
+      {
+        groupIndex: 1,
+        attribute: toM2MGatewayApiCertifiedAttribute({
+          attribute: bulkAttribute2,
+          logger: genericLogger,
+        }),
+      },
+      {
+        groupIndex: 1,
+        attribute: toM2MGatewayApiCertifiedAttribute({
+          attribute: bulkAttribute3,
+          logger: genericLogger,
+        }),
+      },
+    ],
+  };
 
   beforeEach(() => {
     mockPatchUpdateDraftTemplateVersion.mockClear();
@@ -313,21 +315,21 @@ describe("createEServiceTemplateVersionCertifiedAttributesGroup", () => {
     const MISSING_ATTRIBUTE_ID = "00000000-0000-0000-0000-000000000001";
 
     const versionWithMissingAttribute: eserviceTemplateApi.EServiceTemplateVersion =
-      {
-        ...getMockedApiEserviceTemplateVersion(),
-        attributes: {
-          certified: [
-            [
-              {
-                id: MISSING_ATTRIBUTE_ID,
-                explicitAttributeVerification: false,
-              },
-            ],
+    {
+      ...getMockedApiEserviceTemplateVersion(),
+      attributes: {
+        certified: [
+          [
+            {
+              id: MISSING_ATTRIBUTE_ID,
+              explicitAttributeVerification: false,
+            },
           ],
-          declared: [],
-          verified: [],
-        },
-      };
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
 
     const eserviceTemplateWithVersionWithoutAttribute: eserviceTemplateApi.EServiceTemplate =
       getMockedApiEServiceTemplate({

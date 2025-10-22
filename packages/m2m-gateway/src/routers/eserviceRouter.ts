@@ -924,7 +924,7 @@ const eserviceRouter = (
               req.body,
               ctx
             );
-          return res.status(201).send(attributesGroup);
+          return res.status(201).send(m2mGatewayApi.EServiceDescriptorCertifiedAttributesGroup.parse(attributesGroup));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -974,7 +974,7 @@ const eserviceRouter = (
               req.body,
               ctx
             );
-          return res.status(201).send(attributesGroup);
+          return res.status(201).send(m2mGatewayApi.EServiceDescriptorDeclaredAttributesGroup.parse(attributesGroup));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1024,7 +1024,7 @@ const eserviceRouter = (
               req.body,
               ctx
             );
-          return res.status(201).send(attributesGroup);
+          return res.status(201).send(m2mGatewayApi.EServiceDescriptorVerifiedAttributesGroup.parse(attributesGroup));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
