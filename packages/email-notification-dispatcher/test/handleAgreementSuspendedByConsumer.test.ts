@@ -8,7 +8,9 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   CorrelationId,
+  EService,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
@@ -36,11 +38,10 @@ describe("handleAgreementSuspendedByConsumer", async () => {
   const eserviceId = generateId<EServiceId>();
 
   const descriptor = getMockDescriptorPublished();
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
-    consumerId,
     descriptors: [descriptor],
   };
   const producerTenant = getMockTenant(producerId);
@@ -84,7 +85,7 @@ describe("handleAgreementSuspendedByConsumer", async () => {
   it("should throw tenantNotFound when consumer is not found", async () => {
     const unknownConsumerId = generateId<TenantId>();
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {
         suspensionByConsumer: { when: new Date(), who: generateId<UserId>() },
@@ -111,7 +112,7 @@ describe("handleAgreementSuspendedByConsumer", async () => {
   it("should throw tenantNotFound when producer is not found", async () => {
     const unknownProducerId = generateId<TenantId>();
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {
         suspensionByConsumer: { when: new Date(), who: generateId<UserId>() },
@@ -137,7 +138,7 @@ describe("handleAgreementSuspendedByConsumer", async () => {
 
   it("should throw eServiceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {
         suspensionByConsumer: { when: new Date(), who: generateId<UserId>() },
@@ -162,7 +163,7 @@ describe("handleAgreementSuspendedByConsumer", async () => {
   });
 
   it("should generate one message per user of the tenant that produced the eservice", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {
         suspensionByConsumer: { when: new Date(), who: generateId<UserId>() },
@@ -202,7 +203,7 @@ describe("handleAgreementSuspendedByConsumer", async () => {
         { userId: users[0].id, tenantId: users[0].tenantId },
       ]);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
@@ -236,7 +237,7 @@ describe("handleAgreementSuspendedByConsumer", async () => {
 
   it("should generate a complete and correct message", async () => {
     const suspensionDate = new Date();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {
         suspensionByConsumer: {
