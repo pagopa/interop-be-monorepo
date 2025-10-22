@@ -47,6 +47,7 @@ RUN pnpm build && \
     packages/readmodel/ \
     packages/readmodel-models/ \
     packages/kafka-iam-auth \
+    packages/api-clients \
     packages/documents-generator/dist && \
     find /out -exec touch -h --date=@0 {} \;  
 
