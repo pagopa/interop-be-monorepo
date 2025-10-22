@@ -6,7 +6,6 @@ import {
   getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
-  getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -15,22 +14,15 @@ import {
   EService,
   EServiceId,
   generateId,
-  missingKafkaMessageDataError,
-  NotificationType,
-  Tenant,
   TenantId,
-  TenantMail,
-  TenantNotificationConfigId,
-  toEServiceV2,
-  unsafeBrandId,
-  UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   descriptorPublishedNotFound,
+  eServiceNotFound,
   tenantNotFound,
 } from "../src/models/errors.js";
-import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEserviceDescriptorPublished.js";
+import { handleProducerKeychainEserviceAdded } from "../src/handlers/authorization/handleProducerKeychainEserviceAdded.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -42,7 +34,7 @@ import {
   userService,
 } from "./utils.js";
 
-describe("handleEserviceDescriptorPublished", async () => {
+describe("handleProducerKeychainEserviceAdded", async () => {
   const producerId = generateId<TenantId>();
   const consumerIds = [generateId<TenantId>(), generateId<TenantId>()];
   const eserviceId = generateId<EServiceId>();
@@ -55,10 +47,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     descriptors: [descriptor],
   };
   const producerTenant = getMockTenant(producerId);
-  const consumerTenants: Tenant[] = consumerIds.map((id) => ({
-    ...getMockTenant(id),
-    mails: [getMockTenantMail()],
-  }));
+  const consumerTenants = consumerIds.map((id) => getMockTenant(id));
   const users = [
     getMockUser(consumerTenants[0].id),
     getMockUser(consumerTenants[0].id),
@@ -76,38 +65,27 @@ describe("handleEserviceDescriptorPublished", async () => {
     for (const user of users) {
       await addOneUser(user);
     }
-    readModelService.getTenantNotificationConfigByTenantId = vi
-      .fn()
-      .mockImplementation((tenantId) => ({
-        id: generateId<TenantNotificationConfigId>(),
-        tenantId,
-        enabled: true,
-        createAt: new Date(),
-      }));
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
-      .mockImplementation((tenantIds: TenantId[], _: NotificationType) =>
+      .mockImplementation((tenantIds, _notificationType) =>
         users
-          .filter((user) =>
-            tenantIds.includes(unsafeBrandId<TenantId>(user.tenantId))
-          )
+          .filter((user) => tenantIds.includes(user.tenantId))
           .map((user) => ({ userId: user.id, tenantId: user.tenantId }))
       );
   });
 
-  it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
+  it("should throw eServiceNotFound when eservice is not found", async () => {
+    const eserviceId = generateId<EServiceId>();
     await expect(() =>
-      handleEserviceDescriptorPublished({
-        eserviceV2Msg: undefined,
+      handleProducerKeychainEserviceAdded({
+        eserviceId,
         logger,
         templateService,
         userService,
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(
-      missingKafkaMessageDataError("eservice", "EServiceDescriptorPublished")
-    );
+    ).rejects.toThrow(eServiceNotFound(eserviceId));
   });
 
   it("should throw tenantNotFound when producer is not found", async () => {
@@ -115,13 +93,24 @@ describe("handleEserviceDescriptorPublished", async () => {
 
     const eserviceWithUnknownProducer: EService = {
       ...getMockEService(),
-      descriptors: [descriptor],
+      descriptors: [getMockDescriptorPublished()],
       producerId: unknownProducerId,
     };
+    await addOneEService(eserviceWithUnknownProducer);
+
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      state: agreementState.active,
+      stamps: {},
+      producerId: producerTenant.id,
+      eserviceId: eserviceWithUnknownProducer.id,
+      consumerId: consumerTenants[0].id,
+    };
+    await addOneAgreement(agreement);
 
     await expect(() =>
-      handleEserviceDescriptorPublished({
-        eserviceV2Msg: toEServiceV2(eserviceWithUnknownProducer),
+      handleProducerKeychainEserviceAdded({
+        eserviceId: eserviceWithUnknownProducer.id,
         logger,
         templateService,
         userService,
@@ -149,8 +138,8 @@ describe("handleEserviceDescriptorPublished", async () => {
     await addOneAgreement(agreement);
 
     await expect(() =>
-      handleEserviceDescriptorPublished({
-        eserviceV2Msg: toEServiceV2(eserviceNoDescriptor),
+      handleProducerKeychainEserviceAdded({
+        eserviceId: eserviceNoDescriptor.id,
         logger,
         templateService,
         userService,
@@ -161,8 +150,8 @@ describe("handleEserviceDescriptorPublished", async () => {
   });
 
   it("should return empty array if no consumer is present for the eservice", async () => {
-    const messages = await handleEserviceDescriptorPublished({
-      eserviceV2Msg: toEServiceV2(eservice),
+    const messages = await handleProducerKeychainEserviceAdded({
+      eserviceId: eservice.id,
       logger,
       templateService,
       userService,
@@ -172,7 +161,7 @@ describe("handleEserviceDescriptorPublished", async () => {
     expect(messages.length).toEqual(0);
   });
 
-  it("should generate one message per user of the tenants that consumed the eservice", async () => {
+  it("should generate one message per user of the consumers of the eservice", async () => {
     const agreements: Agreement[] = consumerTenants.map((consumerTenant) => ({
       ...getMockAgreement(),
       stamps: {},
@@ -185,8 +174,8 @@ describe("handleEserviceDescriptorPublished", async () => {
     await addOneAgreement(agreements[0]);
     await addOneAgreement(agreements[1]);
 
-    const messages = await handleEserviceDescriptorPublished({
-      eserviceV2Msg: toEServiceV2(eservice),
+    const messages = await handleProducerKeychainEserviceAdded({
+      eserviceId: eservice.id,
       logger,
       templateService,
       userService,
@@ -194,7 +183,7 @@ describe("handleEserviceDescriptorPublished", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(6);
+    expect(messages.length).toEqual(4);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[0].id
@@ -237,8 +226,8 @@ describe("handleEserviceDescriptorPublished", async () => {
     await addOneAgreement(agreements[0]);
     await addOneAgreement(agreements[1]);
 
-    const messages = await handleEserviceDescriptorPublished({
-      eserviceV2Msg: toEServiceV2(eservice),
+    const messages = await handleProducerKeychainEserviceAdded({
+      eserviceId: eservice.id,
       logger,
       templateService,
       userService,
@@ -246,7 +235,7 @@ describe("handleEserviceDescriptorPublished", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toEqual(4);
+    expect(messages.length).toEqual(2);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[0].id
@@ -269,125 +258,6 @@ describe("handleEserviceDescriptorPublished", async () => {
     ).toBe(false);
   });
 
-  it("should generate one message to the consumers of the eservice", async () => {
-    const agreements: Agreement[] = consumerTenants.map((consumerTenant) => ({
-      ...getMockAgreement(),
-      state: agreementState.active,
-      stamps: {},
-      producerId: producerTenant.id,
-      descriptorId: descriptor.id,
-      eserviceId: eservice.id,
-      consumerId: consumerTenant.id,
-    }));
-    await addOneAgreement(agreements[0]);
-    await addOneAgreement(agreements[1]);
-
-    const messages = await handleEserviceDescriptorPublished({
-      eserviceV2Msg: toEServiceV2(eservice),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(6);
-    expect(
-      messages.some(
-        (message) =>
-          message.type === "Tenant" &&
-          message.address === consumerTenants[0].mails[0].address
-      )
-    ).toBe(true);
-    expect(
-      messages.some(
-        (message) =>
-          message.type === "Tenant" &&
-          message.address === consumerTenants[1].mails[0].address
-      )
-    ).toBe(true);
-  });
-
-  it("should generate a message using the latest consumer mail that was registered", async () => {
-    const oldMail: TenantMail = {
-      ...getMockTenantMail(),
-      createdAt: new Date(1999),
-    };
-    const newMail = getMockTenantMail();
-    const consumerTenantWithMultipleMails: Tenant = {
-      ...getMockTenant(),
-      mails: [oldMail, newMail],
-    };
-    await addOneTenant(consumerTenantWithMultipleMails);
-
-    const agreement: Agreement = {
-      ...getMockAgreement(),
-      state: agreementState.active,
-      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
-      producerId: producerTenant.id,
-      descriptorId: descriptor.id,
-      eserviceId: eservice.id,
-      consumerId: consumerTenantWithMultipleMails.id,
-    };
-    await addOneAgreement(agreement);
-
-    const messages = await handleEserviceDescriptorPublished({
-      eserviceV2Msg: toEServiceV2(eservice),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-
-    expect(messages.length).toEqual(1);
-    expect(
-      messages.some(
-        (message) =>
-          message.type === "Tenant" && message.address === newMail.address
-      )
-    ).toBe(true);
-  });
-
-  it("should not generate a message to the consumer if they disabled email notification", async () => {
-    readModelService.getTenantNotificationConfigByTenantId = vi
-      .fn()
-      .mockResolvedValue({
-        id: generateId<TenantNotificationConfigId>(),
-        tenantId: consumerTenants[0].id,
-        enabled: false,
-        createAt: new Date(),
-      });
-
-    const agreement: Agreement = {
-      ...getMockAgreement(),
-      state: agreementState.active,
-      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
-      producerId: producerTenant.id,
-      descriptorId: descriptor.id,
-      eserviceId: eservice.id,
-      consumerId: consumerTenants[0].id,
-    };
-    await addOneAgreement(agreement);
-
-    const messages = await handleEserviceDescriptorPublished({
-      eserviceV2Msg: toEServiceV2(eservice),
-      logger,
-      templateService,
-      userService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-    expect(messages.length).toEqual(2);
-    expect(
-      messages.some(
-        (message) =>
-          message.type === "Tenant" &&
-          message.address === consumerTenants[0].mails[0].address
-      )
-    ).toBe(false);
-  });
-
   it("should generate a complete and correct message", async () => {
     const agreement: Agreement = {
       ...getMockAgreement(),
@@ -399,28 +269,26 @@ describe("handleEserviceDescriptorPublished", async () => {
       consumerId: consumerTenants[0].id,
     };
     await addOneAgreement(agreement);
+    await addOneAgreement(agreement);
 
-    const messages = await handleEserviceDescriptorPublished({
-      eserviceV2Msg: toEServiceV2(eservice),
+    const messages = await handleProducerKeychainEserviceAdded({
+      eserviceId: eservice.id,
       logger,
       templateService,
       userService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-
-    expect(messages.length).toBe(3);
+    expect(messages.length).toBe(2);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `Nuova versione disponibile per &quot;${eservice.name}&quot;`
+        `Nuovo livello di sicurezza per &quot;${eservice.name}&quot;`
       );
       expect(message.email.body).toContain(producerTenant.name);
       expect(message.email.body).toContain(consumerTenants[0].name);
       expect(message.email.body).toContain(eservice.name);
-      expect(message.email.body).toContain(descriptor.version);
-      expect(message.email.body).toContain(`Visualizza e-service`);
     });
   });
 });
