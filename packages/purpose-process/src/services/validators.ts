@@ -14,7 +14,6 @@ import {
   DelegationId,
   delegationKind,
   delegationState,
-  DescriptorState,
   EService,
   EServiceId,
   EServiceMode,
@@ -492,15 +491,6 @@ export const getOrganizationRole = async ({
     }
   }
 };
-
-export function assertValidEserviceState(
-  eservice: EService,
-  validStates: DescriptorState[]
-): void {
-  if (eservice.descriptors.some((d) => validStates.includes(d.state))) {
-    throw eservice.id;
-  }
-}
 
 export function assertValidPurposeTenantKind(
   purposeTenantKind: TenantKind,
