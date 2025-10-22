@@ -789,3 +789,13 @@ export function invalidServerUrl(resource: {
     title: "Invalid server URL",
   });
 }
+
+export function invalidDocumentDetected(
+  resourceId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The document for Purpose template with ID ${resourceId} is invalid`,
+    code: "invalidContentTypeDetected",
+    title: "Invalid document detected",
+  });
+}

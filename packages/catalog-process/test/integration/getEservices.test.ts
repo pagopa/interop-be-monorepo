@@ -461,7 +461,7 @@ describe("get eservices", () => {
       sortEServices([eservice1, eservice2, eservice3, eservice6])
     );
   });
-  it("should get the eServices if they exist (parameters: statestates, name)", async () => {
+  it("should get the eServices if they exist (parameters: agreementStates, states, name)", async () => {
     const result = await catalogService.getEServices(
       {
         eservicesIds: [],
@@ -483,7 +483,7 @@ describe("get eservices", () => {
       sortEServices([eservice1, eservice3])
     );
   });
-  it("should not get the eServices if they don't exist (parameters: statestates, name)", async () => {
+  it("should not get the eServices if they don't exist (parameters: agreementStates, states, name)", async () => {
     const result = await catalogService.getEServices(
       {
         eservicesIds: [],
@@ -1046,7 +1046,7 @@ describe("get eservices", () => {
     expect(sortEServices(result.results)).toEqual(sortEServices([eservice4]));
   });
 
-  it("should get the eServices if they exist (parameters: attributesIdstates, producersIds)", async () => {
+  it("should get the eServices if they exist (parameters: agreementStates, attributesIds, producersIds)", async () => {
     const result = await catalogService.getEServices(
       {
         eservicesIds: [],
@@ -1066,7 +1066,7 @@ describe("get eservices", () => {
     expect(sortEServices(result.results)).toEqual(sortEServices([eservice1]));
   });
 
-  it("should get the eServices if they exist (parameters: attributesIdstates, eservicesIds)", async () => {
+  it("should get the eServices if they exist (parameters: agreementStates, attributesIds, eservicesIds, producersIds)", async () => {
     const result = await catalogService.getEServices(
       {
         eservicesIds: [eservice1.id, eservice4.id],
@@ -1089,7 +1089,7 @@ describe("get eservices", () => {
     );
   });
 
-  it("should not get the eServices if they don't exist (parameters: attributesIdstates)", async () => {
+  it("should not get the eServices if they don't exist (parameters: agreementStates, attributesIds)", async () => {
     const result = await catalogService.getEServices(
       {
         eservicesIds: [],

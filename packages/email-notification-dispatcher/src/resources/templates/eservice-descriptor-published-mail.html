@@ -52,7 +52,10 @@
         color: #17324d;
       "
     >
-      <p style="margin-bottom: 0px">Gentile aderente,</p>
+      <p style="margin-bottom: 0px">
+        Gentile
+        <strong>{{ preservePlaceholderIfMissing "recipientName" }}</strong>,
+      </p>
     </div>
   </td>
 </tr>
@@ -74,13 +77,10 @@
     >
       <!-- Body 1 Desktop (from MUI Italia)-->
       <p>
-        Ti informiamo che per l'e-service
-        <strong>{{ eserviceName }}</strong>, è stata pubblicata una nuova
-        versione
-      </p>
-      <p>
-        Pertanto, ti consigliamo di procedere all'aggiornamento dell'e-service
-        alla versione più recente.
+        È disponibile una nuova versione ({{ eserviceVersion }}) per l'e-service
+        "{{ eserviceName }}", pubblicato da {{ producerName }}. Per continuare a
+        fruire del servizio senza interruzioni e beneficiare degli
+        aggiornamenti, ti invitiamo ad adeguare la tua richiesta.
       </p>
     </div>
   </td>
