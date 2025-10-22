@@ -10,6 +10,8 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   RiskAnalysisTemplateAnswerAnnotationId,
+  RiskAnalysisTemplateMultiAnswer,
+  RiskAnalysisTemplateSingleAnswer,
   TenantKind,
   tenantKind,
 } from "pagopa-interop-models";
@@ -280,6 +282,35 @@ export const getMockValidRiskAnalysisFormTemplate = (
       )
     )
     .exhaustive();
+
+export const getMockCompleteRiskAnalysisFormTemplate = (
+  producerTenantKind: TenantKind = tenantKind.PA
+): RiskAnalysisFormTemplate => {
+  const incompleteRiskAnalysisFormTemplate =
+    getMockValidRiskAnalysisFormTemplate(producerTenantKind);
+  return {
+    ...incompleteRiskAnalysisFormTemplate,
+    singleAnswers: incompleteRiskAnalysisFormTemplate.singleAnswers.map(
+      (a): RiskAnalysisTemplateSingleAnswer => ({
+        ...a,
+        annotation: {
+          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
+          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
+        },
+        suggestedValues: [],
+      })
+    ),
+    multiAnswers: incompleteRiskAnalysisFormTemplate.multiAnswers.map(
+      (a): RiskAnalysisTemplateMultiAnswer => ({
+        ...a,
+        annotation: {
+          ...getMockRiskAnalysisTemplateAnswerAnnotation(),
+          docs: [getMockRiskAnalysisTemplateAnswerAnnotationDocument()],
+        },
+      })
+    ),
+  };
+};
 
 export const getMockRiskAnalysisTemplateAnswerAnnotationDocument = (
   id: RiskAnalysisTemplateAnswerAnnotationDocumentId = generateId(),

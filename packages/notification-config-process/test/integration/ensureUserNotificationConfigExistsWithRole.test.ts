@@ -12,6 +12,8 @@ import {
   TenantId,
   NotificationConfig,
   emailNotificationPreference,
+  userRole,
+  UserNotificationConfigRoleAddedV2,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -19,7 +21,6 @@ import {
   notificationConfigService,
   readLastNotificationConfigEvent,
 } from "../integrationUtils.js";
-import { userNotificationConfigAlreadyExists } from "../../src/model/domain/errors.js";
 
 describe("createUserNotificationConfig", () => {
   const userId: UserId = generateId();
@@ -76,9 +77,10 @@ describe("createUserNotificationConfig", () => {
 
   it("should write on event-store for the creation of a user's notification configuration", async () => {
     const serviceReturnValue =
-      await notificationConfigService.createUserDefaultNotificationConfig(
+      await notificationConfigService.ensureUserNotificationConfigExistsWithRole(
         userId,
         tenantId,
+        userRole.ADMIN_ROLE,
         getMockContextInternal({})
       );
     const writtenEvent = await readLastNotificationConfigEvent(
@@ -96,6 +98,7 @@ describe("createUserNotificationConfig", () => {
       id: serviceReturnValue.id,
       userId,
       tenantId,
+      userRoles: [userRole.ADMIN_ROLE],
       inAppNotificationPreference: false,
       emailNotificationPreference: emailNotificationPreference.disabled,
       inAppConfig: defaultInAppConfig,
@@ -108,21 +111,66 @@ describe("createUserNotificationConfig", () => {
     );
   });
 
-  it("should throw userNotificationConfigAlreadyExists if a notification config already exists for that user", async () => {
+  it("should return existing config if a notification config already exists for that user with the same role, without writing on event-store", async () => {
     const userNotificationConfig: UserNotificationConfig = {
       ...getMockUserNotificationConfig(),
       userId,
       tenantId,
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneUserNotificationConfig(userNotificationConfig);
-    expect(
-      notificationConfigService.createUserDefaultNotificationConfig(
+    const serviceReturnValue =
+      await notificationConfigService.ensureUserNotificationConfigExistsWithRole(
         userId,
         tenantId,
+        userRole.ADMIN_ROLE,
         getMockContextInternal({})
-      )
-    ).rejects.toThrowError(
-      userNotificationConfigAlreadyExists(userId, tenantId)
+      );
+    expect(serviceReturnValue).toEqual(userNotificationConfig);
+    const writtenEvent = await readLastNotificationConfigEvent(
+      serviceReturnValue.id
+    );
+    // No new event should be written
+    expect(writtenEvent.stream_id).toBe(serviceReturnValue.id);
+    expect(writtenEvent.version).toBe("0");
+    expect(writtenEvent.type).toBe("UserNotificationConfigCreated");
+    expect(writtenEvent.event_version).toBe(2);
+  });
+
+  it("should write on event-store for the added role if a notification config already exists for that user but without that role", async () => {
+    const userNotificationConfig: UserNotificationConfig = {
+      ...getMockUserNotificationConfig(),
+      userId,
+      tenantId,
+      userRoles: [userRole.SECURITY_ROLE],
+    };
+    await addOneUserNotificationConfig(userNotificationConfig);
+    const serviceReturnValue =
+      await notificationConfigService.ensureUserNotificationConfigExistsWithRole(
+        userId,
+        tenantId,
+        userRole.API_ROLE,
+        getMockContextInternal({})
+      );
+    const updatedUserNotificationConfig: UserNotificationConfig = {
+      ...userNotificationConfig,
+      userRoles: [userRole.SECURITY_ROLE, userRole.API_ROLE],
+      updatedAt: new Date(),
+    };
+    expect(serviceReturnValue).toEqual(updatedUserNotificationConfig);
+    const writtenEvent = await readLastNotificationConfigEvent(
+      serviceReturnValue.id
+    );
+    expect(writtenEvent.stream_id).toBe(userNotificationConfig.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe("UserNotificationConfigRoleAdded");
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: UserNotificationConfigRoleAddedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload.userNotificationConfig).toEqual(
+      toUserNotificationConfigV2(updatedUserNotificationConfig)
     );
   });
 });

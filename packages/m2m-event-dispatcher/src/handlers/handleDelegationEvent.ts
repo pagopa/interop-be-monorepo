@@ -22,7 +22,8 @@ export async function handleDelegationEvent(
           "ProducerDelegationSubmitted",
           "ProducerDelegationApproved",
           "ProducerDelegationRejected",
-          "ProducerDelegationRevoked"
+          "ProducerDelegationRevoked",
+          "DelegationContractGenerated"
         ),
       },
       () => Promise.resolve(void 0)

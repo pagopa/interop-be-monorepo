@@ -1340,6 +1340,9 @@ components:
         delegationId:
           type: string
           format: uuid
+        purposeTemplateId:
+          type: string
+          format: uuid
       required:
         - id
         - eserviceId

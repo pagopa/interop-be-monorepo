@@ -272,6 +272,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: The Purpose Template is not in Draft state
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{id}/linkEservices:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -820,6 +826,39 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+    delete:
+      tags:
+        - purposeTemplate
+      summary: Delete risk analysis form template answer annotation document
+      operationId: deleteRiskAnalysisTemplateAnswerAnnotationDocument
+      description: Delete a risk analysis form template answer annotation document
+      responses:
+        "204":
+          description: Risk analysis form template answer annotation document deleted
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Risk analysis form template answer annotation document not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -868,6 +907,39 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Template or Answer Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      tags:
+        - purposeTemplate
+      summary: Delete risk analysis form template answer annotation
+      operationId: deleteRiskAnalysisTemplateAnswerAnnotation
+      description: Delete a risk analysis form template answer annotation and the related files
+      responses:
+        "204":
+          description: Risk analysis form template answer annotation deleted
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Risk analysis form template answer annotation not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -939,6 +1011,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        handlesPersonalData:
+          type: boolean
       required:
         - id
         - targetDescription
@@ -949,6 +1023,7 @@ components:
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
+        - handlesPersonalData
     PurposeTemplateSeed:
       type: object
       additionalProperties: false
@@ -978,12 +1053,15 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        handlesPersonalData:
+          type: boolean
       required:
         - targetDescription
         - targetTenantKind
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
+        - handlesPersonalData
     PurposeTemplateState:
       type: string
       description: Purpose Template State

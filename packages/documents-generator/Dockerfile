@@ -14,6 +14,9 @@ COPY .npmrc /app/
 COPY ./packages/documents-generator/package.json /app/packages/documents-generator/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
+COPY ./packages/agreement-lifecycle/package.json /app/packages/agreement-lifecycle/package.json
+COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
+COPY ./packages/readmodel-models/package.json /app/packages/readmodel-models/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
 
@@ -25,6 +28,9 @@ COPY turbo.json /app/
 COPY ./packages/documents-generator /app/packages/documents-generator
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
+COPY ./packages/agreement-lifecycle /app/packages/agreement-lifecycle
+COPY ./packages/readmodel /app/packages/readmodel
+COPY ./packages/readmodel-models /app/packages/readmodel-models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 COPY ./packages/api-clients /app/packages/api-clients
 
@@ -37,13 +43,28 @@ RUN pnpm build && \
     package*.json packages/documents-generator/package*.json \
     packages/commons \
     packages/models \
+    packages/agreement-lifecycle/ \
+    packages/readmodel/ \
+    packages/readmodel-models/ \
     packages/kafka-iam-auth \
     packages/documents-generator/dist && \
     find /out -exec touch -h --date=@0 {} \;  
 
 FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:f8f6771d949ff351c061de64ef9cbfbc5949015883fb3b016b34aca6d0e5b8cc AS final
 
+# Install dependencies for Puppeteer
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    chromium \
+    ca-certificates 
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
 COPY --from=build /out /app
+
+RUN groupadd -r app && useradd -rm -g app -G audio,video app
+RUN chown -R app:app /app && chmod -R 700 /app
+USER app
 
 WORKDIR /app/packages/documents-generator
 EXPOSE 3000

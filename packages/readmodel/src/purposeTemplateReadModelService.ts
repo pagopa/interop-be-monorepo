@@ -155,7 +155,7 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
     },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
       purposeTemplateId: PurposeTemplateId
-    ): Promise<EServiceDescriptorPurposeTemplate[]> {
+    ): Promise<Array<WithMetadata<EServiceDescriptorPurposeTemplate>>> {
       return await this.getPurposeTemplateEServiceDescriptorsByFilter(
         eq(
           purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
@@ -165,7 +165,7 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
     },
     async getPurposeTemplateEServiceDescriptorsByFilter(
       filter: SQL | undefined
-    ): Promise<EServiceDescriptorPurposeTemplate[]> {
+    ): Promise<Array<WithMetadata<EServiceDescriptorPurposeTemplate>>> {
       if (filter === undefined) {
         throw genericInternalError("Filter cannot be undefined");
       }
@@ -176,10 +176,13 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
         .where(filter);
 
       return queryResult.map((row) => ({
-        purposeTemplateId: unsafeBrandId(row.purposeTemplateId),
-        eserviceId: unsafeBrandId(row.eserviceId),
-        descriptorId: unsafeBrandId(row.descriptorId),
-        createdAt: stringToDate(row.createdAt),
+        data: {
+          purposeTemplateId: unsafeBrandId(row.purposeTemplateId),
+          eserviceId: unsafeBrandId(row.eserviceId),
+          descriptorId: unsafeBrandId(row.descriptorId),
+          createdAt: stringToDate(row.createdAt),
+        },
+        metadata: { version: row.metadataVersion },
       }));
     },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(

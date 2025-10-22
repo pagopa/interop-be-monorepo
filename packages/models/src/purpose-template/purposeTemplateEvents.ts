@@ -4,6 +4,7 @@ import { EventEnvelope } from "../events/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import {
   PurposeTemplateAddedV2,
+  PurposeTemplateAnnotationDocumentDeletedV2,
   PurposeTemplateArchivedV2,
   PurposeTemplateDraftDeletedV2,
   PurposeTemplateDraftUpdatedV2,
@@ -66,6 +67,11 @@ export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
     type: z.literal("PurposeTemplateAnnotationDocumentAdded"),
     data: protobufDecoder(PurposeTemplateAnnotationDocumentAddedV2),
   }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeTemplateAnnotationDocumentDeleted"),
+    data: protobufDecoder(PurposeTemplateAnnotationDocumentDeletedV2),
+  }),
 ]);
 export type PurposeTemplateEventV2 = z.infer<typeof PurposeTemplateEventV2>;
 
@@ -105,6 +111,9 @@ export function purposeTemplateEventToBinaryDataV2(
         type: "PurposeTemplateAnnotationDocumentAdded",
       },
       (e) => PurposeTemplateAnnotationDocumentAddedV2.toBinary(e.data)
+    )
+    .with({ type: "PurposeTemplateAnnotationDocumentDeleted" }, (e) =>
+      PurposeTemplateAnnotationDocumentDeletedV2.toBinary(e.data)
     )
     .exhaustive();
 }

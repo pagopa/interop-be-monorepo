@@ -20,6 +20,7 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { tenantNotFound } from "../src/models/errors.js";
 import { handleEserviceDescriptorSubmittedByDelegate } from "../src/handlers/eservices/handleEserviceDescriptorSubmittedByDelegate.js";
 import {
@@ -40,9 +41,13 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
   const descriptor = getMockDescriptorPublished();
   const delegatorTenant = {
     ...getMockTenant(delegatorId),
+    name: "Delegator Tenant",
     mails: [getMockTenantMail()],
   };
-  const delegateTenant = getMockTenant(delegateId);
+  const delegateTenant = {
+    ...getMockTenant(delegateId),
+    name: "Delegate Tenant",
+  };
   const users = [
     getMockUser(delegatorTenant.id),
     getMockUser(delegatorTenant.id),
@@ -179,12 +184,16 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     });
 
     expect(messages.length).toEqual(3);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -204,12 +213,16 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
   });
 
   it("should generate one message to the delegator", async () => {
@@ -225,7 +238,9 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     expect(messages.length).toEqual(3);
     expect(
       messages.some(
-        (message) => message.address === delegatorTenant.mails[0].address
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === delegatorTenant.mails[0].address
       )
     ).toBe(true);
   });
@@ -267,7 +282,10 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
 
     expect(messages.length).toEqual(3);
     expect(
-      messages.some((message) => message.address === newMail.address)
+      messages.some(
+        (message) =>
+          message.type === "Tenant" && message.address === newMail.address
+      )
     ).toBe(true);
   });
 
@@ -293,7 +311,9 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     expect(messages.length).toEqual(2);
     expect(
       messages.some(
-        (message) => message.address === delegatorTenant.mails[0].address
+        (message) =>
+          message.type === "Tenant" &&
+          message.address === delegatorTenant.mails[0].address
       )
     ).toBe(false);
   });
@@ -314,8 +334,16 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
       expect(message.email.body).toContain(
         `Richiesta di approvazione per una nuova versione`
       );
-      expect(message.email.body).toContain(delegatorTenant.name);
-      expect(message.email.body).toContain(delegateTenant.name);
+      match(message.type)
+        .with("Tenant", () => {
+          expect(message.email.body).toContain(delegatorTenant.name);
+          expect(message.email.body).toContain(delegateTenant.name);
+        })
+        .with("User", () => {
+          expect(message.email.body).toContain(delegateTenant.name);
+          expect(message.email.body).toContain("{{ recipientName }}");
+        })
+        .exhaustive();
       expect(message.email.body).toContain(eservice.name);
     });
   });
