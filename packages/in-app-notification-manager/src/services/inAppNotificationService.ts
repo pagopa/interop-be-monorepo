@@ -8,6 +8,8 @@ import {
   ilike,
   inArray,
   isNull,
+  like,
+  or,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -55,11 +57,11 @@ export function inAppNotificationServiceBuilder(
             eq(notification.userId, userId),
             eq(notification.tenantId, organizationId),
             isNull(notification.readAt),
-            inArray(notification.entityId, entityIds)
+            or(...entityIds.map((id) => like(notification.entityId, `${id}%`)))
           )
         );
 
-      return idList.map((e) => e.entityId);
+      return idList.map((e) => e.entityId.split("/")[0]);
     },
     // eslint-disable-next-line max-params
     getNotifications: async (

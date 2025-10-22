@@ -39,9 +39,9 @@ paths:
         - in: query
           name: entityIds
           description: Filter notifications by entity IDs
-          required: true
           schema:
             type: array
+            default: []
             items:
               type: string
           explode: false
