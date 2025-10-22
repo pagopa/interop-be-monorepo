@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
 import { match } from "ts-pattern";
 import {
+  NotificationType,
   TenantId,
   UserNotificationConfig,
   emailNotificationPreference,
@@ -18,7 +19,6 @@ import {
   insertTenantNotificationConfig,
   insertUserNotificationConfig,
 } from "../src/testUtils.js";
-import { NotificationType } from "../src/notification-config/utils.js";
 import { notificationConfigReadModelService } from "./notificationConfigUtils.js";
 import { readModelDB } from "./utils.js";
 
@@ -95,6 +95,7 @@ describe("Notification config queries", () => {
           delegationSubmittedRevokedToDelegate: false,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
           clientKeyAddedDeletedToClientUsers: false,
+          producerKeychainKeyAddedDeletedToClientUsers: false,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer: false,
@@ -116,6 +117,7 @@ describe("Notification config queries", () => {
           delegationSubmittedRevokedToDelegate: false,
           certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
           clientKeyAddedDeletedToClientUsers: false,
+          producerKeychainKeyAddedDeletedToClientUsers: false,
         },
       };
       await insertUserNotificationConfig(

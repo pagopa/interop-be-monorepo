@@ -4,6 +4,7 @@ import {
   authorizationApi,
   purposeApi,
   tenantApi,
+  catalogApi,
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
@@ -50,6 +51,9 @@ export const errorCodes = {
   delegationEServiceMismatch: "0032",
   cannotDeleteLastEServiceTemplateVersion: "0033",
   eserviceDescriptorAttributeNotFound: "0034",
+  eserviceTemplateVersionAttributeNotFound: "0035",
+  eserviceDescriptorAttributeGroupNotFound: "0036",
+  eserviceTemplateVersionAttributeGroupNotFound: "0037",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -370,5 +374,41 @@ export function eserviceDescriptorAttributeNotFound(
     detail: `Attribute not found for descriptor ${descriptorId}`,
     code: "eserviceDescriptorAttributeNotFound",
     title: "E-Service Descriptor Attribute Not Found",
+  });
+}
+
+export function eserviceTemplateVersionAttributeNotFound(
+  versionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute not found for version ${versionId}`,
+    code: "eserviceTemplateVersionAttributeNotFound",
+    title: "E-Service Template Version Attribute Not Found",
+  });
+}
+
+export function eserviceDescriptorAttributeGroupNotFound(
+  kind: keyof catalogApi.Attributes,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  groupIndex: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `${kind} Attribute group with index ${groupIndex} not found for descriptor ${descriptorId} of e-service ${eserviceId}`,
+    code: "eserviceDescriptorAttributeGroupNotFound",
+    title: "E-Service Descriptor Attribute Group Not Found",
+  });
+}
+
+export function eserviceTemplateVersionAttributeGroupNotFound(
+  kind: keyof catalogApi.Attributes,
+  templateId: EServiceTemplateId,
+  versionId: EServiceTemplateVersionId,
+  groupIndex: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `${kind} Attribute group with index ${groupIndex} not found for e-service template version ${versionId} of template ${templateId}`,
+    code: "eserviceTemplateVersionAttributeGroupNotFound",
+    title: "E-Service Template Version Attribute Group Not Found",
   });
 }

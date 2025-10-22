@@ -362,6 +362,7 @@ export const getMockPurposeTemplate = (
   purposeTitle: "Purpose template title",
   purposeDescription: "Purpose template description",
   purposeIsFreeOfCharge: false,
+  handlesPersonalData: false,
 });
 
 export const getMockPurposeVersion = (
@@ -1401,6 +1402,7 @@ export const getMockUserNotificationConfig = (): UserNotificationConfig => ({
   emailNotificationPreference: generateMock(EmailNotificationPreference),
   inAppConfig: getMockNotificationConfig(),
   emailConfig: getMockNotificationConfig(),
+  userRoles: [userRole.ADMIN_ROLE],
   createdAt: generateMock(z.coerce.date()),
   updatedAt: generateMock(z.coerce.date().optional()),
 });
