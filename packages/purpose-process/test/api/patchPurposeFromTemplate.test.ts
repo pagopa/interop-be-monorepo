@@ -5,7 +5,6 @@ import {
   Purpose,
   PurposeTemplateId,
   generateId,
-  TenantKind,
   tenantKind,
 } from "pagopa-interop-models";
 import {
