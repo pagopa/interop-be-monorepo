@@ -742,9 +742,13 @@ const eserviceTemplateRouter = (
               req.body,
               ctx
             );
-          return res.status(201).send(m2mGatewayApi.EServiceTemplateVersionCertifiedAttributesGroup.parse(
-            attributes
-          ));
+          return res
+            .status(201)
+            .send(
+              m2mGatewayApi.EServiceTemplateVersionCertifiedAttributesGroup.parse(
+                attributes
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -800,9 +804,13 @@ const eserviceTemplateRouter = (
               req.body,
               ctx
             );
-          return res.status(201).send(m2mGatewayApi.EServiceTemplateVersionDeclaredAttributesGroup.parse(
-            attributes
-          ));
+          return res
+            .status(201)
+            .send(
+              m2mGatewayApi.EServiceTemplateVersionDeclaredAttributesGroup.parse(
+                attributes
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -858,9 +866,13 @@ const eserviceTemplateRouter = (
               req.body,
               ctx
             );
-          return res.status(201).send(m2mGatewayApi.EServiceTemplateVersionVerifiedAttributesGroup.parse(
-            attributes
-          ));
+          return res
+            .status(201)
+            .send(
+              m2mGatewayApi.EServiceTemplateVersionVerifiedAttributesGroup.parse(
+                attributes
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

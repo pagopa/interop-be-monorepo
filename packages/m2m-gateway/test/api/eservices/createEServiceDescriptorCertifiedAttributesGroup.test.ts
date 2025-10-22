@@ -22,9 +22,9 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/certifiedAttribu
   const mockDescriptor = mockEService.descriptors[0]!;
 
   const mockAttributeSeed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed =
-  {
-    attributeIds: [generateId(), generateId(), generateId()],
-  };
+    {
+      attributeIds: [generateId(), generateId(), generateId()],
+    };
 
   const mockAttribute1 = getMockedApiAttribute({
     kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
@@ -35,24 +35,25 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/certifiedAttribu
     code: "CODE2",
   });
 
-  const mockResponse: m2mGatewayApi.EServiceDescriptorCertifiedAttributesGroup = {
-    results: [
-      {
-        groupIndex: 0,
-        attribute: toM2MGatewayApiCertifiedAttribute({
-          attribute: mockAttribute1,
-          logger: genericLogger,
-        }),
-      },
-      {
-        groupIndex: 0,
-        attribute: toM2MGatewayApiCertifiedAttribute({
-          attribute: mockAttribute2,
-          logger: genericLogger,
-        }),
-      },
-    ],
-  };
+  const mockResponse: m2mGatewayApi.EServiceDescriptorCertifiedAttributesGroup =
+    {
+      results: [
+        {
+          groupIndex: 0,
+          attribute: toM2MGatewayApiCertifiedAttribute({
+            attribute: mockAttribute1,
+            logger: genericLogger,
+          }),
+        },
+        {
+          groupIndex: 0,
+          attribute: toM2MGatewayApiCertifiedAttribute({
+            attribute: mockAttribute2,
+            logger: genericLogger,
+          }),
+        },
+      ],
+    };
 
   const makeRequest = async (
     token: string,

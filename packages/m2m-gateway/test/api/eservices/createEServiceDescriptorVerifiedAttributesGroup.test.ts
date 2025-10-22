@@ -22,9 +22,9 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/verifiedAttribut
   const mockDescriptor = mockEService.descriptors[0]!;
 
   const mockAttributeSeed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed =
-  {
-    attributeIds: [generateId(), generateId(), generateId()],
-  };
+    {
+      attributeIds: [generateId(), generateId(), generateId()],
+    };
 
   const mockAttribute1 = getMockedApiAttribute({
     kind: attributeRegistryApi.AttributeKind.Values.VERIFIED,
@@ -33,24 +33,25 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/verifiedAttribut
     kind: attributeRegistryApi.AttributeKind.Values.VERIFIED,
   });
 
-  const mockResponse: m2mGatewayApi.EServiceDescriptorVerifiedAttributesGroup = {
-    results: [
-      {
-        groupIndex: 0,
-        attribute: toM2MGatewayApiVerifiedAttribute({
-          attribute: mockAttribute1,
-          logger: genericLogger,
-        }),
-      },
-      {
-        groupIndex: 0,
-        attribute: toM2MGatewayApiVerifiedAttribute({
-          attribute: mockAttribute2,
-          logger: genericLogger,
-        }),
-      },
-    ],
-  };
+  const mockResponse: m2mGatewayApi.EServiceDescriptorVerifiedAttributesGroup =
+    {
+      results: [
+        {
+          groupIndex: 0,
+          attribute: toM2MGatewayApiVerifiedAttribute({
+            attribute: mockAttribute1,
+            logger: genericLogger,
+          }),
+        },
+        {
+          groupIndex: 0,
+          attribute: toM2MGatewayApiVerifiedAttribute({
+            attribute: mockAttribute2,
+            logger: genericLogger,
+          }),
+        },
+      ],
+    };
 
   const makeRequest = async (
     token: string,
