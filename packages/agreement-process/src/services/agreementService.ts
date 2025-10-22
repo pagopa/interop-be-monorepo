@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   AppContext,
+  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -84,6 +85,7 @@ import {
   toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,
   toCreateEventAgreementSubmitted,
   toCreateEventDraftAgreementUpdated,
+  toCreateEventAgreementDocumentGenerated,
 } from "../model/domain/toEvent.js";
 import {
   agreementArchivableStates,
@@ -1561,6 +1563,46 @@ export function agreementServiceBuilder(
             descriptor.attributes,
             consumer.attributes
           ),
+      };
+    },
+
+    // async internalAddAgreeementContract(
+    //   agreementId: AgreementId,
+    //   agreementContract: AgreementDocument,
+    //   ctx: WithLogger<AppContext<AuthData>>
+    // ): Promise<WithMetadata<Agreement>> {
+    //   return await internalAddAgreeementContract(
+    //     agreementId,
+    //     agreementContract,
+    //     ctx
+    //   );
+    // },
+    async internalAddAgreementContract(
+      agreementId: AgreementId,
+      agreementDocument: AgreementDocument,
+      { logger, correlationId }: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<Agreement>> {
+      logger.info(`Adding agreement contract ${agreementId}`);
+      const { data: agreement, metadata } = await retrieveAgreement(
+        agreementId,
+        readModelService
+      );
+
+      const agreementWithDocument = {
+        ...agreement,
+        agreementDocument,
+      };
+      const event = await repository.createEvent(
+        toCreateEventAgreementDocumentGenerated(
+          { data: agreementWithDocument, metadata },
+          correlationId
+        )
+      );
+      return {
+        data: agreement,
+        metadata: {
+          version: event.newVersion,
+        },
       };
     },
   };

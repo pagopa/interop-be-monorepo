@@ -16,6 +16,7 @@ import {
   unsafeBrandId,
   DelegationId,
   emptyErrorMapper,
+  AgreementDocument,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -564,6 +565,33 @@ const agreementRouter = (
         }
       }
     )
+    .post("/internal/agreement/:agreementId/contract", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      const { agreementId } = req.params;
+      const agreementContract = AgreementDocument.parse(req.body);
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        const { data, metadata } =
+          await agreementService.internalAddAgreementContract(
+            unsafeBrandId(agreementId),
+            agreementContract,
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(agreementApi.Agreement.parse(agreementToApiAgreement(data)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          archiveAgreementErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
 
     .post("/agreements/:agreementId/update", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
