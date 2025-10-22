@@ -14,6 +14,7 @@ import {
 } from "pagopa-interop-models";
 import { dateAtRomeZone } from "pagopa-interop-commons";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   activeProducerDelegationNotFound,
   agreementStampDateNotFound,
@@ -33,12 +34,26 @@ export const eventMailTemplateType = {
   agreementSubmittedMailTemplate: "agreement-submitted-mail",
   agreementRejectedMailTemplate: "agreement-rejected-mail",
   agreementUpgradedMailTemplate: "agreement-upgraded-mail",
+  eserviceDescriptorSuspendedMailTemplate: "eservice-descriptor-suspended-mail",
+  eserviceDescriptorActivatedMailTemplate: "eservice-descriptor-activated-mail",
+  eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
+  producerKeychainEserviceAddedMailTemplate:
+    "producer-keychain-eservice-added-mail",
   agreementSuspendedByConsumerMailTemplate:
     "agreement-suspended-by-consumer-mail",
-  agreementSuspendedByPlatformMailTemplate:
-    "agreement-suspended-by-platform-mail",
+  agreementSuspendedByPlatformToConsumerMailTemplate:
+    "agreement-suspended-by-platform-to-consumer-mail",
   agreementUnsuspendedByConsumerMailTemplate:
     "agreement-unsuspended-by-consumer-mail",
+  agreementUnsuspendedByPlatformToConsumerMailTemplate:
+    "agreement-unsuspended-by-platform-to-consumer-mail",
+  agreementSuspendedByProducerMailTemplate:
+    "agreement-suspended-by-producer-mail",
+  agreementSuspendedByPlatformMailTemplate:
+    "agreement-suspended-by-platform-mail",
+  agreementUnsuspendedByProducerMailTemplate:
+    "agreement-unsuspended-by-producer-mail",
+  agreementUnsuspendedByPlatform: "agreement-unsuspended-by-platform-mail",
   agreementUnsuspendedByPlatformMailTemplate:
     "agreement-unsuspended-by-platform-mail",
   agreementArchivedByConsumerMailTemplate:
@@ -58,7 +73,6 @@ export const eventMailTemplateType = {
     "purpose-version-unsuspended-by-producer-mail",
   newPurposeVersionWaitingForApprovalMailTemplate:
     "new-purpose-version-waiting-for-approval-mail",
-  eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
   consumerDelegationApprovedMailTemplate: "consumer-delegation-approved-mail",
   consumerDelegationRejectedMailTemplate: "consumer-delegation-rejected-mail",
   consumerDelegationRevokedMailTemplate: "consumer-delegation-revoked-mail",
@@ -69,6 +83,7 @@ export const eventMailTemplateType = {
     "eservice-descriptor-rejected-by-delegator-mail",
   eserviceDescriptorSubmittedByDelegateMailTemplate:
     "eservice-descriptor-submitted-by-delegate-mail",
+  eserviceStateChangedMailTemplate: "eservice-state-changed-mail",
   producerDelegationApprovedMailTemplate: "producer-delegation-approved-mail",
   producerDelegationRejectedMailTemplate: "producer-delegation-rejected-mail",
   producerDelegationRevokedMailTemplate: "producer-delegation-revoked-mail",
@@ -191,6 +206,10 @@ export function encodeEmailEvent(
       subject: event.email.subject,
       body: event.email.body,
     },
-    address: event.address,
+    tenantId: event.tenantId,
+    ...match(event)
+      .with({ type: "User" }, ({ type, userId }) => ({ type, userId }))
+      .with({ type: "Tenant" }, ({ type, address }) => ({ type, address }))
+      .exhaustive(),
   });
 }

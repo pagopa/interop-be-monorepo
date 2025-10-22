@@ -24,9 +24,7 @@
       "
     >
       <!-- H4 Desktop (from MUI Italia)-->
-      <h1 style="font-size: 32px; line-height: 40px; margin: 0">
-        Accettazione richiesta di adeguamento stima di carico
-      </h1>
+      <h1 style="font-size: 32px; line-height: 40px; margin: 0">{{ title }}</h1>
     </div>
   </td>
 </tr>
@@ -54,7 +52,10 @@
         color: #17324d;
       "
     >
-      <p style="margin-bottom: 0px">Gentile aderente,</p>
+      <p style="margin-bottom: 0px">
+        Gentile
+        <strong>{{ preservePlaceholderIfMissing "recipientName" }}</strong>,
+      </p>
     </div>
   </td>
 </tr>
@@ -76,11 +77,9 @@
     >
       <!-- Body 1 Desktop (from MUI Italia)-->
       <p>
-        Ti informiamo che la tua richiesta di adeguamento della stima di carico
-        per
-        <strong>{{ purposeName }}</strong> è stata accettata.
+        L'ente erogatore {{ producerName }} ha rifiutato la finalità "{{
+        purposeTitle }}" che hai richiesto per l'e-service "{{ eserviceName }}".
       </p>
-      <p>Pertanto la tua finalità è stata attivata.</p>
     </div>
   </td>
 </tr>

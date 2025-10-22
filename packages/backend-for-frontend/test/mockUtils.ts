@@ -6,6 +6,7 @@ import {
   eserviceTemplateApi,
   agreementApi,
   catalogApi,
+  inAppNotificationApi,
 } from "pagopa-interop-api-clients";
 import {
   AgreementId,
@@ -454,6 +455,11 @@ export const getMockBffApiEServiceNameUpdateSeed =
     name: generateMock(z.string()),
   });
 
+export const getMockBffApiEServiceTemplatePersonalDataFlagUpdateSeed =
+  (): bffApi.EServiceTemplatePersonalDataFlagUpdateSeed => ({
+    personalData: generateMock(z.boolean()),
+  });
+
 export const getMockBffApiUpdateEServiceTemplateInstanceSeed =
   // eslint-disable-next-line sonarjs/no-identical-functions
   (): bffApi.UpdateEServiceTemplateInstanceSeed => ({
@@ -490,6 +496,7 @@ export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
   dailyCallsPerConsumer: generateMock(z.number().int().min(1).max(1000000000)),
   dailyCallsTotal: generateMock(z.number().int().min(1).max(1000000000)),
   delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
+  purposeTemplate: generateMock(bffApi.CompactPurposeTemplate.optional()),
 });
 
 export const getMockBffApiRiskAnalysisFormConfig =
@@ -652,8 +659,10 @@ export const getMockBffApiEServiceTemplateSeed =
     isSignalHubEnabled: generateMock(z.boolean().optional()),
   });
 
-export const getMockBffApiEServiceTemplateApiEServiceTemplate =
-  (): eserviceTemplateApi.EServiceTemplate => ({
+export const getMockBffApiEServiceTemplate =
+  (): eserviceTemplateApi.EServiceTemplate & {
+    id: EServiceTemplateId;
+  } => ({
     id: generateId(),
     creatorId: generateId(),
     name: generateMock(z.string()),
@@ -668,6 +677,7 @@ export const getMockBffApiEServiceTemplateApiEServiceTemplate =
     ),
     mode: generateMock(eserviceTemplateApi.EServiceMode),
     isSignalHubEnabled: generateMock(z.boolean().optional()),
+    personalData: generateMock(z.boolean().optional()),
   });
 
 export const getMockBffApiEServiceTemplateDetails =
@@ -1029,6 +1039,114 @@ export const toBffCompactEServiceLight = (
   name: compactEService.name,
 });
 
+export const getMockInAppNotificationApiNotification =
+  (): inAppNotificationApi.Notification => ({
+    id: generateId(),
+    userId: generateId(),
+    tenantId: generateId(),
+    body: generateMock(z.string()),
+    notificationType: "agreementSuspendedUnsuspendedToProducer",
+    entityId: generateId(),
+    readAt: generateMock(z.string().datetime({ offset: true }).nullable()),
+    createdAt: generateMock(z.string().datetime({ offset: true })),
+  });
+
+export const getMockInAppNotificationApiNotifications =
+  (): inAppNotificationApi.Notifications => ({
+    results: [
+      getMockInAppNotificationApiNotification(),
+      getMockInAppNotificationApiNotification(),
+      getMockInAppNotificationApiNotification(),
+    ],
+    totalCount: 3,
+  });
+
+export const getMockBffApiNotification = (): bffApi.Notification => ({
+  id: generateId(),
+  userId: generateId(),
+  tenantId: generateId(),
+  body: generateMock(z.string()),
+  category: generateMock(z.string()),
+  deepLink: generateMock(z.string()),
+  readAt: generateMock(z.string().datetime({ offset: true }).nullable()),
+  createdAt: generateMock(z.string().datetime({ offset: true })),
+});
+
+export const getMockBffApiNotifications = (): bffApi.Notifications => ({
+  results: [
+    getMockBffApiNotification(),
+    getMockBffApiNotification(),
+    getMockBffApiNotification(),
+  ],
+  pagination: {
+    offset: 0,
+    limit: 50,
+    totalCount: 3,
+  },
+});
+
+export const getMockInAppNotificationApiNotificationsByType =
+  (): inAppNotificationApi.NotificationsByType => ({
+    results: {
+      agreementSuspendedUnsuspendedToProducer: generateMock(z.number().int()),
+      agreementManagementToProducer: generateMock(z.number().int()),
+      clientAddedRemovedToProducer: generateMock(z.number().int()),
+      purposeStatusChangedToProducer: generateMock(z.number().int()),
+      templateStatusChangedToProducer: generateMock(z.number().int()),
+      agreementSuspendedUnsuspendedToConsumer: generateMock(z.number().int()),
+      eserviceStateChangedToConsumer: generateMock(z.number().int()),
+      agreementActivatedRejectedToConsumer: generateMock(z.number().int()),
+      purposeActivatedRejectedToConsumer: generateMock(z.number().int()),
+      purposeSuspendedUnsuspendedToConsumer: generateMock(z.number().int()),
+      newEserviceTemplateVersionToInstantiator: generateMock(z.number().int()),
+      eserviceTemplateNameChangedToInstantiator: generateMock(z.number().int()),
+      eserviceTemplateStatusChangedToInstantiator: generateMock(
+        z.number().int()
+      ),
+      delegationApprovedRejectedToDelegator: generateMock(z.number().int()),
+      eserviceNewVersionSubmittedToDelegator: generateMock(z.number().int()),
+      eserviceNewVersionApprovedRejectedToDelegate: generateMock(
+        z.number().int()
+      ),
+      delegationSubmittedRevokedToDelegate: generateMock(z.number().int()),
+      certifiedVerifiedAttributeAssignedRevokedToAssignee: generateMock(
+        z.number().int()
+      ),
+      clientKeyAddedDeletedToClientUsers: generateMock(z.number().int()),
+    },
+    totalCount: generateMock(z.number().int()),
+  });
+
+export const getMockBffApiNotificationsCountBySection =
+  (): bffApi.NotificationsCountBySection => ({
+    erogazione: {
+      richieste: generateMock(z.number().int()),
+      finalita: generateMock(z.number().int()),
+      "template-eservice": generateMock(z.number().int()),
+      "e-service": generateMock(z.number().int()),
+      portachiavi: generateMock(z.number().int()),
+      totalCount: generateMock(z.number().int()),
+    },
+    fruizione: {
+      richieste: generateMock(z.number().int()),
+      finalita: generateMock(z.number().int()),
+      totalCount: generateMock(z.number().int()),
+    },
+    "catalogo-e-service": {
+      totalCount: generateMock(z.number().int()),
+    },
+    aderente: {
+      deleghe: generateMock(z.number().int()),
+      anagrafica: generateMock(z.number().int()),
+      totalCount: generateMock(z.number().int()),
+    },
+    "gestione-client": {
+      "api-e-service": generateMock(z.number().int()),
+      totalCount: generateMock(z.number().int()),
+    },
+    totalCount: generateMock(z.number().int()),
+  });
+
 export const getMockBffApiCreatorPurposeTemplate =
   (): bffApi.CreatorPurposeTemplate => ({
     id: generateId(),
@@ -1075,4 +1193,25 @@ export const getMockBffApiPurposeTemplateWithCompactCreator =
     annotationDocuments: generateMock(
       z.array(bffApi.RiskAnalysisTemplateAnswerAnnotationDocument)
     ),
+    handlesPersonalData: false,
   });
+
+export const getMockBffApiPurposeTemplate = (
+  state?: bffApi.PurposeTemplateState
+): bffApi.PurposeTemplate & {
+  id: PurposeTemplateId;
+} => ({
+  id: generateId(),
+  targetDescription:
+    "This is a valid target description that meets the minimum length requirement",
+  targetTenantKind: "PA" as bffApi.TenantKind,
+  creatorId: generateId(),
+  state: state || generateMock(bffApi.PurposeTemplateState),
+  createdAt: new Date().toISOString(),
+  purposeTitle: "Valid Purpose Title",
+  purposeDescription:
+    "This is a valid purpose description that meets the minimum length requirement",
+  purposeRiskAnalysisForm: generateMock(bffApi.RiskAnalysisFormTemplate),
+  purposeIsFreeOfCharge: false,
+  handlesPersonalData: false,
+});

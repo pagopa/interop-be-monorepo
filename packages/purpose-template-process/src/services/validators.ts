@@ -8,22 +8,31 @@ import {
   purposeTemplateState,
   PurposeTemplateState,
   RiskAnalysisFormTemplate,
+  RiskAnalysisTemplateAnswer,
+  RiskAnalysisTemplateAnswerAnnotationDocument,
   TenantId,
   TenantKind,
 } from "pagopa-interop-models";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import {
   M2MAdminAuthData,
   M2MAuthData,
   RiskAnalysisTemplateValidatedForm,
+  RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   UIAuthData,
   validatePurposeTemplateRiskAnalysis,
+  validateRiskAnalysisAnswer,
+  validateNoHyperlinks,
 } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import {
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
   associationEServicesForPurposeTemplateFailed,
+  annotationDocumentLimitExceeded,
+  conflictDocumentPrettyNameDuplicate,
+  conflictDuplicatedDocument,
+  hyperlinkDetectionError,
   missingFreeOfChargeReason,
   purposeTemplateNameConflict,
   purposeTemplateNotInExpectedStates,
@@ -53,6 +62,8 @@ import {
 } from "../errors/purposeTemplateValidationErrors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
+export const ANNOTATION_DOCUMENTS_LIMIT = 2;
+
 const isRequesterCreator = (
   creatorId: TenantId,
   authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
@@ -61,10 +72,6 @@ const isRequesterCreator = (
 const isPurposeTemplateActive = (
   currentPurposeTemplateState: PurposeTemplateState
 ): boolean => currentPurposeTemplateState === purposeTemplateState.active;
-
-const isPurposeTemplateArchived = (
-  currentPurposeTemplateState: PurposeTemplateState
-): boolean => currentPurposeTemplateState === purposeTemplateState.archived;
 
 const isPurposeTemplateDraft = (
   currentPurposeTemplateState: PurposeTemplateState
@@ -108,6 +115,31 @@ export const assertEServiceIdsCountIsBelowThreshold = (
   }
 };
 
+export const assertDocumentsLimitsNotReached = (
+  docs: RiskAnalysisTemplateAnswerAnnotationDocument[] | undefined,
+  answerId: string
+): void => {
+  const totalDocs = docs?.length || 0;
+  if (totalDocs === ANNOTATION_DOCUMENTS_LIMIT) {
+    throw annotationDocumentLimitExceeded(answerId);
+  }
+};
+
+export const assertAnnotationDocumentIsUnique = (
+  { answer }: RiskAnalysisTemplateAnswer,
+  newPrettyName: string,
+  newChecksum: string
+): void =>
+  [...(answer?.annotation?.docs || [])].forEach((doc) => {
+    if (doc.prettyName === newPrettyName) {
+      throw conflictDocumentPrettyNameDuplicate(answer.id, newPrettyName);
+    }
+
+    if (doc?.checksum === newChecksum) {
+      throw conflictDuplicatedDocument(answer.id, newChecksum);
+    }
+  });
+
 export function validateAndTransformRiskAnalysisTemplate(
   riskAnalysisFormTemplate:
     | purposeTemplateApi.RiskAnalysisFormTemplateSeed
@@ -128,6 +160,12 @@ export function validateAndTransformRiskAnalysisTemplate(
   );
 }
 
+export function validateRiskAnalysisAnswerAnnotationOrThrow(
+  text: string
+): void {
+  validateNoHyperlinks(text, hyperlinkDetectionError(text));
+}
+
 export function validateRiskAnalysisTemplateOrThrow({
   riskAnalysisFormTemplate,
   tenantKind,
@@ -146,6 +184,32 @@ export function validateRiskAnalysisTemplateOrThrow({
     })
     .with({ type: "valid" }, ({ value }) => value)
     .exhaustive();
+}
+
+export function validateRiskAnalysisAnswerOrThrow({
+  riskAnalysisAnswer,
+  tenantKind,
+}: {
+  riskAnalysisAnswer: purposeTemplateApi.RiskAnalysisTemplateAnswerRequest;
+  tenantKind: TenantKind;
+}): RiskAnalysisTemplateValidatedSingleOrMultiAnswer {
+  if (riskAnalysisAnswer.answerData.annotation) {
+    validateRiskAnalysisAnswerAnnotationOrThrow(
+      riskAnalysisAnswer.answerData.annotation.text
+    );
+  }
+
+  const result = validateRiskAnalysisAnswer(
+    riskAnalysisAnswer.answerKey,
+    riskAnalysisAnswer.answerData,
+    tenantKind
+  );
+
+  if (result.type === "invalid") {
+    throw riskAnalysisTemplateValidationFailed(result.issues);
+  }
+
+  return result.value;
 }
 
 export const assertPurposeTemplateIsDraft = (
@@ -229,9 +293,10 @@ export const assertSuspendableState = (
   );
 };
 
-export const archivableInitialStates = Object.values(
-  purposeTemplateState
-).filter((state) => !isPurposeTemplateArchived(state));
+export const archivableInitialStates: PurposeTemplateState[] = [
+  purposeTemplateState.active,
+  purposeTemplateState.suspended,
+];
 export const assertArchivableState = (
   purposeTemplate: PurposeTemplate
 ): void => {
@@ -244,7 +309,9 @@ export const assertArchivableState = (
 
 export function assertPurposeTemplateHasRiskAnalysisForm(
   purposeTemplate: PurposeTemplate
-): void {
+): asserts purposeTemplate is PurposeTemplate & {
+  purposeRiskAnalysisForm: RiskAnalysisFormTemplate;
+} {
   if (!purposeTemplate.purposeRiskAnalysisForm) {
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.id);
   }

@@ -111,10 +111,7 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
     },
   ])("Should return 400 if seed is invalid", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      body as purposeTemplateApi.PurposeTemplateSeed
-    );
+    const res = await makeRequest(token, body as bffApi.PurposeTemplateSeed);
     expect(res.status).toBe(400);
   });
 });

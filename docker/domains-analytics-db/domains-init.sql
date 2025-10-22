@@ -308,6 +308,17 @@ CREATE TABLE IF NOT EXISTS domains.delegation_stamp (
   PRIMARY KEY (delegation_id, kind)
 );
 
+CREATE TABLE IF NOT EXISTS domains.purpose_version_stamp (
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  purpose_version_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_version(id),
+  metadata_version INTEGER NOT NULL,
+  who VARCHAR(36) NOT NULL,
+  "when" TIMESTAMP WITH TIME ZONE NOT NULL,
+  kind VARCHAR(2048) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (purpose_version_id, kind)
+);
+
 CREATE TABLE IF NOT EXISTS domains.delegation_contract_document (
   id VARCHAR(36),
   delegation_id VARCHAR(36) NOT NULL REFERENCES domains.delegation (id),
@@ -682,5 +693,6 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template_risk_analysis_answer_annotat
   path VARCHAR(2048) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
+  checksum VARCHAR NOT NULL,
   PRIMARY KEY (id)
 );

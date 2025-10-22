@@ -54,3 +54,36 @@ export function toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDesc
     createdAt: eserviceDescriptorPurposeTemplate.createdAt,
   };
 }
+
+export function toCompactPurposeTemplate(
+  purposeTemplate: purposeTemplateApi.PurposeTemplate
+): bffApi.CompactPurposeTemplate {
+  return {
+    id: purposeTemplate.id,
+    purposeTitle: purposeTemplate.purposeTitle,
+  };
+}
+
+export function toBffPurposeTemplateWithCompactCreator(
+  purposeTemplate: purposeTemplateApi.PurposeTemplate,
+  creator: tenantApi.Tenant,
+  annotationDocuments: purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument[]
+): bffApi.PurposeTemplateWithCompactCreator {
+  return {
+    id: purposeTemplate.id,
+    targetDescription: purposeTemplate.targetDescription,
+    targetTenantKind: purposeTemplate.targetTenantKind,
+    state: purposeTemplate.state,
+    createdAt: purposeTemplate.createdAt,
+    updatedAt: purposeTemplate.updatedAt,
+    purposeTitle: purposeTemplate.purposeTitle,
+    purposeDescription: purposeTemplate.purposeDescription,
+    purposeRiskAnalysisForm: purposeTemplate.purposeRiskAnalysisForm,
+    purposeIsFreeOfCharge: purposeTemplate.purposeIsFreeOfCharge,
+    purposeFreeOfChargeReason: purposeTemplate.purposeFreeOfChargeReason,
+    purposeDailyCalls: purposeTemplate.purposeDailyCalls,
+    creator: toBffCompactOrganization(creator),
+    handlesPersonalData: purposeTemplate.handlesPersonalData,
+    annotationDocuments,
+  };
+}

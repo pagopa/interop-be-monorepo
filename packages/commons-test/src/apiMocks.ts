@@ -51,6 +51,7 @@ export function getMockedApiPurpose({
     isRiskAnalysisValid: true,
     isFreeOfCharge: true,
     freeOfChargeReason: generateMock(z.string()),
+    purposeTemplateId: generateMock(z.string().uuid().optional()),
   };
 }
 
@@ -358,6 +359,7 @@ export function getMockedApiEServiceTemplate({
         tenantKind: generateMock(eserviceTemplateApi.TenantKind),
       },
     ],
+    personalData: generateMock(z.boolean().optional()),
   };
 }
 

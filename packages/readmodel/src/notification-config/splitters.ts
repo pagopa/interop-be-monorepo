@@ -1,5 +1,6 @@
 import {
   NotificationConfig,
+  NotificationType,
   TenantNotificationConfig,
   UserNotificationConfig,
   UserNotificationConfigId,
@@ -9,7 +10,6 @@ import {
   TenantNotificationConfigSQL,
   UserNotificationConfigItemsSQL,
 } from "pagopa-interop-readmodel-models";
-import { NotificationType } from "./utils.js";
 
 export const splitTenantNotificationConfigIntoObjectsSQL = (
   {
@@ -38,6 +38,7 @@ export const splitUserNotificationConfigIntoObjectsSQL = (
     id,
     userId,
     tenantId,
+    userRoles,
     inAppNotificationPreference,
     emailNotificationPreference,
     inAppConfig,
@@ -74,6 +75,7 @@ export const splitUserNotificationConfigIntoObjectsSQL = (
       metadataVersion,
       userId,
       tenantId,
+      userRoles,
       inAppNotificationPreference,
       emailNotificationPreference,
       createdAt: dateToString(createdAt),
