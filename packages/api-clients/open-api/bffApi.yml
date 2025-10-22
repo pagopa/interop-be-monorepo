@@ -22574,6 +22574,16 @@ paths:
           schema:
             type: string
         - in: query
+          name: category
+          description: Category to filter notifications
+          schema:
+            type: string
+            enum:
+              - Subscribers
+              - Providers
+              - Delegations
+              - AttributesAndKeys
+        - in: query
           name: offset
           required: true
           schema:
@@ -26002,6 +26012,8 @@ components:
           maximum: 1000000000
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
+        purposeTemplate:
+          $ref: "#/components/schemas/CompactPurposeTemplate"
       required:
         - id
         - title
@@ -26023,6 +26035,67 @@ components:
           format: uuid
       required:
         - purposeId
+    CompactPurposeTemplate:
+      type: object
+      description: Contains some information about the purpose template
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        purposeTitle:
+          type: string
+      required:
+        - id
+        - purposeTitle
+    PurposeTemplate:
+      type: object
+      description: Business representation of a purpose template
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        targetDescription:
+          type: string
+        targetTenantKind:
+          $ref: "#/components/schemas/TenantKind"
+        creatorId:
+          type: string
+          format: uuid
+        state:
+          $ref: "#/components/schemas/PurposeTemplateState"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        purposeTitle:
+          type: string
+        purposeDescription:
+          type: string
+        purposeRiskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormTemplate"
+        purposeIsFreeOfCharge:
+          type: boolean
+        purposeFreeOfChargeReason:
+          type: string
+        purposeDailyCalls:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - targetDescription
+        - targetTenantKind
+        - creatorId
+        - state
+        - createdAt
+        - purposeTitle
+        - purposeDescription
+        - purposeIsFreeOfCharge
     PurposeTemplateState:
       type: string
       description: Purpose Template State
@@ -26077,54 +26150,6 @@ components:
         - targetDescription
         - targetTenantKind
         - creator
-        - state
-        - createdAt
-        - purposeTitle
-        - purposeDescription
-        - purposeIsFreeOfCharge
-    PurposeTemplate:
-      type: object
-      description: Business representation of a purpose template
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        targetDescription:
-          type: string
-        targetTenantKind:
-          $ref: "#/components/schemas/TenantKind"
-        creatorId:
-          type: string
-          format: uuid
-        state:
-          $ref: "#/components/schemas/PurposeTemplateState"
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-        purposeTitle:
-          type: string
-        purposeDescription:
-          type: string
-        purposeRiskAnalysisForm:
-          $ref: "#/components/schemas/RiskAnalysisFormTemplate"
-        purposeIsFreeOfCharge:
-          type: boolean
-        purposeFreeOfChargeReason:
-          type: string
-        purposeDailyCalls:
-          type: integer
-          format: int32
-          minimum: 1
-          maximum: 1000000000
-      required:
-        - id
-        - targetDescription
-        - targetTenantKind
-        - creatorId
         - state
         - createdAt
         - purposeTitle
@@ -28421,6 +28446,9 @@ components:
         deepLink:
           type: string
           description: Deep link to the notification
+        category:
+          type: string
+          description: Category of the notification
         readAt:
           type: string
           format: date-time
@@ -28436,6 +28464,7 @@ components:
         - tenantId
         - body
         - deepLink
+        - category
         - createdAt
     NotificationConfig:
       type: object
