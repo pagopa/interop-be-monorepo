@@ -47,7 +47,8 @@ function getAgreementM2MEventVisibility(
         "AgreementSetDraftByPlatform",
         "AgreementSetMissingCertifiedAttributesByPlatform",
         "AgreementConsumerDocumentAdded",
-        "AgreementConsumerDocumentRemoved"
+        "AgreementConsumerDocumentRemoved",
+        "AgreementContractGenerated"
       ),
       () => m2mEventVisibility.owner
     )
