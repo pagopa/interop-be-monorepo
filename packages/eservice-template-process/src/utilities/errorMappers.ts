@@ -246,6 +246,8 @@ export const createEServiceTemplateVersionErrorMapper = (
   match(error.code)
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
+      "attributeNotFound",
+      "attributeDuplicatedInGroup",
       "draftEServiceTemplateVersionAlreadyExists",
       "inconsistentDailyCalls",
       () => HTTP_STATUS_BAD_REQUEST

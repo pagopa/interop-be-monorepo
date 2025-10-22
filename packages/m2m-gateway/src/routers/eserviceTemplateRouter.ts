@@ -343,6 +343,32 @@ const eserviceTemplateRouter = (
         }
       }
     )
+    .post("/eserviceTemplates/:templateId/versions", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const version =
+          await eserviceTemplateService.createEServiceTemplateVersion(
+            unsafeBrandId(req.params.templateId),
+            req.body,
+            ctx
+          );
+
+        return res
+          .status(201)
+          .send(m2mGatewayApi.EServiceTemplateVersion.parse(version));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating eservice template ${req.params.templateId} version`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post(
       "/eserviceTemplates/:templateId/versions/:versionId/suspend",
       async (req, res) => {
