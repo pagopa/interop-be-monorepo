@@ -15734,12 +15734,12 @@ components:
       type: object
       additionalProperties: false
       properties:
-        results:
+        attributes:
           type: array
           items:
             $ref: "#/components/schemas/EServiceDescriptorCertifiedAttribute"
       required:
-        - results
+        - attributes
     EServiceTemplateVersionCertifiedAttributesGroup:
       type: object
       additionalProperties: false
@@ -15780,12 +15780,12 @@ components:
       type: object
       additionalProperties: false
       properties:
-        results:
+        attributes:
           type: array
           items:
             $ref: "#/components/schemas/EServiceDescriptorDeclaredAttribute"
       required:
-        - results
+        - attributes
     EServiceTemplateVersionDeclaredAttributesGroup:
       type: object
       additionalProperties: false
@@ -15826,12 +15826,12 @@ components:
       type: object
       additionalProperties: false
       properties:
-        results:
+        attributes:
           type: array
           items:
             $ref: "#/components/schemas/EServiceDescriptorVerifiedAttribute"
       required:
-        - results
+        - attributes
     EServiceTemplateVersionVerifiedAttributesGroup:
       type: object
       additionalProperties: false

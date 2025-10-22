@@ -47,7 +47,6 @@ import {
   toM2MGatewayApiDeclaredAttribute,
   toM2MGatewayApiVerifiedAttribute,
 } from "../api/attributeApiConverter.js";
-import { EServiceDescriptorAttributesGroupSeed } from "../../../api-clients/dist/m2mGatewayApi.js";
 import { getResolvedAttributesMap } from "../utils/getResolvedAttributesMap.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
@@ -135,16 +134,9 @@ export function eserviceServiceBuilder(
       attributeIdsToResolve,
       headers,
       clients,
-      offset,
-      limit
+      0,
+      attributeIdsToResolve.length
     );
-
-    if (attributeIdsToResolve.length === 0) {
-      return {
-        results: [],
-        totalCount: attributeIdsToResolve.length,
-      };
-    }
 
     // Recombination: Map the paginated flat list with the resolved complete details
     const attributesToReturn = paginatedFlatKindAttributes.map((item) => {
@@ -168,7 +160,7 @@ export function eserviceServiceBuilder(
   async function createEServiceDescriptorAttributesGroup(
     eserviceId: EServiceId,
     descriptorId: DescriptorId,
-    seed: EServiceDescriptorAttributesGroupSeed,
+    seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed,
     attributeKind: keyof catalogApi.Attributes,
     { headers }: WithLogger<M2MGatewayAppContext>
   ): Promise<{
@@ -1201,7 +1193,7 @@ export function eserviceServiceBuilder(
     async createEServiceDescriptorCertifiedAttributesGroup(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: EServiceDescriptorAttributesGroupSeed,
+      seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceDescriptorCertifiedAttributesGroup> {
       ctx.logger.info(
@@ -1224,13 +1216,13 @@ export function eserviceServiceBuilder(
           logger: ctx.logger,
         }),
       }));
-      return { results };
+      return { attributes: results };
     },
 
     async createEServiceDescriptorDeclaredAttributesGroup(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: EServiceDescriptorAttributesGroupSeed,
+      seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceDescriptorDeclaredAttributesGroup> {
       ctx.logger.info(
@@ -1252,13 +1244,13 @@ export function eserviceServiceBuilder(
           logger: ctx.logger,
         }),
       }));
-      return { results };
+      return { attributes: results };
     },
 
     async createEServiceDescriptorVerifiedAttributesGroup(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: EServiceDescriptorAttributesGroupSeed,
+      seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceDescriptorVerifiedAttributesGroup> {
       ctx.logger.info(
@@ -1280,7 +1272,7 @@ export function eserviceServiceBuilder(
           logger: ctx.logger,
         }),
       }));
-      return { results };
+      return { attributes: results };
     },
     async deleteEServiceDescriptorVerifiedAttributeFromGroup(
       eserviceId: EServiceId,

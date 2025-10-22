@@ -45,7 +45,6 @@ import {
 import { uploadEServiceTemplateDocument } from "../utils/fileUpload.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
-import { EServiceTemplateVersionAttributesGroupSeed } from "../../../api-clients/dist/m2mGatewayApi.js";
 import { getResolvedAttributesMap } from "../utils/getResolvedAttributesMap.js";
 
 export type EserviceTemplateService = ReturnType<
@@ -143,16 +142,9 @@ export function eserviceTemplateServiceBuilder(
       attributeIdsToResolve,
       headers,
       clients,
-      offset,
-      limit
+      0,
+      attributeIdsToResolve.length
     );
-
-    if (attributeIdsToResolve.length === 0) {
-      return {
-        results: [],
-        totalCount: attributeIdsToResolve.length,
-      };
-    }
 
     // Recombination: Map the paginated flat list with the resolved complete details
     const attributesToReturn = paginatedFlatKindAttributes.map((item) => {
@@ -197,7 +189,7 @@ export function eserviceTemplateServiceBuilder(
   async function createEServiceTemplateVersionAttributesGroup(
     templateId: EServiceTemplateId,
     versionId: EServiceTemplateVersionId,
-    seed: EServiceTemplateVersionAttributesGroupSeed,
+    seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed,
     attributeKind: keyof eserviceTemplateApi.Attributes,
     { headers }: WithLogger<M2MGatewayAppContext>
   ): Promise<{
@@ -207,9 +199,7 @@ export function eserviceTemplateServiceBuilder(
     const template = await retrieveEServiceTemplateById(headers, templateId);
     const version = retrieveEServiceTemplateVersionById(template, versionId);
 
-    // Get the new group index (will be the length of current groups)
     const newGroupIndex = version.attributes[attributeKind].length;
-    // Create the new attributes structure with the new group
     const newKindAttributeGroups = [
       ...version.attributes[attributeKind],
       seed.attributeIds.map((id) => ({
@@ -222,7 +212,6 @@ export function eserviceTemplateServiceBuilder(
       [attributeKind]: newKindAttributeGroups,
     };
 
-    // Update the version with the new attributes
     const response =
       await clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
         { attributes: newAttributes },
@@ -245,7 +234,6 @@ export function eserviceTemplateServiceBuilder(
       seed.attributeIds.length
     );
 
-    // Recombination and verification: Check that all requested attributes were found
     const newlyCreatedGroupAttributes: attributeRegistryApi.Attribute[] =
       seed.attributeIds.map((attributeId) => {
         const attributeDetailed = attributeMap.get(attributeId);
@@ -968,7 +956,7 @@ export function eserviceTemplateServiceBuilder(
     async createEServiceTemplateVersionCertifiedAttributesGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      seed: EServiceTemplateVersionAttributesGroupSeed,
+      seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersionCertifiedAttributesGroup> {
       ctx.logger.info(
@@ -996,7 +984,7 @@ export function eserviceTemplateServiceBuilder(
     async createEServiceTemplateVersionDeclaredAttributesGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      seed: EServiceTemplateVersionAttributesGroupSeed,
+      seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersionDeclaredAttributesGroup> {
       ctx.logger.info(
@@ -1023,7 +1011,7 @@ export function eserviceTemplateServiceBuilder(
     async createEServiceTemplateVersionVerifiedAttributesGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
-      seed: EServiceTemplateVersionAttributesGroupSeed,
+      seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersionVerifiedAttributesGroup> {
       ctx.logger.info(
