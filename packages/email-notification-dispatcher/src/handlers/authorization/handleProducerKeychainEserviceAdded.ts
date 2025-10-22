@@ -1,8 +1,7 @@
 import {
-  fromEServiceV2,
   EmailNotificationMessagePayload,
+  EServiceIdDescriptorId,
   generateId,
-  missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
 import {
@@ -12,18 +11,19 @@ import {
   retrieveTenant,
 } from "../../services/utils.js";
 import {
-  EServiceHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
+  ProducerKeychainEServiceHandlerParams,
 } from "../handlerCommons.js";
+import { eServiceNotFound } from "../../models/errors.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
-export async function handleEserviceDescriptorPublished(
-  data: EServiceHandlerParams
+export async function handleProducerKeychainEserviceAdded(
+  data: ProducerKeychainEServiceHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
-    eserviceV2Msg,
+    eserviceId,
     readModelService,
     logger,
     templateService,
@@ -31,18 +31,15 @@ export async function handleEserviceDescriptorPublished(
     correlationId,
   } = data;
 
-  if (!eserviceV2Msg) {
-    throw missingKafkaMessageDataError(
-      "eservice",
-      "EServiceDescriptorPublished"
-    );
-  }
+  const eservice = await readModelService.getEServiceById(eserviceId);
 
-  const eservice = fromEServiceV2(eserviceV2Msg);
+  if (eservice === undefined) {
+    throw eServiceNotFound(eserviceId);
+  }
 
   const [htmlTemplate, agreements, descriptor, producer] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceDescriptorPublishedMailTemplate
+      eventMailTemplateType.producerKeychainEserviceAddedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
     retrieveLatestPublishedDescriptor(eservice),
@@ -66,7 +63,7 @@ export async function handleEserviceDescriptorPublished(
     readModelService,
     userService,
     logger,
-    includeTenantContactEmails: true,
+    includeTenantContactEmails: false,
   });
 
   if (targets.length === 0) {
@@ -76,32 +73,22 @@ export async function handleEserviceDescriptorPublished(
     return [];
   }
 
-  return targets.flatMap((t) => {
-    const tenant = tenants.find((tenant) => tenant.id === t.tenantId);
-
-    if (!tenant) {
-      return [];
-    }
-
-    return [
-      {
-        correlationId: correlationId ?? generateId(),
-        email: {
-          subject: `Nuova versione disponibile per "${eservice.name}"`,
-          body: templateService.compileHtml(htmlTemplate, {
-            title: `Nuova versione disponibile per "${eservice.name}"`,
-            notificationType,
-            entityId: descriptor.id,
-            ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
-            eserviceName: eservice.name,
-            eserviceVersion: descriptor.version,
-            producerName: producer.name,
-            ctaLabel: `Visualizza e-service`,
-          }),
-        },
-        tenantId: producer.id,
-        ...mapRecipientToEmailPayload(t),
-      },
-    ];
-  });
+  return targets.map((t) => ({
+    correlationId: correlationId ?? generateId(),
+    email: {
+      subject: `Nuovo livello di sicurezza per "${eservice.name}"`,
+      body: templateService.compileHtml(htmlTemplate, {
+        title: `Nuovo livello di sicurezza per "${eservice.name}"`,
+        notificationType,
+        entityId: EServiceIdDescriptorId.parse(
+          `${eservice.id}/${descriptor.id}`
+        ),
+        producerName: producer.name,
+        eserviceName: eservice.name,
+        ctaLabel: `Visualizza chiavi`,
+      }),
+    },
+    tenantId: producer.id,
+    ...mapRecipientToEmailPayload(t),
+  }));
 }
