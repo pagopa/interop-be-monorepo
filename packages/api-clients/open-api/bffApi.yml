@@ -2639,6 +2639,11 @@ paths:
           schema:
             type: boolean
         - in: query
+          name: personalData
+          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned
+          schema:
+            type: boolean
+        - in: query
           name: offset
           required: true
           schema:
@@ -11129,6 +11134,11 @@ paths:
           schema:
             type: boolean
             default: true
+        - in: query
+          name: handlesPersonalData
+          description: show purpose templates that handle personal data
+          schema:
+            type: boolean
         - in: query
           name: offset
           required: true
@@ -26086,6 +26096,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        handlesPersonalData:
+          type: boolean
       required:
         - id
         - targetDescription
@@ -26096,6 +26108,7 @@ components:
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
+        - handlesPersonalData
     PurposeTemplateState:
       type: string
       description: Purpose Template State
@@ -26145,6 +26158,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+        handlesPersonalData:
+          type: boolean
       required:
         - id
         - targetDescription
@@ -26155,6 +26170,7 @@ components:
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
+        - handlesPersonalData
     PurposeTemplateSeed:
       type: object
       additionalProperties: false
@@ -26184,12 +26200,15 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        handlesPersonalData:
+          type: boolean
       required:
         - targetDescription
         - targetTenantKind
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
+        - handlesPersonalData
     RiskAnalysisFormTemplate:
       type: object
       additionalProperties: false
