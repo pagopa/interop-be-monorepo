@@ -35,6 +35,7 @@ import {
   descriptorNotFound,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
+  invalidPersonalData,
   invalidPurposeTenantKind,
   missingFreeOfChargeReason,
   purposeNotInDraftState,
@@ -510,6 +511,19 @@ export function assertValidPurposeTenantKind(
 
   if (!valid) {
     throw invalidPurposeTenantKind(purposeTenantKind, templateTargetTenantKind);
+  }
+}
+
+export function assertValidPersonalData(
+  templateHandlesPersonalData: boolean,
+  eservicePersonalData: boolean | undefined
+): void {
+  const valid =
+    eservicePersonalData !== undefined &&
+    templateHandlesPersonalData === eservicePersonalData;
+
+  if (!valid) {
+    throw invalidPersonalData(eservicePersonalData);
   }
 }
 

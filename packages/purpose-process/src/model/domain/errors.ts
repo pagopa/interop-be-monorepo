@@ -55,6 +55,7 @@ export const errorCodes = {
   riskAnalysisAnswerNotInSuggestValues: "0036",
   riskAnalysisMissingExpectedFieldError: "0037",
   riskAnalysisVersionMismatch: "0038",
+  invalidPersonalData: "0039",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -458,5 +459,19 @@ export function riskAnalysisVersionMismatch(
     detail: `Risk analysis version ${seedVersion} does not match purpose template version ${purposeTemplateVersion}`,
     code: "riskAnalysisVersionMismatch",
     title: "Risk analysis version mismatch",
+  });
+}
+
+export function invalidPersonalData(
+  eServicePersonalData: boolean | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-Service personal data ${
+      eServicePersonalData === undefined
+        ? "is invalid"
+        : "does not match purpose template handles personal data"
+    }`,
+    code: "invalidPersonalData",
+    title: "Invalid personal data",
   });
 }

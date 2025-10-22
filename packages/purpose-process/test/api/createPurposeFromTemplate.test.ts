@@ -35,6 +35,7 @@ import {
   riskAnalysisAnswerNotInSuggestValues,
   tenantKindNotFound,
   tenantNotFound,
+  invalidPersonalData,
 } from "../../src/model/domain/errors.js";
 import { getMockPurposeFromTemplateSeed } from "../mockUtils.js";
 
@@ -149,6 +150,10 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
     },
     {
       error: eServiceModeNotAllowed(generateId(), eserviceMode.deliver),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidPersonalData(undefined),
       expectedStatus: 400,
     },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },

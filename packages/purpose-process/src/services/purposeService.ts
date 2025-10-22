@@ -118,6 +118,7 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
+  assertValidPersonalData,
   assertValidPurposeTenantKind,
   getOrganizationRole,
   isArchivable,
@@ -1670,6 +1671,10 @@ export function purposeServiceBuilder(
         tenantKind,
         purposeTemplate.targetTenantKind
       );
+      assertValidPersonalData(
+        purposeTemplate.handlesPersonalData,
+        eservice.personalData
+      );
 
       await retrieveEserviceDescriptorFromPurposeTemplate(
         purposeTemplateId,
@@ -1684,7 +1689,6 @@ export function purposeServiceBuilder(
         title: body.title,
       });
 
-      // TODO https://pagopa.atlassian.net/browse/PIN-7928: add handle personalDataInEService
       const validatedFormSeed = validateRiskAnalysisAgainstTemplateOrThrow(
         purposeTemplate,
         body.riskAnalysisForm,

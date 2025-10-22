@@ -32,7 +32,6 @@ import { describe, expect, it, vi } from "vitest";
 import {
   decodeProtobufPayload,
   getMockAgreement,
-  getMockEService,
   getMockTenant,
   getMockPurpose,
   getMockDescriptor,
@@ -58,6 +57,7 @@ import {
   riskAnalysisMissingExpectedFieldError,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisAnswerNotInSuggestValues,
+  invalidPersonalData,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -72,6 +72,7 @@ import {
 } from "../integrationUtils.js";
 import {
   buildRiskAnalysisFormSeed,
+  getMockEServiceForPurposeFromTemplate,
   getMockPurposeFromTemplateSeed,
   getMockValidRiskAnalysisFormFromTemplate,
 } from "../mockUtils.js";
@@ -89,7 +90,7 @@ describe("createPurposeFromTemplate", () => {
   };
 
   const eService1: EService = {
-    ...getMockEService(),
+    ...getMockEServiceForPurposeFromTemplate(),
     producerId: tenant.id,
     descriptors: [descriptor1],
   };
@@ -493,7 +494,7 @@ describe("createPurposeFromTemplate", () => {
     };
 
     const eservice: EService = {
-      ...getMockEService(),
+      ...getMockEServiceForPurposeFromTemplate(),
       producerId: producerDelegate.id,
       descriptors: [descriptor1],
     };
@@ -833,7 +834,7 @@ describe("createPurposeFromTemplate", () => {
   it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     await addOneTenant(tenant);
     await addOneAgreement(agreementEservice1);
-    await addOneEService(getMockEService());
+    await addOneEService(getMockEServiceForPurposeFromTemplate());
     await addOnePurposeTemplate(mockPurposeTemplateWithValidRiskAnalysis);
     await addOnePurposeTemplateEServiceDescriptor(
       purposeTemplateEServiceDescriptor1
@@ -1268,6 +1269,89 @@ describe("createPurposeFromTemplate", () => {
         validPurposeTemplate.id,
         "additionalFieldSingle"
       )
+    );
+  });
+  it("should throw invalidPersonalData if eservice personalData: undefined", async () => {
+    await addOneTenant(tenant);
+    await addOnePurposeTemplate(mockPurposeTemplateWithValidRiskAnalysis);
+
+    const eserviceNoPersonalData: EService = {
+      ...eService1,
+      personalData: undefined,
+    };
+    const purposeTemplateEServiceDescriptorNoPersonalData: EServiceDescriptorPurposeTemplate =
+      {
+        purposeTemplateId: mockPurposeTemplateWithValidRiskAnalysis.id,
+        eserviceId: eserviceNoPersonalData.id,
+        descriptorId: eserviceNoPersonalData.descriptors[0].id,
+        createdAt: new Date(),
+      };
+
+    const agreementEserviceNoPersonalData = getMockAgreement(
+      eserviceNoPersonalData.id,
+      tenant.id,
+      agreementState.active
+    );
+
+    await addOneEService(eserviceNoPersonalData);
+    await addOneAgreement(agreementEserviceNoPersonalData);
+    await addOnePurposeTemplateEServiceDescriptor(
+      purposeTemplateEServiceDescriptorNoPersonalData
+    );
+
+    expect(
+      purposeService.createPurposeFromTemplate(
+        mockPurposeTemplateWithValidRiskAnalysis.id,
+        purposeFromTemplateSeed,
+        getMockContext({
+          authData: getMockAuthData(
+            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
+          ),
+        })
+      )
+    ).rejects.toThrowError(invalidPersonalData(undefined));
+  });
+  it("should throw invalidPersonalData if eservice personalData is different from purpose template handlesPersonalData", async () => {
+    await addOneTenant(tenant);
+    await addOnePurposeTemplate(mockPurposeTemplateWithValidRiskAnalysis);
+
+    const eserviceOtherPersonalData: EService = {
+      ...eService1,
+      personalData:
+        !mockPurposeTemplateWithValidRiskAnalysis.handlesPersonalData,
+    };
+    const purposeTemplateEServiceDescriptorOtherPersonalData: EServiceDescriptorPurposeTemplate =
+      {
+        purposeTemplateId: mockPurposeTemplateWithValidRiskAnalysis.id,
+        eserviceId: eserviceOtherPersonalData.id,
+        descriptorId: eserviceOtherPersonalData.descriptors[0].id,
+        createdAt: new Date(),
+      };
+
+    const agreementEserviceOtherPersonalData = getMockAgreement(
+      eserviceOtherPersonalData.id,
+      tenant.id,
+      agreementState.active
+    );
+
+    await addOneEService(eserviceOtherPersonalData);
+    await addOneAgreement(agreementEserviceOtherPersonalData);
+    await addOnePurposeTemplateEServiceDescriptor(
+      purposeTemplateEServiceDescriptorOtherPersonalData
+    );
+
+    expect(
+      purposeService.createPurposeFromTemplate(
+        mockPurposeTemplateWithValidRiskAnalysis.id,
+        purposeFromTemplateSeed,
+        getMockContext({
+          authData: getMockAuthData(
+            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
+          ),
+        })
+      )
+    ).rejects.toThrowError(
+      invalidPersonalData(eserviceOtherPersonalData.personalData)
     );
   });
 });

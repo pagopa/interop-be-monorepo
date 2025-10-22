@@ -10,17 +10,24 @@ import {
   PurposeRiskAnalysisFormV2,
   TenantKind,
   PurposeRiskAnalysisForm,
+  EServiceId,
+  TenantId,
+  Descriptor,
+  EServiceTemplateId,
+  EService,
 } from "pagopa-interop-models";
-import { getMockValidRiskAnalysisForm } from "pagopa-interop-commons-test";
+import {
+  getMockValidRiskAnalysisForm,
+  validRiskAnalysis2_0_Private,
+  validRiskAnalysis3_0_Pa,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
-import {
-  validRiskAnalysis2_0_Private,
-  validRiskAnalysis3_0_Pa,
-} from "pagopa-interop-commons-test/index.js";
+
 import { match } from "ts-pattern";
 import { validateAndTransformRiskAnalysis } from "../src/services/validators.js";
 
@@ -149,6 +156,16 @@ export const getMockPurposeFromTemplateSeed = (
   title: "Mock title",
   dailyCalls: 10,
   riskAnalysisForm,
+});
+
+export const getMockEServiceForPurposeFromTemplate = (
+  eserviceId: EServiceId = generateId<EServiceId>(),
+  producerId: TenantId = generateId<TenantId>(),
+  descriptors: Descriptor[] = [],
+  templateId?: EServiceTemplateId | undefined
+): EService => ({
+  ...getMockEService(eserviceId, producerId, descriptors, templateId),
+  personalData: false,
 });
 
 export const validatedRiskAnalysisFormFromTemplate3_0_Pa: RiskAnalysisValidatedForm =

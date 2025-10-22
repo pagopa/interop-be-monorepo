@@ -209,6 +209,7 @@ export const createPurposeFromTemplateErrorMapper = (
       "riskAnalysisAnswerNotInSuggestValues",
       "riskAnalysisVersionMismatch",
       "eServiceModeNotAllowed",
+      "invalidPersonalData",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
