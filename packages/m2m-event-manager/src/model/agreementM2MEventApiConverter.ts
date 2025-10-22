@@ -6,7 +6,7 @@ import {
 import { match } from "ts-pattern";
 
 function toApiAgreementM2MEventType(
-  eventType: AgreementM2MEventType,
+  eventType: AgreementM2MEventType
 ): m2mEventApi.AgreementM2MEvent["eventType"] {
   return match<
     AgreementM2MEventType,
@@ -22,59 +22,59 @@ function toApiAgreementM2MEventType(
     .with("AgreementArchivedByConsumer", () => "AGREEMENT_ARCHIVED_BY_CONSUMER")
     .with(
       "AgreementSuspendedByConsumer",
-      () => "AGREEMENT_SUSPENDED_BY_CONSUMER",
+      () => "AGREEMENT_SUSPENDED_BY_CONSUMER"
     )
     .with(
       "AgreementUnsuspendedByConsumer",
-      () => "AGREEMENT_UNSUSPENDED_BY_CONSUMER",
+      () => "AGREEMENT_UNSUSPENDED_BY_CONSUMER"
     )
     .with(
       "AgreementSuspendedByProducer",
-      () => "AGREEMENT_SUSPENDED_BY_PRODUCER",
+      () => "AGREEMENT_SUSPENDED_BY_PRODUCER"
     )
     .with(
       "AgreementUnsuspendedByProducer",
-      () => "AGREEMENT_UNSUSPENDED_BY_PRODUCER",
+      () => "AGREEMENT_UNSUSPENDED_BY_PRODUCER"
     )
     .with(
       "AgreementSuspendedByPlatform",
-      () => "AGREEMENT_SUSPENDED_BY_PLATFORM",
+      () => "AGREEMENT_SUSPENDED_BY_PLATFORM"
     )
     .with(
       "AgreementUnsuspendedByPlatform",
-      () => "AGREEMENT_UNSUSPENDED_BY_PLATFORM",
+      () => "AGREEMENT_UNSUSPENDED_BY_PLATFORM"
     )
     .with("AgreementArchivedByUpgrade", () => "AGREEMENT_ARCHIVED_BY_UPGRADE")
     .with(
       "AgreementConsumerDocumentAdded",
-      () => "AGREEMENT_CONSUMER_DOCUMENT_ADDED",
+      () => "AGREEMENT_CONSUMER_DOCUMENT_ADDED"
     )
     .with(
       "AgreementConsumerDocumentRemoved",
-      () => "AGREEMENT_CONSUMER_DOCUMENT_REMOVED",
+      () => "AGREEMENT_CONSUMER_DOCUMENT_REMOVED"
     )
     .with(
       "AgreementArchivedByRevokedDelegation",
-      () => "AGREEMENT_ARCHIVED_BY_REVOKED_DELEGATION",
+      () => "AGREEMENT_ARCHIVED_BY_REVOKED_DELEGATION"
     )
     .with(
       "AgreementDeletedByRevokedDelegation",
-      () => "AGREEMENT_DELETED_BY_REVOKED_DELEGATION",
+      () => "AGREEMENT_DELETED_BY_REVOKED_DELEGATION"
     )
     .with(
       "AgreementSetMissingCertifiedAttributesByPlatform",
-      () => "AGREEMENT_SET_MISSING_CERTIFIED_ATTRIBUTES_BY_PLATFORM",
+      () => "AGREEMENT_SET_MISSING_CERTIFIED_ATTRIBUTES_BY_PLATFORM"
     )
     .with(
       "AgreementSetDraftByPlatform",
-      () => "AGREEMENT_SET_DRAFT_BY_PLATFORM",
+      () => "AGREEMENT_SET_DRAFT_BY_PLATFORM"
     )
     .with("AgreementContractGenerated", () => "AGREEMENT_CONTRACT_GENERATED")
     .exhaustive();
 }
 
 function toApiAgreementM2MEvent(
-  event: AgreementM2MEvent,
+  event: AgreementM2MEvent
 ): m2mEventApi.AgreementM2MEvent {
   return {
     id: event.id,
@@ -87,7 +87,7 @@ function toApiAgreementM2MEvent(
 }
 
 export function toApiAgreementM2MEvents(
-  events: AgreementM2MEvent[],
+  events: AgreementM2MEvent[]
 ): m2mEventApi.AgreementM2MEvents {
   return {
     events: events.map(toApiAgreementM2MEvent),
