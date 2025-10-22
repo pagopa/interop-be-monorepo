@@ -15,7 +15,6 @@ import {
   EserviceTemplateHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  retrieveLatestPublishedEServiceTemplateVersion,
 } from "../handlerCommons.js";
 
 const notificationType: NotificationType = "templateStatusChangedToProducer";
@@ -25,6 +24,7 @@ export async function handleEServiceTemplateVersionSuspendedToCreator(
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     eserviceTemplateV2Msg,
+    eserviceTemplateVersionId,
     readModelService,
     logger,
     templateService,
@@ -72,9 +72,7 @@ export async function handleEServiceTemplateVersionSuspendedToCreator(
         title: "Hai sospeso un tuo template e-service",
         notificationType,
         entityId: EServiceTemplateIdEServiceTemplateVersionId.parse(
-          `${eserviceTemplate.id}/${
-            retrieveLatestPublishedEServiceTemplateVersion(eserviceTemplate).id
-          }`
+          `${eserviceTemplate.id}/${eserviceTemplateVersionId}`
         ),
         ...(t.type === "Tenant" ? { recipientName: creator.name } : {}),
         templateName: eserviceTemplate.name,
