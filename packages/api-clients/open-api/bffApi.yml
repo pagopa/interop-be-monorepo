@@ -2639,6 +2639,11 @@ paths:
           schema:
             type: boolean
         - in: query
+          name: personalData
+          description: if true only e-services that handle personal data will be returned, if false only non-personal data e-services will be returned, if not present all e-services will be returned
+          schema:
+            type: boolean
+        - in: query
           name: offset
           required: true
           schema:
@@ -11129,6 +11134,11 @@ paths:
           schema:
             type: boolean
             default: true
+        - in: query
+          name: handlesPersonalData
+          description: show purpose templates that handle personal data
+          schema:
+            type: boolean
         - in: query
           name: offset
           required: true
