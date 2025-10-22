@@ -35,6 +35,7 @@ export function inAppNotificationServiceBuilder(
   return {
     getNotifications: async (
       q: string | undefined,
+      notificationTypes: NotificationType[],
       limit: number,
       offset: number,
       {
@@ -50,7 +51,10 @@ export function inAppNotificationServiceBuilder(
           and(
             eq(notification.userId, userId),
             eq(notification.tenantId, organizationId),
-            q ? ilike(notification.body, `%${escapeRegExp(q)}%`) : undefined
+            q ? ilike(notification.body, `%${escapeRegExp(q)}%`) : undefined,
+            notificationTypes.length > 0
+              ? inArray(notification.notificationType, notificationTypes)
+              : undefined
           )
         )
         .orderBy(desc(notification.createdAt))
@@ -159,6 +163,27 @@ export function inAppNotificationServiceBuilder(
       if (!updated.length) {
         throw notificationNotFound(notificationId);
       }
+    },
+    markNotificationsAsReadByEntityId: async (
+      entityId: string,
+      {
+        logger,
+        authData: { userId, organizationId },
+      }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> => {
+      logger.info(`Marking notifications for entity ${entityId} as read`);
+
+      await db
+        .update(notification)
+        .set({ readAt: new Date().toISOString() })
+        .where(
+          and(
+            eq(notification.entityId, entityId),
+            eq(notification.userId, userId),
+            eq(notification.tenantId, organizationId),
+            isNull(notification.readAt)
+          )
+        );
     },
     deleteNotifications: async (
       notificationIds: NotificationId[],

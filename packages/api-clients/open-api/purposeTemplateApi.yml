@@ -98,6 +98,11 @@ paths:
             type: boolean
             default: true
         - in: query
+          name: handlesPersonalData
+          description: show purpose templates that handle personal data
+          schema:
+            type: boolean
+        - in: query
           name: offset
           required: true
           schema:
@@ -268,6 +273,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: The Purpose Template is not in Draft state
           content:
             application/problem+json:
               schema:
@@ -703,6 +714,68 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation/documents:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Add Document to Risk Analysis Answer Annotation
+      description: Add Answer Annotation Document to Risk Analysis of Purpose Template
+      operationId: addRiskAnalysisTemplateAnswerAnnotationDocument
+      tags:
+        - purposeTemplate
+      requestBody:
+        required: true
+        description: Annotation Document
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocumentSeed"
+      responses:
+        "200":
+          description: OK - Request successful. The response contains the created resource metadata (not the file)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationDocument"
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+          $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+          $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+          $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+          $ref: "#/components/schemas/Problem"
   /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -754,6 +827,124 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Risk analysis form template answer annotation document not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      tags:
+        - purposeTemplate
+      summary: Delete risk analysis form template answer annotation document
+      operationId: deleteRiskAnalysisTemplateAnswerAnnotationDocument
+      description: Delete a risk analysis form template answer annotation document
+      responses:
+        "204":
+          description: Risk analysis form template answer annotation document deleted
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Risk analysis form template answer annotation document not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags:
+        - purposeTemplate
+      summary: Add a risk analysis answer annotation
+      operationId: addRiskAnalysisAnswerAnnotationForPurposeTemplate
+      description: Add a risk analysis answer annotation. Only the text is impacted, the docs are not impacted.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotationText"
+        required: true
+      responses:
+        "200":
+          description: Risk Analysis Template Answer Annotation added.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisTemplateAnswerAnnotation"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template or Answer Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      tags:
+        - purposeTemplate
+      summary: Delete risk analysis form template answer annotation
+      operationId: deleteRiskAnalysisTemplateAnswerAnnotation
+      description: Delete a risk analysis form template answer annotation and the related files
+      responses:
+        "204":
+          description: Risk analysis form template answer annotation deleted
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Risk analysis form template answer annotation not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -825,6 +1016,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        handlesPersonalData:
+          type: boolean
       required:
         - id
         - targetDescription
@@ -835,6 +1028,7 @@ components:
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
+        - handlesPersonalData
     PurposeTemplateSeed:
       type: object
       additionalProperties: false
@@ -864,12 +1058,15 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        handlesPersonalData:
+          type: boolean
       required:
         - targetDescription
         - targetTenantKind
         - purposeTitle
         - purposeDescription
         - purposeIsFreeOfCharge
+        - handlesPersonalData
     PurposeTemplateState:
       type: string
       description: Purpose Template State
@@ -986,6 +1183,16 @@ components:
         - values
         - editable
         - suggestedValues
+    RiskAnalysisTemplateAnswerAnnotationText:
+      type: object
+      additionalProperties: false
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 250
+      required:
+        - text
     RiskAnalysisTemplateAnswerAnnotationSeed:
       type: object
       additionalProperties: false
@@ -1004,15 +1211,22 @@ components:
       type: object
       additionalProperties: false
       properties:
-        name:
+        documentId:
           type: string
-        contentType:
+          format: uuid
+        name:
           type: string
         prettyName:
           type: string
         path:
           type: string
+        contentType:
+          type: string
+        checksum:
+          type: string
       required:
+        - documentId
+        - checksum
         - name
         - contentType
         - prettyName
@@ -1077,6 +1291,8 @@ components:
           type: string
         path:
           type: string
+        checksum:
+          type: string
         createdAt:
           type: string
           format: date-time
@@ -1086,6 +1302,7 @@ components:
         - contentType
         - prettyName
         - path
+        - checksum
         - createdAt
     RiskAnalysisTemplateAnswerRequest:
       type: object

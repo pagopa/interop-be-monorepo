@@ -1,11 +1,15 @@
 import {
   AuthorizationEventV2,
   EmailNotificationMessagePayload,
+  EServiceId,
+  PurposeId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
-
-// const interopFeBaseUrl = config.interopFeBaseUrl;
+import { handleClientPurposeAdded } from "./handleClientPurposeAddedEvent.js";
+import { handleClientPurposeRemoved } from "./handleClientPurposeRemovedEvent.js";
+import { handleProducerKeychainEserviceAdded } from "./handleProducerKeychainEserviceAdded.js";
 
 export async function handleAuthorizationEvent(
   params: HandlerParams<typeof AuthorizationEventV2>
@@ -13,12 +17,44 @@ export async function handleAuthorizationEvent(
   const {
     decodedMessage,
     logger,
-    // readModelService,
-    // templateService,
-    // userService,
-    // correlationId,
+    readModelService,
+    templateService,
+    userService,
+    correlationId,
   } = params;
   return match(decodedMessage)
+    .with(
+      { type: "ProducerKeychainEServiceAdded" },
+      ({ data: { eserviceId } }) =>
+        handleProducerKeychainEserviceAdded({
+          eserviceId: unsafeBrandId<EServiceId>(eserviceId),
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })
+    )
+    .with({ type: "ClientPurposeAdded" }, ({ data: { purposeId } }) =>
+      handleClientPurposeAdded({
+        purposeId: unsafeBrandId<PurposeId>(purposeId),
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
+    .with({ type: "ClientPurposeRemoved" }, ({ data: { purposeId } }) =>
+      handleClientPurposeRemoved({
+        purposeId: unsafeBrandId<PurposeId>(purposeId),
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
     .with(
       {
         type: P.union(
@@ -29,17 +65,14 @@ export async function handleAuthorizationEvent(
           "ClientKeyDeleted",
           "ClientUserAdded",
           "ClientUserDeleted",
-          "ClientPurposeAdded",
-          "ClientPurposeRemoved",
           "ClientAdminRoleRevoked",
           "ClientAdminRemoved",
           "ProducerKeychainAdded",
-          "ProducerKeychainDeleted",
           "ProducerKeychainKeyAdded",
+          "ProducerKeychainDeleted",
           "ProducerKeychainKeyDeleted",
           "ProducerKeychainUserAdded",
           "ProducerKeychainUserDeleted",
-          "ProducerKeychainEServiceAdded",
           "ProducerKeychainEServiceRemoved"
         ),
       },

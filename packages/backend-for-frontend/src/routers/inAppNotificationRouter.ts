@@ -27,11 +27,12 @@ const inAppNotificationRouter = (
     .get("/inAppNotifications", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
-      const { q, offset, limit } = req.query;
+      const { q, offset, limit, category } = req.query;
 
       try {
         const notifications = await inAppNotificationService.getNotifications(
           q,
+          category,
           offset,
           limit,
           ctx
@@ -133,6 +134,27 @@ const inAppNotificationRouter = (
             emptyErrorMapper,
             ctx,
             "Error marking notification as unread"
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/inAppNotifications/markAsReadByEntityId/:entityId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        const { entityId } = req.params;
+
+        try {
+          await inAppNotificationService.markAsReadByEntityId(entityId, ctx);
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            "Error marking in-app notifications as read by entity id"
           );
           return res.status(errorRes.status).send(errorRes);
         }

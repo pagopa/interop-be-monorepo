@@ -55,6 +55,15 @@ export function toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDesc
   };
 }
 
+export function toCompactPurposeTemplate(
+  purposeTemplate: purposeTemplateApi.PurposeTemplate
+): bffApi.CompactPurposeTemplate {
+  return {
+    id: purposeTemplate.id,
+    purposeTitle: purposeTemplate.purposeTitle,
+  };
+}
+
 export function toBffPurposeTemplateWithCompactCreator(
   purposeTemplate: purposeTemplateApi.PurposeTemplate,
   creator: tenantApi.Tenant,
@@ -74,6 +83,7 @@ export function toBffPurposeTemplateWithCompactCreator(
     purposeFreeOfChargeReason: purposeTemplate.purposeFreeOfChargeReason,
     purposeDailyCalls: purposeTemplate.purposeDailyCalls,
     creator: toBffCompactOrganization(creator),
+    handlesPersonalData: purposeTemplate.handlesPersonalData,
     annotationDocuments,
   };
 }

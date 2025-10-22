@@ -24,9 +24,7 @@
       "
     >
       <!-- H4 Desktop (from MUI Italia)-->
-      <h1 style="font-size: 32px; line-height: 40px; margin: 0">
-        Richiesta di adeguamento stima di carico sopra soglia
-      </h1>
+      <h1 style="font-size: 32px; line-height: 40px; margin: 0">{{ title }}</h1>
     </div>
   </td>
 </tr>
@@ -54,7 +52,10 @@
         color: #17324d;
       "
     >
-      <p style="margin-bottom: 0px">Gentile aderente,</p>
+      <p style="margin-bottom: 0px">
+        Gentile
+        <strong>{{ preservePlaceholderIfMissing "recipientName" }}</strong>,
+      </p>
     </div>
   </td>
 </tr>
@@ -76,13 +77,9 @@
     >
       <!-- Body 1 Desktop (from MUI Italia)-->
       <p>
-        Ti informiamo che è stato richiesto un adeguamento della stima di carico
-        per la finalità
-        <strong>{{ purposeName }}</strong>
-        associata a
-        <strong>{{ eserviceName }}</strong>,
+        L'ente {{ consumerName }} ha disassociato un proprio client dalla
+        finalità "{{ purposeTitle }}" per il tuo e-service "{{ eserviceName }}".
       </p>
-      <p>Controlla la finalità per accettare o rifiutare la richiesta.</p>
     </div>
   </td>
 </tr>

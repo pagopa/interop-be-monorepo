@@ -1,12 +1,15 @@
 /* eslint-disable max-params */
-import { FileManager, Logger } from "pagopa-interop-commons";
+import {
+  FileManager,
+  Logger,
+  SafeStorageService,
+  SignatureServiceBuilder,
+} from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
 import { uploadPreparedFileToS3 } from "../handlers/s3UploaderHandler.js";
 import { archiveFileToSafeStorage } from "../handlers/safeStorageArchivingHandler.js";
 import { AllEventData } from "../models/eventTypes.js";
-import { DbServiceBuilder } from "../services/dbService.js";
-import { SafeStorageService } from "../services/safeStorageService.js";
-import { config, safeStorageApiConfig } from "../config/config.js";
+import { config } from "../config/config.js";
 import { prepareNdjsonEventData } from "./ndjsonStore.js";
 
 /**
@@ -16,7 +19,7 @@ import { prepareNdjsonEventData } from "./ndjsonStore.js";
  * @param allEventsToStore An array of event data.
  * @param loggerInstance A logger instance.
  * @param fileManager A file manager instance.
- * @param dbService The database service.
+ * @param signatureService The database service.
  * @param safeStorage The safe storage service.
  * @param correlationId A unique identifier for the request.
  */
@@ -25,7 +28,7 @@ export async function processAndArchiveFiles<T extends AllEventData>(
   allEventsToStore: T[],
   loggerInstance: Logger,
   fileManager: FileManager,
-  dbService: DbServiceBuilder,
+  signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService,
   correlationId: string
 ) {
@@ -52,9 +55,9 @@ export async function processAndArchiveFiles<T extends AllEventData>(
       await archiveFileToSafeStorage(
         result,
         loggerInstance,
-        dbService,
+        signatureService,
         safeStorage,
-        safeStorageApiConfig,
+        config,
         correlationId
       );
     }

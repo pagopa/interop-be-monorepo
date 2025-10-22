@@ -36,6 +36,7 @@ export const splitPurposeTemplateIntoObjectsSQL = (
     purposeIsFreeOfCharge,
     purposeFreeOfChargeReason,
     purposeDailyCalls,
+    handlesPersonalData,
     ...rest
   }: PurposeTemplate,
   version: number
@@ -56,6 +57,7 @@ export const splitPurposeTemplateIntoObjectsSQL = (
     purposeIsFreeOfCharge,
     purposeFreeOfChargeReason: purposeFreeOfChargeReason ?? null,
     purposeDailyCalls: purposeDailyCalls ?? null,
+    handlesPersonalData,
   };
 
   const splitPurposeRiskAnalysisSQL =
@@ -301,6 +303,7 @@ const splitRiskAnalysisTemplateAnswerAnnotationsIntoObjectsSQL = (
           name: doc.name,
           prettyName: doc.prettyName,
           contentType: doc.contentType,
+          checksum: doc.checksum,
           path: doc.path,
           createdAt: dateToString(doc.createdAt),
         }))

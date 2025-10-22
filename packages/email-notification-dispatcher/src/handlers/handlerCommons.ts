@@ -9,13 +9,18 @@ import {
   NotificationConfig,
   NotificationType,
   PurposeV2,
+  ProducerKeychainV2,
+  Purpose,
+  PurposeId,
   Tenant,
   TenantId,
   tenantMailKind,
   TenantV2,
   UserId,
+  EServiceId,
 } from "pagopa-interop-models";
 import { getLatestTenantMailOfKind, Logger } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { UserServiceSQL } from "../services/userServiceSQL.js";
 import { HandlerCommonParams } from "../models/handlerParams.js";
@@ -23,6 +28,7 @@ import {
   attributeNotFound,
   certifierTenantNotFound,
   eServiceNotFound,
+  purposeNotFound,
 } from "../models/errors.js";
 
 export type AgreementHandlerParams = HandlerCommonParams & {
@@ -31,6 +37,15 @@ export type AgreementHandlerParams = HandlerCommonParams & {
 
 export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
+};
+
+export type EServiceNameUpdatedHandlerParams = HandlerCommonParams & {
+  eserviceV2Msg?: EServiceV2;
+  oldName?: string;
+};
+
+export type ClientPurposeHandlerParams = HandlerCommonParams & {
+  purposeId: PurposeId;
 };
 
 export type PurposeHandlerParams = HandlerCommonParams & {
@@ -44,6 +59,11 @@ export type TenantHandlerParams = HandlerCommonParams & {
 
 export type DelegationHandlerParams = HandlerCommonParams & {
   delegationV2Msg?: DelegationV2;
+};
+
+export type ProducerKeychainEServiceHandlerParams = HandlerCommonParams & {
+  producerKeychainV2Msg?: ProducerKeychainV2;
+  eserviceId: EServiceId;
 };
 
 type TenantEmailNotificationRecipient = {
@@ -92,6 +112,17 @@ export async function retrieveAgreementEservice(
   }
 
   return eservice;
+}
+
+export async function retrievePurpose(
+  purposeId: PurposeId,
+  readModelService: ReadModelServiceSQL
+): Promise<Purpose> {
+  const purpose = await readModelService.getPurposeById(purposeId);
+  if (!purpose) {
+    throw purposeNotFound(purposeId);
+  }
+  return purpose;
 }
 
 export async function retrieveAttribute(
@@ -200,3 +231,17 @@ export const getRecipientsForTenants = async ({
 
   return [...userRecipients, ...tenantRecipients];
 };
+
+export const mapRecipientToEmailPayload = (
+  recipient: EmailNotificationRecipient
+): { type: "User"; userId: UserId } | { type: "Tenant"; address: string } =>
+  match(recipient)
+    .with({ type: "User" }, ({ type, userId }) => ({
+      type,
+      userId,
+    }))
+    .with({ type: "Tenant" }, ({ type, address }) => ({
+      type,
+      address,
+    }))
+    .exhaustive();

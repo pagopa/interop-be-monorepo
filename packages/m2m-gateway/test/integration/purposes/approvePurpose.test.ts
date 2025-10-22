@@ -81,6 +81,7 @@ describe("approvePurposeVersion", () => {
       updatedAt: mockApiPurpose.data.updatedAt,
       waitingForApprovalVersion: mockApiPurposeVersion1,
       rejectedVersion: mockApiPurposeVersion2,
+      purposeTemplateId: mockApiPurpose.data.purposeTemplateId,
     };
 
     const purpose = await purposeService.approvePurpose(

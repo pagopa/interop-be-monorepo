@@ -6,6 +6,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotation,
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -27,10 +28,12 @@ export type RiskAnalysisTemplateValidatedAnswerAnnotation = {
 };
 
 export type RiskAnalysisTemplateAnswerAnnotationDocument = {
+  documentId: string;
   name: string;
   contentType: string;
   prettyName: string;
   path: string;
+  checksum: string;
 };
 
 export type RiskAnalysisTemplateValidatedForm = {
@@ -170,8 +173,8 @@ function mapAnnotation(
     id: generateId(),
     text: annotation.text,
     docs: annotation.docs.map((d) => ({
-      id: generateId(),
       ...d,
+      id: unsafeBrandId(d.documentId),
       createdAt: new Date(),
     })),
   };
