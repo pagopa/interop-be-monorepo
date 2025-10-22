@@ -932,7 +932,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: Delegation not found
+          description: Agreement not found
           content:
             application/problem+json:
               schema:
