@@ -10,7 +10,12 @@ import {
   validateAuthorization,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DelegationContractDocument,
+  EServiceId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import {
   apiDelegationKindToDelegationKind,
   apiDelegationStateToDelegationState,
@@ -40,6 +45,7 @@ const {
   M2M_ROLE,
   SUPPORT_ROLE,
   M2M_ADMIN_ROLE,
+  INTERNAL_ROLE,
 } = authRole;
 
 const delegationRouter = (
@@ -174,7 +180,37 @@ const delegationRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/internal/delegations/:delegationId/contract", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      const { delegationId } = req.params;
+      const delegationContract = DelegationContractDocument.parse(req.body);
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        const { data, metadata } =
+          await delegationService.internalAddDelegationContract(
+            unsafeBrandId(delegationId),
+            delegationContract,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          approveDelegationErrorMapper,
+          ctx
+        );
+
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   const delegationProducerRouter = ctx.router(delegationApi.producerApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,

@@ -31,7 +31,8 @@ export async function handleDelegationMessageV2(
             "ConsumerDelegationSubmitted",
             "ConsumerDelegationApproved",
             "ConsumerDelegationRejected",
-            "ConsumerDelegationRevoked"
+            "ConsumerDelegationRevoked",
+            "DelegationContractGenerated"
           ),
         },
         async (msg) => {
