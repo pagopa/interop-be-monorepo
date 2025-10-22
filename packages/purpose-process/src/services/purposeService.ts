@@ -1783,6 +1783,7 @@ export function purposeServiceBuilder(
       );
 
       const purpose = await retrievePurpose(purposeId, readModelService);
+      const lastDraftVersion = retrieveDraftPurposeVersion(purpose.data);
       assertPurposeIsDraft(purpose.data);
 
       await verifyRequesterIsConsumerOrDelegateConsumer(
@@ -1796,8 +1797,6 @@ export function purposeServiceBuilder(
         purposeTemplateId,
         readModelService
       );
-
-      const lastDraftVersion = retrieveDraftPurposeVersion(purpose.data);
 
       if (purposeUpdateContent.title) {
         await assertPurposeTitleIsNotDuplicated({
