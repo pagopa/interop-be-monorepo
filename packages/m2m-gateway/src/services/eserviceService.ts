@@ -181,7 +181,7 @@ export function eserviceServiceBuilder(
 
     const newGroupIndex = descriptor.attributes[attributeKind].length;
 
-    const newAttributeGroups = [
+    const newKindAttributeGroups = [
       ...descriptor.attributes[attributeKind],
       seed.attributeIds.map((id) => ({
         id,
@@ -191,7 +191,7 @@ export function eserviceServiceBuilder(
 
     const newAttributes = {
       ...descriptor.attributes,
-      [attributeKind]: newAttributeGroups,
+      [attributeKind]: newKindAttributeGroups,
     };
 
     const response =
@@ -268,14 +268,14 @@ export function eserviceServiceBuilder(
     const updatedGroups =
       attributeGroupWithoutAttribute.length === 0
         ? [
-            ...kindAttributeGroups.slice(0, groupIndex),
-            ...kindAttributeGroups.slice(groupIndex + 1),
-          ]
+          ...kindAttributeGroups.slice(0, groupIndex),
+          ...kindAttributeGroups.slice(groupIndex + 1),
+        ]
         : [
-            ...kindAttributeGroups.slice(0, groupIndex),
-            attributeGroupWithoutAttribute,
-            ...kindAttributeGroups.slice(groupIndex + 1),
-          ];
+          ...kindAttributeGroups.slice(0, groupIndex),
+          attributeGroupWithoutAttribute,
+          ...kindAttributeGroups.slice(groupIndex + 1),
+        ];
 
     const response =
       await clients.catalogProcessClient.patchUpdateDraftDescriptor(

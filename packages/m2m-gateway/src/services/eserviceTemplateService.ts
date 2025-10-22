@@ -209,7 +209,7 @@ export function eserviceTemplateServiceBuilder(
     // Get the new group index (will be the length of current groups)
     const newGroupIndex = version.attributes[attributeKind].length;
     // Create the new attributes structure with the new group
-    const newAttributeGroups = [
+    const newKindAttributeGroups = [
       ...version.attributes[attributeKind],
       seed.attributeIds.map((id) => ({
         id,
@@ -218,7 +218,7 @@ export function eserviceTemplateServiceBuilder(
     ];
     const newAttributes = {
       ...version.attributes,
-      [attributeKind]: newAttributeGroups,
+      [attributeKind]: newKindAttributeGroups,
     };
 
     // Update the version with the new attributes

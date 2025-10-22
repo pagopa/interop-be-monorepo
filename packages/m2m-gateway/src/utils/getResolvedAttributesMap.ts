@@ -23,7 +23,5 @@ export async function getResolvedAttributesMap(
       },
     }
   );
-
-  // Converte l'array di risultati in una Map per una ricerca efficiente
   return new Map(bulkResult.data.results.map((attr) => [attr.id, attr]));
 }
