@@ -406,6 +406,9 @@ export async function setupTestContainersVitest(
       await analyticsPostgresDB?.none(
         "TRUNCATE TABLE domains.eservice_template CASCADE"
       );
+      await analyticsPostgresDB?.none(
+        "TRUNCATE TABLE domains.purpose_template CASCADE"
+      );
 
       // CLEANUP USER-SQL TABLES
       await userDB?.execute(`TRUNCATE TABLE "user"."user" CASCADE`);

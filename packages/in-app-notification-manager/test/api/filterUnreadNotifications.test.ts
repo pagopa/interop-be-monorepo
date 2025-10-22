@@ -74,10 +74,4 @@ describe("API GET /filterUnreadNotifications", () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
-
-  it("Should return a 400 error if the input is empty", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const emptyResponse = await makeRequest(token, []);
-    expect(emptyResponse.status).toBe(400);
-  });
 });

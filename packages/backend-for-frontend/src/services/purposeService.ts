@@ -18,6 +18,7 @@ import {
   bffApi,
   catalogApi,
   purposeApi,
+  purposeTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -38,6 +39,7 @@ import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
+import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { isAgreementUpgradable } from "./validators.js";
@@ -108,6 +110,7 @@ export const getCurrentVersion = (
 export function purposeServiceBuilder(
   {
     purposeProcessClient,
+    purposeTemplateProcessClient,
     catalogProcessClient,
     tenantProcessClient,
     agreementProcessClient,
@@ -124,6 +127,7 @@ export function purposeServiceBuilder(
     eservices: catalogApi.EService[],
     producers: tenantApi.Tenant[],
     consumers: tenantApi.Tenant[],
+    purposeTemplate: purposeTemplateApi.PurposeTemplate | undefined,
     headers: Headers,
     correlationId: CorrelationId,
     notifications: string[]
@@ -252,6 +256,9 @@ export function purposeServiceBuilder(
       rejectedVersion:
         rejectedVersion && toBffApiPurposeVersion(rejectedVersion),
       delegation,
+      purposeTemplate: purposeTemplate
+        ? toCompactPurposeTemplate(purposeTemplate)
+        : undefined,
     };
   };
 
@@ -318,19 +325,40 @@ export function purposeServiceBuilder(
     );
 
     const notifications = await notificationPromise;
+    const purposeTemplatesById = new Map<
+      string,
+      purposeTemplateApi.PurposeTemplate
+    >();
     const results = await Promise.all(
-      purposes.results.map((p) =>
-        enhancePurpose(
+      purposes.results.map(async (p) => {
+        const purposeTemplateId = p.purposeTemplateId;
+        const purposeTemplate = purposeTemplateId
+          ? purposeTemplatesById.get(purposeTemplateId) ||
+            (await purposeTemplateProcessClient
+              .getPurposeTemplate({
+                params: {
+                  id: purposeTemplateId,
+                },
+                headers,
+              })
+              .then((pt) => {
+                purposeTemplatesById.set(purposeTemplateId, pt);
+                return pt;
+              }))
+          : undefined;
+
+        return await enhancePurpose(
           authData,
           p,
           eservices,
           producers,
           consumers,
+          purposeTemplate,
           headers,
           correlationId,
           notifications
-        )
-      )
+        );
+      })
     );
 
     return {
@@ -724,12 +752,22 @@ export function purposeServiceBuilder(
 
       const notification = await notificationPromise;
 
+      const purposeTemplate = purpose.purposeTemplateId
+        ? await purposeTemplateProcessClient.getPurposeTemplate({
+            params: {
+              id: purpose.purposeTemplateId,
+            },
+            headers,
+          })
+        : undefined;
+
       return await enhancePurpose(
         authData,
         purpose,
         [eservice],
         [producer],
         [consumer],
+        purposeTemplate,
         headers,
         correlationId,
         notification

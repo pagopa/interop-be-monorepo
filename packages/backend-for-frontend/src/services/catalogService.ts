@@ -343,9 +343,10 @@ export function catalogServiceBuilder(
         mode,
         agreementStates,
         isConsumerDelegable,
+        personalData,
       } = queries;
       ctx.logger.info(
-        `Retrieving EServices for name = ${name}, producersIds = ${producersIds}, attributesIds = ${attributesIds}, states = ${states}, agreementStates = ${agreementStates}, isConsumerDelegable = ${isConsumerDelegable}, mode = ${mode}, offset = ${offset}, limit = ${limit}`
+        `Retrieving EServices for name = ${name}, producersIds = ${producersIds}, attributesIds = ${attributesIds}, states = ${states}, agreementStates = ${agreementStates}, isConsumerDelegable = ${isConsumerDelegable}, mode = ${mode}, personalData = ${personalData}, offset = ${offset}, limit = ${limit}`
       );
       const requesterId = ctx.authData.organizationId;
       const eservicesResponse: catalogApi.EServices =

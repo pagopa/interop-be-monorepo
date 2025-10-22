@@ -60,10 +60,11 @@ export const notificationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
 
-        const { limit, offset, q, unread } = req.query;
+        const { limit, offset, q, unread, notificationTypes } = req.query;
         const { results, totalCount } = await service.getNotifications(
           q,
           unread,
+          notificationTypes,
           limit,
           offset,
           ctx

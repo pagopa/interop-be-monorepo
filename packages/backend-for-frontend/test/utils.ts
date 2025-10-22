@@ -186,7 +186,7 @@ export const expectedUserIdAndOrganizationId = (
   });
 
 export const getMockNotification = (
-  notificationType: string,
+  notificationType: inAppNotificationApi.NotificationType,
   entityId: string = "test-entity-id"
 ): inAppNotificationApi.Notification => ({
   id: "notification-id",
