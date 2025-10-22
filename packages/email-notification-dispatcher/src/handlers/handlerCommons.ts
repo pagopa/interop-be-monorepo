@@ -9,6 +9,7 @@ import {
   NotificationConfig,
   NotificationType,
   PurposeV2,
+  ProducerKeychainV2,
   Purpose,
   PurposeId,
   Tenant,
@@ -16,8 +17,10 @@ import {
   tenantMailKind,
   TenantV2,
   UserId,
+  EServiceId,
 } from "pagopa-interop-models";
 import { getLatestTenantMailOfKind, Logger } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { UserServiceSQL } from "../services/userServiceSQL.js";
 import { HandlerCommonParams } from "../models/handlerParams.js";
@@ -36,6 +39,11 @@ export type EServiceHandlerParams = HandlerCommonParams & {
   eserviceV2Msg?: EServiceV2;
 };
 
+export type EServiceNameUpdatedHandlerParams = HandlerCommonParams & {
+  eserviceV2Msg?: EServiceV2;
+  oldName?: string;
+};
+
 export type ClientPurposeHandlerParams = HandlerCommonParams & {
   purposeId: PurposeId;
 };
@@ -51,6 +59,11 @@ export type TenantHandlerParams = HandlerCommonParams & {
 
 export type DelegationHandlerParams = HandlerCommonParams & {
   delegationV2Msg?: DelegationV2;
+};
+
+export type ProducerKeychainEServiceHandlerParams = HandlerCommonParams & {
+  producerKeychainV2Msg?: ProducerKeychainV2;
+  eserviceId: EServiceId;
 };
 
 type TenantEmailNotificationRecipient = {
@@ -218,3 +231,17 @@ export const getRecipientsForTenants = async ({
 
   return [...userRecipients, ...tenantRecipients];
 };
+
+export const mapRecipientToEmailPayload = (
+  recipient: EmailNotificationRecipient
+): { type: "User"; userId: UserId } | { type: "Tenant"; address: string } =>
+  match(recipient)
+    .with({ type: "User" }, ({ type, userId }) => ({
+      type,
+      userId,
+    }))
+    .with({ type: "Tenant" }, ({ type, address }) => ({
+      type,
+      address,
+    }))
+    .exhaustive();
