@@ -75,7 +75,8 @@ export async function handleDelegationDocument(
           "ProducerDelegationRevoked",
           "ConsumerDelegationSubmitted",
           "ConsumerDelegationRejected",
-          "ConsumerDelegationRevoked"
+          "ConsumerDelegationRevoked",
+          "DelegationContractGenerated"
         ),
       },
       () => Promise.resolve()
