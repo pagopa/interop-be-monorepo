@@ -1193,6 +1193,7 @@ export const getMockBffApiPurposeTemplateWithCompactCreator =
     annotationDocuments: generateMock(
       z.array(bffApi.RiskAnalysisTemplateAnswerAnnotationDocument)
     ),
+    handlesPersonalData: false,
   });
 
 export const getMockBffApiPurposeTemplate = (
