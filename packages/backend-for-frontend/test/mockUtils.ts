@@ -1065,6 +1065,7 @@ export const getMockBffApiNotification = (): bffApi.Notification => ({
   userId: generateId(),
   tenantId: generateId(),
   body: generateMock(z.string()),
+  category: generateMock(z.string()),
   deepLink: generateMock(z.string()),
   readAt: generateMock(z.string().datetime({ offset: true }).nullable()),
   createdAt: generateMock(z.string().datetime({ offset: true })),

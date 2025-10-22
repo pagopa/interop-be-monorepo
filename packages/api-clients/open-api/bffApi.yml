@@ -22305,6 +22305,16 @@ paths:
           schema:
             type: string
         - in: query
+          name: category
+          description: Category to filter notifications
+          schema:
+            type: string
+            enum:
+              - Subscribers
+              - Providers
+              - Delegations
+              - AttributesAndKeys
+        - in: query
           name: offset
           required: true
           schema:
@@ -28124,6 +28134,9 @@ components:
         deepLink:
           type: string
           description: Deep link to the notification
+        category:
+          type: string
+          description: Category of the notification
         readAt:
           type: string
           format: date-time
@@ -28139,6 +28152,7 @@ components:
         - tenantId
         - body
         - deepLink
+        - category
         - createdAt
     NotificationConfig:
       type: object
