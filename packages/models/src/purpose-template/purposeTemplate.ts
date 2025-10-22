@@ -44,5 +44,6 @@ export const PurposeTemplate = z.object({
   purposeIsFreeOfCharge: z.boolean(),
   purposeFreeOfChargeReason: z.string().optional(),
   purposeDailyCalls: z.number().optional(),
+  handlesPersonalData: z.boolean(),
 });
 export type PurposeTemplate = z.infer<typeof PurposeTemplate>;
