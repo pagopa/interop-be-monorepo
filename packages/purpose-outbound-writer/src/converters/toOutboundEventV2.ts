@@ -52,6 +52,8 @@ function toOutboundPurposeV2(
     ...purpose,
     versions: purpose.versions.map(toOutboundPurposeVersionV2),
     riskAnalysisForm: undefined,
+    // TODO: to be removed after changes to interop-outbound-models
+    purposeTemplateId: undefined,
   };
 }
 
