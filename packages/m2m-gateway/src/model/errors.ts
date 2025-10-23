@@ -381,7 +381,7 @@ export function eserviceTemplateVersionAttributeNotFound(
   versionId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Attribute not found for version ${versionId}`,
+    detail: `Attribute not found for eservice template version ${versionId}`,
     code: "eserviceTemplateVersionAttributeNotFound",
     title: "E-Service Template Version Attribute Not Found",
   });
