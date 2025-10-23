@@ -3,6 +3,7 @@ import {
   FileManager,
   removeDuplicates,
   UIAuthData,
+  assertFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -416,6 +417,7 @@ export function purposeServiceBuilder(
       seed: bffApi.PurposeFromTemplateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       logger.info(
         `Creating purpose from template ${templateId} and consumer ${seed.consumerId}`
       );
@@ -723,6 +725,7 @@ export function purposeServiceBuilder(
       seed: bffApi.PatchPurposeUpdateFromTemplateContent,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       logger.info(`Updating Purpose ${id} created from template ${templateId}`);
 
       const updatedPurpose =
