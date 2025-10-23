@@ -1,11 +1,11 @@
 meta {
-  name: Assign EService descriptor group attributes
+  name: Assign eservice descriptor declared attributes to group
   type: http
-  seq: 36
+  seq: 37
 }
 
 post {
-  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/verifiedAttributes/groups/:groupIndex/attributes
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/declaredAttributes/groups/:groupIndex/attributes
   body: json
   auth: none
 }
