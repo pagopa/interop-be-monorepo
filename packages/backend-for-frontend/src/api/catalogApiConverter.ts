@@ -49,6 +49,7 @@ export function toBffCatalogApiEService(
   eservice: catalogApi.EService,
   producerTenant: tenantApi.Tenant,
   isRequesterEqProducer: boolean,
+  hasNotifications: boolean,
   activeDescriptor?: catalogApi.EServiceDescriptor,
   agreement?: agreementApi.Agreement
 ): bffApi.CatalogEService {
@@ -84,6 +85,7 @@ export function toBffCatalogApiEService(
           },
         }
       : {}),
+    hasUnreadNotifications: hasNotifications,
   };
 }
 

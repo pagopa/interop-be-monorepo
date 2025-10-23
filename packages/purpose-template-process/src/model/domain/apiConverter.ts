@@ -105,7 +105,7 @@ export const multiAnswersToApiMultiAnswers = (
   responseValue: purposeTemplateApi.RiskAnalysisTemplateAnswer;
 }> =>
   multiAnswers.map((answer: RiskAnalysisTemplateMultiAnswer) => ({
-    responseKey: answer.id,
+    responseKey: answer.key,
     responseValue: {
       id: answer.id,
       values: answer.values,
@@ -125,7 +125,7 @@ export const singleAnswersToApiSingleAnswers = (
   responseValue: purposeTemplateApi.RiskAnalysisTemplateAnswer;
 }> =>
   singleAnswers.map((answer: RiskAnalysisTemplateSingleAnswer) => ({
-    responseKey: answer.id,
+    responseKey: answer.key,
     responseValue: {
       id: answer.id,
       values: answer.value ? [answer.value] : [],
@@ -150,13 +150,6 @@ export const purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation
         }
       : undefined;
 
-export const annotationDocumentToApiAnnotationDocument = (
-  annotationDocument: RiskAnalysisTemplateAnswerAnnotationDocument
-): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument => ({
-  ...annotationDocument,
-  createdAt: annotationDocument.createdAt.toJSON(),
-});
-
 export const eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate =
   (
     eserviceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate
@@ -164,3 +157,10 @@ export const eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemp
     ...eserviceDescriptorPurposeTemplate,
     createdAt: eserviceDescriptorPurposeTemplate.createdAt.toJSON(),
   });
+
+export const annotationDocumentToApiAnnotationDocument = (
+  annotationDocument: RiskAnalysisTemplateAnswerAnnotationDocument
+): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument => ({
+  ...annotationDocument,
+  createdAt: annotationDocument.createdAt.toJSON(),
+});

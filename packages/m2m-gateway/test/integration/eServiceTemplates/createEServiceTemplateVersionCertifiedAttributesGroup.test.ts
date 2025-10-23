@@ -339,9 +339,17 @@ describe("createEServiceTemplateVersionCertifiedAttributesGroup", () => {
     const mockEserviceTemplateResponse = getMockWithMetadata(
       eserviceTemplateWithVersionWithoutAttribute
     );
-    const mockGetEServiceTemplateById = vi
+
+    const mockGetEServiceTemplateById = vi.fn();
+
+    mockGetEServiceTemplateById.mockImplementation(
+      mockPollingResponse(mockEserviceTemplateResponse, 3)
+    );
+
+    const mockPatchUpdateDraftTemplateVersion = vi
       .fn()
       .mockResolvedValue(mockEserviceTemplateResponse);
+
     const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
       data: {
         results: [],

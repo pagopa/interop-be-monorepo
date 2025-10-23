@@ -15,6 +15,7 @@ import {
   CatalogProcessClient,
   DelegationProcessClient,
   EServiceTemplateProcessClient,
+  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
@@ -39,6 +40,8 @@ describe("exportEServiceDescriptor", () => {
   const mockAgreementProcessClient = {} as unknown as AgreementProcessClient;
   const mockAttributeProcessClient = {} as unknown as AttributeProcessClient;
   const mockDelegationProcessClient = {} as unknown as DelegationProcessClient;
+  const mockInAppNotificationManagerClient =
+    {} as unknown as InAppNotificationManagerClient;
   const mockEServiceTemplateProcessClient =
     {} as unknown as EServiceTemplateProcessClient;
 
@@ -111,6 +114,7 @@ describe("exportEServiceDescriptor", () => {
         mockAttributeProcessClient,
         mockDelegationProcessClient,
         mockEServiceTemplateProcessClient,
+        mockInAppNotificationManagerClient,
         fileManager,
         config
       ),

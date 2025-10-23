@@ -132,6 +132,7 @@ export const purposeToApiPurpose = (
   isRiskAnalysisValid,
   isFreeOfCharge: purpose.isFreeOfCharge,
   freeOfChargeReason: purpose.freeOfChargeReason,
+  purposeTemplateId: purpose.purposeTemplateId,
 });
 
 export const localizedTextToApiLocalizedText = (

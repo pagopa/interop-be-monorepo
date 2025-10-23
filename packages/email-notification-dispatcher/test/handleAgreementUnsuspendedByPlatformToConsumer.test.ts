@@ -9,10 +9,13 @@ import {
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   CorrelationId,
+  EService,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
+  Tenant,
   TenantId,
   toAgreementV2,
   UserId,
@@ -37,15 +40,14 @@ describe("handleAgreementUnsuspendedByPlatformToConsumer", async () => {
   const eserviceId = generateId<EServiceId>();
 
   const descriptor = getMockDescriptorPublished();
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
-    consumerId,
     descriptors: [descriptor],
   };
   const producerTenant = getMockTenant(producerId);
-  const consumerTenant = {
+  const consumerTenant: Tenant = {
     ...getMockTenant(consumerId),
     mails: [getMockTenantMail()],
   };
@@ -91,7 +93,7 @@ describe("handleAgreementUnsuspendedByPlatformToConsumer", async () => {
   it("should throw tenantNotFound when consumer is not found", async () => {
     const unknownConsumerId = generateId<TenantId>();
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {},
       producerId: producerTenant.id,
@@ -115,7 +117,7 @@ describe("handleAgreementUnsuspendedByPlatformToConsumer", async () => {
 
   it("should throw eServiceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {},
       producerId: producerTenant.id,
@@ -138,7 +140,7 @@ describe("handleAgreementUnsuspendedByPlatformToConsumer", async () => {
   });
 
   it("should generate one message per user of the tenant that consumed the eservice", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {},
       producerId: producerTenant.id,
@@ -158,12 +160,16 @@ describe("handleAgreementUnsuspendedByPlatformToConsumer", async () => {
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -173,7 +179,7 @@ describe("handleAgreementUnsuspendedByPlatformToConsumer", async () => {
         { userId: users[0].id, tenantId: users[0].tenantId },
       ]);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { rejection: { when: new Date(), who: generateId<UserId>() } },
       producerId: producerTenant.id,
@@ -193,16 +199,20 @@ describe("handleAgreementUnsuspendedByPlatformToConsumer", async () => {
     });
 
     expect(messages.length).toEqual(1);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
   });
 
   it("should generate a complete and correct message", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {},
       producerId: producerTenant.id,

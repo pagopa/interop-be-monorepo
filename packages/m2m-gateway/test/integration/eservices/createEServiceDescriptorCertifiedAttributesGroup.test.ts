@@ -291,7 +291,7 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
     );
   });
 
-  it("Should throw eserviceTemplateVersionAttributeNotFound in case an attribute ID is present but cannot be resolved by the Attribute Registry", async () => {
+  it("Should throw eserviceDescriptorAttributeNotFound in case an attribute ID is present but cannot be resolved by the Attribute Registry", async () => {
     const MISSING_ATTRIBUTE_ID = "00000000-0000-0000-0000-000000000001";
 
     const descriptorWithMissingAttribute: catalogApi.EServiceDescriptor = {
@@ -314,12 +314,20 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
       getMockedApiEservice({
         descriptors: [descriptorWithMissingAttribute],
       });
-    const mockEserviceTemplateResponse = getMockWithMetadata(
+    const mockEserviceResponse = getMockWithMetadata(
       eserviceWithDescriptorWithoutAttribute
     );
-    const mockGetEServiceTemplateById = vi
+
+    const mockGetEServiceById = vi.fn();
+
+    mockGetEServiceById.mockImplementation(
+      mockPollingResponse(mockEserviceResponse, 3)
+    );
+
+    const mockPatchUpdateDescriptor = vi
       .fn()
-      .mockResolvedValue(mockEserviceTemplateResponse);
+      .mockResolvedValue(mockEserviceResponse);
+
     const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
       data: {
         results: [],
@@ -336,10 +344,10 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
       getBulkedAttributes: mockGetBulkedAttributes,
     } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
 
-    mockInteropBeClients.eserviceTemplateProcessClient = {
-      getEServiceTemplateById: mockGetEServiceTemplateById,
-      patchUpdateDescriptor: mockPatchUpdateDescriptor,
-    } as unknown as PagoPAInteropBeClients["eserviceTemplateProcessClient"];
+    mockInteropBeClients.catalogProcessClient = {
+      getEServiceById: mockGetEServiceById,
+      patchUpdateDraftDescriptor: mockPatchUpdateDescriptor,
+    } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
     await expect(
       eserviceService.createEServiceDescriptorCertifiedAttributesGroup(

@@ -913,83 +913,6 @@ const eserviceRouter = (
       }
     )
     .post(
-      "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/groups/:groupIndex/attributes",
-      async (req, res) => {
-        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-        try {
-          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-          await eserviceService.assignEServiceDescriptorCertifiedAttributesToGroup(
-            unsafeBrandId(req.params.eserviceId),
-            unsafeBrandId(req.params.descriptorId),
-            req.params.groupIndex,
-            req.body,
-            ctx
-          );
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            assignEServiceDescriptorAttributesErrorMapper,
-            ctx,
-            `Error assigning certified attributes to descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post(
-      "/eservices/:eserviceId/descriptors/:descriptorId/declaredAttributes/groups/:groupIndex/attributes",
-      async (req, res) => {
-        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-        try {
-          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-          await eserviceService.assignEServiceDescriptorDeclaredAttributesToGroup(
-            unsafeBrandId(req.params.eserviceId),
-            unsafeBrandId(req.params.descriptorId),
-            req.params.groupIndex,
-            req.body,
-            ctx
-          );
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            assignEServiceDescriptorAttributesErrorMapper,
-            ctx,
-            `Error assigning declared attributes to descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post(
-      "/eservices/:eserviceId/descriptors/:descriptorId/verifiedAttributes/groups/:groupIndex/attributes",
-      async (req, res) => {
-        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-        try {
-          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-
-          await eserviceService.assignEServiceDescriptorVerifiedAttributesToGroup(
-            unsafeBrandId(req.params.eserviceId),
-            unsafeBrandId(req.params.descriptorId),
-            req.params.groupIndex,
-            req.body,
-            ctx
-          );
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            assignEServiceDescriptorAttributesErrorMapper,
-            ctx,
-            `Error assigning verified attributes to descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-
-    .post(
       "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/groups",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
@@ -1152,6 +1075,82 @@ const eserviceRouter = (
             deleteEServiceDescriptorAttributeFromGroupErrorMapper,
             ctx,
             `Error deleting declared attribute ${req.params.attributeId} from group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/groups/:groupIndex/attributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceService.assignEServiceDescriptorCertifiedAttributesToGroup(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.params.groupIndex,
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            assignEServiceDescriptorAttributesErrorMapper,
+            ctx,
+            `Error assigning certified attributes to descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/declaredAttributes/groups/:groupIndex/attributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceService.assignEServiceDescriptorDeclaredAttributesToGroup(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.params.groupIndex,
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            assignEServiceDescriptorAttributesErrorMapper,
+            ctx,
+            `Error assigning declared attributes to descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/verifiedAttributes/groups/:groupIndex/attributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await eserviceService.assignEServiceDescriptorVerifiedAttributesToGroup(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.params.groupIndex,
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            assignEServiceDescriptorAttributesErrorMapper,
+            ctx,
+            `Error assigning verified attributes to descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

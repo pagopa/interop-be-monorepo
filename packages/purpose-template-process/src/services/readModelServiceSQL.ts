@@ -6,6 +6,8 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeTemplateState,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
@@ -58,6 +60,7 @@ export type GetPurposeTemplatesFilters = {
   eserviceIds: EServiceId[];
   states: PurposeTemplateState[];
   excludeExpiredRiskAnalysis?: boolean;
+  handlesPersonalData?: boolean;
 };
 
 export type GetPurposeTemplateEServiceDescriptorsFilters = {
@@ -77,6 +80,7 @@ const getPurposeTemplatesFilters = (
     states,
     targetTenantKind,
     excludeExpiredRiskAnalysis,
+    handlesPersonalData,
   } = filters;
 
   const purposeTitleFilter = purposeTitle
@@ -145,13 +149,22 @@ const getPurposeTemplatesFilters = (
       )
     : undefined;
 
+  const handlesPersonalDataFilter =
+    handlesPersonalData !== undefined
+      ? eq(
+          purposeTemplateInReadmodelPurposeTemplate.handlesPersonalData,
+          handlesPersonalData
+        )
+      : undefined;
+
   return and(
     purposeTitleFilter,
     creatorIdsFilter,
     eserviceIdsFilter,
     statesFilter,
     targetTenantKindFilter,
-    excludeExpiredRiskAnalysisFilters
+    excludeExpiredRiskAnalysisFilters,
+    handlesPersonalDataFilter
   );
 };
 
@@ -283,14 +296,25 @@ export function readModelServiceBuilderSQL({
     },
     async getRiskAnalysisTemplateAnswerAnnotationDocument(
       purposeTemplateId: PurposeTemplateId,
+      answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId,
       documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId
     ): Promise<
       WithMetadata<RiskAnalysisTemplateAnswerAnnotationDocument> | undefined
     > {
       const queryResult = await readModelDB
-        .select()
+        .select({
+          riskAnalysisAnswerAnnotationDocument:
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+        })
         .from(
           purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+        )
+        .innerJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id
+          )
         )
         .where(
           and(
@@ -301,6 +325,10 @@ export function readModelServiceBuilderSQL({
             eq(
               purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.id,
               documentId
+            ),
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+              answerId
             )
           )
         );
@@ -309,9 +337,14 @@ export function readModelServiceBuilderSQL({
         return undefined;
       }
 
+      const { riskAnalysisAnswerAnnotationDocument } = queryResult[0];
       return {
-        data: toRiskAnalysisTemplateAnswerAnnotationDocument(queryResult[0]),
-        metadata: { version: queryResult[0].metadataVersion },
+        data: toRiskAnalysisTemplateAnswerAnnotationDocument(
+          riskAnalysisAnswerAnnotationDocument
+        ),
+        metadata: {
+          version: riskAnalysisAnswerAnnotationDocument.metadataVersion,
+        },
       };
     },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId(

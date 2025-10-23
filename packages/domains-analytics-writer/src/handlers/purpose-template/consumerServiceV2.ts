@@ -39,11 +39,13 @@ export async function handlePurposeTemplateMessageV2(
         {
           type: P.union(
             "PurposeTemplateAdded",
+            "PurposeTemplateAnnotationDocumentAdded",
             "PurposeTemplateDraftUpdated",
             "PurposeTemplatePublished",
             "PurposeTemplateUnsuspended",
             "PurposeTemplateSuspended",
-            "PurposeTemplateArchived"
+            "PurposeTemplateArchived",
+            "PurposeTemplateAnnotationDocumentDeleted"
           ),
         },
         (msg) => {

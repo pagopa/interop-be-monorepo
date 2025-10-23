@@ -18,12 +18,12 @@ import {
   NotificationType,
   Tenant,
   TenantId,
-  TenantNotificationConfigId,
   toAgreementV2,
   unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
 import { handleAgreementActivatedToProducer } from "../src/handlers/agreements/handleAgreementActivatedToProducer.js";
 import {
@@ -51,10 +51,12 @@ describe("handleAgreementActivated", async () => {
   };
   const producerTenant: Tenant = {
     ...getMockTenant(producerId),
+    name: "Producer Tenant",
     mails: [getMockTenantMail()],
   };
   const consumerTenant: Tenant = {
     ...getMockTenant(consumerId),
+    name: "Consumer Tenant",
     mails: [getMockTenantMail()],
   };
   const users = [
@@ -73,14 +75,6 @@ describe("handleAgreementActivated", async () => {
     for (const user of users) {
       await addOneUser(user);
     }
-    readModelService.getTenantNotificationConfigByTenantId = vi
-      .fn()
-      .mockResolvedValue({
-        id: generateId<TenantNotificationConfigId>(),
-        tenantId: consumerTenant.id,
-        enabled: true,
-        createAt: new Date(),
-      });
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockImplementation((tenantIds: TenantId[], _: NotificationType) =>
@@ -177,12 +171,16 @@ describe("handleAgreementActivated", async () => {
     });
 
     expect(messages.length).toEqual(2);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      true
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -212,12 +210,16 @@ describe("handleAgreementActivated", async () => {
     });
 
     expect(messages.length).toEqual(1);
-    expect(messages.some((message) => message.address === users[0].email)).toBe(
-      true
-    );
-    expect(messages.some((message) => message.address === users[1].email)).toBe(
-      false
-    );
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[0].id
+      )
+    ).toBe(true);
+    expect(
+      messages.some(
+        (message) => message.type === "User" && message.userId === users[1].id
+      )
+    ).toBe(false);
   });
 
   it("should generate a complete and correct message", async () => {
@@ -250,7 +252,12 @@ describe("handleAgreementActivated", async () => {
       expect(message.email.body).toContain(
         `Richiesta di fruizione accettata automaticamente`
       );
-      expect(message.email.body).toContain(producerTenant.name);
+      expect(message.email.body).toContain(
+        match(message.type)
+          .with("User", () => "{{ recipientName }}")
+          .with("Tenant", () => producerTenant.name)
+          .exhaustive()
+      );
       expect(message.email.body).toContain(eservice.name);
       expect(message.email.body).toContain(`Visualizza richiesta`);
     });

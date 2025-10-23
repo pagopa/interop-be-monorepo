@@ -27,6 +27,45 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
+  /filterUnreadNotifications:
+    get:
+      tags:
+        - notification
+      summary: Get all unread notifications from a list of entity IDs
+      description: Returns a subset of all entity IDs that have unread notifications
+      operationId: filterUnreadNotifications
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - in: query
+          name: entityIds
+          description: Filter notifications by entity IDs
+          schema:
+            type: array
+            default: []
+            items:
+              type: string
+          explode: false
+      responses:
+        "200":
+          description: A list of entity IDs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /notifications:
     get:
       tags:
@@ -42,6 +81,12 @@ paths:
           schema:
             type: string
         - in: query
+          name: unread
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - in: query
           name: offset
           required: true
           schema:
@@ -56,6 +101,16 @@ paths:
             format: int32
             minimum: 1
             maximum: 50
+        - in: query
+          name: notificationTypes
+          description: Notification types to filter notifications
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/NotificationType"
+            default: []
+          explode: false
       responses:
         "200":
           description: A list of notifications
@@ -414,12 +469,11 @@ components:
           type: string
           description: Content of the notification
         notificationType:
-          type: string
+          $ref: "#/components/schemas/NotificationType"
           description: Type of the notification
         entityId:
           type: string
-          format: uuid
-          description: ID of the entity
+          description: ID of the related entity
         readAt:
           type: string
           format: date-time
@@ -437,7 +491,29 @@ components:
         - notificationType
         - entityId
         - createdAt
-
+    NotificationType:
+      type: string
+      enum:
+        - agreementSuspendedUnsuspendedToProducer
+        - agreementManagementToProducer
+        - clientAddedRemovedToProducer
+        - purposeStatusChangedToProducer
+        - templateStatusChangedToProducer
+        - agreementSuspendedUnsuspendedToConsumer
+        - eserviceStateChangedToConsumer
+        - agreementActivatedRejectedToConsumer
+        - purposeActivatedRejectedToConsumer
+        - purposeSuspendedUnsuspendedToConsumer
+        - newEserviceTemplateVersionToInstantiator
+        - eserviceTemplateNameChangedToInstantiator
+        - eserviceTemplateStatusChangedToInstantiator
+        - delegationApprovedRejectedToDelegator
+        - eserviceNewVersionSubmittedToDelegator
+        - eserviceNewVersionApprovedRejectedToDelegate
+        - delegationSubmittedRevokedToDelegate
+        - certifiedVerifiedAttributeAssignedRevokedToAssignee
+        - clientKeyAddedDeletedToClientUsers
+        - producerKeychainKeyAddedDeletedToClientUsers
     NotificationsByType:
       type: object
       additionalProperties: false
@@ -500,6 +576,9 @@ components:
               type: integer
               format: int32
             clientKeyAddedDeletedToClientUsers:
+              type: integer
+              format: int32
+            producerKeychainKeyAddedDeletedToClientUsers:
               type: integer
               format: int32
         totalCount:

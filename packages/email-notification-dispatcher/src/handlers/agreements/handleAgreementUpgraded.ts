@@ -13,6 +13,7 @@ import {
 import {
   AgreementHandlerParams,
   getRecipientsForTenants,
+  mapRecipientToEmailPayload,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
 
@@ -59,7 +60,7 @@ export async function handleAgreementUpgraded(
     return [];
   }
 
-  return targets.map(({ address }) => ({
+  return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
       subject: `Richiesta di fruizione aggiornata per un tuo e-service`,
@@ -67,11 +68,13 @@ export async function handleAgreementUpgraded(
         title: `Richiesta di fruizione aggiornata per un tuo e-service`,
         notificationType,
         entityId: agreement.id,
+        ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         consumerName: consumer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
       }),
     },
-    address,
+    tenantId: t.tenantId,
+    ...mapRecipientToEmailPayload(t),
   }));
 }
