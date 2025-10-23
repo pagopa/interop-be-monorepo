@@ -397,7 +397,7 @@ describe("getPurposeTemplates", async () => {
       getMockContext({ authData: getMockAuthData(creatorId1) })
     );
     expectSinglePageListResult(result, [
-      activePurposeTemplateByCreator1,
+      publishedPurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
     ]);
   });
@@ -414,7 +414,7 @@ describe("getPurposeTemplates", async () => {
       getMockContext({ authData: getMockAuthData(creatorId1) })
     );
     expectSinglePageListResult(result, [
-      activePurposeTemplateByCreator2,
+      publishedPurposeTemplateByCreator2,
       archivedPurposeTemplateByCreator1,
       archivedPurposeTemplateByCreator2,
       draftPurposeTemplateByCreator1,
