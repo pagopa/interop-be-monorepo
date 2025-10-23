@@ -37,6 +37,7 @@ export const mockDbService = {
   saveDocumentSignatureReference: vi.fn(),
   readSignatureReference: vi.fn(),
   deleteSignatureReference: vi.fn(),
+  readDocumentSignatureReference: vi.fn(),
 };
 
 export const mockSafeStorageService = {

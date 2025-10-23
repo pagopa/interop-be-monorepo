@@ -21,6 +21,7 @@ const mockDbService: SignatureServiceBuilder = {
   saveDocumentSignatureReference: vi.fn(),
   readSignatureReference: vi.fn(),
   deleteSignatureReference: vi.fn(),
+  readDocumentSignatureReference: vi.fn(),
 };
 
 const mockSafeStorageService: SafeStorageService = {
