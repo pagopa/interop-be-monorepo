@@ -15736,7 +15736,6 @@ components:
       properties:
         attributes:
           type: array
-          maxLength: 50
           items:
             $ref: "#/components/schemas/EServiceDescriptorCertifiedAttribute"
       required:
@@ -15747,7 +15746,6 @@ components:
       properties:
         attributes:
           type: array
-          maxLength: 50
           items:
             $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttribute"
       required:
@@ -15784,7 +15782,6 @@ components:
       properties:
         attributes:
           type: array
-          maxLength: 50
           items:
             $ref: "#/components/schemas/EServiceDescriptorDeclaredAttribute"
       required:
@@ -15795,7 +15792,6 @@ components:
       properties:
         attributes:
           type: array
-          maxLength: 50
           items:
             $ref: "#/components/schemas/EServiceTemplateVersionDeclaredAttribute"
       required:
@@ -15832,7 +15828,6 @@ components:
       properties:
         attributes:
           type: array
-          maxLength: 50
           items:
             $ref: "#/components/schemas/EServiceDescriptorVerifiedAttribute"
       required:
@@ -15843,7 +15838,6 @@ components:
       properties:
         attributes:
           type: array
-          maxLength: 50
           items:
             $ref: "#/components/schemas/EServiceTemplateVersionVerifiedAttribute"
       required:

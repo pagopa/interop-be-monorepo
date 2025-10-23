@@ -133,9 +133,7 @@ export function eserviceServiceBuilder(
     const attributeMap = await getResolvedAttributesMap(
       attributeIdsToResolve,
       headers,
-      clients,
-      0,
-      attributeIdsToResolve.length
+      clients
     );
 
     // Recombination: Map the paginated flat list with the resolved complete details
@@ -199,9 +197,7 @@ export function eserviceServiceBuilder(
     const attributeMap = await getResolvedAttributesMap(
       seed.attributeIds,
       headers,
-      clients,
-      0,
-      seed.attributeIds.length
+      clients
     );
 
     const newlyCreatedGroupAttributes: attributeRegistryApi.Attribute[] =
