@@ -1,7 +1,7 @@
 meta {
   name: Assign eservice descriptor declared attributes to group
   type: http
-  seq: 37
+  seq: 36
 }
 
 post {
@@ -11,7 +11,7 @@ post {
 }
 
 params:path {
-  groupIndex: 
+  groupIndex: 0
   eserviceId: {{eserviceId}}
   descriptorId: {{descriptorId}}
 }
@@ -21,7 +21,9 @@ headers {
 }
 
 body:json {
-  [
-    "3d114930-fed0-4f47-a43b-7b2809122529"
-  ]
+  {
+    "attributeIds": [
+      "4ad74602-a28d-4fc1-928d-0a5fc004091b"
+    ]
+  }
 }
