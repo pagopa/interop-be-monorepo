@@ -95,6 +95,14 @@ export const eventMailTemplateType = {
     "tenant-verified-attribute-assigned-mail",
   tenantVerifiedAttributeRevokedMailTemplate:
     "tenant-verified-attribute-revoked-mail",
+  producerKeychainKeyDeletedMailTemplate: "producer-keychain-key-deleted-mail",
+  producerKeychainDeletedMailTemplate: "producer-keychain-deleted-mail",
+  clientKeyDeletedMailTemplate: "client-key-deleted-mail",
+  clientUserDeletedMailTemplate: "client-user-deleted-mail",
+  producerKeychainUserDeletedMailTemplate:
+    "producer-keychain-user-deleted-mail",
+  clientKeyAddedMailTemplate: "client-key-added-mail",
+  producerKeychainKeyAddedMailTemplate: "producer-keychain-key-added-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
