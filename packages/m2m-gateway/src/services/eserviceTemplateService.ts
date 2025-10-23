@@ -321,6 +321,61 @@ export function eserviceTemplateServiceBuilder(
 
     await pollEServiceTemplate(response, headers);
   }
+  // eslint-disable-next-line max-params
+  async function assignEServiceTemplateVersionAttributesToGroup(
+    eserviceId: EServiceId,
+    descriptorId: DescriptorId,
+    groupIndex: number,
+    seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed,
+    attributeKind: keyof catalogApi.Attributes,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> {
+    const eservice = await retrieveEServiceById(headers, eserviceId);
+    const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
+    const kindAttributeGroups = descriptor.attributes[attributeKind];
+    if (kindAttributeGroups.length <= groupIndex) {
+      throw eserviceDescriptorAttributeGroupNotFound(
+        attributeKind,
+        eserviceId,
+        descriptorId,
+        groupIndex
+      );
+    }
+    const updateAttributeGroups = [
+      ...kindAttributeGroups[groupIndex],
+      ...seed.attributeIds.map((id) => ({
+        id,
+        explicitAttributeVerification: false,
+      })),
+    ];
+    const updateAttributesSeed = {
+      attributes: {
+        ...descriptor.attributes,
+        [attributeKind]: [
+          ...kindAttributeGroups.slice(0, groupIndex),
+          updateAttributeGroups,
+          ...kindAttributeGroups.slice(groupIndex + 1),
+        ],
+      },
+    };
+    const response = await (descriptor.state ===
+    catalogApi.EServiceDescriptorState.Values.DRAFT
+      ? clients.catalogProcessClient.patchUpdateDraftDescriptor(
+          updateAttributesSeed,
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        )
+      : clients.catalogProcessClient.updateDescriptorAttributes(
+          updateAttributesSeed.attributes,
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        ));
+    await pollEService(response, headers);
+  }
 
   return {
     async getEServiceTemplateById(

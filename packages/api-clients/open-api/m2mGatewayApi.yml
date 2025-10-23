@@ -8255,10 +8255,8 @@ paths:
         required: true
         content:
           application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
         "204":
           description: E-Service Descriptor Declared Attribute assigned to the Attribute Group
