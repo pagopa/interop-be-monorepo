@@ -333,7 +333,8 @@ export function eserviceTemplateServiceBuilder(
     const eservice = await retrieveEServiceTemplateById(headers, templateId);
     const version = retrieveEServiceTemplateVersionById(eservice, versionId);
     const kindAttributeGroups = version.attributes[attributeKind];
-    if (kindAttributeGroups.length <= groupIndex) {
+    const attributeGroup = kindAttributeGroups.at(groupIndex);
+    if (!attributeGroup) {
       throw eserviceTemplateVersionAttributeGroupNotFound(
         attributeKind,
         templateId,
@@ -341,35 +342,37 @@ export function eserviceTemplateServiceBuilder(
         groupIndex
       );
     }
-    const updateAttributeGroups = [
-      ...kindAttributeGroups[groupIndex],
+    const updatedAttributeGroup = [
+      ...attributeGroup,
       ...seed.attributeIds.map((id) => ({
         id,
         explicitAttributeVerification: false,
       })),
     ];
-    const updateAttributesSeed = {
-      attributes: {
-        ...version.attributes,
-        [attributeKind]: [
-          ...kindAttributeGroups.slice(0, groupIndex),
-          updateAttributeGroups,
-          ...kindAttributeGroups.slice(groupIndex + 1),
-        ],
-      },
-    };
+    const updatedGroups = [
+      ...kindAttributeGroups.slice(0, groupIndex),
+      updatedAttributeGroup,
+      ...kindAttributeGroups.slice(groupIndex + 1),
+    ];
     const configOptions = {
       params: { templateId, templateVersionId: versionId },
       headers,
     };
+    const updatedAttributes = {
+      ...version.attributes,
+      [attributeKind]: updatedGroups,
+    };
+
     const response = await (version.state ===
     eserviceTemplateApi.EServiceTemplateVersionState.Values.DRAFT
       ? clients.eserviceTemplateProcessClient.patchUpdateDraftTemplateVersion(
-          updateAttributesSeed,
+          {
+            attributes: updatedAttributes,
+          },
           configOptions
         )
       : clients.eserviceTemplateProcessClient.updateTemplateVersionAttributes(
-          updateAttributesSeed.attributes,
+          updatedAttributes,
           configOptions
         ));
     await pollEServiceTemplate(response, headers);
