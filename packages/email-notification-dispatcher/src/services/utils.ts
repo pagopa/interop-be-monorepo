@@ -34,6 +34,11 @@ export const eventMailTemplateType = {
   agreementSubmittedMailTemplate: "agreement-submitted-mail",
   agreementRejectedMailTemplate: "agreement-rejected-mail",
   agreementUpgradedMailTemplate: "agreement-upgraded-mail",
+  eserviceDescriptorSuspendedMailTemplate: "eservice-descriptor-suspended-mail",
+  eserviceDescriptorActivatedMailTemplate: "eservice-descriptor-activated-mail",
+  eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
+  producerKeychainEserviceAddedMailTemplate:
+    "producer-keychain-eservice-added-mail",
   agreementSuspendedByConsumerMailTemplate:
     "agreement-suspended-by-consumer-mail",
   agreementSuspendedByPlatformToConsumerMailTemplate:
@@ -68,7 +73,6 @@ export const eventMailTemplateType = {
     "purpose-version-unsuspended-by-producer-mail",
   newPurposeVersionWaitingForApprovalMailTemplate:
     "new-purpose-version-waiting-for-approval-mail",
-  eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
   consumerDelegationApprovedMailTemplate: "consumer-delegation-approved-mail",
   consumerDelegationRejectedMailTemplate: "consumer-delegation-rejected-mail",
   consumerDelegationRevokedMailTemplate: "consumer-delegation-revoked-mail",
@@ -79,6 +83,7 @@ export const eventMailTemplateType = {
     "eservice-descriptor-rejected-by-delegator-mail",
   eserviceDescriptorSubmittedByDelegateMailTemplate:
     "eservice-descriptor-submitted-by-delegate-mail",
+  eserviceStateChangedMailTemplate: "eservice-state-changed-mail",
   producerDelegationApprovedMailTemplate: "producer-delegation-approved-mail",
   producerDelegationRejectedMailTemplate: "producer-delegation-rejected-mail",
   producerDelegationRevokedMailTemplate: "producer-delegation-revoked-mail",

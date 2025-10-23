@@ -141,6 +141,7 @@ export const aggregatePurposeTemplate = ({
     ...(purposeTemplateSQL.purposeDailyCalls
       ? { purposeDailyCalls: purposeTemplateSQL.purposeDailyCalls }
       : {}),
+    handlesPersonalData: purposeTemplateSQL.handlesPersonalData,
   };
 
   return {
@@ -207,37 +208,22 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
       const annotationSQL =
         riskAnalysisTemplateAnswersAnnotationsByAnswerId.get(answerId);
 
-      const annotationDocumentSQL = annotationSQL
+      const annotationDocumentsSQL = annotationSQL
         ? riskAnalysisTemplateAnswersAnnotationsDocumentsByAnnotationId.get(
             unsafeBrandId(annotationSQL.id)
           )
         : undefined;
 
-      const answerAnnotation: RiskAnalysisTemplateAnswerAnnotation | undefined =
-        annotationSQL
-          ? {
-              id: unsafeBrandId(annotationSQL.id),
-              text: annotationSQL.text,
-              docs: annotationDocumentSQL
-                ? annotationDocumentSQL.map(
-                    toRiskAnalysisTemplateAnswerAnnotationDocument
-                  )
-                : [],
-            }
-          : undefined;
-
       return match(RiskAnalysisAnswerKind.parse(answerSQL.kind))
         .with(riskAnalysisAnswerKind.single, () => ({
           riskAnalysisTemplateSingleAnswers: [
             ...acc.riskAnalysisTemplateSingleAnswers,
-            {
-              id: unsafeBrandId(answerSQL.id),
-              key: answerSQL.key,
-              ...(answerSQL.value[0] ? { value: answerSQL.value[0] } : {}),
-              editable: answerSQL.editable,
-              ...(answerAnnotation ? { annotation: answerAnnotation } : {}),
-              suggestedValues: answerSQL.suggestedValues || [],
-            } satisfies RiskAnalysisTemplateSingleAnswer,
+            aggregateRiskAnalysisTemplateSingleAnswer({
+              riskAnalysisTemplateAnswerSQL: answerSQL,
+              riskAnalysisTemplateAnswerAnnotationSQL: annotationSQL,
+              riskAnalysisTemplateAnswersAnnotationsDocumentsSQL:
+                annotationDocumentsSQL ? annotationDocumentsSQL : [],
+            }),
           ],
           riskAnalysisTemplateMultiAnswers:
             acc.riskAnalysisTemplateMultiAnswers,
@@ -247,13 +233,12 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
             acc.riskAnalysisTemplateSingleAnswers,
           riskAnalysisTemplateMultiAnswers: [
             ...acc.riskAnalysisTemplateMultiAnswers,
-            {
-              id: unsafeBrandId(answerSQL.id),
-              key: answerSQL.key,
-              values: answerSQL.value,
-              editable: answerSQL.editable,
-              ...(answerAnnotation ? { annotation: answerAnnotation } : {}),
-            } satisfies RiskAnalysisTemplateMultiAnswer,
+            aggregateRiskAnalysisTemplateMultiAnswer({
+              riskAnalysisTemplateAnswerSQL: answerSQL,
+              riskAnalysisTemplateAnswerAnnotationSQL: annotationSQL,
+              riskAnalysisTemplateAnswersAnnotationsDocumentsSQL:
+                annotationDocumentsSQL ? annotationDocumentsSQL : [],
+            }),
           ],
         }))
         .exhaustive();
@@ -418,6 +403,75 @@ export const toRiskAnalysisTemplateAnswerAnnotationDocument = (
   path: annotationDocumentSQL.path,
   createdAt: stringToDate(annotationDocumentSQL.createdAt),
   checksum: annotationDocumentSQL.checksum,
+});
+
+export const aggregateRiskAnalysisTemplateAnswerAnnotation = ({
+  riskAnalysisTemplateAnswerAnnotationSQL,
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+}: {
+  riskAnalysisTemplateAnswerAnnotationSQL: PurposeTemplateRiskAnalysisAnswerAnnotationSQL;
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+}): RiskAnalysisTemplateAnswerAnnotation => ({
+  id: unsafeBrandId(riskAnalysisTemplateAnswerAnnotationSQL.id),
+  text: riskAnalysisTemplateAnswerAnnotationSQL.text,
+  docs: riskAnalysisTemplateAnswersAnnotationsDocumentsSQL
+    ? riskAnalysisTemplateAnswersAnnotationsDocumentsSQL.map(
+        toRiskAnalysisTemplateAnswerAnnotationDocument
+      )
+    : [],
+});
+
+const aggregateRiskAnalysisTemplateSingleAnswer = ({
+  riskAnalysisTemplateAnswerSQL,
+  riskAnalysisTemplateAnswerAnnotationSQL,
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+}: {
+  riskAnalysisTemplateAnswerSQL: PurposeTemplateRiskAnalysisAnswerSQL;
+  riskAnalysisTemplateAnswerAnnotationSQL:
+    | PurposeTemplateRiskAnalysisAnswerAnnotationSQL
+    | undefined;
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+}): RiskAnalysisTemplateSingleAnswer => ({
+  id: unsafeBrandId(riskAnalysisTemplateAnswerSQL.id),
+  key: riskAnalysisTemplateAnswerSQL.key,
+  ...(riskAnalysisTemplateAnswerSQL.value[0]
+    ? { value: riskAnalysisTemplateAnswerSQL.value[0] }
+    : {}),
+  editable: riskAnalysisTemplateAnswerSQL.editable,
+  ...(riskAnalysisTemplateAnswerAnnotationSQL
+    ? {
+        annotation: aggregateRiskAnalysisTemplateAnswerAnnotation({
+          riskAnalysisTemplateAnswerAnnotationSQL,
+          riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+        }),
+      }
+    : {}),
+  suggestedValues: riskAnalysisTemplateAnswerSQL.suggestedValues || [],
+});
+
+const aggregateRiskAnalysisTemplateMultiAnswer = ({
+  riskAnalysisTemplateAnswerSQL,
+  riskAnalysisTemplateAnswerAnnotationSQL,
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+}: {
+  riskAnalysisTemplateAnswerSQL: PurposeTemplateRiskAnalysisAnswerSQL;
+  riskAnalysisTemplateAnswerAnnotationSQL:
+    | PurposeTemplateRiskAnalysisAnswerAnnotationSQL
+    | undefined;
+  riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
+}): RiskAnalysisTemplateMultiAnswer => ({
+  id: unsafeBrandId(riskAnalysisTemplateAnswerSQL.id),
+  key: riskAnalysisTemplateAnswerSQL.key,
+  values: riskAnalysisTemplateAnswerSQL.value,
+  editable: riskAnalysisTemplateAnswerSQL.editable,
+  ...(riskAnalysisTemplateAnswerAnnotationSQL
+    ? {
+        annotation: aggregateRiskAnalysisTemplateAnswerAnnotation({
+          riskAnalysisTemplateAnswerAnnotationSQL,
+          riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
+        }),
+      }
+    : {}),
 });
 
 export const aggregatePurposeTemplateEServiceDescriptorArray = (

@@ -9,6 +9,8 @@ import {
   LoggerConfig,
   S3Config,
   ReadModelSQLDbConfig,
+  TokenGenerationConfig,
+  APIEndpoint,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -22,19 +24,24 @@ export const DocumentsGeneratorConfig = CatalogTopicConfig.and(
   .and(FileManagerConfig)
   .and(S3Config)
   .and(LoggerConfig)
+  .and(TokenGenerationConfig)
   .and(
     z
       .object({
-        SERVICE_NAME: z.string(),
         DELEGATION_DOCUMENT_PATH: z.string(),
         AGREEMENT_DOCUMENT_PATH: z.string(),
         RISK_ANALYSIS_DOCUMENT_PATH: z.string(),
+        DELEGATION_PROCESS_URL: APIEndpoint,
+        PURPOSE_PROCESS_URL: APIEndpoint,
+        AGREEMENT_PROCESS_URL: APIEndpoint,
       })
       .transform((c) => ({
-        serviceName: c.SERVICE_NAME,
         delegationDocumentPath: c.DELEGATION_DOCUMENT_PATH,
         agreementContractsPath: c.AGREEMENT_DOCUMENT_PATH,
         riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENT_PATH,
+        delegationProcessUrl: c.DELEGATION_PROCESS_URL,
+        purposeProcessUrl: c.PURPOSE_PROCESS_URL,
+        agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
       }))
   );
 

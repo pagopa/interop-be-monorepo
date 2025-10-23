@@ -21,12 +21,14 @@ import {
 import {
   CatalogProcessClient,
   DelegationProcessClient,
+  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { delegationNotFound } from "../model/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 
 // eslint-disable-next-line max-params
 async function enhanceDelegation<
@@ -41,9 +43,11 @@ async function enhanceDelegation<
     delegator: tenantApi.Tenant,
     delegate: tenantApi.Tenant,
     eservice: catalogApi.EService | undefined,
+    hasNotifications: boolean | undefined,
     producer: tenantApi.Tenant
   ) => T,
-  cachedTenants: Map<string, tenantApi.Tenant> = new Map()
+  cachedTenants: Map<string, tenantApi.Tenant> = new Map(),
+  notifications: string[] | undefined
 ): Promise<T> {
   const delegator = await getTenantById(
     tenantClient,
@@ -58,6 +62,8 @@ async function enhanceDelegation<
     delegation.delegateId,
     cachedTenants
   );
+
+  const hasNotifications = notifications?.includes(delegation.id) || false;
 
   return await match(delegation.kind)
     /**
@@ -85,6 +91,7 @@ async function enhanceDelegation<
         delegator,
         delegate,
         eservice,
+        hasNotifications,
         delegator
       );
     })
@@ -108,6 +115,7 @@ async function enhanceDelegation<
         delegator,
         delegate,
         eservice,
+        hasNotifications,
         producer
       );
     })
@@ -194,6 +202,7 @@ export function delegationServiceBuilder(
   delegationClients: DelegationProcessClient,
   tenantClient: TenantProcessClient,
   catalogClient: CatalogProcessClient,
+  inAppNotificationManagerClient: InAppNotificationManagerClient,
   fileManager: FileManager
 ) {
   return {
@@ -214,7 +223,9 @@ export function delegationServiceBuilder(
         catalogClient,
         delegation,
         headers,
-        toBffDelegationApiDelegation
+        toBffDelegationApiDelegation,
+        new Map(),
+        undefined
       );
     },
     async getDelegations(
@@ -235,8 +246,9 @@ export function delegationServiceBuilder(
         delegatorIds?: string[];
         eserviceIds?: string[];
       },
-      { headers, logger }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactDelegations> {
+      const { headers, logger } = ctx;
       logger.info("Retrieving all delegations");
 
       const delegations = await delegationClients.delegation.getDelegations({
@@ -252,11 +264,19 @@ export function delegationServiceBuilder(
         headers,
       });
 
+      const notificationsPromise: Promise<string[]> = filterUnreadNotifications(
+        inAppNotificationManagerClient,
+        delegations.results.map((a) => a.id),
+        ctx
+      );
+
       const involvedTenants = await getTenantsFromDelegation(
         tenantClient,
         delegations.results,
         headers
       );
+
+      const notifications = await notificationsPromise;
 
       const delegationEnanched = await Promise.all(
         delegations.results.map((delegation) =>
@@ -266,7 +286,8 @@ export function delegationServiceBuilder(
             delegation,
             headers,
             toBffDelegationApiCompactDelegation,
-            involvedTenants
+            involvedTenants,
+            notifications
           )
         )
       );
