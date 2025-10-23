@@ -24,9 +24,7 @@
       "
     >
       <!-- H4 Desktop (from MUI Italia)-->
-      <h1 style="font-size: 32px; line-height: 40px; margin: 0">
-        Nuova richiesta di fruizione
-      </h1>
+      <h1 style="font-size: 32px; line-height: 40px; margin: 0">{{ title }}</h1>
     </div>
   </td>
 </tr>
@@ -56,7 +54,7 @@
     >
       <p style="margin-bottom: 0px">
         Gentile
-        <strong>{{ producerName }}</strong>,
+        <strong>{{ preservePlaceholderIfMissing "recipientName" }}</strong>,
       </p>
     </div>
   </td>
@@ -79,13 +77,9 @@
     >
       <!-- Body 1 Desktop (from MUI Italia)-->
       <p>
-        ti informiamo che per l’e-service
-        <strong>{{ eserviceName }}</strong>,
-      </p>
-      <p>
-        è presente una richiesta di fruizione da parte di
-        <strong>{{ consumerName }}</strong>, del giorno
-        <strong>{{ submissionDate }}</strong>.
+        L'ente {{ consumerName }} ha sospeso la propria richiesta di fruizione
+        per il suo e-service "{{ eserviceName }}". Non è richiesta alcuna azione
+        da parte tua.
       </p>
     </div>
   </td>

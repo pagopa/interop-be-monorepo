@@ -47,6 +47,7 @@ describe("getPurposeTemplates", async () => {
     state: purposeTemplateState.active,
     creatorId: creatorId1,
     targetTenantKind: tenantKind.PA,
+    handlesPersonalData: true,
   };
   const draftPurposeTemplateByCreator1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
@@ -90,6 +91,7 @@ describe("getPurposeTemplates", async () => {
     state: purposeTemplateState.suspended,
     creatorId: creatorId2,
     targetTenantKind: tenantKind.GSP,
+    handlesPersonalData: true,
   };
   const archivedPurposeTemplateByCreator2: PurposeTemplate = {
     ...getMockPurposeTemplate(),
@@ -380,6 +382,44 @@ describe("getPurposeTemplates", async () => {
       draftPurposeTemplateByCreator2,
       suspendedPurposeTemplateByCreator1,
       suspendedPurposeTemplateByCreator2,
+    ]);
+  });
+
+  it("should get purpose templates with filters: handlesPersonalData = true", async () => {
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        eserviceIds: [],
+        creatorIds: [],
+        states: [],
+        handlesPersonalData: true,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(creatorId1) })
+    );
+    expectSinglePageListResult(result, [
+      activePurposeTemplateByCreator1,
+      suspendedPurposeTemplateByCreator2,
+    ]);
+  });
+
+  it("should get purpose templates with filters: handlesPersonalData = false", async () => {
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        eserviceIds: [],
+        creatorIds: [],
+        states: [],
+        handlesPersonalData: false,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(creatorId1) })
+    );
+    expectSinglePageListResult(result, [
+      activePurposeTemplateByCreator2,
+      archivedPurposeTemplateByCreator1,
+      archivedPurposeTemplateByCreator2,
+      draftPurposeTemplateByCreator1,
+      draftPurposeTemplateByCreator2,
+      suspendedPurposeTemplateByCreator1,
     ]);
   });
 

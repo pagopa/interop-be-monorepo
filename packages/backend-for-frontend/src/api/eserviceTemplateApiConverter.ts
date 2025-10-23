@@ -72,7 +72,8 @@ export function toBffCatalogEServiceTemplate(
 }
 
 export function toBffProducerEServiceTemplate(
-  eserviceTemplate: eserviceTemplateApi.EServiceTemplate
+  eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
+  entityIdsWithUnreadNotifications: string[]
 ): bffApi.ProducerEServiceTemplate {
   const activeVersion = eserviceTemplate.versions.find(
     (v) =>
@@ -97,6 +98,9 @@ export function toBffProducerEServiceTemplate(
     draftVersion: draftVersion
       ? toBffCompactEServiceTemplateVersion(draftVersion)
       : undefined,
+    hasUnreadNotifications: entityIdsWithUnreadNotifications?.includes(
+      eserviceTemplate.id
+    ),
   };
 }
 
