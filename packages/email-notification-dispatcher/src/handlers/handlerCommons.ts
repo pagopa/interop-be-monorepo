@@ -17,6 +17,7 @@ import {
   tenantMailKind,
   TenantV2,
   UserId,
+  ClientV2,
   EServiceId,
 } from "pagopa-interop-models";
 import { getLatestTenantMailOfKind, Logger } from "pagopa-interop-commons";
@@ -61,18 +62,38 @@ export type DelegationHandlerParams = HandlerCommonParams & {
   delegationV2Msg?: DelegationV2;
 };
 
+export type ProducerKeychainKeyHandlerParams = HandlerCommonParams & {
+  producerKeychainV2Msg?: ProducerKeychainV2;
+  kid: string;
+};
+
+export type ProducerKeychainUserHandlerParams = HandlerCommonParams & {
+  producerKeychainV2Msg?: ProducerKeychainV2;
+  userId: UserId;
+};
+
+export type ClientKeyHandlerParams = HandlerCommonParams & {
+  clientV2Msg?: ClientV2;
+  kid: string;
+};
+
+export type ClientUserHandlerParams = HandlerCommonParams & {
+  clientV2Msg?: ClientV2;
+  userId: UserId;
+};
+
 export type ProducerKeychainEServiceHandlerParams = HandlerCommonParams & {
   producerKeychainV2Msg?: ProducerKeychainV2;
   eserviceId: EServiceId;
 };
 
-type TenantEmailNotificationRecipient = {
+export type TenantEmailNotificationRecipient = {
   type: "Tenant";
   tenantId: TenantId;
   address: string;
 };
 
-type UserEmailNotificationRecipient = {
+export type UserEmailNotificationRecipient = {
   type: "User";
   userId: UserId;
   tenantId: TenantId;

@@ -344,13 +344,14 @@ const eserviceTemplateRouter = (
     )
     .get("/catalog/eservices/templates", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
-      const { q, creatorsIds, offset, limit } = req.query;
+      const { q, creatorsIds, personalData, offset, limit } = req.query;
 
       try {
         const response =
           await eserviceTemplateService.getCatalogEServiceTemplates(
             q,
             creatorsIds,
+            personalData,
             offset,
             limit,
             ctx

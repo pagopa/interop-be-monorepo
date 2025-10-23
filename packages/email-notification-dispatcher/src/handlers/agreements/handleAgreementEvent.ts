@@ -8,11 +8,16 @@ import { handleAgreementActivatedToConsumer } from "./handleAgreementActivatedTo
 import { handleAgreementRejected } from "./handleAgreementRejected.js";
 import { handleAgreementSubmitted } from "./handleAgreementSubmitted.js";
 import { handleAgreementUpgraded } from "./handleAgreementUpgraded.js";
-import { handleAgreementSuspendedByProducer } from "./handleAgreementSuspendedByProducer.js";
+import { handleAgreementSuspendedByConsumer } from "./handleAgreementSuspendedByConsumer.js";
+import { handleAgreementSuspendedByPlatformToProducer } from "./handleAgreementSuspendedByPlatformToProducer.js";
+import { handleAgreementUnsuspendedByConsumer } from "./handleAgreementUnsuspendedByConsumer.js";
+import { handleAgreementUnsuspendedByPlatformToProducer } from "./handleAgreementUnsuspendedByPlatformToProducer.js";
 import { handleAgreementActivatedToProducer } from "./handleAgreementActivatedToProducer.js";
+import { handleAgreementArchivedByConsumer } from "./handleAgreementArchivedByConsumer.js";
 import { handleAgreementUnsuspendedByProducer } from "./handleAgreementUnsuspendedByProducer.js";
 import { handleAgreementSuspendedByPlatformToConsumer } from "./handleAgreementSuspendedByPlatformToConsumer.js";
 import { handleAgreementUnsuspendedByPlatformToConsumer } from "./handleAgreementUnsuspendedByPlatformToConsumer.js";
+import { handleAgreementSuspendedByProducer } from "./handleAgreementSuspendedByProducer.js";
 
 export async function handleAgreementEvent(
   params: HandlerParams<typeof AgreementEventV2>
@@ -74,6 +79,16 @@ export async function handleAgreementEvent(
         correlationId,
       })
     )
+    .with({ type: "AgreementSuspendedByConsumer" }, ({ data: { agreement } }) =>
+      handleAgreementSuspendedByConsumer({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
     .with({ type: "AgreementSuspendedByProducer" }, ({ data: { agreement } }) =>
       handleAgreementSuspendedByProducer({
         agreementV2Msg: agreement,
@@ -84,15 +99,38 @@ export async function handleAgreementEvent(
         correlationId,
       })
     )
-    .with({ type: "AgreementSuspendedByPlatform" }, ({ data: { agreement } }) =>
-      handleAgreementSuspendedByPlatformToConsumer({
-        agreementV2Msg: agreement,
-        logger,
-        readModelService,
-        templateService,
-        userService,
-        correlationId,
-      })
+    .with(
+      { type: "AgreementSuspendedByPlatform" },
+      async ({ data: { agreement } }) => [
+        ...(await handleAgreementSuspendedByPlatformToConsumer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })),
+        ...(await handleAgreementSuspendedByPlatformToProducer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })),
+      ]
+    )
+    .with(
+      { type: "AgreementUnsuspendedByConsumer" },
+      ({ data: { agreement } }) =>
+        handleAgreementUnsuspendedByConsumer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })
     )
     .with(
       { type: "AgreementUnsuspendedByProducer" },
@@ -106,17 +144,36 @@ export async function handleAgreementEvent(
           correlationId,
         })
     )
+    .with({ type: "AgreementArchivedByConsumer" }, ({ data: { agreement } }) =>
+      handleAgreementArchivedByConsumer({
+        agreementV2Msg: agreement,
+        logger,
+        readModelService,
+        templateService,
+        userService,
+        correlationId,
+      })
+    )
     .with(
       { type: "AgreementUnsuspendedByPlatform" },
-      ({ data: { agreement } }) =>
-        handleAgreementUnsuspendedByPlatformToConsumer({
+      async ({ data: { agreement } }) => [
+        ...(await handleAgreementUnsuspendedByPlatformToProducer({
           agreementV2Msg: agreement,
           logger,
           readModelService,
           templateService,
           userService,
           correlationId,
-        })
+        })),
+        ...(await handleAgreementUnsuspendedByPlatformToConsumer({
+          agreementV2Msg: agreement,
+          logger,
+          readModelService,
+          templateService,
+          userService,
+          correlationId,
+        })),
+      ]
     )
     .with(
       {
@@ -124,10 +181,7 @@ export async function handleAgreementEvent(
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
-          "AgreementUnsuspendedByConsumer",
-          "AgreementArchivedByConsumer",
           "AgreementArchivedByUpgrade",
-          "AgreementSuspendedByConsumer",
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
